@@ -1,0 +1,39 @@
+onnxruntime.transformers1.16.1:ã
+G
+input
+onnx::Concat_1outputConcat_0"Concat*
+axisþÿÿÿÿÿÿÿÿ 	torch_jitZ
+input
+
+
+
+
+@Z(
+onnx::Concat_1
+
+
+
+
+@b 
+output
+
+
+
+
+@j 
+output
+
+
+
+
+@B
+B
+
+ai.onnx.mlB
+ai.onnx.trainingB
+com.ms.internal.nhwcB
+ai.onnx.preview.trainingB
+com.microsoftB
+com.microsoft.experimentalB
+com.microsoft.nchwcB
+org.pytorch.aten

@@ -1,0 +1,63 @@
+// Copyright 2024 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Moritz Scherer <scheremo@iis.ee.ethz.ch>
+diff --git a/sw/snRuntime/base.ld b/sw/snRuntime/base.ld
+index d0979b7..171921d 100644
+--- a/sw/snRuntime/base.ld
++++ b/sw/snRuntime/base.ld
+@@ -66,7 +66,7 @@ SECTIONS
+   .cbss :
+   {
+     __cbss_start = .;
+-    *(.cbss .cbss.*)
++    KEEP(*(.cbss .cbss.*))
+     __cbss_end = .;
+   } >L3
+
+diff --git a/sw/snRuntime/src/team.c b/sw/snRuntime/src/team.c
+index a9eb840..5290e1d 100644
+--- a/sw/snRuntime/src/team.c
++++ b/sw/snRuntime/src/team.c
+@@ -10,6 +10,10 @@ extern uint32_t snrt_global_core_idx();
+
+ extern uint32_t snrt_global_core_num();
+
++extern uint32_t snrt_global_compute_core_num();
++
++extern uint32_t snrt_global_compute_core_idx();
++
+ extern uint32_t snrt_cluster_idx();
+
+ extern uint32_t snrt_cluster_num();
+diff --git a/target/snitch_cluster/sw/runtime/rtl/src/putchar.c b/target/snitch_cluster/sw/runtime/rtl/src/putchar.c
+index 0ad9500..215c8b1 100644
+--- a/target/snitch_cluster/sw/runtime/rtl/src/putchar.c
++++ b/target/snitch_cluster/sw/runtime/rtl/src/putchar.c
+@@ -5,16 +5,19 @@
+ extern uintptr_t volatile tohost, fromhost;
+
+ // Rudimentary string buffer for putc calls.
+-extern uint32_t _edram;
+ #define PUTC_BUFFER_LEN (1024 - sizeof(size_t))
+-struct putc_buffer_header {
++
++typedef struct  {
+     size_t size;
+     uint64_t syscall_mem[8];
+-};
+-static volatile struct putc_buffer {
+-    struct putc_buffer_header hdr;
++} putc_buffer_header_t;
++
++typedef struct putc_buffer {
++    putc_buffer_header_t hdr;
+     char data[PUTC_BUFFER_LEN];
+-} *const putc_buffer = (void *)&_edram;
++} putc_buffer_t;
++
++static volatile putc_buffer_t putc_buffer[SNRT_CLUSTER_NUM*SNRT_CLUSTER_CORE_NUM] __attribute__((section(".dram")));
+
+ // Provide an implementation for putchar.
+ void _putchar(char character) {

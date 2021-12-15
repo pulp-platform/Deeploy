@@ -1,0 +1,128 @@
+// Copyright 2024 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Moritz Scherer <scheremo@iis.ee.ethz.ch>
+diff --git a/llvm/lib/Analysis/AffineAccessAnalysis.cpp b/llvm/lib/Analysis/AffineAccessAnalysis.cpp
+index 1b58f3cb8ffe..cd704b719250 100644
+--- a/llvm/lib/Analysis/AffineAccessAnalysis.cpp
++++ b/llvm/lib/Analysis/AffineAccessAnalysis.cpp
+@@ -262,11 +262,11 @@ bool isOnAllPredicatedControlFlowPaths(BasicBlock *BB, const Loop *L, const Domi
+     vis.insert(Current);
+
+     Instruction *T = Current->getTerminator();
+-    LLVM_DEBUG(T->dump());
++    //LLVM_DEBUG(T->dump());
+     if (BranchInst *BR = dyn_cast<BranchInst>(T)){
+       if (BR->isConditional()){
+         if (ICmpInst *Cmp = dyn_cast<ICmpInst>(BR->getCondition())){ //FOR NOW: only works with a single ICmpInst as branch condition operand
+-          LLVM_DEBUG(Cmp->dump());
++          //LLVM_DEBUG(Cmp->dump());
+           auto r = predicatedICmpOutcome(Cmp, Rep, SE);
+           if (r.hasValue()){
+             if (r.getValue()) q.push_back(BR->getSuccessor(0));
+@@ -688,8 +688,6 @@ void AffAcc::dumpInLoop(const Loop *L) const {
+     else errs()<<"<nullptr>";
+     errs()<<"\n";
+     errs()<<"\tloop header = ";
+-    if (getLoop(dim)) errs()<<getLoop(dim)->getHeader()->getNameOrAsOperand();
+-    else errs()<<"<nullptr>";
+     errs()<<"\n";
+   }
+ }
+@@ -776,7 +774,7 @@ Value *AffAcc::expandBaseAddr(unsigned dimension, Type *ty, Instruction *InsertB
+   if (!isSafeToExpandAt(getBaseAddr(dimension), InsertBefore, SE)){
+     LLVM_DEBUG(dbgs()<<"data not expanable here (note: only preheader guaranteed)\n");
+     LLVM_DEBUG(dbgs()<<"SCEV (dim = "<<dimension<<")= "<<*getBaseAddr(dimension)<<"\n");
+-    LLVM_DEBUG(dbgs()<<"in block:\n"; InsertBefore->getParent()->dump());
++    // LLVM_DEBUG(dbgs()<<"in block:\n"; InsertBefore->getParent()->dump());
+     LLVM_DEBUG(dbgs()<<"before inst: "<<*InsertBefore<<"\n");
+     LLVM_DEBUG(this->dump());
+     llvm_unreachable("cannot expand SCEV at desired location");
+@@ -801,9 +799,9 @@ Value *AffAcc::expandRep(unsigned dimension, Type *ty, Instruction *InsertBefore
+   assert(isWellFormed(dimension) && dimension > 0u);
+   InsertBefore = InsertBefore ? InsertBefore : reps[dimension]->getLoop()->getLoopPreheader()->getTerminator();
+   if (!isSafeToExpandAt(getRep(dimension), InsertBefore, SE)) {
+-    getRep(dimension)->dump();
+-    InsertBefore->dump();
+-    InsertBefore->getParent()->dump();
++    // getRep(dimension)->dump();
++    // InsertBefore->dump();
++    // InsertBefore->getParent()->dump();
+     this->dump();
+   }
+   return reps[dimension]->expandAt(ty, InsertBefore);
+@@ -1032,9 +1030,9 @@ void AffineAccess::addAllConflicts(const std::vector<AffAcc *> &all) {
+       if (!L) continue;
+       if (L == outerMostExpandableExl) break;
+       if (!(!L || A->isWellFormed(L))){
+-        if (L) LLVM_DEBUG(L->dump());
+-        if (outerMostExpandableExl) LLVM_DEBUG(outerMostExpandableExl->dump());
+-        LLVM_DEBUG(A->dump());
++        //if (L) LLVM_DEBUG(L->dump());
++        //if (outerMostExpandableExl) LLVM_DEBUG(outerMostExpandableExl->dump());
++        //LLVM_DEBUG(A->dump());
+         llvm_unreachable("this should not happen!");
+       }
+       assert(!L || A->isWellFormed(L));
+@@ -1252,12 +1250,12 @@ AffineAccess AffineAccessAnalysis::run(Function &F, FunctionAnalysisManager &FAM
+ //================== Affine Acces Analysis Pass for opt =======================================
+ PreservedAnalyses AffineAccessAnalysisPass::run(Function &F, FunctionAnalysisManager &FAM) {
+   AffineAccess AA = FAM.getResult<AffineAccessAnalysis>(F);
+-  for (const Loop *L : AA.getLI().getLoopsInPreorder()){
+-    L->dump();
+-    for (const AffAcc *A : AA.getExpandableAccesses(L)){
+-      A->dumpInLoop(L);
+-    }
+-  }
++  // for (const Loop *L : AA.getLI().getLoopsInPreorder()){
++  //   //L->dump();
++  //   for (const AffAcc *A : AA.getExpandableAccesses(L)){
++  //     A->dumpInLoop(L);
++  //   }
++  // }
+   return PreservedAnalyses::all();
+ }
+
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfoXpulp.td b/llvm/lib/Target/RISCV/RISCVInstrInfoXpulp.td
+index 090598a2037e..c3f5abf4db39 100644
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfoXpulp.td
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfoXpulp.td
+@@ -1589,6 +1589,9 @@ def : Pat<(v4i8 (build_vector GPR:$rs1, GPR:$rs2, GPR:$rs3, GPR:$rs4)),
+ def : Pat<(v2i16 (splat_vector GPR:$rs1)), (PV_PACK_H GPR:$rs1, GPR:$rs1)>;
+ def : Pat<(v4i8 (splat_vector GPR:$rs1)), (PV_ADD_SC_B X0, GPR:$rs1)>;
+
++def : Pat<(v4i8 (riscv_vmv_v_x_vl (v4i8 undef), GPR:$imm, VLOpFrag)),
++	   (PV_ADD_SC_B X0, (ADD (SLL X0, $vl), $imm))>;
++
+ defm : GeneralSVectorPattern<seteq, "CMPEQ">;
+ defm : GeneralSVectorPattern<setne, "CMPNE">;
+ defm : GeneralSVectorPattern<setgt, "CMPGT">;
+diff --git a/llvm/lib/Transforms/SSR/SSRGeneration.cpp b/llvm/lib/Transforms/SSR/SSRGeneration.cpp
+index 2c5bb14f85d7..63060155dbb8 100644
+--- a/llvm/lib/Transforms/SSR/SSRGeneration.cpp
++++ b/llvm/lib/Transforms/SSR/SSRGeneration.cpp
+@@ -865,16 +865,6 @@ PreservedAnalyses SSRGenerationPass::run(Function &F, FunctionAnalysisManager &F
+       if (p != conds.end()) {
+         BasicBlock *Ex = getSingleExitBlock(L);
+         assert(Ex);
+-        if (SSRVerbose) {
+-          errs()
+-            <<"> Function "
+-            <<L->getHeader()->getParent()->getNameOrAsOperand()
+-            <<": Expanding SSR streams with "
+-            <<(L->getLoopDepth()-1)
+-            <<" containing loops and setup in preheader of loop with header "
+-            <<L->getHeader()->getNameOrAsOperand()
+-            <<"\n";
+-        }
+         cloneAndSetup(L->getLoopPreheader()->getTerminator(), &*Ex->getFirstInsertionPt(), p->second, exps.find(L)->getSecond());
+       }
+     }
+@@ -885,4 +875,4 @@ PreservedAnalyses SSRGenerationPass::run(Function &F, FunctionAnalysisManager &F
+   F.addFnAttr(StringRef(SSRFnAttr)); //we have inserted a stream, tag accordingly
+   if (SSRNoInline) F.addFnAttr(Attribute::AttrKind::NoInline);
+   return PreservedAnalyses::none();
+-}
+\ No newline at end of file
++}

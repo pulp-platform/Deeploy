@@ -1,0 +1,20 @@
+[binaries]
+c = ['clang', '-m32', '-target', 'armv7m-none-eabi', '-mcpu=cortex-m4', '-mfloat-abi=soft', '-nostdlib']
+ar = 'llvm-ar'
+strip = 'llvm-strip'
+exe_wrapper = ['sh', '-c', 'test -z "$PICOLIBC_TEST" || run-thumbv7m "$@"', 'run-thumbv7m']
+
+[host_machine]
+system = 'none'
+cpu_family = 'arm'
+cpu = 'arm'
+endian = 'little'
+
+[properties]
+c_args = ['-Werror=double-promotion', '-Wno-unsupported-floating-point-opt', '-fshort-enums']
+c_link_args = ['-Wl,-z,noexecstack']
+skip_sanity_check = true
+default_flash_addr = '0x00000000'
+default_flash_size = '0x00400000'
+default_ram_addr   = '0x20000000'
+default_ram_size   = '0x00200000'
