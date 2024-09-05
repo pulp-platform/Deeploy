@@ -38,7 +38,8 @@ void Softmax_s8_s8(int8_t *data_in, int8_t *data_out, uint32_t size,
                    uint32_t lastDimLength, int32_t coeffA, int32_t coeffB,
                    int64_t coeffC, int32_t log2, uint32_t n_levels) {
 
-  int8_t xTilde, z, p;
+  int8_t z;
+  int16_t xTilde, p;
   uint32_t y_sum;
   int8_t x_max;
   uint32_t *y = (uint32_t *)deeploy_malloc(sizeof(int32_t) * lastDimLength);
@@ -52,9 +53,10 @@ void Softmax_s8_s8(int8_t *data_in, int8_t *data_out, uint32_t size,
       }
     }
     for (uint32_t j = 0; j < lastDimLength; j++) {
-      xTilde = (int8_t)(data_in[j + i * lastDimLength] - x_max);
-      z = (int8_t) - (xTilde / log2);
-      p = (int8_t)(xTilde + z * log2);
+      xTilde = (data_in[j + i * lastDimLength] - x_max);
+      z = (int8_t)(-(xTilde / log2));
+      z = CLAMP(z, 0, 31);
+      p = (int16_t)(xTilde + z * log2);
       y[j] = (uint32_t)((uint64_t)(coeffA * ((p + coeffB) * (p + coeffB)) +
                                    coeffC) >>
                         (z));
