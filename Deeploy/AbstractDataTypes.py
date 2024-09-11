@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import copy
+import math
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Generic, Iterable, List, Optional, Type, TypeVar, Union
@@ -231,6 +232,139 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
             return False
         if _min < cls.typeMin:
             return False
+        return True
+
+
+class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
+    typeFraction: int   #: int: Represents the number of bits reserved for the fraction part
+    typeExponent: int   #: int: Represents the number of bits reserved for the exponent part
+    signed: bool        #: bool: Represents whether the underlying float is signed or unsigned (should be removed)
+
+    @_classproperty
+    def typeExponentMax(cls) -> int:
+        # In floating point, all 1 in exponent is reserved for special numbers (i.e. NaN or Inf)
+        return 2**(cls.typeExponent) - 2
+
+    @_classproperty
+    def typeExponentOffset(cls) -> int:
+        # The offset added to the exponent
+        return 2**(cls.typeExponent - 1) - 1
+
+    # ADEQUINO: This is a ugly workaround for FP, works for bfloat16 and fp32 because bfloat16 is a truncated fp32
+    @classmethod
+    def partialOrderUpcast(cls, otherCls: Type[Immediate]) -> bool:
+        if issubclass(otherCls, FloatImmediate):
+            return cls.typeFraction >= otherCls.typeFraction and cls.typeExponent >= otherCls.typeExponent
+        else:
+            return False
+
+    @classmethod
+    def checkValue(cls, value: Union[float, Iterable[float]], ctxt: Optional[_NetworkContext] = None):
+        """
+        This method tries to manually cast standard python's standard immediate float precision values 
+        (64 bits) to an arbitrary FP representation and check if the new representation is close enough 
+        to the original value.
+        """
+        _val_list = []
+
+        if isinstance(value, float):
+            _val_list.append(value)
+        elif isinstance(value, np.ndarray):
+            _val_list = value.tolist()
+        elif isinstance(value, Iterable):
+            for i in value:
+                _val_list.append(i)
+        else:
+            raise Exception("Immediate type not recognized.")
+
+        for val in _val_list:
+            # Zero (and subnormals, not implemented) are special cases
+            if (val == 0):
+                continue
+            # Make the value positive
+            if (val < 0):
+                val = val * -1
+
+            # Separate Integer and Fraction of immediate
+            fraction, integer = math.modf(val)
+
+            # Binarylist for the mantissa
+            binarylist = []
+            f = fraction
+
+            # Fraction binarization, fails if nbits required > n bits mantissa.
+            # If integer part of immediate is 0, we start counting mantissa bits after we find the first 1 bit.
+            if (int(integer) > 0):
+                for i in range(cls.typeFraction):
+                    f = f * 2
+                    f, fint = math.modf(f)
+                    binarylist.append(str(int(fint)))
+                    if f == 0:
+                        break
+                    elif i == (cls.typeFraction - 1):
+                        return False
+            else:
+                flag = 0
+                count = cls.typeFraction + 1
+                while (count):
+                    f = f * 2
+                    f, fint = math.modf(f)
+                    binarylist.append(str(int(fint)))
+                    if int(fint) == 1 and flag == 0:
+                        flag = 1
+                    if f == 0:
+                        break
+                    if flag == 1:
+                        count = count - 1
+                    if (count == 0):
+                        return False
+
+            # Float exponent part
+            # It's equal to the length of the integer part minus 1, if the integer part is not zero.
+            # Otherwise, it's minus the number of 0 bits before the first 1 bit in the fraction representation + 1
+            exponent = 0
+            if (int(bin(int(integer))[2:]) == 0):
+                for b in binarylist:
+                    exponent = exponent - 1
+                    if b == '1':
+                        break
+            else:
+                exponent = len(str(bin(int(integer))[2:])) - 1
+
+            # Check if exponent is representable in n_exponent bits
+            true_exponent = int(bin(cls.typeExponentOffset + exponent)[2:])
+            if (cls.typeExponentOffset + exponent) > cls.typeExponentMax or (cls.typeExponentOffset + exponent) < 0:
+                return False
+
+            # Append bits to head of mantissa, if integer part is not in scientific notion
+            binarylist2 = []
+            if len(str(bin(int(integer))[2:])) > 1:
+                for digit in str(bin(int(integer))[3:]):
+                    binarylist2.append((digit))
+
+            # If integer part is zero, trim the mantissa bits that have been used to calculate the exponent part
+            if (int(integer) > 0):
+                finalbinaryfraction = binarylist2 + binarylist
+            else:
+                finalbinaryfraction = binarylist
+                while (finalbinaryfraction[0] == '0'):
+                    finalbinaryfraction.pop(0)
+                finalbinaryfraction.pop(0)
+
+            # Fix mantissa size
+            if ((cls.typeFraction - len(finalbinaryfraction)) > 0):
+                finalbinaryfraction += ['0'] * (cls.typeFraction - len(finalbinaryfraction))
+            if (len(finalbinaryfraction) > cls.typeFraction):
+                finalbinaryfraction = finalbinaryfraction[:cls.typeFraction]
+
+            # Check if the value in binary float represent the immediate value
+            exponent_part = 2**exponent
+            mantissa_part = 1
+            for (i, m) in enumerate(finalbinaryfraction):
+                mantissa_part = mantissa_part + 2**(-(i + 1)) * int(m)
+            if (exponent_part * mantissa_part != val):
+                return False
+
         return True
 
 

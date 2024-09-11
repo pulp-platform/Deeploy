@@ -45,7 +45,7 @@ from mako.template import Template
 from onnx.external_data_helper import convert_model_to_external_data
 from ortools.constraint_solver.pywrapcp import IntVar
 
-from .AbstractDataTypes import BaseType, IntegerImmediate, Pointer, PointerClass, Struct, VoidType
+from .AbstractDataTypes import BaseType, FloatImmediate, IntegerImmediate, Pointer, PointerClass, Struct, VoidType
 
 Shape = TypeVar("Shape", bound = Any)
 SubGraph = List[gs.Node]
@@ -1903,11 +1903,16 @@ class ONNXLayer():
             else:
                 return np.dtype(getattr(np, "uint" + str(ty.typeWidth)))
 
+        def _broadcastFloat(ty: Type[FloatImmediate]):
+            return np.dtype(getattr(np, "double"))
+        
         if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
             if issubclass(ty.referencedType, IntegerImmediate):
                 return _broadcastInteger(ty.referencedType)
         elif issubclass(ty, IntegerImmediate):
             return _broadcastInteger(ty)
+        elif issubclass(ty, FloatImmediate):
+            return _broadcastFloat(ty)
 
         return None
 
