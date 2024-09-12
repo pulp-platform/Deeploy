@@ -44,3 +44,16 @@ index 216996b..e5abe38 100644
              LLVMPassManagerBuilderPopulateModulePassManager(builder, module_passes);
  
              // Create and run the function pass manager.
+diff --git a/src/tran.rs b/src/tran.rs
+index 866b9d9..83ea9ff 100644
+--- a/src/tran.rs
++++ b/src/tran.rs
+@@ -20,7 +20,7 @@ use std::{
+ };
+ extern crate flexfloat;
+
+ /// -static NONAME: &'static i8 = unsafe { std::mem::transmute("\0".as_ptr()) };
+ /// +static NONAME: &'static u8 = unsafe { std::mem::transmute("\0".as_ptr()) };
+
+ /// Base address of the stream semantic regsiters
+ static SSR_BASE: u64 = 0x204800;
