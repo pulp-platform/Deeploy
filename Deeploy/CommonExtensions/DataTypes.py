@@ -25,7 +25,7 @@
 
 from typing import Tuple, Type
 
-from Deeploy.AbstractDataTypes import IntegerImmediate
+from Deeploy.AbstractDataTypes import FloatImmediate, IntegerImmediate
 
 
 class int8_t(IntegerImmediate):
@@ -76,6 +76,22 @@ class uint64_t(IntegerImmediate):
     signed = False
 
 
+class bfloat16(FloatImmediate):
+    typeName = "float16alt"
+    typeWidth = 16
+    typeFraction = 7
+    typeExponent = 8
+    signed = True
+
+
+class float32(FloatImmediate):
+    typeName = "float"
+    typeWidth = 32
+    typeFraction = 23
+    typeExponent = 8
+    signed = True
+
+
 SignedIntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (int8_t, int16_t, int32_t, int64_t)
 UnsignedIntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (uint8_t, uint16_t, uint32_t, uint64_t)
 IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (sorted((
@@ -83,3 +99,4 @@ IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (sorted((
     *UnsignedIntegerDataTypes,
 ),
                                                                key = lambda _type: _type.typeWidth))
+FloatDataTypes: Tuple[Type[FloatImmediate], ...] = (bfloat16, float32)

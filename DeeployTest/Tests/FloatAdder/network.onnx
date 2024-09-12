@@ -1,0 +1,30 @@
+onnxruntime.transformers1.16.1:¨
+(
+input
+onnx::Add_1outputAdd_0"Addtorch-jit-exportZ
+input
+
+
+Z
+onnx::Add_1
+
+
+b
+output
+
+
+j
+output
+
+
+B
+B
+
+ai.onnx.mlB
+ai.onnx.trainingB
+com.ms.internal.nhwcB
+ai.onnx.preview.trainingB
+com.microsoftB
+com.microsoft.experimentalB
+com.microsoft.nchwcB
+org.pytorch.aten

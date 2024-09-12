@@ -76,7 +76,7 @@ echo-bash:
 	@echo "export MEMPOOL_HOME=${MEMPOOL_INSTALL_DIR}"
 	@echo "export CMAKE=$$(which cmake)"
 	@echo "export PATH=${QEMU_INSTALL_DIR}/bin:${BANSHEE_INSTALL_DIR}:\$$PATH"
-	@echo "export PATH=~/.cargo/bin:$PATH"
+	@echo "export PATH=~/.cargo/bin:\$$PATH"
 	@echo "source ${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
 
 
