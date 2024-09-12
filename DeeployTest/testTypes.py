@@ -28,7 +28,7 @@ import pickle
 import pytest
 
 from Deeploy.AbstractDataTypes import PointerClass, StructClass
-from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, int8_t, int16_t, int32_t, FloatDataTypes, float32, bfloat16
+from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, bfloat16, float32, int8_t, int16_t, int32_t
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, StructBuffer, TransientBuffer, VariableBuffer
 
 

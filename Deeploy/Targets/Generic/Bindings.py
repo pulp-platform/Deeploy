@@ -30,7 +30,8 @@ import itertools
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, int8_t, int32_t, uint8_t
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, int8_t, \
+    int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
@@ -39,8 +40,8 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvT
     ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, \
     TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
-    DummyChecker, FloatAddChecker, GatherChecker, GELUChecker, GEMMChecker, IntegerDivChecker, MatMulChecker, MaxPoolChecker, \
-    MulChecker, PadChecker, ReduceMeanChecker, ReduceSumChecker, RequantShiftChecker, ReshapeChecker, \
+    DummyChecker, FloatAddChecker, GatherChecker, GELUChecker, GEMMChecker, IntegerDivChecker, MatMulChecker, \
+    MaxPoolChecker, MulChecker, PadChecker, ReduceMeanChecker, ReduceSumChecker, RequantShiftChecker, ReshapeChecker, \
     RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker, iLayerNormChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
@@ -66,9 +67,8 @@ BasicAddBindings = [
     for type1 in IntegerDataTypes
     for type2 in IntegerDataTypes
 ] + [
-    NodeBinding(FloatAddChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]), 
-                FloatAddTemplate.referenceTemplate, BasicTransformer) 
-    for type in FloatDataTypes
+    NodeBinding(FloatAddChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
+                FloatAddTemplate.referenceTemplate, BasicTransformer) for type in FloatDataTypes
 ]
 
 BasicConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),

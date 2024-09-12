@@ -1905,7 +1905,7 @@ class ONNXLayer():
 
         def _broadcastFloat(ty: Type[FloatImmediate]):
             return np.dtype(getattr(np, "double"))
-        
+
         if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
             if issubclass(ty.referencedType, IntegerImmediate):
                 return _broadcastInteger(ty.referencedType)
