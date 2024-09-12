@@ -236,9 +236,9 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
 
 
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
-    typeFraction: int   #: int: Represents the number of bits reserved for the fraction part
-    typeExponent: int   #: int: Represents the number of bits reserved for the exponent part
-    signed: bool        #: bool: Represents whether the underlying float is signed or unsigned (should be removed)
+    typeFraction: int  #: int: Represents the number of bits reserved for the fraction part
+    typeExponent: int  #: int: Represents the number of bits reserved for the exponent part
+    signed: bool  #: bool: Represents whether the underlying float is signed or unsigned (should be removed)
 
     @_classproperty
     def typeExponentMax(cls) -> int:
