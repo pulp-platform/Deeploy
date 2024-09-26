@@ -1,13 +1,15 @@
-// Copyright 2024 ETH Zurich and University of Bologna.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
-//
-// Moritz Scherer <scheremo@iis.ee.ethz.ch>
 diff --git a/Cargo.toml b/Cargo.toml
-index d406357..7bd0f91 100644
+index d406357..23bcfcd 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -21,7 +21,7 @@ csv = "1.0.0-beta.2"
+@@ -15,13 +15,14 @@ anyhow = "1"
+ binread = "2.2.0"
+ bytebuffer = "0.2.1"
+ byteorder = "1.4.3"
++unicode-width = "=0.1.13"
+ clap = "2"
+ crossbeam-utils = "0.8"
+ csv = "1.0.0-beta.2"
  elf = "0.0.10"
  flexfloat = { path = "flexfloat" }
  itertools = "0.9"
@@ -35,23 +37,10 @@ index 216996b..e5abe38 100644
 --- a/src/engine.rs
 +++ b/src/engine.rs
 @@ -281,7 +281,6 @@ impl Engine {
-
+ 
              LLVMPassManagerBuilderPopulateFunctionPassManager(builder, func_passes);
              LLVMAddAnalysisPasses(tm, module_passes);
 -            LLVMPassManagerBuilderPopulateLTOPassManager(builder, module_passes, 0, 1);
              LLVMPassManagerBuilderPopulateModulePassManager(builder, module_passes);
-
+ 
              // Create and run the function pass manager.
-diff --git a/src/tran.rs b/src/tran.rs
-index 866b9d9..83ea9ff 100644
---- a/src/tran.rs
-+++ b/src/tran.rs
-@@ -20,7 +20,7 @@ use std::{
- };
- extern crate flexfloat;
-
--static NONAME: &'static i8 = unsafe { std::mem::transmute("\0".as_ptr()) };
-+static NONAME: &'static u8 = unsafe { std::mem::transmute("\0".as_ptr()) };
-
- /// Base address of the stream semantic regsiters
- static SSR_BASE: u64 = 0x204800;

@@ -1,0 +1,26 @@
+name: TestRunnerGeneric
+
+on:
+  workflow_call:
+    inputs:
+      test-name:
+        required: true
+        type: string
+
+jobs:
+  test-runner-cortexm:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testRunner_generic.py -t Tests/${{ inputs.test-name }}
+          
