@@ -1,0 +1,39 @@
+name: TestRunnerSiracusa
+
+on:
+  workflow_call:
+    inputs:
+      test-name:
+        required: true
+        type: string
+      num-cores:
+        required: true
+        type: number
+
+jobs:
+  test-runner-siracusa:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Cache ccache
+        id: ccache-cache
+        uses: actions/cache@v4
+        with:
+          path: /app/.ccache
+          key: ${{ runner.os }}-ccache
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          source /app/install/pulp-sdk/configs/siracusa.sh
+          python testRunner_siracusa.py -t Tests/${{ inputs.test-name }} --cores=${{ inputs.num-cores }}
+        shell: bash
+        
