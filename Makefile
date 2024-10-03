@@ -78,6 +78,9 @@ echo-bash:
 	@echo "export PATH=${QEMU_INSTALL_DIR}/bin:${BANSHEE_INSTALL_DIR}:\$$PATH"
 	@echo "export PATH=~/.cargo/bin:$PATH"
 	@echo "source ${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
+	@echo ""
+	@echo "Or source the following script:"
+	@echo "source deeploy.sh"
 
 
 toolchain: llvm llvm-compiler-rt-riscv llvm-compiler-rt-arm picolibc-arm picolibc-riscv
