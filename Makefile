@@ -72,12 +72,15 @@ echo-bash:
 	@echo "TL/DR: add these lines to run ~/.bashrc"
 	@echo "export PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
 	@echo "export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
-	@echo "export PULP_RISCV_GCC_TOOLCHAIN=/PULP_SDK_IS_A_MESS"
+	@echo "export PULP_RISCV_GCC_TOOLCHAIN="
 	@echo "export MEMPOOL_HOME=${MEMPOOL_INSTALL_DIR}"
 	@echo "export CMAKE=$$(which cmake)"
 	@echo "export PATH=${QEMU_INSTALL_DIR}/bin:${BANSHEE_INSTALL_DIR}:\$$PATH"
 	@echo "export PATH=~/.cargo/bin:$PATH"
 	@echo "source ${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
+	@echo ""
+	@echo "Or export the DEEPLOY_INSTALL_DIR variable and source the following script:"
+	@echo "source deeploy.sh"
 
 
 toolchain: llvm llvm-compiler-rt-riscv llvm-compiler-rt-arm picolibc-arm picolibc-riscv
