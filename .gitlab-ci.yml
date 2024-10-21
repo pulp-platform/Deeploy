@@ -563,7 +563,7 @@ run_generic_test_kernels: # This job runs in the test stage.
   stage: test # It only starts when the job in the build stage completes successfully.
   parallel:
     matrix:
-    - TEST: [Adder, MultIO, test1DConvolution, test2DConvolution, test1DDWConvolution, test2DDWConvolution, test1DPad, test2DPad, testGEMM, testMatMul, testMatMulAdd, testMaxPool, testRQConv, testRQMatMul, testReduceSum, testReduceMean, testSlice, testRequantizedDWConv, test2DRequantizedConv]
+    - TEST: [Adder, MultIO, test1DConvolution, test2DConvolution, test1DDWConvolution, test2DDWConvolution, test1DPad, test2DPad, testGEMM, testMatMul, testMatMulAdd, testMaxPool, testRQConv, testRQMatMul, testReduceSum, testReduceMean, testSlice, testRequantizedDWConv, test2DRequantizedConv, iSoftmax]
   script:
     - !reference [.setup_test, script]
     - python testRunner_generic.py -t ./Tests/$TEST --toolchain=$TOOLCHAIN --toolchain_install_dir=$LLVM_INSTALL_DIR
