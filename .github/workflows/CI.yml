@@ -44,6 +44,7 @@ jobs:
         testSlice
         testRequantizedDWConv
         test2DRequantizedConv
+        iSoftmax
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml
