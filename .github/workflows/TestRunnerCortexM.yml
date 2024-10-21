@@ -3,7 +3,7 @@ name: TestRunnerCortexM
 on:
   workflow_call:
     inputs:
-      test-name:
+      test-names:
         required: true
         type: string
 
@@ -21,6 +21,12 @@ jobs:
         run: pip install -e .
       - name: Run Test
         run: |
+          testNames="${{ inputs.test-names }}"
           cd DeeployTest
-          python testRunner_cortexm.py -t Tests/${{ inputs.test-name }}
+          echo "$testNames" | while IFS= read -r testName; do
+            if [[ -n "$testName" ]]; then
+              echo "Running test: $testName"
+              python testRunner_cortexm.py -t Tests/$testName
+            fi
+          done
           

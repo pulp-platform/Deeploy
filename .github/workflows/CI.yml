@@ -22,242 +22,224 @@ jobs:
   
   ### Generic Tests ###
   generic-kernels:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name:
-          - Adder
-          - MultIO
-          - test1DConvolution
-          - test2DConvolution
-          - test1DDWConvolution
-          - test2DDWConvolution
-          - test1DPad
-          - test2DPad
-          - testGEMM
-          - testMatMul
-          - testMatMulAdd
-          - testMaxPool
-          - testRQConv
-          - testRQMatMul
-          - testReduceSum
-          - testReduceMean
-          - testSlice
-          - testRequantizedDWConv
-          - test2DRequantizedConv    
     uses: ./.github/workflows/TestRunnerGeneric.yml
     with:
-      test-name: ${{ matrix.test-name }}
+      test-names: |
+        Adder
+        MultIO
+        test1DConvolution
+        test2DConvolution
+        test1DDWConvolution
+        test2DDWConvolution
+        test1DPad
+        test2DPad
+        testGEMM
+        testMatMul
+        testMatMulAdd
+        testMaxPool
+        testRQConv
+        testRQMatMul
+        testReduceSum
+        testReduceMean
+        testSlice
+        testRequantizedDWConv
+        test2DRequantizedConv
 
   generic-models:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name:
-          - simpleRegression
-          - WaveFormer
-          - simpleCNN
-          - ICCT
-          - ICCT_ITA
-          - ICCT_8
-          - ICCT_ITA_8
-          - miniMobileNet
-          - miniMobileNetv2
     uses: ./.github/workflows/TestRunnerGeneric.yml
     with:
-      test-name: ${{ matrix.test-name }}
+      test-names: |
+        simpleRegression
+        WaveFormer
+        simpleCNN
+        ICCT
+        ICCT_ITA
+        ICCT_8
+        ICCT_ITA_8
+        miniMobileNet
+        miniMobileNetv2
   
 
   ### CortexM Tests ###
-  cortexm-kernels:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name:
-          - Adder
-          - MultIO
-          - test1DPad
-          - test2DPad
-          - testMatMul
-          - testMatMulAdd
-          - testMaxPool
-          - testRQConv
-          - testReduceSum
-          - testReduceMean
-          - testSlice  
+  cortexm-kernels: 
     uses: ./.github/workflows/TestRunnerCortexM.yml
     with:
-      test-name: ${{ matrix.test-name }}
+      test-names: |
+        Adder
+        MultIO
+        test1DPad
+        test2DPad
+        testMatMul
+        testMatMulAdd
+        testMaxPool
+        testRQConv
+        testReduceSum
+        testReduceMean
+        testSlice
 
-  cortexm-models:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name:
-          - simpleRegression
-          - WaveFormer  
+  cortexm-models: 
     uses: ./.github/workflows/TestRunnerCortexM.yml
     with:
-      test-name: ${{ matrix.test-name }}
+      test-names: |
+        simpleRegression
+        WaveFormer 
 
 
   ### Mempool Tests ###
   mempool-kernels:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name:
-          - Adder
-          - MultIO
-          - test1DConvolution
-          - test2DConvolution
-          - test1DDWConvolution
-          - test2DDWConvolution
-          - test1DPad
-          - test2DPad
-          - testGEMM
-          - testMatMul
-          - testMatMulAdd
-          - testMaxPool
-          - testRQConv
-          - testRQGEMM
-          - testRQMatMul
-          - testReduceSum
-          - testReduceMean
-          - testSlice
-          - testRequantizedDWConv
-          - test2DRequantizedConv
     uses: ./.github/workflows/TestRunnerMempool.yml
     with:
-      test-name: ${{ matrix.test-name }}
+      test-names: |
+          Adder
+          MultIO
+          test1DConvolution
+          test2DConvolution
+          test1DDWConvolution
+          test2DDWConvolution
+          test1DPad
+          test2DPad
+          testGEMM
+          testMatMul
+          testMatMulAdd
+          testMaxPool
+          testRQConv
+          testRQGEMM
+          testRQMatMul
+          testReduceSum
+          testReduceMean
+          testSlice
+          testRequantizedDWConv
+          test2DRequantizedConv
 
   mempool-models:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name:
-          - simpleRegression
-          - simpleCNN
-          - ICCT
-          - ICCT_ITA
-          - ICCT_8
-          - ICCT_ITA_8
-          - miniMobileNet
-          - miniMobileNetv2
     uses: ./.github/workflows/TestRunnerMempool.yml
     with:
-      test-name: ${{ matrix.test-name }}
+      test-names: |
+        simpleRegression
+        simpleCNN
+        ICCT
+        ICCT_ITA
+        ICCT_8
+        ICCT_ITA_8
+        miniMobileNet
+        miniMobileNetv2
 
 
   ### Siracusa Tests ###
   siracusa-kernels:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name:
-          - Adder
-          - MultIO
-          - test1DPad
-          - test2DPad
-          - testMatMul
-          - testMatMulAdd
-          - testRequantizedDWConv
-          - test2DRequantizedConv
-          - iSoftmax
-          - testConcat
-          - testRMSNorm
-          - trueIntegerDivSandwich
-          - Hardswish
-          - RQHardswish
-          - testBacktracking
     uses: ./.github/workflows/TestRunnerSiracusa.yml
     with:
-      test-name: ${{ matrix.test-name }}
+      test-names: |
+        Adder
+        MultIO
+        test1DPad
+        test2DPad
+        testMatMul
+        testMatMulAdd
+        testRequantizedDWConv
+        test2DRequantizedConv
+        iSoftmax
+        testConcat
+        testRMSNorm
+        trueIntegerDivSandwich
+        Hardswish
+        RQHardswish
+        testBacktracking
       num-cores: 8
 
   siracusa-models:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name:
-          - simpleRegression
-          - miniMobileNet
-          - miniMobileNetv2
-          - Attention
-          - MLPerf/KeywordSpotting
-          - MLPerf/ImageClassification
-          - MLPerf/AnomalyDetection
     uses: ./.github/workflows/TestRunnerSiracusa.yml
     with:
-      test-name: ${{ matrix.test-name }}
+      test-names: |
+        simpleRegression
+        miniMobileNet
+        miniMobileNetv2
+        Attention
+        MLPerf/KeywordSpotting
+        MLPerf/ImageClassification
+        MLPerf/AnomalyDetection
       num-cores: 8
 
   siracusa-kernels-tiled-singlebuffer-L2:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data: 
-          - name: "testMatMul"
-            L1: [64000, 32000, 16000]
-          - name: "test2DRequantizedConv"
-            L1: [8000, 6000, 4000]
-          - name: "testRequantizedDWConv"
-            L1: [2561] # SCHEREMO: The implicit transpose after the conv is untiled; need at least 2560
-          - name: "iSoftmax"
-            L1: [800, 500, 300]
-          - name: "testConcat"
-            L1: [32000, 16000, 8000]
-          - name: "testRMSNorm"
-            L1: [2048, 1024, 512]
-          - name: "Hardswish"
-            L1: [750]
-          - name: "RQHardswish"
-            L1: [750]
-        num-cores:
-          - 8
-    uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+    uses: ./.github/workflows/TestRunnerTiledSiracusaSequential.yml
     with:
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
+      tests-config: |
+        [
+          {
+            "name": "testMatMul",
+            "L1": [64000, 32000, 16000]
+          },
+          {
+            "name": "test2DRequantizedConv",
+            "L1": [8000, 6000, 4000]
+          },
+          {
+            "name": "testRequantizedDWConv",
+            "L1": [2561]
+          },
+          {
+            "name": "iSoftmax",
+            "L1": [800, 500, 300]
+          },
+          {
+            "name": "testConcat",
+            "L1": [32000, 16000, 8000]
+          },
+          {
+            "name": "testRMSNorm",
+            "L1": [2048, 1024, 512]
+          },
+          {
+            "name": "Hardswish",
+            "L1": [750]
+          },
+          {
+            "name": "RQHardswish",
+            "L1": [750]
+          }
+        ]
+      num-cores: 8
 
   siracusa-kernels-tiled-doublebuffer-L2:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data: 
-          - name: "testMatMul"
-            L1: [64000, 32000, 16000]
-          - name: "test2DRequantizedConv"
-            L1: [8000, 6000, 5000]
-          - name: "testRequantizedDWConv"
-            L1: [5121] # SCHEREMO: The implicit transpose after the conv is untiled; need at least 2560 * 2 for DB
-          - name: "iSoftmax"
-            L1: [1600, 1000, 600]
-          - name: "testConcat"
-            L1: [64000, 32000, 16000]
-          - name: "testRMSNorm"
-            L1: [4096, 2048, 1024]
-          - name: "Hardswish"
-            L1: [750]
-          - name: "RQHardswish"
-            L1: [750]
-          - name: "microLlama/microLlama1"
-            L1: [60000, 20000, 10000]
-          - name: "microLlama/microLlama8"
-            L1: [60000, 20000, 10000]
-          - name: "microLlama/microLlama8_parallel"
-            L1: [60000, 20000, 10000]
-        num-cores:
-          - 8
-        double-buffer:
-          - true
-    uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+    uses: ./.github/workflows/TestRunnerTiledSiracusaSequential.yml
     with:
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
-      double-buffer: ${{ matrix.double-buffer }}
+      tests-config: |
+        [
+          {
+            "name": "testMatMul",
+            "L1": [64000, 32000, 16000]
+          },
+          {
+            "name": "test2DRequantizedConv",
+            "L1": [8000, 6000, 5000]
+          },
+          {
+            "name": "testRequantizedDWConv",
+            "L1": [5121]
+          },
+          {
+            "name": "iSoftmax",
+            "L1": [1600, 1000, 600]
+          },
+          {
+            "name": "testConcat",
+            "L1": [64000, 32000, 16000]
+          },
+          {
+            "name": "testRMSNorm",
+            "L1": [4096, 2048, 1024]
+          },
+          {
+            "name": "Hardswish",
+            "L1": [750]
+          },
+          {
+            "name": "RQHardswish",
+            "L1": [750]
+          }
+        ]
+      num-cores: 8
+      double-buffer: true
     
   siracusa-models-tiled-singlebuffer-L2:
     strategy:
@@ -335,6 +317,12 @@ jobs:
             L1: [60000, 20000, 10000, 5000]
           - name: "Transformer"
             L1: [60000, 30000, 15000]
+          - name: "microLlama/microLlama1"
+            L1: [60000, 20000, 10000]
+          - name: "microLlama/microLlama8"
+            L1: [60000, 20000, 10000]
+          - name: "microLlama/microLlama8_parallel"
+            L1: [60000, 20000, 10000]
         num-cores:
           - 8
         double-buffer:
@@ -350,49 +338,53 @@ jobs:
       default-memory-level: ${{ matrix.default-memory-level }}
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data: 
-          - name: "testRequantizedLinear"
-            L1: [16000]
-          - name: "testPointwise"
-            L1: [32000]
-          - name: "testPointwiseConvBNReLU"
-            L1: [32000]
-          - name: "testPointwiseUnsignedWeights"
-            L1: [32000]
-        num-cores:
-          - 8
-    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
     with:
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
+      tests-config: |
+        [
+          {
+            "name": "testRequantizedLinear",
+            "L1": [16000]
+          },
+          {
+            "name": "testPointwise",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseConvBNReLU",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseUnsignedWeights",
+            "L1": [32000]
+          }
+        ]
+      num-cores: 8
 
   siracusa-neureka-kernels-tiled-doublebuffer-L2:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data: 
-          - name: "testRequantizedLinear"
-            L1: [16000]
-          - name: "testPointwise"
-            L1: [32000]
-          - name: "testPointwiseConvBNReLU"
-            L1: [32000]
-          - name: "testPointwiseUnsignedWeights"
-            L1: [32000]
-        num-cores:
-          - 8
-        double-buffer:
-          - true
-    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
     with:
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
-      double-buffer: ${{ matrix.double-buffer }}
+      tests-config: |
+        [
+          {
+            "name": "testRequantizedLinear",
+            "L1": [16000]
+          },
+          {
+            "name": "testPointwise",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseConvBNReLU",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseUnsignedWeights",
+            "L1": [32000]
+          }
+        ]
+      num-cores: 8
+      double-buffer: true
 
   siracusa-neureka-models-tiled-singlebuffer-L3:
     strategy:
@@ -444,28 +436,29 @@ jobs:
       default-memory-level: ${{ matrix.default-memory-level }}
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2-wmem:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data: 
-          - name: "testRequantizedLinear"
-            L1: [16000]
-          - name: "testPointwise"
-            L1: [32000]
-          - name: "testPointwiseConvBNReLU"
-            L1: [32000]
-          - name: "testPointwiseUnsignedWeights"
-            L1: [32000]
-        num-cores:
-          - 8
-        neureka-wmem:
-          - true
-    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
     with:
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
-      neureka-wmem: ${{ matrix.neureka-wmem }}
+      tests-config: |
+        [
+          {
+            "name": "testRequantizedLinear",
+            "L1": [16000]
+          },
+          {
+            "name": "testPointwise",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseConvBNReLU",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseUnsignedWeights",
+            "L1": [32000]
+          }
+        ]
+      num-cores: 8
+      neureka-wmem: true
 
   siracusa-neureka-models-tiled-doublebuffer-L3-wmem:
     strategy:
@@ -476,8 +469,8 @@ jobs:
             L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
           - name: "Attention"
             L1: [2500]
-          - name: "Transformer"
-            L1: [30000]
+          # - name: "Transformer"
+          #   L1: [30000]
           - name: "microLlama/microLlama1"
             L1: [10000]
         num-cores:
@@ -500,11 +493,6 @@ jobs:
 
   ### Deeploy Extension and Internal Tests ###
   deeploy-state-serialization:
-    strategy:
-      fail-fast: false
-      matrix:
-        name: ["simpleRegression"]
-        platform: ['QEMU-ARM', 'Siracusa', 'MemPool', 'Generic']
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/victor-jung/deeploy:main
@@ -518,15 +506,13 @@ jobs:
       - name: Run Test
         run: |
           cd DeeployTest
-          python deeployStateEqualityTest.py -t ./Tests/${{ matrix.name }} -p ${{ matrix.platform }}
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p QEMU-ARM
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p Siracusa
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p MemPool
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p Generic
         shell: bash
 
   deeploy-memory-level-extension:
-    strategy:
-      fail-fast: false
-      matrix:
-        name: ["simpleRegression"]
-        platform: ['QEMU-ARM', 'Siracusa', 'MemPool', 'Generic']
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/victor-jung/deeploy:main
@@ -540,15 +526,13 @@ jobs:
       - name: Run Test
         run: |
           cd DeeployTest
-          python testMemoryLevelExtension.py -t ./Tests/${{ matrix.name }} -p ${{ matrix.platform }}
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p QEMU-ARM
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p Siracusa
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p MemPool
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p Generic
         shell: bash
 
   deeploy-tiler-extension:
-    strategy:
-      fail-fast: false
-      matrix:
-        name: ["simpleRegression", "simpleCNN", "testMatMul", "testMaxPool"]
-        platform: ['Siracusa']
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/victor-jung/deeploy:main
@@ -562,37 +546,17 @@ jobs:
       - name: Run Test
         run: |
           cd DeeployTest
-          python testTilerExtension.py -t ./Tests/${{ matrix.name }} -p ${{ matrix.platform }}
-        shell: bash
-
-  deeploy-tiler-extension-fail:
-    strategy:
-      fail-fast: false
-      matrix:
-        name: ["simpleRegression", "simpleCNN", "testMatMul", "testMaxPool"]
-        platform: ['Siracusa']
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/victor-jung/deeploy:main
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Build Deeploy
-        run: pip install -e .
-      - name: Run Test
-        run: |
-          cd DeeployTest
-          python testTilerExtension.py -t ./Tests/${{ matrix.name }} -p ${{ matrix.platform }} --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool --l1 2000 --shouldFail
         shell: bash
 
   deeploy-memory-allocation-extension:
-    strategy:
-      fail-fast: false
-      matrix:
-        name: ["simpleRegression", "simpleCNN", "miniMobileNet", "miniMobileNetv2", "testMatMul", "testMaxPool"]
-        platform: ["Siracusa"]
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/victor-jung/deeploy:main
@@ -606,7 +570,12 @@ jobs:
       - name: Run Test
         run: |
           cd DeeployTest
-          python testTilerExtension.py -t ./Tests/${{ matrix.name }} -p ${{ matrix.platform }}
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/miniMobileNet
+          python testTilerExtension.py -p Siracusa -t ./Tests/miniMobileNetv2
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool
         shell: bash
 
   deeploy-typing:

@@ -3,7 +3,7 @@ name: TestRunnerSiracusa
 on:
   workflow_call:
     inputs:
-      test-name:
+      test-names:
         required: true
         type: string
       num-cores:
@@ -30,10 +30,16 @@ jobs:
           key: ${{ runner.os }}-ccache
       - name: Run Test
         run: |
+          testNames="${{ inputs.test-names }}"
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
           source /app/install/pulp-sdk/configs/siracusa.sh
-          python testRunner_siracusa.py -t Tests/${{ inputs.test-name }} --cores=${{ inputs.num-cores }}
+          echo "$testNames" | while IFS= read -r testName; do
+            if [[ -n "$testName" ]]; then
+              echo "Running test: $testName"
+              python testRunner_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }}
+            fi
+          done
         shell: bash
         
