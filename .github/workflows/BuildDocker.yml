@@ -37,4 +37,4 @@ jobs:
           context: .
           file: Container/Dockerfile
           push: true
-          tags: ghcr.io/victor-jung/deeploy:main
+          tags: ghcr.io/pulp-platform/deeploy:main
