@@ -1,0 +1,657 @@
+name: CI
+
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  build-deeploy:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+  
+  
+  ### Generic Tests ###
+  generic-kernels:
+    uses: ./.github/workflows/TestRunnerGeneric.yml
+    with:
+      test-names: |
+        Adder
+        MultIO
+        test1DConvolution
+        test2DConvolution
+        test1DDWConvolution
+        test2DDWConvolution
+        test1DPad
+        test2DPad
+        testGEMM
+        testMatMul
+        testMatMulAdd
+        testMaxPool
+        testRQConv
+        testRQMatMul
+        testReduceSum
+        testReduceMean
+        testSlice
+        testRequantizedDWConv
+        test2DRequantizedConv
+        iSoftmax
+
+  generic-models:
+    uses: ./.github/workflows/TestRunnerGeneric.yml
+    with:
+      test-names: |
+        simpleRegression
+        WaveFormer
+        simpleCNN
+        ICCT
+        ICCT_ITA
+        ICCT_8
+        ICCT_ITA_8
+        miniMobileNet
+        miniMobileNetv2
+  
+
+  ### CortexM Tests ###
+  cortexm-kernels: 
+    uses: ./.github/workflows/TestRunnerCortexM.yml
+    with:
+      test-names: |
+        Adder
+        MultIO
+        test1DPad
+        test2DPad
+        testMatMul
+        testMatMulAdd
+        testMaxPool
+        testRQConv
+        testReduceSum
+        testReduceMean
+        testSlice
+
+  cortexm-models: 
+    uses: ./.github/workflows/TestRunnerCortexM.yml
+    with:
+      test-names: |
+        simpleRegression
+        WaveFormer 
+
+
+  ### Mempool Tests ###
+  mempool-kernels:
+    uses: ./.github/workflows/TestRunnerMempool.yml
+    with:
+      test-names: |
+          Adder
+          MultIO
+          test1DConvolution
+          test2DConvolution
+          test1DDWConvolution
+          test2DDWConvolution
+          test1DPad
+          test2DPad
+          testGEMM
+          testMatMul
+          testMatMulAdd
+          testMaxPool
+          testRQConv
+          testRQGEMM
+          testRQMatMul
+          testReduceSum
+          testReduceMean
+          testSlice
+          testRequantizedDWConv
+          test2DRequantizedConv
+
+  mempool-models:
+    uses: ./.github/workflows/TestRunnerMempool.yml
+    with:
+      test-names: |
+        simpleRegression
+        simpleCNN
+        ICCT
+        ICCT_ITA
+        ICCT_8
+        ICCT_ITA_8
+        miniMobileNet
+        miniMobileNetv2
+
+
+  ### Siracusa Tests ###
+  siracusa-kernels:
+    uses: ./.github/workflows/TestRunnerSiracusa.yml
+    with:
+      test-names: |
+        Adder
+        MultIO
+        test1DPad
+        test2DPad
+        testMatMul
+        testMatMulAdd
+        testRequantizedDWConv
+        test2DRequantizedConv
+        iSoftmax
+        testConcat
+        testRMSNorm
+        trueIntegerDivSandwich
+        Hardswish
+        RQHardswish
+        testBacktracking
+      num-cores: 8
+
+  siracusa-models:
+    uses: ./.github/workflows/TestRunnerSiracusa.yml
+    with:
+      test-names: |
+        simpleRegression
+        miniMobileNet
+        miniMobileNetv2
+        Attention
+        MLPerf/KeywordSpotting
+        MLPerf/ImageClassification
+        MLPerf/AnomalyDetection
+      num-cores: 8
+
+  siracusa-kernels-tiled-singlebuffer-L2:
+    uses: ./.github/workflows/TestRunnerTiledSiracusaSequential.yml
+    with:
+      tests-config: |
+        [
+          {
+            "name": "testMatMul",
+            "L1": [64000, 32000, 16000]
+          },
+          {
+            "name": "test2DRequantizedConv",
+            "L1": [8000, 6000, 4000]
+          },
+          {
+            "name": "testRequantizedDWConv",
+            "L1": [2561]
+          },
+          {
+            "name": "iSoftmax",
+            "L1": [800, 500, 300]
+          },
+          {
+            "name": "testConcat",
+            "L1": [32000, 16000, 8000]
+          },
+          {
+            "name": "testRMSNorm",
+            "L1": [2048, 1024, 512]
+          },
+          {
+            "name": "Hardswish",
+            "L1": [750]
+          },
+          {
+            "name": "RQHardswish",
+            "L1": [750]
+          }
+        ]
+      num-cores: 8
+
+  siracusa-kernels-tiled-doublebuffer-L2:
+    uses: ./.github/workflows/TestRunnerTiledSiracusaSequential.yml
+    with:
+      tests-config: |
+        [
+          {
+            "name": "testMatMul",
+            "L1": [64000, 32000, 16000]
+          },
+          {
+            "name": "test2DRequantizedConv",
+            "L1": [8000, 6000, 5000]
+          },
+          {
+            "name": "testRequantizedDWConv",
+            "L1": [5121]
+          },
+          {
+            "name": "iSoftmax",
+            "L1": [1600, 1000, 600]
+          },
+          {
+            "name": "testConcat",
+            "L1": [64000, 32000, 16000]
+          },
+          {
+            "name": "testRMSNorm",
+            "L1": [4096, 2048, 1024]
+          },
+          {
+            "name": "Hardswish",
+            "L1": [750]
+          },
+          {
+            "name": "RQHardswish",
+            "L1": [750]
+          }
+        ]
+      num-cores: 8
+      double-buffer: true
+    
+  siracusa-models-tiled-singlebuffer-L2:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "simpleRegression"
+            L1: [45000, 30000, 15000]
+          - name: "miniMobileNet"
+            L1: [60000, 12000, 6000, 3000]
+          - name: "miniMobileNetv2"
+            L1: [60000, 16000, 12000, 8000]
+          - name: "Attention"
+            L1: [60000, 10000, 5000]
+          - name: "microLlama/microLlama1"
+            L1: [60000, 10000, 5000]
+          - name: "microLlama/microLlama8"
+            L1: [60000, 10000, 5000]
+          - name: "microLlama/microLlama8_parallel"
+            L1: [60000, 10000, 5000]
+          - name: "MLPerf/KeywordSpotting"
+            L1: [64000]
+          - name: "MLPerf/ImageClassification"
+            L1: [64000]
+          - name: "MLPerf/AnomalyDetection"
+            L1: [64000]
+        num-cores:
+          - 8
+    uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+    with:
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+
+  siracusa-models-tiled-singlebuffer-L3:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "simpleRegression"
+            L1: [45000, 30000, 16000] # SCHEREMO: 15000 leads to non-2d transfers in L3!
+          - name: "miniMobileNet"
+            L1: [60000, 12000, 6000] # SCHEREMO: 3000 leads to non-2d transfers in L3!
+          - name: "miniMobileNetv2"
+            L1: [60000, 16000, 12000, 8000]
+          - name: "Attention"
+            L1: [60000, 10000, 5000, 2500]
+          - name: "Transformer"
+            L1: [60000, 30000, 15000]
+          - name: "microLlama/microLlama1"
+            L1: [60000, 10000, 5000]
+        num-cores:
+          - 8
+        default-memory-level:
+          - "L3"
+    uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+    with:
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+      default-memory-level: ${{ matrix.default-memory-level }}
+
+  siracusa-models-tiled-doublebuffer-L3:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "simpleRegression"
+            L1: [60000, 45000, 30000]
+          - name: "miniMobileNet"
+            L1: [60000, 24000, 12000, 6000]
+          - name: "miniMobileNetv2"
+            L1: [60000, 32000, 24000, 16000]
+          - name: "Attention"
+            L1: [60000, 20000, 10000, 5000]
+          - name: "Transformer"
+            L1: [60000, 30000, 15000]
+          - name: "microLlama/microLlama1"
+            L1: [60000, 20000, 10000]
+          - name: "microLlama/microLlama8"
+            L1: [60000, 20000, 10000]
+          - name: "microLlama/microLlama8_parallel"
+            L1: [60000, 20000, 10000]
+        num-cores:
+          - 8
+        double-buffer:
+          - true
+        default-memory-level:
+          - "L3"
+    uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+    with:
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+      double-buffer: ${{ matrix.double-buffer }}
+      default-memory-level: ${{ matrix.default-memory-level }}
+
+  siracusa-neureka-kernels-tiled-singlebuffer-L2:
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
+    with:
+      tests-config: |
+        [
+          {
+            "name": "testRequantizedLinear",
+            "L1": [16000]
+          },
+          {
+            "name": "testPointwise",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseConvBNReLU",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseUnsignedWeights",
+            "L1": [32000]
+          }
+        ]
+      num-cores: 8
+
+  siracusa-neureka-kernels-tiled-doublebuffer-L2:
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
+    with:
+      tests-config: |
+        [
+          {
+            "name": "testRequantizedLinear",
+            "L1": [16000]
+          },
+          {
+            "name": "testPointwise",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseConvBNReLU",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseUnsignedWeights",
+            "L1": [32000]
+          }
+        ]
+      num-cores: 8
+      double-buffer: true
+
+  siracusa-neureka-models-tiled-singlebuffer-L3:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "miniMobileNet"
+            L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
+          - name: "Attention"
+            L1: [2500]
+          - name: "Transformer"
+            L1: [15000]
+          - name: "microLlama/microLlama1"
+            L1: [10000]
+        num-cores:
+          - 8
+        default-memory-level:
+          - "L3"
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    with:
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+      default-memory-level: ${{ matrix.default-memory-level }}
+
+  siracusa-neureka-models-tiled-doublebuffer-L3:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "miniMobileNet"
+            L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
+          - name: "Attention"
+            L1: [5000]
+          - name: "Transformer"
+            L1: [30000]
+        num-cores:
+          - 8
+        double-buffer:
+          - true
+        default-memory-level:
+          - "L3"
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    with:
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+      double-buffer: ${{ matrix.double-buffer }}
+      default-memory-level: ${{ matrix.default-memory-level }}
+
+  siracusa-neureka-kernels-tiled-singlebuffer-L2-wmem:
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
+    with:
+      tests-config: |
+        [
+          {
+            "name": "testRequantizedLinear",
+            "L1": [16000]
+          },
+          {
+            "name": "testPointwise",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseConvBNReLU",
+            "L1": [32000]
+          },
+          {
+            "name": "testPointwiseUnsignedWeights",
+            "L1": [32000]
+          }
+        ]
+      num-cores: 8
+      neureka-wmem: true
+
+  siracusa-neureka-models-tiled-doublebuffer-L3-wmem:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "miniMobileNet"
+            L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
+          - name: "Attention"
+            L1: [2500]
+          # - name: "Transformer"
+          #   L1: [30000]
+          - name: "microLlama/microLlama1"
+            L1: [10000]
+        num-cores:
+          - 8
+        double-buffer:
+          - true
+        default-memory-level:
+          - "L3"
+        neureka-wmem:
+          - true
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    with:
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+      double-buffer: ${{ matrix.double-buffer }}
+      default-memory-level: ${{ matrix.default-memory-level }}
+      neureka-wmem: ${{ matrix.neureka-wmem }}
+
+
+  ### Deeploy Extension and Internal Tests ###
+  deeploy-state-serialization:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p QEMU-ARM
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p Siracusa
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p MemPool
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p Generic
+        shell: bash
+
+  deeploy-memory-level-extension:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p QEMU-ARM
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p Siracusa
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p MemPool
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p Generic
+        shell: bash
+
+  deeploy-tiler-extension:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool --l1 2000 --shouldFail
+        shell: bash
+
+  deeploy-memory-allocation-extension:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/miniMobileNet
+          python testTilerExtension.py -p Siracusa -t ./Tests/miniMobileNetv2
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool
+        shell: bash
+
+  deeploy-typing:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testTypes.py
+        shell: bash
+
+  deeploy-regex-matching:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testRegexMatching.py
+        shell: bash
+
+  linting:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: |
+          pip install -e .
+          cd DeeployTest
+      - name: Format Python
+        run: |
+          yapf -rpd -e "third_party/" -e "install/" -e "toolchain/" .
+        shell: bash
+      - name: Format Python Imports
+        run: |
+          isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./ -c -v
+          autoflake -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
+        shell: bash
+      - name: Format C
+        run: |
+          python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -ir --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./ scripts
+        shell: bash
+      - name: Format Python Licenses
+        run: |
+          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude "run_clang_format.py" | grep ".*\.py$" || [[ $? == 1 ]]        
+        shell: bash
+      - name: Format C Licenses
+        run: |
+          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.c$" || [[ $? == 1 ]]        
+        shell: bash
+      - name: Format C Header Licenses
+        run: |
+          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.h$" || [[ $? == 1 ]]
+        shell: bash
+  
+
+
+        
