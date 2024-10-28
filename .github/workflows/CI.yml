@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    # Runs the CI on the default branch every 6 days at 2AM CET to keep the cache fresh
+    - cron: "0 1 */6 * *"
 
 jobs:
 
