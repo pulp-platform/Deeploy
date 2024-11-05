@@ -29,4 +29,5 @@ jobs:
               python testRunner_generic.py -t Tests/$testName
             fi
           done
+        shell: bash
           
