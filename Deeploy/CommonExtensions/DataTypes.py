@@ -80,14 +80,14 @@ class uint64_t(IntegerImmediate):
 class float16alt(FloatImmediate):
     typeName = "float16alt"
     typeWidth = 16
-    typeFraction = 7
+    typeMantissa = 7
     typeExponent = 8
 
 
 class float32(FloatImmediate):
     typeName = "float"
     typeWidth = 32
-    typeFraction = 23
+    typeMantissa = 23
     typeExponent = 8
 
 

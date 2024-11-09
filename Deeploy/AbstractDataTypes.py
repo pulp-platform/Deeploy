@@ -236,8 +236,7 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
 
 
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
-    # FIXME: check typeFraction vs typeMantissa
-    typeFraction: int  #: int: Represents the number of bits reserved for the fraction part
+    typeMantissa: int  #: int: Represents the number of bits reserved for the mantissa part
     typeExponent: int  #: int: Represents the number of bits reserved for the exponent part
 
     @_classproperty
@@ -253,7 +252,7 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
     @classmethod
     def partialOrderUpcast(cls, otherCls: Type[Immediate]) -> bool:
         if issubclass(otherCls, FloatImmediate):
-            return cls.typeFraction >= otherCls.typeFraction and cls.typeExponent >= otherCls.typeExponent
+            return cls.typeMantissa >= otherCls.typeMantissa and cls.typeExponent >= otherCls.typeExponent
         else:
             return False
 
@@ -296,8 +295,8 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
             if (cls.typeExponentOffset + exponent) > cls.typeExponentMax or (cls.typeExponentOffset + exponent) < 0:
                 return False
 
-            # Check if mantissa is representable. Implicit assumption is that cls.typeFraction < 52 (like in FP64)
-            truncated_mantissa = 1 + math.floor((2**cls.typeFraction) * (mantissa - 1)) / (2**cls.typeFraction)
+            # Check if mantissa is representable. Implicit assumption is that cls.typeMantissa < 52 (like in FP64)
+            truncated_mantissa = 1 + math.floor((2**cls.typeMantissa) * (mantissa - 1)) / (2**cls.typeMantissa)
             if math.fabs(truncated_mantissa - mantissa) > 0.0:
                 return False
 
