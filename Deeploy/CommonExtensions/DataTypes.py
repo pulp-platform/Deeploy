@@ -76,12 +76,12 @@ class uint64_t(IntegerImmediate):
     signed = False
 
 
-class bfloat16(FloatImmediate):
+# BFloat16 in PULP systems
+class float16alt(FloatImmediate):
     typeName = "float16alt"
     typeWidth = 16
     typeFraction = 7
     typeExponent = 8
-    signed = True
 
 
 class float32(FloatImmediate):
@@ -89,7 +89,6 @@ class float32(FloatImmediate):
     typeWidth = 32
     typeFraction = 23
     typeExponent = 8
-    signed = True
 
 
 SignedIntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (int8_t, int16_t, int32_t, int64_t)
@@ -99,4 +98,4 @@ IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (sorted((
     *UnsignedIntegerDataTypes,
 ),
                                                                key = lambda _type: _type.typeWidth))
-FloatDataTypes: Tuple[Type[FloatImmediate], ...] = (bfloat16, float32)
+FloatDataTypes: Tuple[Type[FloatImmediate], ...] = (float16alt, float32)
