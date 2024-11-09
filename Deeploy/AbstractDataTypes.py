@@ -237,8 +237,8 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
 
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
     # FIXME: check typeFraction vs typeMantissa
-    typeFraction: int       #: int: Represents the number of bits reserved for the fraction part
-    typeExponent: int       #: int: Represents the number of bits reserved for the exponent part    
+    typeFraction: int  #: int: Represents the number of bits reserved for the fraction part
+    typeExponent: int  #: int: Represents the number of bits reserved for the exponent part
 
     @_classproperty
     def typeExponentMax(cls) -> int:
@@ -285,7 +285,7 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
             # Also bring mantissa and exponent to IEEE754 compliant form for non-denormals.
             mantissa, exponent = math.frexp(val)
             sign = True if mantissa < 0 else False
-            mantissa = -mantissa*2 if sign else mantissa*2
+            mantissa = -mantissa * 2 if sign else mantissa * 2
             exponent -= 1
 
             # Check if the number is finite, nonzero and not denormal, otherwise skip the check.
@@ -295,9 +295,9 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
             # Check if exponent is representable.
             if (cls.typeExponentOffset + exponent) > cls.typeExponentMax or (cls.typeExponentOffset + exponent) < 0:
                 return False
-            
+
             # Check if mantissa is representable. Implicit assumption is that cls.typeFraction < 52 (like in FP64)
-            truncated_mantissa = 1 + math.floor((2 ** cls.typeFraction) * (mantissa-1)) / (2 ** cls.typeFraction)
+            truncated_mantissa = 1 + math.floor((2**cls.typeFraction) * (mantissa - 1)) / (2**cls.typeFraction)
             if math.fabs(truncated_mantissa - mantissa) > 0.0:
                 return False
 
