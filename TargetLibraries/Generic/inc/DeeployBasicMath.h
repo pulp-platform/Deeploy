@@ -52,6 +52,7 @@
 #include <string.h>
 
 #include "macros.h"
+#include "types.h"
 #include "util.h"
 
 #include "kernel/Convolution.h"
