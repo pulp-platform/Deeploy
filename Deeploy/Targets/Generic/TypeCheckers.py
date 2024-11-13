@@ -31,7 +31,7 @@ import numpy as np
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
-from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer, NodeTypeChecker
 
 
 class ConcatChecker(SignPropTypeChecker):
