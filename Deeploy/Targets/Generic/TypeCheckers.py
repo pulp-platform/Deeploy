@@ -31,7 +31,7 @@ import numpy as np
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
-from Deeploy.DeeployTypes import ConstantBuffer, NodeTypeChecker, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
 
 
 class ConcatChecker(SignPropTypeChecker):
@@ -125,10 +125,18 @@ class AddChecker(SignPropTypeChecker):
             return [False]
 
 
-class FloatAddChecker(NodeTypeChecker):
+class FloatAddChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [inputs[0].nLevels + inputs[1].nLevels]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
 
 
 class GatherChecker(SignPropTypeChecker):
