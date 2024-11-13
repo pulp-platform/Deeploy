@@ -48,7 +48,7 @@ jobs:
         testRequantizedDWConv
         test2DRequantizedConv
         iSoftmax
-        testFloatAdder
+        FloatAdder
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml
@@ -150,7 +150,7 @@ jobs:
         Hardswish
         RQHardswish
         testBacktracking
-        testFloatAdder
+        FloatAdder
       num-cores: 8
 
   siracusa-models:
