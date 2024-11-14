@@ -32,7 +32,7 @@
 
 // PULP-specific floating point types
 // FIXME: check compiler for actual types and uncomment
-// typedef float16 float16_t;
+typedef _Float16 float16_t;
 // typedef float16alt bfloat16_t;
 
 #endif //__DEEPLOY_MATH_TYPES_HEADER_
