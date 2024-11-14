@@ -1,14 +1,16 @@
 /* =====================================================================
- * Title:        DeeployMath.h
+ * Title:        types.h
  * Description:
  *
- * $Date:        30.12.2021
+ * Date:         11.11.2024
  *
  * ===================================================================== */
+
 /*
- * Copyright (C) 2020 ETH Zurich and University of Bologna.
+ * Copyright (C) 2024 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Authors:
+ * - Francesco Conti, University of Bologna
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -25,26 +27,12 @@
  * limitations under the License.
  */
 
-#ifndef __DEEPLOY_MATH_HEADER_
-#define __DEEPLOY_MATH_HEADER_
+#ifndef __DEEPLOY_MATH_TYPES_HEADER_
+#define __DEEPLOY_MATH_TYPES_HEADER_
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+// PULP-specific floating point types
+// FIXME: check compiler for actual types and uncomment
+// typedef float16 float16_t;
+// typedef float16alt bfloat16_t;
 
-#include "types.h"
-
-#include "DeeployBasicMath.h"
-
-#include "pmsis.h"
-
-#include "kernel/RQiHardswish.h"
-#include "kernel/RequantShift.h"
-#include "kernel/UniformRequantShift.h"
-#include "kernel/gemv.h"
-#include "kernel/iRMSnorm.h"
-#include "kernel/iSoftmax.h"
-
-#endif // __DEEPLOY_MATH_HEADER_
+#endif //__DEEPLOY_MATH_TYPES_HEADER_
