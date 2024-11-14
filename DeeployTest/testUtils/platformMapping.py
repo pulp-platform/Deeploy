@@ -42,8 +42,11 @@ from Deeploy.Targets.Neureka.Platform import MemoryNeurekaPlatform, MemoryNeurek
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform
 
+from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
+from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
+
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -75,6 +78,10 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Siracusa_w_neureka":
         Platform = NeurekaPlatform()
+
+    elif platformName == "Snitch":
+        Platform = SnitchPlatform()
+
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -204,6 +211,24 @@ def mapDeployer(platform: DeploymentPlatform,
                                 default_channels_first = default_channels_first,
                                 deeployStateDir = deeployStateDir)
 
+    
+    elif isinstance(platform, (SnitchPlatform)):
+        if loweringOptimizer is None:
+            loweringOptimizer = SnitchOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = SnitchDeployer(graph,
+                                  platform,
+                                  inputTypes,
+                                  loweringOptimizer,
+                                  scheduler,
+                                  name = name,
+                                  default_channels_first = default_channels_first,
+                                  deeployStateDir = deeployStateDir)
+
+    
     else:
         raise RuntimeError(f"Deployer for platform {platform} is not implemented")
 

@@ -15,8 +15,8 @@ if(TOOLCHAIN STREQUAL GCC)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-set(platform MemPool CACHE STRING "Platform (MemPool, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, Generic)")
-set_property(CACHE platform PROPERTY STRINGS MemPool QEMU Siracusa Siracusa_w_neureka PULP-Open Generic)
+set(platform MemPool CACHE STRING "Platform (MemPool, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, Generic, Snitch)")
+set_property(CACHE platform PROPERTY STRINGS MemPool QEMU Siracusa Siracusa_w_neureka PULP-Open Generic Snitch)
 
 if(platform STREQUAL MemPool)
   message(STATUS "Building for platform 'MemPool'")
@@ -30,6 +30,8 @@ elseif(platform STREQUAL PULPOpen)
   message(STATUS "Building for platform 'PULP-Open'")
 elseif(platform STREQUAL Generic)
   message(STATUS "Building for platform 'Generic'")
+elseif(platform STREQUAL Snitch)
+  message(STATUS "Building for platform 'Snitch'")
 else()
   message(FATAL_ERROR "Invalid platform '${platform}' specified!")
 endif()
@@ -180,5 +182,34 @@ if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka OR platfor
   target_link_libraries(deeploylib INTERFACE deeploybasic deeploypulp)
 
 endif()
+
+if(platform STREQUAL Snitch)
+
+  if(TOOLCHAIN STREQUAL LLVM)
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/snitch/toolchain_llvm.cmake)
+  else()
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/snitch/toolchain_gcc.cmake)
+  endif()
+
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/snitch/snitch.cmake)
+
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/snitch/snitch_cluster/snitch_cluster.cmake)
+
+  project(deeploy LANGUAGES C ASM)
+
+  message(STATUS "============================= ${platform} Configuration ============================")
+  message(STATUS "[cMake  ]   Number of total cores  = " ${NUM_CORES})
+  message(STATUS "================================================================================")
+  message(STATUS "")
+
+  add_subdirectory(TargetLibraries/Generic)
+  add_subdirectory(TargetLibraries/Snitch)
+  target_include_directories(deeploysnitch PUBLIC TargetLibraries/Generic/inc)
+
+  add_subdirectory(DeeployTest)
+  target_link_libraries(deeploylib INTERFACE deeploybasic deeploysnitch)
+
+endif()
+
 
 print_simulation_config()

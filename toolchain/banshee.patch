@@ -9,7 +9,8 @@ index d406357..23bcfcd 100644
 +unicode-width = "=0.1.13"
  clap = "2"
  crossbeam-utils = "0.8"
- csv = "1.0.0-beta.2"
+-csv = "1.0.0-beta.2"
++csv = "=1.0.0-beta.2"
  elf = "0.0.10"
  flexfloat = { path = "flexfloat" }
  itertools = "0.9"

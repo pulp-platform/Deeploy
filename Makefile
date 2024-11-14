@@ -42,14 +42,16 @@ PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
 BANSHEE_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/banshee
 MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
+SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
 
 CMAKE ?= cmake
 
 LLVM_COMMIT_HASH ?= 99902b1
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= c216298881cee767afc30928e055982b9e40e568
-BANSHEE_COMMIT_HASH ?= 9644dd1d84d4899909f48f107332c59d166617f5
+BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
+SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 
 RUSTUP_CARGO ?= $$(rustup which cargo)
 
@@ -58,6 +60,7 @@ all: toolchain emulators docs echo-bash
 echo-bash:
 	@echo "Please export the following symbols:"
 	@echo "PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
+	@echo "SNITCH_HOME=${SNITCH_INSTALL_DIR}"
 	@echo "LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
 	@echo "CMAKE=$$(which cmake)"
 
@@ -71,6 +74,7 @@ echo-bash:
 	@echo ""
 	@echo "TL/DR: add these lines to run ~/.bashrc"
 	@echo "export PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
+	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
 	@echo "export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
 	@echo "export PULP_RISCV_GCC_TOOLCHAIN=/PULP_SDK_IS_A_MESS"
 	@echo "export MEMPOOL_HOME=${MEMPOOL_INSTALL_DIR}"
@@ -82,7 +86,7 @@ echo-bash:
 
 toolchain: llvm llvm-compiler-rt-riscv llvm-compiler-rt-arm picolibc-arm picolibc-riscv
 
-emulators: pulp-sdk qemu banshee mempool
+emulators: snitch_runtime pulp-sdk qemu banshee mempool
 
 ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
@@ -257,6 +261,22 @@ ${PULP_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/pulp-sdk
 	make build
 
 pulp-sdk: ${PULP_SDK_INSTALL_DIR}
+
+${TOOLCHAIN_DIR}/snitch_cluster:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/pulp-platform/snitch_cluster.git && \
+	cd ${TOOLCHAIN_DIR}/snitch_cluster && git submodule update --init --recursive && \
+	git checkout ${SNITCH_COMMIT_HASH}
+
+${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
+	mkdir -p ${SNITCH_INSTALL_DIR}
+	cp -r ${TOOLCHAIN_DIR}/snitch_cluster/ ${SNITCH_INSTALL_DIR}/../
+	cd ${SNITCH_INSTALL_DIR} && \
+	source iis-setup.sh && \
+	cd ${SNITCH_INSTALL_DIR}/target/snitch_cluster && \
+	make sw/runtime/banshee sw/math
+
+snitch_runtime: ${SNITCH_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/qemu:
 	cd ${TOOLCHAIN_DIR} && \
