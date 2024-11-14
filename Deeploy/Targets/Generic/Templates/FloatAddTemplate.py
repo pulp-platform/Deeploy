@@ -2,11 +2,13 @@
 #
 # File: FloatAddTemplate.py
 #
-# Last edited: 15.12.2021
+# Last edited: 13.11.2024
 #
 # Copyright (C) 2021, ETH Zurich and University of Bologna.
 #
-# Author: Moritz Scherer, ETH Zurich
+# Authors: 
+# - Francesco Conti, UNIBO
+# - Alberto Dequino, UNIBO
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0

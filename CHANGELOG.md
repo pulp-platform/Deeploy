@@ -15,3 +15,13 @@
 ### Fixed
 - Update the link of the Docker container used to run the CI with the Docker published by this repo instead of my fork.
 - Add a retry on timeout step for large network tests. This is a temporary fix to address the sporadic freeze happening at the compilation stage, see [this issue](https://github.com/pulp-platform/Deeploy/issues/9).
+
+## Floating Point Support
+
+### Added
+- Add the `FloatImmediate` `AbstractType`
+- Define fp64, fp32, fp16, and bf16
+- Add float binding for the Adder in the Generic platform
+- Add a FloatAdder test to the CI for Siracusa and Generic platforms
+- Extend `testType.py` with float tests
+- LIMITATION: Current LLVM compiler does not support bfp16 and fp16, these types are commented in the library header
