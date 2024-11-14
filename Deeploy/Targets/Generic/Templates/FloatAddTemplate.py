@@ -6,7 +6,7 @@
 #
 # Copyright (C) 2021, ETH Zurich and University of Bologna.
 #
-# Authors: 
+# Authors:
 # - Francesco Conti, UNIBO
 # - Alberto Dequino, UNIBO
 #
