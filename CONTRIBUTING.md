@@ -34,3 +34,25 @@ Note that third party applications should not be formatted. You can alternativel
 make format
 ```
 to format all C and Python files.
+
+### Pre-commit
+
+Additionally, we provide the [pre-commit](https://pre-commit.com) configuration file which you can use to install github hooks that execute the formatting commands on your changes.
+
+You will need to manually install pre-commit since it's not added as a dependency to the `pyproject.toml`:
+```bash
+pip install pre-commit
+```
+
+The configuration sets the default stage for all the hooks to `pre-push` so to install the git hooks run:
+```bash
+pre-commit install --hook-type pre-push
+```
+The hooks will run before each push, making sure the pushed code can pass linting checks and not fail the CI on linting.
+
+If you change your mind and don't want the git hooks:
+```bash
+pre-commit uninstall
+```
+
+_Note:_ This configures only the python formatting git hooks. The c formatting is not supported at the moment.
