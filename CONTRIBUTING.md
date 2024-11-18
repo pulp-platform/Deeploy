@@ -19,18 +19,18 @@ Deeploy mainly consists of code implemented in C, Makefile, and Python. To facil
 
 To recursively format all Python files run:
 ```bash
-$>	autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
-$>	yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" ./
-$>	isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" .
+yapf -ipr .
+isort .
 ```
 
 And for C files:
 ```bash
-$> python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -ir --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./
+python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -ir --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./
 ```
 
 Note that third party applications should not be formatted. You can alternatively also run:
-```
+```bash
 make format
 ```
 to format all C and Python files.
