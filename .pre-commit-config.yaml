@@ -1,0 +1,32 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+exclude: .*third_party.*
+
+# By default, all hooks will be installed as pre-push
+default_stages: [pre-push]
+
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: check-added-large-files
+-   repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.0
+    hooks:
+    -   id: autoflake
+        args:
+            - "--remove-all-unused-imports"
+            - "--ignore-init-module-imports"
+            - "--in-place"
+-   repo: https://github.com/google/yapf
+    rev: v0.33.0
+    hooks:
+    -   id: yapf
+        args:
+            - "--in-place"
+            - "--parallel"
+-   repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+    -   id: isort
+        name: isort (python)
