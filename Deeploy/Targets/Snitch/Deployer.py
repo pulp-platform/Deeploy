@@ -29,20 +29,13 @@ from typing import Callable, Dict, Type
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
-from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
-
-# from Deeploy.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
-
-# from Deeploy.OptimizationPasses.TopologyOptimizationPasses.BasicPasses import ReshapeConstOptPass, \
-#    TransposeConstOptPass, TransposeMergePass, TransposeSplitPass
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
+    NCHWtoNHWCPass, RemoveGlobalOutputReshapePass, TransposeMatmulInputsPass
+from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, TransposeConstOptPass, \
     TransposeMergePass, TransposeSplitPass
 
-# from Deeploy.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import NCHWtoNHWCPass, \
-#    RemoveGlobalOutputReshapePass, TransposeMatmulInputsPass
-from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    NCHWtoNHWCPass, RemoveGlobalOutputReshapePass, TransposeMatmulInputsPass
 
 class SnitchDeployer(SignPropDeployer):
 

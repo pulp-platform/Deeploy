@@ -57,12 +57,13 @@
  * simd       = no
  * cleanup    = yes
  */
-void RQGemm_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                               int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M, uint32_t N,
-                               uint32_t P, int32_t alpha, int32_t beta, int32_t transA, int32_t transB, int32_t *mul,
-                               int32_t *add, int32_t log2D, bool rounding, bool per_row_quant, int32_t A_offset,
-                               int32_t B_offset, int32_t C_offset, int32_t Y_offset, int8_t output_min,
-                               int8_t output_max);
+void RQGemm_parallel_s8_rv32im(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M,
+    uint32_t N, uint32_t P, int32_t alpha, int32_t beta, int32_t transA,
+    int32_t transB, int32_t *mul, int32_t *add, int32_t log2D, bool rounding,
+    bool per_row_quant, int32_t A_offset, int32_t B_offset, int32_t C_offset,
+    int32_t Y_offset, int8_t output_min, int8_t output_max);
 
 /*
  * General Requantized Matrix multiplication ----------------------------------
@@ -73,33 +74,41 @@ void RQGemm_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *_
  * simd       = no
  * cleanup    = no
  */
-void RQGemm_offset_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                                                   int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY,
-                                                   uint32_t M, uint32_t N, uint32_t P, int32_t alpha, int32_t beta,
-                                                   int32_t transA, int32_t transB, int32_t *mul, int32_t *add,
-                                                   int32_t log2D, bool rounding, bool per_row_quant, int32_t A_offset,
-                                                   int32_t B_offset, int32_t C_offset, int32_t Y_offset);
+void RQGemm_offset_unrolled_2x2_parallel_s8_rv32im(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M,
+    uint32_t N, uint32_t P, int32_t alpha, int32_t beta, int32_t transA,
+    int32_t transB, int32_t *mul, int32_t *add, int32_t log2D, bool rounding,
+    bool per_row_quant, int32_t A_offset, int32_t B_offset, int32_t C_offset,
+    int32_t Y_offset);
 
 // Mapper Functions
-static inline void __attribute__((always_inline))
-RQGemm_parallel_s8(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                   int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M, uint32_t N, uint32_t P,
-                   int32_t alpha, int32_t beta, int32_t transA, int32_t transB, int32_t *mul, int32_t *add,
-                   int32_t log2D, bool rounding, bool per_row_quant, int32_t A_offset, int32_t B_offset,
-                   int32_t C_offset, int32_t Y_offset, int8_t output_min, int8_t output_max) {
-  RQGemm_parallel_s8_rv32im(pSrcA, pSrcB, pSrcC, pDstY, M, N, P, alpha, beta, transA, transB, mul, add, log2D, rounding,
-                            per_row_quant, A_offset, B_offset, C_offset, Y_offset, output_min, output_max);
+static inline void __attribute__((always_inline)) RQGemm_parallel_s8(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M,
+    uint32_t N, uint32_t P, int32_t alpha, int32_t beta, int32_t transA,
+    int32_t transB, int32_t *mul, int32_t *add, int32_t log2D, bool rounding,
+    bool per_row_quant, int32_t A_offset, int32_t B_offset, int32_t C_offset,
+    int32_t Y_offset, int8_t output_min, int8_t output_max) {
+  RQGemm_parallel_s8_rv32im(pSrcA, pSrcB, pSrcC, pDstY, M, N, P, alpha, beta,
+                            transA, transB, mul, add, log2D, rounding,
+                            per_row_quant, A_offset, B_offset, C_offset,
+                            Y_offset, output_min, output_max);
 }
 
 // Mapper Functions
-static inline void __attribute__((always_inline)) RQGemm_offset_unrolled_2x2_parallel_s8(
-    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB, int32_t const *__restrict__ pSrcC,
-    int8_t *__restrict__ pDstY, uint32_t M, uint32_t N, uint32_t P, int32_t alpha, int32_t beta, int32_t transA,
-    int32_t transB, int32_t *mul, int32_t *add, int32_t log2D, bool rounding, bool per_row_quant, int32_t A_offset,
-    int32_t B_offset, int32_t C_offset, int32_t Y_offset) {
-  RQGemm_offset_unrolled_2x2_parallel_s8_rv32im(pSrcA, pSrcB, pSrcC, pDstY, M, N, P, alpha, beta, transA, transB, mul,
-                                                add, log2D, rounding, per_row_quant, A_offset, B_offset, C_offset,
-                                                Y_offset);
+static inline void __attribute__((always_inline))
+RQGemm_offset_unrolled_2x2_parallel_s8(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M,
+    uint32_t N, uint32_t P, int32_t alpha, int32_t beta, int32_t transA,
+    int32_t transB, int32_t *mul, int32_t *add, int32_t log2D, bool rounding,
+    bool per_row_quant, int32_t A_offset, int32_t B_offset, int32_t C_offset,
+    int32_t Y_offset) {
+  RQGemm_offset_unrolled_2x2_parallel_s8_rv32im(
+      pSrcA, pSrcB, pSrcC, pDstY, M, N, P, alpha, beta, transA, transB, mul,
+      add, log2D, rounding, per_row_quant, A_offset, B_offset, C_offset,
+      Y_offset);
 }
 
 #endif //__DEEPLOY_MATH_RQGEMM_KERNEL_HEADER_

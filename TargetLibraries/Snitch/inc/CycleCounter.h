@@ -44,7 +44,8 @@ void StopTimer(void);
 // Returns the current number of cycles according to the internal cycle counter
 uint32_t getCycles(void);
 
-// Returns the current number of instructions according to the internal instructions counter
+// Returns the current number of instructions according to the internal
+// instructions counter
 uint32_t getInstr(void);
 
 #endif //__DEEPLOY_MATH_CYCLE_HEADER_

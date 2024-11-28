@@ -28,34 +28,17 @@ from typing import List
 
 import numpy as np
 
-# from Deeploy.Bindings.BasicBindings import BasicGatherBindings, BasicMatMulBinding, BasicPad1DBindings, \
-#    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
-
-from Deeploy.Targets.Generic.Bindings import BasicGatherBindings,BasicMatMulBinding, BasicPad1DBindings, \
-    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
-
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-
-# from Deeploy.Layers.BasicLayers import GatherLayer, MatMulLayer, PadLayer, ReshapeLayer, RQIntegerDivLayer
+from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicMatMulBinding, BasicPad1DBindings, \
+    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import GatherLayer, MatMulLayer, PadLayer, ReshapeLayer, RQIntegerDivLayer
-
-# from Deeploy.OptimizationPasses.TopologyOptimizationPasses.BasicPasses import IntegerDivRequantMergePass, \
-#    MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, SkipEmptyConcatPass, \
-#    SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
-
+from Deeploy.Targets.Generic.Parsers import GatherParser, MatMulParser, Pad1DParser, Pad2DParser, RQIntegerDivParser, \
+    UnsqueezeParser
+from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, SkipEmptyConcatPass, \
     SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
-
-# from Deeploy.Parsers.BasicParsers import GatherParser, MatMulParser, Pad1DParser, Pad2DParser, RQIntegerDivParser, \
-#    UnsqueezeParser
-from Deeploy.Targets.Generic.Parsers import GatherParser, MatMulParser, Pad1DParser, Pad2DParser, RQIntegerDivParser, \
-    UnsqueezeParser
-
-# from Deeploy.Templates.BasicTemplates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
 
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)

@@ -29,7 +29,7 @@
 #ifndef __DEEPLOY_MATH_MACROS_HEADER_
 #define __DEEPLOY_MATH_MACROS_HEADER_
 
-// #define log2(x)                                                 __builtin_pulp_fl1(x)
+// #define log2(x) __builtin_pulp_fl1(x)
 #define INT_LOG2(x) __builtin_ctz(x)
 
 #endif //__DEEPLOY_MATH_MACROS_HEADER_

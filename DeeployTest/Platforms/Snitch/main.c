@@ -44,8 +44,10 @@ int main(void) {
 
   if (snrt_is_dm_core()) {
 #ifndef CI
-    printf("Network running on %d of %d compute cores (+%d DM cores) on %d clusters\r\n", num_compute_cores,
-           snrt_global_compute_core_num(), snrt_cluster_num() * snrt_cluster_dm_core_num(), snrt_cluster_num());
+    printf("Network running on %d of %d compute cores (+%d DM cores) on %d "
+           "clusters\r\n",
+           num_compute_cores, snrt_global_compute_core_num(),
+           snrt_cluster_num() * snrt_cluster_dm_core_num(), snrt_cluster_num());
 #endif
 
     printf("Initializing...\r\n");
@@ -55,13 +57,13 @@ int main(void) {
 #ifndef CI
     for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
       printf("testInputVector%d @ %p\r\n", buf, testInputVector[buf]);
-      printf("DeeployNetwork_input_%d @ %p and %u elements\r\n", buf, DeeployNetwork_inputs[buf],
-             DeeployNetwork_inputs_bytes[buf]);
+      printf("DeeployNetwork_input_%d @ %p and %u elements\r\n", buf,
+             DeeployNetwork_inputs[buf], DeeployNetwork_inputs_bytes[buf]);
     }
     for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
       printf("testInputVector%d @ %p\r\n", buf, testOutputVector[buf]);
-      printf("DeeployNetwork_output_%d @ %p and %u elements\r\n", buf, DeeployNetwork_outputs[buf],
-             DeeployNetwork_outputs_bytes[buf]);
+      printf("DeeployNetwork_output_%d @ %p and %u elements\r\n", buf,
+             DeeployNetwork_outputs[buf], DeeployNetwork_outputs_bytes[buf]);
     }
 
     printf("Initialized\r\n");
@@ -71,7 +73,8 @@ int main(void) {
 
     // WIESEP: Copy inputs to allocated memory
     for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
-      snrt_dma_start_1d(DeeployNetwork_inputs[buf], testInputVector[buf], DeeployNetwork_inputs_bytes[buf]);
+      snrt_dma_start_1d(DeeployNetwork_inputs[buf], testInputVector[buf],
+                        DeeployNetwork_inputs_bytes[buf]);
     }
     snrt_dma_wait_all();
 

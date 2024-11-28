@@ -28,12 +28,13 @@
  */
 
 #include "DeeploySnitchMath.h"
-void RQGemm_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                               int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M, uint32_t N,
-                               uint32_t P, int32_t alpha, int32_t beta, int32_t transA, int32_t transB, int32_t *mul,
-                               int32_t *add, int32_t log2D, bool rounding, bool per_row_quant, int32_t A_offset,
-                               int32_t B_offset, int32_t C_offset, int32_t Y_offset, int8_t output_min,
-                               int8_t output_max) {
+void RQGemm_parallel_s8_rv32im(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M,
+    uint32_t N, uint32_t P, int32_t alpha, int32_t beta, int32_t transA,
+    int32_t transB, int32_t *mul, int32_t *add, int32_t log2D, bool rounding,
+    bool per_row_quant, int32_t A_offset, int32_t B_offset, int32_t C_offset,
+    int32_t Y_offset, int8_t output_min, int8_t output_max) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();
@@ -58,7 +59,8 @@ void RQGemm_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *_
       for (uint32_t p = c_start; p < c_end; ++p) {
         int32_t sum = 0;
         for (uint32_t n = 0; n < N; ++n) {
-          sum += (int32_t)(pSrcA[m * N + n] + A_offset) * (pSrcB[n * P + p] + B_offset);
+          sum += (int32_t)(pSrcA[m * N + n] + A_offset) *
+                 (pSrcB[n * P + p] + B_offset);
         }
         // Requantize value
         sum = alpha * sum + beta * pSrcC[m * P + p] + bias;
@@ -76,7 +78,8 @@ void RQGemm_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *_
       for (uint32_t p = c_start; p < c_end; ++p) {
         int32_t sum = 0;
         for (uint32_t n = 0; n < N; ++n) {
-          sum += (int32_t)(pSrcA[n * M + m] + A_offset) * (pSrcB[n * P + p] + B_offset);
+          sum += (int32_t)(pSrcA[n * M + m] + A_offset) *
+                 (pSrcB[n * P + p] + B_offset);
         }
         // Requantize value
         sum = alpha * sum + beta * pSrcC[m * P + p] + bias;
@@ -94,7 +97,8 @@ void RQGemm_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *_
       for (uint32_t p = c_start; p < c_end; ++p) {
         int32_t sum = 0;
         for (uint32_t n = 0; n < N; ++n) {
-          sum += (int32_t)(pSrcA[m * N + n] + A_offset) * (pSrcB[p * N + n] + B_offset);
+          sum += (int32_t)(pSrcA[m * N + n] + A_offset) *
+                 (pSrcB[p * N + n] + B_offset);
         }
         // Requantize value
         sum = alpha * sum + beta * pSrcC[m * P + p] + bias;
@@ -112,7 +116,8 @@ void RQGemm_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *_
       for (uint32_t p = c_start; p < c_end; ++p) {
         int32_t sum = 0;
         for (uint32_t n = 0; n < N; ++n) {
-          sum += (int32_t)(pSrcA[n * M + m] + A_offset) * (pSrcB[p * N + n] + B_offset);
+          sum += (int32_t)(pSrcA[n * M + m] + A_offset) *
+                 (pSrcB[p * N + n] + B_offset);
         }
         // Requantize value
         sum = alpha * sum + beta * pSrcC[m * P + p] + bias;
@@ -124,12 +129,13 @@ void RQGemm_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *_
   }
 }
 
-void RQGemm_offset_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                                                   int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY,
-                                                   uint32_t M, uint32_t N, uint32_t P, int32_t alpha, int32_t beta,
-                                                   int32_t transA, int32_t transB, int32_t *mul, int32_t *add,
-                                                   int32_t log2D, bool rounding, bool per_row_quant, int32_t A_offset,
-                                                   int32_t B_offset, int32_t C_offset, int32_t Y_offset) {
+void RQGemm_offset_unrolled_2x2_parallel_s8_rv32im(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M,
+    uint32_t N, uint32_t P, int32_t alpha, int32_t beta, int32_t transA,
+    int32_t transB, int32_t *mul, int32_t *add, int32_t log2D, bool rounding,
+    bool per_row_quant, int32_t A_offset, int32_t B_offset, int32_t C_offset,
+    int32_t Y_offset) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();

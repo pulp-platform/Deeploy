@@ -29,8 +29,10 @@
 
 #include "DeeploySnitchMath.h"
 
-void SnitchSoftmax_u8_u8(uint8_t *data_in, uint8_t *data_out, uint32_t *lastDimBuffer, uint32_t size,
-                         uint32_t lastDimLength, int32_t coeffB, int32_t coeffC, int32_t log2) {
+void SnitchSoftmax_u8_u8(uint8_t *data_in, uint8_t *data_out,
+                         uint32_t *lastDimBuffer, uint32_t size,
+                         uint32_t lastDimLength, int32_t coeffB, int32_t coeffC,
+                         int32_t log2) {
   uint8_t z;
   int16_t xTilde, p;
   uint32_t y_sum;
@@ -53,7 +55,8 @@ void SnitchSoftmax_u8_u8(uint8_t *data_in, uint8_t *data_out, uint32_t *lastDimB
     lastDimBuffer += lastDimLength * core_id;
   }
 
-  for (uint32_t i = offset; i < offset + (chunk * lastDimLength); i += lastDimLength) {
+  for (uint32_t i = offset; i < offset + (chunk * lastDimLength);
+       i += lastDimLength) {
     y_sum = 0;
     x_max = 0;
     for (uint32_t j = 0; j < lastDimLength; j++) {
@@ -76,8 +79,10 @@ void SnitchSoftmax_u8_u8(uint8_t *data_in, uint8_t *data_out, uint32_t *lastDimB
   }
 }
 
-void SnitchSoftmax_i8_u8(int8_t *data_in, uint8_t *data_out, uint32_t *lastDimBuffer, uint32_t size,
-                         uint32_t lastDimLength, int32_t coeffB, int32_t coeffC, int32_t log2) {
+void SnitchSoftmax_i8_u8(int8_t *data_in, uint8_t *data_out,
+                         uint32_t *lastDimBuffer, uint32_t size,
+                         uint32_t lastDimLength, int32_t coeffB, int32_t coeffC,
+                         int32_t log2) {
   uint8_t z;
   int16_t xTilde, p;
   uint32_t y_sum;
@@ -100,7 +105,8 @@ void SnitchSoftmax_i8_u8(int8_t *data_in, uint8_t *data_out, uint32_t *lastDimBu
     lastDimBuffer += lastDimLength * core_id;
   }
 
-  for (uint32_t i = offset; i < offset + (chunk * lastDimLength); i += lastDimLength) {
+  for (uint32_t i = offset; i < offset + (chunk * lastDimLength);
+       i += lastDimLength) {
 
     y_sum = 0;
     x_max = -128;

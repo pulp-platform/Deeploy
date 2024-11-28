@@ -31,8 +31,11 @@
 
 #include "DeeploySnitchMath.h"
 
-void MatMul_unrolled_2x2_parallel_s16_rv32im(int16_t const *__restrict__ pSrcA, int16_t const *__restrict__ pSrcB,
-                                             int32_t *__restrict__ pDstC, uint32_t M, uint32_t N, uint32_t P) {
+void MatMul_unrolled_2x2_parallel_s16_rv32im(int16_t const *__restrict__ pSrcA,
+                                             int16_t const *__restrict__ pSrcB,
+                                             int32_t *__restrict__ pDstC,
+                                             uint32_t M, uint32_t N,
+                                             uint32_t P) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();

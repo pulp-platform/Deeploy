@@ -30,8 +30,10 @@
  */
 
 #include "DeeploySnitchMath.h"
-void MatMul_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                               int32_t *__restrict__ pDstC, uint32_t M, uint32_t N, uint32_t P, int32_t A_offset,
+void MatMul_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA,
+                               int8_t const *__restrict__ pSrcB,
+                               int32_t *__restrict__ pDstC, uint32_t M,
+                               uint32_t N, uint32_t P, int32_t A_offset,
                                int32_t B_offset, int32_t output_offset) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
@@ -46,15 +48,19 @@ void MatMul_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *_
     for (uint32_t j = c_start; j < c_end; ++j) {
       int32_t sum = 0;
       for (uint32_t k = 0; k < N; ++k) {
-        sum += (int32_t)(pSrcA[i * N + k] + A_offset) * (pSrcB[k * P + j] + B_offset);
+        sum += (int32_t)(pSrcA[i * N + k] + A_offset) *
+               (pSrcB[k * P + j] + B_offset);
       }
       pDstC[i * P + j] = sum + output_offset;
     }
   }
 }
 
-void MatMul_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                                            int32_t *__restrict__ pDstC, uint32_t M, uint32_t N, uint32_t P) {
+void MatMul_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA,
+                                            int8_t const *__restrict__ pSrcB,
+                                            int32_t *__restrict__ pDstC,
+                                            uint32_t M, uint32_t N,
+                                            uint32_t P) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();
@@ -96,9 +102,10 @@ void MatMul_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, in
   }
 }
 
-void MatMul_offset_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                                                   int32_t *__restrict__ pDstC, uint32_t M, uint32_t N, uint32_t P,
-                                                   int32_t A_offset, int32_t B_offset, int32_t output_offset) {
+void MatMul_offset_unrolled_2x2_parallel_s8_rv32im(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t *__restrict__ pDstC, uint32_t M, uint32_t N, uint32_t P,
+    int32_t A_offset, int32_t B_offset, int32_t output_offset) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();
