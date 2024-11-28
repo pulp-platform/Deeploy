@@ -9,7 +9,7 @@ name = "Deeploy"
 description = "Deeploy - Bring your networks to your platforms"
 version = '0.1.0'
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
 'protobuf==4.23.3',
 'numpy<2.0.0',
