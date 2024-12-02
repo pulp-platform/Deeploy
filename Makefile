@@ -273,7 +273,7 @@ ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 	cp -r ${TOOLCHAIN_DIR}/snitch_cluster/ ${SNITCH_INSTALL_DIR}/../
 	cd ${SNITCH_INSTALL_DIR} && \
 	[ -d /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin ] && export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin || \
-	export LLVM_BINROOT = $(dir $(shell which clang) ) && \
+	export LLVM_BINROOT=$(dir $(shell which clang) ) && \
 	mkdir tmp && \
 	TMPDIR=tmp pip install -r python-requirements.txt && rm -rf tmp && \
 	bender vendor init && \
