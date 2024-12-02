@@ -21,4 +21,3 @@ target_include_directories(deeploysnitch SYSTEM PUBLIC ${SNITCH_RUNTIME_INCLUDE}
 target_compile_options(deeploysnitch PUBLIC ${SNITCH_RUNTIME_COMPILE_FLAGS})
 
 target_link_libraries(deeploysnitch INTERFACE snitch-runtime)
-# target_sources(deeploysnitch INTERFACE $<TARGET_OBJECTS:snitch-runtime>)
