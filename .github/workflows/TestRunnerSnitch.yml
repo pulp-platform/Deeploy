@@ -26,7 +26,7 @@ jobs:
           echo "$testNames" | while IFS= read -r testName; do
             if [[ -n "$testName" ]]; then
               echo "Running test: $testName"
-              python testRunner_snitch.py -t Tests/$testName
+              python testRunner_snitch.py -t Tests/$testName --toolchain_install_dir /app/install/riscv-llvm/
             fi
           done
         shell: bash

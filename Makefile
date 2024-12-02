@@ -272,7 +272,11 @@ ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 	mkdir -p ${SNITCH_INSTALL_DIR}
 	cp -r ${TOOLCHAIN_DIR}/snitch_cluster/ ${SNITCH_INSTALL_DIR}/../
 	cd ${SNITCH_INSTALL_DIR} && \
-	source iis-setup.sh && \
+	[ -d /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin ] && export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin || \
+	export LLVM_BINROOT = $(dir $(shell which clang) ) && \
+	mkdir tmp && \
+	TMPDIR=tmp pip install -r python-requirements.txt && rm -rf tmp && \
+	bender vendor init && \
 	cd ${SNITCH_INSTALL_DIR}/target/snitch_cluster && \
 	make sw/runtime/banshee sw/math
 

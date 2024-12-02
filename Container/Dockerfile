@@ -6,7 +6,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 ARG UBUNTU_VERSION=22.04
 ARG BENDER_VERSION=0.28.1
-ARG SPIKE_DASM_VERSION=0.1.0
 ARG SNITCH_LLVM_VERSION=latest
 
 ENV TZ=Etc/UTC
@@ -81,7 +80,6 @@ RUN make mempool
 RUN make banshee
 
 # Dependencies needed for compiling Snitch
-
 ## Bender's installaton
 RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
     tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && cp  /app/bender /bin
@@ -96,28 +94,10 @@ mkdir -p riscv-llvm && \
 echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
 wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
 tar xvz --strip-components=1 -C riscv-llvm
+ENV PATH=/app/riscv-llvm/bin:${PATH}
 
-## Spike's installation
-RUN wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v${SPIKE_DASM_VERSION}/snitch-spike-dasm-${SPIKE_DASM_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
-RUN tar xzf snitch-spike-dasm-${SPIKE_DASM_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
-ENV PATH=/app/spike-dasm:$PATH
-
-## Python's requirements for Snitch
-RUN git clone https://github.com/pulp-platform/snitch_cluster.git && \
-    cd snitch_cluster/ && git submodule update --init --recursive && \
-    git checkout e02cc9e3f24b92d4607455d5345caba3eb6273b2
-RUN cd /app/snitch_cluster && pip install -r python-requirements.txt
-
-## bender init
-RUN cd /app/snitch_cluster && bender vendor init
-
-## Compile snitch runtime
-ENV LLVM_BINROOT=/app/riscv-llvm/bin
-ENV PATH=/app/riscv-llvm/bin:$PATH
-RUN cd /app/snitch_cluster/target/snitch_cluster && make sw/runtime/banshee
-RUN cd /app/snitch_cluster/target/snitch_cluster && make sw/math
-RUN cp -r /app/snitch_cluster /app/install
-
+## compile snitch
+RUN make snitch_runtime
 
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain
@@ -165,6 +145,4 @@ pip install -r requirements.txt
 # Copy pre-built toolchains and emulators
 COPY --from=builder /app/install ./install
 COPY --from=builder /root/.cargo/bin/banshee /root/.cargo/bin/banshee
-
-# ugly
-COPY --from=builder /app/riscv-llvm /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/
+COPY --from=builder /app/riscv-llvm ./install/riscv-llvm
