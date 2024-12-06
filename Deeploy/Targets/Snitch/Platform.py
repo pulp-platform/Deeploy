@@ -28,27 +28,24 @@ from typing import List
 
 import numpy as np
 
-
-from Deeploy.Targets.Generic.Bindings import BasicGatherBindings,BasicMatMulBinding, BasicPad1DBindings, \
-    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, BasicLayerNormBinding
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
+from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicLayerNormBinding, BasicMatMulBinding, \
+    BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, GatherLayer, GEMMLayer, MatMulLayer, PadLayer, ReshapeLayer, \
-    RQGEMMLayer, RQIntegerDivLayer, iNoNormLayer, iSoftmaxLayer, iLayerNormLayer
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass, \
-    GEMMRequantMergePass, IntegerDivRequantMergePass, MergeConstAddAndRequantPass, \
-    MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, SkipEmptyConcatPass, SkipUnityRequantPass, \
-    iGELURequantMergePass, iHardswishRequantMergePass
-from Deeploy.Targets.Generic.Parsers import AddParser, GatherParser, MatMulParser, Pad1DParser, Pad2DParser, RQAddParser, \
-    RQIntegerDivParser, UnsqueezeParser, iNoNormParser, iSoftmaxParser, iLayerNormParser
-from Deeploy.Targets.Snitch.Parser import SnitchGEMMParser, SnitchRQGEMMParser
-from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
+    RQGEMMLayer, RQIntegerDivLayer, iLayerNormLayer, iNoNormLayer, iSoftmaxLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, GatherParser, MatMulParser, Pad1DParser, Pad2DParser, \
+    RQAddParser, RQIntegerDivParser, UnsqueezeParser, iLayerNormParser, iNoNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass, GEMMRequantMergePass, \
+    IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
+    SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
+from Deeploy.Targets.Snitch.Parser import SnitchGEMMParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchGemmTilingReadyBindings, \
     SnitchiNoNormTilingReadyBindings, SnitchiSoftmaxTilingReadyBindings, SnitchRQAddTilingReadyBindings, \
     SnitchRqGemmTilingReadyBindings
-
 
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)

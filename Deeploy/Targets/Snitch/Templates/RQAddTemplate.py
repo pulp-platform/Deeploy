@@ -35,7 +35,8 @@ class SnitchRQAddTemplate(NodeTemplate):
     def __init__(self, templateStr):
         super().__init__(templateStr)
 
-    def alignToContext(self, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
+    def alignToContext(self, ctxt: NetworkContext,
+                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
         # Extract signedness information of input, weights and output
         signedI2 = ctxt.lookup(operatorRepresentation['data_in_2'])._type.referencedType.typeMin < 0
         signedI = ctxt.lookup(operatorRepresentation['data_in_1'])._type.referencedType.typeMin < 0

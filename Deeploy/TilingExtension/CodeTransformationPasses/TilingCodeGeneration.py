@@ -32,8 +32,8 @@ from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureExe
 from Deeploy.CommonExtensions.CodeTransformationPasses.IntrospectiveCodeTransformation import \
     IntrospectiveCodeTransformationMixIn
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration
-from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ConstantBuffer, ExecutionBlock, NetworkContext, \
-    NodeTemplate, OperatorRepresentation, VariableBuffer, _NoVerbosity
+from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ConstantBuffer, ExecutionBlock, \
+    NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer, _NoVerbosity
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import PrototypeTilingMixIn
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TilingCodegen import TilingSchedule, VariableReplacementScheme, minimizeVariableReplacement
@@ -150,7 +150,6 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
 
         return ctxt, operatorRepresentation
 
-    
     def apply(self,
               ctxt: NetworkContext,
               executionBlock: ExecutionBlock,

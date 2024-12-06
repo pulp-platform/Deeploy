@@ -26,5 +26,6 @@
 
 #include "DeeploySnitchMath.h"
 
-void SnitchiNoNorm_s8_s8(int8_t *data_in, int8_t *data_out, int8_t *weights, int32_t *bias, uint32_t size, int32_t mul,
+void SnitchiNoNorm_s8_s8(int8_t *data_in, int8_t *data_out, int8_t *weights,
+                         int32_t *bias, uint32_t size, int32_t mul,
                          int32_t log2D);

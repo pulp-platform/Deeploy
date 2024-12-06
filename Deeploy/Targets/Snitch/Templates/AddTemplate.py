@@ -30,7 +30,8 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 
 class _SnitchAddTemplate(NodeTemplate):
 
-    def alignToContext(self, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
+    def alignToContext(self, ctxt: NetworkContext,
+                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
 
         data_in_1 = ctxt.lookup(operatorRepresentation['data_in_1'])
         data_in_2 = ctxt.lookup(operatorRepresentation['data_in_2'])

@@ -66,7 +66,7 @@ int main(void) {
              DeeployNetwork_inputs[buf], DeeployNetwork_inputs_bytes[buf]);
     }
     for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
-      printf("testInputVector%d @ %p\r\n", buf, testOutputVector[buf]);
+      printf("testOutputVector%d @ %p\r\n", buf, testOutputVector[buf]);
       printf("DeeployNetwork_output_%d @ %p and %u elements\r\n", buf,
              DeeployNetwork_outputs[buf], DeeployNetwork_outputs_bytes[buf]);
     }

@@ -35,6 +35,7 @@ from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
 
+
 class iNoNormTileConstraint(TileConstraint):
 
     @staticmethod
@@ -70,14 +71,15 @@ class iNoNormTileConstraint(TileConstraint):
         return tilerModel
 
     @classmethod
-    def serializeTilingSolution(cls, tilingSolution: NodeMemoryConstraint,
-                                absoluteOutputCubes: List[AbsoluteHyperRectangle], targetMemLevel: str,
-                                ctxt: NetworkContext,
-                                operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+    def serializeTilingSolution(
+            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
+            targetMemLevel: str, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         addrNames = ['data_in', 'weights', 'bias', 'data_out']
-        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel, operatorRepresentation, addrNames)
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
+                                                                  operatorRepresentation, addrNames)
 
         replacements = {"size": []}
         replacementTypes = {"size": PointerClass(uint32_t)}

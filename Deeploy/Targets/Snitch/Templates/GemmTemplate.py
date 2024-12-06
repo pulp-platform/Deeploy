@@ -5,12 +5,15 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 
 class SnitchGemmTemplate(NodeTemplate):
 
-    def alignToContext(self, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
+    def alignToContext(self, ctxt: NetworkContext,
+                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
         if isinstance(operatorRepresentation['alpha'], float):
-            assert operatorRepresentation['alpha'].is_integer(), f"Parameter alpha is not an integer: {operatorRepresentation['alpha']}"
+            assert operatorRepresentation['alpha'].is_integer(
+            ), f"Parameter alpha is not an integer: {operatorRepresentation['alpha']}"
             operatorRepresentation['alpha'] = int(operatorRepresentation['alpha'])
         if isinstance(operatorRepresentation['beta'], float):
-            assert operatorRepresentation['beta'].is_integer(), f"Parameter beta is not an integer: {operatorRepresentation['beta']}"
+            assert operatorRepresentation['beta'].is_integer(
+            ), f"Parameter beta is not an integer: {operatorRepresentation['beta']}"
             operatorRepresentation['beta'] = int(operatorRepresentation['beta'])
 
         if operatorRepresentation['transB']:

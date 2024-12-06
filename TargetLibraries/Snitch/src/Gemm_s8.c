@@ -1,8 +1,10 @@
 #include "DeeploySnitchMath.h"
 #include "Gemm.h"
 
-void Gemm_s8_row_parallel(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                          int32_t const *__restrict__ pSrcC, int32_t *__restrict__ pDstY, uint32_t M, uint32_t N,
+void Gemm_s8_row_parallel(int8_t const *__restrict__ pSrcA,
+                          int8_t const *__restrict__ pSrcB,
+                          int32_t const *__restrict__ pSrcC,
+                          int32_t *__restrict__ pDstY, uint32_t M, uint32_t N,
                           uint32_t O, int32_t alpha, int32_t beta) {
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();
@@ -11,7 +13,8 @@ void Gemm_s8_row_parallel(int8_t const *__restrict__ pSrcA, int8_t const *__rest
   uint32_t const MQuotient = M / numThreads;
   uint32_t const MRemainder = M % numThreads;
   uint32_t const MSize = MQuotient + (core_id < MRemainder ? 1 : 0);
-  uint32_t const MStart = core_id * MQuotient + (core_id < MRemainder ? core_id : MRemainder);
+  uint32_t const MStart =
+      core_id * MQuotient + (core_id < MRemainder ? core_id : MRemainder);
   uint32_t const MEnd = MStart + MSize;
 
   for (uint32_t m = MStart; m < MEnd; m++) {
@@ -27,9 +30,12 @@ void Gemm_s8_row_parallel(int8_t const *__restrict__ pSrcA, int8_t const *__rest
   }
 }
 
-void Gemm_s8_transB_row_parallel(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
-                                 int32_t const *__restrict__ pSrcC, int32_t *__restrict__ pDstY, uint32_t M, uint32_t N,
-                                 uint32_t O, int32_t alpha, int32_t beta) {
+void Gemm_s8_transB_row_parallel(int8_t const *__restrict__ pSrcA,
+                                 int8_t const *__restrict__ pSrcB,
+                                 int32_t const *__restrict__ pSrcC,
+                                 int32_t *__restrict__ pDstY, uint32_t M,
+                                 uint32_t N, uint32_t O, int32_t alpha,
+                                 int32_t beta) {
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();
 
@@ -37,7 +43,8 @@ void Gemm_s8_transB_row_parallel(int8_t const *__restrict__ pSrcA, int8_t const 
   uint32_t const MQuotient = M / numThreads;
   uint32_t const MRemainder = M % numThreads;
   uint32_t const MSize = MQuotient + (core_id < MRemainder ? 1 : 0);
-  uint32_t const MStart = core_id * MQuotient + (core_id < MRemainder ? core_id : MRemainder);
+  uint32_t const MStart =
+      core_id * MQuotient + (core_id < MRemainder ? core_id : MRemainder);
   uint32_t const MEnd = MStart + MSize;
 
   for (uint32_t m = MStart; m < MEnd; m++) {

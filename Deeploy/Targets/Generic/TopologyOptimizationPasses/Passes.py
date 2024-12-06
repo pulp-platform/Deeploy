@@ -867,6 +867,7 @@ class RQSSplitPass(ReplaceSequentialPatternPass):
         name = "_SPLIT_RequantShift_PASS"
         super().__init__(graph, partial(_split_rqs_fun, splitSet = self.splitSet), name)
 
+
 def _merge_add_rq_fun(graph: gs.Graph, match: Match, name: str):
 
     nodes_map = match.nodes_map

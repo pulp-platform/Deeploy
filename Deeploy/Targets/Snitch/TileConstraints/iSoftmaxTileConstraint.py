@@ -85,14 +85,15 @@ class iSoftmaxTileConstraint(TileConstraint):
         return symbolicParseDict
 
     @classmethod
-    def serializeTilingSolution(cls, tilingSolution: NodeMemoryConstraint,
-                                absoluteOutputCubes: List[AbsoluteHyperRectangle], targetMemLevel: str,
-                                ctxt: NetworkContext,
-                                operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+    def serializeTilingSolution(
+            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
+            targetMemLevel: str, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         addrNames = ['data_in', 'data_out']
-        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel, operatorRepresentation, addrNames)
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
+                                                                  operatorRepresentation, addrNames)
 
         replacements = {"lastDimLength": [], "size": []}
 

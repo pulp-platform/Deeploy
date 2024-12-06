@@ -26,7 +26,8 @@
 
 #include "DeeploySnitchMath.h"
 
-void SnitchAdd(int8_t *pIn1, int8_t *pIn2, int32_t *pOut, uint32_t size, int32_t offset) {
+void SnitchAdd(int8_t *pIn1, int8_t *pIn2, int32_t *pOut, uint32_t size,
+               int32_t offset) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();

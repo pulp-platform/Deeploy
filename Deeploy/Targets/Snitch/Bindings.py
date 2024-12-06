@@ -26,26 +26,33 @@
 from functools import partial
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, MemoryManagementGeneration 
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
-from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
-    SnitchSynchCoresPass, SnitchProfileExecutionBlockPass
+from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
+    MemoryManagementGeneration
 from Deeploy.CommonExtensions.DataTypes import int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
+from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import iNoNormTemplate
+from Deeploy.Targets.Generic.TypeCheckers import AddChecker, GEMMChecker, SoftmaxChecker, iNoNormChecker
+from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
+    SnitchProfileExecutionBlockPass, SnitchSynchCoresPass
 from Deeploy.Targets.Snitch.Templates import AddTemplate, RQAddTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Snitch.Templates.GemmTemplate import SnitchGemm_Template
 from Deeploy.Targets.Snitch.Templates.RqGemmTemplate import SnitchRqGemm_Template
-from Deeploy.Targets.Generic.TypeCheckers import AddChecker, GEMMChecker, SoftmaxChecker, iNoNormChecker
 from Deeploy.Targets.Snitch.TypeCheckers import SnitchRQAddChecker
-
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
 
 TilingCallClosure = partial(ClosureGeneration, closureSuffix = "_tiling_closure")
-MemoryAwareFunctionCallClosure = partial(MemoryAwareClosureGeneration, closureSuffix = "_closure", startRegion = "L2", endRegion = "L1")
+MemoryAwareFunctionCallClosure = partial(MemoryAwareClosureGeneration,
+                                         closureSuffix = "_closure",
+                                         startRegion = "L2",
+                                         endRegion = "L1")
 
-BasicTransformer = CodeTransformation([SnitchSynchCoresPass(), ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
+BasicTransformer = CodeTransformation(
+    [SnitchSynchCoresPass(),
+     ArgumentStructGeneration(),
+     MemoryManagementGeneration(),
+     FutureGeneration()])
 
 TiledTransformer = CodeTransformation([
     SnitchCoreFilterPass("compute"),
@@ -60,9 +67,36 @@ TiledTransformer = CodeTransformation([
     MemoryManagementGeneration()
 ])
 
-SnitchiSoftmaxBindings = [NodeBinding(SoftmaxChecker([PointerClass(_type)], [PointerClass(uint8_t)]), iSoftmaxTemplate.referenceTemplate, TiledTransformer) for _type in [int8_t, uint8_t]]
-SnitchiNoNormBindings = [NodeBinding(iNoNormChecker([PointerClass(_type), PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]), iNoNormTemplate.referenceTemplate, TiledTransformer) for _type in [int8_t]]
-SnitchRQAddBindings = [NodeBinding(SnitchRQAddChecker([PointerClass(_type), PointerClass(_type)], [PointerClass(_type)]), RQAddTemplate.referenceTemplate, TiledTransformer) for _type in [int8_t]]
-SnitchAddBindings = [NodeBinding(AddChecker([PointerClass(_type), PointerClass(_type)], [PointerClass(int32_t)]), AddTemplate.referenceTemplate, TiledTransformer) for _type in [int8_t]]
-SnitchGemmBindings = [NodeBinding(GEMMChecker([PointerClass(int8_t), PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int32_t)]), SnitchGemm_Template, TiledTransformer)]
-SnitchRqGemmBindings = [NodeBinding(GEMMChecker([PointerClass(int8_t), PointerClass(int8_t), PointerClass(int32_t), PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int8_t)]), SnitchRqGemm_Template, TiledTransformer)]
+SnitchiSoftmaxBindings = [
+    NodeBinding(SoftmaxChecker([PointerClass(_type)], [PointerClass(uint8_t)]), iSoftmaxTemplate.referenceTemplate,
+                TiledTransformer) for _type in [int8_t, uint8_t]
+]
+SnitchiNoNormBindings = [
+    NodeBinding(
+        iNoNormChecker([PointerClass(_type), PointerClass(int8_t),
+                        PointerClass(int32_t)], [PointerClass(int8_t)]), iNoNormTemplate.referenceTemplate,
+        TiledTransformer) for _type in [int8_t]
+]
+SnitchRQAddBindings = [
+    NodeBinding(SnitchRQAddChecker([PointerClass(_type), PointerClass(_type)], [PointerClass(_type)]),
+                RQAddTemplate.referenceTemplate, TiledTransformer) for _type in [int8_t]
+]
+SnitchAddBindings = [
+    NodeBinding(AddChecker([PointerClass(_type), PointerClass(_type)], [PointerClass(int32_t)]),
+                AddTemplate.referenceTemplate, TiledTransformer) for _type in [int8_t]
+]
+SnitchGemmBindings = [
+    NodeBinding(
+        GEMMChecker([PointerClass(int8_t), PointerClass(int8_t),
+                     PointerClass(int32_t)], [PointerClass(int32_t)]), SnitchGemm_Template, TiledTransformer)
+]
+SnitchRqGemmBindings = [
+    NodeBinding(
+        GEMMChecker([
+            PointerClass(int8_t),
+            PointerClass(int8_t),
+            PointerClass(int32_t),
+            PointerClass(int32_t),
+            PointerClass(int32_t)
+        ], [PointerClass(int8_t)]), SnitchRqGemm_Template, TiledTransformer)
+]

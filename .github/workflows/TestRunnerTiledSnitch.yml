@@ -6,22 +6,10 @@ on:
       tests-config:
         required: true
         type: string
-      num-cores:
-        required: false
-        default: 8
-        type: number
-      default-memory-level:
-        required: false
-        default: "L2"
-        type: string
-      double-buffer:
-        required: false
-        default: false
-        type: boolean
 
 jobs:
 
-  test-runner-siracusa-tiled:
+  test-runner-snitch-tiled:
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/tahaelbayad/deeploy:main
@@ -46,14 +34,13 @@ jobs:
           echo '${{ inputs.tests-config }}' > tests.json
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          source /app/install/pulp-sdk/configs/siracusa.sh
 
           jq -c '.[]' tests.json | while read test; do
             testName=$(echo "$test" | jq -r '.name')
             L1_values=$(echo "$test" | jq -r '.L1[]')
             for L1_value in $L1_values; do
               echo "Running test: $testName with L1: $L1_value"
-              python testRunner_tiled_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }}
+              python testRunner_tiled_snitch.py -t Tests/$testName --cores=9 --simulator=banshee --l1 $L1_value --defaultMemLevel=L2 --toolchain_install_dir /app/install/riscv-llvm/
             done
           done
         shell: bash

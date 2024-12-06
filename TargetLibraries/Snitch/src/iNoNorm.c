@@ -26,7 +26,8 @@
 
 #include "DeeploySnitchMath.h"
 
-void SnitchiNoNorm_s8_s8(int8_t *data_in, int8_t *data_out, int8_t *weights, int32_t *bias, uint32_t size, int32_t mul,
+void SnitchiNoNorm_s8_s8(int8_t *data_in, int8_t *data_out, int8_t *weights,
+                         int32_t *bias, uint32_t size, int32_t mul,
                          int32_t log2D) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
@@ -61,8 +62,10 @@ void SnitchiNoNorm_s8_s8(int8_t *data_in, int8_t *data_out, int8_t *weights, int
   uint32_t biasIdx = start * 4;
 
   // JUNGVI: Compute sequentially the first elements not aligned to a word (32b)
-  for (uint32_t i = firstReminderLoopIdx; i < firstReminderLoopIdx + firstReminderLoopSize; i++) {
-    data_out[i] = ((((int32_t)data_in[i] * weights[i]) + bias[i]) * mul) >> log2D;
+  for (uint32_t i = firstReminderLoopIdx;
+       i < firstReminderLoopIdx + firstReminderLoopSize; i++) {
+    data_out[i] =
+        ((((int32_t)data_in[i] * weights[i]) + bias[i]) * mul) >> log2D;
   }
 
   for (uint32_t i = start; i < stop; i++) {
@@ -90,13 +93,16 @@ void SnitchiNoNorm_s8_s8(int8_t *data_in, int8_t *data_out, int8_t *weights, int
     uint8_t outBuf3 = ((partialProduct3 + bias[biasIdx + 2]) * mul) >> log2D;
     uint8_t outBuf4 = ((partialProduct4 + bias[biasIdx + 3]) * mul) >> log2D;
 
-    uint32_t outPacked = (outBuf1 << 0) | (outBuf2 << 8) | (outBuf3 << 16) | (outBuf4 << 24);
+    uint32_t outPacked =
+        (outBuf1 << 0) | (outBuf2 << 8) | (outBuf3 << 16) | (outBuf4 << 24);
     outputPtr[i] = outPacked;
     biasIdx += 4;
   }
 
   // JUNGVI: Compute sequentially the last elements not aligned to a word (32b)
-  for (uint32_t i = lastReminderLoopIdx; i < lastReminderLoopIdx + lastReminderLoopSize; i++) {
-    data_out[i] = ((((int32_t)data_in[i] * weights[i]) + bias[i]) * mul) >> log2D;
+  for (uint32_t i = lastReminderLoopIdx;
+       i < lastReminderLoopIdx + lastReminderLoopSize; i++) {
+    data_out[i] =
+        ((((int32_t)data_in[i] * weights[i]) + bias[i]) * mul) >> log2D;
   }
 }

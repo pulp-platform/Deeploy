@@ -23,13 +23,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Snitch.Bindings import SnitchAddBindings, SnitchGemmBindings, SnitchiNoNormBindings, \
     SnitchiSoftmaxBindings, SnitchRQAddBindings, SnitchRqGemmBindings
-from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Snitch.TileConstraints import iNoNormTileConstraint, iSoftmaxTileConstraint
 from Deeploy.Targets.Snitch.TileConstraints.GemmTileConstraint import GemmTileConstraint
 from Deeploy.Targets.Snitch.TileConstraints.RqGemmTileConstraint import RqGemmTileConstraint
-
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 SnitchiSoftmaxTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchiSoftmaxBindings,

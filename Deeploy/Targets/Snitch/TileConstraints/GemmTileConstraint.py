@@ -9,6 +9,7 @@ from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme
 
+
 class GemmTileConstraint(TileConstraint):
 
     @staticmethod
@@ -95,14 +96,15 @@ class GemmTileConstraint(TileConstraint):
         return tilerModel
 
     @classmethod
-    def serializeTilingSolution(cls, tilingSolution: NodeMemoryConstraint,
-                                absoluteOutputCubes: List[AbsoluteHyperRectangle], targetMemLevel: str,
-                                ctxt: NetworkContext,
-                                operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+    def serializeTilingSolution(
+            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
+            targetMemLevel: str, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         addrNames = ['A', 'B', 'C', 'data_out']
-        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel, operatorRepresentation, addrNames)
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
+                                                                  operatorRepresentation, addrNames)
 
         NOffset = 0
         NSize = operatorRepresentation["N"]

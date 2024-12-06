@@ -5,7 +5,8 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 
 class SnitchRqGemmTemplate(NodeTemplate):
 
-    def alignToContext(self, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
+    def alignToContext(self, ctxt: NetworkContext,
+                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
         if isinstance(operatorRepresentation['alpha'], float):
             assert operatorRepresentation['alpha'].is_integer()
             operatorRepresentation['alpha'] = int(operatorRepresentation['alpha'])

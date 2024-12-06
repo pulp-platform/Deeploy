@@ -26,18 +26,21 @@
 from typing import List, Sequence, Type
 
 from Deeploy.AbstractDataTypes import Pointer
-from Deeploy.DeeployTypes import VariableBuffer, OperatorRepresentation
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
+from Deeploy.DeeployTypes import OperatorRepresentation, VariableBuffer
+
 
 class SnitchRQAddChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
 
-    def _inferNumLevels(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> List[int]:
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [operatorRepresentation['rqsOut_n_levels']]
 
-    def _inferSignedness(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> List[bool]:
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [bool(operatorRepresentation["rqsOut_signed"])]
 
     # Override this. This should compute the signednes of each output node of the Layer

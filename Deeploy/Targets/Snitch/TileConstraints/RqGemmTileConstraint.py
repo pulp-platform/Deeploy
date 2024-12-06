@@ -5,8 +5,10 @@ from Deeploy.CommonExtensions.DataTypes import uint32_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
-from Deeploy.TilingExtension.TilerModel import TilerModel, PerformanceHint
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
+
 
 class RqGemmTileConstraint(TileConstraint):
 
@@ -107,14 +109,15 @@ class RqGemmTileConstraint(TileConstraint):
         return tilerModel
 
     @classmethod
-    def serializeTilingSolution(cls, tilingSolution: NodeMemoryConstraint,
-                                absoluteOutputCubes: List[AbsoluteHyperRectangle], targetMemLevel: str,
-                                ctxt: NetworkContext,
-                                operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+    def serializeTilingSolution(
+            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
+            targetMemLevel: str, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         addrNames = ['A', 'B', 'C', 'mul', 'add', 'data_out']
-        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel, operatorRepresentation, addrNames)
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
+                                                                  operatorRepresentation, addrNames)
 
         NOffset = 0
         NSize = operatorRepresentation["N"]
