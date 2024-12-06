@@ -24,15 +24,15 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple, Type
 
 import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
-from Deeploy.AbstractDataTypes import PointerClass
+from Deeploy.AbstractDataTypes import Immediate, PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureExecutionBlock
 from Deeploy.CommonExtensions.CodeTransformationPasses.IntrospectiveCodeTransformation import \
     IntrospectiveCodeTransformationMixIn
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration
-from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, \
+from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ConstantBuffer, ExecutionBlock, NetworkContext, \
     NodeTemplate, OperatorRepresentation, VariableBuffer, _NoVerbosity
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import PrototypeTilingMixIn
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
@@ -121,6 +121,36 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
 
         return newPtrName
 
+    def _hoistConstantAndReference(self,
+                                   ctxt: NetworkContext,
+                                   constBuf: ConstantBuffer,
+                                   operatorRepresentation: OperatorRepresentation,
+                                   nodeName: str,
+                                   operatorRepresentationName: str,
+                                   immediateType: Optional[Type[Immediate]] = None) -> Tuple[NetworkContext, Dict]:
+
+        if immediateType is None:
+            _type = PointerClass(BasicDataTypes.int32_t)
+        else:
+            _type = PointerClass(immediateType)
+
+        name = constBuf.name
+
+        ctxt.add(constBuf, "global")
+        constBuf._type = _type
+        constBuf._instance = constBuf._type(name, ctxt)
+        constBuf._users = [nodeName]
+        constBuf._memoryLevel = self.targetMemLevel
+
+        refName = name + "_ref"
+        reference = ctxt.hoistReference(name, refName)
+        ctxt.lookup(reference)._memoryLevel = self.targetMemLevel
+
+        operatorRepresentation[operatorRepresentationName] = refName
+
+        return ctxt, operatorRepresentation
+
+    
     def apply(self,
               ctxt: NetworkContext,
               executionBlock: ExecutionBlock,

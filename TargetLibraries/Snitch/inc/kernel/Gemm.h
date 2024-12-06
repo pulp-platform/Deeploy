@@ -49,6 +49,33 @@
 /******************************************************************************/
 
 /*
+ * General Matrix Multiplication
+ * transposed A    = no
+ * transposed B    = no
+ * multi-core      = yes
+ * unrolling       = no
+ * simd            = no
+ * parallelization = row-wise
+ * bias pushing    = no
+ */
+void Gemm_s8_row_parallel(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+                          int32_t const *__restrict__ pSrcC, int32_t *__restrict__ pDstY, uint32_t M, uint32_t N,
+                          uint32_t O, int32_t alpha, int32_t beta);
+
+/*
+ * General Matrix Multiplication
+ * transposed A    = no
+ * transposed B    = yes
+ * multi-core      = yes
+ * unrolling       = no
+ * simd            = no
+ * parallelization = row-wise
+ * bias pushing    = no
+ */
+void Gemm_s8_transB_row_parallel(int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+                                 int32_t const *__restrict__ pSrcC, int32_t *__restrict__ pDstY, uint32_t M, uint32_t N,
+                                 uint32_t O, int32_t alpha, int32_t beta);
+/*
  * General Matrix Multiplication ----------------------------------
  * kernel     = Gemm_parallel_s8_rv32im
  * data type  = 8-bit integer

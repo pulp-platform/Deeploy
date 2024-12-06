@@ -1,5 +1,6 @@
 file(GLOB_RECURSE SOURCES
   "src/**"
+  "third_party/pulp-nn-mixed/DeeploySnitch/src/**"
 )
 
 include(cmake/snitch-runtime-precompiled.cmake)
@@ -8,6 +9,7 @@ add_deeploy_library(deeploysnitch STATIC ${SOURCES})
 target_include_directories(deeploysnitch
   PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/inc
+  ${CMAKE_CURRENT_LIST_DIR}/inc/kernel
 )
 
 

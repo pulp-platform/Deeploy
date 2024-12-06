@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, Sequence, Type
+from typing import Dict, List, Optional, Sequence, Type
 
 import numpy as np
 
@@ -390,6 +390,21 @@ class SoftmaxChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [False]
+
+
+class iNoNormChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(4 * self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        if inputs[0]._signed:
+            return [True]
+        else:
+            return [False]
 
 
 class GELUChecker(SignPropTypeChecker):

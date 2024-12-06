@@ -24,13 +24,14 @@
 # limitations under the License.
 
 import copy
+from collections import OrderedDict
 from functools import partial
 from typing import List
 
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.CommonExtensions.OptimizationPasses.Matchers import Match, NonBranchingMatcher
+from Deeploy.CommonExtensions.OptimizationPasses.Matchers import BranchingMatcher, Match, NonBranchingMatcher
 from Deeploy.CommonExtensions.OptimizationPasses.PassClasses import ReplaceSequentialPatternPass, contextagnostic
 
 
@@ -865,3 +866,134 @@ class RQSSplitPass(ReplaceSequentialPatternPass):
 
         name = "_SPLIT_RequantShift_PASS"
         super().__init__(graph, partial(_split_rqs_fun, splitSet = self.splitSet), name)
+
+def _merge_add_rq_fun(graph: gs.Graph, match: Match, name: str):
+
+    nodes_map = match.nodes_map
+    addNode = nodes_map['add']
+
+    rqDict = OrderedDict([("rqs1", None), ("rqs2", None), ("rqsOut", None)])
+
+    for key, node in nodes_map.items():
+
+        if node.outputs[0].name == addNode.inputs[0].name:
+            rqDict['rqs1'] = node
+        elif node.outputs[0].name == addNode.inputs[1].name:
+            rqDict['rqs2'] = node
+        elif node.inputs[0].name == addNode.outputs[0].name:
+            rqDict['rqsOut'] = node
+
+    newAttrs = copy.copy(addNode.attrs)
+    newInputs = []
+
+    if rqDict['rqsOut'] is not None:
+        newOutputs = rqDict['rqsOut'].outputs
+    else:
+        newOutputs = addNode.outputs
+
+    defaultAttrs = {
+        "mul": 1,
+        "add": 0,
+        "div": gs.Constant('div', np.array(1)),
+        'shift': gs.Constant('div', np.array(0))
+    }
+    guessAttrs = {"n_levels_out": 256, "signed": np.array([True])}
+    for idx, (rqKey, node) in enumerate(rqDict.items()):
+        if node.op == "RequantShift":
+            for key, attr in node.attrs.items():
+                newAttrs[f"{rqKey}_{key}"] = attr
+
+            if np.prod(node.inputs[1].values.shape) != 1:
+                return graph
+
+            if np.prod(node.inputs[2].values.shape) != 1:
+                return graph
+
+            if rqKey != 'rqsOut':
+                newInputs.append(node.inputs[0])
+
+            newAttrs[f"{rqKey}_mul"] = int(node.inputs[1].values.item())
+            newAttrs[f"{rqKey}_add"] = int(node.inputs[2].values.item() + newAttrs[f"{rqKey}_div"].values.item() // 2)
+            newAttrs[f"{rqKey}_shift"] = int(np.log2(newAttrs[f"{rqKey}_div"].values.item()))
+
+        else:
+            for key, attr in defaultAttrs.items():
+                newAttrs[f"{rqKey}_{key}"] = attr
+
+            for key, attr in guessAttrs.items():
+                if not key in node.attrs:
+                    newAttrs[f"{rqKey}_{key}"] = attr
+                else:
+                    newAttrs[f"{rqKey}_{key}"] = node.attrs[key]
+            if rqKey != 'rqsOut':
+                newInputs.append(addNode.inputs[idx])
+
+    rqAdd = gs.Node(op = "RequantizedAdd", name = name, attrs = newAttrs)
+    graph.replaceInsertNode(newInputs, newOutputs, rqAdd)
+
+    return graph
+
+
+@contextagnostic
+class AddRequantMergePass(ReplaceSequentialPatternPass):
+    pass
+
+    def __init__(self):
+        _input1 = gs.Variable(name = 'input_1')
+        _input2 = gs.Variable(name = 'input_2')
+        _addIn1 = gs.Variable(name = 'addIn1')
+        _addIn2 = gs.Variable(name = 'addIn2')
+        _addOut = gs.Variable(name = 'addOut')
+        _rqs = gs.Variable(name = 'rqs')
+
+        anyIn1 = gs.Node(inputs = [_input1], outputs = [_addIn1], op = r'.*', name = 'any1')
+        anyIn2 = gs.Node(inputs = [_input2], outputs = [_addIn2], op = r'.*', name = 'any2')
+
+        addOut = gs.Node(inputs = [_addIn1, _addIn2], outputs = [_addOut], op = 'Add', name = 'add')
+        output = gs.Node(inputs = [_addOut], outputs = [_rqs], op = r'RequantShift', name = 'rqsOut')
+
+        graph = gs.Graph(nodes = [anyIn1, anyIn2, addOut, output], inputs = [_input1, _input2], outputs = [_rqs])
+
+        super().__init__(graph,
+                         replacement_fn = _merge_add_rq_fun,
+                         name = "_MERGE_ADDRQ_PASS",
+                         matcher = BranchingMatcher(regex_op = True))
+
+
+def merge_gemm_rq_fun(graph: gs.Graph, match: Match, name: str):
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    gemm = matched_nodes[0]
+    rqs = matched_nodes[1]
+
+    # WIESEP: Per element quantization is not supported for RQGemm
+    if len(rqs.inputs[2].shape) > 0 and rqs.inputs[2].shape[-1] != 1:
+        return graph
+
+    # WIESEP: Per column quantization is not supported for RQGemm
+    if len(rqs.inputs[2].shape) > 2 and rqs.inputs[2].shape[-3] != 1:
+        return graph
+
+    _inputs = list(gemm.inputs) + list(rqs.inputs[2:]) + list(rqs.inputs[1:2])
+    _outputs = rqs.outputs
+
+    attrs = {**gemm.attrs, **rqs.attrs}
+    rqsGemm = gs.Node(op = 'RQGemm', name = name, attrs = attrs)
+    graph.replaceInsertNode(_inputs, _outputs, rqsGemm)
+
+    return graph
+
+
+@contextagnostic
+class GEMMRequantMergePass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        passes = []
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['matmul_out'], op = 'Gemm', name = 'gemm')
+        output = graph.layer(inputs = output, outputs = ['rqs'], op = 'RequantShift', name = 'rqs')
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        name = f"_MERGE_GEMM_RQ_PASS"
+        super().__init__(graph, merge_gemm_rq_fun, name)
