@@ -97,11 +97,10 @@ tar xvz --strip-components=1 -C riscv-llvm
 
 
 ## compile snitch
-RUN PATH=/app/riscv-llvm/bin:${PATH} make snitch_runtime
+RUN PATH=/app/riscv-llvm/bin:${PATH} make snitch_runtime && rm -rf /app/snitch_cluster
 
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain
-RUN rm -rf /app/snitch_cluster
 
 
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
