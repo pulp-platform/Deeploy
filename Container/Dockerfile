@@ -94,10 +94,10 @@ mkdir -p riscv-llvm && \
 echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
 wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
 tar xvz --strip-components=1 -C riscv-llvm
-ENV PATH=/app/riscv-llvm/bin:${PATH}
+
 
 ## compile snitch
-RUN make snitch_runtime
+RUN PATH=/app/riscv-llvm/bin:${PATH} make snitch_runtime
 
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain
