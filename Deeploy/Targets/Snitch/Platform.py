@@ -106,16 +106,16 @@ class SnitchConstantBuffer(ConstantBuffer):
     deallocTemplate = FreeTemplate.snitchL2GlobalTemplate
 
     def _bufferRepresentation(self):
-        nodeRep = super()._bufferRepresentation()
+        operatorRepresentation = super()._bufferRepresentation()
 
         if hasattr(self, "_memoryLevel"):
             memoryLevel = self._memoryLevel
         else:
             memoryLevel = None
 
-        nodeRep["_memoryLevel"] = memoryLevel
+        operatorRepresentation["_memoryLevel"] = memoryLevel
 
-        return nodeRep
+        return operatorRepresentation
 
 
 class SnitchStructBuffer(StructBuffer):
