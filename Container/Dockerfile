@@ -85,7 +85,7 @@ RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VER
     tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && cp  /app/bender /bin
 ENV PATH=/app/bender:$PATH
 
-## Precompiled llvm - Taken from the Dockerfile of pulp-platform/snitch_cluster repo (util/containter/Dockerfile)
+## Precompiled llvm - Taken form https://github.com/pulp-platform/snitch_cluster (from this file: util/container/Dockerfile)
 RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
 echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
 test "${SNITCH_LLVM_VERSION}" = "latest" && SNITCH_LLVM_VERSION=${latest_tag} || : ; \
