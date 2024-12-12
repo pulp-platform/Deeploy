@@ -11,7 +11,7 @@ jobs:
   test-runner-generic:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/tahaelbayad/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
