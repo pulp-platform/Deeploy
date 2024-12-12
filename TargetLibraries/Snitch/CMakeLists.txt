@@ -10,12 +10,6 @@ target_include_directories(deeploysnitch
   ${CMAKE_CURRENT_LIST_DIR}/inc
 )
 
-target_compile_options(deeploysnitch PRIVATE
-  -Wno-implicit-function-declaration
-  -Wno-implicit-int-conversion
-  -Wno-sign-conversion
-  -Wno-sign-compare
-)
 
 target_include_directories(deeploysnitch SYSTEM PUBLIC ${SNITCH_RUNTIME_INCLUDE})
 target_compile_options(deeploysnitch PUBLIC ${SNITCH_RUNTIME_COMPILE_FLAGS})
