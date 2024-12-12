@@ -75,10 +75,18 @@ Then open `docs/_build/html/index.html` for more extensive documentation & getti
 
 ### ESWEEK 2024: Deeploy: Enabling Energy-Efficient Deployment of Small Language Models On Heterogeneous Microcontrollers
 ```
-@article{scherer2024deeploy,
-  title={Deeploy: Enabling Energy-Efficient Deployment of Small Language Models On Heterogeneous Microcontrollers},
-  author={Scherer, Moritz and Macan, Luka and Jung, Victor and Wiese, Philip and Bompani, Luca and Burrello, Alessio and Conti, Francesco and Benini, Luca},
-  journal={arXiv preprint arXiv:2408.04413},
-  year={2024}
+@article{schererDeeployEnablingEnergyEfficient2024,
+  title = {Deeploy: {{Enabling Energy-Efficient Deployment}} of {{Small Language Models}} on {{Heterogeneous Microcontrollers}}},
+  shorttitle = {Deeploy},
+  author = {Scherer, Moritz and Macan, Luka and Jung, Victor J. B. and Wiese, Philip and Bompani, Luca and Burrello, Alessio and Conti, Francesco and Benini, Luca},
+  year = {2024},
+  month = nov,
+  journal = {IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems},
+  volume = {43},
+  number = {11},
+  pages = {4009--4020},
+  issn = {1937-4151},
+  doi = {10.1109/TCAD.2024.3443718},
 }
 ```
+The preprint version is also available on arXiv: [arXiv:2408.04413](https://arxiv.org/abs/2408.04413).
