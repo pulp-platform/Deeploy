@@ -43,4 +43,7 @@ elseif(DEEPLOY_ARCH STREQUAL PULP)
     set(USE_NEUREKA OFF)
     add_subdirectory(Platforms/PULPOpen)
   endif()
+  elseif(DEEPLOY_ARCH STREQUAL SNITCH)
+    add_subdirectory(Platforms/Snitch)
+
 endif()

@@ -1,0 +1,32 @@
+name: TestRunnerSnitch
+
+on:
+  workflow_call:
+    inputs:
+      test-names:
+        required: true
+        type: string
+
+jobs:
+  test-runner-snitch:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          testNames="${{ inputs.test-names }}"
+          cd DeeployTest
+          echo "$testNames" | while IFS= read -r testName; do
+            if [[ -n "$testName" ]]; then
+              echo "Running test: $testName"
+              python testRunner_snitch.py -t Tests/$testName --toolchain_install_dir /app/install/riscv-llvm/
+            fi
+          done
+        shell: bash

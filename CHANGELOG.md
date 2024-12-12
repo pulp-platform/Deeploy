@@ -25,3 +25,15 @@
 - Add a FloatAdder test to the CI for Siracusa and Generic platforms
 - Extend `testType.py` with float tests
 - LIMITATION: Current LLVM compiler does not support bfp16 and fp16, these types are commented in the library header
+
+## Snitch Cluster Support
+
+### Added
+ - cMake Flow for the Snitch Cluster
+ - Added `snitch_cluster` to Makefile
+ - New Snitch platform with testing application
+ - Testrunner for tiled and untiled execution (`testRunner_snitch.py`, `testRunner_tiled_snitch.py`)
+ - Minimal library with CycleCounter and utility function
+
+### Changed
+- Update the Banshee's commit to include a recent PR.

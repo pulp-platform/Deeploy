@@ -89,6 +89,12 @@ jobs:
         simpleRegression
         WaveFormer 
 
+  ### Snitch Tests ###
+  snitch-kernels:
+    uses: ./.github/workflows/TestRunnerSnitch.yml
+    with:
+      test-names: |
+        testMatMul
 
   ### Mempool Tests ###
   mempool-kernels:
