@@ -1,4 +1,4 @@
-name: TestRunnerTiledSiracusaSequential
+name: TestRunnerTiledSnitch
 
 on:
   workflow_call:
