@@ -1,4 +1,4 @@
-name: TestRunnerTiledSnitch
+name: TestRunnerTiledSnitchSequential
 
 on:
   workflow_call:
@@ -6,6 +6,19 @@ on:
       tests-config:
         required: true
         type: string
+      num-cores:
+        required: false
+        default: 9
+        type: number
+      default-memory-level:
+        required: false
+        default: "L2"
+        type: string
+      simulator:
+        required: false
+        default: "banshee"
+        type: string
+
 
 jobs:
 
@@ -40,7 +53,7 @@ jobs:
             L1_values=$(echo "$test" | jq -r '.L1[]')
             for L1_value in $L1_values; do
               echo "Running test: $testName with L1: $L1_value"
-              python testRunner_tiled_snitch.py -t Tests/$testName --cores=9 --simulator=banshee --l1 $L1_value --defaultMemLevel=L2 --toolchain_install_dir /app/install/riscv-llvm/
+              python testRunner_tiled_snitch.py -t Tests/$testName --cores=${{ inputs.num-cores }} --simulator=${{ inputs.simulator }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} --toolchain_install_dir /app/install/riscv-llvm/
             done
           done
         shell: bash

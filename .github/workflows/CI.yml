@@ -103,9 +103,10 @@ jobs:
         testRQGEMM
         TestRQAdd
         testRQGEMMTransB
+      num-cores: 9
 
   snitch-kernels-tiled-singlebuffer-L2:
-    uses: ./.github/workflows/TestRunnerTiledSnitch.yml
+    uses: ./.github/workflows/TestRunnerTiledSnitchSequential.yml
     with:
       tests-config: |
         [

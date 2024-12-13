@@ -6,6 +6,13 @@ on:
       test-names:
         required: true
         type: string
+      num-cores:
+        required: true
+        type: number
+      simulator:
+        required: false
+        default: "banshee"
+        type: string      
 
 jobs:
   test-runner-snitch:
@@ -26,7 +33,7 @@ jobs:
           echo "$testNames" | while IFS= read -r testName; do
             if [[ -n "$testName" ]]; then
               echo "Running test: $testName"
-              python testRunner_snitch.py -t Tests/$testName --simulator=banshee --cores=9 --toolchain_install_dir /app/install/riscv-llvm/
+              python testRunner_snitch.py -t Tests/$testName --simulator=${{ inputs.simulator }} --cores=${{ inputs.num-cores }} --toolchain_install_dir /app/install/riscv-llvm/
             fi
           done
         shell: bash
