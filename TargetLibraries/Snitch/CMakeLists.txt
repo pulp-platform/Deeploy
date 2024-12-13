@@ -1,6 +1,5 @@
 file(GLOB_RECURSE SOURCES
   "src/**"
-  "third_party/pulp-nn-mixed/DeeploySnitch/src/**"
 )
 
 include(cmake/snitch-runtime-precompiled.cmake)

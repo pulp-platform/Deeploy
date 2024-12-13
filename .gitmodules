@@ -7,7 +7,3 @@
 [submodule "CMSIS-NN"]
 	path = TargetLibraries/CMSIS/third_party/CMSIS-NN
 	url = https://github.com/ARM-software/CMSIS-NN.git
-[submodule "TargetLibraries/Snitch/third_party/pulp-nn-mixed"]
-	path = TargetLibraries/Snitch/third_party/pulp-nn-mixed
-	url = https://github.com/Victor-Jung/pulp-nn-mixed.git
-	branch = deeploySnitchTarget
