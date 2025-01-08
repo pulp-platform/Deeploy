@@ -33,13 +33,12 @@ from Deeploy.CommonExtensions.DataTypes import int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import iNoNormTemplate
-from Deeploy.Targets.Generic.TypeCheckers import AddChecker, GEMMChecker, SoftmaxChecker, iNoNormChecker
+from Deeploy.Targets.Generic.TypeCheckers import AddChecker, GEMMChecker, RQAddChecker, SoftmaxChecker, iNoNormChecker
 from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
     SnitchProfileExecutionBlockPass, SnitchSynchCoresPass
 from Deeploy.Targets.Snitch.Templates import AddTemplate, RQAddTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Snitch.Templates.GemmTemplate import SnitchGemm_Template
 from Deeploy.Targets.Snitch.Templates.RqGemmTemplate import SnitchRqGemm_Template
-from Deeploy.Targets.Snitch.TypeCheckers import SnitchRQAddChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
 
 TilingCallClosure = partial(ClosureGeneration, closureSuffix = "_tiling_closure")
@@ -78,7 +77,7 @@ SnitchiNoNormBindings = [
         TiledTransformer) for _type in [int8_t]
 ]
 SnitchRQAddBindings = [
-    NodeBinding(SnitchRQAddChecker([PointerClass(_type), PointerClass(_type)], [PointerClass(_type)]),
+    NodeBinding(RQAddChecker([PointerClass(_type), PointerClass(_type)], [PointerClass(_type)]),
                 RQAddTemplate.referenceTemplate, TiledTransformer) for _type in [int8_t]
 ]
 SnitchAddBindings = [
