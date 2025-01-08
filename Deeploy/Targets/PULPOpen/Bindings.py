@@ -157,7 +157,7 @@ PULPDMASliceBindings = [
 
 PULPRQAddBindings = [
     NodeBinding(PULPRQAddChecker([PointerClass(_type), PointerClass(_type2)], [PointerClass(_type3)]),
-                RQAddTemplate.RQAddTemplate, ForkTransformer)
+                RQAddTemplate.referenceTemplate, ForkTransformer)
     for _type in [int8_t, uint8_t]
     for _type2 in [int8_t, uint8_t]
     for _type3 in [int8_t, uint8_t]
