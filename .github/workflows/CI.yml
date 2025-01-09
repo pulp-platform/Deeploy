@@ -94,7 +94,43 @@ jobs:
     uses: ./.github/workflows/TestRunnerSnitch.yml
     with:
       test-names: |
+        Adder
+        iSoftmax
+        TestiNoNorm
+        TestAdderLarge
+        TestiSoftmaxLarge
         testMatMul
+        testRQGEMM
+        TestRQAdd
+        testRQGEMMTransB
+      num-cores: 9
+
+  snitch-kernels-tiled-singlebuffer-L2:
+    uses: ./.github/workflows/TestRunnerTiledSnitchSequential.yml
+    with:
+      tests-config: |
+        [
+          {
+            "name": "TestiNoNorm",
+            "L1": [5000, 10000]
+          },
+          {
+            "name": "TestAdderLarge",
+            "L1": [5000, 10000]
+          },
+          {
+            "name": "TestiSoftmaxLarge",
+            "L1": [5000, 10000]
+          },
+          {
+            "name": "testRQGEMM",
+            "L1": [2000, 5000]
+          },
+          {
+            "name": "TestRQAdd",
+            "L1": [5000, 10000]
+          }
+        ]
 
   ### Mempool Tests ###
   mempool-kernels:

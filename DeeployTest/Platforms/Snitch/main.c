@@ -31,6 +31,10 @@
 #include "testinputs.h"
 #include "testoutputs.h"
 
+// #define NOPRINT
+// #define NOTEST
+// #define CI
+
 int main(void) {
 
   uint32_t core_id = snrt_global_core_idx();
@@ -50,8 +54,9 @@ int main(void) {
            snrt_cluster_num() * snrt_cluster_dm_core_num(), snrt_cluster_num());
 #endif
 
+#ifndef NOPRINT
     printf("Initializing...\r\n");
-
+#endif
     InitNetwork(core_id, 1);
 
 #ifndef CI
@@ -61,7 +66,7 @@ int main(void) {
              DeeployNetwork_inputs[buf], DeeployNetwork_inputs_bytes[buf]);
     }
     for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
-      printf("testInputVector%d @ %p\r\n", buf, testOutputVector[buf]);
+      printf("testOutputVector%d @ %p\r\n", buf, testOutputVector[buf]);
       printf("DeeployNetwork_output_%d @ %p and %u elements\r\n", buf,
              DeeployNetwork_outputs[buf], DeeployNetwork_outputs_bytes[buf]);
     }
@@ -69,7 +74,9 @@ int main(void) {
     printf("Initialized\r\n");
 #endif
 
+#ifndef NOPRINT
     printf("Copy inputs...\r\n");
+#endif
 
     // WIESEP: Copy inputs to allocated memory
     for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
@@ -83,18 +90,31 @@ int main(void) {
 #endif
   }
 
-  snrt_cluster_hw_barrier();
-
+#ifndef NOPRINT
   if (snrt_is_dm_core()) {
     printf("Running network...\r\n");
   }
+#endif
 
-  // ResetTimer();
-  // StartTimer();
-  if (snrt_is_compute_core()) {
-    RunNetwork(compute_core_id, num_compute_cores);
+  snrt_cluster_hw_barrier();
+
+#ifndef BANSHEE_SIMULATION
+  if (snrt_is_dm_core()) {
+    ResetTimer();
+    StartTimer();
   }
-  // StopTimer();
+#endif // BANSHEE_SIMULATION
+
+  RunNetwork(compute_core_id, num_compute_cores);
+
+  uint32_t runtimeCycles = 0;
+#ifndef BANSHEE_SIMULATION
+  if (snrt_is_dm_core()) {
+    runtimeCycles = getCycles();
+    DUMP(runtimeCycles);
+    StopTimer();
+  }
+#endif // BANSHEE_SIMULATION
 
   snrt_cluster_hw_barrier();
 
@@ -108,6 +128,8 @@ int main(void) {
 #ifndef CI
     printf("Output:\r\n");
 #endif
+
+#ifndef NOTEST
     int32_t tot_err = 0;
     uint32_t tot = 0;
     int32_t diff;
@@ -130,8 +152,12 @@ int main(void) {
         }
       }
     }
-    printf("Runtime: %u cycles\r\n", getCycles());
     printf("Errors: %u out of %u \r\n", tot_err, tot);
+#endif
+
+#ifndef NOPRINT
+    printf("Runtime: %u cycles\r\n", runtimeCycles);
+#endif
   }
 
   snrt_cluster_hw_barrier();

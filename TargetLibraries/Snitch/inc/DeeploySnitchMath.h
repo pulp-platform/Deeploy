@@ -54,5 +54,8 @@
 #include "kernel/RQMatMul.h"
 #include "kernel/Softmax.h"
 #include "kernel/UniformRequantShift.h"
+#include "kernel/iNoNorm.h"
+
+#include "dmaStruct.h"
 
 #endif //__DEEPLOY_MATH_HEADER_

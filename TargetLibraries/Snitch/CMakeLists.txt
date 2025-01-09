@@ -8,6 +8,7 @@ add_deeploy_library(deeploysnitch STATIC ${SOURCES})
 target_include_directories(deeploysnitch
   PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/inc
+  ${CMAKE_CURRENT_LIST_DIR}/inc/kernel
 )
 
 

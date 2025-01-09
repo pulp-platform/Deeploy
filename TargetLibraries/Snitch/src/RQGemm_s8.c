@@ -28,6 +28,302 @@
  */
 
 #include "DeeploySnitchMath.h"
+#include "RQGemm.h"
+
+// Assumptions:
+//  - per-row requantization
+//  - single batch
+void RQGemm_s8_row_parallel(int8_t const *__restrict__ pSrcA,
+                            int8_t const *__restrict__ pSrcB,
+                            int32_t const *__restrict__ pSrcC,
+                            int8_t *__restrict__ pDstY, uint32_t M, uint32_t N,
+                            uint32_t O, int32_t alpha, int32_t beta,
+                            int32_t *mul, int32_t *add, int32_t log2D) {
+  uint32_t core_id = snrt_global_compute_core_idx();
+  uint32_t numThreads = snrt_global_compute_core_num();
+
+  // Parallelize by assigning each core a row tile
+  uint32_t const MQuotient = M / numThreads;
+  uint32_t const MRemainder = M % numThreads;
+  uint32_t const MSize = MQuotient + (core_id < MRemainder ? 1 : 0);
+  uint32_t const MStart =
+      core_id * MQuotient + (core_id < MRemainder ? core_id : MRemainder);
+  uint32_t const MEnd = MStart + MSize;
+
+  if (core_id < numThreads) {
+    for (uint32_t m = MStart; m < MEnd; m++) {
+      for (uint32_t o = 0; o < O; o++) {
+        int32_t sum = 0;
+        for (uint32_t n = 0; n < N; ++n) {
+          sum += (int32_t)pSrcA[m * N + n] * pSrcB[n * O + o];
+        }
+        sum = alpha * sum + beta * pSrcC[m * O + o];
+
+        // Requantize value
+        sum = (sum * mul[m] + add[m]) >> log2D;
+        pDstY[m * O + o] = (int8_t)CLAMP(sum, -128, 127);
+      }
+    }
+  }
+}
+
+// Assumptions:
+//  - per-row requantization
+//  - transposed input B
+//  - single batch
+void RQGemm_s8_row_parallel_unrolled(int8_t const *__restrict__ pSrcA,
+                                     int8_t const *__restrict__ pSrcB,
+                                     int32_t const *__restrict__ pSrcC,
+                                     int8_t *__restrict__ pDstY, uint32_t M,
+                                     uint32_t N, uint32_t O, int32_t alpha,
+                                     int32_t beta, int32_t *mul, int32_t *add,
+                                     int32_t log2D) {
+  uint32_t core_id = snrt_global_compute_core_idx();
+  uint32_t numThreads = snrt_global_compute_core_num();
+
+  // Parallelize by assigning each core a row tile
+  uint32_t const MQuotient = M / numThreads;
+  uint32_t const MRemainder = M % numThreads;
+  uint32_t const MSize = MQuotient + (core_id < MRemainder ? 1 : 0);
+  uint32_t const MStart =
+      core_id * MQuotient + (core_id < MRemainder ? core_id : MRemainder);
+  uint32_t const MEnd = MStart + MSize;
+
+  if (core_id < numThreads) {
+    for (uint32_t m = MStart; m + 1 < MEnd; m += 2) {
+      for (uint32_t o = 0; o + 1 < O; o += 2) {
+        int32_t sum0 = 0;
+        int32_t sum1 = 0;
+        int32_t sum2 = 0;
+        int32_t sum3 = 0;
+#pragma unroll 2
+        for (uint32_t n = 0; n < N; ++n) {
+          sum0 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[n * O + (o + 0)];
+          sum1 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[n * O + (o + 1)];
+          sum2 += (int32_t)pSrcA[(m + 1) * N + n] * pSrcB[n * O + (o + 0)];
+          sum3 += (int32_t)pSrcA[(m + 1) * N + n] * pSrcB[n * O + (o + 1)];
+        }
+        sum0 = alpha * sum0 + beta * pSrcC[(m + 0) * O + (o + 0)];
+        sum1 = alpha * sum1 + beta * pSrcC[(m + 0) * O + (o + 1)];
+        sum2 = alpha * sum2 + beta * pSrcC[(m + 1) * O + (o + 0)];
+        sum3 = alpha * sum3 + beta * pSrcC[(m + 1) * O + (o + 1)];
+
+        // Requantize value
+        sum0 = (sum0 * mul[m + 0] + add[m + 0]) >> log2D;
+        sum1 = (sum1 * mul[m + 0] + add[m + 0]) >> log2D;
+        sum2 = (sum2 * mul[m + 1] + add[m + 1]) >> log2D;
+        sum3 = (sum3 * mul[m + 1] + add[m + 1]) >> log2D;
+        pDstY[(m + 0) * O + (o + 0)] = (int8_t)CLAMP(sum0, -128, 127);
+        pDstY[(m + 0) * O + (o + 1)] = (int8_t)CLAMP(sum1, -128, 127);
+        pDstY[(m + 1) * O + (o + 0)] = (int8_t)CLAMP(sum2, -128, 127);
+        pDstY[(m + 1) * O + (o + 1)] = (int8_t)CLAMP(sum3, -128, 127);
+      }
+
+      if (O % 2 == 1) {
+        int32_t sum0 = 0;
+        int32_t sum1 = 0;
+#pragma unroll 2
+        for (uint32_t n = 0; n < N; ++n) {
+          sum0 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[n * O + (O - 1)];
+          sum1 += (int32_t)pSrcA[(m + 1) * N + n] * pSrcB[n * O + (O - 1)];
+        }
+
+        sum0 = alpha * sum0 + beta * pSrcC[(m + 0) * O + (O - 1)];
+        sum1 = alpha * sum1 + beta * pSrcC[(m + 1) * O + (O - 1)];
+
+        // Requantize value
+        sum0 = (sum0 * mul[m + 0] + add[m + 0]) >> log2D;
+        sum1 = (sum1 * mul[m + 1] + add[m + 1]) >> log2D;
+        pDstY[(m + 0) * O + (O - 1)] = (int8_t)CLAMP(sum0, -128, 127);
+        pDstY[(m + 1) * O + (O - 1)] = (int8_t)CLAMP(sum1, -128, 127);
+      }
+    }
+
+    if (MSize % 2 == 1) {
+      uint32_t m = MEnd - 1;
+
+      for (uint32_t o = 0; o + 1 < O; o += 2) {
+        int32_t sum0 = 0;
+        int32_t sum1 = 0;
+#pragma unroll 2
+        for (uint32_t n = 0; n < N; ++n) {
+          sum0 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[n * O + (o + 0)];
+          sum1 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[n * O + (o + 1)];
+        }
+        sum0 = alpha * sum0 + beta * pSrcC[(m + 0) * O + (o + 0)];
+        sum1 = alpha * sum1 + beta * pSrcC[(m + 0) * O + (o + 1)];
+
+        // Requantize value
+        sum0 = (sum0 * mul[m + 0] + add[m + 0]) >> log2D;
+        sum1 = (sum1 * mul[m + 0] + add[m + 0]) >> log2D;
+        pDstY[(m + 0) * O + (o + 0)] = (int8_t)CLAMP(sum0, -128, 127);
+        pDstY[(m + 0) * O + (o + 1)] = (int8_t)CLAMP(sum1, -128, 127);
+      }
+
+      if (O % 2 == 1) {
+        int32_t sum0 = 0;
+#pragma unroll 2
+        for (uint32_t n = 0; n < N; ++n) {
+          sum0 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[n * O + (O - 1)];
+        }
+
+        sum0 = alpha * sum0 + beta * pSrcC[(m + 0) * O + (O - 1)];
+
+        // Requantize value
+        sum0 = (sum0 * mul[m + 0] + add[m + 0]) >> log2D;
+        pDstY[(m + 0) * O + (O - 1)] = (int8_t)CLAMP(sum0, -128, 127);
+      }
+    }
+  }
+}
+
+// Assumptions:
+//  - per-row requantization
+//  - transposed input B
+//  - single batch
+void RQGemm_s8_transB_row_parallel(int8_t const *__restrict__ pSrcA,
+                                   int8_t const *__restrict__ pSrcB,
+                                   int32_t const *__restrict__ pSrcC,
+                                   int8_t *__restrict__ pDstY, uint32_t M,
+                                   uint32_t N, uint32_t O, int32_t alpha,
+                                   int32_t beta, int32_t *mul, int32_t *add,
+                                   int32_t log2D) {
+  uint32_t core_id = snrt_global_compute_core_idx();
+  uint32_t numThreads = snrt_global_compute_core_num();
+
+  // Parallelize by assigning each core a row tile
+  uint32_t const MQuotient = M / numThreads;
+  uint32_t const MRemainder = M % numThreads;
+  uint32_t const MSize = MQuotient + (core_id < MRemainder ? 1 : 0);
+  uint32_t const MStart =
+      core_id * MQuotient + (core_id < MRemainder ? core_id : MRemainder);
+  uint32_t const MEnd = MStart + MSize;
+
+  if (core_id < numThreads) {
+    for (uint32_t m = MStart; m < MEnd; m++) {
+      for (uint32_t o = 0; o < O; o++) {
+        int32_t sum = 0;
+        for (uint32_t n = 0; n < N; ++n) {
+          sum += (int32_t)pSrcA[m * N + n] * pSrcB[o * N + n];
+        }
+        sum = alpha * sum + beta * pSrcC[m * O + o];
+
+        // Requantize value
+        sum = (sum * mul[m] + add[m]) >> log2D;
+        pDstY[m * O + o] = (int8_t)CLAMP(sum, -128, 127);
+      }
+    }
+  }
+}
+
+// Assumptions:
+//  - per-row requantization
+//  - transposed input B
+//  - single batch
+void RQGemm_s8_transB_row_parallel_unrolled(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M,
+    uint32_t N, uint32_t O, int32_t alpha, int32_t beta, int32_t *mul,
+    int32_t *add, int32_t log2D) {
+  uint32_t core_id = snrt_global_compute_core_idx();
+  uint32_t numThreads = snrt_global_compute_core_num();
+
+  // Parallelize by assigning each core a row tile
+  uint32_t const MQuotient = M / numThreads;
+  uint32_t const MRemainder = M % numThreads;
+  uint32_t const MSize = MQuotient + (core_id < MRemainder ? 1 : 0);
+  uint32_t const MStart =
+      core_id * MQuotient + (core_id < MRemainder ? core_id : MRemainder);
+  uint32_t const MEnd = MStart + MSize;
+
+  if (core_id < numThreads) {
+    for (uint32_t m = MStart; m + 1 < MEnd; m += 2) {
+      for (uint32_t o = 0; o + 1 < O; o += 2) {
+        int32_t sum0 = 0;
+        int32_t sum1 = 0;
+        int32_t sum2 = 0;
+        int32_t sum3 = 0;
+#pragma unroll 2
+        for (uint32_t n = 0; n < N; ++n) {
+          sum0 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[(o + 0) * N + n];
+          sum1 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[(o + 1) * N + n];
+          sum2 += (int32_t)pSrcA[(m + 1) * N + n] * pSrcB[(o + 0) * N + n];
+          sum3 += (int32_t)pSrcA[(m + 1) * N + n] * pSrcB[(o + 1) * N + n];
+        }
+        sum0 = alpha * sum0 + beta * pSrcC[(m + 0) * O + (o + 0)];
+        sum1 = alpha * sum1 + beta * pSrcC[(m + 0) * O + (o + 1)];
+        sum2 = alpha * sum2 + beta * pSrcC[(m + 1) * O + (o + 0)];
+        sum3 = alpha * sum3 + beta * pSrcC[(m + 1) * O + (o + 1)];
+
+        // Requantize value
+        sum0 = (sum0 * mul[m + 0] + add[m + 0]) >> log2D;
+        sum1 = (sum1 * mul[m + 0] + add[m + 0]) >> log2D;
+        sum2 = (sum2 * mul[m + 1] + add[m + 1]) >> log2D;
+        sum3 = (sum3 * mul[m + 1] + add[m + 1]) >> log2D;
+        pDstY[(m + 0) * O + (o + 0)] = (int8_t)CLAMP(sum0, -128, 127);
+        pDstY[(m + 0) * O + (o + 1)] = (int8_t)CLAMP(sum1, -128, 127);
+        pDstY[(m + 1) * O + (o + 0)] = (int8_t)CLAMP(sum2, -128, 127);
+        pDstY[(m + 1) * O + (o + 1)] = (int8_t)CLAMP(sum3, -128, 127);
+      }
+
+      if (O % 2 == 1) {
+        int32_t sum0 = 0;
+        int32_t sum1 = 0;
+#pragma unroll 2
+        for (uint32_t n = 0; n < N; ++n) {
+          sum0 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[(O - 1) * N + n];
+          sum1 += (int32_t)pSrcA[(m + 1) * N + n] * pSrcB[(O - 1) * N + n];
+        }
+
+        sum0 = alpha * sum0 + beta * pSrcC[(m + 0) * O + (O - 1)];
+        sum1 = alpha * sum1 + beta * pSrcC[(m + 1) * O + (O - 1)];
+
+        // Requantize value
+        sum0 = (sum0 * mul[m + 0] + add[m + 0]) >> log2D;
+        sum1 = (sum1 * mul[m + 1] + add[m + 1]) >> log2D;
+        pDstY[(m + 0) * O + (O - 1)] = (int8_t)CLAMP(sum0, -128, 127);
+        pDstY[(m + 1) * O + (O - 1)] = (int8_t)CLAMP(sum1, -128, 127);
+      }
+    }
+
+    if (MSize % 2 == 1) {
+      uint32_t m = MEnd - 1;
+
+      for (uint32_t o = 0; o + 1 < O; o += 2) {
+        int32_t sum0 = 0;
+        int32_t sum1 = 0;
+#pragma unroll 2
+        for (uint32_t n = 0; n < N; ++n) {
+          sum0 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[(o + 0) * N + n];
+          sum1 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[(o + 1) * N + n];
+        }
+        sum0 = alpha * sum0 + beta * pSrcC[(m + 0) * O + (o + 0)];
+        sum1 = alpha * sum1 + beta * pSrcC[(m + 0) * O + (o + 1)];
+
+        // Requantize value
+        sum0 = (sum0 * mul[m + 0] + add[m + 0]) >> log2D;
+        sum1 = (sum1 * mul[m + 0] + add[m + 0]) >> log2D;
+        pDstY[(m + 0) * O + (o + 0)] = (int8_t)CLAMP(sum0, -128, 127);
+        pDstY[(m + 0) * O + (o + 1)] = (int8_t)CLAMP(sum1, -128, 127);
+      }
+
+      if (O % 2 == 1) {
+        int32_t sum0 = 0;
+#pragma unroll 2
+        for (uint32_t n = 0; n < N; ++n) {
+          sum0 += (int32_t)pSrcA[(m + 0) * N + n] * pSrcB[(O - 1) * N + n];
+        }
+
+        sum0 = alpha * sum0 + beta * pSrcC[(m + 0) * O + (O - 1)];
+
+        // Requantize value
+        sum0 = (sum0 * mul[m + 0] + add[m + 0]) >> log2D;
+        pDstY[(m + 0) * O + (O - 1)] = (int8_t)CLAMP(sum0, -128, 127);
+      }
+    }
+  }
+}
+
 void RQGemm_parallel_s8_rv32im(
     int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
     int32_t const *__restrict__ pSrcC, int8_t *__restrict__ pDstY, uint32_t M,

@@ -265,7 +265,8 @@ pulp-sdk: ${PULP_SDK_INSTALL_DIR}
 ${TOOLCHAIN_DIR}/snitch_cluster:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone https://github.com/pulp-platform/snitch_cluster.git && \
-	cd ${TOOLCHAIN_DIR}/snitch_cluster && git submodule update --init --recursive && \
+	cd ${TOOLCHAIN_DIR}/snitch_cluster && git checkout ${SNITCH_COMMIT_HASH} && \
+	git submodule update --init --recursive && \
 	git checkout ${SNITCH_COMMIT_HASH} && git apply ${TOOLCHAIN_DIR}/snitch_cluster.patch
 
 ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster

@@ -38,7 +38,7 @@ from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import ConcatTemplate, RQSiGELUTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, GELUChecker, HardswishChecker, MatMulChecker, \
-    MulChecker, ReduceMeanChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker, \
+    MulChecker, ReduceMeanChecker, RQAddChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker, \
     iLayerNormChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
@@ -48,7 +48,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, GEMMTemplate, Matri
     MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SliceTemplate, \
     TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
-    PULPRequantShiftChecker, PULPRQAddChecker
+    PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
 
 _clusterEntryClosureCallTemplate = NodeTemplate("""
@@ -156,8 +156,8 @@ PULPDMASliceBindings = [
 ]
 
 PULPRQAddBindings = [
-    NodeBinding(PULPRQAddChecker([PointerClass(_type), PointerClass(_type2)], [PointerClass(_type3)]),
-                RQAddTemplate.RQAddTemplate, ForkTransformer)
+    NodeBinding(RQAddChecker([PointerClass(_type), PointerClass(_type2)], [PointerClass(_type3)]),
+                RQAddTemplate.referenceTemplate, ForkTransformer)
     for _type in [int8_t, uint8_t]
     for _type2 in [int8_t, uint8_t]
     for _type3 in [int8_t, uint8_t]

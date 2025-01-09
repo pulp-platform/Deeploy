@@ -30,16 +30,22 @@ import numpy as np
 
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicMatMulBinding, BasicPad1DBindings, \
-    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import GatherLayer, MatMulLayer, PadLayer, ReshapeLayer, RQIntegerDivLayer
-from Deeploy.Targets.Generic.Parsers import GatherParser, MatMulParser, Pad1DParser, Pad2DParser, RQIntegerDivParser, \
-    UnsqueezeParser
+from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicLayerNormBinding, BasicMatMulBinding, \
+    BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
+from Deeploy.Targets.Generic.Layers import AddLayer, GatherLayer, GEMMLayer, MatMulLayer, PadLayer, ReshapeLayer, \
+    RQGEMMLayer, RQIntegerDivLayer, iLayerNormLayer, iNoNormLayer, iSoftmaxLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, GatherParser, MatMulParser, Pad1DParser, Pad2DParser, \
+    RQAddParser, RQIntegerDivParser, UnsqueezeParser, iLayerNormParser, iNoNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
-    MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, SkipEmptyConcatPass, \
-    SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass, GEMMRequantMergePass, \
+    IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
+    SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
+from Deeploy.Targets.Snitch.Parsers import SnitchGEMMParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
+from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchGemmTilingReadyBindings, \
+    SnitchiNoNormTilingReadyBindings, SnitchiSoftmaxTilingReadyBindings, SnitchRQAddTilingReadyBindings, \
+    SnitchRqGemmTilingReadyBindings
 
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
@@ -49,6 +55,13 @@ UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
 
 MatMulMapper = NodeMapper(MatMulParser(), [BasicMatMulBinding])
+GemmMapper = NodeMapper(SnitchGEMMParser(), SnitchGemmTilingReadyBindings)
+RqGemmMapper = NodeMapper(SnitchRQGEMMParser(), SnitchRqGemmTilingReadyBindings)
+iSoftmaxMapper = NodeMapper(iSoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
+iNoNormMapper = NodeMapper(iNoNormParser(), SnitchiNoNormTilingReadyBindings)
+iLayerNormMapper = NodeMapper(iLayerNormParser(), [BasicLayerNormBinding])
+RQAddMapper = NodeMapper(RQAddParser(), SnitchRQAddTilingReadyBindings)
+AddMapper = NodeMapper(AddParser(), SnitchAddTileReadyBindings)
 
 SnitchMapping = {
     'RQIntegerDiv': RQIntegerDivLayer([RQIntegerDivMapper]),
@@ -56,6 +69,13 @@ SnitchMapping = {
     'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
     'Unsqueeze': ReshapeLayer([UnsqueezeMapper]),
     'MatMul': MatMulLayer([MatMulMapper]),
+    'Gemm': GEMMLayer([GemmMapper]),
+    'RQGemm': RQGEMMLayer([RqGemmMapper]),
+    'iSoftmax': iSoftmaxLayer([iSoftmaxMapper]),
+    'iNoNorm': iNoNormLayer([iNoNormMapper]),
+    'iLayerNorm': iLayerNormLayer([iLayerNormMapper]),
+    'RequantizedAdd': AddLayer([RQAddMapper]),
+    'Add': AddLayer([AddMapper]),
 }
 
 
@@ -136,6 +156,8 @@ SnitchOptimizer = TopologyOptimizer([
     iGELURequantMergePass(),
     iHardswishRequantMergePass(),
     MergeConstAddAndRequantPass(),
+    AddRequantMergePass(),
+    GEMMRequantMergePass(),
 ])
 
 _includeList = [

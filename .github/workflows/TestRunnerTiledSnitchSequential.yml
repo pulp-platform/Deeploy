@@ -1,0 +1,60 @@
+name: TestRunnerTiledSnitchSequential
+
+on:
+  workflow_call:
+    inputs:
+      tests-config:
+        required: true
+        type: string
+      num-cores:
+        required: false
+        default: 9
+        type: number
+      default-memory-level:
+        required: false
+        default: "L2"
+        type: string
+      simulator:
+        required: false
+        default: "banshee"
+        type: string
+
+
+jobs:
+
+  test-runner-snitch-tiled:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Install jq
+        run: apt-get install -y jq
+      - name: Cache ccache
+        id: ccache-cache
+        uses: actions/cache@v4
+        with:
+          path: /app/.ccache
+          key: ${{ runner.os }}-ccache
+      - name: Run Tests
+        run: |
+          cd DeeployTest
+          echo '${{ inputs.tests-config }}' > tests.json
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+
+          jq -c '.[]' tests.json | while read test; do
+            testName=$(echo "$test" | jq -r '.name')
+            L1_values=$(echo "$test" | jq -r '.L1[]')
+            for L1_value in $L1_values; do
+              echo "Running test: $testName with L1: $L1_value"
+              python testRunner_tiled_snitch.py -t Tests/$testName --cores=${{ inputs.num-cores }} --simulator=${{ inputs.simulator }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} --toolchain_install_dir /app/install/riscv-llvm/
+            done
+          done
+        shell: bash
+        

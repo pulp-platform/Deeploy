@@ -392,6 +392,23 @@ class SoftmaxChecker(SignPropTypeChecker):
         return [False]
 
 
+class iNoNormChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(4 * self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        if inputs[0]._signed:
+            return [True]
+        else:
+            return [False]
+
+
 class GELUChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -520,3 +537,26 @@ class DebugPrintChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
+
+
+class RQAddChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [operatorRepresentation['rqsOut_n_levels']]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [bool(operatorRepresentation["rqsOut_signed"])]
+
+    # Override this. This should compute the signednes of each output node of the Layer
+    def checkOutputType(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> bool:
+        outputTypeSigned = self.output_types[0].referencedType.typeMin < 0
+        if operatorRepresentation['rqsOut_signed'] and outputTypeSigned:
+            return True
+        if (not operatorRepresentation['rqsOut_signed']) and (not outputTypeSigned):
+            return True
+        return False

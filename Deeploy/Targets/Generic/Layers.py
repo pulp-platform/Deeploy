@@ -29,7 +29,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, Shape
+from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, OperatorRepresentation, Shape
 
 
 class ConcatLayer(ONNXLayer):
@@ -83,6 +83,23 @@ class iHardswishLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+
+
+class iNoNormLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size'] * 4  # 2 mul, 1 add, 1 right shift
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation: OperatorRepresentation,
+                      channels_first: bool) -> Tuple[Shape]:
+
+        # JUNGVI: Broadcast the weights and bias to have as many dimensions as the inputs
+        inputShapes[1] = [1] * (len(inputShapes[0]) - len(inputShapes[1])) + list(inputShapes[1])
+        inputShapes[2] = inputShapes[1]
+        return (inputShapes, outputShapes)
 
 
 class RQSiGELULayer(iGELULayer):
