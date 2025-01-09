@@ -31,7 +31,7 @@ from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, Execu
 _dumpCycleCntTemplate = NodeTemplate("""
         snrt_cluster_hw_barrier();
         if (snrt_is_dm_core()) {
-            #ifndef BANSHEE_SIMULATION
+            #ifndef BANSHEE_SIMULATION || GVSOC_SIMULATION
                 DUMP(getCycles());
             #else
                 printf("${position} of ${nodeName} block at cycle %d \\n", getCycles());

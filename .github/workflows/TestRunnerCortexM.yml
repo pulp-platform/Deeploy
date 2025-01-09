@@ -11,7 +11,7 @@ jobs:
   test-runner-cortexm:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ghcr.io/tahaelbayad/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
