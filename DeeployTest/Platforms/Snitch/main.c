@@ -103,7 +103,7 @@ int main(void) {
     ResetTimer();
     StartTimer();
   }
-#endif // BANSHEE_SIMULATION
+#endif // BANSHEE_SIMULATION and GVSOC_SIMULATION
 
   RunNetwork(compute_core_id, num_compute_cores);
 
@@ -114,7 +114,7 @@ int main(void) {
     DUMP(runtimeCycles);
     StopTimer();
   }
-#endif // BANSHEE_SIMULATION
+#endif // BANSHEE_SIMULATION and GVSOC_SIMULATION
 
   snrt_cluster_hw_barrier();
 
