@@ -238,6 +238,7 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
     typeMantissa: int  #: int: Represents the number of bits reserved for the mantissa part
     typeExponent: int  #: int: Represents the number of bits reserved for the exponent part
+    typeMin: float
 
     @_classproperty
     def typeExponentMax(cls) -> int:
@@ -248,6 +249,10 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
     def typeExponentOffset(cls) -> int:
         # The offset added to the exponent
         return 2**(cls.typeExponent - 1) - 1
+
+    @_classproperty
+    def typeMin(cls) -> float:
+        return -math.inf
 
     @classmethod
     def partialOrderUpcast(cls, otherCls: Type[Immediate]) -> bool:
@@ -268,7 +273,7 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
         if isinstance(value, float):
             _val_list.append(value)
         elif isinstance(value, np.ndarray):
-            _val_list = value.tolist()
+            _val_list = value.flatten().tolist()
         elif isinstance(value, Iterable):
             for i in value:
                 _val_list.append(i)

@@ -51,7 +51,7 @@ class _SliceTemplate(NodeTemplate):
 
         operatorRepresentation['starts'] = startsBuffer.values
         operatorRepresentation['ends'] = endsBuffer.values
-        operatorRepresentation['axes'] = axesBuffer.values
+        operatorRepresentation['axes'] = [int(i) for i in axesBuffer.values]
         operatorRepresentation['steps'] = stepsBuffer.values
 
         operatorRepresentation['data_in_size'] = np.prod(operatorRepresentation['data_in_shape'])
