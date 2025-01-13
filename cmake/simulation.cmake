@@ -12,7 +12,7 @@ set(banshee_stack_size 16777216 CACHE STRING "Stack size of banshee threads")
 
 OPTION(banshee_simulation "Optimize binary for banshee simulation" OFF)
 OPTION(gvsoc_simulation "adapt preprocessor macro for gvsoc simulation" OFF)
-if(banshee_simulation OR gvsoc_simulation)
+if(banshee_simulation)
   add_compile_definitions(BANSHEE_SIMULATION)
 endif()
 if(gvsoc_simulation)
