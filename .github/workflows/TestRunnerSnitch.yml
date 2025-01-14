@@ -9,9 +9,8 @@ on:
       num-cores:
         required: true
         type: number
-      simulator:
-        required: false
-        default: "banshee"
+      simulators:
+        required: true
         type: string      
 
 jobs:
@@ -29,11 +28,16 @@ jobs:
       - name: Run Test
         run: |
           testNames="${{ inputs.test-names }}"
+          simulators="${{inputs.simulators}}"
           cd DeeployTest
-          echo "$testNames" | while IFS= read -r testName; do
-            if [[ -n "$testName" ]]; then
-              echo "Running test: $testName"
-              python testRunner_snitch.py -t Tests/$testName --simulator=${{ inputs.simulator }} --cores=${{ inputs.num-cores }} --toolchain_install_dir /app/install/riscv-llvm/
+          echo "$simulators" | while IFS= read -r simulator; do
+            if [[ -n "$simulator" ]]; then
+              echo "$testNames" | while IFS= read -r testName; do
+                if [[ -n "$testName" ]]; then
+                  echo "Running test $testName using $simulator"
+                  python testRunner_snitch.py -t Tests/$testName --simulator=$simulator --cores=${{ inputs.num-cores }} --toolchain_install_dir /app/install/riscv-llvm/
+                fi
+              done
             fi
           done
         shell: bash

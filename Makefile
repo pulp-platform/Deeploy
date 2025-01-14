@@ -43,6 +43,7 @@ QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
 BANSHEE_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/banshee
 MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
+GVSOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc
 
 CMAKE ?= cmake
 
@@ -52,6 +53,7 @@ PULP_SDK_COMMIT_HASH ?= c216298881cee767afc30928e055982b9e40e568
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
+GVSOC_COMMIT_HASH ?= e96253a0ca7bbd113850988c2d77289926db37f3
 
 RUSTUP_CARGO ?= $$(rustup which cargo)
 
@@ -75,6 +77,7 @@ echo-bash:
 	@echo "TL/DR: add these lines to run ~/.bashrc"
 	@echo "export PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
 	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
+	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
 	@echo "export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
 	@echo "export PULP_RISCV_GCC_TOOLCHAIN=/PULP_SDK_IS_A_MESS"
 	@echo "export MEMPOOL_HOME=${MEMPOOL_INSTALL_DIR}"
@@ -279,9 +282,22 @@ ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 	TMPDIR=tmp pip install -r python-requirements.txt && rm -rf tmp && \
 	bender vendor init && \
 	cd ${SNITCH_INSTALL_DIR}/target/snitch_cluster && \
-	make sw/runtime/banshee sw/math
+	make sw/runtime/banshee sw/runtime/rtl sw/math
 
 snitch_runtime: ${SNITCH_INSTALL_DIR}
+
+${TOOLCHAIN_DIR}/gvsoc:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/gvsoc/gvsoc.git && \
+	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
+	git submodule update --init --recursive && \
+	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt
+
+${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
+	cd ${TOOLCHAIN_DIR}/gvsoc && \
+	make all TARGETS=pulp.snitch.snitch_cluster_single INSTALLDIR=${GVSOC_INSTALL_DIR}
+
+gvsoc: ${GVSOC_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/qemu:
 	cd ${TOOLCHAIN_DIR} && \
