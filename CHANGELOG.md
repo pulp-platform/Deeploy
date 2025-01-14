@@ -37,3 +37,28 @@
 
 ### Changed
 - Update the Banshee's commit to include a recent PR.
+
+## Snitch Cluster Tiling Support
+
+### Added
+- Support for single-buffered tiling from L2.
+- Parsers, Templates, TypeCheckers, Layers, and TCF for the newly supported operators.
+- A code transformation pass to filter DMA cores or compute cores for an `ExecutionBlock`.
+- A code transformation pass to profile an `ExecutionBlock`.
+- Test for single kernels, both with and without tiling.
+- Adds the `--debug` flag to `cargo install` when installing Banshee to get the possibility of enabling the debug prints.
+- New tests for the `snitch_cluster` platform.
+- Add macros to `main.c` to disable printing and testing (convenient when running RTL simulations).
+
+### Changed
+- Add the possibility of changing the simulator when using the snitch-tiled test runner.
+
+## GVSOC support for the Snitch Cluster Platform
+
+### Added
+- gvsoc in the Makefile and dockerfile
+- cmake flow for gvsoc
+- CI tests regarding Snitch run on GVSOC as well
+
+### Changed 
+- Add the RTL library to the snitch_cluster build process in the Makefile, required for GVSOC simulation
