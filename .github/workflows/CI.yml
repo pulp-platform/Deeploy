@@ -194,6 +194,7 @@ jobs:
         RQHardswish
         testBacktracking
         FloatAdder
+        testFloatGEMM
       num-cores: 8
 
   siracusa-models:
@@ -245,6 +246,10 @@ jobs:
           {
             "name": "RQHardswish",
             "L1": [750]
+          },
+          {
+            "name": "testFloatGEMM",
+            "L1": [16000]
           }
         ]
       num-cores: 8
@@ -285,6 +290,10 @@ jobs:
           {
             "name": "RQHardswish",
             "L1": [750]
+          },
+          {
+            "name": "testFloatGEMM",
+            "L1": [16000]
           }
         ]
       num-cores: 8

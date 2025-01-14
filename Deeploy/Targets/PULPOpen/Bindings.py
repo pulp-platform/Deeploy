@@ -32,14 +32,15 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration
-from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, int8_t, int32_t, uint8_t
+from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t, \
+    uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import ConcatTemplate, RQSiGELUTemplate, iHardswishTemplate
-from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, GELUChecker, HardswishChecker, MatMulChecker, \
-    MulChecker, ReduceMeanChecker, RQAddChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker, \
-    iLayerNormChecker
+from Deeploy.Targets.Generic.Templates import ConcatTemplate, FloatGemmTemplate, RQSiGELUTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, GELUChecker, GEMMChecker, HardswishChecker, \
+    MatMulChecker, MulChecker, ReduceMeanChecker, RQAddChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, \
+    TransposeChecker, iLayerNormChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -194,6 +195,13 @@ PULPRQSGEMM_8_Binding = [
                            PointerClass(int32_t),
                            PointerClass(int32_t)], [PointerClass(type2)]), GEMMTemplate.PULPGEMM_8_Template,
         ForkTransformer) for type1, type2 in zip([int8_t, uint8_t, int8_t, uint8_t], [int8_t, uint8_t, uint8_t, int8_t])
+]
+
+PULPFloatGEMMBindings = [
+    NodeBinding(
+        GEMMChecker([PointerClass(float32_t), PointerClass(float32_t),
+                     PointerClass(float32_t)], [PointerClass(float32_t)]), FloatGemmTemplate.referenceTemplate,
+        ClusterTransformer)
 ]
 
 PULPRQSMatrixVecBindings = [

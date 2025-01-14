@@ -186,7 +186,7 @@ def setupDeployer(graph: gs.Graph,
     tensors = graph.tensors()
 
     # Load as int64 and infer types later
-    test_inputs = [inputs[x].reshape(-1).astype(np.int64) for x in inputs.files]
+    test_inputs = [inputs[x].reshape(-1).astype(np.float64) for x in inputs.files]
 
     platform, signProp = mapPlatform(args.platform)
 
@@ -325,8 +325,8 @@ if __name__ == '__main__':
         test_inputs, test_outputs, graph = generateDebugConfig(inputs, outputs, activations, graph)
     else:
         # Load as int64 and infer types later
-        test_inputs = [inputs[x].reshape(-1).astype(np.int64) for x in inputs.files]
-        test_outputs = [outputs[x].reshape(-1).astype(np.int64) for x in outputs.files]
+        test_inputs = [inputs[x].reshape(-1).astype(np.float64) for x in inputs.files]
+        test_outputs = [outputs[x].reshape(-1).astype(np.float64) for x in outputs.files]
 
         # WIESEP: Hack to get CI running because only one specific array is used
         if "WaveFormer" in args.dir:
