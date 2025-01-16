@@ -78,6 +78,8 @@ RUN make pulp-sdk
 RUN make qemu
 RUN make mempool
 RUN make banshee
+# Copy gvsoc requirements for later as they are removed when toolchain folder is deleted
+RUN make gvsoc && cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt
 
 # Dependencies needed for compiling Snitch
 ## Bender's installaton
@@ -114,6 +116,7 @@ ENV CMAKE=/usr/bin/cmake
 ENV PULP_SDK_HOME=/app/install/pulp-sdk
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV SNITCH_HOME=/app/install/snitch_cluster
+ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
 ENV MEMPOOL_HOME=/app/install/mempool
 ENV PATH=/app/install/qemu/bin:/app/install/banshee:$PATH
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -140,6 +143,9 @@ pip install toml-to-requirements && \
 toml-to-req --toml-file pyproject.toml && \
 pip install -r requirements.txt
 
+COPY --from=builder /app/core-requirements.txt ./core-requirements.txt
+COPY --from=builder /app/gapy-requirements.txt ./gapy-requirements.txt
+RUN pip install -r core-requirements.txt -r gapy-requirements.txt
 
 # Copy pre-built toolchains and emulators
 COPY --from=builder /app/install ./install

@@ -14,9 +14,8 @@ on:
         required: false
         default: "L2"
         type: string
-      simulator:
-        required: false
-        default: "banshee"
+      simulators:
+        required: true
         type: string
 
 
@@ -43,18 +42,22 @@ jobs:
           key: ${{ runner.os }}-ccache
       - name: Run Tests
         run: |
+          simulators="${{inputs.simulators}}"
           cd DeeployTest
           echo '${{ inputs.tests-config }}' > tests.json
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-
-          jq -c '.[]' tests.json | while read test; do
-            testName=$(echo "$test" | jq -r '.name')
-            L1_values=$(echo "$test" | jq -r '.L1[]')
-            for L1_value in $L1_values; do
-              echo "Running test: $testName with L1: $L1_value"
-              python testRunner_tiled_snitch.py -t Tests/$testName --cores=${{ inputs.num-cores }} --simulator=${{ inputs.simulator }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} --toolchain_install_dir /app/install/riscv-llvm/
-            done
+          echo "$simulators" | while IFS= read -r simulator; do
+            if [[ -n "$simulator" ]]; then
+              jq -c '.[]' tests.json | while read test; do
+                testName=$(echo "$test" | jq -r '.name')
+                L1_values=$(echo "$test" | jq -r '.L1[]')
+                for L1_value in $L1_values; do
+                  echo "Running test: $testName with L1: $L1_value using $simulator"
+                  python testRunner_tiled_snitch.py -t Tests/$testName --cores=${{ inputs.num-cores }} --simulator=$simulator --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} --toolchain_install_dir /app/install/riscv-llvm/
+                done
+              done
+            fi
           done
         shell: bash
         
