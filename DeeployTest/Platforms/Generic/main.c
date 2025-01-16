@@ -50,20 +50,21 @@ int main() {
 
   int32_t tot_err = 0;
   uint32_t tot = 0;
-  int32_t diff;
-  int32_t expected, actual;
+  float32_t diff;
+  float32_t expected, actual;
   for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
-    tot += DeeployNetwork_outputs_bytes[buf];
-    for (uint32_t i = 0; i < DeeployNetwork_outputs_bytes[buf]; i++) {
-      expected = ((char *)testOutputVector[buf])[i];
-      actual = ((char *)DeeployNetwork_outputs[buf])[i];
+    tot += DeeployNetwork_outputs_bytes[buf] / sizeof(float32_t);
+    for (uint32_t i = 0;
+         i < DeeployNetwork_outputs_bytes[buf] / sizeof(float32_t); i++) {
+      expected = ((float32_t *)testOutputVector[buf])[i];
+      actual = ((float32_t *)DeeployNetwork_outputs[buf])[i];
       diff = expected - actual;
 
-      if (diff) {
+      if ((diff < 0 ? -diff : diff) > 1e-5) {
         tot_err += 1;
-        printf("Expected: %4d  ", expected);
-        printf("Actual: %4d  ", actual);
-        printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
+        printf("Expected: %10.6f  ", expected);
+        printf("Actual: %10.6f  ", actual);
+        printf("Diff: %10.6f at Index %12u in Output %u\r\n", diff, i, buf);
       }
     }
   }

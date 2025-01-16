@@ -37,3 +37,10 @@
 
 ### Changed
 - Update the Banshee's commit to include a recent PR.
+
+## Add Float Support & Float GEMM for Generic
+- Float Support for Constbuffer
+- Float GEMM on Generic
+- Added FP GEMM to CI
+- Fixed Float bug on Testslice, CMSIS TestUtil, DivInterger
+- Fixed AbstractDatayType Float Bugs
