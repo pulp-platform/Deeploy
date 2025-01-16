@@ -7,6 +7,7 @@
 ### Fixed
 - Fix broken softmax kernel for generic platform ([#2](https://github.com/pulp-platform/Deeploy/pull/2)).
 
+
 ## Minor CI and Readme Improvements
 
 ### Added
@@ -15,6 +16,7 @@
 ### Fixed
 - Update the link of the Docker container used to run the CI with the Docker published by this repo instead of my fork.
 - Add a retry on timeout step for large network tests. This is a temporary fix to address the sporadic freeze happening at the compilation stage, see [this issue](https://github.com/pulp-platform/Deeploy/issues/9).
+
 
 ## Floating Point Support
 
@@ -25,6 +27,7 @@
 - Add a FloatAdder test to the CI for Siracusa and Generic platforms
 - Extend `testType.py` with float tests
 - LIMITATION: Current LLVM compiler does not support bfp16 and fp16, these types are commented in the library header
+
 
 ## Snitch Cluster Support
 
@@ -37,6 +40,7 @@
 
 ### Changed
 - Update the Banshee's commit to include a recent PR.
+
 
 ## Snitch Cluster Tiling Support
 
@@ -53,6 +57,7 @@
 ### Changed
 - Add the possibility of changing the simulator when using the snitch-tiled test runner.
 
+
 ## GVSOC support for the Snitch Cluster Platform
 
 ### Added
@@ -62,3 +67,11 @@
 
 ### Changed 
 - Add the RTL library to the snitch_cluster build process in the Makefile, required for GVSOC simulation
+
+
+## Add Float Support & Float GEMM for Generic
+- Float Support for Constbuffer
+- Float GEMM on Generic
+- Added FP GEMM to CI
+- Fixed Float bug on Testslice, CMSIS TestUtil, DivInterger
+- Fixed AbstractDatayType Float Bugs

@@ -6,3 +6,4 @@ All contributors have agreed to an open-source release of their work in the Deep
 * Luka Macan
 * Alberto Dequino
 * Francesco Conti
+* Run Wang

@@ -49,6 +49,7 @@ jobs:
         test2DRequantizedConv
         iSoftmax
         FloatAdder
+        testFloatGEMM
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml

@@ -29,7 +29,7 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBinding, BasicConv2DBinding, \
     BasicDebugPrintBindings, BasicDWConv1DBinding, BasicDWConv2DBinding, BasicGatherBindings, BasicGELUBinding, \
-    BasicGEMMBinding, BasicIntegerDivBinding, BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, \
+    BasicGEMMBindings, BasicIntegerDivBinding, BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, \
     BasicLayerNormBinding, BasicMatMulBinding, BasicMaxPool2DBinding, BasicMulBindings, BasicPad1DBindings, \
     BasicPad2DBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, \
     BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBinding, \
@@ -56,7 +56,7 @@ DWConv2DMapper = NodeMapper(GenericDWConv2DParser(), [BasicDWConv2DBinding])
 FlattenMapper = NodeMapper(FlattenParser(), BasicReshapeBindings)
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
 GELUMapper = NodeMapper(iGELUParser(), [BasicGELUBinding])
-GEMMMapper = NodeMapper(GenericGEMMParser(), [BasicGEMMBinding])
+GEMMMapper = NodeMapper(GenericGEMMParser(), BasicGEMMBindings)
 iLayerNormMapper = NodeMapper(iLayerNormParser(), [BasicLayerNormBinding])
 IntegerDivMapper = NodeMapper(IntegerDivParser(), [BasicIntegerDivBinding])
 ITAMaxMapper = NodeMapper(ITAMaxParser(), [BasicITASoftmaxBinding])

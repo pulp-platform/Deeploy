@@ -67,12 +67,12 @@ dimSteps.append(data_in_size//data_in_shape[0])
 for dim in data_in_shape[1:]:
      dimSteps.append(dimSteps[-1]//dim)
 %>
-<%
-transferSize = dimSteps[axes[-1]]
+<%                                   
+transferSize = dimSteps[int(axes[-1])]
 %>
 <%
-if axes[0] > 0:
-    preAxes = list(range(axes[0]))
+if int(axes[0]) > 0:
+    preAxes = list(range(int(axes[0])))
 else:
     preAxes = []
 %>
@@ -100,7 +100,7 @@ ${data_out}_offset_${axis} =  ${data_out}_offset_${axis-1} + ${dimSteps[axis]} *
 % endfor
 memcpy(ref_${data_out}, ${data_in} + ${data_out}_offset_${axis}, ${transferSize* data_out_type.referencedType.typeWidth//8});
 ref_${data_out} += ${transferSize};
-% for axis in range(axes[-1]+1):
+% for axis in range(int(axes[-1])+1):
 }
 % endfor
 """)

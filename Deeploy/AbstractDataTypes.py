@@ -217,7 +217,7 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
             return False
 
     @classmethod
-    def checkValue(cls, value: Union[int, Iterable[int]], ctxt: Optional[_NetworkContext] = None):
+    def checkValue(cls, value: Union[int, Iterable[int], np.ndarray], ctxt: Optional[_NetworkContext] = None):
 
         if isinstance(value, int):
             _max, _min = (value, value)
@@ -238,6 +238,7 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
     typeMantissa: int  #: int: Represents the number of bits reserved for the mantissa part
     typeExponent: int  #: int: Represents the number of bits reserved for the exponent part
+    typeMin: float
 
     @_classproperty
     def typeExponentMax(cls) -> int:
@@ -249,6 +250,10 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
         # The offset added to the exponent
         return 2**(cls.typeExponent - 1) - 1
 
+    @_classproperty
+    def typeMin(cls) -> float:
+        return -math.inf
+
     @classmethod
     def partialOrderUpcast(cls, otherCls: Type[Immediate]) -> bool:
         if issubclass(otherCls, FloatImmediate):
@@ -257,7 +262,7 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
             return False
 
     @classmethod
-    def checkValue(cls, value: Union[float, Iterable[float]], ctxt: Optional[_NetworkContext] = None):
+    def checkValue(cls, value: Union[float, Iterable[float], np.ndarray], ctxt: Optional[_NetworkContext] = None):
         """
         This method tries to manually cast standard python's standard immediate float precision values 
         (64 bits) to an arbitrary FP representation and check if the new representation is close enough 
@@ -268,7 +273,7 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
         if isinstance(value, float):
             _val_list.append(value)
         elif isinstance(value, np.ndarray):
-            _val_list = value.tolist()
+            _val_list = value.flatten().tolist()
         elif isinstance(value, Iterable):
             for i in value:
                 _val_list.append(i)

@@ -385,9 +385,9 @@ class ConstantBuffer(VariableBuffer):
     def __init__(self, name: str = '', shape = [1], values = [0]):
         super().__init__(name, shape)
         values = np.asarray(values)
-        intArray = values.astype(int)
-        assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
-        self.values = intArray  #: np.array: Stores the underlying weights in Ptyhon-type representation
+        # intArray = values.astype(int)
+        # assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
+        self.values = values  #: np.array: Stores the underlying weights in Python-type representation
 
         # Do not override - ConstantBuffers are assumed to be always live!
         self._live = True
