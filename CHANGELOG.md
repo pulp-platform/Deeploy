@@ -69,9 +69,15 @@
 - Add the RTL library to the snitch_cluster build process in the Makefile, required for GVSOC simulation
 
 
-## Add Float Support & Float GEMM for Generic
+## Add Float Support & Float GEMM for Generic and PULP
+
+### Added
 - Float Support for Constbuffer
-- Float GEMM on Generic
-- Added FP GEMM to CI
-- Fixed Float bug on Testslice, CMSIS TestUtil, DivInterger
-- Fixed AbstractDatayType Float Bugs
+- Simple Float GEMM on Generic and Pulp
+- FP GEMM to CI
+- FP GEMM Tiling on PULP
+
+### Fixed
+- Float bug on Testslice, CMSIS TestUtil, DivInterger
+- AbstractDatayType Float Bugs
+

@@ -40,15 +40,15 @@ from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import 
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
-from Deeploy.Targets.PULPOpen.Bindings import PULPConcatBindings, PULPiHardswishBindings, PULPiRMSNormBindings, \
-    PULPiRQSGELUBindings, PULPMatMulBinding, PULPMaxPool2DBindings, PULPMulBindings, PULPRQAddBindings, \
-    PULPRQSBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, PULPRQSiHardswishBindings, \
-    PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSoftmaxBindings, PULPTransposeBindings, \
-    PULPUniformRQSBindings, SimpleTransformer
+from Deeploy.Targets.PULPOpen.Bindings import PULPConcatBindings, PULPFloatGEMMBindings, PULPiHardswishBindings, \
+    PULPiRMSNormBindings, PULPiRQSGELUBindings, PULPMatMulBinding, PULPMaxPool2DBindings, PULPMulBindings, \
+    PULPRQAddBindings, PULPRQSBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
+    PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSoftmaxBindings, \
+    PULPTransposeBindings, PULPUniformRQSBindings, SimpleTransformer
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint import GEMMTileConstraint, MatrixVecTileConstraint, \
-    TallGEMMTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint import FloatGEMMTileConstraint, GEMMTileConstraint, \
+    MatrixVecTileConstraint, TallGEMMTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint import iSoftmaxTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMulTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint import MaxPoolTileConstraint
@@ -63,6 +63,9 @@ PULPRQSDWConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULP
 
 PULPRQSGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSGEMMBindings,
                                                          tileConstraint = GEMMTileConstraint())
+
+PULPFPGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatGEMMBindings,
+                                                        tileConstraint = FloatGEMMTileConstraint())
 
 PULPRQSMatrixVecTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSMatrixVecBindings,
                                                               tileConstraint = MatrixVecTileConstraint())
