@@ -88,7 +88,8 @@ void main(void) {
 #ifndef CI
   printf("Output:\r\n");
 #endif
-  int32_t diff, tot_err, tot_tested;
+  float32_t diff, expected_float, actual_float;
+  uint32_t tot_err, tot_tested;
   tot_err = 0;
   tot_tested = 0;
   char *compbuf;
@@ -102,22 +103,18 @@ void main(void) {
       compbuf = DeeployNetwork_outputs[buf];
     }
 
-    for (int i = 0; i < DeeployNetwork_outputs_bytes[buf]; i++) {
-      diff = ((char *)testOutputVector[buf])[i] - ((char *)compbuf)[i];
+    for (int i = 0; i < DeeployNetwork_outputs_bytes[buf] / sizeof(float32_t); i++) {
       tot_tested++;
-      if (diff) {
+      expected_float = ((float32_t *)testOutputVector[buf])[i];
+      actual_float = ((float32_t *)compbuf)[i];
+      diff = expected_float - actual_float;
+      if (diff < -1e-5 || diff > 1e-5) {
         tot_err += 1;
 #ifndef CI
-        printf("Expected: %i\t\t", ((int8_t *)testOutputVector[buf])[i]);
-        printf("Actual: %i \t\t", ((int8_t *)compbuf)[i]);
+        printf("Expected: %f\t\t", expected_float);
+        printf("Actual: %f \t\t", actual_float);
+        printf("Diff: %f at Index %u \r\n", diff, i);
 #endif
-#ifndef CI
-        printf("Diff: %i at Index %u \r\n", diff, i);
-#endif
-      } else {
-        /* #ifndef CI */
-        /*       printf("\r\n"); */
-        /* #endif */
       }
     }
     if (DeeployNetwork_outputs[buf] < 0x1000000) {
