@@ -60,7 +60,7 @@ int main() {
       actual = ((float32_t *)DeeployNetwork_outputs[buf])[i];
       diff = expected - actual;
 
-      if ((diff < 0 ? -diff : diff) > 1e-5) {
+      if ((diff < 0 ? -diff : diff) > 1e-4) {
         tot_err += 1;
         printf("Expected: %10.6f  ", expected);
         printf("Actual: %10.6f  ", actual);

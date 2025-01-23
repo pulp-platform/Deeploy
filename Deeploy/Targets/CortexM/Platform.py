@@ -35,15 +35,15 @@ from Deeploy.Targets.CortexM.Parsers import CMSISCLCAParser, CMSISConv1DParser, 
     CMSISDWConv1DParser, CMSISDWConv2DParser, CMSISGEMMParser, CMSISLinearAttentionParser, CMSISMaxPool2DParser
 from Deeploy.Targets.CortexM.TopologyOptimizationPasses.Passes import ConvRequantMergePass, GEMMRequantMergePass, \
     LinearAttentionAlignmentPass, MatMulRequantMergePass, MHSAAlignmentPass
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicDebugPrintBindings, BasicGatherBindings, \
-    BasicGELUBinding, BasicIntegerDivBinding, BasicLayerNormBinding, BasicMatMulBinding, BasicMulBindings, \
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicDebugPrintBindings, BasicDivBindings, \
+    BasicGatherBindings, BasicGELUBinding, BasicLayerNormBindings, BasicMatMulBinding, BasicMulBindings, \
     BasicPad1DBindings, BasicPad2DBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, \
-    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBinding, \
+    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, \
     BasicTransposeBindings, DummyBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, CLCALayer, DebugPrintLayer, GatherLayer, IntegerDivLayer, \
-    LinearAttentionLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, ReduceMeanLayer, ReduceSumLayer, \
-    RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SliceLayer, TransposeLayer, iGELULayer, \
-    iLayerNormLayer, iSoftmaxLayer
+from Deeploy.Targets.Generic.Layers import AddLayer, CLCALayer, DebugPrintLayer, DivLayer, GatherLayer, \
+    LayerNormLayer, LinearAttentionLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, ReduceMeanLayer, \
+    ReduceSumLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SliceLayer, SoftmaxLayer, \
+    TransposeLayer, iGELULayer
 from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DummyParser, FlattenParser, GatherParser, \
     IntegerDivParser, MatMulParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, ReduceSumParser, \
     RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, TransposeParser, \
@@ -63,8 +63,8 @@ FlattenMapper = NodeMapper(FlattenParser(), BasicReshapeBindings)
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
 GELU_int8_Mapper = NodeMapper(iGELUParser(), [BasicGELUBinding])
 GEMMMapper = NodeMapper(CMSISGEMMParser(), CMSISGEMMBindings)
-iLayerNorm_int8_Mapper = NodeMapper(iLayerNormParser(), [BasicLayerNormBinding])
-IntegerDivMapper = NodeMapper(IntegerDivParser(), [BasicIntegerDivBinding])
+iLayerNorm_int8_Mapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
+IntegerDivMapper = NodeMapper(IntegerDivParser(), BasicDivBindings)
 LinearAttention_int16_Mapper = NodeMapper(CMSISLinearAttentionParser(), [CMSISLinearAttentionBinding])
 MatMulMapper = NodeMapper(MatMulParser(), [BasicMatMulBinding])
 MaxPool2DMapper = NodeMapper(CMSISMaxPool2DParser(), [CMSISMaxPool2DBinding])
@@ -77,7 +77,7 @@ RequantShiftMapper = NodeMapper(RequantShiftParser(), BasicRQSBindings)
 ReshapeMapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
 RQGELU_int8_Mapper = NodeMapper(RQSiGELUParser(), [BasicRQSGELUBinding])
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
-Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), [BasicSoftmaxBinding])
+Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), BasicSoftmaxBindings)
 TransposeMapper = NodeMapper(TransposeParser(), BasicTransposeBindings)
 UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 
@@ -94,10 +94,10 @@ CMSISMapping = {
     'Flatten': ReshapeLayer([FlattenMapper]),
     'Gather': GatherLayer([GatherMapper]),
     'iGELU': iGELULayer([GELU_int8_Mapper]),
-    'iLayerNorm': iLayerNormLayer([iLayerNorm_int8_Mapper]),
-    'IntegerDiv': IntegerDivLayer([IntegerDivMapper]),
+    'iLayerNorm': LayerNormLayer([iLayerNorm_int8_Mapper]),
+    'IntegerDiv': DivLayer([IntegerDivMapper]),
     'IntegerMean': ReduceMeanLayer([ReduceMeanMapper]),
-    'iSoftmax': iSoftmaxLayer([Softmax_int8_Mapper]),
+    'iSoftmax': SoftmaxLayer([Softmax_int8_Mapper]),
     'LinearAttention': LinearAttentionLayer([LinearAttention_int16_Mapper]),
     'MatMul': MatMulLayer([MatMulMapper]),
     'MaxPool': MaxPoolLayer([MaxPool2DMapper]),

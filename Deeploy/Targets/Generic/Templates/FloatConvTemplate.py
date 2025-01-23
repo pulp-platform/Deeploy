@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #
-# File: FloatGemmTemplate.py.py
+# File: FLoatConvTemplate.py
 #
 # Last edited: 23.01.2025
 #
@@ -28,7 +28,7 @@ from typing import Dict, List, Tuple
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
-class _FloatGemmTemplate(NodeTemplate):
+class _FloatConvTemplate(NodeTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
@@ -36,41 +36,32 @@ class _FloatGemmTemplate(NodeTemplate):
     def alignToContext(self, ctxt: NetworkContext,
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
 
-        A = ctxt.lookup(operatorRepresentation['A'])
-        B = ctxt.lookup(operatorRepresentation['B'])
-        C = ctxt.lookup(operatorRepresentation['C'])
-        Y = ctxt.lookup(operatorRepresentation['data_out'])
-
-        operatorRepresentation['A_offset'] = 0
-        operatorRepresentation['B_offset'] = 0
-        operatorRepresentation['C_offset'] = 0
-        operatorRepresentation['Y_offset'] = 0
+        data_in = ctxt.lookup(operatorRepresentation['data_in'])
+        data_out = ctxt.lookup(operatorRepresentation['data_out'])
 
         return ctxt, operatorRepresentation, []
 
 
-referenceTemplate = _FloatGemmTemplate("""
-// GEMM float (Name: ${nodeName}, Op: ${nodeOp})
+reference2DTemplate = _FloatConvTemplate("""
+<%
+batchOffsetIn = ch_im_in * dim_im_in_x * dim_im_in_y
+batchOffsetOut = ch_im_out * dim_im_out_x * dim_im_out_y
+%>
+
+// 2D FP Conv (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
-    ${A_type.typeName} ref_${data_out}_${A} = ${A};
-    ${B_type.typeName} ref_${data_out}_${B} = ${B};
-    ${C_type.typeName} ref_${data_out}_${C} = ${C};
+    ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
     ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
-    for(uint32_t i=0; i<${batch}; i++){
-        for(uint32_t m=0; m<${M}; m++){
-            for(uint32_t n=0; n<${O}; n++){
-                ref_${data_out}_${data_out}[m* ${O} + n] = ref_${data_out}_${C}[m * ${O} + n];
-                for(uint32_t k=0; k<${N}; k++){
-                    ref_${data_out}_${data_out}[m* ${O} + n] += ref_${data_out}_${A}[m * ${N} + k] * ref_${data_out}_${B}[k * ${O} + n];
-                }
-            }
-        }
-
-        ref_${data_out}_${A} += ${M} * ${O};
-        ref_${data_out}_${B} += ${O} * ${N};
-        ref_${data_out}_${C} += ${M} * ${N};
-        ref_${data_out}_${data_out} += ${M} * ${N};
+    for (uint32_t n=0; n<${batch}; ++n) {
+        Conv2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_NCHW(
+            ref_${data_out}_${data_in}, ${ch_im_in}, ${dim_im_in_x}, ${dim_im_in_y},
+            ${weight}, ${ch_im_out}, ${dim_kernel_x}, ${dim_kernel_y},
+            ${stride_x}, ${stride_y},
+            ref_${data_out}_${data_out}
+        );
+        ref_${data_out}_${data_in} += ${batchOffsetIn};
+        ref_${data_out}_${data_out} += ${batchOffsetOut};
     }
 END_SINGLE_CORE
 """)

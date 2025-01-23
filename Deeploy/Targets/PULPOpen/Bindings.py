@@ -39,8 +39,8 @@ from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import ConcatTemplate, FloatGemmTemplate, RQSiGELUTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, GELUChecker, GEMMChecker, HardswishChecker, \
-    MatMulChecker, MulChecker, ReduceMeanChecker, RQAddChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, \
-    TransposeChecker, iLayerNormChecker
+    LayerNormChecker, MatMulChecker, MulChecker, ReduceMeanChecker, RQAddChecker, RQHardswishChecker, SliceChecker, \
+    SoftmaxChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -284,7 +284,7 @@ PULPConcatBindings = [
 ]
 
 PULPiRMSNormBindings = [
-    NodeBinding(iLayerNormChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+    NodeBinding(LayerNormChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
                 iRMSNormTemplate.referenceTemplate, ForkTransformer)
 ]
 

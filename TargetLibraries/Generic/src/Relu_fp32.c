@@ -1,14 +1,14 @@
 /* =====================================================================
- * Title:        iSoftmax.h
+ * Title:        Softmax_fp8.c
  * Description:
  *
- * $Date:        13.11.2023
+ * $Date:        22.01.2025
  *
  * ===================================================================== */
 /*
- * Copyright (C) 2020 ETH Zurich and University of Bologna.
+ * Copyright (C) 2022 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * - Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -25,14 +25,16 @@
  * limitations under the License.
  */
 
-#include "DeeployPULPMath.h"
+#include "DeeployBasicMath.h"
 
-void PULPSoftmax_u8_u8(uint8_t *data_in, uint8_t *data_out,
-                       uint32_t *lastDimBuffer, uint32_t size,
-                       uint32_t lastDimLength, int32_t coeffB, int32_t coeffC,
-                       int32_t log2);
-void PULPSoftmax_i8_u8(int8_t *data_in, uint8_t *data_out,
-                       uint32_t *lastDimBuffer, uint32_t size,
-                       uint32_t lastDimLength, int32_t coeffB, int32_t coeffC,
-                       int32_t log2);
-void Softmax_fp32_fp32(float32_t* input, float32_t* output, int32_t size, int32_t last_dim_length);
+
+void Relu_fp32_fp32(float32_t* input, float32_t* output, int32_t size, int32_t last_dim_length) {
+
+    int32_t batch_size = size / last_dim_length;  
+
+    for (int b = 0; b < batch_size; b++) {
+        for (int i = 0; i < last_dim_length; i++) {
+            output[b * last_dim_length + i] = MAX(input[b * last_dim_length + i], 0.0f);
+        }
+    }
+}

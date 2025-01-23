@@ -30,20 +30,21 @@ import itertools
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
-    int8_t, int32_t, uint8_t
+from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t, \
+    uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
-    DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatGemmTemplate, GatherTemplate, GemmTemplate, \
-    IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, \
-    PadTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
+    DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, FloatGemmTemplate, \
+    FloatLayernormTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
+    ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, \
+    ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
     RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, \
     iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
-    DummyChecker, FloatAddChecker, GatherChecker, GELUChecker, GEMMChecker, IntegerDivChecker, MatMulChecker, \
-    MaxPoolChecker, MulChecker, PadChecker, ReduceMeanChecker, ReduceSumChecker, RequantShiftChecker, ReshapeChecker, \
-    RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker, iLayerNormChecker
+    DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, MatMulChecker, \
+    MaxPoolChecker, MulChecker, PadChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, \
+    ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -68,8 +69,8 @@ BasicAddBindings = [
     for type1 in IntegerDataTypes
     for type2 in IntegerDataTypes
 ] + [
-    NodeBinding(FloatAddChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
-                FloatAddTemplate.referenceTemplate, BasicTransformer) for type in FloatDataTypes
+    NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAddTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
@@ -78,8 +79,15 @@ BasicConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass
 BasicDWConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                    DWConvTemplate.reference1DTemplate, BasicTransformer)
 
-BasicConv2DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
-                                 ConvTemplate.reference2DTemplate, BasicTransformer)
+BasicConv2DBindings = [
+    NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
+                ConvTemplate.reference2DTemplate, BasicTransformer)
+] + [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t),
+                     PointerClass(float32_t)], [PointerClass(float32_t)]), FloatConvTemplate.reference2DTemplate,
+        BasicTransformer)
+]
 
 BasicDWConv2DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                    DWConvTemplate.reference2DTemplate, BasicTransformer)
@@ -108,9 +116,13 @@ BasicGEMMBindings = [
         BasicTransformer)
 ]
 
-BasicIntegerDivBinding = NodeBinding(
-    IntegerDivChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
-    IntegerDivTemplate.referenceTemplate, BasicTransformer)
+BasicDivBindings = [
+    NodeBinding(DivChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
+                IntegerDivTemplate.referenceTemplate, BasicTransformer)
+] + [
+    NodeBinding(DivChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatDivTemplate.referenceTemplate, BasicTransformer)
+]
 
 BasicITASoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
                                      ITAMaxTemplate.referenceTemplate, BasicTransformer)
@@ -118,10 +130,18 @@ BasicITASoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [Poi
 BasicITAPartialSoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
                                             ITAPartialMaxTemplate.referenceTemplate, BasicTransformer)
 
-BasicLayerNormBinding = NodeBinding(
-    iLayerNormChecker([PointerClass(int8_t), PointerClass(int32_t),
-                       PointerClass(int32_t)], [PointerClass(int8_t)]), iLayernormTemplate.referenceTemplate,
-    BasicTransformer)
+BasicLayerNormBindings = [
+    NodeBinding(
+        LayerNormChecker([PointerClass(int8_t), PointerClass(int32_t),
+                          PointerClass(int32_t)], [PointerClass(int8_t)]), iLayernormTemplate.referenceTemplate,
+        BasicTransformer)
+] + [
+    NodeBinding(
+        LayerNormChecker(
+            [PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+        BasicTransformer)
+]
 
 BasicMatMulBinding = NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                  MatMulTemplate.referenceTemplate, BasicTransformer)
@@ -142,6 +162,11 @@ BasicPad1DBindings = [
 BasicPad2DBindings = [
     NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference2DTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
+] + [
+    NodeBinding(
+        PadChecker([PointerClass(float32_t), PointerClass(float32_t),
+                    PointerClass(float32_t)], [PointerClass(float32_t)]), PadTemplate.reference2DTemplate,
+        BasicTransformer)
 ]
 
 BasicReduceMeanBindings = [
@@ -154,9 +179,15 @@ BasicReduceSumBindings = [
                 BasicTransformer) for type in SignedIntegerDataTypes
 ]
 
+BasicReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                               FloatReluTemplate.referenceTemplate, BasicTransformer)
+
 BasicReshapeBindings = [
     NodeBinding(ReshapeChecker([PointerClass(type), PointerClass(int32_t)], [PointerClass(type)]),
                 ReshapeTemplate.referenceTemplate, ReshapeSkipTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ReshapeChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                ReshapeTemplate.referenceTemplate, ReshapeSkipTransformer)
 ]
 
 BasicRQSBindings = [
@@ -181,8 +212,13 @@ BasicRQIntegerDivBinding = NodeBinding(
         PointerClass(int32_t)
     ], [PointerClass(int8_t)]), RQIntegerDivTemplate.referenceTemplate, BasicTransformer)
 
-BasicSoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
-                                  iSoftmaxTemplate.referenceTemplate, BasicTransformer)
+BasicSoftmaxBindings = [
+    NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), iSoftmaxTemplate.referenceTemplate,
+                BasicTransformer)
+] + [
+    NodeBinding(SoftmaxChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatSoftmaxTemplate.referenceTemplate, BasicTransformer)
+]
 
 BasicTransposeBindings = [
     NodeBinding(TransposeChecker([PointerClass(type)], [PointerClass(type)]), TransposeTemplate.referenceTemplate,
@@ -190,7 +226,7 @@ BasicTransposeBindings = [
 ]
 
 BasiciRMSNormBinding = NodeBinding(
-    iLayerNormChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+    LayerNormChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
     iRMSNormTemplate.referenceTemplate, BasicTransformer)
 
 DummyBinding = NodeBinding(DummyChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),

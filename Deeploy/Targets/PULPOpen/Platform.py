@@ -34,13 +34,13 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.CortexM.Parsers import CMSISMaxPool2DParser
 from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicPad1DBindings, BasicPad2DBindings, \
-    BasicReshapeBindings, BasicRQIntegerDivBinding
+    BasicReshapeBindings, BasicRQIntegerDivBinding, BasicSoftmaxBindings
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, GatherLayer, GEMMLayer, MatMulLayer, MaxPoolLayer, \
     MulLayer, PadLayer, ReduceMeanLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
-    RQSiHardswishLayer, SliceLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer, iSoftmaxLayer
+    RQSiHardswishLayer, SliceLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, FlattenParser, GatherParser, GEMMParser, \
     MatMulParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, RequantShiftParser, ReshapeParser, \
-    RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SliceParser, TransposeParser, \
+    RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SliceParser, SoftmaxParser, TransposeParser, \
     UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
@@ -93,6 +93,7 @@ MatrixVecMapper = NodeMapper(PULPMatrixVecParser(), PULPRQSMatrixVecTilingReadyB
 TallGEMMMapper = NodeMapper(PULPTallGEMMParser(), PULPRQSTallGEMMTilingReadyBindings)
 MaxPool2DMapper = NodeMapper(CMSISMaxPool2DParser(), PULPMaxPool2DTilingReadyBindings)
 Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), PULPiSoftmaxTilingReadyBindings)
+SoftmaxMapper = NodeMapper(SoftmaxParser(), BasicSoftmaxBindings)
 
 ConcatMapper = NodeMapper(ConcatParser(), PULPConcatTilingReadyBindings)
 
@@ -112,7 +113,8 @@ PULPMapping = {
     'RQIntegerDiv': RQIntegerDivLayer([RQIntegerDivMapper]),
     'MatMul': MatMulLayer([MatMulMapper]),
     'IntegerMean': ReduceMeanLayer([ReduceMeanMapper]),
-    'iSoftmax': iSoftmaxLayer([Softmax_int8_Mapper]),
+    'iSoftmax': SoftmaxLayer([Softmax_int8_Mapper]),
+    'Softmax': SoftmaxLayer([SoftmaxMapper]),
     'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
     'RequantShift': RequantShiftLayer([UniformRequantShiftMapper, RequantShiftMapper]),
     'Add': AddLayer([AddMapper]),

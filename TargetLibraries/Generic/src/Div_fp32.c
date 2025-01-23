@@ -1,14 +1,15 @@
 /* =====================================================================
- * Title:        iSoftmax.h
+ * Title:        Div_fp32.c
  * Description:
  *
- * $Date:        13.11.2023
+ * $Date:        23.01.2025
  *
  * ===================================================================== */
 /*
- * Copyright (C) 2020 ETH Zurich and University of Bologna.
+ * Copyright (C) 2022 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Authors:
+ * - Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -25,14 +26,10 @@
  * limitations under the License.
  */
 
-#include "DeeployPULPMath.h"
+#include "DeeployBasicMath.h"
 
-void PULPSoftmax_u8_u8(uint8_t *data_in, uint8_t *data_out,
-                       uint32_t *lastDimBuffer, uint32_t size,
-                       uint32_t lastDimLength, int32_t coeffB, int32_t coeffC,
-                       int32_t log2);
-void PULPSoftmax_i8_u8(int8_t *data_in, uint8_t *data_out,
-                       uint32_t *lastDimBuffer, uint32_t size,
-                       uint32_t lastDimLength, int32_t coeffB, int32_t coeffC,
-                       int32_t log2);
-void Softmax_fp32_fp32(float32_t* input, float32_t* output, int32_t size, int32_t last_dim_length);
+void Div_fp32_fp32_fp32(float32_t *data_in_1, float32_t *data_in_2, float32_t *data_out, int32_t size){
+    for (int i = 0; i < size; i++) {
+        data_out[i] = data_in_1[i] / data_in_2[i];
+    }
+}

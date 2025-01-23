@@ -81,3 +81,7 @@
 - Float bug on Testslice, CMSIS TestUtil, DivInterger
 - AbstractDatayType Float Bugs
 
+## Add Float Conv2D, LayerNorm, Div, Reshape, Relu on Generic, Softmax on PULP
+- Float Conv2D, LayerNorm, Div, Reshape, Relu, Softmax basic classes
+- Add Float Conv2D, LayerNorm, Div, Reshape, Relu on Generic
+- Add Softmax on PulpOpen

@@ -550,9 +550,6 @@ class SoftmaxParser(NodeParser):
 
         ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
 
-        if ret:
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-
         return ret
 
     def parseNodeCtxt(self,
@@ -591,6 +588,7 @@ class iSoftmaxParser(SoftmaxParser):
             self.operatorRepresentation['coeffB'] = int(node.attrs['coeffB'].values)
             self.operatorRepresentation['coeffC'] = int(node.attrs['coeffC'].values)
             self.operatorRepresentation['log2'] = int(node.attrs['log2'].values)
+            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
 
         return wellFormed
 
@@ -610,9 +608,10 @@ class ITAMaxParser(SoftmaxParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
+
         wellFormed = super().parseNode(node)
 
-        ret = all(['n_levels' in node.attrs])
+        ret = all(['n_levels' in node.attrs, len(node.inputs) == 1, len(node.outputs) == 1])
 
         if ret and wellFormed:
             self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
@@ -919,6 +918,32 @@ class UnsqueezeParser(NodeParser):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        return ctxt, True
+
+
+class ReluParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+        self.operatorRepresentation['lastDimLength'] = data_in.shape[-1]
 
         return ctxt, True
 
@@ -1494,6 +1519,18 @@ class iLayerNormParser(NodeParser):
         return ctxt, True
 
 
+class LayerNormParser(iLayerNormParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 3, len(node.outputs) == 1])
+
+        if ret:
+            self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
+
+        return ret
+
+
 class MatMulParser(NodeParser):
 
     def __init__(self, noBiasHoisting = True):
@@ -1794,6 +1831,36 @@ class IntegerDivParser(NodeParser):
                 self.operatorRepresentation['denomStep'] = np.prod(
                     ctxt.lookup(self.operatorRepresentation['B']).shape[idx:])
                 break
+
+        return ctxt, True
+
+
+class DivParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ["input1", "input2"]
+        outputs = ["output"]
+        for idx, inputNode in enumerate(node.inputs):
+            if idx < len(inputs):
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(self.operatorRepresentation['input1']).shape)
+        self.operatorRepresentation['lastDimLength'] = ctxt.lookup(self.operatorRepresentation['input1']).shape[-1]
 
         return ctxt, True
 
