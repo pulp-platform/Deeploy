@@ -25,14 +25,7 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
-
-class _reluTemplate(NodeTemplate):
-
-    def __init__(self, templateStr):
-        super().__init__(templateStr)
-
-
-referenceTemplate = _reluTemplate("""
+referenceTemplate = NodeTemplate("""
 // Relu (Name: ${nodeName}, Op: ${nodeOp})
-SINGLE_CORE Relu_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(${data_in}, ${data_out}, ${size}, ${lastDimLength});
+SINGLE_CORE Relu_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(${data_in}, ${data_out}, ${size}, ${batch});
 """)

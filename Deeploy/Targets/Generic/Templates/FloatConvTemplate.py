@@ -23,26 +23,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from Deeploy.DeeployTypes import NodeTemplate
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
-
-
-class _FloatConvTemplate(NodeTemplate):
-
-    def __init__(self, templateStr):
-        super().__init__(templateStr)
-
-    def alignToContext(self, ctxt: NetworkContext,
-                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-
-        data_in = ctxt.lookup(operatorRepresentation['data_in'])
-        data_out = ctxt.lookup(operatorRepresentation['data_out'])
-
-        return ctxt, operatorRepresentation, []
-
-
-reference2DTemplate = _FloatConvTemplate("""
+reference2DTemplate = NodeTemplate("""
 <%
 batchOffsetIn = ch_im_in * dim_im_in_x * dim_im_in_y
 batchOffsetOut = ch_im_out * dim_im_out_x * dim_im_out_y

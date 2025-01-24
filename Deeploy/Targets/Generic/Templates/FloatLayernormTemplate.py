@@ -23,26 +23,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Tuple
+from Deeploy.DeeployTypes import NodeTemplate
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
-
-
-class _LayerNormTemplate(NodeTemplate):
-
-    def __init__(self, templateStr):
-        super().__init__(templateStr)
-
-    def alignToContext(self, ctxt: NetworkContext,
-                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict]:
-
-        data_in = ctxt.lookup(operatorRepresentation['data_in'])
-        data_out = ctxt.lookup(operatorRepresentation['data_out'])
-
-        return ctxt, operatorRepresentation, []
-
-
-referenceTemplate = _LayerNormTemplate("""
+referenceTemplate = NodeTemplate("""
 // FloatLayernorm (Name: ${nodeName}, Op: ${nodeOp})
 SINGLE_CORE Layernorm_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(${data_in}, ${data_out}, ${weight}, ${bias}, ${epsilon}, ${size}, ${lastDimLength});
 """)

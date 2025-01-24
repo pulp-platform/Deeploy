@@ -943,7 +943,7 @@ class ReluParser(NodeParser):
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
-        self.operatorRepresentation['lastDimLength'] = data_in.shape[-1]
+        self.operatorRepresentation['batch'] = data_in.shape[0]
 
         return ctxt, True
 
@@ -1860,7 +1860,6 @@ class DivParser(NodeParser):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(self.operatorRepresentation['input1']).shape)
-        self.operatorRepresentation['lastDimLength'] = ctxt.lookup(self.operatorRepresentation['input1']).shape[-1]
 
         return ctxt, True
 

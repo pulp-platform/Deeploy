@@ -23,33 +23,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from Deeploy.DeeployTypes import NodeTemplate
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
-
-
-class _FloatGemmTemplate(NodeTemplate):
-
-    def __init__(self, templateStr):
-        super().__init__(templateStr)
-
-    def alignToContext(self, ctxt: NetworkContext,
-                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-
-        A = ctxt.lookup(operatorRepresentation['A'])
-        B = ctxt.lookup(operatorRepresentation['B'])
-        C = ctxt.lookup(operatorRepresentation['C'])
-        Y = ctxt.lookup(operatorRepresentation['data_out'])
-
-        operatorRepresentation['A_offset'] = 0
-        operatorRepresentation['B_offset'] = 0
-        operatorRepresentation['C_offset'] = 0
-        operatorRepresentation['Y_offset'] = 0
-
-        return ctxt, operatorRepresentation, []
-
-
-referenceTemplate = _FloatGemmTemplate("""
+referenceTemplate = NodeTemplate("""
 // GEMM float (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
     ${A_type.typeName} ref_${data_out}_${A} = ${A};
