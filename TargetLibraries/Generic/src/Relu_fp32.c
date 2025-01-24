@@ -28,13 +28,9 @@
 #include "DeeployBasicMath.h"
 
 
-void Relu_fp32_fp32(float32_t* input, float32_t* output, int32_t size, int32_t last_dim_length) {
+void Relu_fp32_fp32(float32_t* input, float32_t* output, int32_t size) {
 
-    int32_t batch_size = size / last_dim_length;  
-
-    for (int b = 0; b < batch_size; b++) {
-        for (int i = 0; i < last_dim_length; i++) {
-            output[b * last_dim_length + i] = MAX(input[b * last_dim_length + i], 0.0f);
+    for (int i = 0; i < size; i++) {
+            output[i] = MAX(input[i], 0.0f);
         }
-    }
 }

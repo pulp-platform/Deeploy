@@ -943,7 +943,6 @@ class ReluParser(NodeParser):
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
-        self.operatorRepresentation['batch'] = data_in.shape[0]
 
         return ctxt, True
 
