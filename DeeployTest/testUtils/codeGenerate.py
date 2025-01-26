@@ -125,6 +125,7 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
 
         data_type = output_data_type[f"output_{index}"]
         data_width = data_type.referencedType.typeWidth
+        retStr += f"#define OUTPUTTYPE {data_type.referencedType.typeName}\n"
         retStr += f"{data_type.referencedType.typeName} testOutputVector{index}[] ="
         retStr += "{"
 
