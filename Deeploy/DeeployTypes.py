@@ -901,7 +901,7 @@ class NetworkContext():
         localBuffer = self.VariableBuffer.fromNode(node = node)
         globalBuffer = self.ConstantBuffer.fromVariableBuffer(localBuffer, values = node.values)
         globalBuffer.name = name
-        globalBuffer._type = type
+        globalBuffer._type = _type
 
         self.add(globalBuffer, 'global')
 

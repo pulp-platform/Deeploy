@@ -1566,9 +1566,9 @@ class MatMulParser(NodeParser):
 
         # Create fake C node for GEMM-compatibility and hoist it
         if not self.noBiasHoisting:
-            values = np.zeros((1))
+            values = np.zeros(ctxt.lookup(node.inputs[0].name).shape, dtype = inputNode.dtype)
             zeroTensor = gs.Constant(f'{node.name}_C_Tensor', values = values)
-            ctxt.hoistConstant(zeroTensor)
+            ctxt.hoistConstant(zeroTensor, _type = ctxt.lookup(inputNode.name)._type)
             node.inputs.append(zeroTensor)
             self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
 

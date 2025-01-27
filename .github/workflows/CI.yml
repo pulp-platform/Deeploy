@@ -207,6 +207,7 @@ jobs:
         testFloatGEMM
         testFloatSoftmax
         testFloatMaxPool
+        testFloatMatmul
       num-cores: 8
 
   siracusa-models:

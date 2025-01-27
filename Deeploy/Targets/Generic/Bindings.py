@@ -143,8 +143,13 @@ BasicLayerNormBindings = [
         BasicTransformer)
 ]
 
-BasicMatMulBinding = NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
+BasicMatMulBindings = [
+    NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                  MatMulTemplate.referenceTemplate, BasicTransformer)
+] + [
+    NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                                    FloatMatMulTemplate.referenceTemplate, BasicTransformer)
+]
 
 BasicMaxPool2DBindings = [
     NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
