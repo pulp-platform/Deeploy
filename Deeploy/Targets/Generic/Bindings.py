@@ -35,9 +35,10 @@ from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDa
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
-    DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatGemmTemplate, GatherTemplate, GemmTemplate, \
-    IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, \
-    PadTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
+    DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, FloatGELUTemplate, FloatGemmTemplate, \
+    FloatLayernormTemplate, FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
+    ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, \
+    ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
     RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, \
     iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
@@ -78,8 +79,15 @@ BasicConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass
 BasicDWConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                    DWConvTemplate.reference1DTemplate, BasicTransformer)
 
-BasicConv2DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
-                                 ConvTemplate.reference2DTemplate, BasicTransformer)
+BasicConv2DBindings = [
+    NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
+                ConvTemplate.reference2DTemplate, BasicTransformer)
+] + [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t),
+                     PointerClass(float32_t)], [PointerClass(float32_t)]), FloatConvTemplate.reference2DTemplate,
+        BasicTransformer)
+]
 
 BasicDWConv2DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                    DWConvTemplate.reference2DTemplate, BasicTransformer)
@@ -142,6 +150,11 @@ BasicPad1DBindings = [
 BasicPad2DBindings = [
     NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference2DTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
+] + [
+    NodeBinding(
+        PadChecker([PointerClass(float32_t), PointerClass(float32_t),
+                    PointerClass(float32_t)], [PointerClass(float32_t)]), PadTemplate.reference2DTemplate,
+        BasicTransformer)
 ]
 
 BasicReduceMeanBindings = [

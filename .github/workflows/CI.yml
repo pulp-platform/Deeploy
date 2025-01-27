@@ -50,6 +50,7 @@ jobs:
         iSoftmax
         testFloatAdder
         testFloatGEMM
+        testFloat2DConvolution
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml
@@ -201,6 +202,7 @@ jobs:
         testBacktracking
         testFloatAdder
         testFloatGEMM
+        testFloatSoftmax
       num-cores: 8
 
   siracusa-models:
