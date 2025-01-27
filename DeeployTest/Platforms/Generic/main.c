@@ -61,7 +61,7 @@ int main() {
       diff = expected - actual;
 
 #if OUTPUTTYPE == float32_t
-      // Allow margin of error for float32_t
+      // RUNWANG: Allow margin of error for float32_t
       if ((diff < -1e-4) || (diff > 1e-4))
       {
         tot_err += 1;
@@ -70,7 +70,7 @@ int main() {
         printf("Diff: %10.6f at Index %12u in Output %u\r\n", (float)diff, i, buf);
       }
 #elif OUTPUTTYPE == int32_t
-      // No margin for integer comparison
+      // RUNWANG: No margin for integer comparison
       if (diff != 0)
       {
         tot_err += 1;
