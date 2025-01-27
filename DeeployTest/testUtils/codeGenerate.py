@@ -117,15 +117,16 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
     for index, num in enumerate(test_outputs):
         output_data_type[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._type
 
-        if signProp:
+        data_type = output_data_type[f"output_{index}"]
+        isdatafloat = (data_type.referencedType.typeName == "float32_t")
+
+        if signProp and not isdatafloat:
             output_n_levels[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}').nLevels
             output_signed[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._signed
             test_outputs[index] -= int(
                 ((1 - output_signed[f"output_{index}"]) * (output_n_levels[f"output_{index}"] / 2)))
-
-        data_type = output_data_type[f"output_{index}"]
+        
         data_width = data_type.referencedType.typeWidth
-        isdatafloat = (data_type.referencedType.typeName == "float32_t")
         retStr += f"#define OUTPUTTYPE {data_type.referencedType.typeName}\n"
         if isdatafloat:
             retStr += f"#define ISOUTPUTFLOAT 1\n"
@@ -200,6 +201,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer,
 
     retStr += """#include <stdio.h>
     #include <stdlib.h>
+    #include <math.h>
     """
     retStr += deployer.generateIncludeString()
     retStr += """

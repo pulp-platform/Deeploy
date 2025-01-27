@@ -550,9 +550,6 @@ class SoftmaxParser(NodeParser):
 
         ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
 
-        if ret:
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-
         return ret
 
     def parseNodeCtxt(self,
@@ -591,6 +588,7 @@ class iSoftmaxParser(SoftmaxParser):
             self.operatorRepresentation['coeffB'] = int(node.attrs['coeffB'].values)
             self.operatorRepresentation['coeffC'] = int(node.attrs['coeffC'].values)
             self.operatorRepresentation['log2'] = int(node.attrs['log2'].values)
+            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
 
         return wellFormed
 

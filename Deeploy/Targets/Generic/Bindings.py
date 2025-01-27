@@ -209,8 +209,13 @@ BasicRQIntegerDivBinding = NodeBinding(
         PointerClass(int32_t)
     ], [PointerClass(int8_t)]), RQIntegerDivTemplate.referenceTemplate, BasicTransformer)
 
-BasicSoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
-                                  iSoftmaxTemplate.referenceTemplate, BasicTransformer)
+BasicSoftmaxBindings = [
+    NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), iSoftmaxTemplate.referenceTemplate,
+                BasicTransformer)
+] + [
+    NodeBinding(SoftmaxChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatSoftmaxTemplate.referenceTemplate, BasicTransformer)
+]
 
 BasicTransposeBindings = [
     NodeBinding(TransposeChecker([PointerClass(type)], [PointerClass(type)]), TransposeTemplate.referenceTemplate,
