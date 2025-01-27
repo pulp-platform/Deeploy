@@ -48,7 +48,7 @@ jobs:
         testRequantizedDWConv
         test2DRequantizedConv
         iSoftmax
-        FloatAdder
+        testFloatAdder
         testFloatGEMM
 
   generic-models:
@@ -199,7 +199,7 @@ jobs:
         Hardswish
         RQHardswish
         testBacktracking
-        FloatAdder
+        testFloatAdder
         testFloatGEMM
       num-cores: 8
 

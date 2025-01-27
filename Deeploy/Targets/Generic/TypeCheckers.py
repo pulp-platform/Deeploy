@@ -125,20 +125,6 @@ class AddChecker(SignPropTypeChecker):
             return [False]
 
 
-class FloatAddChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [inputs[0].nLevels + inputs[1].nLevels]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        return [True]
-
-
 class GatherChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
