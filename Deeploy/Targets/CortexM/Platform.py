@@ -38,7 +38,7 @@ from Deeploy.Targets.CortexM.TopologyOptimizationPasses.Passes import ConvRequan
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicDebugPrintBindings, BasicDivBindings, \
     BasicGatherBindings, BasicGELUBindings, BasicLayerNormBindings, BasicMatMulBindings, BasicMulBindings, \
     BasicPad1DBindings, BasicPad2DBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, \
-    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBinding, \
+    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, \
     BasicTransposeBindings, DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, CLCALayer, DebugPrintLayer, DivLayer, GatherLayer, \
     LayerNormLayer, LinearAttentionLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, ReduceMeanLayer, \
@@ -47,7 +47,7 @@ from Deeploy.Targets.Generic.Layers import AddLayer, CLCALayer, DebugPrintLayer,
 from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DummyParser, FlattenParser, GatherParser, \
     IntegerDivParser, MatMulParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, ReduceSumParser, \
     RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, TransposeParser, \
-    UnsqueezeParser, iGELUParser, iLayerNormParser, iSoftmaxParser
+    UnsqueezeParser, GELUParser, iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, iGELURequantMergePass
@@ -61,12 +61,12 @@ DWConv1D_Mapper = NodeMapper(CMSISDWConv1DParser(), CMSISDWConv1DBindings)
 DWConv2D_int8_Mapper = NodeMapper(CMSISDWConv2DParser(), [CMSISDWConv2DBinding])
 FlattenMapper = NodeMapper(FlattenParser(), BasicReshapeBindings)
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
-GELU_int8_Mapper = NodeMapper(iGELUParser(), [BasicGELUBinding])
+GELU_int8_Mapper = NodeMapper(GELUParser(), BasicGELUBindings)
 GEMMMapper = NodeMapper(CMSISGEMMParser(), CMSISGEMMBindings)
 iLayerNorm_int8_Mapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
 IntegerDivMapper = NodeMapper(IntegerDivParser(), BasicDivBindings)
 LinearAttention_int16_Mapper = NodeMapper(CMSISLinearAttentionParser(), [CMSISLinearAttentionBinding])
-MatMulMapper = NodeMapper(MatMulParser(), [BasicMatMulBinding])
+MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 MaxPool2DMapper = NodeMapper(CMSISMaxPool2DParser(), [CMSISMaxPool2DBinding])
 MulMapper = NodeMapper(MulParser(), BasicMulBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
@@ -77,7 +77,7 @@ RequantShiftMapper = NodeMapper(RequantShiftParser(), BasicRQSBindings)
 ReshapeMapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
 RQGELU_int8_Mapper = NodeMapper(RQSiGELUParser(), [BasicRQSGELUBinding])
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
-Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), [BasicSoftmaxBinding])
+Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), BasicSoftmaxBindings)
 TransposeMapper = NodeMapper(TransposeParser(), BasicTransposeBindings)
 UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 
@@ -97,7 +97,7 @@ CMSISMapping = {
     'iLayerNorm': LayerNormLayer([iLayerNorm_int8_Mapper]),
     'IntegerDiv': DivLayer([IntegerDivMapper]),
     'IntegerMean': ReduceMeanLayer([ReduceMeanMapper]),
-    'iSoftmax': iSoftmaxLayer([Softmax_int8_Mapper]),
+    'iSoftmax': SoftmaxLayer([Softmax_int8_Mapper]),
     'LinearAttention': LinearAttentionLayer([LinearAttention_int16_Mapper]),
     'MatMul': MatMulLayer([MatMulMapper]),
     'MaxPool': MaxPoolLayer([MaxPool2DMapper]),

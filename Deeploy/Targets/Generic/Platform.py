@@ -50,20 +50,22 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ExtractPad
 
 AddMapper = NodeMapper(AddParser(), BasicAddBindings)
 Conv1DMapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBinding])
-Conv2DMapper = NodeMapper(GenericConv2DParser(), [BasicConv2DBinding])
+Conv2DMapper = NodeMapper(GenericConv2DParser(), BasicConv2DBindings)
 DebugMapper = NodeMapper(DebugParser(), BasicDebugPrintBindings)
 DWConv1DMapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
 DWConv2DMapper = NodeMapper(GenericDWConv2DParser(), [BasicDWConv2DBinding])
 FlattenMapper = NodeMapper(FlattenParser(), BasicReshapeBindings)
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
-GELUMapper = NodeMapper(iGELUParser(), [BasicGELUBinding])
+GELUMapper = NodeMapper(GELUParser(), BasicGELUBindings)
 GEMMMapper = NodeMapper(GenericGEMMParser(), BasicGEMMBindings)
-iLayerNormMapper = NodeMapper(iLayerNormParser(), [BasicLayerNormBinding])
-IntegerDivMapper = NodeMapper(IntegerDivParser(), [BasicIntegerDivBinding])
+LayerNormMapper = NodeMapper(LayerNormParser(), BasicLayerNormBindings)
+iLayerNormMapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
+DivMapper = NodeMapper(DivParser(), BasicDivBindings)
+IntegerDivMapper = NodeMapper(IntegerDivParser(), BasicDivBindings)
 ITAMaxMapper = NodeMapper(ITAMaxParser(), [BasicITASoftmaxBinding])
 ITAPartialMaxMapper = NodeMapper(ITAPartialMaxParser(), [BasicITAPartialSoftmaxBinding])
-MatMulMapper = NodeMapper(MatMulParser(), [BasicMatMulBinding])
-MaxPoolMapper = NodeMapper(GenericMaxPool2DParser(), [BasicMaxPool2DBinding])
+MatMulMapper = NodeMapper(MatMulParser(noBiasHoisting = 0), BasicMatMulBindings)
+MaxPoolMapper = NodeMapper(GenericMaxPool2DParser(), BasicMaxPool2DBindings)
 MulMapper = NodeMapper(MulParser(), BasicMulBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
@@ -74,7 +76,8 @@ RequantShiftMapper = NodeMapper(RequantShiftParser(), BasicRQSBindings)
 ReshapeMapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
 RQGELUMapper = NodeMapper(RQSiGELUParser(), [BasicRQSGELUBinding])
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
-SoftmaxMapper = NodeMapper(iSoftmaxParser(), [BasicSoftmaxBinding])
+SoftmaxMapper = NodeMapper(SoftmaxParser(), BasicSoftmaxBindings)
+iSoftmaxMapper = NodeMapper(iSoftmaxParser(), BasicSoftmaxBindings)
 TransposeMapper = NodeMapper(TransposeParser(), BasicTransposeBindings)
 UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 
@@ -88,7 +91,7 @@ GenericMapping = {
     'Add': AddLayer([AddMapper]),
     'Conv': ConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
     'DebugPrint': DebugPrintLayer([DebugMapper]),
-    'Div': IntegerDivLayer([IntegerDivMapper]),
+    'Div': DivLayer([DivMapper]),
     'Flatten': ReshapeLayer([FlattenMapper]),
     'Gather': GatherLayer([GatherMapper]),
     'Gemm': GEMMLayer([GEMMMapper]),
@@ -98,7 +101,8 @@ GenericMapping = {
     'iLayerNorm': LayerNormLayer([iLayerNormMapper]),
     'IntegerDiv': DivLayer([IntegerDivMapper]),
     'IntegerMean': ReduceMeanLayer([ReduceMeanMapper]),
-    'iSoftmax': iSoftmaxLayer([SoftmaxMapper]),
+    'Softmax': SoftmaxLayer([SoftmaxMapper]),
+    'iSoftmax': SoftmaxLayer([iSoftmaxMapper]),
     'ITAMax': ITAMaxLayer([ITAMaxMapper]),
     'ITAPartialMax': ITAMaxLayer([ITAPartialMaxMapper]),
     'MatMul': GEMMLayer([MatMulMapper]),
@@ -113,6 +117,7 @@ GenericMapping = {
     'RequantShift': RequantShiftLayer([RequantShiftMapper]),
     'Reshape': ReshapeLayer([ReshapeMapper]),
     'RQIntegerDiv': RQIntegerDivLayer([RQIntegerDivMapper]),
+    'Squeeze': ReshapeLayer([UnsqueezeMapper]),
     'Transpose': TransposeLayer([TransposeMapper]),
     'Unsqueeze': ReshapeLayer([UnsqueezeMapper]),
     'Slice': SliceLayer([SliceMapper])

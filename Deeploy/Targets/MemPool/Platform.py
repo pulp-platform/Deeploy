@@ -34,16 +34,16 @@ from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBindin
     BasicDebugPrintBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBinding, BasicGatherBindings, \
     BasicGELUBindings, BasicLayerNormBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, \
-    BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBinding, BasicTransposeBindings, DummyBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, ConvLayer, DebugPrintLayer, GatherLayer, GEMMLayer, \
-    IntegerDivLayer, ITAMaxLayer, MatMulLayer, MaxPoolLayer, MHSALayer, MulLayer, PadLayer, ReduceMeanLayer, \
+    BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, BasicTransposeBindings, DummyBinding
+from Deeploy.Targets.Generic.Layers import AddLayer, ConvLayer, DebugPrintLayer, DivLayer, GatherLayer, GEMMLayer, \
+    ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MHSALayer, MulLayer, PadLayer, ReduceMeanLayer, \
     ReduceSumLayer, RequantShiftLayer, ReshapeLayer, RQGEMMLayer, RQIntegerDivLayer, RQMatMulLayer, RQSiGELULayer, \
     SliceLayer, SoftmaxLayer, TransposeLayer, GELULayer
 from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DummyParser, FlattenParser, GatherParser, \
     GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, \
     GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, MatMulParser, MulParser, Pad1DParser, Pad2DParser, \
     ReduceMeanParser, ReduceSumParser, RequantShiftParser, ReshapeParser, RQGEMMParser, RQIntegerDivParser, \
-    RQMatMulParser, RQSiGELUParser, SliceParser, TransposeParser, UnsqueezeParser, iGELUParser, iLayerNormParser, \
+    RQMatMulParser, RQSiGELUParser, SliceParser, TransposeParser, UnsqueezeParser, GELUParser, iLayerNormParser, \
     iSoftmaxParser
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, SplitAddPass, iGELURequantMergePass
@@ -61,7 +61,7 @@ from Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes import MemPoolFus
 # (they support a wider range of attribute values)
 GenericConv1D_Mapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBinding])
 GenericDWConv1D_Mapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
-GenericConv2D_Mapper = NodeMapper(GenericConv2DParser(), [BasicConv2DBinding])
+GenericConv2D_Mapper = NodeMapper(GenericConv2DParser(), BasicConv2DBindings)
 GenericDWConv2D_Mapper = NodeMapper(GenericDWConv2DParser(), [BasicDWConv2DBinding])
 
 GenericConv_Mappers = [GenericConv2D_Mapper, GenericDWConv2D_Mapper, GenericConv1D_Mapper, GenericDWConv1D_Mapper]
@@ -84,7 +84,7 @@ RequantShift_Mapper = NodeMapper(RequantShiftParser(), MemPoolRQSBindings_x_32_3
 Reshape_Mapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
 RQGELU_Mapper = NodeMapper(RQSiGELUParser(), [BasicRQSGELUBinding])
 RQIntegerDiv_Mapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
-Softmax_Mapper = NodeMapper(iSoftmaxParser(), [BasicSoftmaxBinding])
+Softmax_Mapper = NodeMapper(iSoftmaxParser(), BasicSoftmaxBindings)
 Transpose_Mapper = NodeMapper(TransposeParser(), BasicTransposeBindings)
 Unsqueeze_Mapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 
@@ -116,7 +116,7 @@ MemPoolMapping = {
     'Add': AddLayer([Add_Mapper]),
     'Conv': ConvLayer(Conv_Mappers + GenericConv_Mappers),  # Mapper with higher priority should be placed first!
     'DebugPrint': DebugPrintLayer([DebugPrint_Mapper]),
-    'Div': IntegerDivLayer([IntegerDiv_Mapper]),
+    'Div': DivLayer([IntegerDiv_Mapper]),
     'Flatten': ReshapeLayer([Flatten_Mapper]),
     'Gather': GatherLayer([Gather_Mapper]),
     'Gemm': GEMMLayer([GEMM_Mapper]),
@@ -124,7 +124,7 @@ MemPoolMapping = {
     'iLayerNorm': LayerNormLayer([iLayerNorm_Mapper]),
     'IntegerDiv': DivLayer([IntegerDiv_Mapper]),
     'IntegerMean': ReduceMeanLayer([ReduceMean_Mapper]),
-    'iSoftmax': iSoftmaxLayer([Softmax_Mapper]),
+    'iSoftmax': SoftmaxLayer([Softmax_Mapper]),
     'ITAMax': ITAMaxLayer([ITAMaxMapper]),
     'MatMul': MatMulLayer([MatMul_Mapper]),
     'MatMulInteger': MatMulLayer([MatMul_Mapper]),

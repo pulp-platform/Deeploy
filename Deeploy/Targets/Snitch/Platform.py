@@ -30,7 +30,7 @@ import numpy as np
 
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicLayerNormBinding, BasicMatMulBinding, \
+from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicLayerNormBindings, BasicMatMulBindings, \
     BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, GatherLayer, GEMMLayer, LayerNormLayer, MatMulLayer, PadLayer, \
     ReshapeLayer, RQGEMMLayer, RQIntegerDivLayer, SoftmaxLayer, iNoNormLayer
@@ -54,7 +54,7 @@ UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
 
-MatMulMapper = NodeMapper(MatMulParser(), [BasicMatMulBinding])
+MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 GemmMapper = NodeMapper(SnitchGEMMParser(), SnitchGemmTilingReadyBindings)
 RqGemmMapper = NodeMapper(SnitchRQGEMMParser(), SnitchRqGemmTilingReadyBindings)
 iSoftmaxMapper = NodeMapper(iSoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
@@ -71,7 +71,7 @@ SnitchMapping = {
     'MatMul': MatMulLayer([MatMulMapper]),
     'Gemm': GEMMLayer([GemmMapper]),
     'RQGemm': RQGEMMLayer([RqGemmMapper]),
-    'iSoftmax': iSoftmaxLayer([iSoftmaxMapper]),
+    'iSoftmax': SoftmaxLayer([iSoftmaxMapper]),
     'iNoNorm': iNoNormLayer([iNoNormMapper]),
     'iLayerNorm': LayerNormLayer([iLayerNormMapper]),
     'RequantizedAdd': AddLayer([RQAddMapper]),
