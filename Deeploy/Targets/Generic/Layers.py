@@ -365,7 +365,7 @@ class ReduceSumLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
 
-class iLayerNormLayer(ONNXLayer):
+class LayerNormLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)

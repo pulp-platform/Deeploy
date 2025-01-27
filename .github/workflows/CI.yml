@@ -51,6 +51,7 @@ jobs:
         testFloatAdder
         testFloatGEMM
         testFloat2DConvolution
+        testFloatLayerNorm
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml

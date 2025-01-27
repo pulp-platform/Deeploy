@@ -126,10 +126,18 @@ BasicITASoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [Poi
 BasicITAPartialSoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
                                             ITAPartialMaxTemplate.referenceTemplate, BasicTransformer)
 
-BasicLayerNormBinding = NodeBinding(
-    iLayerNormChecker([PointerClass(int8_t), PointerClass(int32_t),
-                       PointerClass(int32_t)], [PointerClass(int8_t)]), iLayernormTemplate.referenceTemplate,
-    BasicTransformer)
+BasicLayerNormBindings = [
+    NodeBinding(
+        LayerNormChecker([PointerClass(int8_t), PointerClass(int32_t),
+                          PointerClass(int32_t)], [PointerClass(int8_t)]), iLayernormTemplate.referenceTemplate,
+        BasicTransformer)
+] + [
+    NodeBinding(
+        LayerNormChecker(
+            [PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+        BasicTransformer)
+]
 
 BasicMatMulBinding = NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                  MatMulTemplate.referenceTemplate, BasicTransformer)
@@ -203,7 +211,7 @@ BasicTransposeBindings = [
 ]
 
 BasiciRMSNormBinding = NodeBinding(
-    iLayerNormChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+    LayerNormChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
     iRMSNormTemplate.referenceTemplate, BasicTransformer)
 
 DummyBinding = NodeBinding(DummyChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),

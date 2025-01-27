@@ -1494,6 +1494,18 @@ class iLayerNormParser(NodeParser):
         return ctxt, True
 
 
+class LayerNormParser(iLayerNormParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 3, len(node.outputs) == 1])
+
+        if ret:
+            self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
+
+        return ret
+
+
 class MatMulParser(NodeParser):
 
     def __init__(self, noBiasHoisting = True):

@@ -32,8 +32,8 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicLayerNormBinding, BasicMatMulBinding, \
     BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, GatherLayer, GEMMLayer, MatMulLayer, PadLayer, ReshapeLayer, \
-    RQGEMMLayer, RQIntegerDivLayer, iLayerNormLayer, iNoNormLayer, iSoftmaxLayer
+from Deeploy.Targets.Generic.Layers import AddLayer, GatherLayer, GEMMLayer, LayerNormLayer, MatMulLayer, PadLayer, \
+    ReshapeLayer, RQGEMMLayer, RQIntegerDivLayer, SoftmaxLayer, iNoNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, GatherParser, MatMulParser, Pad1DParser, Pad2DParser, \
     RQAddParser, RQIntegerDivParser, UnsqueezeParser, iLayerNormParser, iNoNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
@@ -59,7 +59,7 @@ GemmMapper = NodeMapper(SnitchGEMMParser(), SnitchGemmTilingReadyBindings)
 RqGemmMapper = NodeMapper(SnitchRQGEMMParser(), SnitchRqGemmTilingReadyBindings)
 iSoftmaxMapper = NodeMapper(iSoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
 iNoNormMapper = NodeMapper(iNoNormParser(), SnitchiNoNormTilingReadyBindings)
-iLayerNormMapper = NodeMapper(iLayerNormParser(), [BasicLayerNormBinding])
+iLayerNormMapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
 RQAddMapper = NodeMapper(RQAddParser(), SnitchRQAddTilingReadyBindings)
 AddMapper = NodeMapper(AddParser(), SnitchAddTileReadyBindings)
 
@@ -73,7 +73,7 @@ SnitchMapping = {
     'RQGemm': RQGEMMLayer([RqGemmMapper]),
     'iSoftmax': iSoftmaxLayer([iSoftmaxMapper]),
     'iNoNorm': iNoNormLayer([iNoNormMapper]),
-    'iLayerNorm': iLayerNormLayer([iLayerNormMapper]),
+    'iLayerNorm': LayerNormLayer([iLayerNormMapper]),
     'RequantizedAdd': AddLayer([RQAddMapper]),
     'Add': AddLayer([AddMapper]),
 }
