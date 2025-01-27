@@ -364,6 +364,19 @@ class ReduceSumChecker(SignPropTypeChecker):
             return [False]
 
 
+class ReluChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs, operatorRepresentation):
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
+
 class SoftmaxChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):

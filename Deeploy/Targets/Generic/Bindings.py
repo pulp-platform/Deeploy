@@ -179,6 +179,9 @@ BasicReduceSumBindings = [
                 BasicTransformer) for type in SignedIntegerDataTypes
 ]
 
+BasicReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                               FloatReluTemplate.referenceTemplate, BasicTransformer)
+
 BasicReshapeBindings = [
     NodeBinding(ReshapeChecker([PointerClass(type), PointerClass(int32_t)], [PointerClass(type)]),
                 ReshapeTemplate.referenceTemplate, ReshapeSkipTransformer) for type in IntegerDataTypes
