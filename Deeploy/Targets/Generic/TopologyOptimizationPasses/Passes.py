@@ -376,7 +376,7 @@ class SplitAddPass(ReplaceSequentialPatternPass):
         super().__init__(graph, _split_add_fun, name)
 
 
-def _extract_padding_fun(graph: gs.Graph, match: Match, name: str, value = 0):
+def _extract_padding_fun_conv(graph: gs.Graph, match: Match, name: str, value = 0):
 
     matched_nodes = [m for k, m in match.nodes_map.items()]
     conv = matched_nodes[0]
@@ -418,6 +418,56 @@ def _extract_padding_fun(graph: gs.Graph, match: Match, name: str, value = 0):
     return graph
 
 
+def _extract_padding_fun_maxpool(graph: gs.Graph, match: Match, name: str, value = 0):
+
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    pool = matched_nodes[0]
+
+    if 'pads' in pool.attrs and np.sum(pool.attrs['pads']) > 1:
+        pads = copy.deepcopy(pool.attrs['pads'])
+        shape = copy.deepcopy(pool.inputs[0].shape)
+        newPads = np.zeros(2 * len(shape))
+
+        if len(shape) - 2 != len(pads) / 2:
+            raise ValueError(f"MaxPool padding dims do not match! Shape: {shape}, Pads: {pads}")
+
+        newShape = shape
+        beginPads = pads[:len(pads) // 2]
+        endPads = pads[len(pads) // 2:]
+
+        for idx, i in enumerate(beginPads):
+            newShape[2 + idx] += i
+            newPads[2 + idx] = i
+
+        for idx, i in enumerate(endPads):
+            newShape[2 + idx] += i
+            newPads[len(newPads) // 2 + 2 + idx] = i
+
+        newPoolInput = gs.Variable(name + '_padded_input', dtype = np.float32, shape = newShape)
+        pool.attrs['pads'] = [0 for _ in pool.attrs['pads']]
+
+        if pool.inputs[0].dtype == np.float32:
+            value = -np.inf
+        else:
+            value = -128
+
+        newPad = gs.Node(op = 'Pad',
+                         name = name + '_pad',
+                         attrs = {
+                             'pads': newPads,
+                             'mode': 'constant',
+                             'value': value
+                         },
+                         inputs = [pool.inputs[0]],
+                         outputs = [newPoolInput])
+
+        pool.inputs[0] = newPoolInput
+        graph.nodes.append(newPad)
+        graph.cleanup().toposort()
+
+    return graph
+
+
 @contextagnostic
 class ExtractPaddingFromPoolPass(ReplaceSequentialPatternPass):
 
@@ -429,8 +479,8 @@ class ExtractPaddingFromPoolPass(ReplaceSequentialPatternPass):
         graph.inputs = [_input]
 
         name = "_EXTRACT_POOL_PASS"
-        # SCHEREMO: This is a workaround!!!
-        super().__init__(graph, partial(_extract_padding_fun, value = -128), name)
+
+        super().__init__(graph, _extract_padding_fun_maxpool, name)
 
 
 @contextagnostic
@@ -445,7 +495,7 @@ class ExtractPaddingFromConvPass(ReplaceSequentialPatternPass):
         graph.inputs = [_input]
 
         name = "_EXTRACT_CONV_PASS"
-        super().__init__(graph, _extract_padding_fun, name)
+        super().__init__(graph, _extract_padding_fun_conv, name)
 
 
 def _merge_matmul_add_fun(graph: gs.Graph, match: Match, name: str):

@@ -35,12 +35,12 @@ from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDa
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
-    DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatLayernormTemplate, FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
-    ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, \
-    ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
-    RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, \
-    iSoftmaxTemplate
+    DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, FloatGELUTemplate, \
+    FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, \
+    FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, \
+    ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, ReduceMeanTemplate, \
+    ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, \
+    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
     DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, MatMulChecker, \
     MaxPoolChecker, MulChecker, PadChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, \
@@ -146,8 +146,13 @@ BasicLayerNormBindings = [
 BasicMatMulBinding = NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                  MatMulTemplate.referenceTemplate, BasicTransformer)
 
-BasicMaxPool2DBinding = NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
+BasicMaxPool2DBindings = [
+    NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
                                     MaxPoolTemplate.referenceTemplate, BasicTransformer)
+] + [
+    NodeBinding(MaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                                    FloatMaxPoolTemplate.referenceTemplate, BasicTransformer)
+]
 
 BasicMulBindings = [
     NodeBinding(MulChecker([PointerClass(typeA), PointerClass(typeB)], [PointerClass(int32_t)]),
@@ -165,7 +170,7 @@ BasicPad2DBindings = [
 ] + [
     NodeBinding(
         PadChecker([PointerClass(float32_t), PointerClass(float32_t),
-                    PointerClass(float32_t)], [PointerClass(float32_t)]), PadTemplate.reference2DTemplate,
+                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatPadTemplate.reference2DTemplate,
         BasicTransformer)
 ]
 
