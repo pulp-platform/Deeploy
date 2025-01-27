@@ -193,13 +193,13 @@ class RQMatMulLayer(MatMulLayer):
         return matmul + rqs
 
 
-class IntegerDivLayer(ONNXLayer):
+class DivLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
 
-class RQIntegerDivLayer(IntegerDivLayer):
+class RQIntegerDivLayer(DivLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)

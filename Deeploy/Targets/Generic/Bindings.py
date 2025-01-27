@@ -116,9 +116,13 @@ BasicGEMMBindings = [
         BasicTransformer)
 ]
 
-BasicIntegerDivBinding = NodeBinding(
-    IntegerDivChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
-    IntegerDivTemplate.referenceTemplate, BasicTransformer)
+BasicDivBindings = [
+    NodeBinding(DivChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
+                IntegerDivTemplate.referenceTemplate, BasicTransformer)
+] + [
+    NodeBinding(DivChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatDivTemplate.referenceTemplate, BasicTransformer)
+]
 
 BasicITASoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
                                      ITAMaxTemplate.referenceTemplate, BasicTransformer)

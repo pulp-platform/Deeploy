@@ -52,6 +52,7 @@ jobs:
         testFloatGEMM
         testFloat2DConvolution
         testFloatLayerNorm
+        testFloatDiv
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml

@@ -1810,6 +1810,35 @@ class IntegerDivParser(NodeParser):
         return ctxt, True
 
 
+class DivParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ["input1", "input2"]
+        outputs = ["output"]
+        for idx, inputNode in enumerate(node.inputs):
+            if idx < len(inputs):
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(self.operatorRepresentation['input1']).shape)
+
+        return ctxt, True
+
+
 class RQIntegerDivParser(IntegerDivParser, RQSParserInterface):
 
     def __init__(self):
