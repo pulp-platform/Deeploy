@@ -230,6 +230,9 @@ BasicSoftmaxBindings = [
 BasicTransposeBindings = [
     NodeBinding(TransposeChecker([PointerClass(type)], [PointerClass(type)]), TransposeTemplate.referenceTemplate,
                 BasicTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(TransposeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                TransposeTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasiciRMSNormBinding = NodeBinding(

@@ -208,6 +208,7 @@ jobs:
         testFloatSoftmax
         testFloatMaxPool
         testFloatMatmul
+        testFloatTranspose
       num-cores: 8
 
   siracusa-models:
