@@ -125,6 +125,12 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
 
         data_type = output_data_type[f"output_{index}"]
         data_width = data_type.referencedType.typeWidth
+        isdatafloat = (data_type.referencedType.typeName == "float32_t")
+        retStr += f"#define OUTPUTTYPE {data_type.referencedType.typeName}\n"
+        if isdatafloat:
+            retStr += f"#define ISOUTPUTFLOAT 1\n"
+        else:
+            retStr += f"#define ISOUTPUTFLOAT 0\n"
         retStr += f"{data_type.referencedType.typeName} testOutputVector{index}[] ="
         retStr += "{"
 

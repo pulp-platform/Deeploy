@@ -88,39 +88,57 @@ void main(void) {
 #ifndef CI
   printf("Output:\r\n");
 #endif
-  float32_t diff, expected_float, actual_float;
-  uint32_t tot_err, tot_tested;
+
+  int32_t tot_err, tot_tested;
   tot_err = 0;
   tot_tested = 0;
-  char *compbuf;
-  for (int buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
-
-    if (DeeployNetwork_outputs[buf] < 0x1000000) {
+  OUTPUTTYPE *compbuf;
+  OUTPUTTYPE diff, expected, actual;
+  for (int buf = 0; buf < DeeployNetwork_num_outputs; buf++)
+  {
+    tot_tested += DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE);
+    if (DeeployNetwork_outputs[buf] < 0x1000000)
+    {
       compbuf = pi_l2_malloc(DeeployNetwork_outputs_bytes[buf]);
       ram_read(compbuf, DeeployNetwork_outputs[buf],
                DeeployNetwork_outputs_bytes[buf]);
-    } else {
+    }
+    else
+    {
       compbuf = DeeployNetwork_outputs[buf];
     }
-
-    for (int i = 0; i < DeeployNetwork_outputs_bytes[buf] / sizeof(float32_t); i++) {
-      tot_tested++;
-      expected_float = ((float32_t *)testOutputVector[buf])[i];
-      actual_float = ((float32_t *)compbuf)[i];
-      diff = expected_float - actual_float;
-      if (diff < -1e-5 || diff > 1e-5) {
-        tot_err += 1;
-#ifndef CI
-        printf("Expected: %f\t\t", expected_float);
-        printf("Actual: %f \t\t", actual_float);
-        printf("Diff: %f at Index %u \r\n", diff, i);
-#endif
+    for (int i = 0; i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++)
+    {
+      expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
+      actual =  ((OUTPUTTYPE *)compbuf)[i];
+      diff = expected - actual;
+      if (ISOUTPUTFLOAT)
+      {
+        if ((diff < -1e-4) || (diff > 1e-4))
+        {
+          tot_err += 1;
+          printf("Expected: %10.6f  ", expected);
+          printf("Actual: %10.6f  ", actual);
+          printf("Diff: %10.6f at Index %12u in Output %u\r\n", diff, i, buf);
+        }
+      }
+      else
+      {
+        if (diff)
+        {
+          tot_err += 1;
+          printf("Expected: %4d  ", expected);
+          printf("Actual: %4d  ", actual);
+          printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
+        }
       }
     }
-    if (DeeployNetwork_outputs[buf] < 0x1000000) {
+    if (DeeployNetwork_outputs[buf] < 0x1000000)
+    {
       pi_l2_free(compbuf, DeeployNetwork_outputs_bytes[buf]);
     }
   }
-  printf("Runtime: %u cycles\r\n", getCycles());
-  printf("Errors: %u out of %u \r\n", tot_err, tot_tested);
+
+printf("Runtime: %u cycles\r\n", getCycles());
+printf("Errors: %u out of %u \r\n", tot_err, tot_tested);
 }

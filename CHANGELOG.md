@@ -81,3 +81,10 @@
 - Float bug on Testslice, CMSIS TestUtil, DivInterger
 - AbstractDatayType Float Bugs
 
+## Fix main.c Float Cast Bugs
+
+### Added
+- Add one new #define OUTPUTTYPE to testoutput.h
+
+### Changed
+Change main.c to use OUTPUTTYPE instead of float
