@@ -62,7 +62,7 @@ class GatherLayer(ONNXLayer):
         super().__init__(maps)
 
 
-class iGELULayer(ONNXLayer):
+class GELULayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
@@ -102,7 +102,7 @@ class iNoNormLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
 
-class RQSiGELULayer(iGELULayer):
+class RQSiGELULayer(GELULayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)

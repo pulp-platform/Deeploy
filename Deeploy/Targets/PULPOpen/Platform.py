@@ -33,12 +33,12 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.CortexM.Parsers import CMSISMaxPool2DParser
-from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicPad1DBindings, BasicPad2DBindings, \
+from Deeploy.Targets.Generic.Bindings import BasicGELUBindings, BasicGatherBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicReshapeBindings, BasicRQIntegerDivBinding, BasicSoftmaxBindings
-from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, GatherLayer, GEMMLayer, MatMulLayer, MaxPoolLayer, \
+from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, GELULayer, GatherLayer, GEMMLayer, MatMulLayer, MaxPoolLayer, \
     MulLayer, PadLayer, ReduceMeanLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
     RQSiHardswishLayer, SliceLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, FlattenParser, GatherParser, GEMMParser, \
+from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, FlattenParser, GELUParser, GatherParser, GEMMParser, \
     MatMulParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, RequantShiftParser, ReshapeParser, \
     RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SliceParser, SoftmaxParser, TransposeParser, \
     UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
@@ -66,6 +66,7 @@ from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRe
 RQAddMapper = NodeMapper(RQAddParser(), PULPRQAddTilingReadyBindings)
 AddMapper = NodeMapper(AddParser(), PULPAddTilingReadyBindings)
 FlattenMapper = NodeMapper(FlattenParser(), PULPFlattenTilingReadyBindings)
+GELUMapper = NodeMapper(GELUParser(), BasicGELUBindings)
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
 MulMapper = NodeMapper(MulParser(), PULPMulTilingReadyBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
@@ -108,6 +109,7 @@ PULPMapping = {
     'RequantizedConv': PULPRQSConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
     'RequantizedGemm': PULPRQSGEMMLayer([MatrixVecMapper, TallGEMMMapper, GEMMMapper]),
     'Gemm': GEMMLayer([FloatGEMMMapper]),
+    'Gelu': GELULayer([GELUMapper]),
     'MaxPool': MaxPoolLayer([MaxPool2DMapper]),
     'RequantizediGELU': RQSiGELULayer([RQGELU_int8_Mapper]),
     'RQIntegerDiv': RQIntegerDivLayer([RQIntegerDivMapper]),

@@ -102,8 +102,13 @@ BasicGatherBindings = [
                 GatherTemplate.referenceTemplate, BasicTransformer) for type in SignedIntegerDataTypes
 ]
 
-BasicGELUBinding = NodeBinding(GELUChecker([PointerClass(int8_t)], [PointerClass(int32_t)]),
+BasicGELUBindings = [
+    NodeBinding(GELUChecker([PointerClass(int8_t)], [PointerClass(int32_t)]),
                                iGELUTemplate.referenceTemplate, BasicTransformer)
+] + [
+    NodeBinding(GELUChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                               FloatGELUTemplate.referenceTemplate, BasicTransformer)
+]
 
 BasicGEMMBindings = [
     NodeBinding(

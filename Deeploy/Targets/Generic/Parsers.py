@@ -656,16 +656,16 @@ class ITAPartialMaxParser(SoftmaxParser):
         return newCtxt, ret
 
 
-class iGELUParser(NodeParser):
+class GELUParser(NodeParser):
 
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all(['b' in node.attrs, 'one' in node.attrs, len(node.inputs) >= 1, len(node.outputs) == 1])
+        ret = all([len(node.inputs) >= 1, len(node.outputs) == 1])
 
-        if ret:
+        if 'b' in node.attrs and 'one' in node.attrs:
             self.operatorRepresentation['b'] = node.attrs['b']
             self.operatorRepresentation['one'] = node.attrs['one']
 
@@ -685,7 +685,7 @@ class iGELUParser(NodeParser):
         return ctxt, True
 
 
-class RQSiGELUParser(iGELUParser):
+class RQSiGELUParser(GELUParser):
 
     def __init__(self):
         super().__init__()
@@ -695,7 +695,12 @@ class RQSiGELUParser(iGELUParser):
         wellFormed = all([
             len(node.inputs) == 4,
         ])
-        ret = super().parseNode(node)
+        ret = all(['b' in node.attrs, 'one' in node.attrs, len(node.inputs) >= 1, len(node.outputs) == 1])
+     
+        if ret:
+            self.operatorRepresentation['b'] = node.attrs['b']
+            self.operatorRepresentation['one'] = node.attrs['one']
+
 
         return (ret and wellFormed)
 

@@ -1,17 +1,15 @@
 /* =====================================================================
- * Title:        GELU.h
+ * Title:        GELU_fp32.c
  * Description:
  *
- * Date:         19.12.2022
+ * $Date:        19.12.2022
  *
  * ===================================================================== */
-
 /*
  * Copyright (C) 2022 ETH Zurich and University of Bologna.
  *
  * Authors:
- * - Moritz Scherer, ETH Zurich
- * - Philip Wiese, ETH Zurich
+ * - Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -28,22 +26,14 @@
  * limitations under the License.
  */
 
-#ifndef __DEEPLOY_BASIC_MATH_GELU_KERNEL_HEADER_
-#define __DEEPLOY_BASIC_MATH_GELU_KERNEL_HEADER_
+#include "DeeployPULPMath.h"
+#include "pmsis.h"
 
-#include "DeeployBasicMath.h"
-
-/*
- *
- */
-
-/******************************************************************************/
-/*                              Division (32bit)                              */
-/******************************************************************************/
-
-void GELU_s8_s32(int8_t *data_in, int32_t *data_out, int32_t dataSize, int8_t b,
-                 int16_t one, int32_t input_offset);
-
-void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize);
-
-#endif //__DEEPLOY_BASIC_MATH_GELU_KERNEL_HEADER_
+#define M_PI 3.14159265358979323846
+void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize) {
+    for (int i = 0; i < dataSize; i++) {
+        float32_t x = data_in[i];
+        float32_t cdf = 0.5 * (1.0 + erf(x / sqrt(2.0)));
+        data_out[i] = x * cdf;
+    }
+}
