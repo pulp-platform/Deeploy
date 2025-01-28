@@ -859,7 +859,7 @@ class GatherParser(NodeParser):
 
         axis = self.operatorRepresentation['axis']
         self.operatorRepresentation['numIndices'] = int(
-            np.prod(ctxt.lookup(self.operatorRepresentation['indices']).values.shape))
+            np.prod(ctxt.lookup(self.operatorRepresentation['indices']).shape))
         self.operatorRepresentation['offset'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[axis + 1:])
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
 

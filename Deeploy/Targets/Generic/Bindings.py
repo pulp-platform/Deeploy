@@ -100,6 +100,9 @@ BasicDebugPrintBindings = [
 BasicGatherBindings = [
     NodeBinding(GatherChecker([PointerClass(type), PointerClass(int32_t)], [PointerClass(type)]),
                 GatherTemplate.referenceTemplate, BasicTransformer) for type in SignedIntegerDataTypes
+] + [
+    NodeBinding(GatherChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
+                GatherTemplate.referenceTemplate, BasicTransformer) for type in IntegerDataTypes
 ]
 
 BasicGELUBindings = [
