@@ -35,16 +35,16 @@ from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBindin
     BasicGELUBindings, BasicLayerNormBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, \
     BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, BasicTransposeBindings, DummyBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, ConvLayer, DebugPrintLayer, DivLayer, GatherLayer, GEMMLayer, \
-    ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MHSALayer, MulLayer, PadLayer, ReduceMeanLayer, \
+from Deeploy.Targets.Generic.Layers import AddLayer, ConvLayer, DebugPrintLayer, DivLayer, GatherLayer, GELULayer, \
+    GEMMLayer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MHSALayer, MulLayer, PadLayer, ReduceMeanLayer, \
     ReduceSumLayer, RequantShiftLayer, ReshapeLayer, RQGEMMLayer, RQIntegerDivLayer, RQMatMulLayer, RQSiGELULayer, \
-    SliceLayer, SoftmaxLayer, TransposeLayer, GELULayer
+    SliceLayer, SoftmaxLayer, TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DummyParser, FlattenParser, GatherParser, \
-    GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, \
-    GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, MatMulParser, MulParser, Pad1DParser, Pad2DParser, \
-    ReduceMeanParser, ReduceSumParser, RequantShiftParser, ReshapeParser, RQGEMMParser, RQIntegerDivParser, \
-    RQMatMulParser, RQSiGELUParser, SliceParser, TransposeParser, UnsqueezeParser, GELUParser, iLayerNormParser, \
-    iSoftmaxParser
+    GELUParser, GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, \
+    GenericGEMMParser, GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, MatMulParser, MulParser, Pad1DParser, \
+    Pad2DParser, ReduceMeanParser, ReduceSumParser, RequantShiftParser, ReshapeParser, RQGEMMParser, \
+    RQIntegerDivParser, RQMatMulParser, RQSiGELUParser, SliceParser, TransposeParser, UnsqueezeParser, \
+    iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, SplitAddPass, iGELURequantMergePass
 from Deeploy.Targets.MemPool.Bindings import MemPoolConv1D_8_8_32_Binding, MemPoolConv2D_8_8_32_Binding, \

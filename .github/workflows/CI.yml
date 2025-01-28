@@ -54,6 +54,12 @@ jobs:
         testFloatLayerNorm
         testFloatDiv
         testFloatRelu
+        testFloatMaxPool
+        testFloatMatmul
+        testFloatSoftmax
+        testFloatTranspose
+        testFloatMul
+        
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml
@@ -68,6 +74,7 @@ jobs:
         ICCT_ITA_8
         miniMobileNet
         miniMobileNetv2
+        CCT
   
 
   ### CortexM Tests ###
@@ -206,9 +213,6 @@ jobs:
         testFloatAdder
         testFloatGEMM
         testFloatSoftmax
-        testFloatMaxPool
-        testFloatMatmul
-        testFloatTranspose
       num-cores: 8
 
   siracusa-models:

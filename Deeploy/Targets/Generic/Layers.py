@@ -364,10 +364,12 @@ class ReduceSumLayer(ONNXLayer):
             outputShapes[0] = outputShapes[0][:axis] + outputShapes[0][axis + 1:]
         return (inputShapes, outputShapes)
 
+
 class ReluLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+
 
 class LayerNormLayer(ONNXLayer):
 

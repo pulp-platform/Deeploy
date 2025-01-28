@@ -35,12 +35,13 @@ from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDa
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
-    DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatLayernormTemplate, FloatMatMulTemplate,FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
+    DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, FloatGELUTemplate, \
+    FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, \
+    FloatPadTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
     ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, \
     ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
     RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, \
-    iSoftmaxTemplate, FloatMaxPoolTemplate
+    iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
     DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, MatMulChecker, \
     MaxPoolChecker, MulChecker, PadChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, \
@@ -106,11 +107,11 @@ BasicGatherBindings = [
 ]
 
 BasicGELUBindings = [
-    NodeBinding(GELUChecker([PointerClass(int8_t)], [PointerClass(int32_t)]),
-                               iGELUTemplate.referenceTemplate, BasicTransformer)
+    NodeBinding(GELUChecker([PointerClass(int8_t)], [PointerClass(int32_t)]), iGELUTemplate.referenceTemplate,
+                BasicTransformer)
 ] + [
-    NodeBinding(GELUChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
-                               FloatGELUTemplate.referenceTemplate, BasicTransformer)
+    NodeBinding(GELUChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatGELUTemplate.referenceTemplate,
+                BasicTransformer)
 ]
 
 BasicGEMMBindings = [
@@ -153,18 +154,18 @@ BasicLayerNormBindings = [
 
 BasicMatMulBindings = [
     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
-                                 MatMulTemplate.referenceTemplate, BasicTransformer)
+                MatMulTemplate.referenceTemplate, BasicTransformer)
 ] + [
     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                                    FloatMatMulTemplate.referenceTemplate, BasicTransformer)
+                FloatMatMulTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicMaxPool2DBindings = [
-    NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
-                                    MaxPoolTemplate.referenceTemplate, BasicTransformer)
+    NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), MaxPoolTemplate.referenceTemplate,
+                BasicTransformer)
 ] + [
     NodeBinding(MaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
-                                    FloatMaxPoolTemplate.referenceTemplate, BasicTransformer)
+                FloatMaxPoolTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicMulBindings = [

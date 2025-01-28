@@ -33,15 +33,15 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.CortexM.Parsers import CMSISMaxPool2DParser
-from Deeploy.Targets.Generic.Bindings import BasicGELUBindings, BasicGatherBindings, BasicPad1DBindings, BasicPad2DBindings, \
-    BasicReshapeBindings, BasicRQIntegerDivBinding, BasicSoftmaxBindings
-from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, GELULayer, GatherLayer, GEMMLayer, MatMulLayer, MaxPoolLayer, \
-    MulLayer, PadLayer, ReduceMeanLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
-    RQSiHardswishLayer, SliceLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, FlattenParser, GELUParser, GatherParser, GEMMParser, \
-    MatMulParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, RequantShiftParser, ReshapeParser, \
-    RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SliceParser, SoftmaxParser, TransposeParser, \
-    UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
+from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicGELUBindings, BasicPad1DBindings, \
+    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, BasicSoftmaxBindings
+from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, GatherLayer, GELULayer, GEMMLayer, MatMulLayer, \
+    MaxPoolLayer, MulLayer, PadLayer, ReduceMeanLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, \
+    RQSiGELULayer, RQSiHardswishLayer, SliceLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, FlattenParser, GatherParser, GELUParser, \
+    GEMMParser, MatMulParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, RequantShiftParser, \
+    ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SliceParser, SoftmaxParser, \
+    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, SkipEmptyConcatPass, \
