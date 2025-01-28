@@ -203,6 +203,9 @@ BasicReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerCl
 BasicReshapeBindings = [
     NodeBinding(ReshapeChecker([PointerClass(type), PointerClass(int32_t)], [PointerClass(type)]),
                 ReshapeTemplate.referenceTemplate, ReshapeSkipTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ReshapeChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
+                ReshapeTemplate.referenceTemplate, ReshapeSkipTransformer) for type in IntegerDataTypes
 ]
 
 BasicRQSBindings = [

@@ -967,7 +967,7 @@ class ReshapeParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['data_in', 'indices']
+        inputs = ['data_in', 'shape']
         outputs = ['data_out']
 
         for idx, inputNode in enumerate(node.inputs):
