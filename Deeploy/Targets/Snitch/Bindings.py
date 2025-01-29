@@ -36,8 +36,7 @@ from Deeploy.Targets.Generic.Templates import iNoNormTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, GEMMChecker, RQAddChecker, SoftmaxChecker, iNoNormChecker
 from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
     SnitchProfileExecutionBlockPass, SnitchSynchCoresPass
-from Deeploy.Targets.Snitch.Templates import AddTemplate, RQAddTemplate, iSoftmaxTemplate
-from Deeploy.Targets.Snitch.Templates.FloatGemmTemplate import SnitchFloatGemm_Template
+from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, RQAddTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Snitch.Templates.FloatSoftmaxTemplate import FloatSoftmax_Template
 from Deeploy.Targets.Snitch.Templates.GemmTemplate import SnitchGemm_Template
 from Deeploy.Targets.Snitch.Templates.RqGemmTemplate import SnitchRqGemm_Template
@@ -97,7 +96,8 @@ SnitchGemmBindings = [
 ] + [
     NodeBinding(
         GEMMChecker([PointerClass(float32_t), PointerClass(float32_t),
-                     PointerClass(float32_t)], [PointerClass(float32_t)]), SnitchFloatGemm_Template, TiledTransformer)
+                     PointerClass(float32_t)], [PointerClass(float32_t)]), FloatGemmTemplate.referenceTemplate,
+        TiledTransformer)
 ]
 SnitchRqGemmBindings = [
     NodeBinding(
