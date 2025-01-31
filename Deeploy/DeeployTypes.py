@@ -398,7 +398,10 @@ class ConstantBuffer(VariableBuffer):
 
     def _valueString(self) -> str:
         values = list(self.values.reshape(-1))
-        strValues = [str(value) for value in values]
+        if self.values.dtype == np.float32:
+            strValues = [f'{value}f' for value in values]
+        else:
+            strValues = [str(value) for value in values]
         valueString = ', '.join(strValues)
         return valueString
 
