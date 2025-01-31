@@ -28,11 +28,11 @@ from Deeploy.DeeployTypes import NodeTemplate
 referenceTemplate = NodeTemplate("""
 // Gather (Name: ${nodeName}, Op: ${nodeOp})
 <%
-Width = int(data_in_type.referencedType.typeWidth/8)
+width = int(data_in_type.referencedType.typeWidth/8)
 %>
 BEGIN_SINGLE_CORE
 for (uint32_t i=0; i<${numIndices}; ++i) {
-    memcpy(${data_out}, ${data_in} + ${indices}[i] * ${offset}, ${offset}* ${Width});
+    memcpy(${data_out}, ${data_in} + ${indices}[i] * ${offset}, ${offset}* ${width});
 }
 END_SINGLE_CORE
 """)

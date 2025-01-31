@@ -374,7 +374,7 @@ class ReluChecker(SignPropTypeChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        return [True]
+        return [False]
 
 
 class SoftmaxChecker(SignPropTypeChecker):

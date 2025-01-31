@@ -695,13 +695,11 @@ class RQSiGELUParser(GELUParser):
         wellFormed = all([
             len(node.inputs) == 4,
         ])
-        ret = all(['b' in node.attrs, 'one' in node.attrs, len(node.inputs) >= 1, len(node.outputs) == 1])
 
-        if ret:
-            self.operatorRepresentation['b'] = node.attrs['b']
-            self.operatorRepresentation['one'] = node.attrs['one']
+        ret = super().parseNode(node)
+        ret_RQ = all(['b' in node.attrs, 'one' in node.attrs])
 
-        return (ret and wellFormed)
+        return (ret and ret_RQ and wellFormed)
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
