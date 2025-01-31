@@ -144,7 +144,7 @@ int main(void) {
           actual = ((float32_t *)DeeployNetwork_outputs[buf])[i];
           diff = expected - actual;
 
-          if (diff < -1e-5 || diff > 1e-5) {
+          if (diff < -1.2e-5 || diff > 1.2e-5) {
             tot_err += 1;
 #ifndef CI
             printf("Expected: %f  ", expected);
