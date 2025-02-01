@@ -65,11 +65,13 @@ Now you can open the generated code in `DeeployTest/TEST_SIRACUSA/Tests/testMatM
 
 ## Documentation
 
-To build the documentation, simply run:
+All relevant documentation can be found in the `docs` folder and is hosted on [GitHub Pages](https://pulp-platform.github.io/Deeploy/).
+
+To build the documentation locally, simply run:
 ```
 make docs
 ```
-Then open `docs/_build/html/index.html` for more extensive documentation & getting-started guides.
+Then open `docs/_build/html/index.html` .
 
 ## Publications
 
