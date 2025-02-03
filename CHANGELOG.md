@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+
+## Deploy Documentation with Sphinx and GitHub Pages
+
+### Added
+- Add the `documentation.yml` workflow to deploy doc pages.
+
+### Changed
+- Updated `README.md` with direct link to the documentation page.
+
+
 ## Fix Generic Softmax Kernel
 
 ### Fixed
