@@ -550,9 +550,6 @@ class SoftmaxParser(NodeParser):
 
         ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
 
-        if ret:
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-
         return ret
 
     def parseNodeCtxt(self,
@@ -591,6 +588,7 @@ class iSoftmaxParser(SoftmaxParser):
             self.operatorRepresentation['coeffB'] = int(node.attrs['coeffB'].values)
             self.operatorRepresentation['coeffC'] = int(node.attrs['coeffC'].values)
             self.operatorRepresentation['log2'] = int(node.attrs['log2'].values)
+            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
 
         return wellFormed
 
@@ -658,16 +656,16 @@ class ITAPartialMaxParser(SoftmaxParser):
         return newCtxt, ret
 
 
-class iGELUParser(NodeParser):
+class GELUParser(NodeParser):
 
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all(['b' in node.attrs, 'one' in node.attrs, len(node.inputs) >= 1, len(node.outputs) == 1])
+        ret = all([len(node.inputs) >= 1, len(node.outputs) == 1])
 
-        if ret:
+        if 'b' in node.attrs and 'one' in node.attrs:
             self.operatorRepresentation['b'] = node.attrs['b']
             self.operatorRepresentation['one'] = node.attrs['one']
 
@@ -687,7 +685,7 @@ class iGELUParser(NodeParser):
         return ctxt, True
 
 
-class RQSiGELUParser(iGELUParser):
+class RQSiGELUParser(GELUParser):
 
     def __init__(self):
         super().__init__()
@@ -697,9 +695,11 @@ class RQSiGELUParser(iGELUParser):
         wellFormed = all([
             len(node.inputs) == 4,
         ])
-        ret = super().parseNode(node)
 
-        return (ret and wellFormed)
+        ret = super().parseNode(node)
+        ret_RQ = all(['b' in node.attrs, 'one' in node.attrs])
+
+        return (ret and ret_RQ and wellFormed)
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -856,7 +856,7 @@ class GatherParser(NodeParser):
 
         axis = self.operatorRepresentation['axis']
         self.operatorRepresentation['numIndices'] = int(
-            np.prod(ctxt.lookup(self.operatorRepresentation['indices']).values.shape))
+            np.prod(ctxt.lookup(self.operatorRepresentation['indices']).shape))
         self.operatorRepresentation['offset'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[axis + 1:])
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
 
@@ -923,6 +923,31 @@ class UnsqueezeParser(NodeParser):
         return ctxt, True
 
 
+class ReluParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True
+
+
 class ReshapeParser(NodeParser):
 
     def __init__(self):
@@ -939,7 +964,7 @@ class ReshapeParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['data_in', 'indices']
+        inputs = ['data_in', 'shape']
         outputs = ['data_out']
 
         for idx, inputNode in enumerate(node.inputs):
@@ -1494,6 +1519,18 @@ class iLayerNormParser(NodeParser):
         return ctxt, True
 
 
+class LayerNormParser(iLayerNormParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 3, len(node.outputs) == 1])
+
+        if ret:
+            self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
+
+        return ret
+
+
 class MatMulParser(NodeParser):
 
     def __init__(self, noBiasHoisting = True):
@@ -1531,9 +1568,9 @@ class MatMulParser(NodeParser):
 
         # Create fake C node for GEMM-compatibility and hoist it
         if not self.noBiasHoisting:
-            values = np.zeros((1))
+            values = np.zeros(ctxt.lookup(node.inputs[0].name).shape, dtype = inputNode.dtype)
             zeroTensor = gs.Constant(f'{node.name}_C_Tensor', values = values)
-            ctxt.hoistConstant(zeroTensor)
+            ctxt.hoistConstant(zeroTensor, _type = ctxt.lookup(inputNode.name)._type)
             node.inputs.append(zeroTensor)
             self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
 
@@ -1794,6 +1831,35 @@ class IntegerDivParser(NodeParser):
                 self.operatorRepresentation['denomStep'] = np.prod(
                     ctxt.lookup(self.operatorRepresentation['B']).shape[idx:])
                 break
+
+        return ctxt, True
+
+
+class DivParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ["input1", "input2"]
+        outputs = ["output"]
+        for idx, inputNode in enumerate(node.inputs):
+            if idx < len(inputs):
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(self.operatorRepresentation['input1']).shape)
 
         return ctxt, True
 

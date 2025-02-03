@@ -25,24 +25,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from Deeploy.DeeployTypes import NodeTemplate
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
-
-
-class _FloatAddTemplate(NodeTemplate):
-
-    def alignToContext(self, ctxt: NetworkContext,
-                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-
-        data_in_1 = ctxt.lookup(operatorRepresentation['data_in_1'])
-        data_in_2 = ctxt.lookup(operatorRepresentation['data_in_2'])
-        data_out = ctxt.lookup(operatorRepresentation['data_out'])
-
-        return ctxt, operatorRepresentation, []
-
-
-referenceTemplate = _FloatAddTemplate("""
+referenceTemplate = NodeTemplate("""
 // Add (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
     for (uint32_t i=0;i<${size};i++){

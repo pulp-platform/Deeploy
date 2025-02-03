@@ -125,20 +125,6 @@ class AddChecker(SignPropTypeChecker):
             return [False]
 
 
-class FloatAddChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [inputs[0].nLevels + inputs[1].nLevels]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        return [True]
-
-
 class GatherChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -232,7 +218,7 @@ class GEMMChecker(SignPropTypeChecker):
         return [True]
 
 
-class iLayerNormChecker(SignPropTypeChecker):
+class LayerNormChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
@@ -263,7 +249,7 @@ class MulChecker(SignPropTypeChecker):
             return [False]
 
 
-class IntegerDivChecker(SignPropTypeChecker):
+class DivChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
@@ -376,6 +362,19 @@ class ReduceSumChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
+
+
+class ReluChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs, operatorRepresentation):
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [False]
 
 
 class SoftmaxChecker(SignPropTypeChecker):

@@ -98,3 +98,18 @@
 
 ### Changed
 Change main.c to use OUTPUTTYPE instead of float
+
+## Add Operators for CCT Model
+
+### Added
+- Float Template, binding and parser, test for Conv2D, LayerNorm, Div, Relu, Softmax, MaxPool, Matmul, Transpose, Gelu, Mul, Reshape, Gather, Squeeze, Padding
+- CCT model test to Generic Target
+- Math Lib link on Generic Target
+
+### Changed
+- float infinity macro #define inf
+- Signprop depend on float check and platform
+
+### Fixed
+- MaxPool Padding Extract Pass for float and interger
+- Testinput, testoutput, weight type casted from double to float warning

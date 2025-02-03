@@ -48,8 +48,18 @@ jobs:
         testRequantizedDWConv
         test2DRequantizedConv
         iSoftmax
-        FloatAdder
+        testFloatAdder
         testFloatGEMM
+        testFloat2DConvolution
+        testFloatLayerNorm
+        testFloatDiv
+        testFloatRelu
+        testFloatMaxPool
+        testFloatMatmul
+        testFloatSoftmax
+        testFloatTranspose
+        testFloatMul
+        
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml
@@ -64,6 +74,7 @@ jobs:
         ICCT_ITA_8
         miniMobileNet
         miniMobileNetv2
+        CCT
   
 
   ### CortexM Tests ###
@@ -199,8 +210,9 @@ jobs:
         Hardswish
         RQHardswish
         testBacktracking
-        FloatAdder
+        testFloatAdder
         testFloatGEMM
+        testFloatSoftmax
       num-cores: 8
 
   siracusa-models:

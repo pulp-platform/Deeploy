@@ -74,7 +74,10 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List, input
 
         retStr += f"{data_type.referencedType.typeName} testInputVector{index}[] ="
         retStr += "{"
-        list_str = (", ").join([str(x) for x in broadcastNum])
+        if data_type.referencedType.typeName == 'float32_t':
+            list_str = (", ").join([f'{x}f' for x in broadcastNum])
+        else:
+            list_str = (", ").join([str(x) for x in broadcastNum])
 
         # WIESEP: Arrays have to be 4 byte alinged (at lest in banshee)
         bytes = len(broadcastNum) * (data_width // 8)
@@ -117,15 +120,16 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
     for index, num in enumerate(test_outputs):
         output_data_type[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._type
 
-        if signProp:
+        data_type = output_data_type[f"output_{index}"]
+        isdatafloat = (data_type.referencedType.typeName == "float32_t")
+
+        if signProp and not isdatafloat:
             output_n_levels[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}').nLevels
             output_signed[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._signed
             test_outputs[index] -= int(
                 ((1 - output_signed[f"output_{index}"]) * (output_n_levels[f"output_{index}"] / 2)))
 
-        data_type = output_data_type[f"output_{index}"]
         data_width = data_type.referencedType.typeWidth
-        isdatafloat = (data_type.referencedType.typeName == "float32_t")
         retStr += f"#define OUTPUTTYPE {data_type.referencedType.typeName}\n"
         if isdatafloat:
             retStr += f"#define ISOUTPUTFLOAT 1\n"
@@ -135,7 +139,10 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
         retStr += "{"
 
         # WIESEP: Arrays have to be 4 byte alinged (at lest in banshee)
-        list_str = (", ").join([str(x) for x in num])
+        if data_type.referencedType.typeName == 'float32_t':
+            list_str = (", ").join([f'{x}f' for x in num])
+        else:
+            list_str = (", ").join([str(x) for x in num])
 
         bytes = len(num) * (data_width // 8)
         if bytes % 4 != 0:
@@ -200,6 +207,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer,
 
     retStr += """#include <stdio.h>
     #include <stdlib.h>
+    #include <math.h>
     """
     retStr += deployer.generateIncludeString()
     retStr += """
