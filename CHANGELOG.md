@@ -113,3 +113,16 @@ Change main.c to use OUTPUTTYPE instead of float
 ### Fixed
 - MaxPool Padding Extract Pass for float and interger
 - Testinput, testoutput, weight type casted from double to float warning
+
+## Add Float GEMM and Softmax for Snitch platform
+
+### Added
+- New templates for GEMM and Softmax.
+- Added GEMM and Softmax to TargetLibraries, including case for GEMM with a transposed B matrix.
+- Added new CI tests for GEMM and Softmax.
+
+### Changed
+- Adapted snitch Bindings and Platform files.
+
+### Fixed
+- Relaxed the error threshold between expected and actual values in deeploytest.
