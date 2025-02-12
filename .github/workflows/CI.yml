@@ -74,7 +74,7 @@ jobs:
         ICCT_ITA_8
         miniMobileNet
         miniMobileNetv2
-        CCT
+        CCT/CCT_16_16_8
   
 
   ### CortexM Tests ###
@@ -212,7 +212,14 @@ jobs:
         testBacktracking
         testFloatAdder
         testFloatGEMM
+        testFloat2DConvolution
+        testFloatLayerNorm
+        testFloatRelu
+        testFloatMaxPool
+        testFloatMatmul
         testFloatSoftmax
+        testFloatTranspose
+        testFloatMul
       num-cores: 8
 
   siracusa-models:
@@ -268,6 +275,38 @@ jobs:
           {
             "name": "testFloatGEMM",
             "L1": [8000]
+          },
+          {
+            "name": "testFloat2DConvolution",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatLayerNorm",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatRelu",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatMaxPool",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatMatmul",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatSoftmax",
+            "L1": [4000]
+          },
+          {
+            "name": "testFloatTranspose",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatMul",
+            "L1": [2000]
           }
         ]
       num-cores: 8
@@ -312,6 +351,38 @@ jobs:
           {
             "name": "testFloatGEMM",
             "L1": [8000]
+          },
+          {
+            "name": "testFloat2DConvolution",
+            "L1": [4000]
+          },
+          {
+            "name": "testFloatLayerNorm",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatRelu",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatMaxPool",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatMatmul",
+            "L1": [5000]
+          },
+          {
+            "name": "testFloatSoftmax",
+            "L1": [8000]
+          },
+          {
+            "name": "testFloatTranspose",
+            "L1": [2000]
+          },
+          {
+            "name": "testFloatMul",
+            "L1": [2000]
           }
         ]
       num-cores: 8
@@ -341,6 +412,8 @@ jobs:
           - name: "MLPerf/ImageClassification"
             L1: [64000]
           - name: "MLPerf/AnomalyDetection"
+            L1: [64000]
+          - name: "CCT/CCT_16_16_8"
             L1: [64000]
         num-cores:
           - 8

@@ -75,7 +75,7 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List, input
         retStr += f"{data_type.referencedType.typeName} testInputVector{index}[] ="
         retStr += "{"
         if data_type.referencedType.typeName == 'float32_t':
-            list_str = (", ").join([f'{x}f' for x in broadcastNum])
+            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in broadcastNum])
         else:
             list_str = (", ").join([str(x) for x in broadcastNum])
 
@@ -140,7 +140,7 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
 
         # WIESEP: Arrays have to be 4 byte alinged (at lest in banshee)
         if data_type.referencedType.typeName == 'float32_t':
-            list_str = (", ").join([f'{x}f' for x in num])
+            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in num])
         else:
             list_str = (", ").join([str(x) for x in num])
 
