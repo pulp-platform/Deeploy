@@ -38,7 +38,7 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
     VariableReplacementScheme
 
 
-class Conv2DTileConstraint(TileConstraint):
+class RQConv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -289,7 +289,7 @@ class Conv2DTileConstraint(TileConstraint):
         return variableReplacementSchedule, tilingSchedule
 
 
-class FloatConvTileConstraint(TileConstraint):
+class Conv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:

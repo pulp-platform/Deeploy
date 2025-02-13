@@ -38,6 +38,13 @@ if __name__ == "__main__":
                         type = int,
                         default = 1,
                         help = 'Set number of cluster cores')
+
+    parser.add_argument('--profileUntiling',
+                        action = 'store_true',
+                        dest = 'profileUntiling',
+                        default = False,
+                        help = 'Profile Untiling')
+
     args = parser.parse_args()
 
     testRunner = TestRunner(platform = "Siracusa", simulator = "gvsoc", tiling = False, argument_parser = parser)

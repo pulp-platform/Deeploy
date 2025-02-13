@@ -30,7 +30,6 @@ from functools import partial
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
-from Deeploy.CommonExtensions.CodeTransformationPasses.CycleMeasurement import ProfilingCodeGeneration
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration
 from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t, \
@@ -124,7 +123,6 @@ ForkTransformer = CodeTransformation([
     MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration("L2"),
     MemoryManagementGeneration(),
-    ProfilingCodeGeneration()
 ])
 
 ClusterTransformer = CodeTransformation([
@@ -141,14 +139,12 @@ ClusterTransformer = CodeTransformation([
     MemoryManagementGeneration("L2"),
     MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
-    ProfilingCodeGeneration()
 ])
 
 SimpleTransformer = CodeTransformation([
     MemoryManagementGeneration("L2"),
     MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
-    ProfilingCodeGeneration()
 ])
 
 PULPDMASliceBindings = [

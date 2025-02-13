@@ -48,9 +48,6 @@ class PULPConv2DParser(RQSConv2DParser):
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
-                #self.operatorRepresentation['pads'][0] == 0,
-                # Don't support dilations
-                #all([coeff == 1 for coeff in self.operatorRepresentation['dilations']]),
                 len(node.inputs) == 4,
                 'shift' in node.attrs,
             ])
@@ -101,9 +98,6 @@ class PULPFPConv2DParser(Conv2DParser):
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
-                #self.operatorRepresentation['pads'][0] == 0,
-                # Don't support dilations
-                #all([coeff == 1 for coeff in self.operatorRepresentation['dilations']]),
                 len(node.inputs) == 2
             ])
 

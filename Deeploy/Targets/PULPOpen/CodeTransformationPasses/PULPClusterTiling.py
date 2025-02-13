@@ -25,6 +25,7 @@
 
 from typing import Tuple
 
+from Deeploy.CommonExtensions.CodeTransformationPasses.CycleMeasurement import ProfilingCodeGeneration
 from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, _NoVerbosity
 
 from .PULPClusterTilingDB import ProfilingPULPClusterTilingGenerationDB, PULPClusterTilingGenerationDB
@@ -38,6 +39,7 @@ class PULPClusterTiling(CodeTransformationPass):
         self.profilingSB = ProfilingPULPClusterTilingGenerationSB(targetMemLevel)
         self.DB = PULPClusterTilingGenerationDB(targetMemLevel)
         self.profilingDB = ProfilingPULPClusterTilingGenerationDB(targetMemLevel)
+        self.profiluntiling = ProfilingCodeGeneration()
 
     def apply(self,
               ctxt: NetworkContext,
@@ -51,5 +53,8 @@ class PULPClusterTiling(CodeTransformationPass):
         else:
             ctxt, executionBlock = self.SB.apply(ctxt, executionBlock, name)
             ctxt, executionBlock = self.DB.apply(ctxt, executionBlock, name)
+
+        if verbose.untilingProfiling:
+            ctxt, executionBlock = self.profiluntiling.apply(ctxt, executionBlock, name)
 
         return ctxt, executionBlock

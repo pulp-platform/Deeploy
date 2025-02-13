@@ -113,3 +113,22 @@ Change main.c to use OUTPUTTYPE instead of float
 ### Fixed
 - MaxPool Padding Extract Pass for float and interger
 - Testinput, testoutput, weight type casted from double to float warning
+
+## Add Tiling Support to All CCT Kernels and Fix CCT Operators on Siracusa Platform for L2
+
+### Added
+- Float Bindings, Tilers of CCT kernels for Pulp Target
+- Float Convolution, MaxPool Parser, Template, Kernel with HWC layout and padding integrated
+- Added tiling constraints for conv gather and layernorm and exisitng constraints for other kernels
+- profileuntiling arg
+- CCT onnx tests with img size of 16 and 32
+
+### Fixed
+- CycleMeasure Pass for Siracusa Untiling Profilling
+- GEMM Tiling Constraints transA and `transB' not supported
+- MatMul layer Multi-Dimensional Input Issue
+- Add Layer for Broadcasted Bias
+- Resolved an issue where concatenation of float32 with f caused inf errors during code generation
+
+
+
