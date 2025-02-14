@@ -67,6 +67,8 @@ class TilerModel():
         self._copyIdxSuffix: str = copyIdxSuffix if copyIdxSuffix is not None else _COPYIDXSUFFIX
         self._collector: Optional[SolutionCollector] = None
 
+        self.visualizeMemorySchedule: bool = True # TODO: JUNGVI: Interface this with test runners
+
     def _resolveVariable(self, var) -> int:
         if isinstance(var, int):
             return var

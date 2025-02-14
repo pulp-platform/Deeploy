@@ -468,6 +468,8 @@ class MemoryScheduler():
 
             self.memoryMap[memoryLevel].append(blockList)
 
+            # TODO: JUNGVI: Find an interface to turn this on/off
+            # optimizeSchedule = True
             # SCHEREMO: Build permutation matrix
             if optimizeSchedule:
                 if numVars > 1:
