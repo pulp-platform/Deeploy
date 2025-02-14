@@ -24,7 +24,6 @@
 # limitations under the License.
 
 import os
-import random
 from collections import OrderedDict
 from typing import List, Union
 
@@ -47,7 +46,6 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel, AnnotateNeurekaWeightMemoryLevel
-from Deeploy.TilingExtension.MemoryScheduler import MemoryScheduler
 from Deeploy.TilingExtension.TilerExtension import Tiler, TilerDeployerWrapper
 from Deeploy.TilingExtension.TilerModel import TilerModel
 
@@ -97,37 +95,7 @@ class DBTiler(Tiler):
         return coefficient
 
 
-class SBTiler(DBTiler):
-
-    def multiBufferStrategy(self, tilerModel: TilerModel, ctxt: NetworkContext, pattern: SubGraph, path: List[str],
-                            hop: str, tensorName: str) -> Union[int, IntVar]:
-        varBuffer = ctxt.lookup(tensorName)
-
-        generalCoeff = 1
-
-        if isinstance(varBuffer, TransientBuffer):
-            coefficient = 1
-        elif isinstance(varBuffer, ConstantBuffer):
-            coefficient = generalCoeff
-        else:
-            coefficient = generalCoeff
-
-        return coefficient
-
-
-class RandomizedMemoryScheduler(MemoryScheduler):
-
-    def heuristicPermutation(self, adjacencyMatrix, costVector) -> List[int]:
-        permutationList = list(range(len(costVector)))
-        random.seed(self.seed)
-        random.shuffle(permutationList)
-
-        return permutationList
-
-
-class RandomizedSBTiler(DBTiler):
-
-    memorySchedulerClass = RandomizedMemoryScheduler
+class SBTiler(Tiler):
 
     def multiBufferStrategy(self, tilerModel: TilerModel, ctxt: NetworkContext, pattern: SubGraph, path: List[str],
                             hop: str, tensorName: str) -> Union[int, IntVar]:
@@ -234,10 +202,12 @@ def setupDeployer(graph: gs.Graph,
     # Make the deployer tiler aware
     if args.doublebuffer:
         deployer = TilerDeployerWrapper(deployer, DBOnlyL3Tiler)
-    elif args.randomizedMemoryScheduler:
-        deployer = TilerDeployerWrapper(deployer, RandomizedSBTiler)
     else:
         deployer = TilerDeployerWrapper(deployer, SBTiler)
+
+    deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
+    deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
+    deployer.tiler.searchStrategy = args.searchStrategy
 
     deployer.frontEnd()
     deployer.midEnd()
@@ -285,18 +255,41 @@ if __name__ == '__main__':
                         action = "store_true",
                         default = False,
                         help = 'Adds EXPERIMENTAL support for strided convolutions on N-EUREKA\n')
-    parser.add_argument('--randomizedMemoryScheduler', action = "store_true")
     parser.add_argument('--doublebuffer', action = 'store_true')
     parser.add_argument('--l1', metavar = 'l1', dest = 'l1', type = int, default = 64000, help = 'Set L1 size\n')
     parser.add_argument('--shouldFail', action = 'store_true')
-    parser.add_argument('--profileTiling',
-                        metavar = 'profileTiling',
-                        dest = 'profileTiling',
-                        type = str,
-                        default = None)
     parser.add_argument('--overwriteRecentState',
                         action = 'store_true',
                         help = 'Copy the recent deeply state to the ./deeployStates folder\n')
+    parser.add_argument('--memAllocStrategy',
+                        metavar = 'memAllocStrategy',
+                        dest = 'memAllocStrategy',
+                        type = str,
+                        default = "TetrisRandom",
+                        help = """Choose the memory allocation strategy, possible values are:
+                            - TetrisRandom: Randomly sample an placement schedule (order) for the Tetris Memory Allocation.
+                            - TetrisCo-Opt: Co-optimize the placement schedule with the tiling solver (works best with random-max solver strategy).
+                        """)
+    parser.add_argument('--searchStrategy',
+                        metavar = 'searchStrategy',
+                        dest = 'searchStrategy',
+                        type = str,
+                        default = "random-max",
+                        help = """Choose the search strategy for the CP solver:
+                            - random-max: Initalize the permutation matrix variables randomly and initalize all other variables at their maximal value. This is recommended and lead to better solutions.
+                            - max: Initalize all variables at their maximal value.
+                            - min: Initalize all variables at their minimal value.
+                        """)
+    parser.add_argument(
+        '--profileTiling',
+        metavar = 'profileTiling',
+        dest = 'profileTiling',
+        type = str,
+        default = None,
+    )
+    parser.add_argument('--plotMemAlloc',
+                        action = 'store_false',
+                        help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
     parser.set_defaults(shouldFail = False)
     args = parser.parse_args()

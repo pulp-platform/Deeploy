@@ -28,7 +28,7 @@ from __future__ import annotations
 import random
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
@@ -433,8 +433,8 @@ class MemoryScheduler():
                                    ctxt: NetworkContext,
                                    allMemoryConstraints: List[PatternMemoryConstraints],
                                    memoryHierarchy: MemoryHierarchy,
-                                   memoryLevel: str = "L1",
-                                   optimizeSchedule: bool = False):
+                                   memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt"],
+                                   memoryLevel: str = "L1"):
 
         if memoryLevel not in self.memoryMap:
             self.memoryMap[memoryLevel] = []
@@ -468,10 +468,8 @@ class MemoryScheduler():
 
             self.memoryMap[memoryLevel].append(blockList)
 
-            # TODO: JUNGVI: Find an interface to turn this on/off
-            # optimizeSchedule = True
             # SCHEREMO: Build permutation matrix
-            if optimizeSchedule:
+            if memoryAllocStrategy == 'TetrisCo-Opt':
                 if numVars > 1:
 
                     permutationMatrix = self._addPermutationMatrix(tilerModel, numVars, patternIdx)
@@ -482,10 +480,12 @@ class MemoryScheduler():
                     permutationMatrix = np.ones((1,))
                     permAdj, permCost = adjacencyMatrix, costVector
 
-            else:
+            elif memoryAllocStrategy == 'TetrisRandom':
                 permutationList = self.heuristicPermutation(adjacencyMatrix, costVector)
                 permAdj, permCost, permutationMatrix = self._stablePermutation(adjacencyMatrix, costVector,
                                                                                permutationList)
+            else:
+                raise ("Unrecognized memory allocation strategy!")
 
             self._permutationState[memoryLevel + f"_{patternIdx}"] = permutationMatrix
 
@@ -500,12 +500,12 @@ class MemoryScheduler():
                                   ctxt: NetworkContext,
                                   allMemoryConstraints: List[PatternMemoryConstraints],
                                   memoryHierarchy: MemoryHierarchy,
-                                  memoryLevel: str = "L1",
-                                  optimizeSchedule: bool = False):
+                                  memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt"],
+                                  memoryLevel: str = "L1"):
 
         self.stringSuffix = self._stringSuffix + f"_{memoryLevel}"
-        return self._scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints, memoryHierarchy, memoryLevel,
-                                               optimizeSchedule)
+        return self._scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints, memoryHierarchy,
+                                               memoryAllocStrategy, memoryLevel)
 
     def getSymbolicCostName(self, patternIdx: int, memoryLevel: str) -> str:
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
@@ -516,9 +516,6 @@ class MemoryScheduler():
     def getCost(self, tilerModel, patternIdx: int, memoryLevel: str) -> int:
 
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
-
-        collector = tilerModel._solveModel("max")
-        numVars = len(self.memoryMap[memoryLevel][patternIdx])
 
         name = f"cost{stringSuffix}_copyIdx_{patternIdx}"
         symVar = tilerModel._variables[name]

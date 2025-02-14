@@ -53,7 +53,9 @@ class PerformanceHint(AddConstraintStrategy):
 
 class TilerModel():
 
-    def __init__(self, copyIdxSuffix: Optional[str] = None):
+    def __init__(self,
+                 copyIdxSuffix: Optional[str] = None,
+                 searchStrategy: Literal['min', 'max', 'random-max'] = 'random-max'):
 
         self._model: Solver = Solver('CPSimple')
         self._objectives: List[Tuple[IntVar, bool]] = []
@@ -66,6 +68,8 @@ class TilerModel():
         self.copyIdx: int = 0
         self._copyIdxSuffix: str = copyIdxSuffix if copyIdxSuffix is not None else _COPYIDXSUFFIX
         self._collector: Optional[SolutionCollector] = None
+
+        self.searchStrategy: Literal['min', 'max', 'random-max'] = searchStrategy
 
     def _resolveVariable(self, var) -> int:
         if isinstance(var, int):
@@ -365,14 +369,16 @@ class TilerModel():
         if not solvable:
             self.debugConstraints()
 
-        return self._solveModel()
+        return self._solveModel(self.searchStrategy)
 
+    # TODO: JUNGVI: Interface the CP solver strategy
     def _solveModel(
-            self,
-            solType: Union[Literal['min'], Literal['max'], Literal['random-max']] = 'random-max') -> SolutionCollector:
+        self,
+        searchStrategy: Union[Literal['min'], Literal['max'],
+                              Literal['random-max']] = 'random-max') -> SolutionCollector:
         variablesList = [var for varName, var in self._variables.items()]
 
-        if solType == 'random-max':
+        if searchStrategy == 'random-max':
 
             nonPermutationVariables = [var for var in variablesList if 'permutationIdx' not in var.Name()]
             permutationVariables = [var for var in variablesList if 'permutationIdx' in var.Name()]
@@ -383,7 +389,7 @@ class TilerModel():
                                                        self._model.ASSIGN_RANDOM_VALUE)
             decisionBuilder = self._model.Compose([decisionBuilderPermVar, decisionBuilderOtherVar])
 
-        elif solType == 'max':
+        elif searchStrategy == 'max':
             decisionBuilder = self._model.Phase(variablesList, self._model.CHOOSE_FIRST_UNBOUND,
                                                 self._model.ASSIGN_MAX_VALUE)
         else:

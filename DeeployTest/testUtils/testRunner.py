@@ -187,7 +187,6 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               type = str,
                               default = "L2",
                               help = 'Set default memory level\n')
-
             self.add_argument('--doublebuffer', action = 'store_true', help = 'Enable double buffering\n')
             self.add_argument('--l1',
                               metavar = '<size>',
@@ -204,6 +203,29 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               type = str,
                               default = None,
                               help = 'Profile tiling for a given memory level (eg. "L2")\n')
+            self.add_argument('--memAllocStrategy',
+                              metavar = 'memAllocStrategy',
+                              dest = 'memAllocStrategy',
+                              type = str,
+                              default = "TetrisRandom",
+                              help = """Choose the memory allocation strategy, possible values are:
+                            - TetrisRandom: Randomly sample an placement schedule (order) for the Tetris Memory Allocation.
+                            - TetrisCo-Opt: Co-optimize the placement schedule with the tiling solver (works best with random-max solver strategy).
+                        """)
+            self.add_argument(
+                '--plotMemAlloc',
+                action = 'store_false',
+                help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
+            self.add_argument('--searchStrategy',
+                              metavar = 'searchStrategy',
+                              dest = 'searchStrategy',
+                              type = str,
+                              default = "random-max",
+                              help = """Choose the search strategy for the CP solver:
+                            - random-max: Initalize the permutation matrix variables randomly and initalize all other variables at their maximal value. This is recommended and lead to better solutions.
+                            - max: Initalize all variables at their maximal value.
+                            - min: Initalize all variables at their minimal value.
+                        """)
 
         self.args = None
 
@@ -236,6 +258,12 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                 command += " --randomizedMemoryScheduler"
             if self.args.profileTiling is not None:
                 command += f" --profileTiling {self.args.profileTiling}"
+            if self.args.memAllocStrategy:
+                command += f" --memAllocStrategy={self.args.memAllocStrategy}"
+            if self.args.plotMemAlloc:
+                command += f" --plotMemAlloc"
+            if self.args.searchStrategy:
+                command += f" --searchStrategy={self.args.searchStrategy}"
 
         return command
 
