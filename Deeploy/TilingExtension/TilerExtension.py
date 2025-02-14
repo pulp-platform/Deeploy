@@ -33,8 +33,6 @@ import copy
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
-import plotly.io as pio
-import plotly.graph_objects as go
 import onnx_graphsurgeon as gs
 from ortools.constraint_solver.pywrapcp import IntVar, SolutionCollector
 
@@ -83,6 +81,9 @@ class Tiler():
     
     @staticmethod
     def visualizeMemorySchedule(memoryMap: Dict[str, List[List[MemoryBlock]]], deeployStateDir: str, defaultMemoryLevel: MemoryLevel, targetMemLevelName: str = 'L1'):
+
+        import plotly.io as pio
+        import plotly.graph_objects as go
 
         innerMemoryScheduleDir = os.path.join(deeployStateDir, f"MemorySchedules{targetMemLevelName}")
         os.makedirs(os.path.abspath(deeployStateDir), exist_ok = True)
