@@ -367,26 +367,28 @@ class TilerModel():
 
         return self._solveModel()
 
-    def _solveModel(self, solType: Union[Literal['min'], Literal['max'], Literal['random-max']] = 'random-max') -> SolutionCollector:
+    def _solveModel(
+            self,
+            solType: Union[Literal['min'], Literal['max'], Literal['random-max']] = 'random-max') -> SolutionCollector:
         variablesList = [var for varName, var in self._variables.items()]
 
         if solType == 'random-max':
-            
+
             nonPermutationVariables = [var for var in variablesList if 'permutationIdx' not in var.Name()]
             permutationVariables = [var for var in variablesList if 'permutationIdx' in var.Name()]
 
             decisionBuilderOtherVar = self._model.Phase(nonPermutationVariables, self._model.CHOOSE_FIRST_UNBOUND,
-                                                 self._model.ASSIGN_MAX_VALUE)
+                                                        self._model.ASSIGN_MAX_VALUE)
             decisionBuilderPermVar = self._model.Phase(permutationVariables, self._model.CHOOSE_FIRST_UNBOUND,
-                                                 self._model.ASSIGN_RANDOM_VALUE)
+                                                       self._model.ASSIGN_RANDOM_VALUE)
             decisionBuilder = self._model.Compose([decisionBuilderPermVar, decisionBuilderOtherVar])
 
         elif solType == 'max':
             decisionBuilder = self._model.Phase(variablesList, self._model.CHOOSE_FIRST_UNBOUND,
-                                                 self._model.ASSIGN_MAX_VALUE)
+                                                self._model.ASSIGN_MAX_VALUE)
         else:
             decisionBuilder = self._model.Phase(variablesList, self._model.CHOOSE_FIRST_UNBOUND,
-                                                 self._model.ASSIGN_MIN_VALUE)
+                                                self._model.ASSIGN_MIN_VALUE)
 
         collector = self._model.LastSolutionCollector()
 

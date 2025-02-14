@@ -28,8 +28,8 @@
 # Define Tiler Obj centralize all tilling related functionalities for a given deployer.
 # Like Template-T-Obj mapping, propagate cst, graph edition, etc
 
-import os
 import copy
+import os
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
@@ -37,12 +37,11 @@ import onnx_graphsurgeon as gs
 from ortools.constraint_solver.pywrapcp import IntVar, SolutionCollector
 
 import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
-from Deeploy.AbstractDataTypes import Pointer, PointerClass
-from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryLevel
+from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
-from Deeploy.DeeployTypes import ConstantBuffer, GlobalDefinition, NetworkContext, NetworkOptimizationPass, \
-    NodeBinding, NodeTemplate, ONNXLayer, Schedule, SubGraph, TopologyOptimizer, TransientBuffer
-from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
+from Deeploy.DeeployTypes import ConstantBuffer, GlobalDefinition, NetworkContext, NodeBinding, NodeTemplate, \
+    ONNXLayer, Schedule, SubGraph, TransientBuffer
+from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
 from Deeploy.TilingExtension.GenericFlow import GenericFlowState
@@ -75,80 +74,80 @@ class Tiler():
 
         self._worstCaseBufferSize: Dict[str, int] = {}
 
-        self.visualizeMemorySchedule: bool = False #True # TODO: JUNGVI: Interface this with test runners
+        self.visualizeMemorySchedule: bool = False  #True # TODO: JUNGVI: Interface this with test runners
 
     @property
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
-    
-    @staticmethod
-    def plotMemorySchedule(memoryMap: Dict[str, List[List[MemoryBlock]]], deeployStateDir: str, defaultMemoryLevel: MemoryLevel, targetMemLevelName: str = 'L1'):
 
-        import plotly.io as pio
+    @staticmethod
+    def plotMemorySchedule(memoryMap: Dict[str, List[List[MemoryBlock]]],
+                           deeployStateDir: str,
+                           defaultMemoryLevel: MemoryLevel,
+                           targetMemLevelName: str = 'L1'):
+
         import plotly.graph_objects as go
+        import plotly.io as pio
 
         innerMemoryScheduleDir = os.path.join(deeployStateDir, f"MemorySchedules{targetMemLevelName}")
         os.makedirs(os.path.abspath(deeployStateDir), exist_ok = True)
         os.makedirs(os.path.abspath(innerMemoryScheduleDir), exist_ok = True)
-        defaultMemLevelPlotPath = os.path.abspath(os.path.join(deeployStateDir, f"memory_schedule_{defaultMemoryLevel.name}.html"))
+        defaultMemLevelPlotPath = os.path.abspath(
+            os.path.join(deeployStateDir, f"memory_schedule_{defaultMemoryLevel.name}.html"))
 
-        addTraceConfig = {
-            "fill": "toself",
-            "hoverinfo": "text",
-            "mode": "lines",
-            "line": dict(width=2)
-        }
+        addTraceConfig = {"fill": "toself", "hoverinfo": "text", "mode": "lines", "line": dict(width = 2)}
 
         updateLayoutConfig = {
             "xaxis_title": "Lifetime",
             "yaxis_title": "Address Space",
-            "xaxis": dict(tickformat="d", showgrid=True),
-            "yaxis": dict(tickformat="d", showgrid=True),
+            "xaxis": dict(tickformat = "d", showgrid = True),
+            "yaxis": dict(tickformat = "d", showgrid = True),
             "hovermode": "closest",
             "showlegend": False,
         }
 
         fig = go.Figure()
         for buffer in memoryMap[defaultMemoryLevel.name][-1]:
-            fig.add_trace(go.Scatter(
-                x=[buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5, buffer._lifetime[1] + 0.5],
-                y=[buffer._addrSpace[0], buffer._addrSpace[1], buffer._addrSpace[1], buffer._addrSpace[0]],
-                name=buffer.name,
-                text=buffer.name,
-                **addTraceConfig
+            fig.add_trace(
+                go.Scatter(x = [
+                    buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
+                    buffer._lifetime[1] + 0.5
+                ],
+                           y = [buffer._addrSpace[0], buffer._addrSpace[1], buffer._addrSpace[1], buffer._addrSpace[0]],
+                           name = buffer.name,
+                           text = buffer.name,
+                           **addTraceConfig))
+        fig.add_trace(
+            go.Scatter(
+                x = [-0.5, len(memoryMap[defaultMemoryLevel.name]) - 1.5],
+                y = [defaultMemoryLevel.size, defaultMemoryLevel.size],
+                name = f"{defaultMemoryLevel.name} Memory Size",
+                text = f"{defaultMemoryLevel.name} Memory Size",
+                line = dict(color = "red", width = 2, dash = "dash"),
+                fill = "toself",
+                hoverinfo = "text",
+                mode = "lines",
             ))
-        fig.add_trace(go.Scatter(
-                x=[-0.5, len(memoryMap[defaultMemoryLevel.name]) - 1.5],
-                y=[defaultMemoryLevel.size, defaultMemoryLevel.size],
-                name=f"{defaultMemoryLevel.name} Memory Size",
-                text=f"{defaultMemoryLevel.name} Memory Size",
-                line=dict(color="red", width=2, dash="dash"),
-                fill="toself",
-                hoverinfo="text",
-                mode="lines",
-            ))
-        fig.update_layout(
-            title=f"Deeploy Memory Schedule {defaultMemoryLevel.name}",
-            **updateLayoutConfig
-        )
+        fig.update_layout(title = f"Deeploy Memory Schedule {defaultMemoryLevel.name}", **updateLayoutConfig)
         pio.write_html(fig, defaultMemLevelPlotPath)
-        
+
         for step_idx, innerMemorySchedule in enumerate(memoryMap[targetMemLevelName]):
-            targetMemLevelPlotPath = os.path.abspath(os.path.join(innerMemoryScheduleDir, 
-                                                                   f"memory_schedule_{targetMemLevelName}_step{step_idx}.html"))
+            targetMemLevelPlotPath = os.path.abspath(
+                os.path.join(innerMemoryScheduleDir, f"memory_schedule_{targetMemLevelName}_step{step_idx}.html"))
             fig = go.Figure()
             for buffer in innerMemorySchedule:
-                fig.add_trace(go.Scatter(
-                    x=[buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5, buffer._lifetime[1] + 0.5],
-                    y=[buffer._addrSpace[0], buffer._addrSpace[1], buffer._addrSpace[1], buffer._addrSpace[0]],
-                    name=buffer.name,
-                    text=buffer.name,
-                    **addTraceConfig
-                ))
-            fig.update_layout(
-                title=f"Deeploy Memory Schedule {targetMemLevelName} Step {step_idx}",
-                **updateLayoutConfig
-            )
+                fig.add_trace(
+                    go.Scatter(
+                        x = [
+                            buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
+                            buffer._lifetime[1] + 0.5
+                        ],
+                        y = [buffer._addrSpace[0], buffer._addrSpace[1], buffer._addrSpace[1], buffer._addrSpace[0]],
+                        name = buffer.name,
+                        text = buffer.name,
+                        **addTraceConfig))
+            fig.update_layout(title = f"Deeploy Memory Schedule {targetMemLevelName} Step {step_idx}",
+                              **updateLayoutConfig)
             pio.write_html(fig, targetMemLevelPlotPath)
 
     def _convertCtxtToStaticSchedule(self, ctxt: NetworkContext,
@@ -824,8 +823,8 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
 
             if self.tiler.visualizeMemorySchedule:
-                self.tiler.plotMemorySchedule(memoryMap, self.deeployStateDir, self.Platform.memoryHierarchy._defaultMemoryLevel)
-
+                self.tiler.plotMemorySchedule(memoryMap, self.deeployStateDir,
+                                              self.Platform.memoryHierarchy._defaultMemoryLevel)
 
         # SCHEREMO: Annotate execution block with solution
         for layer, pattern in zip(self.layerBinding.values(), tilingSolution):
