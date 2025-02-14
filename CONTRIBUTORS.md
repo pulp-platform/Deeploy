@@ -7,3 +7,4 @@ All contributors have agreed to an open-source release of their work in the Deep
 * Alberto Dequino
 * Francesco Conti
 * Run Wang
+* Taha El Bayad
