@@ -528,8 +528,6 @@ class MemoryScheduler():
     def getHVector(self, tilerModel, patternIdx: int, memoryLevel: str) -> np.ndarray:
 
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
-
-        collector = tilerModel._solveModel("max")
         numVars = len(self.memoryMap[memoryLevel][patternIdx])
 
         hVec = np.zeros((numVars))
@@ -549,10 +547,7 @@ class MemoryScheduler():
     def getPMatrix(self, tilerModel, patternIdx: int, memoryLevel: str) -> np.ndarray:
 
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
-
-        collector = tilerModel._solveModel("max")
         numVars = len(self.memoryMap[memoryLevel][patternIdx])
-
         permMat = np.zeros((numVars, numVars))
 
         for i in range(numVars):
