@@ -75,12 +75,14 @@ class Tiler():
 
         self._worstCaseBufferSize: Dict[str, int] = {}
 
+        self.visualizeMemorySchedule: bool = False #True # TODO: JUNGVI: Interface this with test runners
+
     @property
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
     
     @staticmethod
-    def visualizeMemorySchedule(memoryMap: Dict[str, List[List[MemoryBlock]]], deeployStateDir: str, defaultMemoryLevel: MemoryLevel, targetMemLevelName: str = 'L1'):
+    def plotMemorySchedule(memoryMap: Dict[str, List[List[MemoryBlock]]], deeployStateDir: str, defaultMemoryLevel: MemoryLevel, targetMemLevelName: str = 'L1'):
 
         import plotly.io as pio
         import plotly.graph_objects as go
@@ -822,7 +824,7 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
 
             if self.tiler.visualizeMemorySchedule:
-                self.tiler.visualizeMemorySchedule(memoryMap, self.deeployStateDir, self.Platform.memoryHierarchy._defaultMemoryLevel)
+                self.tiler.plotMemorySchedule(memoryMap, self.deeployStateDir, self.Platform.memoryHierarchy._defaultMemoryLevel)
 
 
         # SCHEREMO: Annotate execution block with solution
