@@ -371,7 +371,6 @@ class TilerModel():
 
         return self._solveModel(self.searchStrategy)
 
-    # TODO: JUNGVI: Interface the CP solver strategy
     def _solveModel(
         self,
         searchStrategy: Union[Literal['min'], Literal['max'],

@@ -76,7 +76,7 @@ class Tiler():
 
         self._worstCaseBufferSize: Dict[str, int] = {}
 
-        self.visualizeMemoryAlloc: bool = False  #True # TODO: JUNGVI: Interface this with test runners
+        self.visualizeMemoryAlloc: bool = False
         self.memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt"] = "TetrisRandom"
         self.searchStrategy: Literal["min", "max", "random-max"] = "random-max"
 
