@@ -39,11 +39,11 @@ if __name__ == "__main__":
                         default = 1,
                         help = 'Set number of cluster cores')
 
-    parser.add_argument('--profileUntiling',
+    parser.add_argument('--profileUntiled',
                         action = 'store_true',
-                        dest = 'profileUntiling',
+                        dest = 'profileUntiled',
                         default = False,
-                        help = 'Profile Untiling')
+                        help = 'Profile Untiled')
 
     args = parser.parse_args()
 

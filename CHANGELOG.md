@@ -126,14 +126,13 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ### Fixed
 - Relaxed the error threshold between expected and actual values in deeploytest.
-
 ## Add Tiling Support to All CCT Kernels and Fix CCT Operators on Siracusa Platform for L2
 
 ### Added
 - Float Bindings, Tilers of CCT kernels for Pulp Target
 - Float Convolution, MaxPool Parser, Template, Kernel with HWC layout and padding integrated
 - Added tiling constraints for conv gather and layernorm and exisitng constraints for other kernels
-- profileuntiling arg
+- profileuntiled arg
 - CCT onnx tests with img size of 16 and 32
 
 ### Fixed

@@ -244,8 +244,8 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
             command += " --overwriteRecentState"
         if self.args.debug:
             command += " --debug"
-        if hasattr(self.args, 'profileUntiling') and self.args.profileUntiling:
-            command += " --profileUntiling"
+        if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
+            command += " --profileUntiled"
 
         if self.tiling_arguments:
             if self.args.defaultMemLevel:
