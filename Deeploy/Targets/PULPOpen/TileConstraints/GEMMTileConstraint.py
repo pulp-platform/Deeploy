@@ -330,8 +330,17 @@ class FloatGEMMTileConstraint(TileConstraint):
             replacements["O"].append(OSize)
             replacements["batch"].append(BSize)
 
-            ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
-            BCube = HyperRectangle((BatchOffset, BOffset, NOffset, OOffset), (BatchSize, BSize, NSize, OSize))
+            transA = operatorRepresentation['transA']
+            transB = operatorRepresentation['transB']
+            if transA == 0:
+                ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
+            else:
+                ACube = HyperRectangle((BatchOffset, BOffset, NOffset, MOffset), (BatchSize, BSize, NSize, MSize))
+
+            if transB == 0:
+                BCube = HyperRectangle((BatchOffset, BOffset, NOffset, OOffset), (BatchSize, BSize, NSize, OSize))
+            else:
+                BCube = HyperRectangle((BatchOffset, BOffset, OOffset, NOffset), (BatchSize, BSize, OSize, NSize))
 
             CCube = HyperRectangle(cube.offset, cube.dims)
 

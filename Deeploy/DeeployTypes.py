@@ -70,6 +70,8 @@ class CodeGenVerbosity:
     """
 
     tilingProfiling: Optional[str]  #: str: Specifies the name of the memory level on which to profile tiling
+    untilingProfiling: Optional[
+        bool] = None  #: str: Specifies the name of the memory level on which to profile untiling
 
 
 _NoVerbosity = CodeGenVerbosity(None)

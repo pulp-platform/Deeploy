@@ -25,13 +25,17 @@
 
 from typing import Tuple
 
-from Deeploy.DeeployTypes import CodeTransformationPass, ExecutionBlock, NetworkContext, NodeTemplate
+from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, \
+    NodeTemplate, _NoVerbosity
 
 
 class ProfilingCodeGeneration(CodeTransformationPass):
 
-    def apply(self, ctxt: NetworkContext, executionBlock: ExecutionBlock,
-              name: str) -> Tuple[NetworkContext, ExecutionBlock]:
+    def apply(self,
+              ctxt: NetworkContext,
+              executionBlock: ExecutionBlock,
+              name: str,
+              verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
         executionBlock.addLeft(NodeTemplate("""
         uint32_t ${op}_cycles = getCycles();
         """), {"op": name})

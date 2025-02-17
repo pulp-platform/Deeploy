@@ -222,6 +222,8 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
             command += " --overwriteRecentState"
         if self.args.debug:
             command += " --debug"
+        if hasattr(self.args, 'profileUntiling') and self.args.profileUntiling:
+            command += " --profileUntiling"
 
         if self.tiling_arguments:
             if self.args.defaultMemLevel:
@@ -303,6 +305,7 @@ class TestRunner():
 
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform} {self.gen_args}"
         command += self._argument_parser.generate_cmd_args()
+        print(command)
 
         if self._args.verbose >= 2:
             prBlue(f"[TestRunner] Generation Command: {command}")

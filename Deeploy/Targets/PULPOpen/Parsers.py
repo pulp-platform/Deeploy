@@ -29,7 +29,8 @@ from typing import Tuple
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.Targets.Generic.Parsers import GEMMParser, RQSConv1DParser, RQSConv2DParser, RQSParserInterface
+from Deeploy.Targets.Generic.Parsers import Conv2DParser, GEMMParser, RQSConv1DParser, RQSConv2DParser, \
+    RQSParserInterface
 
 
 class PULPConv2DParser(RQSConv2DParser):
@@ -47,9 +48,6 @@ class PULPConv2DParser(RQSConv2DParser):
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
-                #self.operatorRepresentation['pads'][0] == 0,
-                # Don't support dilations
-                #all([coeff == 1 for coeff in self.operatorRepresentation['dilations']]),
                 len(node.inputs) == 4,
                 'shift' in node.attrs,
             ])
@@ -80,6 +78,51 @@ class PULPConv2DParser(RQSConv2DParser):
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
+            return newCtxt, True
+
+        return ctxt, False
+
+
+class PULPFPConv2DParser(Conv2DParser):
+
+    def __init__(self, noBiasHoisting = True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        wellFormed = super().parseNode(node)
+        if wellFormed:
+            ret = all([
+                # Make sure padding is square
+                self.operatorRepresentation['group'] == 1,
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
+                self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+                len(node.inputs) == 2
+            ])
+
+            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
+            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
+            self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
+            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][1])
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
+            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
+
+            return ret
+        return False
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
             return newCtxt, True
 
         return ctxt, False

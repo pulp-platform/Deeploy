@@ -151,12 +151,13 @@ class AddLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-        outputShapes = inputShapes.copy()
+
         if len(inputShapes[0]) > len(inputShapes[1]):
             inputShapes[1] = inputShapes[0]
         else:
             inputShapes[0] = inputShapes[1]
 
+        outputShapes = [inputShapes[0]]
         return (inputShapes, outputShapes)
 
     def computeOps(self):
@@ -171,6 +172,27 @@ class MatMulLayer(ONNXLayer):
     def computeOps(self):
         return 2 * self.mapper.parser.operatorRepresentation['M'] * self.mapper.parser.operatorRepresentation[
             'N'] * self.mapper.parser.operatorRepresentation['O'] * self.mapper.parser.operatorRepresentation['batch']
+
+    def computeShapes(self, inputShapes: Tuple[Shape, Shape], outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Tuple[Shape, Shape], Shape]:
+
+        A_shape, B_shape = inputShapes
+        if len(A_shape) < 2:
+            A_shape = [1] * (2 - len(A_shape)) + A_shape
+
+        if len(B_shape) < 2:
+            B_shape = B_shape + [1] * (2 - len(B_shape))
+
+        if A_shape[-1] != B_shape[-2]:
+            raise ValueError(f"MatMul requires A.shape[-1] == B.shape[-2], but got {A_shape} and {B_shape}")
+
+        if len(A_shape) > len(B_shape):
+            B_shape = [1] * (len(A_shape) - len(B_shape)) + list(B_shape)
+
+        elif len(A_shape) < len(B_shape):
+            A_shape = [1] * (len(B_shape) - len(A_shape)) + list(A_shape)
+
+        return [A_shape, B_shape], outputShapes
 
 
 class RQMatMulLayer(MatMulLayer):

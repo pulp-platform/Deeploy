@@ -25,7 +25,7 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// GEMM (Name: ${nodeName}, Op: ${nodeOp})
+// Matmul (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
     ${A_type.typeName} ref_${data_out}_${A} = ${A};
     ${B_type.typeName} ref_${data_out}_${B} = ${B};

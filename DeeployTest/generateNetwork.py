@@ -40,6 +40,7 @@ from testUtils.typeMapping import inferInputType
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import EmulateCMSISRequantPass
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
+from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
 
 _TEXT_ALIGN = 30
 
@@ -54,6 +55,11 @@ if __name__ == '__main__':
     parser.add_argument('--overwriteRecentState',
                         action = 'store_true',
                         help = 'Copy the recent deeply state to the ./deeployStates folder\n')
+    parser.add_argument('--profileUntiling',
+                        action = 'store_true',
+                        dest = 'profileUntiling',
+                        default = False,
+                        help = 'Profile Untiling for L2\n')
 
     args = parser.parse_args()
 
@@ -104,8 +110,12 @@ if __name__ == '__main__':
     ) and not "simpleCNN" in args.dir and not "testRQMatMul" in args.dir and not "testRQGEMM" in args.dir:
         deployer.loweringOptimizer.passes.insert(0, EmulateCMSISRequantPass())
 
+    verbosityCfg = _NoVerbosity
+    if isinstance(platform, PULPPlatform):
+        verbosityCfg.untilingProfiling = args.profileUntiling
+
     # Parse graph and infer output levels and signedness
-    _ = deployer.generateFunction(verbose = _NoVerbosity)
+    _ = deployer.generateFunction(verbose = verbosityCfg)
 
     if args.overwriteRecentState:
         os.makedirs(f'./deeployStates/', exist_ok = True)
