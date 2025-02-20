@@ -207,15 +207,12 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               metavar = 'memAllocStrategy',
                               dest = 'memAllocStrategy',
                               type = str,
-                              default = "TetrisRandom",
+                              default = "MiniMalloc",
                               help = """Choose the memory allocation strategy, possible values are:
                             - TetrisRandom: Randomly sample an placement schedule (order) for the Tetris Memory Allocation.
                             - TetrisCo-Opt: Co-optimize the placement schedule with the tiling solver (works best with random-max solver strategy).
+                            - MiniMalloc: Use SotA static memory allocator from https://dl.acm.org/doi/10.1145/3623278.3624752
                         """)
-            self.add_argument(
-                '--plotMemAlloc',
-                action = 'store_false',
-                help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
             self.add_argument('--searchStrategy',
                               metavar = 'searchStrategy',
                               dest = 'searchStrategy',
@@ -226,6 +223,9 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                             - max: Initalize all variables at their maximal value.
                             - min: Initalize all variables at their minimal value.
                         """)
+            self.add_argument('--plotMemAlloc',
+                              action = 'store_false',
+                              help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
         self.args = None
 

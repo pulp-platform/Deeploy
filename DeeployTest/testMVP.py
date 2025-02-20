@@ -265,10 +265,11 @@ if __name__ == '__main__':
                         metavar = 'memAllocStrategy',
                         dest = 'memAllocStrategy',
                         type = str,
-                        default = "TetrisRandom",
+                        default = "MiniMalloc",
                         help = """Choose the memory allocation strategy, possible values are:
                             - TetrisRandom: Randomly sample an placement schedule (order) for the Tetris Memory Allocation.
                             - TetrisCo-Opt: Co-optimize the placement schedule with the tiling solver (works best with random-max solver strategy).
+                            - MiniMalloc: Use SotA static memory allocator from https://dl.acm.org/doi/10.1145/3623278.3624752
                         """)
     parser.add_argument('--searchStrategy',
                         metavar = 'searchStrategy',
