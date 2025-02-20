@@ -29,8 +29,8 @@
 # Like Template-T-Obj mapping, propagate cst, graph edition, etc
 
 import copy
-import os
 import csv
+import os
 import subprocess
 from typing import Dict, List, Literal, Optional, Tuple, Type, Union
 
@@ -39,7 +39,6 @@ import onnx_graphsurgeon as gs
 import plotly.graph_objects as go
 import plotly.io as pio
 from ortools.constraint_solver.pywrapcp import IntVar, SolutionCollector
-from pytablewriter import IpAddress
 
 import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
 from Deeploy.AbstractDataTypes import PointerClass
@@ -247,34 +246,46 @@ class Tiler():
 
         def minimalloc(memoryMap, ctxt, nodeMemoryConstraint, capacity: int, memoryLevel: str):
 
-            with open("test_minimalloc.csv", mode="w", newline="") as file:
-                writer = csv.writer(file, lineterminator="\n")
+            with open("test_minimalloc.csv", mode = "w", newline = "") as file:
+                writer = csv.writer(file, lineterminator = "\n")
                 writer.writerow(["id", "lower", "upper", "size"])
                 for memoryBlock in memoryMap:
-                    
+
                     _buffer = ctxt.lookup(memoryBlock.name)
                     if nodeMemoryConstraint is None:
-                        _bufferSize = _buffer.size if isinstance(_buffer, TransientBuffer) else np.prod(_buffer.shape)*(_buffer._type.referencedType.typeWidth/8)
+                        _bufferSize = _buffer.size if isinstance(
+                            _buffer,
+                            TransientBuffer) else np.prod(_buffer.shape) * (_buffer._type.referencedType.typeWidth / 8)
                     else:
                         if isinstance(_buffer, TransientBuffer):
-                            _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[memoryBlock.name].memoryConstraints[memoryLevel].size
+                            _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[
+                                memoryBlock.name].memoryConstraints[memoryLevel].size
                         else:
-                            _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[memoryBlock.name].memoryConstraints[memoryLevel].size*(_buffer._type.referencedType.typeWidth/8)*nodeMemoryConstraint.tensorMemoryConstraints[memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
+                            _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[
+                                memoryBlock.name].memoryConstraints[memoryLevel].size * (
+                                    _buffer._type.referencedType.typeWidth /
+                                    8) * nodeMemoryConstraint.tensorMemoryConstraints[
+                                        memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
 
-                    writer.writerow([memoryBlock.name, 
-                                        str(memoryBlock.lifetime[0]), 
-                                        str(memoryBlock.lifetime[1] + 1), 
-                                        str(int(_bufferSize))])
-            
+                    writer.writerow([
+                        memoryBlock.name,
+                        str(memoryBlock.lifetime[0]),
+                        str(memoryBlock.lifetime[1] + 1),
+                        str(int(_bufferSize))
+                    ])
+
             try:
                 minimallocInstallDir = os.environ["MINIMALLOC_INSTALL_DIR"]
             except KeyError:
                 raise KeyError("MINIMALLOC_INSTALL_DIR symbol not found!")
-            
-            subprocess.run([f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}", "--input=test_minimalloc.csv", "--output=output_minimalloc.csv"])
-            
+
+            subprocess.run([
+                f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}", "--input=test_minimalloc.csv",
+                "--output=output_minimalloc.csv"
+            ])
+
             # Read minimalloc output csv and convert back into memoryMap
-            with open("output_minimalloc.csv", mode="r", newline="") as file:
+            with open("output_minimalloc.csv", mode = "r", newline = "") as file:
                 reader = csv.reader(file)
                 header = next(reader)
                 for row in reader:
@@ -283,18 +294,23 @@ class Tiler():
                             memoryBlock._addrSpace = (int(row[-1]), int(row[-1]) + int(row[-2]))
 
             return memoryMap
-        
+
         # JUNGVI: TODO: Assert that the default memory level of tensors is uniform if using the MiniMalloc strategy
         # JUNGVI: TODO: Check for None in the output memory map of MiniMalloc (means unsolvable) also catch the core returned by minimalloc bin to check status
 
         if self.memoryAllocStrategy == "MiniMalloc":
             for memoryLevel in memoryMap.keys():
                 if memoryLevel == self.memoryHierarchy._defaultMemoryLevel.name:
-                    memoryMap[memoryLevel][-1] = minimalloc(memoryMap[memoryLevel][-1], ctxt, None, self.memoryHierarchy.memoryLevels[memoryLevel].size, memoryLevel)
+                    memoryMap[memoryLevel][-1] = minimalloc(memoryMap[memoryLevel][-1], ctxt, None,
+                                                            self.memoryHierarchy.memoryLevels[memoryLevel].size,
+                                                            memoryLevel)
                 else:
                     for idx, memMap in enumerate(memoryMap[memoryLevel]):
-                        if len(memoryMap[memoryLevel][idx]) != 0: # JUNGVI: TODO: Looks like memory map has always too much element by one
-                            memoryMap[memoryLevel][idx] = minimalloc(memMap, ctxt, tilingSchedule[idx].nodeConstraints[0], self.memoryHierarchy.memoryLevels[memoryLevel].size, memoryLevel)
+                        if len(memoryMap[memoryLevel]
+                               [idx]) != 0:  # JUNGVI: TODO: Looks like memory map has always too much element by one
+                            memoryMap[memoryLevel][idx] = minimalloc(
+                                memMap, ctxt, tilingSchedule[idx].nodeConstraints[0],
+                                self.memoryHierarchy.memoryLevels[memoryLevel].size, memoryLevel)
 
         for idx, pattern in enumerate(tilingSchedule):
             for nodeIdx, nodeConstraint in enumerate(pattern.nodeConstraints):
@@ -540,12 +556,10 @@ class Tiler():
             for nodeConstraint in constraint.nodeConstraints:
                 outerMemoryConstraints.addConstraint(nodeConstraint)
 
-
         if self.memoryAllocStrategy == "MiniMalloc":
-            self.outerMemoryScheduler.constraintTileBuffersWithOverlappingLifetime(tilerModel,
-                                                                                ctxt,
-                                                                                outerMemoryConstraints,
-                                                                                self.memoryHierarchy)
+            self.outerMemoryScheduler.constraintTileBuffersWithOverlappingLifetime(tilerModel, ctxt,
+                                                                                   outerMemoryConstraints,
+                                                                                   self.memoryHierarchy)
 
         for level in self.memoryHierarchy.memoryLevels.keys():
             self.outerMemoryScheduler.scheduleMemoryConstraints(tilerModel, ctxt, [outerMemoryConstraints],

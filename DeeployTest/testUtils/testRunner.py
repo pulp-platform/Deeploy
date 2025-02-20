@@ -223,9 +223,10 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                             - max: Initalize all variables at their maximal value.
                             - min: Initalize all variables at their minimal value.
                         """)
-            self.add_argument('--plotMemAlloc',
-                              action = 'store_false',
-                              help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
+            self.add_argument(
+                '--plotMemAlloc',
+                action = 'store_false',
+                help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
         self.args = None
 
