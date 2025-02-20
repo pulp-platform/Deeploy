@@ -46,6 +46,7 @@ jobs:
           echo '${{ inputs.tests-config }}' > tests.json
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
+          export MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
           source /app/install/pulp-sdk/configs/siracusa.sh
 
           jq -c '.[]' tests.json | while read test; do

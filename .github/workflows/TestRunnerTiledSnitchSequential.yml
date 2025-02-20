@@ -47,6 +47,7 @@ jobs:
           echo '${{ inputs.tests-config }}' > tests.json
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
+          export MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
           echo "$simulators" | while IFS= read -r simulator; do
             if [[ -n "$simulator" ]]; then
               jq -c '.[]' tests.json | while read test; do
