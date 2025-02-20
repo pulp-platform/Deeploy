@@ -62,21 +62,10 @@ RUSTUP_CARGO ?= $$(rustup which cargo)
 all: toolchain emulators docs echo-bash
 
 echo-bash:
-	@echo "Please export the following symbols:"
-	@echo "PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
-	@echo "SNITCH_HOME=${SNITCH_INSTALL_DIR}"
-	@echo "LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
-	@echo "CMAKE=$$(which cmake)"
-
-	@echo "Please add the following paths to your PATH variable:"
-	@echo "${QEMU_INSTALL_DIR}/bin"
-	@echo "${BANSHEE_INSTALL_DIR}"
-
-	@echo "For PULP to work, please source the following file:"
-	@echo "${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
 
 	@echo ""
-	@echo "TL/DR: add these lines to run ~/.bashrc"
+	@echo "The following symbols need to be exported for Deeploy to work properly:"
+	@echo "export MINIMALLOC_INSTALL_DIR=${MINIMALLOC_INSTALL_DIR}"
 	@echo "export PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
 	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
 	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
