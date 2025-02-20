@@ -533,18 +533,19 @@ class MemoryScheduler():
                             _typeWidthFactor = int(_buffer._type.referencedType.typeWidth/8)
                         else:
                             _typeWidthFactor = 1
-                        
+
                         tileMemoryConstraint[tensorMemoryConstraints.tensorName] = {
                             "sizeVar": memoryConstraint.size,
                             "typeWidthFactor": _typeWidthFactor,
                             "memoryLevel": memoryConstraint.memoryLevel,
+                            "multiBufferCoeff": memoryConstraint.multiBufferCoefficient,
                         }
 
             for memoryLevel in memoryHierarchy.memoryLevels.values():
                 sumExpr = 0
                 for infoDict in tileMemoryConstraint.values():
                     if memoryLevel.name == infoDict['memoryLevel']:
-                        sumExpr += infoDict['sizeVar']*infoDict['typeWidthFactor']
+                        sumExpr += infoDict['sizeVar']*infoDict['typeWidthFactor']*infoDict['multiBufferCoeff']
                 if sumExpr != 0:
                     tilerModel.addConstraint(sumExpr <= memoryLevel.size)
 

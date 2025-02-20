@@ -259,7 +259,7 @@ class Tiler():
                         if isinstance(_buffer, TransientBuffer):
                             _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[memoryBlock.name].memoryConstraints[memoryLevel].size
                         else:
-                            _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[memoryBlock.name].memoryConstraints[memoryLevel].size*(_buffer._type.referencedType.typeWidth/8)
+                            _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[memoryBlock.name].memoryConstraints[memoryLevel].size*(_buffer._type.referencedType.typeWidth/8)*nodeMemoryConstraint.tensorMemoryConstraints[memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
 
                     writer.writerow([memoryBlock.name, 
                                         str(memoryBlock.lifetime[0]), 
@@ -539,6 +539,7 @@ class Tiler():
         for constraint in allMemoryConstraints:
             for nodeConstraint in constraint.nodeConstraints:
                 outerMemoryConstraints.addConstraint(nodeConstraint)
+
 
         if self.memoryAllocStrategy == "MiniMalloc":
             self.outerMemoryScheduler.constraintTileBuffersWithOverlappingLifetime(tilerModel,
