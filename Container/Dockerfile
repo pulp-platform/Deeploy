@@ -124,6 +124,7 @@ ENV PULP_SDK_HOME=/app/install/pulp-sdk
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV SNITCH_HOME=/app/install/snitch_cluster
 ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
+ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
 ENV MEMPOOL_HOME=/app/install/mempool
 ENV PATH=/app/install/qemu/bin:/app/install/banshee:$PATH
 ENV PATH="/root/.cargo/bin:${PATH}"
