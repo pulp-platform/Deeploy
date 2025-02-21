@@ -67,6 +67,9 @@ class Tiler():
     arenaName = "MEMORYARENA"
     memorySchedulerClass: Type[MemoryScheduler] = MemoryScheduler
 
+    _MINIMALLOC_INPUT_FILENAME = "input_minimalloc"
+    _MINIMALLOC_OUTPUT_FILENAME = "output_minimalloc"
+
     # Initialize with the list of TemplateTCFbinding
     def __init__(self, memoryHierarchy: MemoryHierarchy):
 
@@ -227,26 +230,10 @@ class Tiler():
                     _buffer.deallocTemplate = _deallocTemplate
 
         return ctxt
+    
+    def minimalloc(self, memoryMap, ctxt, nodeMemoryConstraint, capacity: int, memoryLevel: str):
 
-    def computeTilingSchedule(self, ctxt: NetworkContext) -> Tuple[TilingSolution, Dict[str, List[List[MemoryBlock]]]]:
-
-        assert self.tilerModel is not None and self.symbolicMemoryConstraints is not None, "Set up the model before trying to compute a schedule!"
-
-        collector = self.tilerModel.trySolveModel()
-        tilingSchedule = self._getTilingSolution(self.tilerModel, ctxt, collector, self.symbolicMemoryConstraints)
-
-        if not self.memoryAllocStrategy == "MiniMalloc":
-            self.innerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
-            self.outerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
-
-        memoryMap = {}
-
-        for key in self.innerMemoryScheduler.memoryMap.keys():
-            memoryMap[key] = [*self.innerMemoryScheduler.memoryMap[key], *self.outerMemoryScheduler.memoryMap[key]]
-
-        def minimalloc(memoryMap, ctxt, nodeMemoryConstraint, capacity: int, memoryLevel: str):
-
-            with open("test_minimalloc.csv", mode = "w", newline = "") as file:
+            with open(f"{self._MINIMALLOC_INPUT_FILENAME}.csv", mode = "w", newline = "") as file:
                 writer = csv.writer(file, lineterminator = "\n")
                 writer.writerow(["id", "lower", "upper", "size"])
                 for memoryBlock in memoryMap:
@@ -279,13 +266,16 @@ class Tiler():
             except KeyError:
                 raise KeyError("MINIMALLOC_INSTALL_DIR symbol not found!")
 
-            subprocess.run([
-                f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}", "--input=test_minimalloc.csv",
-                "--output=output_minimalloc.csv"
-            ])
+            minimallocOutput = subprocess.run([
+                f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}", f"--input={self._MINIMALLOC_INPUT_FILENAME}.csv",
+                f"--output={self._MINIMALLOC_OUTPUT_FILENAME}.csv"
+            ], capture_output=True, text=True)
 
-            # Read minimalloc output csv and convert back into memoryMap
-            with open("output_minimalloc.csv", mode = "r", newline = "") as file:
+            if minimallocOutput.returncode != 0:
+                print(f"\033[91mError: Memory allocator failed with return code {minimallocOutput.returncode} at memory level {memoryLevel} with capacity of {capacity} bytes \033[0m")
+                raise subprocess.CalledProcessError(minimallocOutput.returncode, " ".join(minimallocOutput.args))
+
+            with open(f"{self._MINIMALLOC_OUTPUT_FILENAME}.csv", mode = "r", newline = "") as file:
                 reader = csv.reader(file)
                 header = next(reader)
                 for row in reader:
@@ -293,24 +283,40 @@ class Tiler():
                         if memoryBlock.name == row[0]:
                             memoryBlock._addrSpace = (int(row[-1]), int(row[-1]) + int(row[-2]))
 
+            # JUNGVI: TODO: Assert that the default memory level of tensors is uniform if using the MiniMalloc strategy
             return memoryMap
 
-        # JUNGVI: TODO: Assert that the default memory level of tensors is uniform if using the MiniMalloc strategy
-        # JUNGVI: TODO: Check for None in the output memory map of MiniMalloc (means unsolvable) also catch the core returned by minimalloc bin to check status
+
+    def computeTilingSchedule(self, ctxt: NetworkContext) -> Tuple[TilingSolution, Dict[str, List[List[MemoryBlock]]]]:
+
+        assert self.tilerModel is not None and self.symbolicMemoryConstraints is not None, "Set up the model before trying to compute a schedule!"
+
+        collector = self.tilerModel.trySolveModel()
+        tilingSchedule = self._getTilingSolution(self.tilerModel, ctxt, collector, self.symbolicMemoryConstraints)
+
+        if not self.memoryAllocStrategy == "MiniMalloc":
+            self.innerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
+            self.outerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
+
+        memoryMap = {}
+
+        for key in self.innerMemoryScheduler.memoryMap.keys():
+            memoryMap[key] = [*self.innerMemoryScheduler.memoryMap[key], *self.outerMemoryScheduler.memoryMap[key]]
 
         if self.memoryAllocStrategy == "MiniMalloc":
             for memoryLevel in memoryMap.keys():
                 if memoryLevel == self.memoryHierarchy._defaultMemoryLevel.name:
-                    memoryMap[memoryLevel][-1] = minimalloc(memoryMap[memoryLevel][-1], ctxt, None,
+                    memoryMap[memoryLevel][-1] = self.minimalloc(memoryMap[memoryLevel][-1], ctxt, None,
                                                             self.memoryHierarchy.memoryLevels[memoryLevel].size,
                                                             memoryLevel)
                 else:
                     for idx, memMap in enumerate(memoryMap[memoryLevel]):
                         if len(memoryMap[memoryLevel]
-                               [idx]) != 0:  # JUNGVI: TODO: Looks like memory map has always too much element by one
-                            memoryMap[memoryLevel][idx] = minimalloc(
+                               [idx]) != 0:
+                            memoryMap[memoryLevel][idx] = self.minimalloc(
                                 memMap, ctxt, tilingSchedule[idx].nodeConstraints[0],
                                 self.memoryHierarchy.memoryLevels[memoryLevel].size, memoryLevel)
+            print(f"\033[92mMemory allocation sucessful!\033[0m")
 
         for idx, pattern in enumerate(tilingSchedule):
             for nodeIdx, nodeConstraint in enumerate(pattern.nodeConstraints):

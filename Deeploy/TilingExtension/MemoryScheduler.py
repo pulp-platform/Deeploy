@@ -115,7 +115,7 @@ class MemoryScheduler():
 
         return overlap
 
-    def __init__(self, stringSuffix: str, tileScheduler: bool, seed: int = 19960801):
+    def __init__(self, stringSuffix: str, tileScheduler: bool, seed: int = 1996080121):
         self._stringSuffix = stringSuffix
         self.stringSuffix = ""
         self.tileScheduler = tileScheduler
