@@ -287,7 +287,6 @@ class Tiler():
                     if memoryBlock.name == row[0]:
                         memoryBlock._addrSpace = (int(row[-1]), int(row[-1]) + int(row[-2]))
 
-        # JUNGVI: TODO: Assert that the default memory level of tensors is uniform if using the MiniMalloc strategy
         return memoryMap
 
     def computeTilingSchedule(self, ctxt: NetworkContext) -> Tuple[TilingSolution, Dict[str, List[List[MemoryBlock]]]]:

@@ -518,7 +518,6 @@ class MemoryScheduler():
         #   1. All tile buffers for each node have overlapping lifetime, so we can find their memory footprint by just summing their sizes and hence we don't need to know the specific memory allocation. This assumption is true as soon as we don't do tile several nodes together (ask me if you don't know what I mean here).
         #   2. We don't allocate the tensors of the graph in the same memory level than the tiles (for instance we put all tensor in L2 and the tiles only live in L1).
 
-        # JUNGVI: TODO: Separate by memory level here, most likely make a dedicated function outside
         for nodeConstraint in patternMemoryConstraint.nodeConstraints:
             tileMemoryConstraint = {}
 
