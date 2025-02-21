@@ -14,6 +14,14 @@ on:
         required: false
         default: "L2"
         type: string
+      memory-allocation-strategy:
+          required: false
+          default: "MiniMalloc"
+          type: string
+      search-strategy:
+          required: false
+          default: "random-max"
+          type: string
       simulators:
         required: true
         type: string
@@ -47,7 +55,6 @@ jobs:
           echo '${{ inputs.tests-config }}' > tests.json
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          export MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
           echo "$simulators" | while IFS= read -r simulator; do
             if [[ -n "$simulator" ]]; then
               jq -c '.[]' tests.json | while read test; do
@@ -55,7 +62,7 @@ jobs:
                 L1_values=$(echo "$test" | jq -r '.L1[]')
                 for L1_value in $L1_values; do
                   echo "Running test: $testName with L1: $L1_value using $simulator"
-                  python testRunner_tiled_snitch.py -t Tests/$testName --cores=${{ inputs.num-cores }} --simulator=$simulator --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} --toolchain_install_dir /app/install/riscv-llvm/
+                  python testRunner_tiled_snitch.py -t Tests/$testName --cores=${{ inputs.num-cores }} --simulator=$simulator --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} --toolchain_install_dir /app/install/riscv-llvm/ --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
                 done
               done
             fi
