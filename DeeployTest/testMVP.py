@@ -356,7 +356,7 @@ if __name__ == '__main__':
     if args.shouldFail:
         with pytest.raises(Exception):
             _ = deployer.generateFunction(verbosityCfg)
-        
+
         print("\033[92mCode Generation test ended, failed as expected!\033[0m")
         sys.exit(0)
     else:
