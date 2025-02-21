@@ -194,6 +194,12 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               type = int,
                               default = 64000,
                               help = 'Set L1 size\n')
+            self.add_argument('--l2',
+                              metavar = '<size>',
+                              dest = 'l2',
+                              type = int,
+                              default = 512000,
+                              help = 'Set L2 size\n')
             self.add_argument('--randomizedMemoryScheduler',
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
@@ -255,6 +261,8 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                 command += " --doublebuffer"
             if self.args.l1:
                 command += f" --l1={self.args.l1}"
+            if self.args.l2:
+                command += f" --l2={self.args.l2}"
             if self.args.randomizedMemoryScheduler:
                 command += " --randomizedMemoryScheduler"
             if self.args.profileTiling is not None:
