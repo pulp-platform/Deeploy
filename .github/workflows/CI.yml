@@ -662,6 +662,25 @@ jobs:
 
 
   ### Deeploy Extension and Internal Tests ###
+  deeploy-memory-allocation:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/victor-jung/deeploy:main
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testMVP.py -d /scratch/jungvi/Deeploy/DeeployTest/TEST_SIRACUSA/Tests/CCT/CCT_16_16_8 -t Tests/CCT/CCT_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=40000 --memAllocStrategy=MiniMalloc
+          python testMVP.py -d /scratch/jungvi/Deeploy/DeeployTest/TEST_SIRACUSA/Tests/CCT/CCT_16_16_8 -t Tests/CCT/CCT_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=30000 --memAllocStrategy=MiniMalloc --shouldFail
+          python testMVP.py -d /scratch/jungvi/Deeploy/DeeployTest/TEST_SIRACUSA/Tests/CCT/CCT_16_16_8 -t Tests/CCT/CCT_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=80000 --memAllocStrategy=TetrisRandom
+          python testMVP.py -d /scratch/jungvi/Deeploy/DeeployTest/TEST_SIRACUSA/Tests/CCT/CCT_16_16_8 -t Tests/CCT/CCT_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=40000 --memAllocStrategy=TetrisRandom --shouldFail
+
   deeploy-state-serialization:
     runs-on: ubuntu-22.04
     container:
