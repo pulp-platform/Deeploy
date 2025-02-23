@@ -114,7 +114,7 @@ void main(void) {
       diff = expected - actual;
       if (ISOUTPUTFLOAT)
       {
-        if ((diff < -1e-4) || (diff > 1e-4))
+        if ((diff < -1e-4) || (diff > 1e-4) || (isnan(diff)))
         {
           tot_err += 1;
           printf("Expected: %10.6f  ", expected);

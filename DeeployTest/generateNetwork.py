@@ -55,6 +55,11 @@ if __name__ == '__main__':
     parser.add_argument('--overwriteRecentState',
                         action = 'store_true',
                         help = 'Copy the recent deeply state to the ./deeployStates folder\n')
+    parser.add_argument('--profileUntiled',
+                        action = 'store_true',
+                        dest = 'profileUntiled',
+                        default = False,
+                        help = 'Profile Untiled for L2\n')
 
     args = parser.parse_args()
 
@@ -104,6 +109,10 @@ if __name__ == '__main__':
             platform, CMSISPlatform
     ) and not "simpleCNN" in args.dir and not "testRQMatMul" in args.dir and not "testRQGEMM" in args.dir:
         deployer.loweringOptimizer.passes.insert(0, EmulateCMSISRequantPass())
+
+    verbosityCfg = _NoVerbosity
+    if isinstance(platform, PULPPlatform):
+        verbosityCfg.untiledProfiling = args.profileUntiled
 
     # Parse graph and infer output levels and signedness
     _ = deployer.generateFunction(verbose = verbosityCfg)

@@ -38,19 +38,20 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import ConcatTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatLayernormTemplate, FloatMatMulTemplate, FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
-    GatherTemplate, RQSiGELUTemplate, iHardswishTemplate
+    FloatLayernormTemplate, FloatMatMulTemplate, FloatMulTemplate, FloatReluTemplate, GatherTemplate, \
+    RQSiGELUTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, GatherChecker, GELUChecker, GEMMChecker, \
     HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, ReduceMeanChecker, ReluChecker, RQAddChecker, \
     RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
+from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
-from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatConvTemplate, FloatMaxPoolTemplate, GEMMTemplate, \
-    MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, RQAddTemplate, \
-    RQSiHardswishTemplate, SliceTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate
+from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatConvTemplate, FloatMaxPoolTemplate, \
+    FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, \
+    RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SliceTemplate, TallGEMMTemplate, TransposeTemplate, \
+    UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
@@ -118,6 +119,7 @@ ForkTransformer = CodeTransformation([
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacement("L2"),
     PULPL3Tiling("L2"),
+    PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
     MemoryManagementGeneration("L3.*"),
@@ -134,6 +136,7 @@ ClusterTransformer = CodeTransformation([
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacement("L2"),
     PULPL3Tiling("L2"),
+    PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
     MemoryManagementGeneration("L2"),

@@ -333,7 +333,6 @@ class TestRunner():
 
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform} {self.gen_args}"
         command += self._argument_parser.generate_cmd_args()
-        print(command)
 
         if self._args.verbose >= 2:
             prBlue(f"[TestRunner] Generation Command: {command}")

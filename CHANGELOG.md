@@ -136,7 +136,7 @@ Change main.c to use OUTPUTTYPE instead of float
 - CCT onnx tests with img size of 16 and 32
 
 ### Fixed
-- CycleMeasure Pass for Siracusa Untiling Profilling
+- CycleMeasure Pass for Siracusa Untiled Profilling
 - GEMM Tiling Constraints transA and `transB' not supported
 - MatMul layer Multi-Dimensional Input Issue
 - Add Layer for Broadcasted Bias
@@ -160,3 +160,18 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ### Fixed
 - Fixed a bug in the MemoryScheduler where the CP problem was solved more time that it was needed.
+
+## Fix Float CCT Bugs on L3
+
+### Added
+- Added multiple CCT settings for testing.
+- Added CCT L3 test to CI to ensure correctness for img size of 16 and 32.
+- Added NaN check for deeploytest diff to improve result validation.
+
+### Changed
+- Regenerated CCT ONNX files without "output" & "input" in their names to avoid triggering the dumphex parser bug.
+- Regenerated CCT ONNX file with 3 branches for attention, transforming the attention computation graph into three branches.
+- Changed code generation for Hex output to properly handle float values.
+
+### Fixed
+- Updated printinput nodetemplate for float handling.
