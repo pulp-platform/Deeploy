@@ -142,3 +142,8 @@ Change main.c to use OUTPUTTYPE instead of float
 - MatMul layer Multi-Dimensional Input Issue
 - Add Layer for Broadcasted Bias
 - Resolved an issue where concatenation of float32 with f caused inf errors during code generation
+
+## Add CODEOWNERS
+
+### Added
+- CODEOWNERS file to control who is responsible for reviewing future PRs.
