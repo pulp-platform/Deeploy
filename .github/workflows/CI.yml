@@ -13,7 +13,7 @@ jobs:
   build-deeploy:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/victor-jung/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -660,7 +660,7 @@ jobs:
   deeploy-state-serialization:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/victor-jung/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -680,7 +680,7 @@ jobs:
   deeploy-memory-level-extension:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/victor-jung/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -700,7 +700,7 @@ jobs:
   deeploy-tiler-extension:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/victor-jung/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -724,7 +724,7 @@ jobs:
   deeploy-memory-allocation-extension:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/victor-jung/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -746,7 +746,7 @@ jobs:
   deeploy-typing:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/victor-jung/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -763,7 +763,7 @@ jobs:
   deeploy-regex-matching:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/victor-jung/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -780,7 +780,7 @@ jobs:
   linting:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/victor-jung/deeploy:main
+      image: ghcr.io/pulp-platform/deeploy:main
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
