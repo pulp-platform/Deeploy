@@ -32,7 +32,7 @@ import copy
 import csv
 import os
 import subprocess
-from typing import Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import Dict, List, Literal, Optional, Tuple, Type, Union, OrderedDict
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -364,7 +364,7 @@ class Tiler():
 
         return tilingSchedule, memoryMap
 
-    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
+    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: OrderedDict[str, ONNXLayer],
                    targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
 
         wrapSchedule: List[SubGraph] = []
@@ -497,7 +497,7 @@ class Tiler():
 
         for idx, pattern in enumerate(schedule):
             subGraph = gs.Graph(nodes = pattern)
-            subgraphTensors: 'OrderedDict[str, gs.Tensor]' = subGraph.tensors(check_duplicates = True)
+            subgraphTensors: OrderedDict[str, gs.Tensor] = subGraph.tensors(check_duplicates = True)
 
             for _, tensor in subgraphTensors.items():
                 if not ctxt.lookup(tensor.name)._deploy:
@@ -508,7 +508,7 @@ class Tiler():
         return tilerModel
 
     def _setupGeometricConstraints(self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-                                   layerBinding: 'OrderedDict[str, ONNXLayer]') -> TilerModel:
+                                   layerBinding: OrderedDict[str, ONNXLayer]) -> TilerModel:
 
         # SCHEREMO: Each pattern is a decoupled sub-problem w.r.t the geometric constraints.
         # We need to regenerate dimension variables for each tensor
@@ -571,7 +571,7 @@ class Tiler():
 
     def _setupMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: 'OrderedDict[str, ONNXLayer]',
+            layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
@@ -611,7 +611,7 @@ class Tiler():
 
     def _generateAllMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: 'OrderedDict[str, ONNXLayer]',
+            layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> List[PatternMemoryConstraints]:
 
         dynamicTensorConstraints, constantTensorConstraints = self._generateMemoryConstraints(
@@ -631,7 +631,7 @@ class Tiler():
 
     def _generateMemoryConstraints(
         self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-        layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping
+        layerBinding: OrderedDict[str, ONNXLayer], targetMemoryLevelMapping: TargetMemoryLevelMapping
     ) -> Tuple[List[PatternMemoryConstraints], NodeMemoryConstraint]:
 
         # SCHEREMO: Construct non-double-buffered constraints of local variable buffers
@@ -796,7 +796,7 @@ class Tiler():
 
     def _generateVariableBufferConstraints(
         self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-        layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping
+        layerBinding: OrderedDict[str, ONNXLayer], targetMemoryLevelMapping: TargetMemoryLevelMapping
     ) -> Tuple[List[PatternMemoryConstraints], List[PatternMemoryConstraints]]:
 
         def deltaFlow(
@@ -868,7 +868,7 @@ class Tiler():
         return outerMemConstraints, innerMemConstraints
 
     def _generatePatternStepTransientBufferConstraints(
-            self, tilerModel: TilerModel, ctxt: NetworkContext, layerBinding: 'OrderedDict[str, ONNXLayer]',
+            self, tilerModel: TilerModel, ctxt: NetworkContext, layerBinding: OrderedDict[str, ONNXLayer],
             step: gs.Node, targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NodeMemoryConstraint:
 
         patternStepTransientBufferSizes = NodeMemoryConstraint()
