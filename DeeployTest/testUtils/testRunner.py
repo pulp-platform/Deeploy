@@ -198,7 +198,7 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               metavar = '<size>',
                               dest = 'l2',
                               type = int,
-                              default = 512000,
+                              default = 1024000,
                               help = 'Set L2 size\n')
             self.add_argument('--randomizedMemoryScheduler',
                               action = "store_true",

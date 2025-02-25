@@ -33,10 +33,9 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
-from Deeploy.DeeployTypes import VariableBuffer
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     _permuteList
-from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
 from Deeploy.TilingExtension.MemoryConstraints import PatternMemoryConstraints, TensorMemoryConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
@@ -433,7 +432,8 @@ class MemoryScheduler():
         constantTensorSize = 0
         for buffer in ctxt.globalObjects.values():
             # JUNGVI: TODO: Once I/O have finite lifetime we can just check for ConstantBuffer here
-            if not "MEMORYARENA" in buffer.name and isinstance(buffer, VariableBuffer) and buffer._memoryLevel == memoryLevel:
+            if not "MEMORYARENA" in buffer.name and isinstance(buffer,
+                                                               VariableBuffer) and buffer._memoryLevel == memoryLevel:
                 constantTensorSize += np.prod(buffer.shape) * buffer._type.referencedType.typeWidth // 8
 
         return int(constantTensorSize)

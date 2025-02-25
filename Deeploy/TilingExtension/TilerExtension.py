@@ -32,7 +32,7 @@ import copy
 import csv
 import os
 import subprocess
-from typing import Dict, List, Literal, Optional, Tuple, Type, Union, OrderedDict
+from typing import Dict, List, Literal, Optional, OrderedDict, Tuple, Type, Union
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -89,7 +89,8 @@ class Tiler():
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
 
-    def plotMemoryAlloc(self, memoryMap: Dict[str, List[List[MemoryBlock]]],
+    def plotMemoryAlloc(self,
+                        memoryMap: Dict[str, List[List[MemoryBlock]]],
                         ctxt: NetworkContext,
                         deeployStateDir: str,
                         defaultMemoryLevel: MemoryLevel,
@@ -115,20 +116,24 @@ class Tiler():
         fig = go.Figure()
 
         # JUNGVI: Currently I/O have infinite lifetime, will change that soon...
-        infiniteLifetimeBuffers = [buffer for buffer in ctxt.globalObjects.values() if not self.arenaName in buffer.name and isinstance(buffer, VariableBuffer)]
+        infiniteLifetimeBuffers = [
+            buffer for buffer in ctxt.globalObjects.values()
+            if not self.arenaName in buffer.name and isinstance(buffer, VariableBuffer)
+        ]
 
         constantBuffersOffset = 0
         for ioBuffers in infiniteLifetimeBuffers:
             _ioSize = np.prod(ioBuffers.shape) * ioBuffers._type.referencedType.typeWidth // 8
             _maxLifetime = len(memoryMap[defaultMemoryLevel.name])
             fig.add_trace(
-                go.Scatter(x = [
-                    -0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5
-                ],
-                y = [constantBuffersOffset, constantBuffersOffset + _ioSize, constantBuffersOffset + _ioSize, constantBuffersOffset],
-                name = ioBuffers.name,
-                text = ioBuffers.name,
-                **addTraceConfig))
+                go.Scatter(x = [-0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5],
+                           y = [
+                               constantBuffersOffset, constantBuffersOffset + _ioSize, constantBuffersOffset + _ioSize,
+                               constantBuffersOffset
+                           ],
+                           name = ioBuffers.name,
+                           text = ioBuffers.name,
+                           **addTraceConfig))
             constantBuffersOffset += _ioSize
 
         for buffer in memoryMap[defaultMemoryLevel.name][-1]:
@@ -137,11 +142,16 @@ class Tiler():
                     buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
                     buffer._lifetime[1] + 0.5
                 ],
-                y = [constantBuffersOffset + buffer._addrSpace[0], constantBuffersOffset + buffer._addrSpace[1], constantBuffersOffset + buffer._addrSpace[1], constantBuffersOffset + buffer._addrSpace[0]],
-                name = buffer.name,
-                text = buffer.name,
-                **addTraceConfig))
-        
+                           y = [
+                               constantBuffersOffset + buffer._addrSpace[0],
+                               constantBuffersOffset + buffer._addrSpace[1],
+                               constantBuffersOffset + buffer._addrSpace[1],
+                               constantBuffersOffset + buffer._addrSpace[0]
+                           ],
+                           name = buffer.name,
+                           text = buffer.name,
+                           **addTraceConfig))
+
         fig.add_trace(
             go.Scatter(
                 x = [-0.5, len(memoryMap[defaultMemoryLevel.name]) - 1.5],
@@ -328,9 +338,9 @@ class Tiler():
             for memoryLevel in memoryMap.keys():
                 constantTensorOffset = self.outerMemoryScheduler.getConstantTensorOffset(ctxt, memoryLevel)
                 if memoryLevel == self.memoryHierarchy._defaultMemoryLevel.name:
-                    memoryMap[memoryLevel][-1] = self.minimalloc(memoryMap[memoryLevel][-1], ctxt, None,
-                                                                 self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset,
-                                                                 memoryLevel)
+                    memoryMap[memoryLevel][-1] = self.minimalloc(
+                        memoryMap[memoryLevel][-1], ctxt, None,
+                        self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset, memoryLevel)
                 else:
                     for idx, memMap in enumerate(memoryMap[memoryLevel]):
                         if len(memoryMap[memoryLevel][idx]) != 0:
