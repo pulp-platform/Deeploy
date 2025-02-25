@@ -44,7 +44,7 @@ import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
 from Deeploy.DeeployTypes import ConstantBuffer, GlobalDefinition, NetworkContext, NodeBinding, NodeTemplate, \
-    ONNXLayer, Schedule, SubGraph, TransientBuffer
+    ONNXLayer, Schedule, SubGraph, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
@@ -89,8 +89,8 @@ class Tiler():
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
 
-    @staticmethod
-    def plotMemoryAlloc(memoryMap: Dict[str, List[List[MemoryBlock]]],
+    def plotMemoryAlloc(self, memoryMap: Dict[str, List[List[MemoryBlock]]],
+                        ctxt: NetworkContext,
                         deeployStateDir: str,
                         defaultMemoryLevel: MemoryLevel,
                         targetMemLevelName: str = 'L1'):
@@ -105,7 +105,7 @@ class Tiler():
 
         updateLayoutConfig = {
             "xaxis_title": "Lifetime",
-            "yaxis_title": "Address Space",
+            "yaxis_title": "Address Space (Bytes)",
             "xaxis": dict(tickformat = "d", showgrid = True),
             "yaxis": dict(tickformat = "d", showgrid = True),
             "hovermode": "closest",
@@ -113,16 +113,35 @@ class Tiler():
         }
 
         fig = go.Figure()
+
+        # JUNGVI: Currently I/O have infinite lifetime, will change that soon...
+        infiniteLifetimeBuffers = [buffer for buffer in ctxt.globalObjects.values() if not self.arenaName in buffer.name and isinstance(buffer, VariableBuffer)]
+
+        constantBuffersOffset = 0
+        for ioBuffers in infiniteLifetimeBuffers:
+            _ioSize = np.prod(ioBuffers.shape) * ioBuffers._type.referencedType.typeWidth // 8
+            _maxLifetime = len(memoryMap[defaultMemoryLevel.name][-1])
+            fig.add_trace(
+                go.Scatter(x = [
+                    -0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5
+                ],
+                y = [constantBuffersOffset, constantBuffersOffset + _ioSize, constantBuffersOffset + _ioSize, constantBuffersOffset],
+                name = ioBuffers.name,
+                text = ioBuffers.name,
+                **addTraceConfig))
+            constantBuffersOffset += _ioSize
+
         for buffer in memoryMap[defaultMemoryLevel.name][-1]:
             fig.add_trace(
                 go.Scatter(x = [
                     buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
                     buffer._lifetime[1] + 0.5
                 ],
-                           y = [buffer._addrSpace[0], buffer._addrSpace[1], buffer._addrSpace[1], buffer._addrSpace[0]],
-                           name = buffer.name,
-                           text = buffer.name,
-                           **addTraceConfig))
+                y = [constantBuffersOffset + buffer._addrSpace[0], constantBuffersOffset + buffer._addrSpace[1], constantBuffersOffset + buffer._addrSpace[1], constantBuffersOffset + buffer._addrSpace[0]],
+                name = buffer.name,
+                text = buffer.name,
+                **addTraceConfig))
+        
         fig.add_trace(
             go.Scatter(
                 x = [-0.5, len(memoryMap[defaultMemoryLevel.name]) - 1.5],
@@ -928,9 +947,8 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
                                   layerBinding = self.layerBinding,
                                   targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
-
             if self.tiler.visualizeMemoryAlloc:
-                self.tiler.plotMemoryAlloc(memoryMap, self.deeployStateDir,
+                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,
                                            self.Platform.memoryHierarchy._defaultMemoryLevel)
 
         # SCHEREMO: Annotate execution block with solution
