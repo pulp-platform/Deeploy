@@ -250,7 +250,7 @@ if __name__ == '__main__':
                         help = 'Adds EXPERIMENTAL support for strided convolutions on N-EUREKA\n')
     parser.add_argument('--doublebuffer', action = 'store_true')
     parser.add_argument('--l1', metavar = 'l1', dest = 'l1', type = int, default = 64000, help = 'Set L1 size\n')
-    parser.add_argument('--l2', metavar = 'l2', dest = 'l2', type = int, default = 512000, help = 'Set L2 size\n')
+    parser.add_argument('--l2', metavar = 'l2', dest = 'l2', type = int, default = 1024000, help = 'Set L2 size\n')
     parser.add_argument('--shouldFail', action = 'store_true')
     parser.add_argument('--overwriteRecentState',
                         action = 'store_true',

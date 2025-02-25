@@ -120,7 +120,7 @@ class Tiler():
         constantBuffersOffset = 0
         for ioBuffers in infiniteLifetimeBuffers:
             _ioSize = np.prod(ioBuffers.shape) * ioBuffers._type.referencedType.typeWidth // 8
-            _maxLifetime = len(memoryMap[defaultMemoryLevel.name][-1])
+            _maxLifetime = len(memoryMap[defaultMemoryLevel.name])
             fig.add_trace(
                 go.Scatter(x = [
                     -0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5
@@ -326,16 +326,17 @@ class Tiler():
 
         if self.memoryAllocStrategy == "MiniMalloc":
             for memoryLevel in memoryMap.keys():
+                constantTensorOffset = self.outerMemoryScheduler.getConstantTensorOffset(ctxt, memoryLevel)
                 if memoryLevel == self.memoryHierarchy._defaultMemoryLevel.name:
                     memoryMap[memoryLevel][-1] = self.minimalloc(memoryMap[memoryLevel][-1], ctxt, None,
-                                                                 self.memoryHierarchy.memoryLevels[memoryLevel].size,
+                                                                 self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset,
                                                                  memoryLevel)
                 else:
                     for idx, memMap in enumerate(memoryMap[memoryLevel]):
                         if len(memoryMap[memoryLevel][idx]) != 0:
                             memoryMap[memoryLevel][idx] = self.minimalloc(
                                 memMap, ctxt, tilingSchedule[idx].nodeConstraints[0],
-                                self.memoryHierarchy.memoryLevels[memoryLevel].size, memoryLevel)
+                                self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset, memoryLevel)
             print(f"\033[92mMemory allocation sucessful!\033[0m")
 
         for idx, pattern in enumerate(tilingSchedule):
