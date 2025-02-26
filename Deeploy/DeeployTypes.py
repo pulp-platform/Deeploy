@@ -400,8 +400,10 @@ class ConstantBuffer(VariableBuffer):
 
     def _valueString(self) -> str:
         values = list(self.values.reshape(-1))
-        if self.values.dtype == np.float32:
+        if self._type.typeName == 'float32_t*':
             strValues = [f'{value}f' for value in values]
+        elif self._type.typeName == 'int8_t*':
+            strValues = [f'{int(value)}' for value in values]
         else:
             strValues = [str(value) for value in values]
         valueString = ', '.join(strValues)
