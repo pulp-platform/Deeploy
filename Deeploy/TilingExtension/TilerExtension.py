@@ -879,6 +879,19 @@ class Tiler():
             patternStepTransientBufferSizes.addTensorConstraint(transientBufferConstraint, "intermediate")
 
         return patternStepTransientBufferSizes
+    
+    def assertLayerWiseTiling(self, schedule: List[List[gs.Node]]) -> bool:
+        for pattern in schedule:
+            if len(pattern) > 1:
+                return False
+            
+        return True
+        
+    def assertUniformMemoryLevelAllocation(self, ctxt: NetworkContext, defaultMemoryLevel: str) -> bool:
+        for buffer in ctxt.localObjects.values():
+            if buffer._memoryLevel != defaultMemoryLevel:
+                return False
+        return True
 
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
@@ -902,6 +915,10 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
     def tile(self, tilingSolution: Optional[TilingSolution] = None):
         if tilingSolution is None:
             schedule = self.scheduler(self.graph)
+
+            if self.tiler.memoryAllocStrategy == "MiniMalloc":
+                assert self.tiler.assertLayerWiseTiling(schedule), "Using MiniMalloc and DFT is not supported!"
+                assert self.tiler.assertUniformMemoryLevelAllocation(self.ctxt, self.Platform.memoryHierarchy._defaultMemoryLevel.name)
 
             self.tiler.setupModel(ctxt = self.ctxt,
                                   schedule = schedule,
