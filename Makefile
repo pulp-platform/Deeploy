@@ -75,6 +75,8 @@ echo-bash:
 	@echo "export CMAKE=$$(which cmake)"
 	@echo "export PATH=${QEMU_INSTALL_DIR}/bin:${BANSHEE_INSTALL_DIR}:\$$PATH"
 	@echo "export PATH=~/.cargo/bin:\$$PATH"
+	@echo ""
+	@echo "Additionally you need to source the following script:"
 	@echo "source ${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
 
 
