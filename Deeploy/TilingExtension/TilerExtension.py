@@ -564,6 +564,7 @@ class Tiler():
                 outerMemoryConstraints.addConstraint(nodeConstraint)
 
         if self.memoryAllocStrategy == "MiniMalloc":
+            # JUNGVI: This method adds the memory constraints in case of decoupled tiling and memory allocation.
             self.outerMemoryScheduler.constraintTileBuffersWithOverlappingLifetime(tilerModel, ctxt,
                                                                                    outerMemoryConstraints,
                                                                                    self.memoryHierarchy)

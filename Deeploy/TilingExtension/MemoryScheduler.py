@@ -485,6 +485,7 @@ class MemoryScheduler():
                 permAdj, permCost, permutationMatrix = self._stablePermutation(adjacencyMatrix, costVector,
                                                                                permutationList)
             elif memoryAllocStrategy == "MiniMalloc":
+                #JUNVI: When using MiniMalloc we don't perform memory allocation with Tiling, hence we don't add the permutation constraints
                 continue
             else:
                 raise ("Unrecognized memory allocation strategy!")
@@ -513,10 +514,11 @@ class MemoryScheduler():
     def constraintTileBuffersWithOverlappingLifetime(tilerModel: TilerModel, ctxt: NetworkContext,
                                                      patternMemoryConstraint: PatternMemoryConstraints,
                                                      memoryHierarchy: MemoryHierarchy):
-        # JUNGVI: This method adds the necessay constraints for tiling to be performed before the static memory allocation of the tile buffers.
-        # To perform static memory allocation after tiling (i.e. decouple tiling and memory alloc), we need to do two assumptions
-        #   1. All tile buffers for each node have overlapping lifetime, so we can find their memory footprint by just summing their sizes and hence we don't need to know the specific memory allocation. This assumption is true as soon as we don't do tile several nodes together (ask me if you don't know what I mean here).
-        #   2. We don't allocate the tensors of the graph in the same memory level than the tiles (for instance we put all tensor in L2 and the tiles only live in L1).
+        """JUNGVI: This method adds the necessay constraints for tiling to be performed before the static memory allocation of the tile buffers.
+        To perform static memory allocation after tiling (i.e. decouple tiling and memory alloc), we need to do two assumptions
+            1. All tile buffers for each node have overlapping lifetime, so we can find their memory footprint by just summing their sizes and hence we don't need to know the specific memory allocation. This assumption is true as soon as we don't do tile several nodes together (ask me if you don't know what I mean here).
+            2. We don't allocate the tensors of the graph in the same memory level than the tiles (for instance we put all tensor in L2 and the tiles only live in L1).
+        """
 
         for nodeConstraint in patternMemoryConstraint.nodeConstraints:
             tileMemoryConstraint = {}
