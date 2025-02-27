@@ -52,7 +52,7 @@ class DMA_copy(Struct):
         "number_of_2d_copies": uint16_t,
         "stride_1d": uint16_t,
         "number_of_1d_copies": uint16_t,
-        "length_1d_copy": uint16_t,
+        "length_1d_copy": uint32_t,
         "mchan_cmd": uint32_t,
         "dir": int32_t,
         "tid": int32_t

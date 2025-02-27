@@ -29,7 +29,7 @@ typedef struct {
   unsigned short number_of_2d_copies;
   unsigned short stride_1d;
   unsigned short number_of_1d_copies;
-  unsigned short length_1d_copy;
+  unsigned int length_1d_copy;
   unsigned int mchan_cmd;
   int dir; // 0 l1->l2, 1 l2->l1
   int tid;
