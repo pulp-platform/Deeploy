@@ -297,6 +297,8 @@ class PULPClusterTilingSB(TilingCodeGeneration):
         if number_of_1d_copies > 1 or number_of_2d_copies > 1:
             mchan_flags += 0x4
         mchan_cmd = length_2d_copy + (mchan_flags << 17)
+        
+        assert length_2d_copy <= 2**17, f"The DMA transfer size for mchan should be representable with 17 bits, current value is {length_2d_copy}"
 
         struct = PULPStructDataTypes.DMA_copy(
             {
