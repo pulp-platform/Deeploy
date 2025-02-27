@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------
 #
-# File: iRMSNormTemplate.py
+# File: PULPClusterTiling.py
 #
-# Last edited: 20.02.2024
+# Last edited: 19.04.2024
 #
 # Copyright (C) 2024, ETH Zurich and University of Bologna.
 #
@@ -23,23 +23,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from typing import Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
-
-
-class _iRMSNormTemplate(NodeTemplate):
-
-    def __init__(self, templateStr):
-        super().__init__(templateStr)
-
-    def alignToContext(self, ctxt: NetworkContext,
-                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-
-        return ctxt, operatorRepresentation, []
+from Deeploy.CommonExtensions.CodeTransformationPasses.CycleMeasurement import ProfilingCodeGeneration
+from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, _NoVerbosity
 
 
-referenceTemplate = _iRMSNormTemplate("""
-// iRMSnorm (Name: ${nodeName}, Op: ${nodeOp})
-iRMSnorm_s${data_in_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}_plp(${data_in}, ${data_out}, ${weight}, ${size}, ${lastDimLength}, ${log2D});
-""")
+class PULPProfileUntiled(CodeTransformationPass):
+
+    def __init__(self):
+        self.profileUntiled = ProfilingCodeGeneration()
+
+    def apply(self,
+              ctxt: NetworkContext,
+              executionBlock: ExecutionBlock,
+              name: str,
+              verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
+
+        if verbose.untiledProfiling:
+            ctxt, executionBlock = self.profileUntiled.apply(ctxt, executionBlock, name)
+
+        return ctxt, executionBlock

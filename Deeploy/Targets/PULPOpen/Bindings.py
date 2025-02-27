@@ -46,6 +46,7 @@ from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, Gat
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
+from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatConvTemplate, FloatMaxPoolTemplate, GEMMTemplate, \
     MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, RQAddTemplate, \
@@ -118,6 +119,7 @@ ForkTransformer = CodeTransformation([
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacement("L2"),
     PULPL3Tiling("L2"),
+    PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
     MemoryManagementGeneration("L3.*"),
@@ -134,6 +136,7 @@ ClusterTransformer = CodeTransformation([
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacement("L2"),
     PULPL3Tiling("L2"),
+    PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
     MemoryManagementGeneration("L2"),

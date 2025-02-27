@@ -113,7 +113,6 @@ class PULPTransposeTemplate(NodeTemplate):
 
 referenceTemplate = PULPTransposeTemplate("""
 // Transpose ${data_in_shape} -> ${data_out_shape} (Name: ${nodeName}, Op: ${nodeOp})
-BEGIN_SINGLE_CORE
 ${tileHeader}
 % for idx, i in enumerate(perm):
 ${forLoops[idx]}
@@ -122,5 +121,4 @@ ${forLoops[idx]}
 % for idx, i in enumerate(perm):
 }
 % endfor
-END_SINGLE_CORE
 """)

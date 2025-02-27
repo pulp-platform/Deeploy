@@ -46,5 +46,5 @@ class _RQSiHardswishTemplate(NodeTemplate):
 
 referenceTemplate = _RQSiHardswishTemplate("""
 // RequantizediHardswish (Name: ${nodeName}, Op: ${nodeOp})
-SINGLE_CORE RQiHardswish_s${data_in_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}_plp(${data_in}, ${data_out}, ${size}, ${one_over_six}, ${three},${six}, ${int(mul)}, ${int(add)}, ${int(shift)});
+RQiHardswish_s${data_in_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}_plp(${data_in}, ${data_out}, ${size}, ${one_over_six}, ${three},${six}, ${int(mul)}, ${int(add)}, ${int(shift)});
 """)

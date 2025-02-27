@@ -74,7 +74,7 @@ jobs:
         ICCT_ITA_8
         miniMobileNet
         miniMobileNetv2
-        CCT/CCT_16_16_8
+        CCT/CCT_1_16_16_8
   
 
   ### CortexM Tests ###
@@ -249,6 +249,7 @@ jobs:
         MLPerf/KeywordSpotting
         MLPerf/ImageClassification
         MLPerf/AnomalyDetection
+        CCT/CCT_1_16_16_8
       num-cores: 8
 
   siracusa-kernels-tiled-singlebuffer-L2:
@@ -429,7 +430,7 @@ jobs:
             L1: [64000]
           - name: "MLPerf/AnomalyDetection"
             L1: [64000]
-          - name: "CCT/CCT_16_16_8"
+          - name: "CCT/CCT_1_16_16_8"
             L1: [64000]
         num-cores:
           - 8
@@ -456,6 +457,8 @@ jobs:
             L1: [60000, 30000, 15000]
           - name: "microLlama/microLlama1"
             L1: [60000, 10000, 5000]
+          - name: "CCT/CCT_1_32_32_8"
+            L1: [64000]
         num-cores:
           - 8
         default-memory-level:
@@ -488,6 +491,8 @@ jobs:
             L1: [60000, 20000, 10000]
           - name: "microLlama/microLlama8_parallel"
             L1: [60000, 20000, 10000]
+          - name: "CCT/CCT_1_32_32_8"
+            L1: [64000]
         num-cores:
           - 8
         double-buffer:

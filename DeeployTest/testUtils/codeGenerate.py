@@ -249,17 +249,21 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer,
 def generateL3HexDump(deployer: NetworkDeployer, path: str, test_inputs: List, test_outputs: List):
 
     def type2TypeStr(dataType) -> Tuple[str, int]:
-        width = dataType.referencedType.typeWidth
-        signed = (dataType.referencedType.typeMin < 0)
-
-        retStr = ""
-
-        if signed:
-            retStr += "int"
+        if dataType.referencedType.typeName == "float32_t":
+            retStr = "float32"
+            width = 32
         else:
-            retStr += "uint"
+            width = dataType.referencedType.typeWidth
+            signed = (dataType.referencedType.typeMin < 0)
 
-        retStr += str(width)
+            retStr = ""
+
+            if signed:
+                retStr += "int"
+            else:
+                retStr += "uint"
+
+            retStr += str(width)
 
         return retStr, width
 

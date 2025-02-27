@@ -55,11 +55,11 @@ if __name__ == '__main__':
     parser.add_argument('--overwriteRecentState',
                         action = 'store_true',
                         help = 'Copy the recent deeply state to the ./deeployStates folder\n')
-    parser.add_argument('--profileUntiling',
+    parser.add_argument('--profileUntiled',
                         action = 'store_true',
-                        dest = 'profileUntiling',
+                        dest = 'profileUntiled',
                         default = False,
-                        help = 'Profile Untiling for L2\n')
+                        help = 'Profile Untiled for L2\n')
 
     args = parser.parse_args()
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     verbosityCfg = _NoVerbosity
     if isinstance(platform, PULPPlatform):
-        verbosityCfg.untilingProfiling = args.profileUntiling
+        verbosityCfg.untiledProfiling = args.profileUntiled
 
     # Parse graph and infer output levels and signedness
     _ = deployer.generateFunction(verbose = verbosityCfg)
