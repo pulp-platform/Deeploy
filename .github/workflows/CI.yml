@@ -676,10 +676,10 @@ jobs:
       - name: Run Test
         run: |
           cd DeeployTest
-          python testMVP.py -t Tests/CCT/CCT_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=40000 --memAllocStrategy=MiniMalloc
-          python testMVP.py -t Tests/CCT/CCT_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=30000 --memAllocStrategy=MiniMalloc --shouldFail
-          python testMVP.py -t Tests/CCT/CCT_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=80000 --memAllocStrategy=TetrisRandom
-          python testMVP.py -t Tests/CCT/CCT_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=40000 --memAllocStrategy=TetrisRandom --shouldFail
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=40000 --memAllocStrategy=MiniMalloc
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=30000 --memAllocStrategy=MiniMalloc --shouldFail
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=80000 --memAllocStrategy=TetrisRandom
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=40000 --memAllocStrategy=TetrisRandom --shouldFail
 
   deeploy-state-serialization:
     runs-on: ubuntu-22.04
