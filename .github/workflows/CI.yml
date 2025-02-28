@@ -409,7 +409,7 @@ jobs:
     uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
     with:
       test-name: "largeFloatAdd"
-      L1: 220000
+      L1: "[220000]"
       num-cores: 1
     
   siracusa-models-tiled-singlebuffer-L2:
