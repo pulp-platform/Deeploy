@@ -2810,7 +2810,7 @@ class NetworkContainer():
         outputs = self.outputs()
         callStack = ''
 
-        for node in ctxt.globalObjects.values():
+        for node in reversed(ctxt.globalObjects.values()):
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:

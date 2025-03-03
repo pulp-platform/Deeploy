@@ -43,8 +43,8 @@ from ortools.constraint_solver.pywrapcp import IntVar, SolutionCollector
 import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
-from Deeploy.DeeployTypes import ConstantBuffer, GlobalDefinition, NetworkContext, NodeBinding, NodeTemplate, \
-    ONNXLayer, Schedule, SubGraph, TransientBuffer, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeBinding, NodeTemplate, ONNXLayer, Schedule, \
+    SubGraph, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
@@ -375,8 +375,9 @@ class Tiler():
 
         return tilingSchedule, memoryMap
 
-    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: OrderedDict[str, ONNXLayer],
-                   targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
+    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
+                   targetMemoryLevelMapping: TargetMemoryLevelMapping,
+                   outputBufferList: List[VariableBuffer]) -> NetworkContext:
 
         wrapSchedule: List[SubGraph] = []
         for entry in schedule:
@@ -390,7 +391,8 @@ class Tiler():
         tilerModel = self._setupTensorDimensionProducts(tilerModel, ctxt, wrapSchedule)
         tilerModel = self._setupHeuristics(tilerModel, ctxt, wrapSchedule)
         tilerModel, allSymbolicMemoryConstraints = self._setupMemoryConstraints(tilerModel, ctxt, wrapSchedule,
-                                                                                layerBinding, targetMemoryLevelMapping)
+                                                                                layerBinding, targetMemoryLevelMapping,
+                                                                                outputBufferList)
 
         self.tilerModel = tilerModel
         self.symbolicMemoryConstraints = allSymbolicMemoryConstraints
@@ -582,8 +584,8 @@ class Tiler():
 
     def _setupMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: OrderedDict[str, ONNXLayer],
-            targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
+            layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping,
+            outputBufferList: List[VariableBuffer]) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
                                                                   targetMemoryLevelMapping)
@@ -601,7 +603,8 @@ class Tiler():
 
         for level in self.memoryHierarchy.memoryLevels.keys():
             self.outerMemoryScheduler.scheduleMemoryConstraints(tilerModel, ctxt, [outerMemoryConstraints],
-                                                                self.memoryHierarchy, self.memoryAllocStrategy, level)
+                                                                self.memoryHierarchy, self.memoryAllocStrategy,
+                                                                outputBufferList, level)
 
         # Update inner memoryHierarchy with outer constraints
         innerMemoryHierarchy = MemoryHierarchy([])
@@ -616,7 +619,8 @@ class Tiler():
 
         for level in innerMemoryHierarchy.memoryLevels.keys():
             self.innerMemoryScheduler.scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints,
-                                                                innerMemoryHierarchy, self.memoryAllocStrategy, level)
+                                                                innerMemoryHierarchy, self.memoryAllocStrategy,
+                                                                outputBufferList, level)
 
         return tilerModel, allMemoryConstraints
 
@@ -652,14 +656,14 @@ class Tiler():
 
         # SCHEREMO: Construct global buffer constraints
 
-        globalVariableConstraint = self._generateBufferConstraints(ctxt)
+        constantBufferConstraint = self._generateBufferConstraints(ctxt)
 
         # SCHEREMO: Construct first-level constraint set (all global buffers + tensors stored in higher level)
 
         firstLevelConstraints: List[PatternMemoryConstraints] = copy.copy(outerVariableConstraints)
         for patternConstraint in firstLevelConstraints:
             for idx in range(len(patternConstraint.nodeConstraints)):
-                patternConstraint.nodeConstraints[idx] += globalVariableConstraint
+                patternConstraint.nodeConstraints[idx] += constantBufferConstraint
 
         # SCHEREMO: Construct constraint set for tiled tensors (including double buffering, excluding static global constraints)
         tiledTensorConstraints: List[PatternMemoryConstraints] = self._generateTilePathConstraints(
@@ -702,7 +706,7 @@ class Tiler():
                 dynamicTensorPattern.addConstraint(dynamicTensorPatternStep)
             inplaceTensorConstraints.append(dynamicTensorPattern)
 
-        return inplaceTensorConstraints, globalVariableConstraint
+        return inplaceTensorConstraints, constantBufferConstraint
 
     def _generateTilePath(self, tilerModel: TilerModel, ctxt: NetworkContext,
                           tensorMemoryConstraint: TensorMemoryConstraint, pattern: SubGraph) -> TensorMemoryConstraint:
@@ -787,8 +791,7 @@ class Tiler():
 
         constantGlobalConstraint: NodeMemoryConstraint = NodeMemoryConstraint()
         constantGlobalBuffers = [
-            node for node in ctxt.globalObjects.values()
-            if not isinstance(node, GlobalDefinition) and node._deploy == True
+            node for node in ctxt.globalObjects.values() if isinstance(node, ConstantBuffer) and node._deploy == True
         ]
 
         for constantBuffer in constantGlobalBuffers:
@@ -946,6 +949,12 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         if tilingSolution is None:
             schedule = self.scheduler(self.graph)
 
+            # PR-TODO: Rename this!
+            outputBufferList = {
+                "inputs": [node.name for node in self.graph.inputs],
+                "outputs": [node.name for node in self.graph.outputs],
+            }
+
             # JUNGVI: Currently using MiniMalloc is only supported for layer-wise execution and all tensors in the default memory level.
             if self.tiler.memoryAllocStrategy == "MiniMalloc":
                 assert self.tiler.assertLayerWiseTiling(schedule), "Using MiniMalloc and DFT is not supported!"
@@ -956,7 +965,8 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             self.tiler.setupModel(ctxt = self.ctxt,
                                   schedule = schedule,
                                   layerBinding = self.layerBinding,
-                                  targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
+                                  targetMemoryLevelMapping = self.getTargetMemoryLevelMapping(),
+                                  outputBufferList = outputBufferList)
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
             if self.tiler.visualizeMemoryAlloc:
                 self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,
