@@ -33,10 +33,11 @@ from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTi
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
 
 
-class MaxPoolTileConstraint(TileConstraint):
+class MaxPoolHWTileConstraint(TileConstraint):
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -159,6 +160,92 @@ class MaxPoolTileConstraint(TileConstraint):
             replacements['padding_x_right'].append(padding_right)
 
             inputInCubes.append(InCube)
+
+        inputLoadSchedule = []
+        outputLoadSchedule = []
+
+        for a in inputInCubes:
+            inputLoadSchedule.append({"data_in": a})
+
+        for out in outputCubes:
+            outputLoadSchedule.append({"data_out": out})
+
+        tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
+        variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
+
+        return variableReplacementSchedule, tilingSchedule
+
+
+# RW: This constraint tiles the channels of maxpool, which avoids issues with padding margin calculations
+#  when the default memory level is L3.
+
+
+class MaxPoolCTileConstraint(TileConstraint):
+
+    @staticmethod
+    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        inputBufferName = parseDict['data_in']
+        outputBufferName = parseDict['data_out']
+
+        numDims = len(ctxt.lookup(inputBufferName).shape)
+
+        for bufferName in [inputBufferName, outputBufferName]:
+            tilerModel.addTensorDimToModel(ctxt, bufferName)
+
+        # RW: Apply constraints only to the Channel dimension
+        tilerModel.addConstraint(
+            tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = numDims - 1) ==
+            tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = numDims - 1))
+
+        return tilerModel
+
+    @staticmethod
+    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        inputBufferName = parseDict['data_in']
+        outputBufferName = parseDict['data_out']
+        numDims = len(ctxt.lookup(inputBufferName).shape)
+
+        for idx in range(numDims):
+            if idx != numDims - 1:  # RW: Keep all dimensions except C (index 1 in NCHW) fixed
+                tilerModel.addConstraint(
+                    tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = idx) == ctxt.lookup(
+                        outputBufferName).shape[idx])
+                tilerModel.addConstraint(
+                    tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = idx) == ctxt.lookup(
+                        inputBufferName).shape[idx])
+
+        return tilerModel
+
+    @classmethod
+    def serializeTilingSolution(
+            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
+            targetMemLevel: str, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+
+        addrNames = ['data_in', 'data_out']
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
+                                                                  operatorRepresentation, addrNames)
+
+        inputInCubes = []
+        replacementTypes = {}
+        replacements: Dict[str, List[int]] = {}
+
+        numDims = len(ctxt.lookup(operatorRepresentation['data_in']).shape)
+        replacementTypes["ch_im_in"] = PointerClass(uint16_t)
+        replacements["ch_im_in"] = []
+
+        input_shape = ctxt.lookup(operatorRepresentation['data_in']).shape
+        output_shape = ctxt.lookup(operatorRepresentation['data_out']).shape
+
+        for cube in outputCubes:
+            input_offset = list(cube.offset)
+            input_dims = list(input_shape)
+            input_dims[-1] = cube.dims[-1]
+            InCube = HyperRectangle(tuple(input_offset), tuple(input_dims))
+            inputInCubes.append(InCube)
+
+            replacements["ch_im_in"].append(input_dims[-1])
 
         inputLoadSchedule = []
         outputLoadSchedule = []
