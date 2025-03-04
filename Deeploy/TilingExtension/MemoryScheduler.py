@@ -311,7 +311,6 @@ class MemoryScheduler():
                     if isinstance(ctxt.lookup(tensorMemoryConstraint.tensorName), ConstantBuffer):
                         return False
                     return True
-                    # JUNGVI: PR-TODO: Don't filter global var buffers to give them a lifetime
 
                 if level.memoryLevel != homeLevel and self.tileScheduler:
                     return True
@@ -327,6 +326,13 @@ class MemoryScheduler():
 
                 if not filterTensorMemoryConstraint(ctxt, tensorMemoryConstraint):
                     continue
+                
+                buffer = ctxt.lookup(tensorName)
+                if hasattr(buffer, "_alias"):
+                    alias = buffer._alias
+                    if alias in tensorLifetimeMap.keys():
+                        prevLifetime = tensorLifetimeMap[alias]
+                        tensorLifetimeMap[alias] = tuple((prevLifetime[0], stepIdx))
 
                 if tensorName in outputBufferList['outputs']:
                     tensorLifetimeMap[tensorName] = tuple((stepIdx, maxStepIdx))
