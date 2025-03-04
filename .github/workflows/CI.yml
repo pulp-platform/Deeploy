@@ -403,11 +403,11 @@ jobs:
           },
           {
             "name": "Hardswish",
-            "L1": [800]
+            "L1": [750]
           },
           {
             "name": "RQHardswish",
-            "L1": [750]
+            "L1": [800]
           },
           {
             "name": "testFloatGEMM",
