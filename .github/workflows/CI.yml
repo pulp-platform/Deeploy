@@ -403,7 +403,7 @@ jobs:
           },
           {
             "name": "Hardswish",
-            "L1": [750]
+            "L1": [800]
           },
           {
             "name": "RQHardswish",
