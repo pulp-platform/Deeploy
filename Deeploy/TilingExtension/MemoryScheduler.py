@@ -454,9 +454,8 @@ class MemoryScheduler():
     def getConstantTensorOffset(self, ctxt: NetworkContext, memoryLevel: str):
         constantTensorSize = 0
         for buffer in ctxt.globalObjects.values():
-            # JUNGVI: TODO: Once I/O have finite lifetime we can just check for ConstantBuffer here
             if not "MEMORYARENA" in buffer.name and isinstance(buffer,
-                                                               VariableBuffer) and buffer._memoryLevel == memoryLevel:
+                                                               ConstantBuffer) and buffer._memoryLevel == memoryLevel:
                 constantTensorSize += np.prod(buffer.shape) * buffer._type.referencedType.typeWidth // 8
 
         return int(constantTensorSize)
