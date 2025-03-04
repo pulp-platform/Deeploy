@@ -326,7 +326,7 @@ class MemoryScheduler():
 
                 if not filterTensorMemoryConstraint(ctxt, tensorMemoryConstraint):
                     continue
-                
+
                 buffer = ctxt.lookup(tensorName)
                 if hasattr(buffer, "_alias"):
                     alias = buffer._alias
@@ -334,12 +334,16 @@ class MemoryScheduler():
                         prevLifetime = tensorLifetimeMap[alias]
                         tensorLifetimeMap[alias] = tuple((prevLifetime[0], stepIdx))
 
-                if tensorName in outputBufferList['outputs']:
+                if tensorName in tensorLifetimeMap.keys():
+                    if tensorName in outputBufferList['outputs']:
+                        prevLifetime = tensorLifetimeMap[tensorName]
+                        tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], maxStepIdx))
+                    else:
+                        prevLifetime = tensorLifetimeMap[tensorName]
+                        tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], stepIdx))
+                elif tensorName in outputBufferList['outputs']:
                     tensorLifetimeMap[tensorName] = tuple((stepIdx, maxStepIdx))
                     tensorMap[tensorName] = tensorMemoryConstraint
-                elif tensorName in tensorLifetimeMap.keys():
-                    prevLifetime = tensorLifetimeMap[tensorName]
-                    tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], stepIdx))
                 elif tensorName in outputBufferList['inputs']:
                     tensorLifetimeMap[tensorName] = tuple((0, stepIdx))
                     tensorMap[tensorName] = tensorMemoryConstraint
