@@ -118,7 +118,7 @@ class Tiler():
         # JUNGVI: Currently I/O have infinite lifetime, will change that soon...
         infiniteLifetimeBuffers = [
             buffer for buffer in ctxt.globalObjects.values()
-            if not self.arenaName in buffer.name and isinstance(buffer, VariableBuffer)
+            if not self.arenaName in buffer.name and isinstance(buffer, ConstantBuffer)
         ]
 
         constantBuffersOffset = 0
