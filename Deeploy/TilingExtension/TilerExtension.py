@@ -137,6 +137,8 @@ class Tiler():
             constantBuffersOffset += _ioSize
 
         for buffer in memoryMap[defaultMemoryLevel.name][-1]:
+            if hasattr(ctxt.lookup(buffer.name), "_alias"):
+                continue
             fig.add_trace(
                 go.Scatter(x = [
                     buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
