@@ -28,10 +28,12 @@ from __future__ import annotations
 import random
 from collections import OrderedDict
 from dataclasses import dataclass
+from turtle import left
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
+from torch import tensor
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     _permuteList
@@ -328,7 +330,6 @@ class MemoryScheduler():
                     continue
 
                 buffer = ctxt.lookup(tensorName)
-                # import IPython; IPython.embed()
                 # JUNGVI: Buffer targeted by alias have to say alive as long as their "aliasers"
                 if hasattr(buffer, "_alias"):
                     alias = buffer._alias
@@ -337,21 +338,23 @@ class MemoryScheduler():
                         tensorLifetimeMap[alias] = tuple((prevLifetime[0], stepIdx))
 
                 if tensorName in tensorLifetimeMap.keys():
-                    if buffer.is_output:
-                        prevLifetime = tensorLifetimeMap[tensorName]
-                        tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], maxStepIdx))
-                    else:
-                        prevLifetime = tensorLifetimeMap[tensorName]
-                        tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], stepIdx))
-                elif buffer.is_output:
-                    tensorLifetimeMap[tensorName] = tuple((stepIdx, maxStepIdx))
-                    tensorMap[tensorName] = tensorMemoryConstraint
-                elif buffer.is_input:
-                    tensorLifetimeMap[tensorName] = tuple((0, stepIdx))
-                    tensorMap[tensorName] = tensorMemoryConstraint
+                    prevLifetime = tensorLifetimeMap[tensorName]
+                    tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], stepIdx))
                 else:
                     tensorLifetimeMap[tensorName] = tuple((stepIdx, stepIdx))
                     tensorMap[tensorName] = tensorMemoryConstraint
+        
+        # JUNGVI: Align the lifetime of I/O tensors accordignly:
+        #   - Input Tensors are alive at step 0
+        #   - Output Tensors are alive until the last step
+        for tensorName, lifetime in tensorLifetimeMap.items():
+            buffer = ctxt.lookup(tensorName)
+            new_lifetime = lifetime
+            if buffer.is_input:
+                new_lifetime = (0, lifetime[-1])
+            if buffer.is_output:
+                new_lifetime = (lifetime[0], maxStepIdx)
+            tensorLifetimeMap[tensorName] = new_lifetime
 
         # import IPython; IPython.embed()
         return tensorLifetimeMap, tensorMap
