@@ -328,6 +328,8 @@ class MemoryScheduler():
                     continue
 
                 buffer = ctxt.lookup(tensorName)
+                # import IPython; IPython.embed()
+                # JUNGVI: Buffer targeted by alias have to say alive as long as their "aliasers"
                 if hasattr(buffer, "_alias"):
                     alias = buffer._alias
                     if alias in tensorLifetimeMap.keys():
@@ -335,16 +337,16 @@ class MemoryScheduler():
                         tensorLifetimeMap[alias] = tuple((prevLifetime[0], stepIdx))
 
                 if tensorName in tensorLifetimeMap.keys():
-                    if tensorName in outputBufferList['outputs']:
+                    if buffer.is_output:
                         prevLifetime = tensorLifetimeMap[tensorName]
                         tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], maxStepIdx))
                     else:
                         prevLifetime = tensorLifetimeMap[tensorName]
                         tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], stepIdx))
-                elif tensorName in outputBufferList['outputs']:
+                elif buffer.is_output:
                     tensorLifetimeMap[tensorName] = tuple((stepIdx, maxStepIdx))
                     tensorMap[tensorName] = tensorMemoryConstraint
-                elif tensorName in outputBufferList['inputs']:
+                elif buffer.is_input:
                     tensorLifetimeMap[tensorName] = tuple((0, stepIdx))
                     tensorMap[tensorName] = tensorMemoryConstraint
                 else:

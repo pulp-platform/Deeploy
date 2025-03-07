@@ -272,6 +272,9 @@ class VariableBuffer():
         self._signed = None
         self.nLevels = None
 
+        self.is_input: bool = False
+        self.is_output: bool = False
+
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._instance, "name": self.name, "size": int(np.prod(self.shape))}
 
@@ -359,6 +362,9 @@ class TransientBuffer(VariableBuffer):
 
         # Do not override - Set in Templates depending on platform
         self._deploy = True
+
+        self.is_input: bool = False
+        self.is_output: bool = False
 
     def __eq__(self, other):
 
@@ -2350,6 +2356,7 @@ class NetworkContainer():
             data_size = node.shape
             data_type = self.inputTypes[node.name]
             nb = ctxt.VariableBuffer(data_name, data_size)
+            nb.is_input = True
 
             ctxt.add(nb, 'global')
             ctxt.annotateType(data_name, data_type)
@@ -2359,6 +2366,7 @@ class NetworkContainer():
             data_size = node.shape
             # WIESEP: The shape and type will be parsed from the graph
             nb = ctxt.VariableBuffer(data_name, data_size)
+            nb.is_output = True
             ctxt.add(nb, 'global')
 
         return ctxt
