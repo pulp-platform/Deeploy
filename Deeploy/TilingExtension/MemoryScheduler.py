@@ -28,12 +28,10 @@ from __future__ import annotations
 import random
 from collections import OrderedDict
 from dataclasses import dataclass
-from turtle import left
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
-from torch import tensor
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     _permuteList
@@ -343,7 +341,7 @@ class MemoryScheduler():
                 else:
                     tensorLifetimeMap[tensorName] = tuple((stepIdx, stepIdx))
                     tensorMap[tensorName] = tensorMemoryConstraint
-        
+
         # JUNGVI: Align the lifetime of I/O tensors accordignly:
         #   - Input Tensors are alive at step 0
         #   - Output Tensors are alive until the last step
