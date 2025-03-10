@@ -916,6 +916,7 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         if tilingSolution is None:
             schedule = self.scheduler(self.graph)
 
+            # JUNGVI: Currently using MiniMalloc is only supported for layer-wise execution and all tensors in the default memory level.
             if self.tiler.memoryAllocStrategy == "MiniMalloc":
                 assert self.tiler.assertLayerWiseTiling(schedule), "Using MiniMalloc and DFT is not supported!"
                 assert self.tiler.assertUniformMemoryLevelAllocation(
