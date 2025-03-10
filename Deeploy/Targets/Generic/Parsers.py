@@ -26,12 +26,12 @@
 # limitations under the License.
 
 import math
-from typing import Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import NetworkContext, NodeParser
+from Deeploy.DeeployTypes import NetworkContext, NodeParser, VariableBuffer
 
 
 class ConcatParser(NodeParser):
@@ -101,22 +101,34 @@ class iRMSNormParser(NodeParser):
 
 class RQSParserInterface():
 
-    def parseNode(self, node: gs.Node) -> (bool):
-        ret = all([
-            'div' in node.attrs,
-            any(['n_levels' in node.attrs, 'n_levels_out' in node.attrs]),
-            'signed' in node.attrs,
-        ])
+    def _unpack_const(self, attr) -> Union[int, float]:
+        """DON'T OVERRIDE - Helper function to get a Python scalar from an ONNX attribute.
+        The attributes can either be a numpy scalar value or a Constant tensor.
+        This expects the numpy value to be of size 1.
+        """
+        if isinstance(attr, gs.Constant):
+            value = attr.values
+        elif isinstance(attr, np.ndarray):
+            value = attr
+        else:
+            assert False, f"Unsupported attribute type {type(attr)}"
+        assert value.size == 1, f"Expected attribute of size 1. Got an array of shape {value.shape}"
+        return value.item()
 
-        if ret:
-            if 'n_levels' in node.attrs:
-                self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-            else:
-                self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels_out'].values)
-            self.operatorRepresentation['signed'] = int(node.attrs['signed'].values)
-            self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div'].values))
+    def parseNode(self, node: gs.Node) -> bool:
+        if not all([
+                'div' in node.attrs,
+                'n_levels' in node.attrs or 'n_levels_out' in node.attrs,
+                'signed' in node.attrs,
+        ]):
+            return False
 
-        return ret
+        n_levels = node.attrs['n_levels'] if 'n_levels' in node.attrs else node.attrs['n_levels_out']
+        self.operatorRepresentation['n_levels'] = int(self._unpack_const(n_levels))
+        self.operatorRepresentation['signed'] = int(self._unpack_const(node.attrs['signed']))
+        self.operatorRepresentation['log2D'] = int(math.log2(self._unpack_const(node.attrs['div'])))
+
+        return True
 
 
 class SliceParser(NodeParser):
@@ -1021,20 +1033,15 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> (bool):
-        ret_rqs = RQSParserInterface.parseNode(self, node)
-
-        ret = all([
-            ret_rqs == True,
-            len(node.inputs) == 3,
-            len(node.outputs) == 1,
-        ])
-
-        return ret
+        if not RQSParserInterface.parseNode(self, node):
+            return False
+        return len(node.inputs) == 3 and len(node.outputs) == 1
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        _ = channels_first
 
         inputs = ['data_in', 'mul', 'add']
         outputs = ['data_out']
@@ -1044,18 +1051,17 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['channels'] = ctxt.lookup(node.inputs[0].name).shape[1]
-
         data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        self.operatorRepresentation['channel_width'] = int(self.operatorRepresentation['size'] /
-                                                           self.operatorRepresentation['channels'])
+        assert isinstance(data_in, VariableBuffer)
+        shape = data_in.shape
 
-        if len(data_in.shape) == 4:
-            self.operatorRepresentation['batch'] = data_in.shape[0]
-            self.operatorRepresentation['channel_width'] = int(self.operatorRepresentation['channel_width'] /
-                                                               self.operatorRepresentation['batch'])
+        assert len(shape) >= 2, f"Unsupported shape length ({len(shape)}). Supported shape lengths greater then 2"
+
+        # Assumes shape [ Batch, Channels, ...]
+        self.operatorRepresentation['batch'] = shape[0]
+        self.operatorRepresentation['channels'] = shape[1]
+        self.operatorRepresentation['channel_width'] = np.prod(shape[2:]) if len(shape) > 2 else 1
+        self.operatorRepresentation['size'] = np.prod(shape)
 
         return ctxt, True
 
@@ -1533,8 +1539,8 @@ class iLayerNormParser(NodeParser):
         ret = all(['D' in node.attrs, 'n_levels' in node.attrs, len(node.inputs) == 3, len(node.outputs) == 1])
 
         if ret:
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-            self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['D'].values))
+            self.operatorRepresentation['n_levels'] = int(self._unpack_const(node.attrs['n_levels']))
+            self.operatorRepresentation['log2D'] = int(math.log2(self._unpack_const(node.attrs['D'])))
 
         return ret
 
@@ -2146,13 +2152,14 @@ class GenericConv2DParser(Conv2DParser):
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
-        if ret:
-            inputs = ['data_in', 'weight']
-            for idx, inputNode in enumerate(node.inputs):
-                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-            return newCtxt, True
+        if not ret:
+            return ctxt, False
 
-        return ctxt, False
+        assert len(node.inputs) == 2, f'Supports only parsing 2 input tensors, data_in and weight. Received: {len(node.inputs)}'
+        for node, sym_name in zip(node.inputs, ['data_in', 'weight']):
+            self.operatorRepresentation[sym_name] = ctxt.lookup(node.name).name
+
+        return newCtxt, True
 
 
 class GenericDWConv2DParser(Conv2DParser):
