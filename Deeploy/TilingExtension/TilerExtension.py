@@ -920,7 +920,7 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             if self.tiler.memoryAllocStrategy == "MiniMalloc":
                 assert self.tiler.assertLayerWiseTiling(schedule), "Using MiniMalloc and DFT is not supported!"
                 assert self.tiler.assertUniformMemoryLevelAllocation(
-                    self.ctxt, self.Platform.memoryHierarchy._defaultMemoryLevel.name)
+                    self.ctxt, self.Platform.memoryHierarchy._defaultMemoryLevel.name), "All tensors have to be in the default memory level when using MiniMalloc!"
 
             self.tiler.setupModel(ctxt = self.ctxt,
                                   schedule = schedule,
