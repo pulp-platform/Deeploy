@@ -25,7 +25,6 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
-
 class _QuantTemplate(NodeTemplate):
 
     def __init__(self, templateStr):
@@ -51,7 +50,7 @@ BEGIN_SINGLE_CORE
         
         // Assign directly with explicit cast
         ${data_out}[i] = (${data_out_type.referencedType.typeName})quantized;
-        
+                                   
     }
 END_SINGLE_CORE
 """)
