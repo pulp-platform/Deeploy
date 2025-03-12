@@ -98,6 +98,7 @@ class iRMSNormParser(NodeParser):
 
         return ctxt, True
 
+
 class RQSParserInterface():
 
     def parseNode(self, node: gs.Node) -> (bool):
