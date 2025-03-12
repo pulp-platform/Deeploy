@@ -1,12 +1,13 @@
 diff --git a/Cargo.toml b/Cargo.toml
-index d406357..23bcfcd 100644
+index d406357..57bd8f9 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -15,13 +15,14 @@ anyhow = "1"
+@@ -15,13 +15,15 @@ anyhow = "1"
  binread = "2.2.0"
  bytebuffer = "0.2.1"
  byteorder = "1.4.3"
 +unicode-width = "=0.1.13"
++once_cell = "=1.20.1"
  clap = "2"
  crossbeam-utils = "0.8"
 -csv = "1.0.0-beta.2"
@@ -34,7 +35,7 @@ index 04f80b8..c03f248 100644
          .status()
          .unwrap();
 diff --git a/src/engine.rs b/src/engine.rs
-index 216996b..e5abe38 100644
+index f32a539..a79a708 100644
 --- a/src/engine.rs
 +++ b/src/engine.rs
 @@ -281,7 +281,6 @@ impl Engine {
@@ -45,3 +46,4 @@ index 216996b..e5abe38 100644
              LLVMPassManagerBuilderPopulateModulePassManager(builder, module_passes);
  
              // Create and run the function pass manager.
+             
