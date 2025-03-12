@@ -34,20 +34,20 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.Generic.Bindings import BasicPad1DBindings, BasicPad2DBindings, BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
-    LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, ReduceMeanLayer, ReluLayer, RequantShiftLayer, \
-    ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SliceLayer, SoftmaxLayer, TransposeLayer, \
-    iHardswishLayer, iRMSNormLayer, QuantLayer
+    LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReluLayer, \
+    RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SliceLayer, SoftmaxLayer, \
+    TransposeLayer, iHardswishLayer, iRMSNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, FlattenParser, GatherParser, GELUParser, \
-    GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, \
-    ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, \
+    GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, \
+    ReduceMeanParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, \
     RQSiHardswishParser, SliceParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, \
-    iHardswishParser, iRMSNormParser, iSoftmaxParser, QuantParser
+    iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
-    MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, SkipEmptyConcatPass, \
-    SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass, QuantPatternPass
-from Deeploy.Targets.PULPOpen.Bindings import PULPConv1DBinding, PULPDMASliceBindings, PULPDWConv1DBinding, \
-    PULPReduceMeanBindings, BasicQuantBindings
+    MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
+    SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+from Deeploy.Targets.PULPOpen.Bindings import BasicQuantBindings, PULPConv1DBinding, PULPDMASliceBindings, \
+    PULPDWConv1DBinding, PULPReduceMeanBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPGEMMParser, PULPMatrixVecParser, PULPTallGEMMParser

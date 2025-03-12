@@ -474,7 +474,7 @@ class MaxPoolChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-        
+
 
 class ConvChecker(SignPropTypeChecker):
 
@@ -559,7 +559,7 @@ class RQAddChecker(SignPropTypeChecker):
         if (not operatorRepresentation['rqsOut_signed']) and (not outputTypeSigned):
             return True
         return False
-    
+
 
 class QuantChecker(SignPropTypeChecker):
 
@@ -576,4 +576,3 @@ class QuantChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         # Return signedness from the operation attributes
         return [bool(operatorRepresentation['signed'])]
-    

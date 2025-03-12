@@ -3125,6 +3125,10 @@ class NetworkDeployer(NetworkContainer):
                     # graph.nodes.append(newConst)
                     idx += 1
 
+    def _foldConstants(self, graph: gs.Graph):
+        graph.fold_constants()
+        graph.cleanup().toposort()
+
     # Don't override this
     # Duplicate constants with multiple users
     def _removeEmptyInputs(self, graph: gs.Graph):
@@ -3147,9 +3151,8 @@ class NetworkDeployer(NetworkContainer):
 
         self._duplicateConstants(self.graph)
 
-        self.graph.fold_constants()
-        self.graph.cleanup().toposort()
-        
+        self._foldConstants(self.graph)
+
         self.exportDeeployState(self.deeployStateDir, _middlewarePreLoweringFilename)
 
         self.graph = self.lower(self.graph)  # This lowers the graph to a deployable format

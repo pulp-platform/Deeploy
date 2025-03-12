@@ -38,14 +38,14 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvT
     DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, FloatGELUTemplate, \
     FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, \
     FloatPadTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
-    ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, \
+    ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
     ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
     RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, \
-    iSoftmaxTemplate, QuantTemplate
+    iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
     DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, MatMulChecker, \
-    MaxPoolChecker, MulChecker, PadChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, \
-    ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker, QuantChecker
+    MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, \
+    RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -264,9 +264,6 @@ BasicConcatBindings = [
 
 BasicQuantBindings = [
     # Float to int8 binding
-    NodeBinding(
-        QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]),
-        QuantTemplate.referenceTemplate,
-        BasicTransformer
-    ),
+    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), QuantTemplate.referenceTemplate,
+                BasicTransformer),
 ]

@@ -98,6 +98,7 @@ class iRMSNormParser(NodeParser):
 
         return ctxt, True
 
+
 class RQSParserInterface():
 
     def parseNode(self, node: gs.Node) -> (bool):
@@ -2243,12 +2244,9 @@ class QuantParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> (bool):
-        ret = all([
-            'scale' in node.attrs,
-            'zero_point' in node.attrs,
-            'bit_width' in node.attrs,
-            len(node.outputs) == 1
-        ])
+        ret = all(
+            ['scale' in node.attrs, 'zero_point' in node.attrs, 'bit_width' in node.attrs,
+             len(node.outputs) == 1])
 
         if ret:
             # Handle attributes properly whether they are direct values or have .values property
@@ -2260,7 +2258,7 @@ class QuantParser(NodeParser):
                 self.operatorRepresentation['scale'] = float(node.attrs['scale'])
                 self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
                 self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
-            
+
             # Handle optional signed attribute
             if 'signed' in node.attrs:
                 if hasattr(node.attrs['signed'], 'values'):
@@ -2273,11 +2271,11 @@ class QuantParser(NodeParser):
             # Calculate min and max values based on bit_width and signed
             bit_width_int = self.operatorRepresentation['bit_width']
             if self.operatorRepresentation['signed']:
-                self.operatorRepresentation['min_val'] = -(2 ** (bit_width_int - 1))
-                self.operatorRepresentation['max_val'] = (2 ** (bit_width_int - 1)) - 1
+                self.operatorRepresentation['min_val'] = -(2**(bit_width_int - 1))
+                self.operatorRepresentation['max_val'] = (2**(bit_width_int - 1)) - 1
             else:
                 self.operatorRepresentation['min_val'] = 0
-                self.operatorRepresentation['max_val'] = (2 ** bit_width_int) - 1
+                self.operatorRepresentation['max_val'] = (2**bit_width_int) - 1
 
         return ret
 
@@ -2288,10 +2286,9 @@ class QuantParser(NodeParser):
 
         data_in = ctxt.lookup(node.inputs[0].name)
         data_out = ctxt.lookup(node.outputs[0].name)
-        
+
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
-        
+
         return ctxt, True
-    

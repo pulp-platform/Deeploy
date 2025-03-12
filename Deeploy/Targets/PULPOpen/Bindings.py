@@ -39,10 +39,10 @@ from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import ConcatTemplate, FloatGELUTemplate, FloatGemmTemplate, \
     FloatLayernormTemplate, FloatMatMulTemplate, FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
-    GatherTemplate, RQSiGELUTemplate, iHardswishTemplate, QuantTemplate
+    GatherTemplate, QuantTemplate, RQSiGELUTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, GatherChecker, GELUChecker, GEMMChecker, \
-    HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, ReduceMeanChecker, ReluChecker, RQAddChecker, \
-    RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker, QuantChecker
+    HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, ReluChecker, \
+    RQAddChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -366,9 +366,6 @@ PULPGatherBindings = [
 
 BasicQuantBindings = [
     # Float to int8 binding
-    NodeBinding(
-        QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]),
-        QuantTemplate.referenceTemplate,
-        ForkTransformer
-    ),
+    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), QuantTemplate.referenceTemplate,
+                ForkTransformer),
 ]
