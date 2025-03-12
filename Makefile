@@ -44,6 +44,7 @@ BANSHEE_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/banshee
 MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
 GVSOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc
+MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
 
 CMAKE ?= cmake
 
@@ -54,27 +55,17 @@ BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 GVSOC_COMMIT_HASH ?= e96253a0ca7bbd113850988c2d77289926db37f3
+MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 
 RUSTUP_CARGO ?= $$(rustup which cargo)
 
 all: toolchain emulators docs echo-bash
 
 echo-bash:
-	@echo "Please export the following symbols:"
-	@echo "PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
-	@echo "SNITCH_HOME=${SNITCH_INSTALL_DIR}"
-	@echo "LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
-	@echo "CMAKE=$$(which cmake)"
-
-	@echo "Please add the following paths to your PATH variable:"
-	@echo "${QEMU_INSTALL_DIR}/bin"
-	@echo "${BANSHEE_INSTALL_DIR}"
-
-	@echo "For PULP to work, please source the following file:"
-	@echo "${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
 
 	@echo ""
-	@echo "TL/DR: add these lines to run ~/.bashrc"
+	@echo "The following symbols need to be exported for Deeploy to work properly:"
+	@echo "export MINIMALLOC_INSTALL_DIR=${MINIMALLOC_INSTALL_DIR}"
 	@echo "export PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
 	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
 	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
@@ -84,6 +75,8 @@ echo-bash:
 	@echo "export CMAKE=$$(which cmake)"
 	@echo "export PATH=${QEMU_INSTALL_DIR}/bin:${BANSHEE_INSTALL_DIR}:\$$PATH"
 	@echo "export PATH=~/.cargo/bin:\$$PATH"
+	@echo ""
+	@echo "Additionally you need to source the following script:"
 	@echo "source ${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
 
 
@@ -341,6 +334,15 @@ ${MEMPOOL_INSTALL_DIR}: ${TOOLCHAIN_DIR}/mempool
 	mkdir -p ${MEMPOOL_INSTALL_DIR}/software && \
 	cd ${TOOLCHAIN_DIR}/mempool && \
 	cp -r ${TOOLCHAIN_DIR}/mempool/software/runtime ${MEMPOOL_INSTALL_DIR}/software
+
+minimalloc: ${TOOLCHAIN_DIR}/minimalloc
+
+${TOOLCHAIN_DIR}/minimalloc:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone --recursive https://github.com/google/minimalloc.git && \
+	cd ${TOOLCHAIN_DIR}/minimalloc && git checkout ${MINIMALLOC_COMMMIT_HASH} && \
+	cmake -DCMAKE_BUILD_TYPE=Release && make -j && \
+	mkdir -p ${MINIMALLOC_INSTALL_DIR} && cp minimalloc ${MINIMALLOC_INSTALL_DIR}
 
 .PHONY: docs clean-docs format
 

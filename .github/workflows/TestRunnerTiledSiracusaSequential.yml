@@ -18,6 +18,14 @@ on:
         required: false
         default: false
         type: boolean
+      memory-allocation-strategy:
+        required: false
+        default: "MiniMalloc"
+        type: string
+      search-strategy:
+        required: false
+        default: "random-max"
+        type: string
 
 jobs:
 
@@ -53,7 +61,7 @@ jobs:
             L1_values=$(echo "$test" | jq -r '.L1[]')
             for L1_value in $L1_values; do
               echo "Running test: $testName with L1: $L1_value"
-              python testRunner_tiled_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }}
+              python testRunner_tiled_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
             done
           done
         shell: bash

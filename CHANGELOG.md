@@ -175,3 +175,15 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ### Fixed
 - Updated printinput nodetemplate for float handling.
+
+## Add MiniMalloc and Decouple Memory Allocation and Tiling
+
+## Added
+-  Installation and compilation flow for MiniMalloc through Makefile.
+- Adapt the docker to install MiniMalloc and declare necessary symbols.
+- Add the `constraintTileBuffersWithOverlappingLifetime` method to the memory scheduler to add the necessary memory constraint when we decouple memory allocation and tiling.
+- Add the `minimalloc` method to the `Tiler` class. MiniMalloc comes as a precompiled cpp library using CSV for I/O. Hence, this method converts Deeploy's memory map to MiniMalloc's CSV representation, calls a subprocess to run MiniMalloc, reads the output CSV, and translates it back to Deeploy's memory map.
+- Add MiniMalloc to the memory allocation strategies and add a new argument to the test runner to control the L2 size.
+
+## Fixed
+- Fix `testMVP.py` to get a proper should fail test.

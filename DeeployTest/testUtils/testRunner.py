@@ -194,6 +194,12 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               type = int,
                               default = 64000,
                               help = 'Set L1 size\n')
+            self.add_argument('--l2',
+                              metavar = '<size>',
+                              dest = 'l2',
+                              type = int,
+                              default = 512000,
+                              help = 'Set L2 size\n')
             self.add_argument('--randomizedMemoryScheduler',
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
@@ -207,15 +213,12 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               metavar = 'memAllocStrategy',
                               dest = 'memAllocStrategy',
                               type = str,
-                              default = "TetrisRandom",
+                              default = "MiniMalloc",
                               help = """Choose the memory allocation strategy, possible values are:
                             - TetrisRandom: Randomly sample an placement schedule (order) for the Tetris Memory Allocation.
                             - TetrisCo-Opt: Co-optimize the placement schedule with the tiling solver (works best with random-max solver strategy).
+                            - MiniMalloc: Use SotA static memory allocator from https://dl.acm.org/doi/10.1145/3623278.3624752
                         """)
-            self.add_argument(
-                '--plotMemAlloc',
-                action = 'store_false',
-                help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
             self.add_argument('--searchStrategy',
                               metavar = 'searchStrategy',
                               dest = 'searchStrategy',
@@ -226,6 +229,10 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                             - max: Initalize all variables at their maximal value.
                             - min: Initalize all variables at their minimal value.
                         """)
+            self.add_argument(
+                '--plotMemAlloc',
+                action = 'store_false',
+                help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
         self.args = None
 
@@ -254,6 +261,8 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                 command += " --doublebuffer"
             if self.args.l1:
                 command += f" --l1={self.args.l1}"
+            if self.args.l2:
+                command += f" --l2={self.args.l2}"
             if self.args.randomizedMemoryScheduler:
                 command += " --randomizedMemoryScheduler"
             if self.args.profileTiling is not None:

@@ -115,7 +115,7 @@ class MemoryScheduler():
 
         return overlap
 
-    def __init__(self, stringSuffix: str, tileScheduler: bool, seed: int = 19960801):
+    def __init__(self, stringSuffix: str, tileScheduler: bool, seed: int = 1996080121):
         self._stringSuffix = stringSuffix
         self.stringSuffix = ""
         self.tileScheduler = tileScheduler
@@ -484,6 +484,9 @@ class MemoryScheduler():
                 permutationList = self.heuristicPermutation(adjacencyMatrix, costVector)
                 permAdj, permCost, permutationMatrix = self._stablePermutation(adjacencyMatrix, costVector,
                                                                                permutationList)
+            elif memoryAllocStrategy == "MiniMalloc":
+                #JUNVI: When using MiniMalloc we don't perform memory allocation with Tiling, hence we don't add the permutation constraints
+                continue
             else:
                 raise ("Unrecognized memory allocation strategy!")
 
@@ -506,6 +509,45 @@ class MemoryScheduler():
         self.stringSuffix = self._stringSuffix + f"_{memoryLevel}"
         return self._scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints, memoryHierarchy,
                                                memoryAllocStrategy, memoryLevel)
+
+    @staticmethod
+    def constraintTileBuffersWithOverlappingLifetime(tilerModel: TilerModel, ctxt: NetworkContext,
+                                                     patternMemoryConstraint: PatternMemoryConstraints,
+                                                     memoryHierarchy: MemoryHierarchy):
+        """JUNGVI: This method adds the necessay constraints for tiling to be performed before the static memory allocation of the tile buffers.
+        To perform static memory allocation after tiling (i.e. decouple tiling and memory alloc), we need to do two assumptions
+            1. All tile buffers for each node have overlapping lifetime, so we can find their memory footprint by just summing their sizes and hence we don't need to know the specific memory allocation. This assumption is true as soon as we don't do tile several nodes together (ask me if you don't know what I mean here).
+            2. We don't allocate the tensors of the graph in the same memory level than the tiles (for instance we put all tensor in L2 and the tiles only live in L1).
+        """
+
+        for nodeConstraint in patternMemoryConstraint.nodeConstraints:
+            tileMemoryConstraint = {}
+
+            for tensorMemoryConstraints in nodeConstraint.tensorMemoryConstraints.values():
+                for memoryConstraint in tensorMemoryConstraints.memoryConstraints.values():
+                    if isinstance(memoryConstraint.size, IntVar):
+
+                        _buffer = ctxt.lookup(tensorMemoryConstraints.tensorName)
+
+                        if not isinstance(_buffer, TransientBuffer):
+                            _typeWidthFactor = int(_buffer._type.referencedType.typeWidth / 8)
+                        else:
+                            _typeWidthFactor = 1
+
+                        tileMemoryConstraint[tensorMemoryConstraints.tensorName] = {
+                            "sizeVar": memoryConstraint.size,
+                            "typeWidthFactor": _typeWidthFactor,
+                            "memoryLevel": memoryConstraint.memoryLevel,
+                            "multiBufferCoeff": memoryConstraint.multiBufferCoefficient,
+                        }
+
+            for memoryLevel in memoryHierarchy.memoryLevels.values():
+                sumExpr = 0
+                for infoDict in tileMemoryConstraint.values():
+                    if memoryLevel.name == infoDict['memoryLevel']:
+                        sumExpr += infoDict['sizeVar'] * infoDict['typeWidthFactor'] * infoDict['multiBufferCoeff']
+                if sumExpr != 0:
+                    tilerModel.addConstraint(sumExpr <= memoryLevel.size)
 
     def getSymbolicCostName(self, patternIdx: int, memoryLevel: str) -> str:
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"

@@ -40,7 +40,6 @@ class SnitchSynchCoresPass(CodeTransformationPass):
               executionBlock: ExecutionBlock,
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
-        # TODO: JUNGVI: These have to be core only barriers
         executionBlock.addLeft(_synchTemplate, {})
         executionBlock.addRight(_synchTemplate, {})
         return ctxt, executionBlock

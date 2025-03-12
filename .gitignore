@@ -6,6 +6,7 @@ dist
 *.vscode
 .DS_Store
 *.html
+*.csv
 .ipynb_checkpoints/
 *#
 install/

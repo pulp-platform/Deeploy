@@ -17,7 +17,6 @@ COPY Makefile ./
 RUN apt-get upgrade
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git-lfs \
-    cmake \
     build-essential \
     ccache \
     ninja-build \
@@ -43,6 +42,14 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git-lfs \
     libsdl2-ttf-dev \
     gcc-multilib \
     wget
+
+# Install cmake 3.25.1 (required by minimalloc)
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.25.1/cmake-3.25.1-linux-x86_64.sh && \
+    chmod +x cmake-3.25.1-linux-x86_64.sh && \
+    ./cmake-3.25.1-linux-x86_64.sh --prefix=/usr --skip-license
+
+# Compile minimalloc
+RUN make minimalloc
 
 # Install Python
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
@@ -117,6 +124,7 @@ ENV PULP_SDK_HOME=/app/install/pulp-sdk
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV SNITCH_HOME=/app/install/snitch_cluster
 ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
+ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
 ENV MEMPOOL_HOME=/app/install/mempool
 ENV PATH=/app/install/qemu/bin:/app/install/banshee:$PATH
 ENV PATH="/root/.cargo/bin:${PATH}"

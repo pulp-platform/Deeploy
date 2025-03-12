@@ -24,6 +24,7 @@
 # limitations under the License.
 
 import os
+import sys
 from collections import OrderedDict
 from typing import List, Union
 
@@ -209,14 +210,6 @@ def setupDeployer(graph: gs.Graph,
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
 
-    deployer.frontEnd()
-    deployer.midEnd()
-
-    # Decomposed Backend to mock the scheduler
-    deployer.backEnd(verbose)
-
-    deployer.prepared = True
-
     if overwriteRecentState:
         os.makedirs(f'./deeployStates/', exist_ok = True)
         os.system(f'cp -r {_DEEPLOYSTATEDIR}/* ./deeployStates/')
@@ -257,6 +250,7 @@ if __name__ == '__main__':
                         help = 'Adds EXPERIMENTAL support for strided convolutions on N-EUREKA\n')
     parser.add_argument('--doublebuffer', action = 'store_true')
     parser.add_argument('--l1', metavar = 'l1', dest = 'l1', type = int, default = 64000, help = 'Set L1 size\n')
+    parser.add_argument('--l2', metavar = 'l2', dest = 'l2', type = int, default = 512000, help = 'Set L2 size\n')
     parser.add_argument('--shouldFail', action = 'store_true')
     parser.add_argument('--overwriteRecentState',
                         action = 'store_true',
@@ -265,10 +259,11 @@ if __name__ == '__main__':
                         metavar = 'memAllocStrategy',
                         dest = 'memAllocStrategy',
                         type = str,
-                        default = "TetrisRandom",
+                        default = "MiniMalloc",
                         help = """Choose the memory allocation strategy, possible values are:
                             - TetrisRandom: Randomly sample an placement schedule (order) for the Tetris Memory Allocation.
                             - TetrisCo-Opt: Co-optimize the placement schedule with the tiling solver (works best with random-max solver strategy).
+                            - MiniMalloc: Use SotA static memory allocator from https://dl.acm.org/doi/10.1145/3623278.3624752
                         """)
     parser.add_argument('--searchStrategy',
                         metavar = 'searchStrategy',
@@ -328,7 +323,7 @@ if __name__ == '__main__':
 
     # Instantiate Classes Requried for Memory Level Annotation Extension
     L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64000000)
-    L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = 512000)
+    L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = args.l2)
     L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = args.l1)
     memoryLevels = [L3, L2, L1]
 
@@ -360,9 +355,10 @@ if __name__ == '__main__':
 
     if args.shouldFail:
         with pytest.raises(Exception):
-            tilingSchedule = deployer.tiler.computeTilingSchedule(deployer.ctxt)
+            _ = deployer.generateFunction(verbosityCfg)
 
-        print("Tiler test ended, failed as expected!")
+        print("\033[92mCode Generation test ended, failed as expected!\033[0m")
+        sys.exit(0)
     else:
 
         _ = deployer.generateFunction(verbosityCfg)
@@ -411,4 +407,4 @@ if __name__ == '__main__':
                 print(f"{'  ' + str(level) + ':' :<{_TEXT_ALIGN}} {deployer.worstCaseBufferSize[level]}")
             print(f"{'Model Parameters: ' :<{_TEXT_ALIGN}} {deployer.getParameterSize()}")
 
-        print("Tiler test ended, no memory violations!")
+        print("\033[92mCode Generation test ended, no memory violations!\033[0m")
