@@ -65,6 +65,7 @@ if __name__ == '__main__':
 
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
+    # import IPython; IPython.embed()
 
     inputTypes = {}
     inputOffsets = {}

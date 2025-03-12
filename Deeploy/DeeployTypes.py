@@ -3147,6 +3147,9 @@ class NetworkDeployer(NetworkContainer):
 
         self._duplicateConstants(self.graph)
 
+        self.graph.fold_constants()
+        self.graph.cleanup().toposort()
+        
         self.exportDeeployState(self.deeployStateDir, _middlewarePreLoweringFilename)
 
         self.graph = self.lower(self.graph)  # This lowers the graph to a deployable format

@@ -41,11 +41,11 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvT
     ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, \
     ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
     RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, \
-    iSoftmaxTemplate
+    iSoftmaxTemplate, QuantTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
     DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, MatMulChecker, \
     MaxPoolChecker, MulChecker, PadChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, \
-    ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
+    ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker, QuantChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -260,4 +260,13 @@ DummyBinding = NodeBinding(DummyChecker([PointerClass(int8_t)], [PointerClass(in
 BasicConcatBindings = [
     NodeBinding(ConcatChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
                 ConcatTemplate.referenceTemplate, BasicTransformer) for type in IntegerDataTypes
+]
+
+BasicQuantBindings = [
+    # Float to int8 binding
+    NodeBinding(
+        QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]),
+        QuantTemplate.referenceTemplate,
+        BasicTransformer
+    ),
 ]

@@ -33,20 +33,20 @@ from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBindin
     BasicLayerNormBindings, BasicMatMulBindings, BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, \
     BasicPad2DBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, \
     BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, \
-    BasicTransposeBindings, DummyBinding
+    BasicTransposeBindings, DummyBinding, BasicQuantBindings
 from Deeploy.Targets.Generic.Layers import AddLayer, ConvLayer, DebugPrintLayer, DivLayer, GatherLayer, GELULayer, \
     GEMMLayer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, ReduceMeanLayer, \
     ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SliceLayer, \
-    SoftmaxLayer, TransposeLayer
+    SoftmaxLayer, TransposeLayer, QuantLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DivParser, DummyParser, FlattenParser, \
     GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, \
     GenericGEMMParser, GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, \
     MatMulParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, ReduceSumParser, ReluParser, \
     RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, SoftmaxParser, \
-    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
+    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser, QuantParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ExtractPaddingFromConvPass, \
-    ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, iGELURequantMergePass
+    ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, iGELURequantMergePass, QuantPatternPass
 
 AddMapper = NodeMapper(AddParser(), BasicAddBindings)
 Conv1DMapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBinding])
@@ -80,6 +80,7 @@ SoftmaxMapper = NodeMapper(SoftmaxParser(), BasicSoftmaxBindings)
 iSoftmaxMapper = NodeMapper(iSoftmaxParser(), BasicSoftmaxBindings)
 TransposeMapper = NodeMapper(TransposeParser(), BasicTransposeBindings)
 UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
+QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
 
 SliceMapper = NodeMapper(SliceParser(), BasicSliceBindings)
 
@@ -120,13 +121,13 @@ GenericMapping = {
     'Squeeze': ReshapeLayer([UnsqueezeMapper]),
     'Transpose': TransposeLayer([TransposeMapper]),
     'Unsqueeze': ReshapeLayer([UnsqueezeMapper]),
-    'Slice': SliceLayer([SliceMapper])
+    'Slice': SliceLayer([SliceMapper]),
+    'Quant': QuantLayer([QuantMapper])
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel
     # 'GlobalAveragePool': ConvLayer([DummyMapper]),
 }
-
 
 class GenericVariableBuffer(VariableBuffer):
 
@@ -155,8 +156,9 @@ class GenericStructBuffer(StructBuffer):
     allocTemplate = AllocateTemplate.referenceStructAllocateTemplate
     deallocTemplate = NodeTemplate("")
 
-
+# JUNGVI: Add you pass here 
 GenericOptimizer = TopologyOptimizer([
+    QuantPatternPass(),
     iGELURequantMergePass(),
     MatMulAddMergePass(),
     MergeConstAddAndRequantPass(),

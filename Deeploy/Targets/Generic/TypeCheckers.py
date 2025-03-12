@@ -474,7 +474,7 @@ class MaxPoolChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
+        
 
 class ConvChecker(SignPropTypeChecker):
 
@@ -559,3 +559,21 @@ class RQAddChecker(SignPropTypeChecker):
         if (not operatorRepresentation['rqsOut_signed']) and (not outputTypeSigned):
             return True
         return False
+    
+
+class QuantChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        # Calculate number of levels based on bit_width
+        bit_width = operatorRepresentation['bit_width']
+        return [2**bit_width]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        # Return signedness from the operation attributes
+        return [bool(operatorRepresentation['signed'])]
+    
