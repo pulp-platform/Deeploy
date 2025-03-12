@@ -39,10 +39,10 @@ from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import ConcatTemplate, FloatGELUTemplate, FloatGemmTemplate, \
     FloatLayernormTemplate, FloatMatMulTemplate, FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
-    GatherTemplate, RQSiGELUTemplate, iHardswishTemplate
+    GatherTemplate, RQSiGELUTemplate, iHardswishTemplate, QuantTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, GatherChecker, GELUChecker, GEMMChecker, \
     HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, ReduceMeanChecker, ReluChecker, RQAddChecker, \
-    RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker
+    RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker, QuantChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -362,4 +362,13 @@ PULPFloatGELUBinding = NodeBinding(
 PULPGatherBindings = [
     NodeBinding(GatherChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
                 GatherTemplate.referenceTemplate, ForkTransformer) for type in IntegerDataTypes
+]
+
+BasicQuantBindings = [
+    # Float to int8 binding
+    NodeBinding(
+        QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]),
+        QuantTemplate.referenceTemplate,
+        ForkTransformer
+    ),
 ]

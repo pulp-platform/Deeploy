@@ -57,7 +57,7 @@ BEGIN_SINGLE_CORE
         
         // Assign directly with explicit cast
         ${data_out}[i] = (${data_out_type.referencedType.typeName})quantized;
-                                   
+        
     }
 END_SINGLE_CORE
 """)

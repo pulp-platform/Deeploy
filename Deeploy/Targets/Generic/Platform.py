@@ -156,7 +156,6 @@ class GenericStructBuffer(StructBuffer):
     allocTemplate = AllocateTemplate.referenceStructAllocateTemplate
     deallocTemplate = NodeTemplate("")
 
-# JUNGVI: Add you pass here 
 GenericOptimizer = TopologyOptimizer([
     QuantPatternPass(),
     iGELURequantMergePass(),

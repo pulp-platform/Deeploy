@@ -36,18 +36,18 @@ from Deeploy.Targets.Generic.Bindings import BasicPad1DBindings, BasicPad2DBindi
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
     LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, ReduceMeanLayer, ReluLayer, RequantShiftLayer, \
     ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SliceLayer, SoftmaxLayer, TransposeLayer, \
-    iHardswishLayer, iRMSNormLayer
+    iHardswishLayer, iRMSNormLayer, QuantLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, FlattenParser, GatherParser, GELUParser, \
     GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, \
     ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, \
     RQSiHardswishParser, SliceParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, \
-    iHardswishParser, iRMSNormParser, iSoftmaxParser
+    iHardswishParser, iRMSNormParser, iSoftmaxParser, QuantParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, SkipEmptyConcatPass, \
-    SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+    SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass, QuantPatternPass
 from Deeploy.Targets.PULPOpen.Bindings import PULPConv1DBinding, PULPDMASliceBindings, PULPDWConv1DBinding, \
-    PULPReduceMeanBindings
+    PULPReduceMeanBindings, BasicQuantBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPGEMMParser, PULPMatrixVecParser, PULPTallGEMMParser
@@ -108,6 +108,8 @@ iRMSNormMapper = NodeMapper(iRMSNormParser(), PULPiRMSNormTilingReadyBindings)
 iHardswishMapper = NodeMapper(iHardswishParser(), PULPiHardswishTilingReadyBindings)
 RQSiHardswishMapper = NodeMapper(RQSiHardswishParser(), PULPRQSiHardswishTilingReadyBindings)
 
+QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
+
 PULPMapping = {
     'Conv': ConvLayer([FPConv2DMapper]),
     'RequantizedConv': PULPRQSConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
@@ -139,7 +141,8 @@ PULPMapping = {
     'Concat': ConcatLayer([ConcatMapper]),
     'iRMSNorm': iRMSNormLayer([iRMSNormMapper]),
     'iHardswish': iHardswishLayer([iHardswishMapper]),
-    'RequantizediHardswish': RQSiHardswishLayer([RQSiHardswishMapper])
+    'RequantizediHardswish': RQSiHardswishLayer([RQSiHardswishMapper]),
+    'Quant': QuantLayer([QuantMapper])
 }
 
 
@@ -213,6 +216,7 @@ class PULPStructBuffer(StructBuffer):
 
 
 PULPOptimizer = TopologyOptimizer([
+    QuantPatternPass(),
     SkipEmptyConcatPass(),
     SkipUnityRequantPass(previous_op_regex = "Concat", num_inputs = 2),
     SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),
