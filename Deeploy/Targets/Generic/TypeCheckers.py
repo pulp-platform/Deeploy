@@ -474,7 +474,7 @@ class MaxPoolChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
+        
 
 class ConvChecker(SignPropTypeChecker):
 

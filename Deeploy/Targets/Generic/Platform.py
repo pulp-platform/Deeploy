@@ -43,7 +43,7 @@ from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DivParser, D
     GenericGEMMParser, GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, \
     MatMulParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, \
     RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, SoftmaxParser, \
-    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
+    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser, QuantParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
@@ -130,7 +130,6 @@ GenericMapping = {
     # 'GlobalAveragePool': ConvLayer([DummyMapper]),
 }
 
-
 class GenericVariableBuffer(VariableBuffer):
 
     initTemplate = AllocateTemplate.referenceInitTemplate
@@ -158,7 +157,7 @@ class GenericStructBuffer(StructBuffer):
     allocTemplate = AllocateTemplate.referenceStructAllocateTemplate
     deallocTemplate = NodeTemplate("")
 
-
+# JUNGVI: Add you pass here 
 GenericOptimizer = TopologyOptimizer([
     QuantPatternPass(),
     iGELURequantMergePass(),
