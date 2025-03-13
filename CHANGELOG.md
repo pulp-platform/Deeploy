@@ -187,15 +187,3 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ## Fixed
 - Fix `testMVP.py` to get a proper should fail test.
-
-## Implemented Quant Layer for Generic and Siracusa
-
-### Added
-- New `Quant` operation to handle quantization pattern in ONNX models
-- Implementation for both Generic and Siracusa targets in the Deeploy framework
-- Custom `QuantPatternPass` class to replace matched patterns with a single `Quant` operator
-- Parser implementation in `Parsers.py` to extract quantization parameters
-- C template implementation in `QuantTemplate.py` for efficient quantization
-- Type checker implementation in `TypeCheckers.py` to handle bit-width and signedness
-- Debug outputs to diagnose quantization calculations
-- Documentation for all added components
