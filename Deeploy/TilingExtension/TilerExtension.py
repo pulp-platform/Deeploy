@@ -378,8 +378,7 @@ class Tiler():
         return tilingSchedule, memoryMap
 
     def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
-                   targetMemoryLevelMapping: TargetMemoryLevelMapping,
-                   outputBufferList: List[VariableBuffer]) -> NetworkContext:
+                   targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
 
         wrapSchedule: List[SubGraph] = []
         for entry in schedule:
@@ -393,8 +392,7 @@ class Tiler():
         tilerModel = self._setupTensorDimensionProducts(tilerModel, ctxt, wrapSchedule)
         tilerModel = self._setupHeuristics(tilerModel, ctxt, wrapSchedule)
         tilerModel, allSymbolicMemoryConstraints = self._setupMemoryConstraints(tilerModel, ctxt, wrapSchedule,
-                                                                                layerBinding, targetMemoryLevelMapping,
-                                                                                outputBufferList)
+                                                                                layerBinding, targetMemoryLevelMapping)
 
         self.tilerModel = tilerModel
         self.symbolicMemoryConstraints = allSymbolicMemoryConstraints
@@ -586,8 +584,7 @@ class Tiler():
 
     def _setupMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping,
-            outputBufferList: List[VariableBuffer]) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
+            layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
                                                                   targetMemoryLevelMapping)
@@ -605,8 +602,7 @@ class Tiler():
 
         for level in self.memoryHierarchy.memoryLevels.keys():
             self.outerMemoryScheduler.scheduleMemoryConstraints(tilerModel, ctxt, [outerMemoryConstraints],
-                                                                self.memoryHierarchy, self.memoryAllocStrategy,
-                                                                outputBufferList, level)
+                                                                self.memoryHierarchy, self.memoryAllocStrategy, level)
 
         # Update inner memoryHierarchy with outer constraints
         innerMemoryHierarchy = MemoryHierarchy([])
@@ -621,8 +617,7 @@ class Tiler():
 
         for level in innerMemoryHierarchy.memoryLevels.keys():
             self.innerMemoryScheduler.scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints,
-                                                                innerMemoryHierarchy, self.memoryAllocStrategy,
-                                                                outputBufferList, level)
+                                                                innerMemoryHierarchy, self.memoryAllocStrategy, level)
 
         return tilerModel, allMemoryConstraints
 
@@ -951,12 +946,6 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         if tilingSolution is None:
             schedule = self.scheduler(self.graph)
 
-            # PR-TODO: Rename this!
-            outputBufferList = {
-                "inputs": [node.name for node in self.graph.inputs],
-                "outputs": [node.name for node in self.graph.outputs],
-            }
-
             # JUNGVI: Currently using MiniMalloc is only supported for layer-wise execution and all tensors in the default memory level.
             if self.tiler.memoryAllocStrategy == "MiniMalloc":
                 assert self.tiler.assertLayerWiseTiling(schedule), "Using MiniMalloc and DFT is not supported!"
@@ -967,8 +956,7 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             self.tiler.setupModel(ctxt = self.ctxt,
                                   schedule = schedule,
                                   layerBinding = self.layerBinding,
-                                  targetMemoryLevelMapping = self.getTargetMemoryLevelMapping(),
-                                  outputBufferList = outputBufferList)
+                                  targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
             if self.tiler.visualizeMemoryAlloc:
                 self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,

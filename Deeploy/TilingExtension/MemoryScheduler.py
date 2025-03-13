@@ -35,7 +35,7 @@ from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     _permuteList
-from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, SubGraph, TransientBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
 from Deeploy.TilingExtension.MemoryConstraints import PatternMemoryConstraints, TensorMemoryConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
@@ -261,7 +261,7 @@ class MemoryScheduler():
 
         return cost
 
-    def _buildInterferenceGraph(self, lifetimeMap):
+    def _buildInterferenceGraph(self, lifetimeMap) -> Dict[str, List[str]]:
 
         interferenceGraph: Dict[str, List[str]] = {}
         for name, lifetime in lifetimeMap.items():
@@ -281,8 +281,7 @@ class MemoryScheduler():
         self,
         ctxt: NetworkContext,
         patternMemoryConstraint: PatternMemoryConstraints,
-        memoryLevel: str,
-        outputBufferList: List[VariableBuffer],
+        memoryLevel: str
     ):
 
         def filterTensorMemoryConstraint(ctxt: NetworkContext, tensorMemoryConstraint: TensorMemoryConstraint) -> bool:
@@ -354,7 +353,6 @@ class MemoryScheduler():
                 new_lifetime = (lifetime[0], maxStepIdx)
             tensorLifetimeMap[tensorName] = new_lifetime
 
-        # import IPython; IPython.embed()
         return tensorLifetimeMap, tensorMap
 
     def _buildAdjacencyMatrix(self, graph, tensorMap):
@@ -469,7 +467,6 @@ class MemoryScheduler():
                                    allMemoryConstraints: List[PatternMemoryConstraints],
                                    memoryHierarchy: MemoryHierarchy,
                                    memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt"],
-                                   outputBufferList: List[VariableBuffer],
                                    memoryLevel: str = "L1"):
 
         if memoryLevel not in self.memoryMap:
@@ -477,25 +474,21 @@ class MemoryScheduler():
 
         for patternIdx, patternMemoryConstraint in enumerate(allMemoryConstraints):
 
-            # SCHEREMO: Calculate lifetimes
-            tensorLifetimeMap, tensorMap = self._calculateLifetimes(ctxt, patternMemoryConstraint, memoryLevel,
-                                                                    outputBufferList)
+            tensorLifetimeMap, tensorMap = self._calculateLifetimes(ctxt, patternMemoryConstraint, memoryLevel)
 
             tensorLifetimeMap = self._dealiasLifetimeMap(ctxt, tensorLifetimeMap)
 
-            # SCHEREMO: Build interference graph
-            graph = self._buildInterferenceGraph(tensorLifetimeMap)
+            interferenceGraph = self._buildInterferenceGraph(tensorLifetimeMap)
 
-            numVars = len(graph)
+            numVars = len(interferenceGraph)
 
-            # SCHEREMO: Build adjacency matrices for memoryLevel
-            adjacencyMatrix = self._buildAdjacencyMatrix(graph, tensorMap)
-            costVector = self._buildCostVector(ctxt, graph, tensorMap, memoryLevel)
+            adjacencyMatrix = self._buildAdjacencyMatrix(interferenceGraph, tensorMap)
+            costVector = self._buildCostVector(ctxt, interferenceGraph, tensorMap, memoryLevel)
             nameVector: List[str] = []
 
             blockList = []
 
-            for node, neighbors in graph.items():
+            for node, neighbors in interferenceGraph.items():
                 nameVector.append(node)
                 relativeLifeTime = tensorLifetimeMap[node]
                 absoluteLifetime = (relativeLifeTime[0] + patternIdx, relativeLifeTime[1] + patternIdx)
@@ -543,12 +536,11 @@ class MemoryScheduler():
                                   allMemoryConstraints: List[PatternMemoryConstraints],
                                   memoryHierarchy: MemoryHierarchy,
                                   memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt"],
-                                  outputBufferList: List[VariableBuffer],
                                   memoryLevel: str = "L1"):
 
         self.stringSuffix = self._stringSuffix + f"_{memoryLevel}"
         return self._scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints, memoryHierarchy,
-                                               memoryAllocStrategy, outputBufferList, memoryLevel)
+                                               memoryAllocStrategy,memoryLevel)
 
     def constraintTileBuffersWithOverlappingLifetime(self, tilerModel: TilerModel, ctxt: NetworkContext,
                                                      patternMemoryConstraint: PatternMemoryConstraints,
