@@ -23,15 +23,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
-
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.DeeployTypes import NodeTemplate
 
 
 class _QuantTemplate(NodeTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
+
 
 referenceTemplate = _QuantTemplate("""
 // Quantization (Name: ${nodeName}, Op: ${nodeOp})
