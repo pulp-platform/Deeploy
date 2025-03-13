@@ -35,7 +35,7 @@ from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     _permuteList
-from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, SubGraph, TransientBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
 from Deeploy.TilingExtension.MemoryConstraints import PatternMemoryConstraints, TensorMemoryConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
@@ -277,12 +277,8 @@ class MemoryScheduler():
 
         return interferenceGraph
 
-    def _calculateLifetimes(
-        self,
-        ctxt: NetworkContext,
-        patternMemoryConstraint: PatternMemoryConstraints,
-        memoryLevel: str
-    ):
+    def _calculateLifetimes(self, ctxt: NetworkContext, patternMemoryConstraint: PatternMemoryConstraints,
+                            memoryLevel: str):
 
         def filterTensorMemoryConstraint(ctxt: NetworkContext, tensorMemoryConstraint: TensorMemoryConstraint) -> bool:
 
@@ -540,7 +536,7 @@ class MemoryScheduler():
 
         self.stringSuffix = self._stringSuffix + f"_{memoryLevel}"
         return self._scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints, memoryHierarchy,
-                                               memoryAllocStrategy,memoryLevel)
+                                               memoryAllocStrategy, memoryLevel)
 
     def constraintTileBuffersWithOverlappingLifetime(self, tilerModel: TilerModel, ctxt: NetworkContext,
                                                      patternMemoryConstraint: PatternMemoryConstraints,
