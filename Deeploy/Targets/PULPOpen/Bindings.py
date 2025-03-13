@@ -365,7 +365,6 @@ PULPGatherBindings = [
 ]
 
 BasicQuantBindings = [
-    # Float to int8 binding
     NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), QuantTemplate.referenceTemplate,
                 ForkTransformer),
 ]

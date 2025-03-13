@@ -33,11 +33,6 @@ class _QuantTemplate(NodeTemplate):
     def __init__(self, templateStr):
         super().__init__(templateStr)
 
-    def alignToContext(self, ctxt: NetworkContext,
-                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        return ctxt, operatorRepresentation, []
-
-
 referenceTemplate = _QuantTemplate("""
 // Quantization (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
