@@ -2249,22 +2249,13 @@ class QuantParser(NodeParser):
              len(node.outputs) == 1])
 
         if ret:
-            # Handle attributes properly whether they are direct values or have .values property
-            if hasattr(node.attrs['scale'], 'values'):
-                self.operatorRepresentation['scale'] = float(node.attrs['scale'].values.item())
-                self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'].values.item())
-                self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'].values.item())
-            else:
-                self.operatorRepresentation['scale'] = float(node.attrs['scale'])
-                self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
-                self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
+            self.operatorRepresentation['scale'] = float(node.attrs['scale'])
+            self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
+            self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
 
             # Handle optional signed attribute
             if 'signed' in node.attrs:
-                if hasattr(node.attrs['signed'], 'values'):
-                    self.operatorRepresentation['signed'] = bool(node.attrs['signed'].values.item())
-                else:
-                    self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
+                self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
             else:
                 self.operatorRepresentation['signed'] = True  # Default to signed
 
