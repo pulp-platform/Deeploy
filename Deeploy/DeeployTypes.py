@@ -3126,13 +3126,14 @@ class NetworkDeployer(NetworkContainer):
                     idx += 1
 
     def _foldConstants(self, graph: gs.Graph):
-        try:
-            graph.fold_constants()
-            graph.cleanup().toposort()
-        except Exception as e:
-            print(f"Warning: Could not fold constants due to: {e}")
-            # Just do cleanup and toposort instead
-            graph.cleanup().toposort()
+        # Ensure all constants in the graph are NumPy arrays before folding
+        for node in self.graph.nodes:
+            for inp in node.inputs:
+                if isinstance(inp, gs.Constant) and not isinstance(inp.values, np.ndarray):
+                    inp.values = np.array(inp.values, dtype = np.float32)  # Convert to NumPy array
+
+        graph.fold_constants()
+        graph.cleanup().toposort()
 
     # Don't override this
     # Duplicate constants with multiple users
