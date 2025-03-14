@@ -2244,12 +2244,12 @@ class QuantParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> (bool):
-        # Ensure Quant node has exactly one input
-        if len(node.inputs) != 1:
-            return False
+        # # Ensure Quant node has exactly one input
+        # if len(node.inputs) != 1:
+        #     return False
 
         ret = all(
-            ['scale' in node.attrs, 'zero_point' in node.attrs, 'bit_width' in node.attrs,
+            ['scale' in node.attrs, 'zero_point' in node.attrs, 'bit_width' in node.attrs, len(node.inputs) == 1,
              len(node.outputs) == 1])
 
         if ret:
