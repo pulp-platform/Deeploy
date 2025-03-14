@@ -3,6 +3,9 @@ name: TestRunnerCortexM
 on:
   workflow_call:
     inputs:
+      docker-image:
+        required: true
+        type: string
       test-names:
         required: true
         type: string
@@ -11,7 +14,7 @@ jobs:
   test-runner-cortexm:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ inputs.docker-image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4

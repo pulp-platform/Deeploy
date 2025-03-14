@@ -96,7 +96,9 @@ jobs:
   ### CortexM Tests ###
   cortexm-kernels: 
     uses: ./.github/workflows/TestRunnerCortexM.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
         Adder
         MultIO
@@ -112,7 +114,9 @@ jobs:
 
   cortexm-models: 
     uses: ./.github/workflows/TestRunnerCortexM.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
         simpleRegression
         WaveFormer 
@@ -120,7 +124,9 @@ jobs:
   ### Snitch Tests ###
   snitch-kernels:
     uses: ./.github/workflows/TestRunnerSnitch.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
         Adder
         iSoftmax
@@ -139,7 +145,9 @@ jobs:
 
   snitch-kernels-tiled-singlebuffer-L2:
     uses: ./.github/workflows/TestRunnerTiledSnitchSequential.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       tests-config: |
         [
           {
@@ -185,7 +193,9 @@ jobs:
   ### Mempool Tests ###
   mempool-kernels:
     uses: ./.github/workflows/TestRunnerMempool.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
           Adder
           MultIO
@@ -210,7 +220,9 @@ jobs:
 
   mempool-models:
     uses: ./.github/workflows/TestRunnerMempool.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
         simpleRegression
         simpleCNN
@@ -225,7 +237,9 @@ jobs:
   ### Siracusa Tests ###
   siracusa-kernels:
     uses: ./.github/workflows/TestRunnerSiracusa.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
         Adder
         MultIO
@@ -256,7 +270,9 @@ jobs:
 
   siracusa-models:
     uses: ./.github/workflows/TestRunnerSiracusa.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
         simpleRegression
         miniMobileNet
@@ -270,7 +286,9 @@ jobs:
 
   siracusa-kernels-tiled-singlebuffer-L2:
     uses: ./.github/workflows/TestRunnerTiledSiracusaSequential.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       tests-config: |
         [
           {
@@ -346,7 +364,9 @@ jobs:
 
   siracusa-kernels-tiled-doublebuffer-L2:
     uses: ./.github/workflows/TestRunnerTiledSiracusaSequential.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       tests-config: |
         [
           {
@@ -451,7 +471,9 @@ jobs:
         num-cores:
           - 8
     uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-name: ${{ matrix.test-data.name }}
       num-cores: ${{ matrix.num-cores }}
       L1: ${{ toJson(matrix.test-data.L1) }}
@@ -480,7 +502,9 @@ jobs:
         default-memory-level:
           - "L3"
     uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-name: ${{ matrix.test-data.name }}
       num-cores: ${{ matrix.num-cores }}
       L1: ${{ toJson(matrix.test-data.L1) }}
@@ -516,7 +540,9 @@ jobs:
         default-memory-level:
           - "L3"
     uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-name: ${{ matrix.test-data.name }}
       num-cores: ${{ matrix.num-cores }}
       L1: ${{ toJson(matrix.test-data.L1) }}
@@ -525,7 +551,9 @@ jobs:
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2:
     uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       tests-config: |
         [
           {
@@ -549,7 +577,9 @@ jobs:
 
   siracusa-neureka-kernels-tiled-doublebuffer-L2:
     uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       tests-config: |
         [
           {
@@ -590,7 +620,9 @@ jobs:
         default-memory-level:
           - "L3"
     uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-name: ${{ matrix.test-data.name }}
       num-cores: ${{ matrix.num-cores }}
       L1: ${{ toJson(matrix.test-data.L1) }}
@@ -614,7 +646,9 @@ jobs:
         default-memory-level:
           - "L3"
     uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-name: ${{ matrix.test-data.name }}
       num-cores: ${{ matrix.num-cores }}
       L1: ${{ toJson(matrix.test-data.L1) }}
@@ -623,7 +657,9 @@ jobs:
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2-wmem:
     uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       tests-config: |
         [
           {
@@ -668,7 +704,9 @@ jobs:
         neureka-wmem:
           - true
     uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-name: ${{ matrix.test-data.name }}
       num-cores: ${{ matrix.num-cores }}
       L1: ${{ toJson(matrix.test-data.L1) }}
@@ -680,8 +718,9 @@ jobs:
   ### Deeploy Extension and Internal Tests ###
   deeploy-memory-allocation:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -699,8 +738,9 @@ jobs:
 
   deeploy-state-serialization:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -719,8 +759,9 @@ jobs:
 
   deeploy-memory-level-extension:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -739,8 +780,9 @@ jobs:
 
   deeploy-tiler-extension:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -763,8 +805,9 @@ jobs:
 
   deeploy-memory-allocation-extension:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -785,8 +828,9 @@ jobs:
 
   deeploy-typing:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -802,8 +846,9 @@ jobs:
 
   deeploy-regex-matching:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -819,8 +864,9 @@ jobs:
 
   linting:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
