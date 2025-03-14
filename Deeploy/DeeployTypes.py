@@ -3126,12 +3126,6 @@ class NetworkDeployer(NetworkContainer):
                     idx += 1
 
     def _foldConstants(self, graph: gs.Graph):
-        # Ensure all constants in the graph are NumPy arrays before folding
-        for node in self.graph.nodes:
-            for inp in node.inputs:
-                if isinstance(inp, gs.Constant) and not isinstance(inp.values, np.ndarray):
-                    inp.values = np.array(inp.values, dtype = np.float32)  # Convert to NumPy array
-
         graph.fold_constants()
         graph.cleanup().toposort()
 
