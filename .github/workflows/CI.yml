@@ -8,12 +8,24 @@ on:
     # Runs the CI on the default branch every 6 days at 2AM CET to keep the cache fresh
     - cron: "0 1 */6 * *"
 
+env:
+  DOCKER_IMAGE: ghcr.io/victor-jung/deeploy:main
+
 jobs:
+
+  select-docker-image:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.docker-image.outputs.image }}
+    steps:
+      - id: docker-image
+        run: echo "::set-output name=image::${{ env.IMAGE }}"
 
   build-deeploy:
     runs-on: ubuntu-22.04
+    needs: select-docker-image
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ needs.docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
