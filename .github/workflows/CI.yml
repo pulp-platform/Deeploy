@@ -77,7 +77,9 @@ jobs:
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml
+    needs: select-docker-image
     with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
         simpleRegression
         WaveFormer
