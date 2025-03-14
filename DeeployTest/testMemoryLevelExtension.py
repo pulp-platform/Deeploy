@@ -66,6 +66,8 @@ if __name__ == '__main__':
 
     onnx_graph = onnx.load_model(f'{_TESTDIR}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
+    # JUNGVI: Load a second graph for the mock deployer to avoid side effect of the graph being modified by the mocked deployer and then used by the regular deployer. gs.Graph don't support deepcopy hence I reload it.
+    mockGraph = gs.import_onnx(onnx_graph)
 
     inputs = np.load(f'{_TESTDIR}/inputs.npz')
     tensors = graph.tensors()
@@ -99,7 +101,7 @@ if __name__ == '__main__':
         MockPlatform = CMSISPlatform(engines = [MockEngine])
         MockPlatform = setupMemoryPlatform(MockPlatform, memoryHierarchy, defaultTargetMemoryLevel)
 
-        mockDeployer = MemoryLevelAwareSignPropDeployer(graph,
+        mockDeployer = MemoryLevelAwareSignPropDeployer(mockGraph,
                                                         MockPlatform,
                                                         inputTypes,
                                                         CMSISOptimizer,
@@ -122,7 +124,7 @@ if __name__ == '__main__':
         MockPlatform = MemPoolPlatform(engines = [MockEngine])
         MockPlatform = setupMemoryPlatform(MockPlatform, memoryHierarchy, defaultTargetMemoryLevel)
 
-        mockDeployer = MemoryLevelAwareSignPropDeployer(graph,
+        mockDeployer = MemoryLevelAwareSignPropDeployer(mockGraph,
                                                         MockPlatform,
                                                         inputTypes,
                                                         MemPoolOptimizer,
@@ -137,7 +139,7 @@ if __name__ == '__main__':
         MockPlatform = GenericPlatform(engines = [MockEngine])
         MockPlatform = setupMemoryPlatform(MockPlatform, memoryHierarchy, defaultTargetMemoryLevel)
 
-        mockDeployer = MemoryLevelAwareSignPropDeployer(graph,
+        mockDeployer = MemoryLevelAwareSignPropDeployer(mockGraph,
                                                         MockPlatform,
                                                         inputTypes,
                                                         GenericOptimizer,
@@ -152,7 +154,7 @@ if __name__ == '__main__':
         MockPlatform = PULPPlatform(engines = [MockEngine])
         MockPlatform = setupMemoryPlatform(MockPlatform, memoryHierarchy, defaultTargetMemoryLevel)
 
-        mockDeployer = MemoryLevelAwareSignPropDeployer(graph,
+        mockDeployer = MemoryLevelAwareSignPropDeployer(mockGraph,
                                                         MockPlatform,
                                                         inputTypes,
                                                         PULPOptimizer,
