@@ -324,6 +324,10 @@ jobs:
           {
             "name": "testFloatMul",
             "L1": [2000]
+          },
+          {
+          "name": "largeFloatAdd",
+          "L1": [220000]
           }
         ]
       num-cores: 8
