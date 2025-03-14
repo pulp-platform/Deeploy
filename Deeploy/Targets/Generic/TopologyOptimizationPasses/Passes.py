@@ -1048,3 +1048,104 @@ class GEMMRequantMergePass(ReplaceSequentialPatternPass):
 
         name = f"_MERGE_GEMM_RQ_PASS"
         super().__init__(graph, merge_gemm_rq_fun, name)
+
+
+def _quant_pattern_fun(graph: gs.Graph, match: Match, name: str):
+    # Get all nodes in the match
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+
+    # The pattern should be: Div -> Add -> Round -> Clip
+    # Extract each operation from the matched nodes
+    div_node = matched_nodes[0]  # Div operation for scaling
+    add_node = matched_nodes[1]  # Add operation for zero_point
+    round_node = matched_nodes[2]  # Round operation
+    clip_node = matched_nodes[3]  # Clip operation for clamping
+
+    # Get input and output tensors
+    input_tensor = div_node.inputs[0]
+    output_tensor = clip_node.outputs[0]
+
+    # Extract scale (from the second input of Div node)
+    scale_input = div_node.inputs[1]
+    scale_value = 1.0 / float(scale_input.values.item()) if hasattr(scale_input, 'values') else 1.0
+
+    # Extract zero_point (from the second input of Add node)
+    zero_point_input = add_node.inputs[1]
+    zero_point_value = float(zero_point_input.values.item()) if hasattr(zero_point_input, 'values') else 0.0
+
+    # Extract min and max values from Clip node inputs (not attributes)
+    # In ONNX opset 13, Clip takes min and max as inputs rather than attributes
+    min_input = clip_node.inputs[1] if len(clip_node.inputs) > 1 else None
+    max_input = clip_node.inputs[2] if len(clip_node.inputs) > 2 else None
+
+    min_value = float(min_input.values.item()) if (min_input is not None and hasattr(min_input, 'values')) else None
+    max_value = float(max_input.values.item()) if (max_input is not None and hasattr(max_input, 'values')) else None
+
+    # Safely determine bit_width and signed from min/max with null checks
+    if min_value is not None and max_value is not None:
+        if min_value < 0:
+            signed = True
+            bit_width = int(np.log2(max_value - min_value + 1))
+        else:
+            signed = False
+            bit_width = int(np.log2(max_value + 1))
+    else:
+        # Default values if min or max is None
+        # You might want to extract these from the model parameters instead
+        signed = True
+        bit_width = 8
+
+    # Create a new Quant node with all attributes
+    quant_attrs = {
+        'scale': np.array([scale_value], dtype = np.float32),
+        'zero_point': np.array([zero_point_value], dtype = np.float32),
+        'bit_width': np.array([bit_width], dtype = np.int32),
+        'signed': np.array([1 if signed else 0], dtype = np.int32),
+    }
+
+    # Only add min/max if they're not None
+    if min_value is not None:
+        quant_attrs['min_val'] = np.array([min_value], dtype = np.int32)
+    if max_value is not None:
+        quant_attrs['max_val'] = np.array([max_value], dtype = np.int32)
+
+    # Create the new Quant node
+    quant_node = gs.Node(op = 'Quant',
+                         name = name + '_Quant',
+                         inputs = [input_tensor],
+                         outputs = [output_tensor],
+                         attrs = quant_attrs)
+
+    # Add the new node to the graph
+    graph.nodes.append(quant_node)
+
+    # Remove the old nodes
+    for node in matched_nodes:
+        node.inputs.clear()
+        node.outputs.clear()
+        graph.nodes.remove(node)
+
+    return graph
+
+
+@contextagnostic
+class QuantPatternPass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        # Define the pattern to match: Div -> Add -> Round -> Clip
+        graph = gs.Graph()
+        input_var = gs.Variable(name = 'input_0')
+        scale_var = gs.Variable(name = 'scale')
+        zero_point_var = gs.Variable(name = 'zero_point')
+
+        # Create the pattern
+        div_out = graph.layer(inputs = [input_var], outputs = ['div_out'], op = 'Div', name = 'div')
+        add_out = graph.layer(inputs = div_out, outputs = ['add_out'], op = 'Add', name = 'add')
+        round_out = graph.layer(inputs = add_out, outputs = ['round_out'], op = 'Round', name = 'round')
+        clip_out = graph.layer(inputs = round_out, outputs = ['clip_out'], op = 'Clip', name = 'clip')
+
+        graph.outputs.append(clip_out)
+        graph.inputs.append(input_var)
+
+        name = "_QUANT_PATTERN_PASS"
+        super().__init__(graph, _quant_pattern_fun, name)

@@ -2236,3 +2236,53 @@ class RQAddParser(AddParser):
             self.operatorRepresentation['rqsOut_log2D'] = int(math.log2(node.attrs['rqsOut_div'].values))
 
         return ret
+
+
+class QuantParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all([
+            'scale' in node.attrs, 'zero_point' in node.attrs, 'bit_width' in node.attrs,
+            len(node.inputs) == 1,
+            len(node.outputs) == 1
+        ])
+
+        if ret:
+            self.operatorRepresentation['scale'] = float(node.attrs['scale'])
+            self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
+            self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
+
+            # Handle optional signed attribute
+            if 'signed' in node.attrs:
+                self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
+            else:
+                self.operatorRepresentation['signed'] = True  # Default to signed
+
+            # Calculate min and max values based on bit_width and signed
+            bit_width_int = self.operatorRepresentation['bit_width']
+            if self.operatorRepresentation['signed']:
+                self.operatorRepresentation['min_val'] = -(2**(bit_width_int - 1))
+                self.operatorRepresentation['max_val'] = (2**(bit_width_int - 1)) - 1
+            else:
+                self.operatorRepresentation['min_val'] = 0
+                self.operatorRepresentation['max_val'] = (2**bit_width_int) - 1
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True

@@ -59,6 +59,7 @@ jobs:
         testFloatSoftmax
         testFloatTranspose
         testFloatMul
+        Quant
         
 
   generic-models:
@@ -236,6 +237,7 @@ jobs:
         testFloatSoftmax
         testFloatTranspose
         testFloatMul
+        Quant
       num-cores: 8
 
   siracusa-models:
