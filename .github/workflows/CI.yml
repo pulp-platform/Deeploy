@@ -19,13 +19,13 @@ jobs:
       image: ${{ steps.docker-image.outputs.image }}
     steps:
       - id: docker-image
-        run: echo "::set-output name=image::${{ env.IMAGE }}"
+        run: echo "::set-output name=image::${{ env.DOCKER_IMAGE }}"
 
   build-deeploy:
     runs-on: ubuntu-22.04
     needs: select-docker-image
     container:
-      image: ${{ needs.docker-image.outputs.image }}
+      image: ${{ needs.select-docker-image.outputs.image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
