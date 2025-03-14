@@ -37,6 +37,7 @@ jobs:
   
   ### Generic Tests ###
   generic-kernels:
+    needs: select-docker-image
     uses: ./.github/workflows/TestRunnerGeneric.yml
     with:
       test-names: |
