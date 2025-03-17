@@ -45,7 +45,7 @@ void Layernorm_s8_s8(int8_t *data_in, int8_t *data_out, int32_t *weight,
                      int32_t *bias, int32_t input_offset, int32_t size,
                      int32_t lastDimLength, int32_t log2D);
 
-void Layernorm_fp32_fp32(float *data_in, float *data_out, float *scale,
-                         float *bias, float epsilon, int32_t size, int32_t lastDimLength);
+void Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out, float32_t *mean_out, float32_t *std_out,
+                         float32_t *scale, float32_t *bias, float32_t epsilon, int32_t size, int32_t lastDimLength);
 
 #endif //__DEEPLOY_BASIC_MATH_LAYERNORM_KERNEL_HEADER_

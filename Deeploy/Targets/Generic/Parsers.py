@@ -561,8 +561,45 @@ class SoftmaxParser(NodeParser):
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
-        self.operatorRepresentation['lastDimLength'] = data_in.shape[-1]
+        if 'axis' in node.attrs:
+            self.operatorRepresentation['axis'] = int(node.attrs['axis'])
+            axis = self.operatorRepresentation['axis']
+            self.operatorRepresentation['lastDimLength'] = data_in.shape[axis]
+        else:
+            self.operatorRepresentation['lastDimLength'] = data_in.shape[-1]
 
+        return ctxt, True
+
+
+class SoftmaxGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        upstream_grad = ctxt.lookup(node.inputs[0].name)
+        softmax_output = ctxt.lookup(node.inputs[1].name)
+        softmax_grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['upstream_grad'] = upstream_grad.name
+        self.operatorRepresentation['softmax_output'] = softmax_output.name
+        self.operatorRepresentation['softmax_grad'] = softmax_grad.name
+        self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
+        if 'axis' in node.attrs:
+            self.operatorRepresentation['axis'] = int(node.attrs['axis'])
+            axis = self.operatorRepresentation['axis']
+            self.operatorRepresentation['lastDimLength'] = upstream_grad.shape[axis]
+        else:
+            self.operatorRepresentation['lastDimLength'] = upstream_grad.shape[-1]
         return ctxt, True
 
 
@@ -1522,12 +1559,34 @@ class LayerNormParser(iLayerNormParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
 
-        ret = all(['epsilon' in node.attrs, len(node.inputs) == 3, len(node.outputs) == 1])
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 3, len(node.outputs) >= 1])
 
         if ret:
             self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
 
         return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['data_in', 'weight', 'bias']
+        outputs = ['data_out', 'mean', 'invstd']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        if len(node.outputs) == 1:
+            self.operatorRepresentation['mean'] = 'NULL'
+            self.operatorRepresentation['invstd'] = 'NULL'
+
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
+        self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
+
+        return ctxt, True
 
 
 class MatMulParser(NodeParser):
@@ -2284,5 +2343,66 @@ class QuantParser(NodeParser):
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True
+
+
+class SoftmaxCrossEntropyLossParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 2, node.attrs['reduction'] == 'mean'])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        logits = ctxt.lookup(node.inputs[0].name)
+        labels = ctxt.lookup(node.inputs[1].name)
+        loss = ctxt.lookup(node.outputs[0].name)
+        log_prob = ctxt.lookup(node.outputs[1].name)
+        self.operatorRepresentation['logits'] = logits.name
+        self.operatorRepresentation['labels'] = labels.name
+        self.operatorRepresentation['loss'] = loss.name
+        self.operatorRepresentation['log_prob'] = log_prob.name
+        self.operatorRepresentation['batch'] = np.prod(logits.shape[0])
+        self.operatorRepresentation['num_classes'] = np.prod(logits.shape[1])
+
+        return ctxt, True
+
+
+class SoftmaxCrossEntropyLossGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 3, len(node.outputs) == 1, node.attrs['reduction'] == 'mean'])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        loss_grad = ctxt.lookup(node.inputs[0].name)
+        log_prob = ctxt.lookup(node.inputs[1].name)
+        labels = ctxt.lookup(node.inputs[2].name)
+        grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['loss_grad'] = loss_grad.name
+        self.operatorRepresentation['log_prob'] = log_prob.name
+        self.operatorRepresentation['labels'] = labels.name
+        self.operatorRepresentation['grad'] = grad.name
+        self.operatorRepresentation['batch'] = np.prod(log_prob.shape[0])
+        self.operatorRepresentation['num_classes'] = np.prod(log_prob.shape[1])
 
         return ctxt, True
