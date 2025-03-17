@@ -2307,11 +2307,6 @@ class DequantParser(NodeParser):
 
             self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
 
-            # if 'signed' in node.attrs:
-            #     self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
-            # else:
-            #     self.operatorRepresentation['signed'] = True  # Default to signed
-
         return ret
 
     def parseNodeCtxt(self,
