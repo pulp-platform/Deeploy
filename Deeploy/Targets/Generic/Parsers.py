@@ -2305,10 +2305,12 @@ class DequantParser(NodeParser):
             self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
             self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
 
-            if 'signed' in node.attrs:
-                self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
-            else:
-                self.operatorRepresentation['signed'] = True  # Default to signed
+            self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
+
+            # if 'signed' in node.attrs:
+            #     self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
+            # else:
+            #     self.operatorRepresentation['signed'] = True  # Default to signed
 
         return ret
 
