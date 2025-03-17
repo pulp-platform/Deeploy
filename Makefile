@@ -290,7 +290,7 @@ ${TOOLCHAIN_DIR}/gvsoc:
 
 ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	cd ${TOOLCHAIN_DIR}/gvsoc && \
-	 XTENSOR_INCLUDE_DIR=${PULP_SDK_INSTALL_DIR}/ext/xtensor/include make all TARGETS=pulp.snitch.snitch_cluster_single siracusa INSTALLDIR=${GVSOC_INSTALL_DIR}
+	 XTENSOR_INCLUDE_DIR=${PULP_SDK_INSTALL_DIR}/ext/xtensor/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa" build INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
 
