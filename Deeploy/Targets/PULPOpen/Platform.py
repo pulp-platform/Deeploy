@@ -144,7 +144,7 @@ PULPMapping = {
     'iHardswish': iHardswishLayer([iHardswishMapper]),
     'RequantizediHardswish': RQSiHardswishLayer([RQSiHardswishMapper]),
     'Quant': QuantLayer([QuantMapper]),
-    'Dequant': DequantLayer([QuantMapper])
+    'Dequant': DequantLayer([DequantMapper])
 }
 
 
