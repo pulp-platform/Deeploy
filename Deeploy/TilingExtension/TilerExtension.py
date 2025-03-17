@@ -924,6 +924,32 @@ class Tiler():
                 return False
         return True
 
+    def testMemoryMapCorrectness(self, memoryMap: Dict[str, List[List[MemoryBlock]]], graph: gs.Graph,
+                                 schedule: Schedule) -> None:
+
+        memoryBlockMap = {
+            memoryBlock.name: memoryBlock for levelMemoryMap in memoryMap.values() for memoryBlock in levelMemoryMap[-1]
+        }
+
+        # JUNGVI: Assert output buffers are alive until the end
+        for outputBuffer in graph.outputs:
+            assert memoryBlockMap[outputBuffer.name]._lifetime[-1] == len(
+                schedule), "Invalid memory map! Output buffer is not alive at the last step!"
+
+        # JUNGVI: Assert input buffers are alive at the beginning
+        for inputBuffer in graph.inputs:
+            assert memoryBlockMap[
+                inputBuffer.name]._lifetime[0] == 0, "Invalid memory map! Input buffer is not alive at step 0!"
+
+        # JUNGVI: Assert that at every computation step, the required buffers are alive somewhere in memory
+        for stepIdx, pattern in enumerate(schedule):
+            node = pattern[0]
+            nodeIO = [node for node in node.inputs + node.outputs if not isinstance(node, gs.Constant)]
+            for tensor in nodeIO:
+                lifetime = memoryBlockMap[tensor.name]._lifetime
+                assert stepIdx in range(lifetime[0], lifetime[-1] +
+                                        1), f"Invalid memory map! Buffer {tensor.name} is not alive at step {stepIdx}!"
+
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
 
@@ -962,6 +988,8 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             if self.tiler.visualizeMemoryAlloc:
                 self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,
                                            self.Platform.memoryHierarchy._defaultMemoryLevel)
+
+            self.tiler.testMemoryMapCorrectness(memoryMap, self.graph, schedule)
 
         # SCHEREMO: Annotate execution block with solution
         for layer, pattern in zip(self.layerBinding.values(), tilingSolution):
