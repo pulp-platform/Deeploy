@@ -25,6 +25,7 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
+
 class _QuantTemplate(NodeTemplate):
 
     def __init__(self, templateStr):
