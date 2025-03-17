@@ -37,12 +37,12 @@ from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDa
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import ConcatTemplate, FloatGELUTemplate, FloatGemmTemplate, \
+from Deeploy.Targets.Generic.Templates import ConcatTemplate, DequantTemplate, FloatGELUTemplate, FloatGemmTemplate, \
     FloatLayernormTemplate, FloatMatMulTemplate, FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
     GatherTemplate, QuantTemplate, RQSiGELUTemplate, iHardswishTemplate
-from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, GatherChecker, GELUChecker, GEMMChecker, \
-    HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, ReluChecker, \
-    RQAddChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker
+from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, DequantChecker, GatherChecker, \
+    GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, QuantChecker, \
+    ReduceMeanChecker, ReluChecker, RQAddChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -366,5 +366,10 @@ PULPGatherBindings = [
 
 BasicQuantBindings = [
     NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), QuantTemplate.referenceTemplate,
+                ForkTransformer),
+]
+
+BasicDequantBindings = [
+    NodeBinding(DequantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), DequantTemplate.referenceTemplate,
                 ForkTransformer),
 ]

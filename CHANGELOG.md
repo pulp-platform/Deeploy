@@ -197,3 +197,13 @@ Change main.c to use OUTPUTTYPE instead of float
 - Parser implementation in `Parsers.py` to extract quantization parameters
 - C template implementation in `QuantTemplate.py` for efficient quantization
 - Type checker implementation in `TypeCheckers.py` to handle bit-width and signedness
+
+## Implemented Dequant Layer for Generic and Siracusa
+
+### Added
+- New `Dequant` operation to handle dequantization pattern in ONNX models
+- Implementation for both Generic and Siracusa targets in the Deeploy framework
+- Custom `DequantPatternPass` class to replace matched patterns with a single `Dequant` operator
+- Parser implementation in `Parsers.py` to extract dequantization parameters
+- C template implementation in `DequantTemplate.py` for efficient dequantization
+- Type checker implementation in `TypeCheckers.py` to handle bit-width and signedness

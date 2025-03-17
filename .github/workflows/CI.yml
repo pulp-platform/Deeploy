@@ -60,6 +60,7 @@ jobs:
         testFloatTranspose
         testFloatMul
         Quant
+        Dequant
         
 
   generic-models:
@@ -238,6 +239,7 @@ jobs:
         testFloatTranspose
         testFloatMul
         Quant
+        Dequant
       num-cores: 8
 
   siracusa-models:
