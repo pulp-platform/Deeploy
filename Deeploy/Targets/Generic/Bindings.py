@@ -269,6 +269,6 @@ BasicQuantBindings = [
 ]
 
 BasicDequantBindings = [
-    NodeBinding(DequantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), DequantTemplate.referenceTemplate,
+    NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 BasicTransformer),
 ]
