@@ -35,7 +35,7 @@ from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     _permuteList
-from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
 from Deeploy.TilingExtension.MemoryConstraints import PatternMemoryConstraints, TensorMemoryConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
@@ -428,6 +428,16 @@ class MemoryScheduler():
 
         return tensorLifetimeMap
 
+    def getConstantTensorOffset(self, ctxt: NetworkContext, memoryLevel: str):
+        constantTensorSize = 0
+        for buffer in ctxt.globalObjects.values():
+            # JUNGVI: TODO: Once I/O have finite lifetime we can just check for ConstantBuffer here
+            if not "MEMORYARENA" in buffer.name and isinstance(buffer,
+                                                               VariableBuffer) and buffer._memoryLevel == memoryLevel:
+                constantTensorSize += np.prod(buffer.shape) * buffer._type.referencedType.typeWidth // 8
+
+        return int(constantTensorSize)
+
     def _scheduleMemoryConstraints(self,
                                    tilerModel: TilerModel,
                                    ctxt: NetworkContext,
@@ -492,8 +502,10 @@ class MemoryScheduler():
 
             self._permutationState[memoryLevel + f"_{patternIdx}"] = permutationMatrix
 
+            constantTensorOffset = self.getConstantTensorOffset(ctxt, memoryLevel)
+
             cost = self._generateCost(tilerModel, permAdj, permCost, patternIdx)
-            constr = cost < memoryHierarchy.memoryLevels[memoryLevel].size
+            constr = (cost + constantTensorOffset) < memoryHierarchy.memoryLevels[memoryLevel].size
             tilerModel.addConstraint(constr)
 
         return
@@ -510,8 +522,7 @@ class MemoryScheduler():
         return self._scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints, memoryHierarchy,
                                                memoryAllocStrategy, memoryLevel)
 
-    @staticmethod
-    def constraintTileBuffersWithOverlappingLifetime(tilerModel: TilerModel, ctxt: NetworkContext,
+    def constraintTileBuffersWithOverlappingLifetime(self, tilerModel: TilerModel, ctxt: NetworkContext,
                                                      patternMemoryConstraint: PatternMemoryConstraints,
                                                      memoryHierarchy: MemoryHierarchy):
         """JUNGVI: This method adds the necessay constraints for tiling to be performed before the static memory allocation of the tile buffers.
@@ -543,11 +554,12 @@ class MemoryScheduler():
 
             for memoryLevel in memoryHierarchy.memoryLevels.values():
                 sumExpr = 0
+                constantTensorOffset = self.getConstantTensorOffset(ctxt, memoryLevel.name)
                 for infoDict in tileMemoryConstraint.values():
                     if memoryLevel.name == infoDict['memoryLevel']:
                         sumExpr += infoDict['sizeVar'] * infoDict['typeWidthFactor'] * infoDict['multiBufferCoeff']
                 if sumExpr != 0:
-                    tilerModel.addConstraint(sumExpr <= memoryLevel.size)
+                    tilerModel.addConstraint(sumExpr + constantTensorOffset <= memoryLevel.size)
 
     def getSymbolicCostName(self, patternIdx: int, memoryLevel: str) -> str:
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"

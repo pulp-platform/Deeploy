@@ -32,7 +32,7 @@ import copy
 import csv
 import os
 import subprocess
-from typing import Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import Dict, List, Literal, Optional, OrderedDict, Tuple, Type, Union
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -44,7 +44,7 @@ import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
 from Deeploy.DeeployTypes import ConstantBuffer, GlobalDefinition, NetworkContext, NodeBinding, NodeTemplate, \
-    ONNXLayer, Schedule, SubGraph, TransientBuffer
+    ONNXLayer, Schedule, SubGraph, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
@@ -89,8 +89,9 @@ class Tiler():
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
 
-    @staticmethod
-    def plotMemoryAlloc(memoryMap: Dict[str, List[List[MemoryBlock]]],
+    def plotMemoryAlloc(self,
+                        memoryMap: Dict[str, List[List[MemoryBlock]]],
+                        ctxt: NetworkContext,
                         deeployStateDir: str,
                         defaultMemoryLevel: MemoryLevel,
                         targetMemLevelName: str = 'L1'):
@@ -105,7 +106,7 @@ class Tiler():
 
         updateLayoutConfig = {
             "xaxis_title": "Lifetime",
-            "yaxis_title": "Address Space",
+            "yaxis_title": "Address Space (Bytes)",
             "xaxis": dict(tickformat = "d", showgrid = True),
             "yaxis": dict(tickformat = "d", showgrid = True),
             "hovermode": "closest",
@@ -113,16 +114,44 @@ class Tiler():
         }
 
         fig = go.Figure()
+
+        # JUNGVI: Currently I/O have infinite lifetime, will change that soon...
+        infiniteLifetimeBuffers = [
+            buffer for buffer in ctxt.globalObjects.values()
+            if not self.arenaName in buffer.name and isinstance(buffer, VariableBuffer)
+        ]
+
+        constantBuffersOffset = 0
+        for ioBuffers in infiniteLifetimeBuffers:
+            _ioSize = np.prod(ioBuffers.shape) * ioBuffers._type.referencedType.typeWidth // 8
+            _maxLifetime = len(memoryMap[defaultMemoryLevel.name])
+            fig.add_trace(
+                go.Scatter(x = [-0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5],
+                           y = [
+                               constantBuffersOffset, constantBuffersOffset + _ioSize, constantBuffersOffset + _ioSize,
+                               constantBuffersOffset
+                           ],
+                           name = ioBuffers.name,
+                           text = ioBuffers.name,
+                           **addTraceConfig))
+            constantBuffersOffset += _ioSize
+
         for buffer in memoryMap[defaultMemoryLevel.name][-1]:
             fig.add_trace(
                 go.Scatter(x = [
                     buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
                     buffer._lifetime[1] + 0.5
                 ],
-                           y = [buffer._addrSpace[0], buffer._addrSpace[1], buffer._addrSpace[1], buffer._addrSpace[0]],
+                           y = [
+                               constantBuffersOffset + buffer._addrSpace[0],
+                               constantBuffersOffset + buffer._addrSpace[1],
+                               constantBuffersOffset + buffer._addrSpace[1],
+                               constantBuffersOffset + buffer._addrSpace[0]
+                           ],
                            name = buffer.name,
                            text = buffer.name,
                            **addTraceConfig))
+
         fig.add_trace(
             go.Scatter(
                 x = [-0.5, len(memoryMap[defaultMemoryLevel.name]) - 1.5],
@@ -307,16 +336,17 @@ class Tiler():
 
         if self.memoryAllocStrategy == "MiniMalloc":
             for memoryLevel in memoryMap.keys():
+                constantTensorOffset = self.outerMemoryScheduler.getConstantTensorOffset(ctxt, memoryLevel)
                 if memoryLevel == self.memoryHierarchy._defaultMemoryLevel.name:
-                    memoryMap[memoryLevel][-1] = self.minimalloc(memoryMap[memoryLevel][-1], ctxt, None,
-                                                                 self.memoryHierarchy.memoryLevels[memoryLevel].size,
-                                                                 memoryLevel)
+                    memoryMap[memoryLevel][-1] = self.minimalloc(
+                        memoryMap[memoryLevel][-1], ctxt, None,
+                        self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset, memoryLevel)
                 else:
                     for idx, memMap in enumerate(memoryMap[memoryLevel]):
                         if len(memoryMap[memoryLevel][idx]) != 0:
                             memoryMap[memoryLevel][idx] = self.minimalloc(
                                 memMap, ctxt, tilingSchedule[idx].nodeConstraints[0],
-                                self.memoryHierarchy.memoryLevels[memoryLevel].size, memoryLevel)
+                                self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset, memoryLevel)
             print(f"\033[92mMemory allocation sucessful!\033[0m")
 
         for idx, pattern in enumerate(tilingSchedule):
@@ -345,7 +375,7 @@ class Tiler():
 
         return tilingSchedule, memoryMap
 
-    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
+    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: OrderedDict[str, ONNXLayer],
                    targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
 
         wrapSchedule: List[SubGraph] = []
@@ -478,7 +508,7 @@ class Tiler():
 
         for idx, pattern in enumerate(schedule):
             subGraph = gs.Graph(nodes = pattern)
-            subgraphTensors: 'OrderedDict[str, gs.Tensor]' = subGraph.tensors(check_duplicates = True)
+            subgraphTensors: OrderedDict[str, gs.Tensor] = subGraph.tensors(check_duplicates = True)
 
             for _, tensor in subgraphTensors.items():
                 if not ctxt.lookup(tensor.name)._deploy:
@@ -489,7 +519,7 @@ class Tiler():
         return tilerModel
 
     def _setupGeometricConstraints(self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-                                   layerBinding: 'OrderedDict[str, ONNXLayer]') -> TilerModel:
+                                   layerBinding: OrderedDict[str, ONNXLayer]) -> TilerModel:
 
         # SCHEREMO: Each pattern is a decoupled sub-problem w.r.t the geometric constraints.
         # We need to regenerate dimension variables for each tensor
@@ -552,7 +582,7 @@ class Tiler():
 
     def _setupMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: 'OrderedDict[str, ONNXLayer]',
+            layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
@@ -592,7 +622,7 @@ class Tiler():
 
     def _generateAllMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: 'OrderedDict[str, ONNXLayer]',
+            layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> List[PatternMemoryConstraints]:
 
         dynamicTensorConstraints, constantTensorConstraints = self._generateMemoryConstraints(
@@ -612,7 +642,7 @@ class Tiler():
 
     def _generateMemoryConstraints(
         self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-        layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping
+        layerBinding: OrderedDict[str, ONNXLayer], targetMemoryLevelMapping: TargetMemoryLevelMapping
     ) -> Tuple[List[PatternMemoryConstraints], NodeMemoryConstraint]:
 
         # SCHEREMO: Construct non-double-buffered constraints of local variable buffers
@@ -777,7 +807,7 @@ class Tiler():
 
     def _generateVariableBufferConstraints(
         self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-        layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping
+        layerBinding: OrderedDict[str, ONNXLayer], targetMemoryLevelMapping: TargetMemoryLevelMapping
     ) -> Tuple[List[PatternMemoryConstraints], List[PatternMemoryConstraints]]:
 
         def deltaFlow(
@@ -849,7 +879,7 @@ class Tiler():
         return outerMemConstraints, innerMemConstraints
 
     def _generatePatternStepTransientBufferConstraints(
-            self, tilerModel: TilerModel, ctxt: NetworkContext, layerBinding: 'OrderedDict[str, ONNXLayer]',
+            self, tilerModel: TilerModel, ctxt: NetworkContext, layerBinding: OrderedDict[str, ONNXLayer],
             step: gs.Node, targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NodeMemoryConstraint:
 
         patternStepTransientBufferSizes = NodeMemoryConstraint()
@@ -928,9 +958,8 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
                                   layerBinding = self.layerBinding,
                                   targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
-
             if self.tiler.visualizeMemoryAlloc:
-                self.tiler.plotMemoryAlloc(memoryMap, self.deeployStateDir,
+                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,
                                            self.Platform.memoryHierarchy._defaultMemoryLevel)
 
         # SCHEREMO: Annotate execution block with solution

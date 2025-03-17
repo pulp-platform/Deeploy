@@ -3,6 +3,9 @@ name: TestRunnerTiledSiracusaWithNeureka
 on:
   workflow_call:
     inputs:
+      docker-image:
+        required: true
+        type: string
       test-name:
         required: true
         type: string
@@ -45,7 +48,7 @@ jobs:
         L1: ${{ fromJSON(inputs.L1) }}
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/deeploy:main
+      image: ${{ inputs.docker-image }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
