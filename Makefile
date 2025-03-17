@@ -6,7 +6,9 @@
 #
 # Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
-# Author: Moritz Scherer, ETH Zurich
+# Authors: 
+# - Moritz Scherer, ETH Zurich
+# - Victor Jung, ETH Zurich
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -54,7 +56,7 @@ PULP_SDK_COMMIT_HASH ?= c216298881cee767afc30928e055982b9e40e568
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
-GVSOC_COMMIT_HASH ?= e96253a0ca7bbd113850988c2d77289926db37f3
+GVSOC_COMMIT_HASH ?= 4f6212a957af6042dff7c912ba82176fafd29790
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 
 RUSTUP_CARGO ?= $$(rustup which cargo)
@@ -288,7 +290,7 @@ ${TOOLCHAIN_DIR}/gvsoc:
 
 ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	cd ${TOOLCHAIN_DIR}/gvsoc && \
-	make all TARGETS=pulp.snitch.snitch_cluster_single INSTALLDIR=${GVSOC_INSTALL_DIR}
+	 XTENSOR_INCLUDE_DIR=${PULP_SDK_INSTALL_DIR}/ext/xtensor/include make all TARGETS=pulp.snitch.snitch_cluster_single siracusa INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
 
