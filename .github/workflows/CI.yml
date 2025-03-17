@@ -270,6 +270,11 @@ jobs:
         testFloatMul
         Quant
         Dequant
+        testTrainCCT/CCT_GEMM_Weight_Bias_1_16_16_8
+        testFloatReduceSum
+        testFloatSoftmaxGrad
+        testFloatSoftmaxCrossEntropy
+        testFloatSoftmaxCrossEntropyGrad
       num-cores: 8
 
   siracusa-models:

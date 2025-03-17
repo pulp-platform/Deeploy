@@ -25,6 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 from typing import List, Tuple
 
 import numpy as np
@@ -115,6 +116,12 @@ class RQSiHardswishLayer(iHardswishLayer):
 
 
 class SoftmaxLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SoftmaxGradLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
@@ -300,6 +307,10 @@ class MulLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
+
+        if inputShapes[1] == () or inputShapes[1] == []:
+            inputShapes[1] = (1,)
+
         if len(inputShapes[0]) > len(inputShapes[1]):
             inputShapes[1] = inputShapes[0]
         else:
@@ -377,7 +388,7 @@ class ReduceSumLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-        outputShapes = inputShapes.copy()
+        outputShapes = copy.deepcopy(inputShapes)
         axis = operatorRepresentation['axes'][0]
 
         if operatorRepresentation['keepdims']:
@@ -409,6 +420,18 @@ class LayerNormLayer(ONNXLayer):
 
 
 class TransposeLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SoftmaxCrossEntropyLossLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SoftmaxCrossEntropyLossGradLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)

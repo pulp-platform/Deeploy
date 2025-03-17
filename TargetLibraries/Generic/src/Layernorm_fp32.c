@@ -28,29 +28,51 @@
 
 #include "DeeployBasicMath.h"
 
-void Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out, float32_t *scale, float32_t *bias, float32_t epsilon, int32_t size, int32_t lastDimLength) {
+void Layernorm_fp32_fp32(
+    float32_t *data_in,
+    float32_t *data_out,
+    float32_t *mean_out,         // Can be NULL
+    float32_t *invstddev_out,    // Can be NULL 
+    float32_t *scale,
+    float32_t *bias,
+    float32_t epsilon,
+    int32_t size,
+    int32_t lastDimLength
+) {
     float32_t mean;
-    float32_t sum;
-    float32_t std;
+    float32_t var;
+    float32_t invstddev;
     float32_t temp;
-
-    for (int i = 0; i < (size / lastDimLength); i++) {
-        sum = 0.0f;
+    
+    int num_vectors = size / lastDimLength;
+    
+    for (int i = 0; i < num_vectors; i++) {
         mean = 0.0f;
         for (int j = 0; j < lastDimLength; j++) {
             mean += data_in[j + i * lastDimLength];
         }
         mean = mean / lastDimLength;
+        
+        if (mean_out != NULL) {
+            mean_out[i] = mean;
+        }
+        
+        var = 0.0f;
         for (int j = 0; j < lastDimLength; j++) {
             temp = data_in[j + i * lastDimLength] - mean;
-            sum += temp * temp;
+            var += temp * temp;
         }
-        sum = sum / lastDimLength;
-        sum += epsilon;
-        std = sqrtf(sum);
-
+        var = var / lastDimLength;
+        
+        invstddev = 1.0f / sqrtf(var + epsilon);
+        
+        if (invstddev_out != NULL) {
+            invstddev_out[i] = invstddev;
+        }
+        
         for (int j = 0; j < lastDimLength; j++) {
-            data_out[j + i * lastDimLength] = ((data_in[j + i * lastDimLength] - mean) / std) * scale[j] + bias[j];
+            temp = data_in[j + i * lastDimLength] - mean;
+            data_out[j + i * lastDimLength] = temp * invstddev * scale[j] + bias[j];
         }
     }
 }

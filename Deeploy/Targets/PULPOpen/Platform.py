@@ -34,13 +34,15 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.Generic.Bindings import BasicPad1DBindings, BasicPad2DBindings, BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, DequantLayer, GatherLayer, GELULayer, \
-    GEMMLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReluLayer, \
-    RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SliceLayer, SoftmaxLayer, \
+    GEMMLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, \
+    ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, \
+    SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
     TransposeLayer, iHardswishLayer, iRMSNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUParser, GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, \
-    QuantParser, ReduceMeanParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, \
-    RQSiGELUParser, RQSiHardswishParser, SliceParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, \
+    QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, \
+    RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SliceParser, SoftmaxCrossEntropyLossGradParser, \
+    SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, \
     UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
@@ -57,10 +59,12 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPFPGEMMTilingReadyBindings, PULPGatherTilingReadyBindings, PULPiHardswishTilingReadyBindings, \
     PULPiRMSNormTilingReadyBindings, PULPiRQSGELUTilingReadyBindings, PULPLayernormTilingReadyBindings, \
     PULPMatMulTilingReadyBindings, PULPMaxPool2DTilingReadyBindings, PULPMulTilingReadyBindings, \
-    PULPReluTilingReadyBindings, PULPRQAddTilingReadyBindings, PULPRQSConv2DTilingReadyBindings, \
-    PULPRQSDWConv2DTilingReadyBindings, PULPRQSGEMMTilingReadyBindings, PULPRQSiHardswishTilingReadyBindings, \
-    PULPRQSMatrixVecTilingReadyBindings, PULPRQSTallGEMMTilingReadyBindings, PULPRQSTilingReadyBindings, \
-    PULPSoftmaxTilingReadyBindings, PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
+    PULPReduceSumTilingReadyBindings, PULPReluTilingReadyBindings, PULPRQAddTilingReadyBindings, \
+    PULPRQSConv2DTilingReadyBindings, PULPRQSDWConv2DTilingReadyBindings, PULPRQSGEMMTilingReadyBindings, \
+    PULPRQSiHardswishTilingReadyBindings, PULPRQSMatrixVecTilingReadyBindings, PULPRQSTallGEMMTilingReadyBindings, \
+    PULPRQSTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
+    PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
+    PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -80,6 +84,7 @@ RequantShiftMapper = NodeMapper(RequantShiftParser(), PULPRQSTilingReadyBindings
 UniformRequantShiftMapper = NodeMapper(UniformRequantShiftParser(), PULPUniformRQSTilingReadyBindings)
 
 ReduceMeanMapper = NodeMapper(ReduceMeanParser(), PULPReduceMeanBindings)
+ReduceSumMapper = NodeMapper(ReduceSumParser(), PULPReduceSumTilingReadyBindings)
 MatMulMapper = NodeMapper(MatMulParser(), PULPMatMulTilingReadyBindings)
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
 RQGELU_int8_Mapper = NodeMapper(RQSiGELUParser(), PULPiRQSGELUTilingReadyBindings)
@@ -97,6 +102,7 @@ MaxPool2DMapper = NodeMapper(MaxPool2DParser(), PULPMaxPool2DTilingReadyBindings
 LayerNormMapper = NodeMapper(LayerNormParser(), PULPLayernormTilingReadyBindings)
 ReluMapper = NodeMapper(ReluParser(), PULPReluTilingReadyBindings)
 SoftmaxMapper = NodeMapper(SoftmaxParser(), PULPSoftmaxTilingReadyBindings)
+SoftmaxGradMapper = NodeMapper(SoftmaxGradParser(), PULPSoftmaxGradTilingReadyBindings)
 Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), PULPSoftmaxTilingReadyBindings)
 
 ConcatMapper = NodeMapper(ConcatParser(), PULPConcatTilingReadyBindings)
@@ -107,10 +113,11 @@ iRMSNormMapper = NodeMapper(iRMSNormParser(), PULPiRMSNormTilingReadyBindings)
 
 iHardswishMapper = NodeMapper(iHardswishParser(), PULPiHardswishTilingReadyBindings)
 RQSiHardswishMapper = NodeMapper(RQSiHardswishParser(), PULPRQSiHardswishTilingReadyBindings)
-
+SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(), PULPSoftmaxCrossEntropyTilingReadyBindings)
+SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
+                                               PULPSoftmaxCrossEntropyGradTilingReadyBindings)
 QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
 DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
-
 PULPMapping = {
     'Conv': ConvLayer([FPConv2DMapper]),
     'RequantizedConv': PULPRQSConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
@@ -126,6 +133,7 @@ PULPMapping = {
     'iSoftmax': SoftmaxLayer([Softmax_int8_Mapper]),
     'Softmax': SoftmaxLayer([SoftmaxMapper]),
     'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
+    'ReduceSum': ReduceSumLayer([ReduceSumMapper]),
     'RequantShift': RequantShiftLayer([UniformRequantShiftMapper, RequantShiftMapper]),
     'Add': AddLayer([AddMapper]),
     'Flatten': ReshapeLayer([FlattenMapper]),
@@ -144,7 +152,10 @@ PULPMapping = {
     'iHardswish': iHardswishLayer([iHardswishMapper]),
     'RequantizediHardswish': RQSiHardswishLayer([RQSiHardswishMapper]),
     'Quant': QuantLayer([QuantMapper]),
-    'Dequant': DequantLayer([DequantMapper])
+    'Dequant': DequantLayer([DequantMapper]),
+    'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossMapper]),
+    'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
+    'SoftmaxGrad': SoftmaxGradLayer([SoftmaxGradMapper]),
 }
 
 
