@@ -220,6 +220,9 @@ class Tiler():
             scratchBuffer._instance = scratchBuffer._type(arenaName, ctxt)
             scratchBuffer._memoryLevel = level
 
+            # JUNGVI: Memory Arena buffers should be allocated first since other variable global buffers may belong to a memory arena
+            ctxt.globalObjects.move_to_end(scratchBuffer.name, last = False)
+
         # SCHEREMO: Adapt homelevel tensors to their respective arena
         for memoryLevel, patternList in memoryMap.items():
             if not ctxt.is_global(f"{self.arenaName}_{memoryLevel}"):
