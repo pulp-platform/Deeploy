@@ -899,7 +899,7 @@ class NetworkContext():
 
         """
 
-        assert len(node.outputs) <= 1, "Constant has more than one output"
+        assert len(node.outputs) <= 1, f"Constant {node.name} has more than one output"
 
         if name == "":
             name = node.name
@@ -3113,17 +3113,75 @@ class NetworkDeployer(NetworkContainer):
         """
         return self.loweringOptimizer.optimize(graph)
 
+    # Helper function for duplicate constants
+    # Makes sure to copy the value because otherwise, constant folding fails with a warning
+    def _duplicateConstantNode(self,
+                               node: gs.Node,
+                               name: str,
+                               inputs: Optional[List[gs.Tensor]] = None,
+                               outputs: Optional[List[gs.Tensor]] = None) -> gs.Node:
+        assert node.op == "Constant"
+        assert "value" in node.attrs
+        value = node.attrs["value"]
+        if isinstance(value, gs.Constant):
+            newValue = gs.Constant(f'{value.name}_OF_{name}', value.values.copy())
+        elif isinstance(value, np.ndarray):
+            newValue = value.copy()
+        else:
+            assert False, f"Node {node.name}: Unrecognized value type {type(value)}"
+        return gs.Node(
+            op = "Constant",
+            name = name,
+            attrs = {"value": newValue},
+            inputs = inputs,
+            outputs = outputs,
+        )
+
     # Don't override this
     # Duplicate constants with multiple users
-    def _duplicateConstants(self, graph: gs.Graph):
-        idx = 0
-        for node in self.graph.nodes:
-            for i, inputNode in enumerate(node.inputs):
-                if type(inputNode) == gs.ir.tensor.Constant and len(inputNode.outputs) > 1:
-                    newConst = gs.Constant(name = f"{inputNode.name}_EXTRACT_CONST_{idx}", values = inputNode.values)
-                    node.inputs[i] = newConst
-                    # graph.nodes.append(newConst)
-                    idx += 1
+    def _duplicateConstants(self, graph: gs.Graph) -> None:
+        # Duplicate constant tensors
+        for tensor in filter(lambda t: isinstance(t, gs.Constant) and len(t.outputs) > 1, graph.tensors().values()):
+            for node in tensor.outputs:
+                newConst = tensor.copy()
+                newConst.name += f"_DUPLICATE_FOR_{node.name}"
+                assert isinstance(node, gs.Node)
+                node.inputs.insert(node.inputs.index(tensor), newConst)
+            tensor.outputs.clear()
+
+        # Duplicate constant nodes with multiple outputs
+        nodes = list(graph.nodes)
+        for node in filter(lambda n: n.op == "Constant" and len(n.outputs) > 1, nodes):
+            output_tensors = list(node.outputs)
+            for tensor in output_tensors:
+                assert len(tensor.inputs) == 1
+                tensor.inputs.clear()
+                newConst = self._duplicateConstantNode(
+                    node,
+                    f"{node.name}_DUPLICATE_FOR_{tensor.name}",
+                    outputs = [tensor],
+                )
+                graph.nodes.append(newConst)
+            node.outputs.clear()
+
+        # Duplicate constant nodes which have an output tensor that connects to multiple outputs
+        for node in filter(lambda n: n.op == "Constant" and len(n.outputs) == 1 and len(n.outputs[0].outputs) > 1,
+                           nodes):
+            tensor = node.outputs[0]
+            for downstreamNode in tensor.outputs:
+                assert isinstance(downstreamNode, gs.Node)
+                newTensor = tensor.copy()
+                newTensor.name += f"_DUPLICATE_FOR_{downstreamNode.name}"
+                newNode = self._duplicateConstantNode(
+                    node,
+                    f"{node.name}_DUPLICATE_FOR_{downstreamNode.name}",
+                    outputs = [newTensor],
+                )
+                graph.nodes.append(newNode)
+                downstreamNode.inputs.insert(downstreamNode.inputs.index(tensor), newTensor)
+            tensor.outputs.clear()
+
+        graph.cleanup().toposort()
 
     def _foldConstants(self, graph: gs.Graph):
         graph.fold_constants()
