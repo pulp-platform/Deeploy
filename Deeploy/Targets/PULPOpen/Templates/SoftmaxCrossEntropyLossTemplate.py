@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #
-# File: PadTemplate.py
+# File: SoftmaxCrossEntropyTemplate.py
 #
 # Last edited: 09.03.2025
 #

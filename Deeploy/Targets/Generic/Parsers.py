@@ -2394,7 +2394,8 @@ class SoftmaxCrossEntropyLossGradParser(NodeParser):
         self.operatorRepresentation['log_prob'] = log_prob.name
         self.operatorRepresentation['labels'] = labels.name
         self.operatorRepresentation['grad'] = grad.name
-        self.operatorRepresentation['batch'] = log_prob.shape[0]
+        self.operatorRepresentation['batch'] = log_prob.shape[0] # RW: used for tiling
+        self.operatorRepresentation['total_batch'] = log_prob.shape[0] # RW: total batch num for normalization
         self.operatorRepresentation['num_classes'] = log_prob.shape[1]
 
         return ctxt, True
