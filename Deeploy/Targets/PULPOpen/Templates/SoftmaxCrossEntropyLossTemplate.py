@@ -45,13 +45,8 @@ BEGIN_SINGLE_CORE
         for (uint32_t j = 0; j < ${num_classes}; j++) {
             // log_prob = logit - max_logit - log(sum_exp)
             ${log_prob}[i * ${num_classes} + j] = ${logits}[i * ${num_classes} + j] - max_logit - logf(sum_exp);
-            
-            if (j == (${labels}[i])) {
-                total_loss += -${log_prob}[i * ${num_classes} + j];
-            }
         }
     }
-    *${loss} = total_loss / ${batch};
 END_SINGLE_CORE
 """)
 
@@ -63,9 +58,9 @@ BEGIN_SINGLE_CORE
         for (uint32_t j = 0; j < ${num_classes}; j++) {
             float32_t prob = expf(${log_prob}[i * ${num_classes} + j]);
             if (j == (${labels}[i])) {
-                ${grad}[i * ${num_classes} + j] = (prob - 1.0f) * ${loss_grad}[i] * batch_norm;
+                ${grad}[i * ${num_classes} + j] = (prob - 1.0f) * batch_norm * batch_norm;
             } else {
-                ${grad}[i * ${num_classes} + j] = prob * ${loss_grad}[i] * batch_norm;
+                ${grad}[i * ${num_classes} + j] = prob * batch_norm * batch_norm;
             }
         }
     }

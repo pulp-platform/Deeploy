@@ -310,15 +310,14 @@ PULPSoftmaxGradBindings = [
 PULPSoftmaxCrossEntropyLossBindings = [
     NodeBinding(
         SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)],
-                                       [PointerClass(float32_t), PointerClass(float32_t)]),
+                                       [PointerClass(float32_t)]),
         SoftmaxCrossEntropyLossTemplate.referenceTemplate, ForkTransformer) for type in IntegerDataTypes
 ]
 
 PULPSoftmaxCrossEntropyLossGradBindings = [
     NodeBinding(
         SoftmaxCrossEntropyLossChecker(
-            [PointerClass(float32_t), PointerClass(float32_t),
-             PointerClass(type)], [PointerClass(float32_t)]), SoftmaxCrossEntropyLossTemplate.referenceGradientTemplate,
+            [PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]), SoftmaxCrossEntropyLossTemplate.referenceGradientTemplate,
         ForkTransformer) for type in IntegerDataTypes
 ]
 
@@ -378,8 +377,7 @@ PULPLayernormBinding = NodeBinding(
     LayerNormChecker(
         [PointerClass(float32_t), PointerClass(float32_t),
          PointerClass(float32_t)],
-        [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate, ForkTransformer)
+        [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate, ForkTransformer)
 
 PULPFloatGELUBinding = NodeBinding(
     GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
