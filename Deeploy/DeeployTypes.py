@@ -3129,6 +3129,18 @@ class NetworkDeployer(NetworkContainer):
         graph.fold_constants()
         graph.cleanup().toposort()
 
+    def _sanitizeGraphNames(self, graph: gs.Graph):
+
+        def sanitize(name: str) -> str:
+            # Remove illegal characters: anything not a letter, digit, or underscore.
+            sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', name)
+            return sanitized_name
+
+        for node in graph.nodes:
+            node.name = sanitize(node.name)
+            for tensor in node.inputs + node.outputs:
+                tensor.name = sanitize(tensor.name)
+
     # Don't override this
     # Duplicate constants with multiple users
     def _removeEmptyInputs(self, graph: gs.Graph):
@@ -3146,6 +3158,8 @@ class NetworkDeployer(NetworkContainer):
             inputNode.name = "input_" + str(idx)
         for idx, outputNode in enumerate(self.graph.outputs):
             outputNode.name = "output_" + str(idx)
+
+        self._sanitizeGraphNames(self.graph)
 
         self._removeEmptyInputs(self.graph)
 
