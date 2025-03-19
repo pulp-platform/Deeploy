@@ -207,3 +207,12 @@ Change main.c to use OUTPUTTYPE instead of float
 - Parser implementation in `Parsers.py` to extract dequantization parameters
 - C template implementation in `DequantTemplate.py` for efficient dequantization
 - Type checker implementation in `TypeCheckers.py` to handle bit-width and signedness
+
+## Add CCT Classifier Training Support
+### Added
+- New test cases: testTrainCCT/CCT_GEMM_Weight_Bias_1_16_16_8, testFloatReduceSum, testFloatSoftmaxGrad, testFloatSoftmaxCrossEntropy, testFloatSoftmaxCrossEntropyGrad
+- New kernels: SoftmaxCrossEntropy, SoftmaxCrossEntropyGrad, SoftmaxGrad, ReduceSum
+- Refinements in operator parsers and computeShape logic for: Softmax, Mul, Reducesum
+
+### Changed
+- Enhanced layernorm operator to support three outputs (layernormout, mean, std) for compatibility with training-related layernormgrad in the future.
