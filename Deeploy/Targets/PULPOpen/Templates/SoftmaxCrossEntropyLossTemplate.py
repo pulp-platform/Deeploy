@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------
 #
-# File: PadTemplate.py
+# File: SoftmaxCrossEntropyLossTemplate.py
 #
-# Last edited: 09.03.2025
+# Last edited: 19.03.2025
 #
 # Copyright (C) 2021, ETH Zurich and University of Bologna.
 #

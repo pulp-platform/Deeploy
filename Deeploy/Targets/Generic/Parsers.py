@@ -2407,8 +2407,8 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
         self.operatorRepresentation['labels'] = labels.name
         self.operatorRepresentation['loss'] = loss.name
         self.operatorRepresentation['log_prob'] = log_prob.name
-        self.operatorRepresentation['batch'] = np.prod(logits.shape[0])
-        self.operatorRepresentation['num_classes'] = np.prod(logits.shape[1])
+        self.operatorRepresentation['batch'] = logits.shape[0]
+        self.operatorRepresentation['num_classes'] = logits.shape[1]
 
         return ctxt, True
 
@@ -2438,7 +2438,7 @@ class SoftmaxCrossEntropyLossGradParser(NodeParser):
         self.operatorRepresentation['log_prob'] = log_prob.name
         self.operatorRepresentation['labels'] = labels.name
         self.operatorRepresentation['grad'] = grad.name
-        self.operatorRepresentation['batch'] = np.prod(log_prob.shape[0])
-        self.operatorRepresentation['num_classes'] = np.prod(log_prob.shape[1])
+        self.operatorRepresentation['batch'] = log_prob.shape[0]
+        self.operatorRepresentation['num_classes'] = log_prob.shape[1]
 
         return ctxt, True
