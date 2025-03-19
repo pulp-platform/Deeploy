@@ -75,6 +75,7 @@ jobs:
         testFloatMul
         Quant
         Dequant
+        QuantizedLinear
         
 
   generic-models:
@@ -270,6 +271,7 @@ jobs:
         testFloatMul
         Quant
         Dequant
+        QuantizedLinear
       num-cores: 8
 
   siracusa-models:
