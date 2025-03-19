@@ -75,6 +75,7 @@ jobs:
         testFloatMul
         Quant
         Dequant
+        QuantizedLinear
         
 
   generic-models:
@@ -274,6 +275,7 @@ jobs:
         testFloatSoftmaxGrad
         testFloatSoftmaxCrossEntropy
         testFloatSoftmaxCrossEntropyGrad
+        QuantizedLinear
       num-cores: 8
 
   siracusa-models:

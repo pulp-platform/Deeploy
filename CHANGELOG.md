@@ -207,6 +207,12 @@ Change main.c to use OUTPUTTYPE instead of float
 - Parser implementation in `Parsers.py` to extract dequantization parameters
 - C template implementation in `DequantTemplate.py` for efficient dequantization
 - Type checker implementation in `TypeCheckers.py` to handle bit-width and signedness
+## Implemented Updates for handling Quantized Linear DNN
+
+### Added
+- New `_sanitizeGraphNames` function to sanitize the names of the nodes and tensors of the graph
+- Implementation for both Generic and Siracusa targets in the Deeploy framework
+- Modified the binding of dequant in `Bindings.py` to handle int32 after GEMM operation
 
 ## Add CCT Classifier Training Support
 ### Added
@@ -216,3 +222,9 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ### Changed
 - Enhanced layernorm operator to support three outputs (layernormout, mean, std) for compatibility with training-related layernormgrad in the future.
+## Implemented Updates for handling Quantized Linear DNN
+
+### Added
+- New `_sanitizeGraphNames` function to sanitize the names of the nodes and tensors of the graph
+- Implementation for both Generic and Siracusa targets in the Deeploy framework
+- Modified the binding of dequant in `Bindings.py` to handle int32 after GEMM operation
