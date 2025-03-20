@@ -296,19 +296,19 @@ class FloatGEMMTileConstraint(TileConstraint):
 
         addrNames = ['A', 'B', 'C', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
-                                                                operatorRepresentation, addrNames)
+                                                                  operatorRepresentation, addrNames)
 
         transA = operatorRepresentation['transA']
         transB = operatorRepresentation['transB']
-        
+
         varA = operatorRepresentation['A']
         varB = operatorRepresentation['B']
-        
+
         if transA == 0:
             NSize = ctxt.lookup(varA).shape[-1]
         else:
             NSize = ctxt.lookup(varA).shape[-2]
-        
+
         NOffset = 0
 
         inputACubes = []

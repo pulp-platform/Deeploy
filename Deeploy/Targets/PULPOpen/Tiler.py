@@ -45,7 +45,7 @@ from Deeploy.Targets.PULPOpen.Bindings import ForkTransformer, PULPConcatBinding
     PULPiRQSGELUBindings, PULPLayernormBinding, PULPMatMulBindings, PULPMaxPool2DBindings, PULPMulBindings, \
     PULPReduceSumBindings, PULPReluBinding, PULPRQAddBindings, PULPRQSBindings, PULPRQSConv2DBindings, \
     PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, \
-    PULPRQSTallGEMMBindings, PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, \
+    PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, \
     PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint
@@ -57,6 +57,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint import Lay
 from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMulTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint import MaxPoolCTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import RequantShiftTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
@@ -158,3 +159,6 @@ PULPSoftmaxGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULP
 
 PULPReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceSumBindings,
                                                            tileConstraint = UntiledTileConstraint())
+
+PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindings,
+                                                     tileConstraint = SGDTileConstraint())

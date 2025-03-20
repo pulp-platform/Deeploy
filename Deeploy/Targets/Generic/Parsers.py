@@ -2435,3 +2435,32 @@ class SoftmaxCrossEntropyLossGradParser(NodeParser):
         self.operatorRepresentation['num_classes'] = log_prob.shape[1]
 
         return ctxt, True
+
+
+class SGDParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        weight = ctxt.lookup(node.inputs[0].name)
+        grad = ctxt.lookup(node.inputs[1].name)
+        weight_updated = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['weight'] = weight.name
+        self.operatorRepresentation['grad'] = grad.name
+        self.operatorRepresentation['weight_updated'] = weight_updated.name
+        self.operatorRepresentation['size'] = np.prod(weight.shape)
+        self.operatorRepresentation['lr'] = node.attrs['lr']
+
+        return ctxt, True
