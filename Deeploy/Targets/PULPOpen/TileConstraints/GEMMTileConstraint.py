@@ -296,10 +296,19 @@ class FloatGEMMTileConstraint(TileConstraint):
 
         addrNames = ['A', 'B', 'C', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
-                                                                  operatorRepresentation, addrNames)
-        varA = operatorRepresentation['A']
+                                                                operatorRepresentation, addrNames)
 
-        NSize = ctxt.lookup(varA).shape[-1]
+        transA = operatorRepresentation['transA']
+        transB = operatorRepresentation['transB']
+        
+        varA = operatorRepresentation['A']
+        varB = operatorRepresentation['B']
+        
+        if transA == 0:
+            NSize = ctxt.lookup(varA).shape[-1]
+        else:
+            NSize = ctxt.lookup(varA).shape[-2]
+        
         NOffset = 0
 
         inputACubes = []
@@ -330,8 +339,6 @@ class FloatGEMMTileConstraint(TileConstraint):
             replacements["O"].append(OSize)
             replacements["batch"].append(BSize)
 
-            transA = operatorRepresentation['transA']
-            transB = operatorRepresentation['transB']
             if transA == 0:
                 ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
             else:
