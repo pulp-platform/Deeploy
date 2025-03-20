@@ -57,7 +57,8 @@ from Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint import Lay
 from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMulTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint import MaxPoolCTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import RequantShiftTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
+    SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 PULPRQSConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSConv2DBindings,
@@ -146,8 +147,8 @@ PULPFPGELUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPFloa
 PULPGatherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPGatherBindings,
                                                         tileConstraint = GatherTileConstraint())
 
-PULPSoftmaxCrossEntropyTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSoftmaxCrossEntropyLossBindings,
-                                                                     tileConstraint = SoftmaxCrossEntropyTileConstraint())
+PULPSoftmaxCrossEntropyTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPSoftmaxCrossEntropyLossBindings, tileConstraint = SoftmaxCrossEntropyTileConstraint())
 
 PULPSoftmaxCrossEntropyGradTilingReadyBindings = TilingReadyNodeBindings(
     nodeBindings = PULPSoftmaxCrossEntropyLossGradBindings, tileConstraint = SoftmaxCrossEntropyGradTileConstraint())

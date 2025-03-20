@@ -25,7 +25,6 @@
 
 from typing import Dict, List, Tuple, Union
 
-import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -34,10 +33,12 @@ from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
+
 
 class SoftmaxCrossEntropyTileConstraint(TileConstraint):
-    
+
     dataIn1Name = 'logits'
     dataIn2Name = 'labels'
     dataOutName = 'log_prob'
@@ -50,7 +51,7 @@ class SoftmaxCrossEntropyTileConstraint(TileConstraint):
 
         for bufferName in [input1BufferName, input2BufferName, outputBufferName]:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
-        
+
         outputDim0 = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 0)
         input1Dim0 = tilerModel.getTensorDimVar(tensorName = input1BufferName, dimIdx = 0)
         tilerModel.addConstraint(outputDim0 == input1Dim0)
@@ -113,20 +114,21 @@ class SoftmaxCrossEntropyTileConstraint(TileConstraint):
             replacements['num_classes'].append(num_classes)
             replacements['batch'].append(batch)
 
-            labelCube =  HyperRectangle((0, cube.offset[0]), (1, batch))
+            labelCube = HyperRectangle((0, cube.offset[0]), (1, batch))
             inputlabelCubes.append(labelCube)
 
         inputLoadSchedule = []
         outputLoadSchedule = []
 
         for out, label in zip(outputCubes, inputlabelCubes):
-            inputLoadSchedule.append({cls.dataIn1Name: out, cls.dataIn2Name: label}) 
+            inputLoadSchedule.append({cls.dataIn1Name: out, cls.dataIn2Name: label})
             outputLoadSchedule.append({cls.dataOutName: out})
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
 
         return variableReplacementSchedule, tilingSchedule
+
 
 class SoftmaxCrossEntropyGradTileConstraint(SoftmaxCrossEntropyTileConstraint):
     dataIn1Name = 'log_prob'
