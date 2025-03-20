@@ -483,6 +483,8 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_8"
             L1: [64000]
+          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_8"
+            L1: [64000]
         num-cores:
           - 8
     uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
@@ -515,6 +517,10 @@ jobs:
           - name: "CCT/CCT_1_16_16_64"
             L1: [64000]
           - name: "CCT/CCT_1_16_16_128"
+            L1: [64000]
+          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_64"
+            L1: [64000]
+          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
@@ -555,6 +561,10 @@ jobs:
           - name: "CCT/CCT_1_16_16_64"
             L1: [64000]
           - name: "CCT/CCT_1_16_16_128"
+            L1: [64000]
+          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_64"
+            L1: [64000]
+          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
