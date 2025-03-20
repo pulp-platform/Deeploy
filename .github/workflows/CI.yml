@@ -434,7 +434,7 @@ jobs:
           },
           {
             "name": "testFloatMaxPool",
-            "L1": [2000]
+            "L1": [5000]
           },
           {
             "name": "testFloatMatmul",
@@ -512,6 +512,10 @@ jobs:
             L1: [60000, 10000, 5000]
           - name: "CCT/CCT_1_32_32_8"
             L1: [64000]
+          - name: "CCT/CCT_1_16_16_64"
+            L1: [64000]
+          - name: "CCT/CCT_1_16_16_128"
+            L1: [64000]
         num-cores:
           - 8
         default-memory-level:
@@ -547,6 +551,10 @@ jobs:
           - name: "microLlama/microLlama8_parallel"
             L1: [60000, 20000, 10000]
           - name: "CCT/CCT_1_32_32_8"
+            L1: [64000]
+          - name: "CCT/CCT_1_16_16_64"
+            L1: [64000]
+          - name: "CCT/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
