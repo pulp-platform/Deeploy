@@ -36,14 +36,17 @@ from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
 from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
 
+class SoftmaxCrossEntropyTileConstraint(TileConstraint):
+    
+    dataIn1Name = 'logits'
+    dataIn2Name = 'labels'
+    dataOutName = 'log_prob'
 
-class SoftmaxCrossEntropyGradTileConstraint(TileConstraint):
-
-    @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        input1BufferName = parseDict['log_prob']
-        input2BufferName = parseDict['labels']
-        outputBufferName = parseDict['grad']
+    @classmethod
+    def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        input1BufferName = parseDict[cls.dataIn1Name]
+        input2BufferName = parseDict[cls.dataIn2Name]
+        outputBufferName = parseDict[cls.dataOutName]
 
         for bufferName in [input1BufferName, input2BufferName, outputBufferName]:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
@@ -59,9 +62,9 @@ class SoftmaxCrossEntropyGradTileConstraint(TileConstraint):
 
         return tilerModel
 
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        inputBufferName = parseDict['log_prob']
+    @classmethod
+    def addPolicyConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        inputBufferName = parseDict[cls.dataIn1Name]
         inputBuffer = ctxt.lookup(inputBufferName)
 
         lastDimLength = inputBuffer.shape[-1]
@@ -72,11 +75,11 @@ class SoftmaxCrossEntropyGradTileConstraint(TileConstraint):
 
         return tilerModel
 
-    @staticmethod
-    def constructSymbolicNodeRep(tilerModel: TilerModel, parseDict: Dict,
+    @classmethod
+    def constructSymbolicNodeRep(cls, tilerModel: TilerModel, parseDict: Dict,
                                  ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
 
-        inputBufferName = parseDict['log_prob']
+        inputBufferName = parseDict[cls.dataIn1Name]
         inputBuffer = ctxt.lookup(inputBufferName)
 
         lastDimIdx = len(inputBuffer.shape) - 1
@@ -93,7 +96,7 @@ class SoftmaxCrossEntropyGradTileConstraint(TileConstraint):
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        addrNames = ['log_prob', 'labels', 'grad']
+        addrNames = [cls.dataIn1Name, cls.dataIn2Name, cls.dataOutName]
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
@@ -117,10 +120,15 @@ class SoftmaxCrossEntropyGradTileConstraint(TileConstraint):
         outputLoadSchedule = []
 
         for out, label in zip(outputCubes, inputlabelCubes):
-            inputLoadSchedule.append({"log_prob": out, "labels": label}) 
-            outputLoadSchedule.append({"grad": out})
+            inputLoadSchedule.append({cls.dataIn1Name: out, cls.dataIn2Name: label}) 
+            outputLoadSchedule.append({cls.dataOutName: out})
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
 
         return variableReplacementSchedule, tilingSchedule
+
+class SoftmaxCrossEntropyGradTileConstraint(SoftmaxCrossEntropyTileConstraint):
+    dataIn1Name = 'log_prob'
+    dataIn2Name = 'labels'
+    dataOutName = 'grad'
