@@ -99,9 +99,6 @@ class MatMulTileConstraint(TileConstraint):
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])
         tilerModel.addConstraint(BFirstDimVar == parseDict['N'])
 
-        # VIC: For now we tile only one of the inputs
-        tilerModel.addConstraint(BSecondDimVar == parseDict['O'])
-
         return tilerModel
 
     @classmethod

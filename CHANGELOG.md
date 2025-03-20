@@ -197,3 +197,30 @@ Change main.c to use OUTPUTTYPE instead of float
 - Parser implementation in `Parsers.py` to extract quantization parameters
 - C template implementation in `QuantTemplate.py` for efficient quantization
 - Type checker implementation in `TypeCheckers.py` to handle bit-width and signedness
+
+## Implemented Dequant Layer for Generic and Siracusa
+
+### Added
+- New `Dequant` operation to handle dequantization pattern in ONNX models
+- Implementation for both Generic and Siracusa targets in the Deeploy framework
+- Custom `DequantPatternPass` class to replace matched patterns with a single `Dequant` operator
+- Parser implementation in `Parsers.py` to extract dequantization parameters
+- C template implementation in `DequantTemplate.py` for efficient dequantization
+- Type checker implementation in `TypeCheckers.py` to handle bit-width and signedness
+
+## Fix L3 Bugs: DMA Struct Datatype and Maxpool Margin Error
+
+### Added
+- New Test Cases: Added and passed tests for 16×16 64 and 16×16 128 configurations to validate correctness.
+
+### Fixed
+- Maxpool Tile Calculation Error: The last dimension padding was incorrectly calculated due to L3 wraptiling solution. This has been fixed by updating serializeTilingSolution of Maxpool to avoid incorrect padding of Maxpool and prevent potential DMA 3D transfer issues of Maxpool.
+
+- DMA 1D Copy Assertion Issue: Updated the DMA length datatype from uint16 to uint32 to avoid assertion failures when dealing with large block transfers.
+
+## Implemented Updates for handling Quantized Linear DNN
+
+### Added
+- New `_sanitizeGraphNames` function to sanitize the names of the nodes and tensors of the graph
+- Implementation for both Generic and Siracusa targets in the Deeploy framework
+- Modified the binding of dequant in `Bindings.py` to handle int32 after GEMM operation

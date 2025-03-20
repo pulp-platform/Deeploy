@@ -32,8 +32,8 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
     NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
-from Deeploy.Targets.Generic.Bindings import BasicPad1DBindings, BasicPad2DBindings, BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
+from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, BasicRQIntegerDivBinding
+from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, DequantLayer, GatherLayer, GELULayer, GEMMLayer, \
     LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SliceLayer, \
     SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, \
@@ -45,11 +45,11 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, FlattenPars
     SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, \
     UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
-from Deeploy.Targets.PULPOpen.Bindings import BasicQuantBindings, PULPConv1DBinding, PULPDMASliceBindings, \
-    PULPDWConv1DBinding, PULPReduceMeanBindings
+from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
+    PULPDMASliceBindings, PULPDWConv1DBinding, PULPReduceMeanBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPGEMMParser, PULPMatrixVecParser, PULPTallGEMMParser
@@ -117,11 +117,12 @@ SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(), PULP
 SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
                                                PULPSoftmaxCrossEntropyGradTilingReadyBindings)
 QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
+
 PULPMapping = {
     'Conv': ConvLayer([FPConv2DMapper]),
     'RequantizedConv': PULPRQSConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
     'RequantizedGemm': PULPRQSGEMMLayer([MatrixVecMapper, TallGEMMMapper, GEMMMapper]),
-    'Gemm': GEMMLayer([FloatGEMMMapper]),
+    'Gemm': GEMMLayer([FloatGEMMMapper, GEMMDequantMapper]),
     'Gelu': GELULayer([GELUMapper]),
     'LayerNormalization': LayerNormLayer([LayerNormMapper]),
     'MaxPool': MaxPoolLayer([MaxPool2DMapper]),
@@ -150,9 +151,6 @@ PULPMapping = {
     'iRMSNorm': iRMSNormLayer([iRMSNormMapper]),
     'iHardswish': iHardswishLayer([iHardswishMapper]),
     'RequantizediHardswish': RQSiHardswishLayer([RQSiHardswishMapper]),
-    'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossMapper]),
-    'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
-    'SoftmaxGrad': SoftmaxGradLayer([SoftmaxGradMapper]),
     'Quant': QuantLayer([QuantMapper])
 }
 
@@ -228,6 +226,7 @@ class PULPStructBuffer(StructBuffer):
 
 PULPOptimizer = TopologyOptimizer([
     QuantPatternPass(),
+    DequantPatternPass(),
     SkipEmptyConcatPass(),
     SkipUnityRequantPass(previous_op_regex = "Concat", num_inputs = 2),
     SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),

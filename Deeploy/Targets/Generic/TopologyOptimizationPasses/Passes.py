@@ -1149,3 +1149,55 @@ class QuantPatternPass(ReplaceSequentialPatternPass):
 
         name = "_QUANT_PATTERN_PASS"
         super().__init__(graph, _quant_pattern_fun, name)
+
+
+def _recognize_dequant_fun(graph: gs.Graph, match: Match, name: str):
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+
+    sub_node = matched_nodes[0]
+    mul_node = matched_nodes[1]
+
+    zero_point = float(sub_node.inputs[1].values.item())
+
+    mul_input_idx = 0 if mul_node.inputs[0] == sub_node.outputs[0] else 1
+
+    const_input_idx = 1 - mul_input_idx
+
+    scale = float(mul_node.inputs[const_input_idx].values.item())
+
+    bit_width = 8
+    if hasattr(sub_node.inputs[0], 'dtype'):
+        input_dtype = sub_node.inputs[0].dtype
+        if input_dtype == np.int8:
+            bit_width = 8
+        elif input_dtype == np.int16:
+            bit_width = 16
+        elif input_dtype == np.int32:
+            bit_width = 32
+
+    dequant_attrs = {'scale': scale, 'zero_point': zero_point, 'bit_width': bit_width, 'signed': True}
+
+    _inputs = [sub_node.inputs[0]]
+    _outputs = mul_node.outputs
+
+    dequant_node = gs.Node(op = 'Dequant', name = name, attrs = dequant_attrs)
+    graph.replaceInsertNode(_inputs, _outputs, dequant_node)
+
+    return graph
+
+
+@contextagnostic
+class DequantPatternPass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+
+        sub_output = graph.layer(inputs = [_input], outputs = ['sub_out'], op = 'Sub', name = 'sub')
+        mul_output = graph.layer(inputs = sub_output, outputs = ['mul_out'], op = 'Mul', name = 'mul')
+
+        graph.outputs.append(mul_output)
+        graph.inputs.append(_input)
+
+        name = "_RECOGNIZE_DEQUANT_PASS"
+        super().__init__(graph, _recognize_dequant_fun, name)
