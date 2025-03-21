@@ -41,7 +41,7 @@ class SnitchClusterTiling(CodeTransformationPass):
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        if verbose.tilingProfiling == "L2":
+        if verbose.tilingProfiling:
             raise NotImplementedError("Profiling not implemented for L2")
             # ctxt, executionBlock = self.profilingSB.apply(ctxt, executionBlock, name)
         else:

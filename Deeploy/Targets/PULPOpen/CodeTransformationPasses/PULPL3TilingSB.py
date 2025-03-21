@@ -416,10 +416,11 @@ class PULPL3TilingSB(TilingCodeGeneration):
             })
         ]
 
-        metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'],
+        metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'] + "_L3",
                                   nodeOps = operatorRepresentation['nodeOps'],
                                   numTiles = len(tilingSchedule.outputLoadSchedule),
-                                  tileIdxVar = "TILING_I")
+                                  tileIdxVar = "TILING_I",
+                                  kernelLevelTiling = False)
 
         newExecutionBlock = self.generateAllTilingCode(executionBlock, metaInfo, ingressDMATransferCalls,
                                                        ingressDMAWaitStatements, ingressDMAUpdates,

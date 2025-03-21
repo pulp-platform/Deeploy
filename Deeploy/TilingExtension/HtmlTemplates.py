@@ -50,7 +50,8 @@ def getSubplotHtml(figJson: str, memoryLevelName: str) -> str:
         </script>
     """
 
-def getHtmlMemoryAllocationVisualisation(subplot_html_template: str) -> str: 
+
+def getHtmlMemoryAllocationVisualisation(subplot_html_template: str) -> str:
     return f"""
             <!DOCTYPE html>
             <html lang="en">

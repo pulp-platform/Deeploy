@@ -203,12 +203,7 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
             self.add_argument('--randomizedMemoryScheduler',
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
-            self.add_argument('--profileTiling',
-                              metavar = '<level>',
-                              dest = 'profileTiling',
-                              type = str,
-                              default = None,
-                              help = 'Profile tiling for a given memory level (eg. "L2")\n')
+            self.add_argument('--profileTiling', action = 'store_true', help = 'Enable tiling profiling\n')
             self.add_argument('--memAllocStrategy',
                               metavar = 'memAllocStrategy',
                               dest = 'memAllocStrategy',
@@ -265,8 +260,8 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                 command += f" --l2={self.args.l2}"
             if self.args.randomizedMemoryScheduler:
                 command += " --randomizedMemoryScheduler"
-            if self.args.profileTiling is not None:
-                command += f" --profileTiling {self.args.profileTiling}"
+            if self.args.profileTiling:
+                command += f" --profileTiling"
             if self.args.memAllocStrategy:
                 command += f" --memAllocStrategy={self.args.memAllocStrategy}"
             if self.args.plotMemAlloc:

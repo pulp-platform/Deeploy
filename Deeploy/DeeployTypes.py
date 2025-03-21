@@ -69,7 +69,7 @@ class CodeGenVerbosity:
     Encapsulates verbosity options for downstream configuration
     """
 
-    tilingProfiling: Optional[str]  #: str: Specifies the name of the memory level on which to profile tiling
+    tilingProfiling: Optional[bool] = False  #: str: Specifies the name of the memory level on which to profile tiling
     untiledProfiling: Optional[
         bool] = None  #: str: Specifies the name of the memory level on which to profile untiled code
 
