@@ -36,6 +36,7 @@ class TilingMetaInfo:
     nodeOps: int
     numTiles: int
     tileIdxVar: str
+    kernelLevelTiling: bool
 
 
 _CodeSegmentType = List[CodeSnippet]
@@ -185,10 +186,14 @@ class ProfilingSingleBufferingTilingMixIn(SingleBufferingTilingMixIn):
         executionBlock = super().generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements,
                                                               teardownStatements)
 
-        for measurementName in [
-                "kernel_start", "kernel_end", "ingress_dma_wait_start", "ingress_dma_wait_end", "egress_dma_wait_start",
-                "egress_dma_wait_end"
-        ]:
+        measurementNameList = [
+            "ingress_dma_wait_start", "ingress_dma_wait_end", "egress_dma_wait_start", "egress_dma_wait_end"
+        ]
+
+        if metaInfo.kernelLevelTiling:
+            measurementNameList = ["kernel_start", "kernel_end"] + measurementNameList
+
+        for measurementName in measurementNameList:
             executionBlock.addLeft(_measurementArrayDeclaration, {
                 "nodeName": nodeName,
                 "measurementName": measurementName,
@@ -211,14 +216,15 @@ class ProfilingSingleBufferingTilingMixIn(SingleBufferingTilingMixIn):
                 "endMeasurementName": "ingress_dma_wait_end",
                 "tileIdx": "printLoopIdx"
             })
-        executionBlock.addRight(
-            _printCycleDifference, {
-                "nodeName": nodeName,
-                "flavorStr": "Kernel took ",
-                "startMeasurementName": "kernel_start",
-                "endMeasurementName": "kernel_end",
-                "tileIdx": "printLoopIdx"
-            })
+        if metaInfo.kernelLevelTiling:
+            executionBlock.addRight(
+                _printCycleDifference, {
+                    "nodeName": nodeName,
+                    "flavorStr": "Kernel took ",
+                    "startMeasurementName": "kernel_start",
+                    "endMeasurementName": "kernel_end",
+                    "tileIdx": "printLoopIdx"
+                })
         executionBlock.addRight(
             _printCycleDifference, {
                 "nodeName": nodeName,
@@ -243,16 +249,17 @@ class ProfilingSingleBufferingTilingMixIn(SingleBufferingTilingMixIn):
         numTiles = metaInfo.numTiles
         tileIdxVar = metaInfo.tileIdxVar
 
-        executionBlock.addLeft(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "kernel_start",
-            "tileIdx": tileIdxVar
-        })
-        executionBlock.addRight(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "kernel_end",
-            "tileIdx": tileIdxVar
-        })
+        if metaInfo.kernelLevelTiling:
+            executionBlock.addLeft(_measureCycles, {
+                "nodeName": nodeName,
+                "measurementName": "kernel_start",
+                "tileIdx": tileIdxVar
+            })
+            executionBlock.addRight(_measureCycles, {
+                "nodeName": nodeName,
+                "measurementName": "kernel_end",
+                "tileIdx": tileIdxVar
+            })
 
         _ingressDMAWaitStatements = []
         _ingressDMAWaitStatements.append(
@@ -340,10 +347,14 @@ class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn):
             "tileIdx": 0
         })
 
-        for measurementName in [
-                "kernel_start", "kernel_end", "ingress_dma_wait_start", "ingress_dma_wait_end", "egress_dma_wait_start",
-                "egress_dma_wait_end"
-        ]:
+        measurementNameList = [
+            "ingress_dma_wait_start", "ingress_dma_wait_end", "egress_dma_wait_start", "egress_dma_wait_end"
+        ]
+
+        if metaInfo.kernelLevelTiling:
+            measurementNameList = ["kernel_start", "kernel_end"] + measurementNameList
+
+        for measurementName in measurementNameList:
             executionBlock.addLeft(_measurementArrayDeclaration, {
                 "nodeName": nodeName,
                 "measurementName": measurementName,
@@ -379,14 +390,15 @@ class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn):
                 "endMeasurementName": "ingress_dma_wait_end",
                 "tileIdx": "printLoopIdx"
             })
-        executionBlock.addRight(
-            _printCycleDifference, {
-                "nodeName": nodeName,
-                "flavorStr": "Kernel took ",
-                "startMeasurementName": "kernel_start",
-                "endMeasurementName": "kernel_end",
-                "tileIdx": "printLoopIdx"
-            })
+        if metaInfo.kernelLevelTiling:
+            executionBlock.addRight(
+                _printCycleDifference, {
+                    "nodeName": nodeName,
+                    "flavorStr": "Kernel took ",
+                    "startMeasurementName": "kernel_start",
+                    "endMeasurementName": "kernel_end",
+                    "tileIdx": "printLoopIdx"
+                })
         executionBlock.addRight(
             _printCycleDifference, {
                 "nodeName": nodeName,
@@ -411,16 +423,17 @@ class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn):
         numTiles = metaInfo.numTiles
         tileIdxVar = metaInfo.tileIdxVar
 
-        executionBlock.addLeft(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "kernel_start",
-            "tileIdx": tileIdxVar
-        })
-        executionBlock.addRight(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "kernel_end",
-            "tileIdx": tileIdxVar
-        })
+        if metaInfo.kernelLevelTiling:
+            executionBlock.addLeft(_measureCycles, {
+                "nodeName": nodeName,
+                "measurementName": "kernel_start",
+                "tileIdx": tileIdxVar
+            })
+            executionBlock.addRight(_measureCycles, {
+                "nodeName": nodeName,
+                "measurementName": "kernel_end",
+                "tileIdx": tileIdxVar
+            })
 
         _ingressDMAWaitStatements = []
         _ingressDMAWaitStatements.append(CodeSnippet(_measureConditionSetup, {"cond": f"{tileIdxVar} > 0"}))

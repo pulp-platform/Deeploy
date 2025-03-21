@@ -89,15 +89,11 @@ class Tiler():
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
 
-    def plotMemoryAlloc(self,
-                        memoryMap: Dict[str, List[List[MemoryBlock]]],
-                        ctxt: NetworkContext,
-                        deeployStateDir: str,
+    def plotMemoryAlloc(self, memoryMap: Dict[str, List[List[MemoryBlock]]], ctxt: NetworkContext, deeployStateDir: str,
                         memoryHierarchy: MemoryHierarchy):
 
         os.makedirs(os.path.abspath(deeployStateDir), exist_ok = True)
-        memoryAllocPlotPath = os.path.abspath(
-            os.path.join(deeployStateDir, f"memory_alloc.html"))
+        memoryAllocPlotPath = os.path.abspath(os.path.join(deeployStateDir, f"memory_alloc.html"))
 
         addTraceConfig = {"fill": "toself", "hoverinfo": "text", "mode": "lines", "line": dict(width = 2)}
 
@@ -119,47 +115,51 @@ class Tiler():
                 _maxLifetime = len(memoryMap[memoryLevel.name])
                 fig.add_trace(
                     go.Scatter(x = [-0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5],
-                            y = [
-                                constantBuffersOffset, constantBuffersOffset + _ioSize, constantBuffersOffset + _ioSize,
-                                constantBuffersOffset
-                            ],
-                            name = ioBuffer.name,
-                            text = ioBuffer.name,
-                            **addTraceConfig))
+                               y = [
+                                   constantBuffersOffset, constantBuffersOffset + _ioSize,
+                                   constantBuffersOffset + _ioSize, constantBuffersOffset
+                               ],
+                               name = ioBuffer.name,
+                               text = ioBuffer.name,
+                               **addTraceConfig))
                 constantBuffersOffset += _ioSize
 
             for memoryMapStep in memoryMap[memoryLevel.name]:
                 for buffer in memoryMapStep:
                     fig.add_trace(
-                        go.Scatter(x=[buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
-                                    buffer._lifetime[1] + 0.5],
-                                y=[constantBuffersOffset + buffer._addrSpace[0],
-                                    constantBuffersOffset + buffer._addrSpace[1],
-                                    constantBuffersOffset + buffer._addrSpace[1],
-                                    constantBuffersOffset + buffer._addrSpace[0]],
-                                name=buffer.name,
-                                text=buffer.name,
-                                **addTraceConfig))
+                        go.Scatter(x = [
+                            buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
+                            buffer._lifetime[1] + 0.5
+                        ],
+                                   y = [
+                                       constantBuffersOffset + buffer._addrSpace[0],
+                                       constantBuffersOffset + buffer._addrSpace[1],
+                                       constantBuffersOffset + buffer._addrSpace[1],
+                                       constantBuffersOffset + buffer._addrSpace[0]
+                                   ],
+                                   name = buffer.name,
+                                   text = buffer.name,
+                                   **addTraceConfig))
 
-            fig.update_xaxes(title_text="Lifetime")
-            fig.update_yaxes(title_text="Address Space (Bytes)")
-            fig.update_layout(title=f"Memory Allocation - {memoryLevel.name}", showlegend=False)
+            fig.update_xaxes(title_text = "Lifetime")
+            fig.update_yaxes(title_text = "Address Space (Bytes)")
+            fig.update_layout(title = f"Memory Allocation - {memoryLevel.name}", showlegend = False)
 
             fig.add_trace(
-            go.Scatter(
-                x = [-0.5, len(memoryMap[memoryLevel.name]) - 1.5],
-                y = [memoryLevel.size, memoryLevel.size],
-                name = f"{memoryLevel.name} Memory Size",
-                text = f"{memoryLevel.name} Memory Size",
-                line = dict(color = "red", width = 2, dash = "dash"),
-                fill = "toself",
-                hoverinfo = "text",
-                mode = "lines",
-            ))
+                go.Scatter(
+                    x = [-0.5, len(memoryMap[memoryLevel.name]) - 1.5],
+                    y = [memoryLevel.size, memoryLevel.size],
+                    name = f"{memoryLevel.name} Memory Size",
+                    text = f"{memoryLevel.name} Memory Size",
+                    line = dict(color = "red", width = 2, dash = "dash"),
+                    fill = "toself",
+                    hoverinfo = "text",
+                    mode = "lines",
+                ))
 
             return fig
 
-        from Deeploy.TilingExtension.HtmlTemplates import getSubplotHtml, getHtmlMemoryAllocationVisualisation
+        from Deeploy.TilingExtension.HtmlTemplates import getHtmlMemoryAllocationVisualisation, getSubplotHtml
 
         subplotHtml = ""
         for memoryLevelName in memoryMap.keys():
@@ -168,7 +168,7 @@ class Tiler():
 
         outputHtml = getHtmlMemoryAllocationVisualisation(subplotHtml)
 
-        with open(memoryAllocPlotPath, "w", encoding="utf-8") as f:
+        with open(memoryAllocPlotPath, "w", encoding = "utf-8") as f:
             f.write(outputHtml)
 
     def _convertCtxtToStaticSchedule(self, ctxt: NetworkContext,
@@ -973,8 +973,7 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
                                   targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
             if self.tiler.visualizeMemoryAlloc:
-                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,
-                                           self.Platform.memoryHierarchy)
+                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir, self.Platform.memoryHierarchy)
 
             self.tiler.testMemoryMapCorrectness(memoryMap, self.graph, schedule)
 
