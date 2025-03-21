@@ -271,6 +271,10 @@ jobs:
         testFloatMul
         Quant
         Dequant
+        testFloatReduceSum
+        testFloatSoftmaxGrad
+        testFloatSoftmaxCrossEntropy
+        testFloatSoftmaxCrossEntropyGrad
         QuantizedLinear
       num-cores: 8
 
@@ -288,6 +292,7 @@ jobs:
         MLPerf/ImageClassification
         MLPerf/AnomalyDetection
         CCT/CCT_1_16_16_8
+        testTrainCCT/CCT_GEMM_Weight_Bias_1_16_16_8
       num-cores: 8
 
   siracusa-kernels-tiled-singlebuffer-L2:

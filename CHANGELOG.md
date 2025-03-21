@@ -224,3 +224,18 @@ Change main.c to use OUTPUTTYPE instead of float
 - New `_sanitizeGraphNames` function to sanitize the names of the nodes and tensors of the graph
 - Implementation for both Generic and Siracusa targets in the Deeploy framework
 - Modified the binding of dequant in `Bindings.py` to handle int32 after GEMM operation
+
+## Add CCT Classifier Training Support
+### Added
+- New test cases: testTrainCCT/CCT_GEMM_Weight_Bias_1_16_16_8, testFloatReduceSum, testFloatSoftmaxGrad, testFloatSoftmaxCrossEntropy, testFloatSoftmaxCrossEntropyGrad
+- New kernels: SoftmaxCrossEntropy, SoftmaxCrossEntropyGrad, SoftmaxGrad, ReduceSum
+- Refinements in operator parsers and computeShape logic for: Softmax, Mul, Reducesum
+
+### Changed
+- Enhanced layernorm operator to support three outputs (layernormout, mean, std) for compatibility with training-related layernormgrad in the future.
+## Implemented Updates for handling Quantized Linear DNN
+
+### Added
+- New `_sanitizeGraphNames` function to sanitize the names of the nodes and tensors of the graph
+- Implementation for both Generic and Siracusa targets in the Deeploy framework
+- Modified the binding of dequant in `Bindings.py` to handle int32 after GEMM operation
