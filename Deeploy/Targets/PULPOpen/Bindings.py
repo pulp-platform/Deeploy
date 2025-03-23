@@ -381,8 +381,9 @@ PULPReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerCla
 PULPLayernormBinding = NodeBinding(
     LayerNormChecker(
         [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
-    ForkTransformer)
+         PointerClass(float32_t)],
+        [PointerClass(float32_t), PointerClass(float32_t),
+         PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate, ForkTransformer)
 
 PULPFloatGELUBinding = NodeBinding(
     GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),

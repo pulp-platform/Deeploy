@@ -271,6 +271,10 @@ jobs:
         testFloatMul
         Quant
         Dequant
+        testFloatReduceSum
+        testFloatSoftmaxGrad
+        testFloatSoftmaxCrossEntropy
+        testFloatSoftmaxCrossEntropyGrad
         QuantizedLinear
         testFloatReduceSum
         testFloatSoftmaxGrad
