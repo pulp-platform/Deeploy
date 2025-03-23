@@ -276,10 +276,6 @@ jobs:
         testFloatSoftmaxCrossEntropy
         testFloatSoftmaxCrossEntropyGrad
         QuantizedLinear
-        testFloatReduceSum
-        testFloatSoftmaxGrad
-        testFloatSoftmaxCrossEntropy
-        testFloatSoftmaxCrossEntropyGrad
       num-cores: 8
 
   siracusa-models:
