@@ -120,6 +120,21 @@ class SoftmaxLayer(ONNXLayer):
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
+    def computeOps(self):
+    
+        size = self.mapper.parser.operatorRepresentation['size']
+        last_dim_length = self.mapper.parser.operatorRepresentation['lastDimLength']
+        batch_size = size // last_dim_length
+
+        max_ops = last_dim_length - 1  
+        exp_ops = last_dim_length * 2  
+        sum_ops = last_dim_length - 1 
+        div_ops = last_dim_length  
+        ops_per_batch = max_ops + exp_ops + sum_ops + div_ops
+        total_ops = ops_per_batch * batch_size
+
+        return total_ops
+
 
 class SoftmaxGradLayer(ONNXLayer):
 
