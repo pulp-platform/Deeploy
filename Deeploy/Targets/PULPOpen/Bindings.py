@@ -264,7 +264,7 @@ PULPMatMulBindings = [
                 GEMMTemplate.PULPMM_8_Template, ClusterTransformer)
 ] + [
     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatMatMulTemplate.referenceTemplate, ClusterTransformer)
+                FloatMatMulTemplate.referenceTemplate, ForkTransformer)
 ]
 
 PULPReduceMeanBindings = [

@@ -25,25 +25,37 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// Matmul (Name: ${nodeName}, Op: ${nodeOp})
-BEGIN_SINGLE_CORE
-    ${A_type.typeName} ref_${data_out}_${A} = ${A};
-    ${B_type.typeName} ref_${data_out}_${B} = ${B};
-    ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
+// Matmul with row parallelism (Name: ${nodeName}, Op: ${nodeOp})
 
-    for(uint32_t i=0; i<${batch}; i++){
-        MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
-            ref_${data_out}_${A},
-            ref_${data_out}_${B},
-            ref_${data_out}_${data_out},
-            ${M},
-            ${N},
-            ${O}
-        );
 
-        ref_${data_out}_${A} += ${M} * ${N};
-        ref_${data_out}_${B} += ${N} * ${O};
-        ref_${data_out}_${data_out} += ${M} * ${O};
+int8_t ${nodeName}_core_id = pi_core_id();
+int8_t ${nodeName}_num_cores = NUM_CORES;
+
+
+int32_t ${nodeName}_M_per_core = (${M} + ${nodeName}_num_cores - 1) / ${nodeName}_num_cores;
+int32_t ${nodeName}_M_start = MIN(${nodeName}_core_id * ${nodeName}_M_per_core, ${M});
+int32_t ${nodeName}_M_end = MIN(${nodeName}_M_start + ${nodeName}_M_per_core, ${M});
+
+
+for(uint32_t b=0; b<${batch}; b++) {
+ 
+    ${A_type.typeName} batch_A = ${A} + b * ${M} * ${N};
+    ${B_type.typeName} batch_B = ${B} + b * ${N} * ${O};
+    ${data_out_type.typeName} batch_out = ${data_out} + b * ${M} * ${O};
+    
+
+    for (uint32_t i = ${nodeName}_M_start; i < ${nodeName}_M_end; i++) {
+        for (uint32_t j = 0; j < ${O}; j++) {
+            float32_t sum = 0.0f;
+            
+            #pragma unroll 4
+            for (uint32_t k = 0; k < ${N}; k++) {
+                sum += batch_A[i * ${N} + k] * batch_B[k * ${O} + j];
+            }
+            
+            batch_out[i * ${O} + j] = sum;
+        }
     }
-END_SINGLE_CORE
+}
+
 """)
