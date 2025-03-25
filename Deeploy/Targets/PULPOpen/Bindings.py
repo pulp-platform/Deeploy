@@ -38,7 +38,7 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import ConcatTemplate, DequantTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatLayernormTemplate, FloatMatMulTemplate, FloatMulTemplate, FloatReduceSumTemplate, FloatReluTemplate, \
+    FloatMatMulTemplate, FloatMulTemplate, FloatReduceSumTemplate, FloatReluTemplate, \
     FloatSoftmaxTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, DequantChecker, GatherChecker, \
     GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, QuantChecker, \
@@ -53,7 +53,12 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatConvTemplate, 
     FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, \
     RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SliceTemplate, \
     SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate
+    iRMSNormTemplate, iSoftmaxTemplate, \
+    RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SliceTemplate, SoftmaxCrossEntropyLossTemplate, \
+    TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate, \
+    RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SliceTemplate, \
+    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
+    iRMSNormTemplate, iSoftmaxTemplate, FloatLayernormTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
