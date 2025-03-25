@@ -27,22 +27,34 @@ from Deeploy.DeeployTypes import NodeTemplate
 
 reference2DTemplate = NodeTemplate("""
 
-// 2D FP Conv HWC (Name: ${nodeName}, Op: ${nodeOp})
-BEGIN_SINGLE_CORE
-    ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
-    ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
+// 2D FP Conv HWC Parallel (Name: ${nodeName}, Op: ${nodeOp})
 
-    for (uint32_t n=0; n<${batch}; ++n) {
-        Conv2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
-            ref_${data_out}_${data_in}, ${dim_im_in_x}, ${dim_im_in_y}, ${ch_im_in},
-            ${weight}, ${ch_im_out},
-            ${dim_kernel_x}, ${dim_kernel_y},                                                                           
-            ${stride_x}, ${stride_y},                                              
-            ref_${data_out}_${data_out},                                           
-            ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}                  
-        );
-        ref_${data_out}_${data_in} += ${ch_im_in}*${dim_im_in_x}*${dim_im_in_y};
-        ref_${data_out}_${data_out} += ${ch_im_out}*${dim_im_out_x}*${dim_im_out_y};
-    }
-END_SINGLE_CORE
+int8_t ${nodeName}_core_id = pi_core_id();
+int8_t ${nodeName}_log2Core = log2(NUM_CORES);
+int16_t ${nodeName}_ch_out_chunk = (${ch_im_out} >> ${nodeName}_log2Core) + ((${ch_im_out} & (NUM_CORES-1))!=0);
+int16_t ${nodeName}_ch_out_start = MIN(${nodeName}_ch_out_chunk*${nodeName}_core_id, ${ch_im_out});
+int16_t ${nodeName}_ch_out_stop = MIN(${nodeName}_ch_out_start + ${nodeName}_ch_out_chunk, ${ch_im_out});
+int16_t ${nodeName}_ch_out_count = ${nodeName}_ch_out_stop - ${nodeName}_ch_out_start;
+
+${weight_type.typeName} ${nodeName}_weight_ptr = ${weight} + ${nodeName}_ch_out_start * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y};
+
+${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
+${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
+
+for (uint32_t n=0; n<${batch}; ++n) {
+
+    Conv2d_ChannelRange_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
+        ref_${data_out}_${data_in}, ${dim_im_in_y}, ${dim_im_in_x}, ${ch_im_in},
+        ${nodeName}_weight_ptr, ${nodeName}_ch_out_count,
+        ${dim_kernel_y}, ${dim_kernel_x},
+        ${stride_y}, ${stride_x},
+        ref_${data_out}_${data_out}, ${ch_im_out}, ${nodeName}_ch_out_start,
+        ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}
+    );
+    
+
+    ref_${data_out}_${data_in} += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};
+    ref_${data_out}_${data_out} += ${ch_im_out} * ${dim_im_out_x} * ${dim_im_out_y};
+}
+
 """)

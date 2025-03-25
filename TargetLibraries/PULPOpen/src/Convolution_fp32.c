@@ -30,11 +30,11 @@
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
 
-void Conv2d_fp32_fp32_fp32_HWC(
+void Conv2d_ChannelRange_fp32_fp32_fp32_HWC(
     const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,
-    const float32_t *__restrict__ pSrcB, uint32_t F,
+    const float32_t *__restrict__ pSrcB, uint32_t F_subset,
     uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
-    float32_t *__restrict__ pDstC,
+    float32_t *__restrict__ pDstC, uint32_t F_total, uint32_t F_start,
     uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right) {
 
 
@@ -48,7 +48,7 @@ void Conv2d_fp32_fp32_fp32_HWC(
     for (h = 0; h < H_out; ++h) {
         for (w = 0; w < W_out; ++w) {
             
-            for (f = 0; f < F; ++f) {
+            for (f = 0; f < F_subset; ++f) {
                 float32_t sum = 0.0f;
                 
                 for (p = 0; p < P; ++p) {
@@ -73,7 +73,7 @@ void Conv2d_fp32_fp32_fp32_HWC(
                     }
                 }
 
-                uint32_t output_idx = (h * W_out + w) * F + f;
+                uint32_t output_idx = (h * W_out + w) * F_total + (F_start + f);
                 pDstC[output_idx] = sum;
             }
         }
