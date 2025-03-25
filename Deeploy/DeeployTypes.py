@@ -3200,17 +3200,28 @@ class NetworkDeployer(NetworkContainer):
                 tensor.name = sanitize(tensor.name)
 
     # Don't override this
-    # Duplicate constants with multiple users
     def _removeEmptyInputs(self, graph: gs.Graph):
         _inps = self.graph.inputs.copy()
         for inp in _inps:
             if np.prod(inp.shape) == 0:
                 self.graph.inputs.remove(inp)
 
+    # Don't override this
+    def _mangleTensorNames(self):
+        """Mangle tensor names
+
+        This adds _tensor suffix to all tensors in hopes to make them distinct from other graph elements, e.g., nodes.
+        Deeploy needs tensor names to be distinct for code snippet introspection.
+        """
+        for tensor in self.graph.tensors().values():
+            tensor.name = f"{tensor.name}_tensor"
+
     def frontEnd(self):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
 
         """
+        self._mangleTensorNames()
+
         # Rename graph inputs and outputs:
         for idx, inputNode in enumerate(self.graph.inputs):
             inputNode.name = "input_" + str(idx)
