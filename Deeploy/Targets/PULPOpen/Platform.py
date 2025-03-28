@@ -155,7 +155,7 @@ PULPMapping = {
     'iHardswish': iHardswishLayer([iHardswishMapper]),
     'RequantizediHardswish': RQSiHardswishLayer([RQSiHardswishMapper]),
     'Quant': QuantLayer([QuantMapper]),
-    'Dequant': QuantLayer([GEMMDequantMapper]),
+    'Dequant': QuantLayer([DequantMapper]),
     'SoftmaxGrad': SoftmaxGradLayer([SoftmaxGradMapper]),
     'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossMapper]),
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),

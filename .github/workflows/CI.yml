@@ -292,7 +292,7 @@ jobs:
         MLPerf/ImageClassification
         MLPerf/AnomalyDetection
         CCT/CCT_1_16_16_8
-        testTrainCCT/CCT_GEMM/CCT_1_16_16_8
+        testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_8
       num-cores: 8
 
   siracusa-kernels-tiled-singlebuffer-L2:
@@ -483,7 +483,7 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_8"
             L1: [64000]
-          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_8"
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_8"
             L1: [64000]
         num-cores:
           - 8
@@ -518,9 +518,9 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_128"
             L1: [64000]
-          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_64"
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
             L1: [64000]
-          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_128"
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
@@ -562,9 +562,9 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_128"
             L1: [64000]
-          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_64"
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
             L1: [64000]
-          - name: "testTrainCCT/CCT_GEMM/CCT_1_16_16_128"
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
