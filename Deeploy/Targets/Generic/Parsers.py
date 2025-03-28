@@ -2444,7 +2444,7 @@ class SGDParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all([len(node.inputs) == 2, len(node.outputs) == 1, 'lr' in node.attrs] )
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1, 'lr' in node.attrs])
 
         return ret
 
