@@ -26,13 +26,10 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// Softmax with external function call (Name: ${nodeName}, Op: ${nodeOp})
-
+// Parallel Softmax  (Name: ${nodeName}, Op: ${nodeOp})
 int8_t ${nodeName}_core_id = pi_core_id();
 int8_t ${nodeName}_num_cores = NUM_CORES;
-
 int32_t ${nodeName}_num_vectors = ${size} / ${lastDimLength};
-
 int32_t ${nodeName}_vectors_per_core = (${nodeName}_num_vectors + ${nodeName}_num_cores - 1) / ${nodeName}_num_cores;
 int32_t ${nodeName}_vector_start = MIN(${nodeName}_core_id * ${nodeName}_vectors_per_core, ${nodeName}_num_vectors);
 int32_t ${nodeName}_vector_end = MIN(${nodeName}_vector_start + ${nodeName}_vectors_per_core, ${nodeName}_num_vectors);
