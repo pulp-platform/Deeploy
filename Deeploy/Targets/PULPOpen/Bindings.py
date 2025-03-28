@@ -49,21 +49,11 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import 
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
-from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatConvTemplate, FloatMaxPoolTemplate, \
-    FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, \
-    RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SliceTemplate, \
-    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate, \
-    RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SliceTemplate, SoftmaxCrossEntropyLossTemplate, \
-    TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate, \
-    RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SliceTemplate, \
-    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate, FloatLayernormTemplate
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatConvTemplate, FloatGELUTemplate, \
     FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatSoftmaxTemplate, GEMMTemplate, \
     MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, RQAddTemplate, \
-    RQSiHardswishTemplate, SliceTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, \
-    UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    RQSiHardswishTemplate, SGDTemplate, SliceTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, \
+    TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
