@@ -869,13 +869,14 @@ class GatherParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> (bool):
+        if not (len(node.inputs) == 2 and len(node.outputs) == 1):
+            return False
 
-        ret = all(['axis' in node.attrs, len(node.inputs) == 2, len(node.outputs) == 1])
+        indices_shape = node.inputs[1].shape
+        assert np.prod(indices_shape) == 1, f"Only indices of size 1 supported. Got indices of shape {indices_shape}"
 
-        if ret:
-            self.operatorRepresentation['axis'] = node.attrs['axis']
-
-        return ret
+        self.operatorRepresentation['axis'] = node.attrs['axis'] if 'axis' in node.attrs else 0
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -891,10 +892,11 @@ class GatherParser(NodeParser):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
         axis = self.operatorRepresentation['axis']
-        self.operatorRepresentation['numIndices'] = int(
-            np.prod(ctxt.lookup(self.operatorRepresentation['indices']).shape))
-        self.operatorRepresentation['offset'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[axis + 1:])
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
+        shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['batch'] = np.prod(shape[:axis])
+        self.operatorRepresentation['batch_length'] = np.prod(shape[axis:])
+        self.operatorRepresentation['axis_length'] = np.prod(shape[axis + 1:])
+        self.operatorRepresentation['index'] = int(node.inputs[1].values.item())
 
         return ctxt, True
 
