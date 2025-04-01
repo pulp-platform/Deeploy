@@ -3216,10 +3216,17 @@ class NetworkDeployer(NetworkContainer):
         for tensor in self.graph.tensors().values():
             tensor.name = f"{tensor.name}_tensor"
 
+    # Don't override this
+    def _removeIdentityNodes(self):
+        for node in filter(lambda x: x.op == "Identity", self.graph.nodes):
+            self.graph.deleteNode(node)
+
     def frontEnd(self):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
 
         """
+        self._removeIdentityNodes()
+
         self._mangleTensorNames()
 
         # Rename graph inputs and outputs:
