@@ -292,15 +292,9 @@ def generateL3HexDump(deployer: NetworkDeployer, path: str, test_inputs: List, t
 
         paddedArray.astype(typeStr).tofile(path)
 
-    # SCHEREMO: Dump all global const buffers as hex files
-    globalConstBuffers = [
-        buf for key, buf in deployer.ctxt.globalObjects.items() if isinstance(buf, VariableBuffer) and buf._deploy
-    ]
-    l3ConstBuffer = [buf for buf in globalConstBuffers if hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3"]
-
+    # LMACAN: Dump all global buffers with the "extName" attribute
     os.makedirs(path, exist_ok = True)
-
-    for idx, buf in enumerate(l3ConstBuffer):
+    for buf in deployer.ctxt.globalObjects.values():
         if hasattr(buf, "extName"):
             pathName = os.path.join(path, f"{buf.extName}.hex")
             dumpBuffer(buf, pathName)
