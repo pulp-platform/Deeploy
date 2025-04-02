@@ -23,7 +23,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Dict, Type
+from typing import Callable, Dict, List, Type
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -82,6 +82,8 @@ class PULPDeployer(SignPropDeployer):
             RemoveGlobalOutputReshapePass(),
         ]
 
+        self.extNameCount = 0
+
     def bind(self):
         # SCHEREMO: THIS IS A STOP GAP SOLUTION. DONT REUSE. I MEAN IT. I WILL FIND YOU.
         # SCHEREMO: The BindingOptimizationPass system is fairly fragile;
@@ -96,28 +98,33 @@ class PULPDeployer(SignPropDeployer):
             self.ctxt.hoistGlobalDefinition("cluster_dev", "extern struct pi_device cluster_dev;")
         return ret
 
+    def _l3ConstBuffer(self) -> List[VariableBuffer]:
+        return [
+            buf for buf in self.ctxt.globalObjects.values() if all([
+                isinstance(buf, VariableBuffer) and buf._deploy,
+                hasattr(buf, "_users") and len(buf._users) > 0,
+                hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3",
+            ])
+        ]
+
+    def _newExtName(self) -> str:
+        name = str(self.extNameCount)
+        self.extNameCount += 1
+        return name
+
+    def _generateL3BufferAllocationCode(self, buf: VariableBuffer) -> str:
+        retStr = ""
+        locPtr = str(buf._instance)
+        extName = self._newExtName()
+        buf.extName = extName
+        size = np.prod(buf.shape) * (buf._type.referencedType.typeWidth // 8)
+        if isinstance(buf, ConstantBuffer):
+            retStr += _L3AllocTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
+        retStr += _L3InitTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
+        return retStr
+
     def generateBufferAllocationCode(self) -> str:
         retStr = super().generateBufferAllocationCode()
-
-        L3FileStr = ""
-        globalConstBuffers = [
-            buf for key, buf in self.ctxt.globalObjects.items() if isinstance(buf, VariableBuffer) and buf._deploy
-        ]
-        nonArenaBuffers = [buf for buf in globalConstBuffers if buf._users != []]
-        l3ConstBuffer = [buf for buf in nonArenaBuffers if hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3"]
-
-        for idx, buf in enumerate(l3ConstBuffer):
-
-            locPtr = str(buf._instance)
-            extName = str(idx)
-            buf.extName = extName
-            size = np.prod(buf.shape) * (buf._type.referencedType.typeWidth // 8)
-
-            if isinstance(buf, ConstantBuffer):
-                L3FileStr += _L3AllocTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
-
-            L3FileStr += _L3InitTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
-
-        retStr = retStr + L3FileStr
-
+        for buf in self._l3ConstBuffer():
+            retStr += self._generateL3BufferAllocationCode(buf)
         return retStr
