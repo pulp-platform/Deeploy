@@ -168,3 +168,27 @@ size_t load_file_to_ram(const void *dest, const char *filename) {
 
   return offset;
 }
+
+size_t load_file_to_local(const void *dest, const char *filename) {
+  pi_fs_file_t *fd = pi_fs_open(&fs, filename, 0);
+  if (fd == NULL) {
+    printf("ERROR: Cannot open file %s! Exiting...", filename);
+    pmsis_exit(-4);
+  }
+
+  const size_t size = fd->size;
+  size_t remaining_size = size;
+  size_t offset = 0;
+  pi_cl_fs_req_t req;
+
+  while (offset < size) {
+    remaining_size = size - offset;
+    size_t load_size = BUFFER_SIZE < remaining_size ? BUFFER_SIZE : remaining_size;
+    pi_cl_fs_read(fd, buffer, load_size, &req);
+    pi_cl_fs_wait(&req);
+    memcpy(dest + offset, buffer, load_size);
+    offset += load_size;
+  }
+
+  return offset;
+}
