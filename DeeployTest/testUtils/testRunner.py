@@ -302,6 +302,8 @@ class TestRunner():
         if tiling is not argument_parser.tiling_arguments:
             raise ValueError("Specified argument parser without tile arguments for tiling test or vice versa!")
 
+        assert "CMAKE" in os.environ, "Environment variable CMAKE not set"
+
         self._platform = platform
         self._simulator = simulator
         self._tiling = tiling
