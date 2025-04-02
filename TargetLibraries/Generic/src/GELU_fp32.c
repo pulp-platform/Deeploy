@@ -27,6 +27,8 @@
  */
 
 #include "DeeployBasicMath.h"
+#include <math.h>
+
 #define M_PI 3.14159265358979323846
 
 void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize) {

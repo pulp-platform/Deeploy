@@ -26,7 +26,8 @@
  * limitations under the License.
  */
 
- #include "DeeployBasicMath.h"
+#include "DeeployBasicMath.h"
+#include <math.h>
 
  void Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out, float32_t *scale, float32_t *bias, float32_t epsilon, int32_t size, int32_t lastDimLength) {
      float32_t mean;
