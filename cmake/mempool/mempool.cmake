@@ -109,3 +109,12 @@ add_compile_definitions(
     LOG2_STACK_SIZE=${log2_stack_size}
     XQUEUE_SIZE=${xqueue_size}
 )
+
+add_compile_options(
+    -ffast-math
+)
+
+add_link_options(
+    -ffast-math
+    -Wl,--gc-sections
+)

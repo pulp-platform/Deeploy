@@ -47,3 +47,12 @@ macro(add_snitch_cluster_vsim_gui_simulation name)
 	VERBATIM
     )
 endmacro()
+
+add_compile_options(
+    -ffast-math
+)
+
+add_link_options(
+    -ffast-math
+    -Wl,--gc-sections
+)

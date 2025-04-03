@@ -14,3 +14,12 @@ macro(add_gvsoc_emulation name)
     VERBATIM
   )
 endmacro()
+
+add_compile_options(
+  -ffast-math
+)
+
+add_link_options(
+  -ffast-math
+  -Wl,--gc-sections
+)
