@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------
 #
-# File: FloatConvTemplate.py
+# File: AddTileConstraint.py
 #
-# Last edited: 23.01.2025
+# Last edited: 21.03.2025
 #
 # Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
@@ -23,10 +23,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.Targets.Generic.TileConstraints.BOPTileConstraint import BOPTileConstraint
 
-referenceTemplate = NodeTemplate("""
-// FloatLayernorm (Name: ${nodeName}, Op: ${nodeOp})
-                                
-SINGLE_CORE Layernorm_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(${data_in}, ${data_out}, ${weight}, ${bias}, ${epsilon}, ${size}, ${lastDimLength});
-""")
+
+class SGDTileConstraint(BOPTileConstraint):
+
+    dataIn1Name = 'weight'
+    dataIn2Name = 'grad'
+    dataOutName = 'weight_updated'

@@ -239,3 +239,14 @@ Change main.c to use OUTPUTTYPE instead of float
 - New `_sanitizeGraphNames` function to sanitize the names of the nodes and tensors of the graph
 - Implementation for both Generic and Siracusa targets in the Deeploy framework
 - Modified the binding of dequant in `Bindings.py` to handle int32 after GEMM operation
+
+## Add Support for CCT Last Layer Training with Dim 8-128
+
+### Added
+- Support for SoftmaxCrossEntropyLoss and SoftmaxCrossEntropyLossGrad with tiling.
+- Implementation of SGD updates for CCT training.
+- Test for one iteration of CCT last-layer training with dimensions from 8 to 128.
+
+### Changed
+- Modified the outputs of LayerNorm and SoftmaxCrossEntropyLoss nodes to a single output for better tiling compatibility.
+- Added SGD parameter updates to the CCT training graph.

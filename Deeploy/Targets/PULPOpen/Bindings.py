@@ -42,7 +42,7 @@ from Deeploy.Targets.Generic.Templates import ConcatTemplate, DequantTemplate, F
     FloatSoftmaxTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, DequantChecker, GatherChecker, \
     GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, QuantChecker, \
-    ReduceMeanChecker, ReluChecker, RQAddChecker, RQHardswishChecker, SliceChecker, SoftmaxChecker, \
+    ReduceMeanChecker, ReluChecker, RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, \
     SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
@@ -51,8 +51,9 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatConvTemplate, FloatMaxPoolTemplate, \
     FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, \
-    RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SliceTemplate, SoftmaxCrossEntropyLossTemplate, \
-    TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SliceTemplate, \
+    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
+    iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
@@ -310,17 +311,19 @@ PULPSoftmaxGradBindings = [
 
 PULPSoftmaxCrossEntropyLossBindings = [
     NodeBinding(
-        SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)],
-                                       [PointerClass(float32_t), PointerClass(float32_t)]),
+        SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
         SoftmaxCrossEntropyLossTemplate.referenceTemplate, ForkTransformer) for type in IntegerDataTypes
 ]
 
 PULPSoftmaxCrossEntropyLossGradBindings = [
     NodeBinding(
-        SoftmaxCrossEntropyLossChecker(
-            [PointerClass(float32_t), PointerClass(float32_t),
-             PointerClass(type)], [PointerClass(float32_t)]), SoftmaxCrossEntropyLossTemplate.referenceGradientTemplate,
-        ForkTransformer) for type in IntegerDataTypes
+        SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
+        SoftmaxCrossEntropyLossTemplate.referenceGradientTemplate, ForkTransformer) for type in IntegerDataTypes
+]
+
+PULPSGDBindings = [
+    NodeBinding(SGDChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                SGDTemplate.referenceTemplate, ForkTransformer)
 ]
 
 PULPTransposeBindings = [
@@ -378,9 +381,8 @@ PULPReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerCla
 PULPLayernormBinding = NodeBinding(
     LayerNormChecker(
         [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)],
-        [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate, ForkTransformer)
+         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+    ForkTransformer)
 
 PULPFloatGELUBinding = NodeBinding(
     GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),

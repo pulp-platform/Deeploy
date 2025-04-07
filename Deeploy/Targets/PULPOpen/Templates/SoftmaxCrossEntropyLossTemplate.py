@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------
 #
-# File: SoftmaxCrossEntropyLossTemplate.py
+# File: SoftmaxCrossEntropyTemplate.py
 #
-# Last edited: 19.03.2025
+# Last edited: 09.03.2025
 #
 # Copyright (C) 2021, ETH Zurich and University of Bologna.
 #
@@ -28,7 +28,6 @@ from Deeploy.DeeployTypes import NodeTemplate
 referenceTemplate = NodeTemplate("""
 BEGIN_SINGLE_CORE
     // SoftmaxCrossEntropyLoss (Name: ${nodeName}, Op: ${nodeOp})
-    float32_t total_loss = 0.0f;
     for (uint32_t i = 0; i < ${batch}; i++) {
         float max_logit = ${logits}[i * ${num_classes} + 0];
         for (uint32_t j = 1; j < ${num_classes}; j++) {
@@ -45,27 +44,22 @@ BEGIN_SINGLE_CORE
         for (uint32_t j = 0; j < ${num_classes}; j++) {
             // log_prob = logit - max_logit - log(sum_exp)
             ${log_prob}[i * ${num_classes} + j] = ${logits}[i * ${num_classes} + j] - max_logit - logf(sum_exp);
-            
-            if (j == (${labels}[i])) {
-                total_loss += -${log_prob}[i * ${num_classes} + j];
-            }
         }
     }
-    *${loss} = total_loss / ${batch};
 END_SINGLE_CORE
 """)
 
 referenceGradientTemplate = NodeTemplate("""
 BEGIN_SINGLE_CORE
     // SoftmaxCrossEntropyLossGrad (Name: ${nodeName}, Op: ${nodeOp})
-    float32_t batch_norm = 1.0f / ${batch};
+    float32_t batch_norm = 1.0f / ${total_batch};
     for (uint32_t i = 0; i < ${batch}; i++) {
         for (uint32_t j = 0; j < ${num_classes}; j++) {
             float32_t prob = expf(${log_prob}[i * ${num_classes} + j]);
             if (j == (${labels}[i])) {
-                ${grad}[i * ${num_classes} + j] = (prob - 1.0f) * ${loss_grad}[i] * batch_norm;
+                ${grad}[i * ${num_classes} + j] = (prob - 1.0f) * batch_norm * batch_norm; // RW: one batch_norm for loss norm, one for gradient norm
             } else {
-                ${grad}[i * ${num_classes} + j] = prob * ${loss_grad}[i] * batch_norm;
+                ${grad}[i * ${num_classes} + j] = prob * batch_norm * batch_norm;
             }
         }
     }

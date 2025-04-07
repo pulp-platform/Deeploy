@@ -1572,16 +1572,12 @@ class LayerNormParser(iLayerNormParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         inputs = ['data_in', 'weight', 'bias']
-        outputs = ['data_out', 'mean', 'invstd']
+        outputs = ['data_out']
 
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
-
-        if len(node.outputs) == 1:
-            self.operatorRepresentation['mean'] = 'NULL'
-            self.operatorRepresentation['invstd'] = 'NULL'
 
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
@@ -2390,7 +2386,7 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all([len(node.inputs) == 2, len(node.outputs) == 2, node.attrs['reduction'] == 'mean'])
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
 
         return ret
 
@@ -2401,11 +2397,9 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
 
         logits = ctxt.lookup(node.inputs[0].name)
         labels = ctxt.lookup(node.inputs[1].name)
-        loss = ctxt.lookup(node.outputs[0].name)
-        log_prob = ctxt.lookup(node.outputs[1].name)
+        log_prob = ctxt.lookup(node.outputs[0].name)
         self.operatorRepresentation['logits'] = logits.name
         self.operatorRepresentation['labels'] = labels.name
-        self.operatorRepresentation['loss'] = loss.name
         self.operatorRepresentation['log_prob'] = log_prob.name
         self.operatorRepresentation['batch'] = logits.shape[0]
         self.operatorRepresentation['num_classes'] = logits.shape[1]
@@ -2420,7 +2414,7 @@ class SoftmaxCrossEntropyLossGradParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all([len(node.inputs) == 3, len(node.outputs) == 1, node.attrs['reduction'] == 'mean'])
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
 
         return ret
 
@@ -2429,16 +2423,44 @@ class SoftmaxCrossEntropyLossGradParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        loss_grad = ctxt.lookup(node.inputs[0].name)
-        log_prob = ctxt.lookup(node.inputs[1].name)
-        labels = ctxt.lookup(node.inputs[2].name)
+        log_prob = ctxt.lookup(node.inputs[0].name)
+        labels = ctxt.lookup(node.inputs[1].name)
         grad = ctxt.lookup(node.outputs[0].name)
 
-        self.operatorRepresentation['loss_grad'] = loss_grad.name
         self.operatorRepresentation['log_prob'] = log_prob.name
         self.operatorRepresentation['labels'] = labels.name
         self.operatorRepresentation['grad'] = grad.name
-        self.operatorRepresentation['batch'] = log_prob.shape[0]
+        self.operatorRepresentation['batch'] = log_prob.shape[0]  # RW: used for tiling
+        self.operatorRepresentation['total_batch'] = log_prob.shape[0]  # RW: total batch num for normalization
         self.operatorRepresentation['num_classes'] = log_prob.shape[1]
+
+        return ctxt, True
+
+
+class SGDParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1, 'lr' in node.attrs])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        weight = ctxt.lookup(node.inputs[0].name)
+        grad = ctxt.lookup(node.inputs[1].name)
+        weight_updated = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['weight'] = weight.name
+        self.operatorRepresentation['grad'] = grad.name
+        self.operatorRepresentation['weight_updated'] = weight_updated.name
+        self.operatorRepresentation['size'] = np.prod(weight.shape)
+        self.operatorRepresentation['lr'] = node.attrs['lr']
 
         return ctxt, True
