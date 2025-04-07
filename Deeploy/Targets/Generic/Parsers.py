@@ -1126,7 +1126,6 @@ class ConvParser(NodeParser):
         wellFormed = all([
             'dilations' in node.attrs,
             'group' in node.attrs,
-            'kernel_shape' in node.attrs,
             'pads' in node.attrs,
             'strides' in node.attrs,
             len(node.outputs) == 1,
@@ -1134,7 +1133,6 @@ class ConvParser(NodeParser):
 
         if wellFormed:
             self.operatorRepresentation['group'] = node.attrs['group']
-            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
             self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['strides'] = node.attrs['strides']
             self.operatorRepresentation['dilations'] = node.attrs['dilations']
@@ -1182,8 +1180,6 @@ class Conv2DParser(ConvParser):
 
         if wellFormed:
             ret = all([
-                # Make sure kernel is 2D
-                len(node.attrs['kernel_shape']) == 2,
                 # Make sure strides are 2D
                 len(node.attrs['strides']) == 2,
                 len(node.attrs['pads']) == 4,
@@ -1191,6 +1187,9 @@ class Conv2DParser(ConvParser):
             ])
 
         if ret:
+            if 'kernel_shape' not in node.attrs:
+                node.attrs['kernel_shape'] = node.inputs[1].shape[-2:]
+            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
             self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
             self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
             self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
@@ -1267,8 +1266,6 @@ class Conv1DParser(ConvParser):
 
         if wellFormed:
             ret = all([
-                # Make sure kernel is 2D
-                len(node.attrs['kernel_shape']) == 1,
                 # Make sure strides are 2D
                 len(node.attrs['strides']) == 1,
                 len(node.attrs['pads']) == 2,
@@ -1276,6 +1273,9 @@ class Conv1DParser(ConvParser):
             ])
 
         if ret:
+            if 'kernel_shape' not in node.attrs:
+                node.attrs['kernel_shape'] = node.inputs[1].shape[-1:]
+            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
             self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][0])
             self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][0])
             self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][0])
