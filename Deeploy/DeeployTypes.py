@@ -1088,7 +1088,6 @@ class NodeParser():
         assert value.size == 1, f"Expected attribute of size 1. Got an array of shape {value.shape}"
         return value.item()
 
-
     # Don't touch this
     def parse(self,
               ctxt: NetworkContext,

@@ -26,7 +26,7 @@
 # limitations under the License.
 
 import math
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -2155,7 +2155,8 @@ class GenericConv2DParser(Conv2DParser):
         if not ret:
             return ctxt, False
 
-        assert len(node.inputs) == 2, f'Supports only parsing 2 input tensors, data_in and weight. Received: {len(node.inputs)}'
+        assert len(node.inputs
+                  ) == 2, f'Supports only parsing 2 input tensors, data_in and weight. Received: {len(node.inputs)}'
         for node, sym_name in zip(node.inputs, ['data_in', 'weight']):
             self.operatorRepresentation[sym_name] = ctxt.lookup(node.name).name
 
