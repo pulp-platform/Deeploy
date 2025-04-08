@@ -41,12 +41,12 @@
          for (int j = 0; j < lastDimLength; j++) {
              mean += data_in[j + i * lastDimLength];
          }
-         mean = mean / lastDimLength;
+         mean = mean / (float32_t)lastDimLength;
          for (int j = 0; j < lastDimLength; j++) {
              temp = data_in[j + i * lastDimLength] - mean;
              sum += temp * temp;
          }
-         sum = sum / lastDimLength;
+         sum = sum / (float32_t)lastDimLength;
          sum += epsilon;
          std = sqrtf(sum);
  
