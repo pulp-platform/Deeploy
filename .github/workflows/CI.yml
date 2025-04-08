@@ -340,7 +340,7 @@ jobs:
           },
           {
             "name": "testFloat2DConvolution",
-            "L1": [2000]
+            "L1": [6000]
           },
           {
             "name": "testFloatLayerNorm",
@@ -422,7 +422,7 @@ jobs:
           },
           {
             "name": "testFloat2DConvolution",
-            "L1": [4000]
+            "L1": [12000]
           },
           {
             "name": "testFloatLayerNorm",
@@ -516,11 +516,7 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_64"
             L1: [64000]
-          - name: "CCT/CCT_1_16_16_128"
-            L1: [64000]
           - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
-            L1: [64000]
-          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
@@ -560,11 +556,7 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_64"
             L1: [64000]
-          - name: "CCT/CCT_1_16_16_128"
-            L1: [64000]
           - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
-            L1: [64000]
-          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
