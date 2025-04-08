@@ -4,17 +4,6 @@ add_compile_definitions(
 
 set(DEEPLOY_ARCH PULP)
 
-macro(add_gvsoc_emulation name)
-  add_custom_target(gvsoc_${name}
-    DEPENDS ${name}
-    COMMAND $ENV{GVSOC_INSTALL_DIR}/bin/gvsoc --target siracusa ${GVSOCHEXINCLUDE} --binary ${CMAKE_BINARY_DIR}/bin/${name} image flash run
-    COMMENT "Simulating deeploytest with GVSOC"
-    POST_BUILD
-    USES_TERMINAL
-    VERBATIM
-  )
-endmacro()
-
 add_compile_options(
   -ffast-math
 )
