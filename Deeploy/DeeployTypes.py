@@ -2547,8 +2547,10 @@ class NetworkContainer():
 
                 # SCHEREMO: If we can't find a mapping for the root, we must exit
                 if idx == 0:
+                    deepestLayer = scheduledLayerList[deepestIdx]
+                    deepestNodeName = deepestLayer.node.name
                     raise RuntimeError(
-                        f'Did not find adequate mapping for graph! Explored until {scheduledLayerList[deepestIdx]} Candidates: {[type(x.parser).__name__ for x in scheduledLayerList[deepestIdx].maps]}. Exhausted backtracking.'
+                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer} of node {deepestNodeName} Candidates: {[type(x.parser).__name__ for x in deepestLayer.maps]}. Exhausted backtracking.'
                     )
 
                 previousLayer = scheduledLayerList[idx - 1]
