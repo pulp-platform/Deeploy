@@ -52,11 +52,11 @@ CMAKE ?= cmake
 
 LLVM_COMMIT_HASH ?= 99902b1
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
-PULP_SDK_COMMIT_HASH ?= c216298881cee767afc30928e055982b9e40e568
+PULP_SDK_COMMIT_HASH ?= b0ef62306e79e20a18f49f5e4051002c24e4485b
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
-GVSOC_COMMIT_HASH ?= 67fc8cb9de82d14bc7def608db80ad063ece8cb5
+GVSOC_COMMIT_HASH ?= a4dc80da7178df9d09359a6c0804be4e008bd44a
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 
 RUSTUP_CARGO ?= $$(rustup which cargo)
@@ -247,7 +247,7 @@ picolibc-riscv: ${PICOLIBC_RISCV_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/Scheremo/pulp-sdk.git -b scheremo && \
+	git clone https://github.com/Victor-Jung/pulp-sdk.git -b deeploy && \
 	cd ${TOOLCHAIN_DIR}/pulp-sdk && git checkout ${PULP_SDK_COMMIT_HASH} && \
 	git submodule update --init --recursive
 
