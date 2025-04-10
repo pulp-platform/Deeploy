@@ -58,7 +58,7 @@ typedef struct pi_default_ram_conf ram_conf_t;
 #define ram_conf_init(conf) pi_default_ram_conf_init(conf)
 #endif
 
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 2048 //128
 static uint8_t buffer[BUFFER_SIZE];
 
 static struct pi_device flash;
