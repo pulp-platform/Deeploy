@@ -41,12 +41,14 @@ void Softmax_fp32_fp32(float32_t* input, float32_t* output, int32_t size, int32_
         }
 
         for (int i = 0; i < last_dim_length; i++) {
-            output[b * last_dim_length + i] = expf(input[b * last_dim_length + i] - max_val);
+            float32_t exp_val = input[b * last_dim_length + i] - max_val;
+            output[b * last_dim_length + i] = expf(exp_val);
             sum += output[b * last_dim_length + i];
         }
 
         for (int i = 0; i < last_dim_length; i++) {
-            output[b * last_dim_length + i] /= sum;
+            float32_t sum_1 =  1/ sum;
+            output[b * last_dim_length + i] =  output[b * last_dim_length + i] * sum_1;
         }
     }
 }
