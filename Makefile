@@ -91,8 +91,7 @@ ${TOOLCHAIN_DIR}/llvm-project:
 	git clone https://github.com/pulp-platform/llvm-project.git \
 	 -b main && \
 	cd ${TOOLCHAIN_DIR}/llvm-project && git checkout ${LLVM_COMMIT_HASH} && \
-	git submodule update --init --recursive && \
-	git apply ${TOOLCHAIN_DIR}/llvm.patch
+	git submodule update --init --recursive
 
 ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && \
