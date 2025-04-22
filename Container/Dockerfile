@@ -41,7 +41,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git-lfs \
     libtool \
     libsdl2-ttf-dev \
     gcc-multilib \
-    wget
+    wget \
+    clang-format
 
 # Install cmake 3.25.1 (required by minimalloc)
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.25.1/cmake-3.25.1-linux-x86_64.sh && \
