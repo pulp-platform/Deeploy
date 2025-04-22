@@ -94,13 +94,8 @@ RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VER
     tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && cp  /app/bender /bin
 ENV PATH=/app/bender:$PATH
 
-## Precompiled llvm - Taken form https://github.com/pulp-platform/snitch_cluster (from this file: util/container/Dockerfile)
-RUN wget https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
-    tar xvf riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
-    mv riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION} riscv-llvm 
-
 ## compile snitch
-RUN PATH=/app/riscv-llvm/bin:${PATH} make snitch_runtime && rm -rf /app/snitch_cluster
+RUN make snitch_runtime && rm -rf /app/snitch_cluster
 
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain

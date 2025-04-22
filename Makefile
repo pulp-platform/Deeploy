@@ -50,7 +50,7 @@ MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
 
 CMAKE ?= cmake
 
-LLVM_COMMIT_HASH ?= 99902b1
+LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 3e1e569bd789a11d9dde6d6b3930849505e68b4a
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
@@ -101,6 +101,7 @@ ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR} \
 	-DLLVM_ENABLE_PROJECTS="clang;lld" \
 	-DLLVM_TARGETS_TO_BUILD="ARM;RISCV;host" \
+	-DLLVM_DEFAULT_TARGET_TRIPLE="riscv32-unknown-elf" \
 	-DLLVM_BUILD_DOCS="0" \
 	-DLLVM_ENABLE_BINDINGS="0" \
 	-DLLVM_ENABLE_TERMINFO="0" \
@@ -177,7 +178,40 @@ ${LLVM_CLANG_RT_RISCV_RV32IM}: ${TOOLCHAIN_DIR}/llvm-project
 	${CMAKE} --build . -j && \
 	${CMAKE} --install .
 
-llvm-compiler-rt-riscv: ${LLVM_CLANG_RT_RISCV_RV32IM} ${LLVM_CLANG_RT_RISCV_RV32IMC}
+${LLVM_CLANG_RT_RISCV_RV32IMAFD}: ${TOOLCHAIN_DIR}/llvm-project
+	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32imafd \
+	&& cd build-compiler-rt-riscv-rv32imafd; \
+	${CMAKE} ../compiler-rt \
+	-DCMAKE_C_COMPILER_WORKS=1 \
+	-DCMAKE_CXX_COMPILER_WORKS=1 \
+	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_C_FLAGS="-march=rv32imafd -mabi=ilp32d" \
+	-DCMAKE_ASM_FLAGS="-march=rv32imafd -mabi=ilp32d" \
+	-DCMAKE_SYSTEM_NAME=baremetal \
+	-DCMAKE_HOST_SYSTEM_NAME=baremetal \
+	-DCMAKE_C_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_CXX_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_SIZEOF_VOID_P=4 \
+	-DCMAKE_NM=${LLVM_INSTALL_DIR}/bin/llvm-nm \
+	-DCMAKE_RANLIB=${LLVM_INSTALL_DIR}/bin/llvm-ranlib \
+	-DCOMPILER_RT_BUILD_BUILTINS=ON \
+	-DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+	-DCOMPILER_RT_BUILD_MEMPROF=OFF \
+	-DCOMPILER_RT_BUILD_PROFILE=OFF \
+	-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+	-DCOMPILER_RT_BUILD_XRAY=OFF \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+	-DCOMPILER_RT_BAREMETAL_BUILD=ON \
+	-DCOMPILER_RT_OS_DIR="baremetal/rv32imafd" \
+	-DLLVM_CONFIG_PATH=${LLVM_INSTALL_DIR}/bin/llvm-config && \
+	${CMAKE} --build . -j && \
+	${CMAKE} --install .
+
+llvm-compiler-rt-riscv: ${LLVM_CLANG_RT_RISCV_RV32IM} ${LLVM_CLANG_RT_RISCV_RV32IMC} ${LLVM_CLANG_RT_RISCV_RV32IMAFD}
 
 ${LLVM_CLANG_RT_ARM}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-arm \
@@ -271,13 +305,11 @@ ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 	mkdir -p ${SNITCH_INSTALL_DIR}
 	cp -r ${TOOLCHAIN_DIR}/snitch_cluster/ ${SNITCH_INSTALL_DIR}/../
 	cd ${SNITCH_INSTALL_DIR} && \
-	[ -d /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin ] && export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin || \
-	export LLVM_BINROOT=$(dir $(shell which clang) ) && \
 	mkdir tmp && \
 	TMPDIR=tmp pip install -r python-requirements.txt && rm -rf tmp && \
 	bender vendor init && \
 	cd ${SNITCH_INSTALL_DIR}/target/snitch_cluster && \
-	make sw/runtime/banshee sw/runtime/rtl sw/math
+	make LLVM_BINROOT=${LLVM_INSTALL_DIR}/bin sw/runtime/banshee sw/runtime/rtl sw/math
 
 snitch_runtime: ${SNITCH_INSTALL_DIR}
 

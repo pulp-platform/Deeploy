@@ -1,5 +1,5 @@
 [binaries]
-c = ['clang', '-target', 'riscv32-unknown-elf', '-march=rv32imc_zfinx_xpulpv2', '-nostdlib']
+c = ['clang', '-target', 'riscv32-unknown-elf', '-march=rv32imafd', '-nostdlib']
 ar = 'llvm-ar'
 strip = 'llvm-strip'
 
