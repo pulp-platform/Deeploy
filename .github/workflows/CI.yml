@@ -143,7 +143,6 @@ jobs:
         testFloatSoftmax
       num-cores: 9
       simulators: |
-        banshee
         gvsoc
 
   snitch-kernels-tiled-singlebuffer-L2:
@@ -190,7 +189,6 @@ jobs:
           }
         ]
       simulators: |
-        banshee
         gvsoc
 
   ### Mempool Tests ###
