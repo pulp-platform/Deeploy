@@ -149,4 +149,3 @@ RUN pip install -r core-requirements.txt -r gapy-requirements.txt
 # Copy pre-built toolchains and emulators
 COPY --from=builder /app/install ./install
 COPY --from=builder /root/.cargo/bin/banshee /root/.cargo/bin/banshee
-COPY --from=builder /app/riscv-llvm ./install/riscv-llvm
