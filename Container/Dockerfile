@@ -96,6 +96,7 @@ RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VER
 ENV PATH=/app/bender:$PATH
 
 ## compile snitch
+ENV LLVM_INSTALL_DIR=/app/install/llvm
 RUN make snitch_runtime && rm -rf /app/snitch_cluster
 
 # Remove toolchain to make the container lighter

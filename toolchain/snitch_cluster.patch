@@ -1,8 +1,3 @@
-// Copyright 2024 ETH Zurich and University of Bologna.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
-//
-// Moritz Scherer <scheremo@iis.ee.ethz.ch>
 diff --git a/sw/snRuntime/base.ld b/sw/snRuntime/base.ld
 index d0979b7..171921d 100644
 --- a/sw/snRuntime/base.ld
@@ -74,3 +69,23 @@ index 0ad9500..215c8b1 100644
  
  // Provide an implementation for putchar.
  void _putchar(char character) {
+diff --git a/target/snitch_cluster/sw/toolchain.mk b/target/snitch_cluster/sw/toolchain.mk
+index d363059..d737368 100644
+--- a/target/snitch_cluster/sw/toolchain.mk
++++ b/target/snitch_cluster/sw/toolchain.mk
+@@ -31,6 +31,7 @@ RISCV_CFLAGS += -mcpu=snitch
+ RISCV_CFLAGS += -menable-experimental-extensions
+ RISCV_CFLAGS += -mabi=ilp32d
+ RISCV_CFLAGS += -mcmodel=medany
++RISCV_CFLAGS += -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/include
+ # RISCV_CFLAGS += -mno-fdiv # Not supported by Clang
+ # RISCV_CFLAGS += -ffast-math
+ RISCV_CFLAGS += -fno-builtin-printf
+@@ -52,6 +53,7 @@ RISCV_LDFLAGS += -nostdlib
+ RISCV_LDFLAGS += -lc
+ RISCV_LDFLAGS += -L$(LLVM_BINROOT)/../lib/clang/$(LLVM_VER)/lib/
+ RISCV_LDFLAGS += -lclang_rt.builtins-riscv32
++RISCV_LDFLAGS += -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/include
+ 
+ # Archiver flags
+ RISCV_ARFLAGS = rcs
