@@ -35,10 +35,12 @@ TOOLCHAIN_DIR         := ${ROOT_DIR}/toolchain
 
 LLVM_INSTALL_DIR      ?= ${DEEPLOY_INSTALL_DIR}/llvm
 LLVM_CLANG_RT_ARM      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/libclang_rt.builtins-armv7m.a
+LLVM_CLANG_RT_RISCV_RV32IMAFD      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imafd/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IMC      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imc/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IM      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32im/libclang_rt.builtins-riscv32.a
 PICOLIBC_ARM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/arm
-PICOLIBC_RISCV_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv
+PICOLIBC_RV32IMC_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc
+PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
 
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
@@ -265,18 +267,29 @@ ${PICOLIBC_ARM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
 
 picolibc-arm: ${PICOLIBC_ARM_INSTALL_DIR}
 
-${PICOLIBC_RISCV_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
-	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-riscv && cd build-riscv && \
-	cp ${TOOLCHAIN_DIR}/meson-build-script-riscv.txt ../scripts && \
+${PICOLIBC_RV32IMAFD_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32imafd && cd build-rv32imafd && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32imafd.txt ../scripts && \
 	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
 	-Dlibdir=lib \
 	-Dspecsdir=none \
 	-Dmultilib=false \
-	--prefix ${PICOLIBC_RISCV_INSTALL_DIR} \
-	--cross-file ../scripts/meson-build-script-riscv.txt && \
+	--prefix ${PICOLIBC_RV32IMAFD_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32imafd.txt && \
 	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
 
-picolibc-riscv: ${PICOLIBC_RISCV_INSTALL_DIR}
+${PICOLIBC_RV32IMC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32imc && cd build-rv32imc && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32imc.txt ../scripts && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
+	-Dlibdir=lib \
+	-Dspecsdir=none \
+	-Dmultilib=false \
+	--prefix ${PICOLIBC_RV32IMC_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32imc.txt && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
+
+picolibc-riscv: ${PICOLIBC_RV32IMAFD_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \

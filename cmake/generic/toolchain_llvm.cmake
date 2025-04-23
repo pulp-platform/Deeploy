@@ -10,6 +10,14 @@ set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}/clang)
 set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objcopy)
 set(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objdump)
 
+add_compile_options(
+  -target x86_64-unknown-linux-gnu
+)
+
+add_link_options(
+  -target x86_64-unknown-linux-gnu
+)
+
 add_link_options(
   -fuse-ld=lld
 )

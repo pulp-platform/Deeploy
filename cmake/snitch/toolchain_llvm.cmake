@@ -26,7 +26,7 @@ add_compile_options(
     -fopenmp
     -ftls-model=local-exec
     -DNUM_CORES=${NUM_CORES}
-    -isystem ${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/include
+    -isystem ${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imafd/include
 )
 
 add_link_options(
@@ -36,9 +36,8 @@ add_link_options(
     -fuse-ld=lld
     -nostartfiles
     -nostdlib
-    -isystem ${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/include
-    -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/lib 
-    -L${TOOLCHAIN_INSTALL_DIR}lib/clang/15.0.0/lib/baremetal/rv32imafd
+    -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imafd/lib 
+    -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imafd
 )
 
 link_libraries(

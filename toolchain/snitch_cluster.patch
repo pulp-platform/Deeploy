@@ -1,3 +1,16 @@
+diff --git a/sw/math/include/float.h b/sw/math/include/float.h
+index 713aadb..3867fb8 100644
+--- a/sw/math/include/float.h
++++ b/sw/math/include/float.h
+@@ -43,7 +43,7 @@ int __flt_rounds(void);
+ #define LDBL_HAS_SUBNORM 1
+ #define LDBL_DECIMAL_DIG DECIMAL_DIG
+ 
+-#include <bits/float.h>
++// #include <bits/float.h>
+ 
+ #ifdef __cplusplus
+ }
 diff --git a/sw/snRuntime/base.ld b/sw/snRuntime/base.ld
 index d0979b7..171921d 100644
 --- a/sw/snRuntime/base.ld
