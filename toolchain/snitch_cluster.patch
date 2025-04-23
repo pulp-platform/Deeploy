@@ -90,7 +90,7 @@ index d363059..d737368 100644
  RISCV_CFLAGS += -menable-experimental-extensions
  RISCV_CFLAGS += -mabi=ilp32d
  RISCV_CFLAGS += -mcmodel=medany
-+RISCV_CFLAGS += -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/include
++RISCV_CFLAGS += -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd/include
  # RISCV_CFLAGS += -mno-fdiv # Not supported by Clang
  # RISCV_CFLAGS += -ffast-math
  RISCV_CFLAGS += -fno-builtin-printf
@@ -98,7 +98,7 @@ index d363059..d737368 100644
  RISCV_LDFLAGS += -lc
  RISCV_LDFLAGS += -L$(LLVM_BINROOT)/../lib/clang/$(LLVM_VER)/lib/
  RISCV_LDFLAGS += -lclang_rt.builtins-riscv32
-+RISCV_LDFLAGS += -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/include
++RISCV_LDFLAGS += -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd/include
  
  # Archiver flags
  RISCV_ARFLAGS = rcs
