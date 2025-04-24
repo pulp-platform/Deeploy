@@ -66,6 +66,8 @@ _blockTileInTemplate = NodeTemplate("""
 
 // BLOCKING IMPORT TILE ${innerTilePtr}
 pi_cl_ram_copy_wait(&${stateReference});
+// L3 TRANSFERS CANNOT BE CONCURRENT WITH CURRENT DRIVER
+pi_cl_ram_copy_wait(&${stateReference});
 """)
 
 _moveTileOutTemplate = NodeTemplate("""

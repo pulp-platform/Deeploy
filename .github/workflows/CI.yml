@@ -533,52 +533,53 @@ jobs:
       L1: ${{ toJson(matrix.test-data.L1) }}
       default-memory-level: ${{ matrix.default-memory-level }}
 
-  siracusa-models-tiled-doublebuffer-L3:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data: 
-          - name: "simpleRegression"
-            L1: [60000, 45000, 30000]
-          - name: "miniMobileNet"
-            L1: [60000, 24000, 12000, 6000]
-          - name: "miniMobileNetv2"
-            L1: [60000, 32000, 24000, 16000]
-          - name: "Attention"
-            L1: [60000, 20000, 10000, 5000]
-          - name: "Transformer"
-            L1: [60000, 30000, 15000]
-          - name: "microLlama/microLlama1"
-            L1: [60000, 20000, 10000]
-          - name: "microLlama/microLlama8"
-            L1: [60000, 20000, 10000]
-          - name: "microLlama/microLlama8_parallel"
-            L1: [60000, 20000, 10000]
-          - name: "CCT/CCT_1_32_32_8"
-            L1: [64000]
-          - name: "CCT/CCT_1_16_16_64"
-            L1: [64000]
-          - name: "CCT/CCT_1_16_16_128"
-            L1: [64000]
-          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
-            L1: [64000]
-          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
-            L1: [64000]
-        num-cores:
-          - 8
-        double-buffer:
-          - true
-        default-memory-level:
-          - "L3"
-    uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
-    needs: select-docker-image
-    with:
-      docker-image: ${{ needs.select-docker-image.outputs.image }}
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
-      double-buffer: ${{ matrix.double-buffer }}
-      default-memory-level: ${{ matrix.default-memory-level }}
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
+  # siracusa-models-tiled-doublebuffer-L3:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test-data: 
+  #         - name: "simpleRegression"
+  #           L1: [60000, 45000, 30000]
+  #         - name: "miniMobileNet"
+  #           L1: [60000, 24000, 12000, 6000]
+  #         - name: "miniMobileNetv2"
+  #           L1: [60000, 32000, 24000, 16000]
+  #         - name: "Attention"
+  #           L1: [60000, 20000, 10000, 5000]
+  #         - name: "Transformer"
+  #           L1: [60000, 30000, 15000]
+  #         - name: "microLlama/microLlama1"
+  #           L1: [60000, 20000, 10000]
+  #         - name: "microLlama/microLlama8"
+  #           L1: [60000, 20000, 10000]
+  #         - name: "microLlama/microLlama8_parallel"
+  #           L1: [60000, 20000, 10000]
+  #         - name: "CCT/CCT_1_32_32_8"
+  #           L1: [64000]
+  #         - name: "CCT/CCT_1_16_16_64"
+  #           L1: [64000]
+  #         - name: "CCT/CCT_1_16_16_128"
+  #           L1: [64000]
+  #         - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
+  #           L1: [64000]
+  #         - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
+  #           L1: [64000]
+  #       num-cores:
+  #         - 8
+  #       double-buffer:
+  #         - true
+  #       default-memory-level:
+  #         - "L3"
+  #   uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
+  #   needs: select-docker-image
+  #   with:
+  #     docker-image: ${{ needs.select-docker-image.outputs.image }}
+  #     test-name: ${{ matrix.test-data.name }}
+  #     num-cores: ${{ matrix.num-cores }}
+  #     L1: ${{ toJson(matrix.test-data.L1) }}
+  #     double-buffer: ${{ matrix.double-buffer }}
+  #     default-memory-level: ${{ matrix.default-memory-level }}
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2:
     uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
@@ -659,32 +660,33 @@ jobs:
       L1: ${{ toJson(matrix.test-data.L1) }}
       default-memory-level: ${{ matrix.default-memory-level }}
 
-  siracusa-neureka-models-tiled-doublebuffer-L3:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data: 
-          - name: "miniMobileNet"
-            L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
-          - name: "Attention"
-            L1: [5000]
-          - name: "Transformer"
-            L1: [30000]
-        num-cores:
-          - 8
-        double-buffer:
-          - true
-        default-memory-level:
-          - "L3"
-    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
-    needs: select-docker-image
-    with:
-      docker-image: ${{ needs.select-docker-image.outputs.image }}
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
-      double-buffer: ${{ matrix.double-buffer }}
-      default-memory-level: ${{ matrix.default-memory-level }}
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
+  # siracusa-neureka-models-tiled-doublebuffer-L3:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test-data: 
+  #         - name: "miniMobileNet"
+  #           L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
+  #         - name: "Attention"
+  #           L1: [5000]
+  #         - name: "Transformer"
+  #           L1: [30000]
+  #       num-cores:
+  #         - 8
+  #       double-buffer:
+  #         - true
+  #       default-memory-level:
+  #         - "L3"
+  #   uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+  #   needs: select-docker-image
+  #   with:
+  #     docker-image: ${{ needs.select-docker-image.outputs.image }}
+  #     test-name: ${{ matrix.test-data.name }}
+  #     num-cores: ${{ matrix.num-cores }}
+  #     L1: ${{ toJson(matrix.test-data.L1) }}
+  #     double-buffer: ${{ matrix.double-buffer }}
+  #     default-memory-level: ${{ matrix.default-memory-level }}
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2-wmem:
     uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeurekaSequential.yml
@@ -713,37 +715,38 @@ jobs:
       num-cores: 8
       neureka-wmem: true
 
-  siracusa-neureka-models-tiled-doublebuffer-L3-wmem:
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data: 
-          - name: "miniMobileNet"
-            L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
-          - name: "Attention"
-            L1: [2500]
-          # - name: "Transformer"
-          #   L1: [30000]
-          - name: "microLlama/microLlama1"
-            L1: [10000]
-        num-cores:
-          - 8
-        double-buffer:
-          - true
-        default-memory-level:
-          - "L3"
-        neureka-wmem:
-          - true
-    uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
-    needs: select-docker-image
-    with:
-      docker-image: ${{ needs.select-docker-image.outputs.image }}
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
-      double-buffer: ${{ matrix.double-buffer }}
-      default-memory-level: ${{ matrix.default-memory-level }}
-      neureka-wmem: ${{ matrix.neureka-wmem }}
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
+  # siracusa-neureka-models-tiled-doublebuffer-L3-wmem:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test-data: 
+  #         - name: "miniMobileNet"
+  #           L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
+  #         - name: "Attention"
+  #           L1: [2500]
+  #         # - name: "Transformer"
+  #         #   L1: [30000]
+  #         - name: "microLlama/microLlama1"
+  #           L1: [10000]
+  #       num-cores:
+  #         - 8
+  #       double-buffer:
+  #         - true
+  #       default-memory-level:
+  #         - "L3"
+  #       neureka-wmem:
+  #         - true
+  #   uses: ./.github/workflows/TestRunnerTiledSiracusaWithNeureka.yml
+  #   needs: select-docker-image
+  #   with:
+  #     docker-image: ${{ needs.select-docker-image.outputs.image }}
+  #     test-name: ${{ matrix.test-data.name }}
+  #     num-cores: ${{ matrix.num-cores }}
+  #     L1: ${{ toJson(matrix.test-data.L1) }}
+  #     double-buffer: ${{ matrix.double-buffer }}
+  #     default-memory-level: ${{ matrix.default-memory-level }}
+  #     neureka-wmem: ${{ matrix.neureka-wmem }}
 
 
   ### Deeploy Extension and Internal Tests ###
