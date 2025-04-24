@@ -69,15 +69,16 @@ class GELULayer(ONNXLayer):
         super().__init__(maps)
 
     def computeOps(self):
-        compAbs = self.mapper.parser.operatorRepresentation['size']
-        compAdd = self.mapper.parser.operatorRepresentation['size']
-        compSqr = self.mapper.parser.operatorRepresentation['size']
-        compMul = self.mapper.parser.operatorRepresentation['size']
-        compAdd = self.mapper.parser.operatorRepresentation['size']
-        compMul2 = self.mapper.parser.operatorRepresentation['size']
-        compAdd2 = self.mapper.parser.operatorRepresentation['size']
-        compDiv = self.mapper.parser.operatorRepresentation['size']
-        return compAbs + compAdd + compSqr + compMul + compAdd + compMul2 + compAdd2 + compDiv
+        size = self.mapper.parser.operatorRepresentation['size']
+        # RW: Sigmoid approximation
+        mul1 = size  # Multiply by 1.702
+        neg = size   # Negate the result
+        exp = size   # Compute exponential
+        add = size   # Add 1
+        div = size   # Division for sigmoid
+        mul2 = size  # Final multiplication by x
+        
+        return mul1 + neg + exp + add + div + mul2
 
 
 class iHardswishLayer(ONNXLayer):
@@ -141,6 +142,17 @@ class SoftmaxGradLayer(ONNXLayer):
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
+    def computeOps(self):
+        input_size = self.mapper.parser.operatorRepresentation['size']
+       
+       # SoftmaxGrad operation: dy * (y - (y * sum(dy * y))) 
+        mul_ops = input_size
+        sum_ops = input_size
+        broadcast_mul_ops = input_size
+        sub_ops = input_size
+        final_mul_ops = input_size
+        
+        return mul_ops + sum_ops + broadcast_mul_ops + sub_ops + final_mul_ops
 
 class ITAMaxLayer(ONNXLayer):
 
@@ -241,6 +253,9 @@ class DivLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+    
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
 
 
 class RQIntegerDivLayer(DivLayer):
@@ -331,6 +346,9 @@ class MulLayer(ONNXLayer):
         else:
             inputShapes[0] = inputShapes[1]
         return (inputShapes, outputShapes)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
 
 
 class ConvLayer(ONNXLayer):
