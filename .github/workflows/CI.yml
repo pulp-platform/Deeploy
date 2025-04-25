@@ -9,7 +9,7 @@ on:
     - cron: "0 1 */6 * *"
 
 env:
-  DOCKER_IMAGE: ghcr.io/victor-jung/deeploy:gvsoc
+  DOCKER_IMAGE: ghcr.io/victor-jung/llvm
 
 jobs:
 
