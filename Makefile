@@ -49,6 +49,9 @@ MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
 GVSOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc
 MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
+XTL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtl
+XSIMD_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xsimd
+XTENSOR_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtensor
 
 CMAKE ?= cmake
 
@@ -58,8 +61,11 @@ PULP_SDK_COMMIT_HASH ?= 3e1e569bd789a11d9dde6d6b3930849505e68b4a
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
-GVSOC_COMMIT_HASH ?= 921d75ceb5058ac795bf7860a619e22dd043b59b
+GVSOC_COMMIT_HASH ?= 61b84936b84fd693878678dbcc87efaeb52f4316
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
+XTL_VERSION ?= 0.7.5
+XSIMD_VERSION ?= 13.2.0
+XTENSOR_VERSION ?= 0.25.0
 
 RUSTUP_CARGO ?= $$(rustup which cargo)
 
@@ -337,6 +343,29 @@ ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	 XTENSOR_INCLUDE_DIR=${PULP_SDK_INSTALL_DIR}/ext/xtensor/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa" build INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
+
+${XTL_INSTALL_DIR}:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/xtensor-stack/xtl.git && \
+	cd ${TOOLCHAIN_DIR}/xtl && git checkout ${XTL_VERSION} && \
+	cmake -D CMAKE_INSTALL_PREFIX=${XTL_INSTALL_DIR} && \
+	make install
+
+${XSIMD_INSTALL_DIR}:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/xtensor-stack/xsimd.git && \
+	cd ${TOOLCHAIN_DIR}/xsimd && git checkout ${XSIMD_VERSION} && \
+	cmake -D CMAKE_INSTALL_PREFIX=${XSIMD_INSTALL_DIR} && \
+	make install
+
+${XTENSOR_INSTALL_DIR}: ${XTL_INSTALL_DIR}
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/xtensor-stack/xtensor.git && \
+	cd ${TOOLCHAIN_DIR}/xtensor && git checkout ${XTENSOR_VERSION} && \
+	cmake -DCMAKE_PREFIX_PATH=${XTL_INSTALL_DIR}/share/cmake -DCMAKE_INSTALL_PREFIX=${XTENSOR_INSTALL_DIR} && \
+	make install
+
+xtensor: ${XTENSOR_INSTALL_DIR} ${XSIMD_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/qemu:
 	cd ${TOOLCHAIN_DIR} && \

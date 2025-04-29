@@ -44,10 +44,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git-lfs \
     wget \
     clang-format
 
-# Install cmake 3.25.1 (required by minimalloc)
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.25.1/cmake-3.25.1-linux-x86_64.sh && \
-    chmod +x cmake-3.25.1-linux-x86_64.sh && \
-    ./cmake-3.25.1-linux-x86_64.sh --prefix=/usr --skip-license
+# Install cmake 3.31.1
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.1/cmake-3.31.1-linux-x86_64.sh && \
+    chmod +x cmake-3.31.1-linux-x86_64.sh && \
+    ./cmake-3.31.1-linux-x86_64.sh --prefix=/usr --skip-license
 
 # Compile minimalloc
 RUN make minimalloc
@@ -87,6 +87,7 @@ RUN make qemu
 RUN make mempool
 RUN make banshee
 # Copy gvsoc requirements for later as they are removed when toolchain folder is deleted
+RUN make xtensor
 RUN make gvsoc && cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt
 
 # Dependencies needed for compiling Snitch
