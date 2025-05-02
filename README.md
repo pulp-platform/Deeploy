@@ -38,11 +38,12 @@ pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
 ```
 Congratulations, you installed Deeploy and its dependencies! Now, to test your installation let's run one simple test on each platform with the following commands:
 ```
-cd DeeployTest && source /app/install/pulp-sdk/configs/siracusa.sh
+cd DeeployTest
 python testRunner_generic.py -t Tests/Adder
 python testRunner_cortexm.py -t Tests/Adder
 python testRunner_mempool.py -t Tests/Adder
 python testRunner_siracusa.py -t Tests/Adder --cores=8
+python testRunner_snitch.py -t Tests/Adder --cores=9
 ```
 
 You can find the ONNX file in `DeeployTest/Tests/Adder`, to visualize it, you can use [Netron](https://netron.app/). You can also find the generated code for the platform X in `TEST_X` in `DeeployTest` and you should notice that the generated code for the `Adder` test is very simple. However, this gets more complex when you add tiling. Let's generate the code for a single layer but using tiling this time:
@@ -61,7 +62,10 @@ Now you can open the generated code in `DeeployTest/TEST_SIRACUSA/Tests/testMatM
     - Simulators: [Banshee](https://github.com/pulp-platform/banshee)
 - **Siracusa:**
     - Hardware: [Siracusa paper](https://arxiv.org/abs/2312.14750)
-    - Simulators: [GVSOC](https://github.com/gvsoc/gvsoc)
+    - Simulators: [GVSoC](https://github.com/gvsoc/gvsoc)
+- **Snitch Cluster**
+    - Hardware: [Snitch paper](https://arxiv.org/abs/2002.10143)
+    - Simlators: [GVSoC](https://github.com/gvsoc/gvsoc)
 
 ## Documentation
 
@@ -74,6 +78,8 @@ make docs
 Then open `docs/_build/html/index.html` .
 
 ## Publications
+
+If you use Deeploy in your work or research, you can cite us:
 
 ### ESWEEK 2024: Deeploy: Enabling Energy-Efficient Deployment of Small Language Models On Heterogeneous Microcontrollers
 ```
@@ -91,4 +97,18 @@ Then open `docs/_build/html/index.html` .
   doi = {10.1109/TCAD.2024.3443718},
 }
 ```
-The preprint version is also available on arXiv: [arXiv:2408.04413](https://arxiv.org/abs/2408.04413).
+The preprint is available on arXiv @ [arXiv:2408.04413](https://arxiv.org/abs/2408.04413).
+
+### IEEE Design & Test: Toward Attention-based TinyML: A Heterogeneous Accelerated Architecture and Automated Deployment Flow
+```
+@article{WieseTowardAttentionBasedTinyML2025,
+  author={Wiese, Philip and İslamoğlu, Gamze and Scherer, Moritz and Macan, Luka and Jung, Victor J.B. and Burrello, Alessio and Conti, Francesco and Benini, Luca},
+  journal={IEEE Design & Test}, 
+  title={Toward Attention-based TinyML: A Heterogeneous Accelerated Architecture and Automated Deployment Flow}, 
+  year={2025},
+  pages={1-1},
+  keywords={Tiny machine learning;Transformers;Memory management;Hardware acceleration;Bandwidth;Registers;Software;Engines;Energy efficiency;Computational modeling;Neural Networks;TinyML;Deployment;Transformers;Accelerators},
+  doi={10.1109/MDAT.2025.3527371}}
+
+```
+The preprint is available on arXiv @ [arXiv:2408.02473](https://arxiv.org/abs/2408.02473).
