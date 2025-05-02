@@ -41,8 +41,8 @@ if __name__ == "__main__":
                         metavar = "<simulator>",
                         dest = "simulator",
                         type = str,
-                        choices = ["banshee", "vsim", "vsim.gui", "gvsoc"],
-                        default = "banshee",
+                        choices = ["gvsoc", "banshee", "vsim", "vsim.gui"],
+                        default = "gvsoc",
                         help = "Select the simulator to use")
     args = parser.parse_args()
 
