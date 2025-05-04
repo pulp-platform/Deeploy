@@ -26,19 +26,16 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// Parallel Softmax  (Name: ${nodeName}, Op: ${nodeOp})
+// Softmax Parallel (Name: ${nodeName}, Op: ${nodeOp})
 int8_t ${nodeName}_core_id = pi_core_id();
-int8_t ${nodeName}_num_cores = NUM_CORES;
+int8_t ${nodeName}_log2Core = log2(NUM_CORES);
 int32_t ${nodeName}_num_vectors = ${size} / ${lastDimLength};
-int32_t ${nodeName}_vectors_per_core = (${nodeName}_num_vectors + ${nodeName}_num_cores - 1) / ${nodeName}_num_cores;
-int32_t ${nodeName}_vector_start = MIN(${nodeName}_core_id * ${nodeName}_vectors_per_core, ${nodeName}_num_vectors);
-int32_t ${nodeName}_vector_end = MIN(${nodeName}_vector_start + ${nodeName}_vectors_per_core, ${nodeName}_num_vectors);
-
-
+int32_t ${nodeName}_chunk = (${nodeName}_num_vectors >> ${nodeName}_log2Core) + ((${nodeName}_num_vectors & (NUM_CORES-1))!=0);
+int32_t ${nodeName}_vector_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${nodeName}_num_vectors);
+int32_t ${nodeName}_vector_end = MIN(${nodeName}_vector_start + ${nodeName}_chunk, ${nodeName}_num_vectors);
 int32_t ${nodeName}_local_size = (${nodeName}_vector_end - ${nodeName}_vector_start) * ${lastDimLength};
 
 if (${nodeName}_local_size > 0) {
-
     int32_t ${nodeName}_data_offset = ${nodeName}_vector_start * ${lastDimLength};
     
     Softmax_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
@@ -48,7 +45,6 @@ if (${nodeName}_local_size > 0) {
         ${lastDimLength}
     );
 }
-
 """)
 
 referenceGradientTemplate = NodeTemplate("""

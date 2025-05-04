@@ -1,10 +1,10 @@
 # ----------------------------------------------------------------------
 #
-# File: FloatGELUTemplate.py
+# File: FloatReluTemplate.py
 #
 # Last edited: 04.05.2025
 #
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
+# Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
 # Author: Run Wang, ETH Zurich
 #
@@ -26,12 +26,20 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// GELU Parallel (Name: ${nodeName}, Op: ${nodeOp})
+// Parallel ReLU (Name: ${nodeName}, Op: ${nodeOp})
 int8_t ${nodeName}_core_id = pi_core_id();
 int8_t ${nodeName}_log2Core = log2(NUM_CORES);
-int16_t ${nodeName}_chunk = (${size} >> ${nodeName}_log2Core) + ((${size} & (NUM_CORES-1))!=0);
-int16_t ${nodeName}_chunk_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${size});
-int16_t ${nodeName}_chunk_stop = MIN(${nodeName}_chunk_start + ${nodeName}_chunk, ${size});
+int32_t ${nodeName}_chunk = (${size} >> ${nodeName}_log2Core) + ((${size} & (NUM_CORES-1))!=0);
+int32_t ${nodeName}_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${size});
+int32_t ${nodeName}_end = MIN(${nodeName}_start + ${nodeName}_chunk, ${size});
+int32_t ${nodeName}_local_size = ${nodeName}_end - ${nodeName}_start;
 
-GELU_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_sigmoid_chunk(${data_in}, ${data_out}, ${nodeName}_chunk_start, ${nodeName}_chunk_stop);
+// Call the original function with adjusted pointers and size
+if (${nodeName}_local_size > 0) {
+    Relu_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
+        ${data_in} + ${nodeName}_start,
+        ${data_out} + ${nodeName}_start,
+        ${nodeName}_local_size
+    );
+}
 """)
