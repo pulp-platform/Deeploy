@@ -250,3 +250,9 @@ Change main.c to use OUTPUTTYPE instead of float
 ### Changed
 - Modified the outputs of LayerNorm and SoftmaxCrossEntropyLoss nodes to a single output for better tiling compatibility.
 - Added SGD parameter updates to the CCT training graph.
+
+## One GVSoC to Simulate Them All
+- All Banshee dependencies now have a frozen version. This improves maintainability as some packages get yanked for the old versions of Rust.
+- Increase the L2 buffer size for loading files from Flash to RAM. This speeds up the simulation setup time.
+- Align the GVSoC simulation command and build command for the new version.
+- Bump new version of GVSoC and PULP-SDK

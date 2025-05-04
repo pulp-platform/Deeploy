@@ -22,7 +22,8 @@ elseif(DEEPLOY_ARCH STREQUAL PULP)
   file(GLOB_RECURSE HEXLIST
     "${GENERATED_SOURCE}/hex/**"
   )
-  list(TRANSFORM HEXLIST PREPEND "--config-opt=flash/content/partitions/readfs/files=")
+  list(TRANSFORM HEXLIST PREPEND "--flash-property=")
+  list(TRANSFORM HEXLIST APPEND "@hyperflash:readfs:files")
   set(GVSOCHEXINCLUDE ${HEXLIST})
 
   if (NOT HEXLIST)
