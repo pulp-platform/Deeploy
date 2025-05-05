@@ -63,6 +63,7 @@ jobs:
         test2DRequantizedConv
         iSoftmax
         testFloatAdder
+        testFloatGelu
         testFloatGEMM
         testFloat2DConvolution
         testFloatLayerNorm

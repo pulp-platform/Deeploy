@@ -277,3 +277,11 @@ Change main.c to use OUTPUTTYPE instead of float
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
 - Remove the sourcing of the cursed PULP SDK script.
+
+## GELU Test Approximation Fix
+
+### Added
+- The already implemented GELU test is now included in the CI pipelines.
+
+### Changed
+- The output test file of the GELU test was updated to reflect the tanh approximation method used in the kernel.
