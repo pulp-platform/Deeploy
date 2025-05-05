@@ -2,13 +2,14 @@
 #
 # File: BasicBindings.py
 #
-# Last edited: 17.12.2022
+# Last edited: 05.05.2025
 #
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
+# Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
-# Author:
+# Authors:
 # - Moritz Scherer, ETH Zurich
 # - Philip Wiese, ETH Zurich
+# - Calin Diaconu, University of Bologna
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -36,12 +37,12 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
     DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, \
-    FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
-    FloatMulTemplate, FloatPadTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, \
-    IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, \
-    PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, \
-    RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate
+    FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
+    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
+    GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, \
+    MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
+    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, \
+    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
     DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, \
     MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReduceSumChecker, \
@@ -91,8 +92,14 @@ BasicConv2DBindings = [
         BasicTransformer)
 ]
 
-BasicDWConv2DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
-                                   DWConvTemplate.reference2DTemplate, BasicTransformer)
+BasicDWConv2DBindings = [NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
+                                    DWConvTemplate.reference2DTemplate, BasicTransformer)
+] + [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t),
+                     PointerClass(float32_t)], [PointerClass(float32_t)]), FloatDWConvTemplate.reference2DTemplate,
+        BasicTransformer)
+]
 
 BasicDebugPrintBindings = [
     NodeBinding(DebugPrintChecker([PointerClass(type)], [PointerClass(type)]), DebugPrintTemplate.referenceTemplate,

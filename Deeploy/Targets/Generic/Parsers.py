@@ -2,13 +2,14 @@
 #
 # File: BasicParsers.py
 #
-# Last edited: 15.12.2021
+# Last edited: 05.05.2025
 #
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
+# Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
 # Authors:
 # - Moritz Scherer, ETH Zurich
 # - Victor Jung, ETH Zurich
+# - Calin Diaconu, University of Bologna
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -26,6 +27,8 @@
 # limitations under the License.
 
 import math
+import warnings
+
 from typing import Tuple
 
 import numpy as np
@@ -2146,6 +2149,16 @@ class GenericConv2DParser(Conv2DParser):
 
         if ret:
             inputs = ['data_in', 'weight']
+
+            # FIXME: Temporary handling for bias support, but support must also be implemented in kernel.
+            if len(node.inputs) > 2:
+                inputs.append("bias")
+
+                warnings.warn(
+                    "Bias found in Conv2D node. It is currently handled, but usage not implemented. "
+                    "Any non-zero bias is ignored and will cause issues!"
+                )
+
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
             return newCtxt, True
@@ -2182,6 +2195,15 @@ class GenericDWConv2DParser(Conv2DParser):
 
         if ret:
             inputs = ['data_in', 'weight']
+
+            # FIXME: Temporary handling for bias support, but support must also be implemented in kernel.
+            if len(node.inputs) > 2:
+                inputs.append("bias")
+
+                warnings.warn(
+                    "Bias found in Conv2D DW node. It is currently handled, but usage not implemented. "
+                    "Any non-zero bias is ignored and will cause issues!")
+
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
             if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
