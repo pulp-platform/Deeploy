@@ -277,3 +277,9 @@ Change main.c to use OUTPUTTYPE instead of float
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
 - Remove the sourcing of the cursed PULP SDK script.
+
+## Add Generic Float DW Conv2D Kernel
+
+### Added
+- Binding & kernel for generic float DW Conv2D
+- Bias handling (but no kernel implementation) for regular and DW Conv2D parsing
