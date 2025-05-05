@@ -252,7 +252,28 @@ Change main.c to use OUTPUTTYPE instead of float
 - Added SGD parameter updates to the CCT training graph.
 
 ## One GVSoC to Simulate Them All
+
+### Added
 - All Banshee dependencies now have a frozen version. This improves maintainability as some packages get yanked for the old versions of Rust.
 - Increase the L2 buffer size for loading files from Flash to RAM. This speeds up the simulation setup time.
 - Align the GVSoC simulation command and build command for the new version.
 - Bump new version of GVSoC and PULP-SDK
+
+## One LLVM To Compile Them All
+
+### Added
+- Build flow and its Docker integration for LLVM 15 tagged `15.0.0-snitch-0.1.0'
+- Picolibc build flow for v32im, v32ima, rv32imc and rv32imafd. Previously, it was only for rv32imc.
+- LLVM Compiler RT for rv32im, rv32ima, and rv32imafd.
+- Appropriate linking of picolibc and compiler RT.
+- Build and install a flow for XTensor, XTL, and XSIMD. These libraries are used in some GVSoC models, and they used to live in the PULP SDK, as a header-only library. Keeping only the library headers in the PULP SDK makes it hard to bump new versions.
+
+### Changed
+- Officially depreciate Banshee as a simulator for Snitch Cluster in the CI. Maintaining this is a burden and unnecessary, as GVSoC is now the standard simulator. Additionally, newer versions of the Snitch runtime don't support Banshee anymore.
+- Bump XTensor's version to `0.25.0` to fix a bug with Intel's SSE.
+- Update snitch cluster patch to link to picolibc and add explicit target.
+- Update README to include Snitch in the Getting Started and the D&T Journal.
+
+### Removed
+- Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
+- Remove the sourcing of the cursed PULP SDK script.

@@ -6,7 +6,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 ARG UBUNTU_VERSION=22.04
 ARG BENDER_VERSION=0.28.1
-ARG SNITCH_LLVM_VERSION=latest
+ARG SNITCH_LLVM_VERSION=15.0.0-snitch-0.1.0
 
 ENV TZ=Etc/UTC
 
@@ -41,12 +41,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git-lfs \
     libtool \
     libsdl2-ttf-dev \
     gcc-multilib \
-    wget
+    wget \
+    clang-format
 
-# Install cmake 3.25.1 (required by minimalloc)
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.25.1/cmake-3.25.1-linux-x86_64.sh && \
-    chmod +x cmake-3.25.1-linux-x86_64.sh && \
-    ./cmake-3.25.1-linux-x86_64.sh --prefix=/usr --skip-license
+# Install cmake 3.31.1
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.1/cmake-3.31.1-linux-x86_64.sh && \
+    chmod +x cmake-3.31.1-linux-x86_64.sh && \
+    ./cmake-3.31.1-linux-x86_64.sh --prefix=/usr --skip-license
 
 # Compile minimalloc
 RUN make minimalloc
@@ -86,6 +87,7 @@ RUN make qemu
 RUN make mempool
 RUN make banshee
 # Copy gvsoc requirements for later as they are removed when toolchain folder is deleted
+RUN make xtensor
 RUN make gvsoc && cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt
 
 # Dependencies needed for compiling Snitch
@@ -94,19 +96,9 @@ RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VER
     tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && cp  /app/bender /bin
 ENV PATH=/app/bender:$PATH
 
-## Precompiled llvm - Taken form https://github.com/pulp-platform/snitch_cluster (from this file: util/container/Dockerfile)
-RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
-echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
-test "${SNITCH_LLVM_VERSION}" = "latest" && SNITCH_LLVM_VERSION=${latest_tag} || : ; \
-LLVM_TAR=riscv32-pulp-llvm-ubuntu2004-$(echo $SNITCH_LLVM_VERSION | cut -d '-' -f3-).tar.gz && \
-mkdir -p riscv-llvm && \
-echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
-wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
-tar xvz --strip-components=1 -C riscv-llvm
-
-
 ## compile snitch
-RUN PATH=/app/riscv-llvm/bin:${PATH} make snitch_runtime && rm -rf /app/snitch_cluster
+ENV LLVM_INSTALL_DIR=/app/install/llvm
+RUN make snitch_runtime && rm -rf /app/snitch_cluster
 
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain
@@ -158,4 +150,3 @@ RUN pip install -r core-requirements.txt -r gapy-requirements.txt
 # Copy pre-built toolchains and emulators
 COPY --from=builder /app/install ./install
 COPY --from=builder /root/.cargo/bin/banshee /root/.cargo/bin/banshee
-COPY --from=builder /app/riscv-llvm ./install/riscv-llvm

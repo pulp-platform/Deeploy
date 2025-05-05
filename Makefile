@@ -35,10 +35,15 @@ TOOLCHAIN_DIR         := ${ROOT_DIR}/toolchain
 
 LLVM_INSTALL_DIR      ?= ${DEEPLOY_INSTALL_DIR}/llvm
 LLVM_CLANG_RT_ARM      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/libclang_rt.builtins-armv7m.a
+LLVM_CLANG_RT_RISCV_RV32IMAFD      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imafd/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IMC      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imc/libclang_rt.builtins-riscv32.a
+LLVM_CLANG_RT_RISCV_RV32IMA		 ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32ima/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IM      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32im/libclang_rt.builtins-riscv32.a
 PICOLIBC_ARM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/arm
-PICOLIBC_RISCV_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv
+PICOLIBC_RV32IM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32im
+PICOLIBC_RV32IMC_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc
+PICOLIBC_RV32IMA_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
+PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
 
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
@@ -47,17 +52,23 @@ MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
 GVSOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc
 MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
+XTL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtl
+XSIMD_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xsimd
+XTENSOR_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtensor
 
 CMAKE ?= cmake
 
-LLVM_COMMIT_HASH ?= 99902b1
+LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 3e1e569bd789a11d9dde6d6b3930849505e68b4a
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
-GVSOC_COMMIT_HASH ?= 921d75ceb5058ac795bf7860a619e22dd043b59b
+GVSOC_COMMIT_HASH ?= eeb7ef8c1dfcb944ac80d797a8cea35aacc14ac5
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
+XTL_VERSION ?= 0.7.5
+XSIMD_VERSION ?= 13.2.0
+XTENSOR_VERSION ?= 0.25.0
 
 RUSTUP_CARGO ?= $$(rustup which cargo)
 
@@ -91,8 +102,7 @@ ${TOOLCHAIN_DIR}/llvm-project:
 	git clone https://github.com/pulp-platform/llvm-project.git \
 	 -b main && \
 	cd ${TOOLCHAIN_DIR}/llvm-project && git checkout ${LLVM_COMMIT_HASH} && \
-	git submodule update --init --recursive && \
-	git apply ${TOOLCHAIN_DIR}/llvm.patch
+	git submodule update --init --recursive
 
 ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && \
@@ -113,37 +123,6 @@ ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 
 llvm: ${LLVM_INSTALL_DIR}
 
-${LLVM_CLANG_RT_RISCV_RV32IMC}: ${TOOLCHAIN_DIR}/llvm-project
-	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32imc \
-	&& cd build-compiler-rt-riscv-rv32imc; \
-	${CMAKE} ../compiler-rt \
-	-DCMAKE_C_COMPILER_WORKS=1 \
-	-DCMAKE_CXX_COMPILER_WORKS=1 \
-	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
-	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
-	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
-	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
-	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
-	-DCMAKE_C_FLAGS="-mno-relax -march=rv32imc" \
-	-DCMAKE_SYSTEM_NAME=baremetal \
-	-DCMAKE_HOST_SYSTEM_NAME=baremetal \
-	-DCMAKE_C_COMPILER_TARGET="riscv32-unknown-elf" \
-	-DCMAKE_CXX_COMPILER_TARGET="riscv32-unknown-elf" \
-	-DCMAKE_SIZEOF_VOID_P=4 \
-	-DCMAKE_NM=${LLVM_INSTALL_DIR}/bin/llvm-nm \
-	-DCMAKE_RANLIB=${LLVM_INSTALL_DIR}/bin/llvm-ranlib \
-	-DCOMPILER_RT_BUILD_BUILTINS=ON \
-	-DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
-	-DCOMPILER_RT_BUILD_MEMPROF=OFF \
-	-DCOMPILER_RT_BUILD_PROFILE=OFF \
-	-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
-	-DCOMPILER_RT_BUILD_XRAY=OFF \
-	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
-	-DCOMPILER_RT_BAREMETAL_BUILD=ON \
-	-DCOMPILER_RT_OS_DIR="baremetal/rv32imc" \
-	-DLLVM_CONFIG_PATH=${LLVM_INSTALL_DIR}/bin/llvm-config && \
-	${CMAKE} --build . -j && \
-	${CMAKE} --install .
 
 ${LLVM_CLANG_RT_RISCV_RV32IM}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32im \
@@ -177,7 +156,104 @@ ${LLVM_CLANG_RT_RISCV_RV32IM}: ${TOOLCHAIN_DIR}/llvm-project
 	${CMAKE} --build . -j && \
 	${CMAKE} --install .
 
-llvm-compiler-rt-riscv: ${LLVM_CLANG_RT_RISCV_RV32IM} ${LLVM_CLANG_RT_RISCV_RV32IMC}
+${LLVM_CLANG_RT_RISCV_RV32IMA}: ${TOOLCHAIN_DIR}/llvm-project
+	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32ima \
+	&& cd build-compiler-rt-riscv-rv32ima; \
+	${CMAKE} ../compiler-rt \
+	-DCMAKE_C_COMPILER_WORKS=1 \
+	-DCMAKE_CXX_COMPILER_WORKS=1 \
+	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_C_FLAGS="-mno-relax -march=rv32ima" \
+	-DCMAKE_SYSTEM_NAME=baremetal \
+	-DCMAKE_HOST_SYSTEM_NAME=baremetal \
+	-DCMAKE_C_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_CXX_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_SIZEOF_VOID_P=4 \
+	-DCMAKE_NM=${LLVM_INSTALL_DIR}/bin/llvm-nm \
+	-DCMAKE_RANLIB=${LLVM_INSTALL_DIR}/bin/llvm-ranlib \
+	-DCOMPILER_RT_BUILD_BUILTINS=ON \
+	-DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+	-DCOMPILER_RT_BUILD_MEMPROF=OFF \
+	-DCOMPILER_RT_BUILD_PROFILE=OFF \
+	-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+	-DCOMPILER_RT_BUILD_XRAY=OFF \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+	-DCOMPILER_RT_BAREMETAL_BUILD=ON \
+	-DCOMPILER_RT_OS_DIR="baremetal/rv32ima" \
+	-DLLVM_CONFIG_PATH=${LLVM_INSTALL_DIR}/bin/llvm-config && \
+	${CMAKE} --build . -j && \
+	${CMAKE} --install .
+
+${LLVM_CLANG_RT_RISCV_RV32IMC}: ${TOOLCHAIN_DIR}/llvm-project
+	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32imc \
+	&& cd build-compiler-rt-riscv-rv32imc; \
+	${CMAKE} ../compiler-rt \
+	-DCMAKE_C_COMPILER_WORKS=1 \
+	-DCMAKE_CXX_COMPILER_WORKS=1 \
+	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_C_FLAGS="-mno-relax -march=rv32imc" \
+	-DCMAKE_SYSTEM_NAME=baremetal \
+	-DCMAKE_HOST_SYSTEM_NAME=baremetal \
+	-DCMAKE_C_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_CXX_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_SIZEOF_VOID_P=4 \
+	-DCMAKE_NM=${LLVM_INSTALL_DIR}/bin/llvm-nm \
+	-DCMAKE_RANLIB=${LLVM_INSTALL_DIR}/bin/llvm-ranlib \
+	-DCOMPILER_RT_BUILD_BUILTINS=ON \
+	-DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+	-DCOMPILER_RT_BUILD_MEMPROF=OFF \
+	-DCOMPILER_RT_BUILD_PROFILE=OFF \
+	-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+	-DCOMPILER_RT_BUILD_XRAY=OFF \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+	-DCOMPILER_RT_BAREMETAL_BUILD=ON \
+	-DCOMPILER_RT_OS_DIR="baremetal/rv32imc" \
+	-DLLVM_CONFIG_PATH=${LLVM_INSTALL_DIR}/bin/llvm-config && \
+	${CMAKE} --build . -j && \
+	${CMAKE} --install .
+
+${LLVM_CLANG_RT_RISCV_RV32IMAFD}: ${TOOLCHAIN_DIR}/llvm-project
+	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32imafd \
+	&& cd build-compiler-rt-riscv-rv32imafd; \
+	${CMAKE} ../compiler-rt \
+	-DCMAKE_C_COMPILER_WORKS=1 \
+	-DCMAKE_CXX_COMPILER_WORKS=1 \
+	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_C_FLAGS="-march=rv32imafd -mabi=ilp32d" \
+	-DCMAKE_ASM_FLAGS="-march=rv32imafd -mabi=ilp32d" \
+	-DCMAKE_SYSTEM_NAME=baremetal \
+	-DCMAKE_HOST_SYSTEM_NAME=baremetal \
+	-DCMAKE_C_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_CXX_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_SIZEOF_VOID_P=4 \
+	-DCMAKE_NM=${LLVM_INSTALL_DIR}/bin/llvm-nm \
+	-DCMAKE_RANLIB=${LLVM_INSTALL_DIR}/bin/llvm-ranlib \
+	-DCOMPILER_RT_BUILD_BUILTINS=ON \
+	-DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+	-DCOMPILER_RT_BUILD_MEMPROF=OFF \
+	-DCOMPILER_RT_BUILD_PROFILE=OFF \
+	-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+	-DCOMPILER_RT_BUILD_XRAY=OFF \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+	-DCOMPILER_RT_BAREMETAL_BUILD=ON \
+	-DCOMPILER_RT_OS_DIR="baremetal/rv32imafd" \
+	-DLLVM_CONFIG_PATH=${LLVM_INSTALL_DIR}/bin/llvm-config && \
+	${CMAKE} --build . -j && \
+	${CMAKE} --install .
+
+llvm-compiler-rt-riscv: ${LLVM_CLANG_RT_RISCV_RV32IM} ${LLVM_CLANG_RT_RISCV_RV32IMA} ${LLVM_CLANG_RT_RISCV_RV32IMC} ${LLVM_CLANG_RT_RISCV_RV32IMAFD}
 
 ${LLVM_CLANG_RT_ARM}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-arm \
@@ -232,18 +308,51 @@ ${PICOLIBC_ARM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
 
 picolibc-arm: ${PICOLIBC_ARM_INSTALL_DIR}
 
-${PICOLIBC_RISCV_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
-	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-riscv && cd build-riscv && \
-	cp ${TOOLCHAIN_DIR}/meson-build-script-riscv.txt ../scripts && \
+${PICOLIBC_RV32IM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32im && cd build-rv32im && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32im.txt ../scripts && \
 	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
 	-Dlibdir=lib \
 	-Dspecsdir=none \
 	-Dmultilib=false \
-	--prefix ${PICOLIBC_RISCV_INSTALL_DIR} \
-	--cross-file ../scripts/meson-build-script-riscv.txt && \
+	--prefix ${PICOLIBC_RV32IM_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32im.txt && \
 	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
 
-picolibc-riscv: ${PICOLIBC_RISCV_INSTALL_DIR}
+${PICOLIBC_RV32IMA_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32ima && cd build-rv32ima && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32ima.txt ../scripts && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
+	-Dlibdir=lib \
+	-Dspecsdir=none \
+	-Dmultilib=false \
+	--prefix ${PICOLIBC_RV32IMA_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32ima.txt && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
+
+${PICOLIBC_RV32IMC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32imc && cd build-rv32imc && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32imc.txt ../scripts && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
+	-Dlibdir=lib \
+	-Dspecsdir=none \
+	-Dmultilib=false \
+	--prefix ${PICOLIBC_RV32IMC_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32imc.txt && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
+
+${PICOLIBC_RV32IMAFD_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32imafd && cd build-rv32imafd && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32imafd.txt ../scripts && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
+	-Dlibdir=lib \
+	-Dspecsdir=none \
+	-Dmultilib=false \
+	--prefix ${PICOLIBC_RV32IMAFD_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32imafd.txt && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
+
+picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \
@@ -271,13 +380,11 @@ ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 	mkdir -p ${SNITCH_INSTALL_DIR}
 	cp -r ${TOOLCHAIN_DIR}/snitch_cluster/ ${SNITCH_INSTALL_DIR}/../
 	cd ${SNITCH_INSTALL_DIR} && \
-	[ -d /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin ] && export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin || \
-	export LLVM_BINROOT=$(dir $(shell which clang) ) && \
 	mkdir tmp && \
 	TMPDIR=tmp pip install -r python-requirements.txt && rm -rf tmp && \
 	bender vendor init && \
 	cd ${SNITCH_INSTALL_DIR}/target/snitch_cluster && \
-	make sw/runtime/banshee sw/runtime/rtl sw/math
+	make LLVM_BINROOT=${LLVM_INSTALL_DIR}/bin sw/runtime/banshee sw/runtime/rtl sw/math
 
 snitch_runtime: ${SNITCH_INSTALL_DIR}
 
@@ -290,9 +397,32 @@ ${TOOLCHAIN_DIR}/gvsoc:
 
 ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	cd ${TOOLCHAIN_DIR}/gvsoc && \
-	 XTENSOR_INCLUDE_DIR=${PULP_SDK_INSTALL_DIR}/ext/xtensor/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa" build INSTALLDIR=${GVSOC_INSTALL_DIR}
+	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa" build INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
+
+${XTL_INSTALL_DIR}:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/xtensor-stack/xtl.git && \
+	cd ${TOOLCHAIN_DIR}/xtl && git checkout ${XTL_VERSION} && \
+	cmake -D CMAKE_INSTALL_PREFIX=${XTL_INSTALL_DIR} && \
+	make install
+
+${XSIMD_INSTALL_DIR}:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/xtensor-stack/xsimd.git && \
+	cd ${TOOLCHAIN_DIR}/xsimd && git checkout ${XSIMD_VERSION} && \
+	cmake -D CMAKE_INSTALL_PREFIX=${XSIMD_INSTALL_DIR} && \
+	make install
+
+${XTENSOR_INSTALL_DIR}: ${XTL_INSTALL_DIR}
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/xtensor-stack/xtensor.git && \
+	cd ${TOOLCHAIN_DIR}/xtensor && git checkout ${XTENSOR_VERSION} && \
+	cmake -DCMAKE_PREFIX_PATH=${XTL_INSTALL_DIR}/share/cmake -DCMAKE_INSTALL_PREFIX=${XTENSOR_INSTALL_DIR} && \
+	make install
+
+xtensor: ${XTENSOR_INSTALL_DIR} ${XSIMD_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/qemu:
 	cd ${TOOLCHAIN_DIR} && \

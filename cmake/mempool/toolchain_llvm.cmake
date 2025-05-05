@@ -23,7 +23,6 @@ endif()
 
 add_compile_options(
   --target=riscv32-unknown-elf
-  --sysroot=${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv
 
   -mabi=ilp32
   -mcmodel=medany
@@ -47,11 +46,11 @@ add_compile_options(
   -Wextra
 
   -static
+  -isystem ${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32ima/include
 )
 
 add_link_options(
   --target=riscv32-unknown-elf
-  --sysroot=${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv
 
   -mabi=ilp32
   -mcmodel=medany
@@ -72,7 +71,8 @@ add_link_options(
   -Wextra
 
   -static
-  -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32im/
+  -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32ima/lib
+  -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32ima/
 )
 
 link_libraries(
