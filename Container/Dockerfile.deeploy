@@ -26,6 +26,7 @@ RUN --mount=type=cache,target=/ccache \
     make gvsoc && \
     cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
     cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
+    make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
     ccache -s
 
 # Install Bender
@@ -62,6 +63,7 @@ ENV PULP_SDK_HOME=/app/install/pulp-sdk
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV SNITCH_HOME=/app/install/snitch_cluster
 ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
+ENV SOFTHIER_INSTALL_DIR=/app/install/softhier
 ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
 ENV MEMPOOL_HOME=/app/install/mempool
 ENV PATH=/root/.cargo/bin:/app/install/qemu/bin:/app/install/banshee:$PATH
@@ -79,7 +81,9 @@ RUN mkdir -p /root/.cargo/bin/ && \
     curl \
     libpixman-1-dev \
     libsdl2-dev \
-    python-is-python3 && \
+    python-is-python3 \
+    python3.10-venv \
+    python3.10-distutils && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && \
     rm get-pip.py && \
