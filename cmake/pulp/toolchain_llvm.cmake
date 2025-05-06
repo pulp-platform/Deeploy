@@ -10,7 +10,7 @@ set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}/clang)
 set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objcopy)
 set(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objdump)
 
-set(ISA rv32imc_zfinx_xpulpv2)
+set(ISA rv32imf_xpulpv2)
 set(PE 8)
 set(FC 1)
 
