@@ -278,6 +278,12 @@ Change main.c to use OUTPUTTYPE instead of float
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
 - Remove the sourcing of the cursed PULP SDK script.
 
+## rv32imf_xpulpv2 ISA support for Siracusa platform
+
+### Changed
+- The ISA for the Siracusa platform has been updated from rv32imc_zfinx_xpulpv2 to rv32imf_xpulpv2.
+- All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
+
 ## Add Generic Float DW Conv2D Kernel
 
 ### Added
