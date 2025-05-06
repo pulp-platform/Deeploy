@@ -115,7 +115,15 @@ jobs:
         miniMobileNet
         miniMobileNetv2
         CCT/CCT_1_16_16_8
-
+  
+  ### SoftHier Tests ###
+  softhier-kernels:
+    uses: ./.github/workflows/TestRunnerSoftHier.yml
+    needs: select-docker-image
+    with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
+      test-names: |
+        Adder
 
   ### CortexM Tests ###
   cortexm-kernels:
