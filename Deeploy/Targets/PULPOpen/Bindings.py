@@ -37,7 +37,7 @@ from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDa
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import ConcatTemplate, DequantTemplate, FloatGELUTemplate, FloatGemmTemplate, \
+from Deeploy.Targets.Generic.Templates import ConcatTemplate, DequantTemplate, FloatGemmTemplate, \
     FloatMulTemplate, FloatReduceSumTemplate, FloatSoftmaxTemplate, GatherTemplate, QuantTemplate, \
     RQSiGELUTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, DequantChecker, GatherChecker, \

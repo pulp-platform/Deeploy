@@ -58,5 +58,6 @@ void GELU_fp32_fp32_sigmoid_chunk(float32_t *data_in, float32_t *data_out, int32
         float32_t sigmoid_in = scale * x;
         // sigmoid(z) = 1 / (1 + exp(-z))
         float32_t sigmoid = 1.0f / (1.0f + expf(-sigmoid_in));
+        data_out[i] = x * sigmoid;
     }
 }
