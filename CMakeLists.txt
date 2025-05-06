@@ -15,8 +15,8 @@ if(TOOLCHAIN STREQUAL GCC)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-set(platform MemPool CACHE STRING "Platform (MemPool, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, Generic, Snitch)")
-set_property(CACHE platform PROPERTY STRINGS MemPool QEMU Siracusa Siracusa_w_neureka PULP-Open Generic Snitch)
+set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, Generic, Snitch)")
+set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open Generic Snitch)
 
 if(platform STREQUAL MemPool)
   message(STATUS "Building for platform 'MemPool'")
@@ -32,6 +32,8 @@ elseif(platform STREQUAL Generic)
   message(STATUS "Building for platform 'Generic'")
 elseif(platform STREQUAL Snitch)
   message(STATUS "Building for platform 'Snitch'")
+elseif(platform STREQUAL SoftHier)
+  message(STATUS "Building for platform 'SoftHier'")
 else()
   message(FATAL_ERROR "Invalid platform '${platform}' specified!")
 endif()
@@ -94,6 +96,48 @@ if(platform STREQUAL MemPool)
   endif()
   message(STATUS "================================================================================")
   message(STATUS "")
+
+endif()
+
+if(platform STREQUAL SoftHier)
+
+  if(TOOLCHAIN STREQUAL LLVM)
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/toolchain_llvm.cmake)
+  else()
+    # bowwang: CMake global config
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/toolchain_gcc.cmake)
+  endif()
+
+  # bowwang: adapted configuration from flex_cluster_arch.py
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/softhier.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/softhier_gvsoc.cmake)
+
+  project(deeploy LANGUAGES C ASM)
+
+  message(STATUS "============================= SoftHier Configuration ============================")
+  message(STATUS "[cMake  ]    # Cluster                ")
+  message(STATUS "[cMake  ]    num_cluster_x           = " ${num_cluster_x})
+  message(STATUS "[cMake  ]    num_cluster_y           = " ${num_cluster_y})
+  message(STATUS "[cMake  ]    num_core_per_cluster    = " ${num_core_per_cluster})
+  message(STATUS "")
+  message(STATUS "[cMake  ]    cluster_tcdm_bank_width = " ${cluster_tcdm_bank_width})
+  message(STATUS "[cMake  ]    cluster_tcdm_bank_nb    = " ${cluster_tcdm_bank_nb})
+  message(STATUS "")
+  message(STATUS "[cMake  ]    cluster_tcdm_base       = " ${cluster_tcdm_base})
+  message(STATUS "[cMake  ]    cluster_tcdm_size       = " ${cluster_tcdm_size})
+  message(STATUS "[cMake  ]    cluster_tcdm_remote     = " ${cluster_tcdm_remote})
+  message(STATUS "")
+  message(STATUS "[cMake  ]    # Spatz                  ")
+  message(STATUS "[cMake  ]    spatz_num_vlsu_port     = " ${spatz_num_vlsu_port})
+  message(STATUS "[cMake  ]    spatz_num_function_unit = " ${spatz_num_function_unit})
+  message(STATUS "================================================================================")
+  message(STATUS "")
+
+  # bowwang TODO: to be developed
+  add_subdirectory(TargetLibraries/SoftHier)
+  add_subdirectory(DeeployTest)
+
+  target_link_libraries(deeploylib INTERFACE deeploysofthier)
 
 endif()
 
