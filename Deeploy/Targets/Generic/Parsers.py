@@ -28,7 +28,6 @@
 
 import math
 import warnings
-
 from typing import Tuple
 
 import numpy as np
@@ -2154,10 +2153,8 @@ class GenericConv2DParser(Conv2DParser):
             if len(node.inputs) > 2:
                 inputs.append("bias")
 
-                warnings.warn(
-                    "Bias found in Conv2D node. It is currently handled, but usage not implemented. "
-                    "Any non-zero bias is ignored and will cause issues!"
-                )
+                warnings.warn("Bias found in Conv2D node. It is currently handled, but usage not implemented. "
+                              "Any non-zero bias is ignored and will cause issues!")
 
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
@@ -2200,9 +2197,8 @@ class GenericDWConv2DParser(Conv2DParser):
             if len(node.inputs) > 2:
                 inputs.append("bias")
 
-                warnings.warn(
-                    "Bias found in Conv2D DW node. It is currently handled, but usage not implemented. "
-                    "Any non-zero bias is ignored and will cause issues!")
+                warnings.warn("Bias found in Conv2D DW node. It is currently handled, but usage not implemented. "
+                              "Any non-zero bias is ignored and will cause issues!")
 
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name

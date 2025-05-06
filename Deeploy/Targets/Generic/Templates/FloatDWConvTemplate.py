@@ -26,7 +26,6 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
-
 reference2DTemplate = NodeTemplate("""
 <%
 batchOffsetIn = ch_im_in * dim_im_in_x * dim_im_in_y
