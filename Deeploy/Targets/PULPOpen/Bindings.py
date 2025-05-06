@@ -37,9 +37,8 @@ from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDa
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import ConcatTemplate, DequantTemplate, FloatGemmTemplate, \
-    FloatMulTemplate, FloatReduceSumTemplate, FloatSoftmaxTemplate, GatherTemplate, QuantTemplate, \
-    RQSiGELUTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.Templates import ConcatTemplate, DequantTemplate, FloatGemmTemplate, FloatMulTemplate, \
+    FloatReduceSumTemplate, FloatSoftmaxTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker, ConvChecker, DequantChecker, GatherChecker, \
     GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, QuantChecker, \
     ReduceMeanChecker, ReluChecker, RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, \
@@ -50,10 +49,10 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatConvTemplate, FloatGELUTemplate, \
-    FloatLayernormTemplate, FloatReluTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatSoftmaxTemplate, GEMMTemplate, \
-    MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, RQAddTemplate, \
-    RQSiHardswishTemplate, SGDTemplate, SliceTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, \
-    TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
+    GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, \
+    RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SliceTemplate, SoftmaxCrossEntropyLossTemplate, \
+    TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement

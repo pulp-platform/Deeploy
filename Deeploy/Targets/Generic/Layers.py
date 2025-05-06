@@ -72,12 +72,12 @@ class GELULayer(ONNXLayer):
         size = self.mapper.parser.operatorRepresentation['size']
         # RW: Sigmoid approximation
         mul1 = size  # Multiply by 1.702
-        neg = size   # Negate the result
-        exp = size   # Compute exponential
-        add = size   # Add 1
-        div = size   # Division for sigmoid
+        neg = size  # Negate the result
+        exp = size  # Compute exponential
+        add = size  # Add 1
+        div = size  # Division for sigmoid
         mul2 = size  # Final multiplication by x
-        
+
         return mul1 + neg + exp + add + div + mul2
 
 
@@ -144,15 +144,16 @@ class SoftmaxGradLayer(ONNXLayer):
 
     def computeOps(self):
         input_size = self.mapper.parser.operatorRepresentation['size']
-       
-       # SoftmaxGrad operation: dy * (y - (y * sum(dy * y))) 
+
+        # SoftmaxGrad operation: dy * (y - (y * sum(dy * y)))
         mul_ops = input_size
         sum_ops = input_size
         broadcast_mul_ops = input_size
         sub_ops = input_size
         final_mul_ops = input_size
-        
+
         return mul_ops + sum_ops + broadcast_mul_ops + sub_ops + final_mul_ops
+
 
 class ITAMaxLayer(ONNXLayer):
 
@@ -403,7 +404,7 @@ class MaxPoolLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
-    
+
     def computeOps(self):
         kernel_shape = self.mapper.parser.operatorRepresentation['kernel_shape']
         elements_per_window = int(np.prod(kernel_shape))
@@ -443,6 +444,7 @@ class ReluLayer(ONNXLayer):
 
     def computeOps(self):
         return self.mapper.parser.operatorRepresentation['size']
+
 
 class LayerNormLayer(ONNXLayer):
 

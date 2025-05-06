@@ -355,7 +355,7 @@ class Conv2DTileConstraint(TileConstraint):
         strides = parseDict["strides"]
         padding = parseDict["pads"]
 
-        # RW: Conv only tiled on outchannel 
+        # RW: Conv only tiled on outchannel
         tilerModel.addConstraint(inputHeightVar == parseDict['dim_im_in_x'])
         tilerModel.addConstraint(inputWidthVar == parseDict['dim_im_in_y'])
         tilerModel.addConstraint(inputChannelVar == parseDict['ch_im_in'])

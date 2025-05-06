@@ -39,14 +39,15 @@ class PULP2DFloatConvIm2ColTemplate(NodeTemplate):
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-        im2col_dim =  4 * 8 * (operatorRepresentation['ch_im_in'] * operatorRepresentation['dim_kernel_x'] *
+        im2col_dim = 4 * 8 * (operatorRepresentation['ch_im_in'] * operatorRepresentation['dim_kernel_x'] *
                               operatorRepresentation['dim_kernel_y'])
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
         return [(im2col_name, im2col_dim)]
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
                               operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        im2col_name, im2col_dim = PULP2DFloatConvIm2ColTemplate.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
+        im2col_name, im2col_dim = PULP2DFloatConvIm2ColTemplate.computeTransientBuffersSize(
+            ctxt, operatorRepresentation)[0]
         ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
 
         operatorRepresentation['ctxtBuffer'] = im2col_name
