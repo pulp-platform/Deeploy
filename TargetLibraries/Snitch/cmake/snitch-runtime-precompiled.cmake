@@ -3,6 +3,7 @@ set(SNITCH_RUNTIME_BASE_INCLUDE
   ${SNITCH_RUNTIME_HOME}/api
   ${SNITCH_RUNTIME_HOME}/../deps/riscv-opcodes # TODO: generate riscv-opcodes whatever
   ${SNITCH_RUNTIME_HOME}/../math/include # TODO: generate riscv-opcodes whatever
+  ${SNITCH_HOME}/sw/math/arch/riscv64/
 )
 
 set(SNITCH_RUNTIME_OMP_INCLUDE

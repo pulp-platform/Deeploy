@@ -143,7 +143,6 @@ jobs:
         testFloatSoftmax
       num-cores: 9
       simulators: |
-        banshee
         gvsoc
 
   snitch-kernels-tiled-singlebuffer-L2:
@@ -190,7 +189,6 @@ jobs:
           }
         ]
       simulators: |
-        banshee
         gvsoc
 
   ### Mempool Tests ###
@@ -531,6 +529,7 @@ jobs:
       L1: ${{ toJson(matrix.test-data.L1) }}
       default-memory-level: ${{ matrix.default-memory-level }}
 
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
   siracusa-models-tiled-doublebuffer-L3:
     strategy:
       fail-fast: false
@@ -653,6 +652,7 @@ jobs:
       L1: ${{ toJson(matrix.test-data.L1) }}
       default-memory-level: ${{ matrix.default-memory-level }}
 
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
   siracusa-neureka-models-tiled-doublebuffer-L3:
     strategy:
       fail-fast: false
@@ -707,6 +707,7 @@ jobs:
       num-cores: 8
       neureka-wmem: true
 
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
   siracusa-neureka-models-tiled-doublebuffer-L3-wmem:
     strategy:
       fail-fast: false

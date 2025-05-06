@@ -27,7 +27,7 @@ add_compile_options(
   -DNUM_CORES=${NUM_CORES}
   -MMD
   -MP
-  --sysroot=${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv
+  --sysroot=${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imc
   -fno-builtin-memcpy
   -fno-builtin-memset
 )
@@ -38,7 +38,7 @@ add_link_options(
   -MP
   -nostartfiles
   -march=${ISA}
-  --sysroot=${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv
+  -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imc/lib
   -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imc/
   -z norelro
   -fno-builtin-memcpy

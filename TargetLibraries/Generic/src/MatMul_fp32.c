@@ -62,7 +62,7 @@ void MatMul_fp32_fp32_fp32_unroll1x7(const float32_t *__restrict__ pSrcA,
 
   for (i = 0; i < M; i++)
   {
-    for (j = 0; j < O_block; j += 4)
+    for (j = 0; j < O_block; j += 7)
     {
       float32_t sum0 = 0.0f;
       float32_t sum1 = 0.0f;

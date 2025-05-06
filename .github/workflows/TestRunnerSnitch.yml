@@ -38,7 +38,7 @@ jobs:
               echo "$testNames" | while IFS= read -r testName; do
                 if [[ -n "$testName" ]]; then
                   echo "Running test $testName using $simulator"
-                  python testRunner_snitch.py -t Tests/$testName --simulator=$simulator --cores=${{ inputs.num-cores }} --toolchain_install_dir /app/install/riscv-llvm/
+                  python testRunner_snitch.py -t Tests/$testName --simulator=$simulator --cores=${{ inputs.num-cores }}
                 fi
               done
             fi
