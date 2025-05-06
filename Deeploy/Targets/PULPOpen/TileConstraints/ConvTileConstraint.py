@@ -355,25 +355,17 @@ class Conv2DTileConstraint(TileConstraint):
         strides = parseDict["strides"]
         padding = parseDict["pads"]
 
-        # VIC: Force at least one row of A and one col of B in the GEMM (since it's a im2col Conv) to avoid partial results
+        # RW: Conv only tiled on outchannel 
+        tilerModel.addConstraint(inputHeightVar == parseDict['dim_im_in_x'])
+        tilerModel.addConstraint(inputWidthVar == parseDict['dim_im_in_y'])
         tilerModel.addConstraint(inputChannelVar == parseDict['ch_im_in'])
-
-        if (parseDict["ch_im_out"] >= 8):
-            tilerModel.addMinTileSizeConstraint(parseDict, 'ch_im_out', outputChannelVar, 8)
-
-        tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'])
-        tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'])
-        tilerModel.addConstraint(weightInChannelVar == parseDict['ch_im_in'])
-
-        # VIC: Constraint the minimum tile size such that we can apply at least one kernel on it
-        tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'])
-        tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'])
 
         tilerModel.addConstraint(weightHeightVar == parseDict['dim_kernel_x'])
         tilerModel.addConstraint(weightWidthVar == parseDict['dim_kernel_y'])
+        tilerModel.addConstraint(weightInChannelVar == parseDict['ch_im_in'])
 
-        tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
-        tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
+        if (parseDict["ch_im_out"] >= 8):
+            tilerModel.addMinTileSizeConstraint(parseDict, 'ch_im_out', outputChannelVar, 8)
 
         return tilerModel
 
