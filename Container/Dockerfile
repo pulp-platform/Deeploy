@@ -93,6 +93,9 @@ RUN rustup install 1.63.0
 RUN rustup default 1.63.0
 RUN rustup component add rust-src
 
+RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
+RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
+
 # Compile toolchains
 RUN pip install meson
 RUN make llvm
@@ -101,6 +104,9 @@ RUN make llvm-compiler-rt-arm
 RUN make picolibc-arm
 RUN make picolibc-riscv
 
+RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
+RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
+
 # Free spacce before softhier installation
 # RUN rm -rf /app/toolchain/*
 RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
@@ -108,11 +114,18 @@ RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
     rm -rf /app/install/softhier/third_party/toolchain/v1.0.16-pulp-riscv-gcc-centos-7.tar.bz2 && \
     rm -rf /app/install/softhier/third_party/toolchain/v1.0.16-pulp-riscv-gcc-centos-7
 
+RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
+RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
+
 # # Compile emulators
 RUN make pulp-sdk
 RUN make qemu
 RUN make mempool
 RUN make banshee
+
+RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
+RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
+
 # Copy gvsoc requirements for later as they are removed when toolchain folder is deleted
 RUN make xtensor
 RUN make gvsoc && cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt
@@ -127,10 +140,14 @@ ENV PATH=/app/bender:$PATH
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 RUN make snitch_runtime && rm -rf /app/snitch_cluster
 
+RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
+RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
+
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain
 
 RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
+RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
 
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
 FROM ubuntu:22.04
