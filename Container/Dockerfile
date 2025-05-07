@@ -130,6 +130,7 @@ RUN make snitch_runtime && rm -rf /app/snitch_cluster
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain
 
+RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
 
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
 FROM ubuntu:22.04
