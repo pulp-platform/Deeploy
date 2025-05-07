@@ -102,7 +102,7 @@ RUN make picolibc-arm
 RUN make picolibc-riscv
 
 # Free spacce before softhier installation
-RUN rm -rf /app/toolchain/*
+# RUN rm -rf /app/toolchain/*
 RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
     rm -rf /app/install/softhier/third_party/toolchain/toolchain.tar.xz && \
     rm -rf /app/install/softhier/third_party/toolchain/v1.0.16-pulp-riscv-gcc-centos-7.tar.bz2 && \
