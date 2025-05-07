@@ -101,6 +101,13 @@ RUN make llvm-compiler-rt-arm
 RUN make picolibc-arm
 RUN make picolibc-riscv
 
+# Free spacce before softhier installation
+RUN rm -rf /app/toolchain/*
+RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
+    rm -rf /app/install/softhier/third_party/toolchain/toolchain.tar.xz && \
+    rm -rf /app/install/softhier/third_party/toolchain/v1.0.16-pulp-riscv-gcc-centos-7.tar.bz2 && \
+    rm -rf /app/install/softhier/third_party/toolchain/v1.0.16-pulp-riscv-gcc-centos-7
+
 # # Compile emulators
 RUN make pulp-sdk
 RUN make qemu
@@ -119,10 +126,6 @@ ENV PATH=/app/bender:$PATH
 ## compile snitch
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 RUN make snitch_runtime && rm -rf /app/snitch_cluster
-
-# Free spacce before softhier installation
-RUN rm -rf /app/toolchain/*
-RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier 
 
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain
