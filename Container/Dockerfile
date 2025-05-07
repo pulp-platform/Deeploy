@@ -55,22 +55,22 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.1/cmake-3.31.1
 RUN make minimalloc
 
 # bowwang: Install build dependencies for Python venv + ensurepip
-RUN apt-get update && \
-    apt-get install -y \
-    libssl-dev \
-    zlib1g-dev \
-    libncurses5-dev \
-    libncursesw5-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libgdbm-dev \
-    libdb5.3-dev \
-    libbz2-dev \
-    libexpat1-dev \
-    liblzma-dev \
-    tk-dev \
-    libffi-dev \
-    uuid-dev
+# RUN apt-get update && \
+#     apt-get install -y \
+#     libssl-dev \
+#     zlib1g-dev \
+#     libncurses5-dev \
+#     libncursesw5-dev \
+#     libreadline-dev \
+#     libsqlite3-dev \
+#     libgdbm-dev \
+#     libdb5.3-dev \
+#     libbz2-dev \
+#     libexpat1-dev \
+#     liblzma-dev \
+#     tk-dev \
+#     libffi-dev \
+#     uuid-dev
 
 # Install Python
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
