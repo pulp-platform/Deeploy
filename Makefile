@@ -467,6 +467,7 @@ ${SOFTHIER_INSTALL_DIR}: ${TOOLCHAIN_DIR}/softhier
 		make hw-deeploy; \
 	else \
 		cp -r ${TOOLCHAIN_DIR}/softhier ${SOFTHIER_INSTALL_DIR} && \
+		rm -rf ${TOOLCHAIN_DIR}/softhier && \
 		cd ${SOFTHIER_INSTALL_DIR} && \
 		. sourceme.sh && \
 		make hw-deeploy; \

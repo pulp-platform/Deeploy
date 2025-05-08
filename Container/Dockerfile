@@ -108,7 +108,7 @@ RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | s
 RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
 
 # Free spacce before softhier installation
-RUN rm -rf /app/toolchain/llvm
+RUN rm -rf /app/toolchain/llvm-project
 RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
     rm -rf /app/install/softhier/third_party/toolchain/toolchain.tar.xz
 
