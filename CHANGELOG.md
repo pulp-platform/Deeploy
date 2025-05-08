@@ -283,3 +283,8 @@ Change main.c to use OUTPUTTYPE instead of float
 ### Changed
 - The ISA for the Siracusa platform has been updated from rv32imc_zfinx_xpulpv2 to rv32imf_xpulpv2.
 - All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
+
+## Add RV32IMF Picolibc support for Siracusa platform
+
+## Added
+- Adds RV32IMF Picolib to the toolchain
