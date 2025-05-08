@@ -65,7 +65,7 @@ PULP_SDK_COMMIT_HASH ?= 3e1e569bd789a11d9dde6d6b3930849505e68b4a
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
-GVSOC_COMMIT_HASH ?= eeb7ef8c1dfcb944ac80d797a8cea35aacc14ac5
+GVSOC_COMMIT_HASH ?= 2400509c951271b40c98e8f148557cbd33c9a679
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
@@ -402,7 +402,7 @@ snitch_runtime: ${SNITCH_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/gvsoc/gvsoc.git && \
+	git clone https://github.com/runwangdl/gvsoc.git && \
 	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
 	git submodule update --init --recursive && \
 	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt
