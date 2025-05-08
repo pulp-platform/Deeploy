@@ -63,10 +63,15 @@ _measureConditionEnd = NodeTemplate("""
 """)
 
 _printLoopSetup = NodeTemplate("""
-StopTimer();
-for (int printLoopIdx = 0; printLoopIdx < ${numTiles}; printLoopIdx++){
+StopTimer(); 
+<%
+current_level_num = nodeName[-1]
+lower_level_num = str(int(current_level_num) - 1)                            
+%>
+for (int printLoopIdx = DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_numTiles[*DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_tileIdxPtr -1];
+    printLoopIdx < DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_numTiles[*DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_tileIdxPtr]; 
+    printLoopIdx++){
 """)
-
 _printCycleDifference = NodeTemplate(r"""
 printf("%s%u] %s%u%s", ${nodeName}_prefix,${tileIdx},"${flavorStr}", \
 ${nodeName}_${endMeasurementName}_measurements[${tileIdx}] - ${nodeName}_${startMeasurementName}_measurements[${tileIdx}],${nodeName}_suffix);
@@ -206,7 +211,7 @@ class ProfilingSingleBufferingTilingMixIn(SingleBufferingTilingMixIn):
             "buffering": "SB"
         })
 
-        executionBlock.addRight(_printLoopSetup, {"numTiles": numTiles})
+        executionBlock.addRight(_printLoopSetup, {"numTiles": numTiles, "nodeName": nodeName})
 
         executionBlock.addRight(
             _printCycleDifference, {
@@ -380,7 +385,7 @@ class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn):
             "tileIdx": numTiles - 1
         })
 
-        executionBlock.addRight(_printLoopSetup, {"numTiles": numTiles})
+        executionBlock.addRight(_printLoopSetup, {"numTiles": numTiles, "nodeName": nodeName})
 
         executionBlock.addRight(
             _printCycleDifference, {
