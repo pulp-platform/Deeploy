@@ -34,7 +34,6 @@ int32_t ${nodeName}_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${size});
 int32_t ${nodeName}_end = MIN(${nodeName}_start + ${nodeName}_chunk, ${size});
 int32_t ${nodeName}_local_size = ${nodeName}_end - ${nodeName}_start;
 
-// Call the original function with adjusted pointers and size
 if (${nodeName}_local_size > 0) {
     Relu_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
         ${data_in} + ${nodeName}_start,
