@@ -25,25 +25,25 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// Matmul (Name: ${nodeName}, Op: ${nodeOp})
-BEGIN_SINGLE_CORE
-    ${A_type.typeName} ref_${data_out}_${A} = ${A};
-    ${B_type.typeName} ref_${data_out}_${B} = ${B};
-    ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
+// Matmul using RedMule hardware accelerator (Name: ${nodeName}, Op: ${nodeOp})
 
-    for(uint32_t i=0; i<${batch}; i++){
-        MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
-            ref_${data_out}_${A},
-            ref_${data_out}_${B},
-            ref_${data_out}_${data_out},
+int8_t ${nodeName}_core_id = pi_core_id();
+int8_t ${nodeName}_num_cores = NUM_CORES;
+
+if (${nodeName}_core_id == 0) {
+    for(uint32_t b=0; b<${batch}; b++) {
+        ${A_type.typeName} batch_A = ${A} + b * ${M} * ${N};
+        ${B_type.typeName} batch_B = ${B} + b * ${N} * ${O};
+        ${data_out_type.typeName} batch_out = ${data_out} + b * ${M} * ${O};
+
+        MatMul_fp32_fp32_fp32_Redmule(
+            (const float32_t *) batch_A,
+            (const float32_t *) batch_B,
+            (float32_t *) batch_out,
             ${M},
             ${N},
             ${O}
         );
-
-        ref_${data_out}_${A} += ${M} * ${N};
-        ref_${data_out}_${B} += ${N} * ${O};
-        ref_${data_out}_${data_out} += ${M} * ${O};
     }
-END_SINGLE_CORE
+}
 """)
