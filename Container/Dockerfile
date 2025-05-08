@@ -104,13 +104,6 @@ RUN make llvm-compiler-rt-arm
 RUN make picolibc-arm
 RUN make picolibc-riscv
 
-RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
-RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
-
-# Free spacce before softhier installation
-RUN rm -rf /app/toolchain/llvm-project
-RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
-    rm -rf /app/install/softhier/third_party/toolchain/toolchain.tar.xz
 
 RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
 RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
@@ -142,10 +135,15 @@ RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | s
 RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
 
 # Remove toolchain to make the container lighter
-RUN rm -rf toolchain
+RUN rm -rf toolchain/*
 
 RUN echo "== Top 10 largest install subdirectories ==" && du -h /app/install | sort -hr | head -n 10
 RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain | sort -hr | head -n 10
+
+# Free spacce before softhier installation
+RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
+    rm -rf /app/install/softhier/third_party/toolchain/toolchain.tar.xz
+RUN rm -rf toolchain
 
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
 FROM ubuntu:22.04
