@@ -50,8 +50,8 @@ uint32_t ${nodeName}_${measurementName}_measurements[${numTiles}];
 """)
 
 _printPrefixAndSufixDeclaration = NodeTemplate("""
-char ${nodeName}_prefix[] = "[${nodeName}][${buffering}][${nodeOps} ops][Tile ";
-char ${nodeName}_suffix[] = " cycles \\n";
+const static char ${nodeName}_prefix[] = "[${nodeName}][${buffering}][${nodeOps} ops][Tile ";
+const static char ${nodeName}_suffix[] = " cycles \\n";
 """)
 
 _measureConditionSetup = NodeTemplate("""
