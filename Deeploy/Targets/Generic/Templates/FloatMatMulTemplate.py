@@ -32,7 +32,7 @@ BEGIN_SINGLE_CORE
     ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
     for(uint32_t i=0; i<${batch}; i++){
-        MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
+        MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_Redmule(
             ref_${data_out}_${A},
             ref_${data_out}_${B},
             ref_${data_out}_${data_out},
