@@ -1,15 +1,14 @@
-
 /* =====================================================================
- * Title:        gelu.h
+ * Title:        Maxpool.h
  * Description:
  *
- * $Date:        28.01.2025
+ * $Date:       05.04.2025
  *
  * ===================================================================== */
 /*
  * Copyright (C) 2020 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Author: Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -28,4 +27,18 @@
 
 #include "DeeployPULPMath.h"
 
-void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize);
+
+void MaxPool2d_fp32_fp32_HWC(
+    const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,
+    uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
+    float32_t *__restrict__ pDstC,
+    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right);
+
+
+void MaxPool2d_ChannelRange_fp32_fp32_HWC(
+    const float32_t *__restrict__ pSrcA, 
+    uint32_t W, uint32_t H, uint32_t C,
+    uint32_t Q, uint32_t P, uint32_t SQ, uint32_t SP,
+    float32_t *__restrict__ pDstC,
+    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right,
+    uint32_t ch_start, uint32_t ch_count);

@@ -30,11 +30,11 @@
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
 
-void Conv2d_fp32_fp32_fp32_HWC(
+void Conv2d_ChannelRange_fp32_fp32_fp32_HWC(
     const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,
-    const float32_t *__restrict__ pSrcB, uint32_t F,
+    const float32_t *__restrict__ pSrcB, uint32_t F_subset,
     uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
-    float32_t *__restrict__ pDstC,
+    float32_t *__restrict__ pDstC, uint32_t F_total, uint32_t F_start,
     uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right) {
 
 
@@ -48,7 +48,7 @@ void Conv2d_fp32_fp32_fp32_HWC(
     for (h = 0; h < H_out; ++h) {
         for (w = 0; w < W_out; ++w) {
             
-            for (f = 0; f < F; ++f) {
+            for (f = 0; f < F_subset; ++f) {
                 float32_t sum = 0.0f;
                 
                 for (p = 0; p < P; ++p) {
@@ -73,8 +73,86 @@ void Conv2d_fp32_fp32_fp32_HWC(
                     }
                 }
 
-                uint32_t output_idx = (h * W_out + w) * F + f;
+                uint32_t output_idx = (h * W_out + w) * F_total + (F_start + f);
                 pDstC[output_idx] = sum;
+            }
+        }
+    }
+}
+
+void Conv2d_Im2Col_ChannelRange_fp32_fp32_fp32_HWC(
+    const float32_t *__restrict__ pSrcA,
+    uint32_t H,
+    uint32_t W,
+    uint32_t C,
+    const float32_t *__restrict__ pSrcB,
+    uint32_t F_subset,
+    uint32_t P,
+    uint32_t Q,
+    uint32_t SP,
+    uint32_t SQ,
+    float32_t *__restrict__ pDstC,
+    uint32_t F_total,
+    uint32_t F_start,
+    uint32_t pad_top,
+    uint32_t pad_bottom,
+    uint32_t pad_left,
+    uint32_t pad_right,
+    float32_t *__restrict__ pIm2ColBuffer)
+{
+
+    uint32_t H_out = (H + pad_top + pad_bottom - P) / SP + 1;
+    uint32_t W_out = (W + pad_left + pad_right - Q) / SQ + 1;
+
+    uint32_t kernel_size = P * Q * C;
+
+    for (uint32_t h_out = 0; h_out < H_out; h_out++)
+    {
+        for (uint32_t w_out = 0; w_out < W_out; w_out++)
+        {
+
+            int32_t h_in_start = h_out * SP - pad_top;
+            int32_t w_in_start = w_out * SQ - pad_left;
+
+            float32_t *pIm2Col = pIm2ColBuffer;
+
+            for (uint32_t p = 0; p < P; p++)
+            {
+                int32_t h_in = h_in_start + p;
+
+                for (uint32_t q = 0; q < Q; q++)
+                {
+                    int32_t w_in = w_in_start + q;
+
+                    for (uint32_t c = 0; c < C; c++)
+                    {
+                        if (h_in >= 0 && h_in < H && w_in >= 0 && w_in < W)
+                        {
+
+                            uint32_t in_idx = (h_in * W + w_in) * C + c;
+                            pIm2Col[p * Q * C + q * C + c] = pSrcA[in_idx];
+                        }
+                        else
+                        {
+                            pIm2Col[p * Q * C + q * C + c] = 0.0f;
+                        }
+                    }
+                }
+            }
+
+            for (uint32_t f = 0; f < F_subset; f++)
+            {
+                float32_t sum = 0.0f;
+
+                const float32_t *weight_ptr = pSrcB + f * kernel_size;
+
+                for (uint32_t k = 0; k < kernel_size; k++)
+                {
+                    sum += pIm2Col[k] * weight_ptr[k];
+                }
+
+                uint32_t out_idx = (h_out * W_out + w_out) * F_total + (F_start + f);
+                pDstC[out_idx] = sum;
             }
         }
     }

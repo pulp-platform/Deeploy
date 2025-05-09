@@ -288,3 +288,12 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ## Added
 - Adds RV32IMF Picolib to the toolchain
+
+## Parallelization and Optimization of CCT Inference and Training Kernels
+
+### Added
+- Parallel Matmul, Softmax, Gelu, Conv, Layernorm, Maxpool, Add
+- Gelu with sigmoid approximation
+- Im2col Conv
+- Matmul with pulptrainlib with 1*7 unrolling performance aligned with pulptrainlib
+- Compute op support for multiple float kernels: Maxpool, Relu, Mul
