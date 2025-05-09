@@ -473,8 +473,17 @@ ${SOFTHIER_INSTALL_DIR}: ${TOOLCHAIN_DIR}/softhier
 		make hw-deeploy; \
 	fi
 
-
+# bowwang: trim toolchain to make the container lighter
 softhier: ${SOFTHIER_INSTALL_DIR}
+	rm -rf ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/toolchain.tar.xz && \
+    rm -rf ${SOFTHIER_INSTALL_DIR}/build/core/CMakeFiles && \
+    rm -rf ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/bin/riscv32-unknown-elf-lto-dump && \
+    rm -rf ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/cc1plus && \
+    rm -f ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/bin/riscv32-unknown-elf-c++ && \
+    rm -f ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/g++-mapper-server && \
+    rm -f ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/plugin/libcc1* && \
+    rm -f ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/lib/gcc/riscv32-unknown-elf/14.2.0/libstdc++* && \
+    rm -rf ${SOFTHIER_INSTALL_DIR}/pyenv_softhier
 
 ${XTL_INSTALL_DIR}:
 	cd ${TOOLCHAIN_DIR} && \
