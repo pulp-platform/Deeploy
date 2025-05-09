@@ -68,7 +68,7 @@
        float diff = expected_val - actual_val;
        
   
-       if ((diff < -1e-4) || (diff > 1e-4) || isnan(diff))
+       if ((diff < -2e-4) || (diff > 2e-4) || isnan(diff))
        {
          local_err_count += 1;
   

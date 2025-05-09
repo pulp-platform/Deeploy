@@ -39,13 +39,15 @@ from Deeploy.Targets.MemPool.Platform import MemPoolOptimizer, MemPoolPlatform
 from Deeploy.Targets.Neureka.Deployer import NeurekaDeployer
 from Deeploy.Targets.Neureka.Platform import MemoryNeurekaPlatform, MemoryNeurekaPlatformWrapper, NeurekaOptimizer, \
     NeurekaPlatform
+from Deeploy.Targets.Redmule.Deployer import RedmuleDeployer
+from Deeploy.Targets.Redmule.Platform import RedmuleOptimizer, RedmulePlatform
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform
 from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Siracusa_w_redmule"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -77,6 +79,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Siracusa_w_neureka":
         Platform = NeurekaPlatform()
+    
+    elif platformName == "Siracusa_w_redmule":
+        Platform = RedmulePlatform()
 
     elif platformName == "Snitch":
         Platform = SnitchPlatform()
@@ -89,7 +94,7 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
 def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHierarchy,
                         defaultTargetMemoryLevel: MemoryLevel) -> Union[MemoryPlatform, MemoryPlatformWrapper]:
-    if isinstance(platform, PULPPlatform):
+    if isinstance(platform, (PULPPlatform, RedmulePlatform)):
         return MemoryPULPPlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel)
     elif isinstance(platform, NeurekaPlatform):
         weightMemoryLevel = memoryHierarchy.memoryLevels["WeightMemory_SRAM"] \
@@ -184,6 +189,22 @@ def mapDeployer(platform: DeploymentPlatform,
             default_channels_first = False
 
         deployer = NeurekaDeployer(graph,
+                                   platform,
+                                   inputTypes,
+                                   loweringOptimizer,
+                                   scheduler,
+                                   name = name,
+                                   default_channels_first = default_channels_first,
+                                   deeployStateDir = deeployStateDir)
+        
+    elif isinstance(platform, (RedmulePlatform)):
+        if loweringOptimizer is None:
+            loweringOptimizer = RedmuleOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = RedmuleDeployer(graph,
                                    platform,
                                    inputTypes,
                                    loweringOptimizer,

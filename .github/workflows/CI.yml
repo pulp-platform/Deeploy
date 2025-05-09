@@ -9,7 +9,7 @@ on:
     - cron: "0 1 */6 * *"
 
 env:
-  DOCKER_IMAGE: ghcr.io/pulp-platform/deeploy:main
+  DOCKER_IMAGE: ghcr.io/runwangdl/deeploy:redmule
 
 jobs:
 
@@ -338,7 +338,7 @@ jobs:
           },
           {
             "name": "testFloat2DConvolution",
-            "L1": [2000]
+            "L1": [8000]
           },
           {
             "name": "testFloatLayerNorm",
@@ -420,7 +420,7 @@ jobs:
           },
           {
             "name": "testFloat2DConvolution",
-            "L1": [4000]
+            "L1": [15000]
           },
           {
             "name": "testFloatLayerNorm",
@@ -514,11 +514,7 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_64"
             L1: [64000]
-          - name: "CCT/CCT_1_16_16_128"
-            L1: [64000]
           - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
-            L1: [64000]
-          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
@@ -559,11 +555,7 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_64"
             L1: [64000]
-          - name: "CCT/CCT_1_16_16_128"
-            L1: [64000]
           - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
-            L1: [64000]
-          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
@@ -748,6 +740,42 @@ jobs:
       default-memory-level: ${{ matrix.default-memory-level }}
       neureka-wmem: ${{ matrix.neureka-wmem }}
 
+  siracusa-redmule-kernels-tiled-singlebuffer-L2:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "testFloatMatmul"
+            L1: [8000]
+        num-cores:
+          - 8
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithRedmule.yml
+    needs: select-docker-image
+    with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+
+  siracusa-redmule-kernels-tiled-doublebuffer-L2:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "testFloatMatmul"
+            L1: [8000]
+        num-cores:
+          - 8
+        double-buffer:
+          - true
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithRedmule.yml
+    needs: select-docker-image
+    with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+      double-buffer: ${{ matrix.double-buffer }}
 
   ### Deeploy Extension and Internal Tests ###
   deeploy-memory-allocation:

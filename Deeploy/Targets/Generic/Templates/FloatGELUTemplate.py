@@ -1,12 +1,12 @@
 # ----------------------------------------------------------------------
 #
-# File: iGELUTemplate.py
+# File: FloatGELUTemplate.py
 #
-# Last edited: 13.12.2021
+# Last edited: 28.03.2025
 #
 # Copyright (C) 2021, ETH Zurich and University of Bologna.
 #
-# Author: Moritz Scherer, ETH Zurich
+# Author: Run Wang, ETH Zurich
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
