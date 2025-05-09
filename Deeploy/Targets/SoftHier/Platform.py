@@ -96,7 +96,7 @@ class SoftHierPlatform(DeploymentPlatform):
 
     def __init__(
             self,
-            engines = [SoftHierEngine("SoftHier")], # subject to change
+            engines = [SoftHierEngine("SoftHier")],  # subject to change
             variableBuffer = SoftHierVariableBuffer,
             constantBuffer = SoftHierConstantBuffer,
             structBuffer = SoftHierStructBuffer,

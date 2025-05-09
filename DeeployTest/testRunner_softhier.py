@@ -25,7 +25,7 @@ from testUtils.testRunner import TestRunner, TestRunnerArgumentParser
 
 if __name__ == "__main__":
     parser = TestRunnerArgumentParser(
-        tiling_arguments = False, 
+        tiling_arguments = False,
         description = "Deeploy Code Generation Utility for the Single Cluster SiftHier (no Tiling).")
 
     parser.add_argument('--num_clusters',
@@ -34,7 +34,7 @@ if __name__ == "__main__":
                         type = int,
                         default = 1,
                         help = 'Number of clusters\n')
-    
+
     parser.add_argument('--verbose', metavar = 'verbose', dest = 'verbose', type = int, default = 2, help = 'verbose\n')
     args = parser.parse_args()
 
