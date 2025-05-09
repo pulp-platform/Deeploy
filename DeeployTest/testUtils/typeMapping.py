@@ -84,7 +84,13 @@ def inferInputType(_input: np.ndarray,
             if _type.checkPromotion(_input - signPropOffset):
                 matchingTypes.append(offsetType(PointerClass(_type), signPropOffset))
     elif isInteger(_input):
-        for _type in sorted(IntegerDataTypes, key = lambda x: x.typeWidth):
+        sorted_types = sorted(
+            IntegerDataTypes,
+            key = lambda t: (t.typeWidth, t.typeMin < 0),
+        )
+
+        matchingTypes = []
+        for _type in sorted_types:
             if _type.checkPromotion(_input):
                 matchingTypes.append(offsetType(PointerClass(_type), 0))
     else:
