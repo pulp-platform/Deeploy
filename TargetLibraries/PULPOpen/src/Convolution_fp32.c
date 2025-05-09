@@ -157,3 +157,98 @@ void Conv2d_Im2Col_ChannelRange_fp32_fp32_fp32_HWC(
         }
     }
 }
+
+void Conv2d_Im2Col_fp32_fp32_fp32_HWC_8_Redmule(
+    const float32_t *__restrict__ pSrcA,
+    uint32_t H,
+    uint32_t W,
+    uint32_t C,
+    const float32_t *__restrict__ pSrcB,
+    uint32_t P,
+    uint32_t Q,
+    uint32_t SP,
+    uint32_t SQ,
+    float32_t *__restrict__ pDstC,
+    uint32_t F,
+    uint32_t pad_top,
+    uint32_t pad_bottom,
+    uint32_t pad_left,
+    uint32_t pad_right,
+    float32_t *__restrict__ pIm2ColBuffer) {
+    
+    uint32_t H_out = (H + pad_top + pad_bottom - P) / SP + 1;
+    uint32_t W_out = (W + pad_left + pad_right - Q) / SQ + 1;
+    uint32_t kernel_size = P * Q * C;
+    uint32_t core_id = pi_core_id();
+    uint32_t num_cores = NUM_CORES;
+    
+    uint32_t total_positions = H_out * W_out;
+    uint32_t num_batches = (total_positions + num_cores - 1) / num_cores;
+
+    float32_t *core_im2col_buffer = pIm2ColBuffer + core_id * kernel_size;
+    
+    for (uint32_t batch = 0; batch < num_batches; batch++) {
+
+        uint32_t batch_start_pos = batch * num_cores;
+        
+
+        uint32_t valid_cores = MIN(num_cores, total_positions - batch_start_pos);
+        
+
+        if (core_id < valid_cores) {
+
+            uint32_t pos = batch_start_pos + core_id;
+            
+
+            uint32_t h_out = pos / W_out;
+            uint32_t w_out = pos % W_out;
+            int32_t h_in_start = h_out * SP - pad_top;
+            int32_t w_in_start = w_out * SQ - pad_left;
+            
+
+            for (uint32_t p = 0; p < P; p++) {
+                int32_t h_in = h_in_start + p;
+                
+                for (uint32_t q = 0; q < Q; q++) {
+                    int32_t w_in = w_in_start + q;
+                    uint32_t in_offset = (h_in * W + w_in) * C;
+                    uint32_t kernel_offset = (p * Q + q) * C;
+                    
+                    if (h_in >= 0 && h_in < H && w_in >= 0 && w_in < W) {
+                        
+                        for (uint32_t c = 0; c < C; c++) {
+                            core_im2col_buffer[kernel_offset + c] = pSrcA[in_offset + c];
+                        }
+                    }
+                    else {
+                        
+                        for (uint32_t c = 0; c < C; c++) {
+                            core_im2col_buffer[kernel_offset + c] = 0.0f;
+                        }
+                    }
+
+                }
+            }
+        }
+        
+
+        pi_cl_team_barrier();
+        
+
+        if (core_id == 0) {
+
+            float32_t *batch_output = pDstC + batch_start_pos * F;
+
+            MatMul_fp32_fp32_fp32_Redmule(
+                pIm2ColBuffer,     
+                pSrcB,             
+                batch_output,      
+                valid_cores,       
+                kernel_size,       
+                F                  
+            );
+        }
+        
+        pi_cl_team_barrier();
+    }
+}

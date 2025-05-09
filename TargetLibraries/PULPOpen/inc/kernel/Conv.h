@@ -55,3 +55,21 @@
      uint32_t pad_left,
      uint32_t pad_right,
      float32_t *__restrict__ pIm2ColBuffer);
+
+     void Conv2d_Im2Col_fp32_fp32_fp32_HWC_8_Redmule(
+        const float32_t *__restrict__ pSrcA,
+        uint32_t H,
+        uint32_t W,
+        uint32_t C,
+        const float32_t *__restrict__ pSrcB,
+        uint32_t P,
+        uint32_t Q,
+        uint32_t SP,
+        uint32_t SQ,
+        float32_t *__restrict__ pDstC,
+        uint32_t F,
+        uint32_t pad_top,
+        uint32_t pad_bottom,
+        uint32_t pad_left,
+        uint32_t pad_right,
+        float32_t *__restrict__ pIm2ColBuffer);

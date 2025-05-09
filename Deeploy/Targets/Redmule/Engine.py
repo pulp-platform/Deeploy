@@ -28,15 +28,19 @@ from typing import List
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import DeploymentEngine, NodeMapper
-from Deeploy.Targets.Generic.Layers import MatMulLayer
-from Deeploy.Targets.Generic.Parsers import MatMulParser
-from Deeploy.Targets.Redmule.Tiler import RedmuleMatMulTilingReadyBindings
+from Deeploy.Targets.Generic.Layers import MatMulLayer, ConvLayer
+from Deeploy.Targets.Generic.Parsers import MatMulParser, ConvParser
+from Deeploy.Targets.Redmule.Tiler import RedmuleMatMulTilingReadyBindings, RedmuleConvTilingReadyBindings
+from Deeploy.Targets.PULPOpen.Parsers import PULPFPConv2DParser
 
 MatMulRedmuleMapper = NodeMapper(
     MatMulParser(), RedmuleMatMulTilingReadyBindings)
+Conv2DRedmuleMapper = NodeMapper(
+    PULPFPConv2DParser(), RedmuleConvTilingReadyBindings)
 
 RedmuleMapping = {
     'MatMul': MatMulLayer([MatMulRedmuleMapper]),
+    'Conv': ConvLayer([Conv2DRedmuleMapper])
 }
 
 _includeList = []

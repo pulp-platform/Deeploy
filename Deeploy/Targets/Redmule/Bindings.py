@@ -28,12 +28,18 @@
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import  float32_t
 from Deeploy.DeeployTypes import NodeBinding
-from Deeploy.Targets.Generic.TypeCheckers import MatMulChecker
-from Deeploy.Targets.Redmule.Templates import MatmulTemplate
-from Deeploy.Targets.PULPOpen.Bindings import ClusterTransformer
-from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker
+from Deeploy.Targets.Generic.TypeCheckers import MatMulChecker, ConvChecker
+from Deeploy.Targets.Redmule.Templates import MatmulTemplate, ConvTemplate  
+from Deeploy.Targets.PULPOpen.Bindings import ForkTransformer
 
 RedmuleMatmulBindings =  [
     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                MatmulTemplate.referenceTemplate, ClusterTransformer)
+                MatmulTemplate.referenceTemplate, ForkTransformer)
+]
+
+RedmuleConv2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t),
+                     PointerClass(float32_t)], [PointerClass(float32_t)]), ConvTemplate.reference2DIm2ColTemplate,
+        ForkTransformer)
 ]
