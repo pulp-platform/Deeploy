@@ -748,6 +748,42 @@ jobs:
       default-memory-level: ${{ matrix.default-memory-level }}
       neureka-wmem: ${{ matrix.neureka-wmem }}
 
+  siracusa-redmule-kernels-tiled-singlebuffer-L2:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "testFloatMatmul"
+            L1: [8000]
+        num-cores:
+          - 8
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithRedmule.yml
+    needs: select-docker-image
+    with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+
+  siracusa-redmule-kernels-tiled-doublebuffer-L2:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-data: 
+          - name: "testFloatMatmul"
+            L1: [8000]
+        num-cores:
+          - 8
+        double-buffer:
+          - true
+    uses: ./.github/workflows/TestRunnerTiledSiracusaWithRedmule.yml
+    needs: select-docker-image
+    with:
+      docker-image: ${{ needs.select-docker-image.outputs.image }}
+      test-name: ${{ matrix.test-data.name }}
+      num-cores: ${{ matrix.num-cores }}
+      L1: ${{ toJson(matrix.test-data.L1) }}
+      double-buffer: ${{ matrix.double-buffer }}
 
   ### Deeploy Extension and Internal Tests ###
   deeploy-memory-allocation:
