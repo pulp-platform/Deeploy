@@ -87,6 +87,8 @@ class RedmuleMatmulTileConstraint(TileConstraint):
 
         tensorsShapeLen = len(bufferA.shape)
 
+        AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
+                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transA'])
         ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
                                                    dimIdx = (tensorsShapeLen - 1) - parseDict['transA'])
         BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
@@ -98,6 +100,30 @@ class RedmuleMatmulTileConstraint(TileConstraint):
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])
         tilerModel.addConstraint(BFirstDimVar == parseDict['N'])
 
+
+        # Hardware-specific constraints for 4x12 accelerator
+        tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
+
+        M_full_size = ctxt.lookup(bufferA.name).shape[(tensorsShapeLen - 2) + parseDict['transA']]
+        if M_full_size >= 4:
+            tilerModel.addTileSizeDivisibleConstraint(parseDict,
+                                                      "M",
+                                                      AFirstDimVar,
+                                                      4,
+                                                      strategy = PerformanceHint(priority = 1))
+        else:
+            tilerModel.addConstraint(AFirstDimVar == AFirstDimVar.Max(), strategy = PerformanceHint(1))
+
+        N_full_size = ctxt.lookup(bufferB.name).shape[(tensorsShapeLen - 2) + parseDict['transB']]
+        if N_full_size >= 12:
+            tilerModel.addTileSizeDivisibleConstraint(parseDict,
+                                                      "O",
+                                                      BSecondDimVar,
+                                                      12,
+                                                      strategy = PerformanceHint(priority = 1))
+        else:
+            tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
+        
         return tilerModel
 
     @classmethod
