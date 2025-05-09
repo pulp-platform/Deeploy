@@ -142,7 +142,15 @@ RUN echo "== Top 10 largest toolchain subdirectories ==" && du -h /app/toolchain
 
 # Free spacce before softhier installation
 RUN make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
-    rm -rf /app/install/softhier/third_party/toolchain/toolchain.tar.xz
+    rm -rf /app/install/softhier/third_party/toolchain/toolchain.tar.xz && \
+    rm -rf /app/install/softhier/build/core/CMakeFiles && \
+    rm -rf /app/install/softhier/third_party/toolchain/install/bin/riscv32-unknown-elf-lto-dump && \
+    rm -rf /app/install/softhier/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/cc1plus && \
+    rm -f /app/install/softhier/third_party/toolchain/install/bin/riscv32-unknown-elf-c++ && \
+    rm -f /app/install/softhier/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/g++-mapper-server && \
+    rm -f /app/install/softhier/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/plugin/libcc1* && \
+    rm -f /app/install/softhier/third_party/toolchain/install/lib/gcc/riscv32-unknown-elf/14.2.0/libstdc++* && \
+    rm -rf /app/install/softhier/pyenv_softhier
 RUN rm -rf toolchain
 
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
