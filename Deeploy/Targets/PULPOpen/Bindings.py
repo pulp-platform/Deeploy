@@ -394,6 +394,11 @@ PULPLayernormBinding = NodeBinding(
          PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
     ForkTransformer)
 
+PULPLayernormGradBinding = NodeBinding(
+    LayerNormChecker([PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t),
+                      PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
+    ForkTransformer)
+
 PULPFloatGELUBinding = NodeBinding(
     GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
     FloatGELUTemplate.referenceTemplate, ForkTransformer)

@@ -460,7 +460,9 @@ class LayerNormLayer(ONNXLayer):
         compDiv = self.mapper.parser.operatorRepresentation['size']
         return compAverage + compNormalize + compSqr + compSum + compSqrt + compDiv
 
-
+class LayerNormGradLayer(ONNXLayer):
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
 class TransposeLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
