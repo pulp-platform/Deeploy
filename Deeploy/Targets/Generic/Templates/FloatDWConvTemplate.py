@@ -2,7 +2,7 @@
 #
 # File: FLoatDWConvTemplate.py
 #
-# Last edited: 05.05.2025
+# Last edited: 12.05.2025
 #
 # Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
@@ -42,6 +42,8 @@ BEGIN_SINGLE_CORE
             ${weight},
             ${ch_im_out}, ${dim_kernel_x}, ${dim_kernel_y},
             ${stride_x}, ${stride_y},
+            ${bias},
+            ${has_bias},
             ref_${data_out}_${data_out}
         );
         ref_${data_out}_${data_in} += ${batchOffsetIn};
