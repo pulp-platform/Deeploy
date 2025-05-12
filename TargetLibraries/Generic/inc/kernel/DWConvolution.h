@@ -7,7 +7,7 @@
  * ===================================================================== */
 
 /*
- * Copyright (C) 2023 ETH Zurich and University of Bologna.
+ * Copyright (C) 2025 ETH Zurich and University of Bologna.
  *
  * Authors:
  * - Philip Wiese, ETH Zurich
@@ -76,6 +76,8 @@ void DWConv2d_fp32_fp3_fp32_NCHW(const float *__restrict__ pSrcA, uint32_t C,
                                  uint32_t H_padded, uint32_t W_padded,
                                  const float *__restrict__ pSrcB, uint32_t P,
                                  uint32_t Q, uint32_t SP, uint32_t SQ,
+                                 const float32_t *__restrict__ pSrcBias,
+                                 const bool has_bias,
                                  float *__restrict__ pDstC);
 
 #endif //__DEEPLOY_BASIC_MATH_DWCONVOLUTION_KERNEL_HEADER_

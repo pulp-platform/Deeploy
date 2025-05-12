@@ -2,7 +2,7 @@
  * Title:        DWConvolution_float32.c
  * Description:  Float32 version of Conv2D with NCHW format (pre-padded input)
  *
- * Date:         05.05.2025
+ * Date:         12.05.2025
  *
  * Copyright (C) 2025 ETH Zurich and University of Bologna.
  *
@@ -32,27 +32,53 @@ void DWConv2d_fp32_fp32_fp32_NCHW(const float32_t *__restrict__ pSrcA,
                                   const float32_t *__restrict__ pSrcB,
                                   uint32_t F, uint32_t P, uint32_t Q,
                                   uint32_t SP, uint32_t SQ,
+                                  const float32_t *__restrict__ pSrcBias,
+                                  const bool has_bias,
                                   float32_t *__restrict__ pDstC) {
-
+  // Compute the output dimensions
   uint32_t H_out = (H_padded - P) / SP + 1;
   uint32_t W_out = (W_padded - Q) / SQ + 1;
 
+  // Prepare variables
   uint32_t c, h, w, p, q;
 
-  for (c = 0; c < C; ++c) {
-    for (h = 0; h < H_out; ++h) {
-      for (w = 0; w < W_out; ++w) {
-        float32_t sum = 0.0f;
+  // Compute output with bias
+  if (has_bias) { 
+    for (c = 0; c < C; ++c) {
+      for (h = 0; h < H_out; ++h) {
+        for (w = 0; w < W_out; ++w) {
+          float32_t sum = 0.0f;
 
-        for (p = 0; p < P; ++p) {
-          for (q = 0; q < Q; ++q) {
-            sum += pSrcA[c * H_padded * W_padded + (h * SP + p) * W_padded +
-                         (w * SQ + q)] *
-                   pSrcB[c * P * Q + p * Q + q];
+          for (p = 0; p < P; ++p) {
+            for (q = 0; q < Q; ++q) {
+              sum += pSrcA[c * H_padded * W_padded + (h * SP + p) * W_padded +
+                          (w * SQ + q)] *
+                    pSrcB[c * P * Q + p * Q + q];
+            }
           }
-        }
 
-        pDstC[c * H_out * W_out + h * W_out + w] = sum;
+          pDstC[c * H_out * W_out + h * W_out + w] = sum + pSrcBias[c];
+        }
+      }
+    }
+  }
+  // Compute output without bias
+  else {
+    for (c = 0; c < C; ++c) {
+      for (h = 0; h < H_out; ++h) {
+        for (w = 0; w < W_out; ++w) {
+          float32_t sum = 0.0f;
+
+          for (p = 0; p < P; ++p) {
+            for (q = 0; q < Q; ++q) {
+              sum += pSrcA[c * H_padded * W_padded + (h * SP + p) * W_padded +
+                          (w * SQ + q)] *
+                    pSrcB[c * P * Q + p * Q + q];
+            }
+          }
+
+          pDstC[c * H_out * W_out + h * W_out + w] = sum;
+        }
       }
     }
   }
