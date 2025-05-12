@@ -2149,15 +2149,30 @@ class GenericConv2DParser(Conv2DParser):
         if ret:
             inputs = ['data_in', 'weight']
 
-            # FIXME: Temporary handling for bias support, but support must also be implemented in kernel.
+            # Handle bias, if present
             if len(node.inputs) > 2:
                 inputs.append("bias")
-
-                warnings.warn("Bias found in Conv2D node. It is currently handled, but usage not implemented. "
-                              "Any non-zero bias is ignored and will cause issues!")
+                self.operatorRepresentation["has_bias"] = "true"
+            else:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
 
             for idx, inputNode in enumerate(node.inputs):
-                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+                # Check if bias is all 0s, to remove it for efficiency
+                if inputs[idx] == "bias" and np.all(ctxt.lookup(inputNode.name).values == 0):
+                    # Set operator representation as if no bias has been used
+                    self.operatorRepresentation["has_bias"] = "false"
+                    self.operatorRepresentation["bias"] = "NULL"
+
+                    # Update contexts
+                    ctxt.globalObjects.pop(inputNode.name, None)
+                    newCtxt.globalObjects.pop(inputNode.name, None)
+
+                    # Remove bias from ONNX node
+                    del node.inputs[idx]
+                else:
+                    self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+                    
             return newCtxt, True
 
         return ctxt, False
