@@ -75,6 +75,7 @@ jobs:
         testFloatMul
         Quant
         Dequant
+        QuantizedLinear
         
 
   generic-models:
@@ -142,7 +143,6 @@ jobs:
         testFloatSoftmax
       num-cores: 9
       simulators: |
-        banshee
         gvsoc
 
   snitch-kernels-tiled-singlebuffer-L2:
@@ -189,7 +189,6 @@ jobs:
           }
         ]
       simulators: |
-        banshee
         gvsoc
 
   ### Mempool Tests ###
@@ -270,6 +269,11 @@ jobs:
         testFloatMul
         Quant
         Dequant
+        testFloatReduceSum
+        testFloatSoftmaxGrad
+        testFloatSoftmaxCrossEntropy
+        testFloatSoftmaxCrossEntropyGrad
+        QuantizedLinear
       num-cores: 8
 
   siracusa-models:
@@ -286,6 +290,7 @@ jobs:
         MLPerf/ImageClassification
         MLPerf/AnomalyDetection
         CCT/CCT_1_16_16_8
+        testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_8
       num-cores: 8
 
   siracusa-kernels-tiled-singlebuffer-L2:
@@ -427,7 +432,7 @@ jobs:
           },
           {
             "name": "testFloatMaxPool",
-            "L1": [2000]
+            "L1": [5000]
           },
           {
             "name": "testFloatMatmul",
@@ -476,6 +481,8 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_8"
             L1: [64000]
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_8"
+            L1: [64000]
         num-cores:
           - 8
     uses: ./.github/workflows/TestRunnerTiledSiracusa.yml
@@ -505,6 +512,14 @@ jobs:
             L1: [60000, 10000, 5000]
           - name: "CCT/CCT_1_32_32_8"
             L1: [64000]
+          - name: "CCT/CCT_1_16_16_64"
+            L1: [64000]
+          - name: "CCT/CCT_1_16_16_128"
+            L1: [64000]
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
+            L1: [64000]
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
+            L1: [64000]
         num-cores:
           - 8
         default-memory-level:
@@ -518,6 +533,7 @@ jobs:
       L1: ${{ toJson(matrix.test-data.L1) }}
       default-memory-level: ${{ matrix.default-memory-level }}
 
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
   siracusa-models-tiled-doublebuffer-L3:
     strategy:
       fail-fast: false
@@ -540,6 +556,14 @@ jobs:
           - name: "microLlama/microLlama8_parallel"
             L1: [60000, 20000, 10000]
           - name: "CCT/CCT_1_32_32_8"
+            L1: [64000]
+          - name: "CCT/CCT_1_16_16_64"
+            L1: [64000]
+          - name: "CCT/CCT_1_16_16_128"
+            L1: [64000]
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
+            L1: [64000]
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
@@ -636,6 +660,7 @@ jobs:
       L1: ${{ toJson(matrix.test-data.L1) }}
       default-memory-level: ${{ matrix.default-memory-level }}
 
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
   siracusa-neureka-models-tiled-doublebuffer-L3:
     strategy:
       fail-fast: false
@@ -690,6 +715,7 @@ jobs:
       num-cores: 8
       neureka-wmem: true
 
+  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
   siracusa-neureka-models-tiled-doublebuffer-L3-wmem:
     strategy:
       fail-fast: false

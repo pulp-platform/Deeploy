@@ -149,8 +149,9 @@ BasicLayerNormBindings = [
     NodeBinding(
         LayerNormChecker(
             [PointerClass(float32_t), PointerClass(float32_t),
-             PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
-        BasicTransformer)
+             PointerClass(float32_t)],
+            [PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicMatMulBindings = [
@@ -270,5 +271,8 @@ BasicQuantBindings = [
 
 BasicDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                BasicTransformer),
+] + [
+    NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 BasicTransformer),
 ]

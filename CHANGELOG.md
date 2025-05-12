@@ -207,3 +207,79 @@ Change main.c to use OUTPUTTYPE instead of float
 - Parser implementation in `Parsers.py` to extract dequantization parameters
 - C template implementation in `DequantTemplate.py` for efficient dequantization
 - Type checker implementation in `TypeCheckers.py` to handle bit-width and signedness
+
+## Fix L3 Bugs: DMA Struct Datatype and Maxpool Margin Error
+
+### Added
+- New Test Cases: Added and passed tests for 16×16 64 and 16×16 128 configurations to validate correctness.
+
+### Fixed
+- Maxpool Tile Calculation Error: The last dimension padding was incorrectly calculated due to L3 wraptiling solution. This has been fixed by updating serializeTilingSolution of Maxpool to avoid incorrect padding of Maxpool and prevent potential DMA 3D transfer issues of Maxpool.
+
+- DMA 1D Copy Assertion Issue: Updated the DMA length datatype from uint16 to uint32 to avoid assertion failures when dealing with large block transfers.
+
+## Implemented Updates for handling Quantized Linear DNN
+
+### Added
+- New `_sanitizeGraphNames` function to sanitize the names of the nodes and tensors of the graph
+- Implementation for both Generic and Siracusa targets in the Deeploy framework
+- Modified the binding of dequant in `Bindings.py` to handle int32 after GEMM operation
+
+## Add CCT Classifier Training Support
+### Added
+- New test cases: testTrainCCT/CCT_GEMM_Weight_Bias_1_16_16_8, testFloatReduceSum, testFloatSoftmaxGrad, testFloatSoftmaxCrossEntropy, testFloatSoftmaxCrossEntropyGrad
+- New kernels: SoftmaxCrossEntropy, SoftmaxCrossEntropyGrad, SoftmaxGrad, ReduceSum
+- Refinements in operator parsers and computeShape logic for: Softmax, Mul, Reducesum
+
+### Changed
+- Enhanced layernorm operator to support three outputs (layernormout, mean, std) for compatibility with training-related layernormgrad in the future.
+## Implemented Updates for handling Quantized Linear DNN
+
+### Added
+- New `_sanitizeGraphNames` function to sanitize the names of the nodes and tensors of the graph
+- Implementation for both Generic and Siracusa targets in the Deeploy framework
+- Modified the binding of dequant in `Bindings.py` to handle int32 after GEMM operation
+
+## Add Support for CCT Last Layer Training with Dim 8-128
+
+### Added
+- Support for SoftmaxCrossEntropyLoss and SoftmaxCrossEntropyLossGrad with tiling.
+- Implementation of SGD updates for CCT training.
+- Test for one iteration of CCT last-layer training with dimensions from 8 to 128.
+
+### Changed
+- Modified the outputs of LayerNorm and SoftmaxCrossEntropyLoss nodes to a single output for better tiling compatibility.
+- Added SGD parameter updates to the CCT training graph.
+
+## One GVSoC to Simulate Them All
+
+### Added
+- All Banshee dependencies now have a frozen version. This improves maintainability as some packages get yanked for the old versions of Rust.
+- Increase the L2 buffer size for loading files from Flash to RAM. This speeds up the simulation setup time.
+- Align the GVSoC simulation command and build command for the new version.
+- Bump new version of GVSoC and PULP-SDK
+
+## One LLVM To Compile Them All
+
+### Added
+- Build flow and its Docker integration for LLVM 15 tagged `15.0.0-snitch-0.1.0'
+- Picolibc build flow for v32im, v32ima, rv32imc and rv32imafd. Previously, it was only for rv32imc.
+- LLVM Compiler RT for rv32im, rv32ima, and rv32imafd.
+- Appropriate linking of picolibc and compiler RT.
+- Build and install a flow for XTensor, XTL, and XSIMD. These libraries are used in some GVSoC models, and they used to live in the PULP SDK, as a header-only library. Keeping only the library headers in the PULP SDK makes it hard to bump new versions.
+
+### Changed
+- Officially depreciate Banshee as a simulator for Snitch Cluster in the CI. Maintaining this is a burden and unnecessary, as GVSoC is now the standard simulator. Additionally, newer versions of the Snitch runtime don't support Banshee anymore.
+- Bump XTensor's version to `0.25.0` to fix a bug with Intel's SSE.
+- Update snitch cluster patch to link to picolibc and add explicit target.
+- Update README to include Snitch in the Getting Started and the D&T Journal.
+
+### Removed
+- Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
+- Remove the sourcing of the cursed PULP SDK script.
+
+## rv32imf_xpulpv2 ISA support for Siracusa platform
+
+### Changed
+- The ISA for the Siracusa platform has been updated from rv32imc_zfinx_xpulpv2 to rv32imf_xpulpv2.
+- All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
