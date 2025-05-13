@@ -69,9 +69,9 @@ jobs:
         testFloat2DConvolutionZeroBias
         testFloatLayerNorm
         testFloatDiv
-        testFloatDW2DConvolution
-        testFloatDW2DConvolutionBias
-        testFloatDW2DConvolutionZeroBias
+        testFloat2DDWConvolution
+        testFloat2DDWConvolutionBias
+        testFloat2DDWConvolutionZeroBias
         testFloatRelu
         testFloatMaxPool
         testFloatMatmul
