@@ -3136,8 +3136,8 @@ class NetworkDeployer(NetworkContainer):
                                name: str,
                                inputs: Optional[List[gs.Tensor]] = None,
                                outputs: Optional[List[gs.Tensor]] = None) -> gs.Node:
-        assert node.op == "Constant"
-        assert "value" in node.attrs
+        assert node.op == "Constant", f"Expected a Constant node, received node of op {node.op}"
+        assert "value" in node.attrs, f"Constant node doesn't have a \"value\" attribute"
         value = node.attrs["value"]
         if isinstance(value, gs.Constant):
             newValue = gs.Constant(f'{value.name}_OF_{name}', value.values.copy())
@@ -3161,7 +3161,7 @@ class NetworkDeployer(NetworkContainer):
             for node in tensor.outputs:
                 newConst = tensor.copy()
                 newConst.name += f"_DUPLICATE_FOR_{node.name}"
-                assert isinstance(node, gs.Node)
+                assert isinstance(node, gs.Node), f"Expected node to be an instance of gs.Node. Received {type(node)}"
                 node.inputs.insert(node.inputs.index(tensor), newConst)
             tensor.outputs.clear()
 
@@ -3170,7 +3170,9 @@ class NetworkDeployer(NetworkContainer):
         for node in filter(lambda n: n.op == "Constant" and len(n.outputs) > 1, nodes):
             output_tensors = list(node.outputs)
             for tensor in output_tensors:
-                assert len(tensor.inputs) == 1
+                assert len(
+                    tensor.inputs
+                ) == 1, f"Expected output tensor to have only a single input. The tensor has {len(tensor.inputs)}"
                 tensor.inputs.clear()
                 newConst = self._duplicateConstantNode(
                     node,
@@ -3185,7 +3187,9 @@ class NetworkDeployer(NetworkContainer):
                            nodes):
             tensor = node.outputs[0]
             for downstreamNode in tensor.outputs:
-                assert isinstance(downstreamNode, gs.Node)
+                assert isinstance(
+                    downstreamNode, gs.Node
+                ), f"Expected the downstream node to be an instance of gs.Node. Received {type(downstreamNode)}"
                 newTensor = tensor.copy()
                 newTensor.name += f"_DUPLICATE_FOR_{downstreamNode.name}"
                 newNode = self._duplicateConstantNode(
