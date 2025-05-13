@@ -38,5 +38,6 @@ dependencies = [
 "ninja",
 "plotly"
 ]
-[tool.setuptools]
-packages = ['Deeploy']
+[tool.setuptools.packages.find]
+include = ["Deeploy*"]
+exclude = ["DeeployTest*"]
