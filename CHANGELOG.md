@@ -287,5 +287,6 @@ Change main.c to use OUTPUTTYPE instead of float
 ## Add Generic Float DW Conv2D Kernel
 
 ### Added
-- Binding & kernel for generic float DW Conv2D
-- Bias handling (but no kernel implementation) for regular and DW Conv2D parsing
+- Generic float DW Conv2D kernel and bindings.
+- Bias handling and computation for regular and DW Conv2D.
+- Tests for Conv2D regular and DW, with and without bias (and included them in the CI pipeline).
