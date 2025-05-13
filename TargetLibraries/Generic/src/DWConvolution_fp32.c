@@ -40,44 +40,49 @@ void DWConv2d_fp32_fp32_fp32_NCHW(const float32_t *__restrict__ pSrcA,
   uint32_t W_out = (W_padded - Q) / SQ + 1;
 
   // Prepare variables
-  uint32_t c, h, w, p, q;
+  uint32_t c, h, w, p, q, f;
 
   // Compute output with bias
   if (has_bias) { 
-    for (c = 0; c < C; ++c) {
+    for(c = 0; c < C; ++c) {
       for (h = 0; h < H_out; ++h) {
         for (w = 0; w < W_out; ++w) {
+          for (f = c * F / C; f < (c + 1) * F / C; ++f) {
           float32_t sum = 0.0f;
-
-          for (p = 0; p < P; ++p) {
-            for (q = 0; q < Q; ++q) {
-              sum += pSrcA[c * H_padded * W_padded + (h * SP + p) * W_padded +
-                          (w * SQ + q)] *
-                    pSrcB[c * P * Q + p * Q + q];
+            
+            for (p = 0; p < P; ++p) {
+              for (q = 0; q < Q; ++q) {
+                sum += pSrcA[c * H_padded * W_padded + (h * SP + p) * W_padded +
+                            (w * SQ + q)] *
+                      pSrcB[f * P * Q + p * Q + q];
+              }
             }
-          }
 
-          pDstC[c * H_out * W_out + h * W_out + w] = sum + pSrcBias[c];
+          pDstC[f * H_out * W_out + h * W_out + w] = sum + pSrcBias[f];
+          }
         }
       }
     }
   }
+
   // Compute output without bias
   else {
-    for (c = 0; c < C; ++c) {
+    for(c = 0; c < C; ++c) {
       for (h = 0; h < H_out; ++h) {
         for (w = 0; w < W_out; ++w) {
-          float32_t sum = 0.0f;
-
-          for (p = 0; p < P; ++p) {
-            for (q = 0; q < Q; ++q) {
-              sum += pSrcA[c * H_padded * W_padded + (h * SP + p) * W_padded +
-                          (w * SQ + q)] *
-                    pSrcB[c * P * Q + p * Q + q];
+          for (f = c * F / C; f < (c + 1) * F / C; ++f) {
+            float32_t sum = 0.0f;
+          
+            for (p = 0; p < P; ++p) {
+              for (q = 0; q < Q; ++q) {
+                sum += pSrcA[c * H_padded * W_padded + (h * SP + p) * W_padded +
+                            (w * SQ + q)] *
+                      pSrcB[f * P * Q + p * Q + q];
+              }
             }
+          
+            pDstC[f * H_out * W_out + h * W_out + w] = sum;
           }
-
-          pDstC[c * H_out * W_out + h * W_out + w] = sum;
         }
       }
     }
