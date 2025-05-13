@@ -1074,7 +1074,8 @@ class NodeParser():
 
         return ctxt
 
-    def _unpack_const(self, attr) -> Union[int, float]:
+    @staticmethod
+    def _unpack_const(attr) -> Union[int, float]:
         """DON'T OVERRIDE - Helper function to get a Python scalar from an ONNX attribute.
         The attributes can either be a numpy scalar value or a Constant tensor.
         This expects the numpy value to be of size 1.

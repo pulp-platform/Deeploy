@@ -26,7 +26,7 @@
 # limitations under the License.
 
 import math
-from typing import Tuple, Union
+from typing import Tuple
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -101,20 +101,6 @@ class iRMSNormParser(NodeParser):
 
 class RQSParserInterface():
 
-    def _unpack_const(self, attr) -> Union[int, float]:
-        """DON'T OVERRIDE - Helper function to get a Python scalar from an ONNX attribute.
-        The attributes can either be a numpy scalar value or a Constant tensor.
-        This expects the numpy value to be of size 1.
-        """
-        if isinstance(attr, gs.Constant):
-            value = attr.values
-        elif isinstance(attr, np.ndarray):
-            value = attr
-        else:
-            assert False, f"Unsupported attribute type {type(attr)}"
-        assert value.size == 1, f"Expected attribute of size 1. Got an array of shape {value.shape}"
-        return value.item()
-
     def parseNode(self, node: gs.Node) -> bool:
         if not all([
                 'div' in node.attrs,
@@ -124,9 +110,9 @@ class RQSParserInterface():
             return False
 
         n_levels = node.attrs['n_levels'] if 'n_levels' in node.attrs else node.attrs['n_levels_out']
-        self.operatorRepresentation['n_levels'] = int(self._unpack_const(n_levels))
-        self.operatorRepresentation['signed'] = int(self._unpack_const(node.attrs['signed']))
-        self.operatorRepresentation['log2D'] = int(math.log2(self._unpack_const(node.attrs['div'])))
+        self.operatorRepresentation['n_levels'] = int(NodeParser._unpack_const(n_levels))
+        self.operatorRepresentation['signed'] = int(NodeParser._unpack_const(node.attrs['signed']))
+        self.operatorRepresentation['log2D'] = int(math.log2(NodeParser._unpack_const(node.attrs['div'])))
 
         return True
 
