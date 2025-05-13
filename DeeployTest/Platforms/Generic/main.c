@@ -60,7 +60,7 @@ int main() {
       actual = ((OUTPUTTYPE *)DeeployNetwork_outputs[buf])[i];
       diff = expected - actual;
 
-#if OUTPUTTYPE == float32_t
+#if ISOUTPUTFLOAT == 1
       // RUNWANG: Allow margin of error for float32_t
       if ((diff < -1e-4) || (diff > 1e-4))
       {
@@ -69,7 +69,7 @@ int main() {
         printf("Actual: %10.6f  ", (float)actual);
         printf("Diff: %10.6f at Index %12u in Output %u\r\n", (float)diff, i, buf);
       }
-#elif OUTPUTTYPE == int32_t
+#else
       // RUNWANG: No margin for integer comparison
       if (diff != 0)
       {
@@ -78,8 +78,6 @@ int main() {
         printf("Actual: %4d  ", actual);
         printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
       }
-#else
-#error "Unsupported OUTPUTTYPE"
 #endif
     }
   }

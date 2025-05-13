@@ -31,8 +31,8 @@ referenceTemplate = NodeTemplate("""
 width = int(data_in_type.referencedType.typeWidth/8)
 %>
 BEGIN_SINGLE_CORE
-for (uint32_t i=0; i<${numIndices}; ++i) {
-    memcpy(${data_out}, ${data_in} + ${indices}[i] * ${offset}, ${offset}* ${width});
+for (uint32_t i=0; i<${batch}; ++i) {
+    memcpy(${data_out} + i * ${axis_length}, ${data_in} + i * ${batch_length} + ${index} * ${axis_length}, ${axis_length} * ${width});
 }
 END_SINGLE_CORE
 """)

@@ -194,7 +194,9 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
     totalShift = int(np.log2(rqs.attrs['div'].values))
 
     # Artifically add half the shift division value to implement rounding
-    rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + 2**(totalShift - 1)
+    rounding = 2**(totalShift - 1) if totalShift > 0 else 0
+
+    rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + rounding
 
     _inputs = list(conv.inputs) + list(rqs.inputs[1:])
 
