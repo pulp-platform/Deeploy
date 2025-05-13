@@ -65,8 +65,13 @@ jobs:
         testFloatAdder
         testFloatGEMM
         testFloat2DConvolution
+        testFloat2DConvolutionBias
+        testFloat2DConvolutionZeroBias
         testFloatLayerNorm
         testFloatDiv
+        testFloatDW2DConvolution
+        testFloatDW2DConvolutionBias
+        testFloatDW2DConvolutionZeroBias
         testFloatRelu
         testFloatMaxPool
         testFloatMatmul
