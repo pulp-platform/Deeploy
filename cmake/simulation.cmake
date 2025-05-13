@@ -68,8 +68,6 @@ endfunction()
 # The macro creates a new gvsoc_<name> cmake target which executes the final
 # binary on the gvsoc simulator. To give extra flags to the gvsoc command, set
 # the GVSOC_EXTRA_FLAGS variable.
-# The `v2` naming is temporary until we don't remove the equivalent command
-# used for the PULP and Siracusa targets.
 macro(add_gvsoc_emulation name target)
 	if(NOT DEFINED ENV{GVSOC_INSTALL_DIR})
 		message(FATAL_ERROR "Environment variable GVSOC_INSTALL_DIR not set")
