@@ -88,7 +88,11 @@ void ITAPartialMax_s8(int8_t const *__restrict__ pSrcA,
                       uint32_t lastDimLength, uint32_t group_width,
                       uint32_t n_levels);
 
-void Softmax_fp32_fp32(float32_t* input, float32_t* output, int32_t size, int32_t last_dim_length);
+void Softmax_fp32_fp32(float32_t *input, float32_t *output, int32_t size,
+                       int32_t last_dim_length);
 
-void SoftmaxGrad_fp32_fp32_fp32(float32_t* upstream_grad, float32_t* softmax_output, float32_t* softmax_gradient,int32_t size, int32_t last_dim_length);
+void SoftmaxGrad_fp32_fp32_fp32(float32_t *upstream_grad,
+                                float32_t *softmax_output,
+                                float32_t *softmax_gradient, int32_t size,
+                                int32_t last_dim_length);
 #endif //__DEEPLOY_BASIC_MATH_SOFTMAX_KERNEL_HEADER_

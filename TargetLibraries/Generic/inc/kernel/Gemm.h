@@ -64,14 +64,10 @@ void Gemm_s8_s8_s32_s32(int8_t const *__restrict__ pSrcA,
                         int32_t C_offset, int32_t Y_offset);
 
 void Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
-                               const float32_t *__restrict__ pSrcB,
-                               const float32_t *__restrict__ pDstC, 
-                               float32_t *__restrict__ pDstY,
-                               uint32_t M,
-                               uint32_t N, 
-                               uint32_t O,
-                               int32_t transA,
-                               int32_t transB
-                               );
+                              const float32_t *__restrict__ pSrcB,
+                              const float32_t *__restrict__ pDstC,
+                              float32_t *__restrict__ pDstY, uint32_t M,
+                              uint32_t N, uint32_t O, int32_t transA,
+                              int32_t transB);
 
 #endif //__DEEPLOY_BASIC_MATH_GEMM_KERNEL_HEADER_
