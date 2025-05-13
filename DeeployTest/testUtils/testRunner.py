@@ -27,6 +27,7 @@ import argparse
 import codecs
 import os
 import re
+import shutil
 import subprocess
 from typing import Literal, Tuple
 
@@ -302,8 +303,6 @@ class TestRunner():
         if tiling is not argument_parser.tiling_arguments:
             raise ValueError("Specified argument parser without tile arguments for tiling test or vice versa!")
 
-        assert "CMAKE" in os.environ, "Environment variable CMAKE not set"
-
         self._platform = platform
         self._simulator = simulator
         self._tiling = tiling
@@ -318,6 +317,14 @@ class TestRunner():
         self._dir_toolchain = os.path.normpath(self._args.toolchain_install_dir)
         self._dir_build = f"{self._dir_gen_root}/build"
         self._dir_gen, self._dir_test, self._name_test = getPaths(self._args.dir, self._dir_gen_root)
+
+        if "CMAKE" not in os.environ:
+            if self._args.verbose >= 1:
+                prRed(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
+            assert shutil.which(
+                "cmake"
+            ) is not None, "CMake not found. Please check that CMake is installed and available in your system’s PATH, or set the CMAKE environment variable to the full path of your preferred CMake executable."
+            os.environ["CMAKE"] = "cmake"
 
         print("Generation Directory: ", self._dir_gen)
         print("Test Directory      : ", self._dir_test)
