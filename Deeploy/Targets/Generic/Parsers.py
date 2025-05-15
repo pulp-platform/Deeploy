@@ -2151,20 +2151,7 @@ class GenericConv2DParser(Conv2DParser):
                 self.operatorRepresentation["bias"] = "NULL"
 
             for idx, inputNode in enumerate(node.inputs):
-                # Check if bias is all 0s, to remove it for efficiency
-                if inputs[idx] == "bias" and np.all(ctxt.lookup(inputNode.name).values == 0):
-                    # Set operator representation as if no bias has been used
-                    self.operatorRepresentation["has_bias"] = "false"
-                    self.operatorRepresentation["bias"] = "NULL"
-
-                    # Update contexts
-                    ctxt.globalObjects.pop(inputNode.name, None)
-                    newCtxt.globalObjects.pop(inputNode.name, None)
-
-                    # Remove bias from ONNX node
-                    del node.inputs[idx]
-                else:
-                    self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
             return newCtxt, True
         else:
@@ -2217,20 +2204,7 @@ class GenericDWConv2DParser(Conv2DParser):
                 self.operatorRepresentation["bias"] = "NULL"
 
             for idx, inputNode in enumerate(node.inputs):
-                # Check if bias is all 0s, to remove it for efficiency
-                if inputs[idx] == "bias" and np.all(ctxt.lookup(inputNode.name).values == 0):
-                    # Set operator representation as if no bias has been used
-                    self.operatorRepresentation["has_bias"] = "false"
-                    self.operatorRepresentation["bias"] = "NULL"
-
-                    # Update contexts
-                    ctxt.globalObjects.pop(inputNode.name, None)
-                    newCtxt.globalObjects.pop(inputNode.name, None)
-
-                    # Remove bias from ONNX node
-                    del node.inputs[idx]
-                else:
-                    self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
             if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
                 return newCtxt, True

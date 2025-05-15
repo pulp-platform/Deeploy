@@ -26,6 +26,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
+    RemoveEmptyConvBiasPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBinding, BasicConv2DBindings, \
@@ -170,6 +172,7 @@ GenericOptimizer = TopologyOptimizer([
     MergeConstAddAndRequantPass(),
     ExtractPaddingFromConvPass(),
     ExtractPaddingFromPoolPass(),
+    RemoveEmptyConvBiasPass(),
     # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
 ])
 
