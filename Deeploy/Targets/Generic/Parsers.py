@@ -27,7 +27,6 @@
 # limitations under the License.
 
 import math
-import warnings
 from typing import Tuple
 
 import numpy as np
@@ -2166,7 +2165,7 @@ class GenericConv2DParser(Conv2DParser):
                     del node.inputs[idx]
                 else:
                     self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-                    
+
             return newCtxt, True
         else:
             return ctxt, False
