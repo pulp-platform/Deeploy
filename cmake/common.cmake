@@ -12,7 +12,6 @@ add_library(deeploylib INTERFACE)
 add_compile_options(
     -std=gnu99
 
-    -ffast-math
     -fdiagnostics-color=always
 
     -Wunused-variable
@@ -29,12 +28,10 @@ add_compile_options(
 add_link_options(
     -std=gnu99
 
-    -ffast-math
     -fdiagnostics-color=always
 
     -Wunused-variable
     -Wconversion
     -Wall
     -Wextra
-    -Wl,--gc-sections
 )
