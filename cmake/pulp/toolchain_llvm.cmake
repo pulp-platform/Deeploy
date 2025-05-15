@@ -19,6 +19,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 add_compile_options(
   -target riscv32-unknown-elf
   -march=${ISA}
+  -mabi=ilp32f
   -ffunction-sections
   -fdata-sections
   -fomit-frame-pointer
@@ -38,8 +39,9 @@ add_link_options(
   -MP
   -nostartfiles
   -march=${ISA}
+  -mabi=ilp32f
   -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imf/lib
-  -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imc/
+  -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imf/
   -z norelro
   -fno-builtin-memcpy
   -fno-builtin-memset
