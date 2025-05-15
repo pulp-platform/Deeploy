@@ -1,5 +1,7 @@
 # Deeploy
 
+[![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
+)](https://pulp-platform.github.io/Deeploy/)
 ![CI](https://github.com/pulp-platform/Deeploy/actions/workflows/CI.yml/badge.svg?branch=devel)
 ![Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/BuildDocker.yml/badge.svg)
 [![GitHub last commit](https://img.shields.io/github/last-commit/pulp-platform/Deeploy)](#)
@@ -16,6 +18,12 @@ Unless specified otherwise in the respective file headers, all code checked into
 
 ## Getting started
 
+Download the repository and its submodules:
+```
+git clone https://github.com/pulp-platform/Deeploy.git && cd Deeploy
+git submodule update --init --recursive
+```
+
 Installing Deeploy is as simple as running:
 ```
 pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
@@ -26,14 +34,13 @@ We provide a Docker container where Deeploy works Out-of-the-Box (*i.e.* with al
 ```
 docker pull ghcr.io/pulp-platform/deeploy:main
 ```
-Then you can start the container in interactive mode with:
+Then you can create and start the container in interactive mode with:
 ```
-docker run -it ghcr.io/pulp-platform/deeploy:main
+docker run -it --name deeploy_main $(pwd):/app/Deeploy ghcr.io/pulp-platform/deeploy:main
 ```
-From the container, clone Deeploy, its submodules, and install the package with:
+Install Deeploy inside the container in editable mode:
 ```
-git clone https://github.com/pulp-platform/Deeploy.git && cd Deeploy
-git submodule update --init --recursive
+cd Deeploy
 pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
 ```
 Congratulations, you installed Deeploy and its dependencies! Now, to test your installation let's run one simple test on each platform with the following commands:
@@ -46,10 +53,16 @@ python testRunner_siracusa.py -t Tests/Adder --cores=8
 python testRunner_snitch.py -t Tests/Adder --cores=9
 ```
 
+To restart and connect to the container, run:
+```
+docker start -i deeploy_main
+cd Deeploy
+```
+
 You can find the ONNX file in `DeeployTest/Tests/Adder`, to visualize it, you can use [Netron](https://netron.app/). You can also find the generated code for the platform X in `TEST_X` in `DeeployTest` and you should notice that the generated code for the `Adder` test is very simple. However, this gets more complex when you add tiling. Let's generate the code for a single layer but using tiling this time:
 ```
 python testRunner_tiled_siracusa.py -t Tests/testMatMul --cores=8 --l1=16000
-``` 
+```
 Now you can open the generated code in `DeeployTest/TEST_SIRACUSA/Tests/testMatMul/Network.c` and see how we executed a tiled layer.
 
 ## Supported Platforms
@@ -103,8 +116,8 @@ The preprint is available on arXiv @ [arXiv:2408.04413](https://arxiv.org/abs/24
 ```
 @article{WieseTowardAttentionBasedTinyML2025,
   author={Wiese, Philip and İslamoğlu, Gamze and Scherer, Moritz and Macan, Luka and Jung, Victor J.B. and Burrello, Alessio and Conti, Francesco and Benini, Luca},
-  journal={IEEE Design & Test}, 
-  title={Toward Attention-based TinyML: A Heterogeneous Accelerated Architecture and Automated Deployment Flow}, 
+  journal={IEEE Design & Test},
+  title={Toward Attention-based TinyML: A Heterogeneous Accelerated Architecture and Automated Deployment Flow},
   year={2025},
   pages={1-1},
   keywords={Tiny machine learning;Transformers;Memory management;Hardware acceleration;Bandwidth;Registers;Software;Engines;Energy efficiency;Computational modeling;Neural Networks;TinyML;Deployment;Transformers;Accelerators},
