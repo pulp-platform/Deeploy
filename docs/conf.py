@@ -56,3 +56,15 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "*flycheck_*"]
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+# -- Options for HTML templates ------------------------------------------------
+
+# Extract branch name from git
+branch = os.popen("git rev-parse --abbrev-ref HEAD").read().strip()
+
+html_context = {
+    'current_version':
+        f"{branch}",
+    'versions': [["main", f"https://pulp-platform.github.io/Deeploy"],
+                 ["devel", f"https://pulp-platform.github.io/Deeploy/branch/devel"]],
+}

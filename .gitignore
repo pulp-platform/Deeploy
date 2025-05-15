@@ -6,6 +6,7 @@ dist
 *.vscode
 .DS_Store
 *.html
+!docs/_templates/*
 *.csv
 .ipynb_checkpoints/
 *#
