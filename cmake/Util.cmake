@@ -11,7 +11,7 @@ macro(add_deeploy_executable name)
     add_custom_command(
         TARGET ${name}
         POST_BUILD
-        COMMAND ${CMAKE_OBJDUMP} -DS $<TARGET_FILE:${name}> > $<TARGET_FILE:${name}>.dump)
+        COMMAND ${CMAKE_OBJDUMP} -dhS $<TARGET_FILE:${name}> > $<TARGET_FILE:${name}>.s)
 endmacro()
 
 macro(link_compile_dump name)

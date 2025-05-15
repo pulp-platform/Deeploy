@@ -104,11 +104,9 @@ if(platform STREQUAL SoftHier)
   if(TOOLCHAIN STREQUAL LLVM)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/toolchain_llvm.cmake)
   else()
-    # bowwang: CMake global config
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/toolchain_gcc.cmake)
   endif()
 
-  # bowwang: adapted configuration from flex_cluster_arch.py
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/softhier.cmake)
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/softhier_gvsoc.cmake)
 
@@ -133,7 +131,6 @@ if(platform STREQUAL SoftHier)
   message(STATUS "================================================================================")
   message(STATUS "")
 
-  # bowwang TODO: to be developed
   add_subdirectory(TargetLibraries/SoftHier)
   add_subdirectory(DeeployTest)
 

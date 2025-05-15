@@ -461,17 +461,11 @@ ${TOOLCHAIN_DIR}/softhier:
 	cp ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/deeploy_include/* ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include      
 
 ${SOFTHIER_INSTALL_DIR}: ${TOOLCHAIN_DIR}/softhier
-	if [ "${SOFTHIER_INSTALL_DIR}" != "/app/install/softhier" ]; then \
-		cd ${TOOLCHAIN_DIR}/softhier && \
-		. sourceme.sh && \
-		make hw-deeploy; \
-	else \
-		cp -r ${TOOLCHAIN_DIR}/softhier ${SOFTHIER_INSTALL_DIR} && \
-		rm -rf ${TOOLCHAIN_DIR}/softhier && \
-		cd ${SOFTHIER_INSTALL_DIR} && \
-		. sourceme.sh && \
-		make hw-deeploy; \
-	fi
+	cp -r ${TOOLCHAIN_DIR}/softhier ${SOFTHIER_INSTALL_DIR} && \
+	rm -rf ${TOOLCHAIN_DIR}/softhier && \
+	cd ${SOFTHIER_INSTALL_DIR} && \
+	. sourceme.sh && \
+	make hw-deeploy
 
 # bowwang: trim toolchain to make the container lighter
 softhier: ${SOFTHIER_INSTALL_DIR}
