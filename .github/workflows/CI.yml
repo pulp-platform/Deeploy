@@ -893,6 +893,8 @@ jobs:
       - name: Run Test
         run: |
           cd DeeployTest
+          python testPrintInputOutputTransformation.py -p Generic -t ./Tests/simpleRegression
+          python testPrintInputOutputTransformation.py -p Siracusa -t ./Tests/simpleRegression
           python testDebugPrintPass.py -p Generic -t ./Tests/simpleRegression
         shell: bash
 

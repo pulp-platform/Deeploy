@@ -80,7 +80,10 @@ class PrintInputGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         for ref in references:
             refDict = self._getRepDict(ctxt, ref, name)
@@ -120,7 +123,10 @@ class MemoryAwarePrintInputGeneration(MemoryAwareGeneration, PrintInputGeneratio
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 
@@ -158,7 +164,10 @@ class PrintOutputGeneration(CodeTransformationPass, IntrospectiveCodeTransformat
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         for ref in references:
             rep = self._getRepDict(ctxt, ref, name)
@@ -176,7 +185,10 @@ class MemoryAwarePrintOutputGeneration(MemoryAwareGeneration, PrintOutputGenerat
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 
@@ -205,7 +217,10 @@ class PrintConstantGeneration(CodeTransformationPass, IntrospectiveCodeTransform
     def apply(self, ctxt: NetworkContext, executionBlock: ExecutionBlock,
               name: str) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         for ref in references:
             rep = self._getRepDict(ctxt, ref, name)
@@ -223,7 +238,10 @@ class MemoryAwarePrintConstantGeneration(MemoryAwareGeneration, PrintConstantGen
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 
