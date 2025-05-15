@@ -25,6 +25,7 @@
  * limitations under the License.
  */
 #include "DeeployBasicMath.h"
+#include <math.h>
 
 void Softmax_fp32_fp32(float32_t* input, float32_t* output, int32_t size, int32_t last_dim_length) {
 

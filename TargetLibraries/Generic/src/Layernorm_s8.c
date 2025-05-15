@@ -71,20 +71,19 @@ void Layernorm_s8_s8(int8_t *data_in, int8_t *data_out, int32_t *weight,
                      int32_t lastDimLength, int32_t log2D) {
 
   int32_t mean;
-  // int16_t temp[size];
   int32_t sum;
   int32_t std;
   int16_t temp;
 
-  for (int i = 0; i < (size / lastDimLength); i++) {
+  for (int lastDimStart = 0; lastDimStart < size; lastDimStart += lastDimLength) {
     sum = 0;
     mean = 0;
     for (int j = 0; j < lastDimLength; j++) {
-      mean += data_in[j + i * lastDimLength] + input_offset;
+      mean += data_in[lastDimStart + j] + input_offset;
     }
     mean = mean / lastDimLength;
     for (int j = 0; j < lastDimLength; j++) {
-      temp = (int16_t)(data_in[j + i * lastDimLength] + input_offset - mean);
+      temp = (int16_t)(data_in[lastDimStart + j] + input_offset - mean);
       sum += temp * temp;
     }
     sum = sum / lastDimLength;
@@ -92,8 +91,8 @@ void Layernorm_s8_s8(int8_t *data_in, int8_t *data_out, int32_t *weight,
     _plp_sqrt_q32(&sum, 0, &std);
 
     for (int j = 0; j < lastDimLength; j++) {
-      data_out[j + i * lastDimLength] =
-          (int8_t)((((((int64_t)data_in[j + i * lastDimLength]) + input_offset -
+      data_out[lastDimStart + j] =
+          (int8_t)((((((int64_t)data_in[lastDimStart + j]) + input_offset -
                       mean) *
                      weight[j]) /
                         (std) +

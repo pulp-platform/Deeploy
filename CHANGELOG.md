@@ -3,6 +3,31 @@
 ## Unreleased
 
 
+## Bunch of fixes and changes
+
+### Added
+- check for CMAKE variable and fallback to searching for cmake
+- tensor name mangling
+- identity operation removal
+- _unpack_const helper function to NodeParser to allow for node attributes that are direct Constant tensors or direct numpy values
+- load_file_to_local in dory_mem as a way to load values directly to a local memory (not ram). needed for copying values from flash to wmem needed for Neureka v2
+
+### Changed
+- duplicateConstants now also duplicates constant nodes
+- check float output define in DeeployTest Generic platform
+- kernel_shape now inferred from weight shape if not present as per ONNX spec
+- USE_NEUREKA moved into TargetLibraries where it's closer to pulp-nnx
+- hex dumping logic for pulp platforms in prep for neureka v2 where I need to save weights to flash and move them during runtime to wmem
+- add_gvsoc_emulation macro now requires an additional target argument and abstracted adding flags to gvsoc through the GVSOC_EXTRA_FLAGS variable
+
+### Fixed
+- RequantShift when log2d is 0
+- missing math.h headers
+- clang on mac doesn't support `-Wl,--gc-sections` flag, moved it into each target and for host it's checking now for host system
+- `--ffast-math` caused numerical errors on generic so moved into each target and removed from that one since I'm imagining it as the _debug_ target
+- Gather kernel on generic target
+
+
 ## Deploy Documentation with Sphinx and GitHub Pages
 
 ### Added
@@ -284,7 +309,11 @@ Change main.c to use OUTPUTTYPE instead of float
 - The ISA for the Siracusa platform has been updated from rv32imc_zfinx_xpulpv2 to rv32imf_xpulpv2.
 - All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
 
+## Small changes
+- HOTFIX: Deeploy subdirectories installed when installing Deeploy with pip install
+
+
 ## Add RV32IMF Picolibc support for Siracusa platform
 
-## Added
+### Added
 - Adds RV32IMF Picolib to the toolchain
