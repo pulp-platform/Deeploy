@@ -59,6 +59,5 @@ void MaxPool2d_s8_s8_NCHW(int8_t const *__restrict__ pSrcA, uint32_t C,
 
 void MaxPool2d_fp32_fp32_NCHW(float32_t const *__restrict__ pSrcA, uint32_t C,
                               uint32_t H, uint32_t W, uint32_t P, uint32_t Q,
-                              uint32_t SP, uint32_t SQ,
-                              float32_t *__restrict__ pDstC);
+                              uint32_t SP, uint32_t SQ, float32_t *__restrict__ pDstC);
 #endif //__DEEPLOY_BASIC_MATH_MAXPOOL_KERNEL_HEADER_
