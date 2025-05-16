@@ -275,13 +275,7 @@ if __name__ == '__main__':
                             - max: Initalize all variables at their maximal value.
                             - min: Initalize all variables at their minimal value.
                         """)
-    parser.add_argument(
-        '--profileTiling',
-        metavar = 'profileTiling',
-        dest = 'profileTiling',
-        type = str,
-        default = None,
-    )
+    parser.add_argument('--profileTiling', action = "store_true")
     parser.add_argument('--plotMemAlloc',
                         action = 'store_false',
                         help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
@@ -291,8 +285,8 @@ if __name__ == '__main__':
 
     verbosityCfg = CodeGenVerbosity(None)
 
-    if args.profileTiling is not None:
-        verbosityCfg.tilingProfiling = args.profileTiling
+    if args.profileTiling:
+        verbosityCfg.tilingProfiling = True
 
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)

@@ -314,7 +314,8 @@ class PULPClusterTilingDB(PULPClusterTilingSB):
         metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'] + "_L2",
                                   nodeOps = operatorRepresentation['nodeOps'],
                                   numTiles = len(tilingSchedule.outputLoadSchedule),
-                                  tileIdxVar = "TILING_I")
+                                  tileIdxVar = "TILING_I",
+                                  kernelLevelTiling = True)
 
         newExecutionBlock = self.generateAllTilingCode(executionBlock, metaInfo, ingressDMATransferCalls,
                                                        ingressDMAWaitStatements[-1:], ingressDMAUpdates,

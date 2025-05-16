@@ -43,8 +43,8 @@ from ortools.constraint_solver.pywrapcp import IntVar, SolutionCollector
 import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
-from Deeploy.DeeployTypes import ConstantBuffer, GlobalDefinition, NetworkContext, NodeBinding, NodeTemplate, \
-    ONNXLayer, Schedule, SubGraph, TransientBuffer, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeBinding, NodeTemplate, ONNXLayer, Schedule, \
+    SubGraph, TransientBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
@@ -89,101 +89,87 @@ class Tiler():
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
 
-    def plotMemoryAlloc(self,
-                        memoryMap: Dict[str, List[List[MemoryBlock]]],
-                        ctxt: NetworkContext,
-                        deeployStateDir: str,
-                        defaultMemoryLevel: MemoryLevel,
-                        targetMemLevelName: str = 'L1'):
+    def plotMemoryAlloc(self, memoryMap: Dict[str, List[List[MemoryBlock]]], ctxt: NetworkContext, deeployStateDir: str,
+                        memoryHierarchy: MemoryHierarchy):
 
-        innerMemoryAllocDir = os.path.join(deeployStateDir, f"MemoryAlloc{targetMemLevelName}")
         os.makedirs(os.path.abspath(deeployStateDir), exist_ok = True)
-        os.makedirs(os.path.abspath(innerMemoryAllocDir), exist_ok = True)
-        defaultMemLevelPlotPath = os.path.abspath(
-            os.path.join(deeployStateDir, f"memory_alloc_{defaultMemoryLevel.name}.html"))
+        memoryAllocPlotPath = os.path.abspath(os.path.join(deeployStateDir, f"memory_alloc.html"))
 
         addTraceConfig = {"fill": "toself", "hoverinfo": "text", "mode": "lines", "line": dict(width = 2)}
 
-        updateLayoutConfig = {
-            "xaxis_title": "Lifetime",
-            "yaxis_title": "Address Space (Bytes)",
-            "xaxis": dict(tickformat = "d", showgrid = True),
-            "yaxis": dict(tickformat = "d", showgrid = True),
-            "hovermode": "closest",
-            "showlegend": False,
-        }
-
-        fig = go.Figure()
-
-        # JUNGVI: Currently I/O have infinite lifetime, will change that soon...
-        infiniteLifetimeBuffers = [
-            buffer for buffer in ctxt.globalObjects.values()
-            if not self.arenaName in buffer.name and isinstance(buffer, VariableBuffer)
-        ]
-
-        constantBuffersOffset = 0
-        for ioBuffers in infiniteLifetimeBuffers:
-            _ioSize = np.prod(ioBuffers.shape) * ioBuffers._type.referencedType.typeWidth // 8
-            _maxLifetime = len(memoryMap[defaultMemoryLevel.name])
-            fig.add_trace(
-                go.Scatter(x = [-0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5],
-                           y = [
-                               constantBuffersOffset, constantBuffersOffset + _ioSize, constantBuffersOffset + _ioSize,
-                               constantBuffersOffset
-                           ],
-                           name = ioBuffers.name,
-                           text = ioBuffers.name,
-                           **addTraceConfig))
-            constantBuffersOffset += _ioSize
-
-        for buffer in memoryMap[defaultMemoryLevel.name][-1]:
-            fig.add_trace(
-                go.Scatter(x = [
-                    buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
-                    buffer._lifetime[1] + 0.5
-                ],
-                           y = [
-                               constantBuffersOffset + buffer._addrSpace[0],
-                               constantBuffersOffset + buffer._addrSpace[1],
-                               constantBuffersOffset + buffer._addrSpace[1],
-                               constantBuffersOffset + buffer._addrSpace[0]
-                           ],
-                           name = buffer.name,
-                           text = buffer.name,
-                           **addTraceConfig))
-
-        fig.add_trace(
-            go.Scatter(
-                x = [-0.5, len(memoryMap[defaultMemoryLevel.name]) - 1.5],
-                y = [defaultMemoryLevel.size, defaultMemoryLevel.size],
-                name = f"{defaultMemoryLevel.name} Memory Size",
-                text = f"{defaultMemoryLevel.name} Memory Size",
-                line = dict(color = "red", width = 2, dash = "dash"),
-                fill = "toself",
-                hoverinfo = "text",
-                mode = "lines",
-            ))
-        fig.update_layout(title = f"Deeploy Memory Allocation {defaultMemoryLevel.name}", **updateLayoutConfig)
-        pio.write_html(fig, defaultMemLevelPlotPath)
-
-        for step_idx, innerMemoryAlloc in enumerate(memoryMap[targetMemLevelName]):
-            targetMemLevelPlotPath = os.path.abspath(
-                os.path.join(innerMemoryAllocDir, f"memory_alloc_{targetMemLevelName}_step{step_idx}.html"))
+        def plotSingleMemoryLevel(memoryLevel: MemoryLevel):
+            """ Generates a single Plotly subplot for a memory level. """
             fig = go.Figure()
-            for buffer in innerMemoryAlloc:
+            constantBuffersOffset = 0
+
+            infiniteLifetimeBuffers = [
+                buffer for buffer in ctxt.globalObjects.values()
+                if not self.arenaName in buffer.name and isinstance(buffer, ConstantBuffer)
+            ]
+
+            constantBuffersOffset = 0
+            for ioBuffer in infiniteLifetimeBuffers:
+                if not ioBuffer._memoryLevel == memoryLevel.name:
+                    continue
+                _ioSize = np.prod(ioBuffer.shape) * ioBuffer._type.referencedType.typeWidth // 8
+                _maxLifetime = len(memoryMap[memoryLevel.name])
                 fig.add_trace(
-                    go.Scatter(
-                        x = [
+                    go.Scatter(x = [-0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5],
+                               y = [
+                                   constantBuffersOffset, constantBuffersOffset + _ioSize,
+                                   constantBuffersOffset + _ioSize, constantBuffersOffset
+                               ],
+                               name = ioBuffer.name,
+                               text = ioBuffer.name,
+                               **addTraceConfig))
+                constantBuffersOffset += _ioSize
+
+            for memoryMapStep in memoryMap[memoryLevel.name]:
+                for buffer in memoryMapStep:
+                    fig.add_trace(
+                        go.Scatter(x = [
                             buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
                             buffer._lifetime[1] + 0.5
                         ],
-                        y = [buffer._addrSpace[0], buffer._addrSpace[1], buffer._addrSpace[1], buffer._addrSpace[0]],
-                        name = buffer.name,
-                        text = buffer.name,
-                        **addTraceConfig))
-            fig.update_layout(title = f"Deeploy Memory Allocation {targetMemLevelName} Step {step_idx}",
-                              **updateLayoutConfig)
-            pio.write_html(fig, targetMemLevelPlotPath)
+                                   y = [
+                                       constantBuffersOffset + buffer._addrSpace[0],
+                                       constantBuffersOffset + buffer._addrSpace[1],
+                                       constantBuffersOffset + buffer._addrSpace[1],
+                                       constantBuffersOffset + buffer._addrSpace[0]
+                                   ],
+                                   name = buffer.name,
+                                   text = buffer.name,
+                                   **addTraceConfig))
+
+            fig.update_xaxes(title_text = "Lifetime")
+            fig.update_yaxes(title_text = "Address Space (Bytes)")
+            fig.update_layout(title = f"Memory Allocation - {memoryLevel.name}", showlegend = False)
+
+            fig.add_trace(
+                go.Scatter(
+                    x = [-0.5, len(memoryMap[memoryLevel.name]) - 1.5],
+                    y = [memoryLevel.size, memoryLevel.size],
+                    name = f"{memoryLevel.name} Memory Size",
+                    text = f"{memoryLevel.name} Memory Size",
+                    line = dict(color = "red", width = 2, dash = "dash"),
+                    fill = "toself",
+                    hoverinfo = "text",
+                    mode = "lines",
+                ))
+
+            return fig
+
+        from Deeploy.TilingExtension.HtmlTemplates import getHtmlMemoryAllocationVisualisation, getSubplotHtml
+
+        subplotHtml = ""
+        for memoryLevelName in memoryMap.keys():
+            figJson = pio.to_json(plotSingleMemoryLevel(memoryHierarchy.memoryLevels[memoryLevelName]))
+            subplotHtml += getSubplotHtml(figJson, memoryLevelName)
+
+        outputHtml = getHtmlMemoryAllocationVisualisation(subplotHtml)
+
+        with open(memoryAllocPlotPath, "w", encoding = "utf-8") as f:
+            f.write(outputHtml)
 
     def _convertCtxtToStaticSchedule(self, ctxt: NetworkContext,
                                      memoryMap: Dict[str, List[List[MemoryBlock]]]) -> NetworkContext:
@@ -217,6 +203,9 @@ class Tiler():
             ctxt.add(scratchBuffer, "global")
             scratchBuffer._instance = scratchBuffer._type(arenaName, ctxt)
             scratchBuffer._memoryLevel = level
+
+            # JUNGVI: Memory Arena buffers should be allocated first since other variable global buffers may belong to a memory arena
+            ctxt.globalObjects.move_to_end(scratchBuffer.name, last = False)
 
         # SCHEREMO: Adapt homelevel tensors to their respective arena
         for memoryLevel, patternList in memoryMap.items():
@@ -375,7 +364,7 @@ class Tiler():
 
         return tilingSchedule, memoryMap
 
-    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: OrderedDict[str, ONNXLayer],
+    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
                    targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
 
         wrapSchedule: List[SubGraph] = []
@@ -582,7 +571,7 @@ class Tiler():
 
     def _setupMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: OrderedDict[str, ONNXLayer],
+            layerBinding: 'OrderedDict[str, ONNXLayer]',
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
@@ -652,14 +641,14 @@ class Tiler():
 
         # SCHEREMO: Construct global buffer constraints
 
-        globalVariableConstraint = self._generateBufferConstraints(ctxt)
+        constantBufferConstraint = self._generateBufferConstraints(ctxt)
 
         # SCHEREMO: Construct first-level constraint set (all global buffers + tensors stored in higher level)
 
         firstLevelConstraints: List[PatternMemoryConstraints] = copy.copy(outerVariableConstraints)
         for patternConstraint in firstLevelConstraints:
             for idx in range(len(patternConstraint.nodeConstraints)):
-                patternConstraint.nodeConstraints[idx] += globalVariableConstraint
+                patternConstraint.nodeConstraints[idx] += constantBufferConstraint
 
         # SCHEREMO: Construct constraint set for tiled tensors (including double buffering, excluding static global constraints)
         tiledTensorConstraints: List[PatternMemoryConstraints] = self._generateTilePathConstraints(
@@ -702,7 +691,7 @@ class Tiler():
                 dynamicTensorPattern.addConstraint(dynamicTensorPatternStep)
             inplaceTensorConstraints.append(dynamicTensorPattern)
 
-        return inplaceTensorConstraints, globalVariableConstraint
+        return inplaceTensorConstraints, constantBufferConstraint
 
     def _generateTilePath(self, tilerModel: TilerModel, ctxt: NetworkContext,
                           tensorMemoryConstraint: TensorMemoryConstraint, pattern: SubGraph) -> TensorMemoryConstraint:
@@ -787,8 +776,7 @@ class Tiler():
 
         constantGlobalConstraint: NodeMemoryConstraint = NodeMemoryConstraint()
         constantGlobalBuffers = [
-            node for node in ctxt.globalObjects.values()
-            if not isinstance(node, GlobalDefinition) and node._deploy == True
+            node for node in ctxt.globalObjects.values() if isinstance(node, ConstantBuffer) and node._deploy == True
         ]
 
         for constantBuffer in constantGlobalBuffers:
@@ -923,6 +911,32 @@ class Tiler():
                 return False
         return True
 
+    def testMemoryMapCorrectness(self, memoryMap: Dict[str, List[List[MemoryBlock]]], graph: gs.Graph,
+                                 schedule: Schedule) -> None:
+
+        memoryBlockMap = {
+            memoryBlock.name: memoryBlock for levelMemoryMap in memoryMap.values() for memoryBlock in levelMemoryMap[-1]
+        }
+
+        # JUNGVI: Assert output buffers are alive until the end
+        for outputBuffer in graph.outputs:
+            assert memoryBlockMap[outputBuffer.name]._lifetime[-1] == len(
+                schedule), "Invalid memory map! Output buffer is not alive at the last step!"
+
+        # JUNGVI: Assert input buffers are alive at the beginning
+        for inputBuffer in graph.inputs:
+            assert memoryBlockMap[
+                inputBuffer.name]._lifetime[0] == 0, "Invalid memory map! Input buffer is not alive at step 0!"
+
+        # JUNGVI: Assert that at every computation step, the required buffers are alive somewhere in memory
+        for stepIdx, pattern in enumerate(schedule):
+            node = pattern[0]
+            nodeIO = [node for node in node.inputs + node.outputs if not isinstance(node, gs.Constant)]
+            for tensor in nodeIO:
+                lifetime = memoryBlockMap[tensor.name]._lifetime
+                assert stepIdx in range(lifetime[0], lifetime[-1] +
+                                        1), f"Invalid memory map! Buffer {tensor.name} is not alive at step {stepIdx}!"
+
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
 
@@ -959,8 +973,9 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
                                   targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
             if self.tiler.visualizeMemoryAlloc:
-                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,
-                                           self.Platform.memoryHierarchy._defaultMemoryLevel)
+                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir, self.Platform.memoryHierarchy)
+
+            self.tiler.testMemoryMapCorrectness(memoryMap, self.graph, schedule)
 
         # SCHEREMO: Annotate execution block with solution
         for layer, pattern in zip(self.layerBinding.values(), tilingSolution):

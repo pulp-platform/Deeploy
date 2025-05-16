@@ -104,7 +104,12 @@ class PULPDeployer(SignPropDeployer):
             buf for key, buf in self.ctxt.globalObjects.items() if isinstance(buf, VariableBuffer) and buf._deploy
         ]
         nonArenaBuffers = [buf for buf in globalConstBuffers if buf._users != []]
-        l3ConstBuffer = [buf for buf in nonArenaBuffers if hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3"]
+        outputBuffNames = [outputBuffer.name for outputBuffer in self.graph.outputs]
+
+        l3ConstBuffer = []
+        for buf in nonArenaBuffers:
+            if hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3" and not buf.name in outputBuffNames:
+                l3ConstBuffer.append(buf)
 
         for idx, buf in enumerate(l3ConstBuffer):
 
