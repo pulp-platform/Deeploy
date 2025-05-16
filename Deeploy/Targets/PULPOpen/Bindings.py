@@ -403,6 +403,10 @@ PULPFloatGELUBinding = NodeBinding(
     GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
     FloatGELUTemplate.referenceTemplate, ForkTransformer)
 
+PULPFloatGELUGradBinding = NodeBinding(
+    GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+    FloatGELUTemplate.referenceGradTemplate, ForkTransformer)
+
 PULPGatherBindings = [
     NodeBinding(GatherChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
                 GatherTemplate.referenceTemplate, ForkTransformer) for type in IntegerDataTypes

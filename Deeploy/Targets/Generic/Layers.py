@@ -80,7 +80,11 @@ class GELULayer(ONNXLayer):
 
         return mul1 + neg + exp + add + div + mul2
 
+class GELUGradLayer(ONNXLayer):
 
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+        
 class iHardswishLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
