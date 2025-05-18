@@ -139,12 +139,8 @@ def _filterSchedule(schedule: List[List[gs.Node]], layerBinding: 'OrderedDict[st
     return filteredSchedule
 
 
-def setupDeployer(graph: gs.Graph,
-                  memoryHierarchy: MemoryHierarchy,
-                  defaultTargetMemoryLevel: MemoryLevel,
-                  defaultIoMemoryLevel: MemoryLevel,
-                  verbose: CodeGenVerbosity,
-                  overwriteRecentState = False) -> NetworkDeployer:
+def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTargetMemoryLevel: MemoryLevel,
+                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity) -> NetworkDeployer:
 
     inputTypes = {}
     inputOffsets = {}
@@ -210,10 +206,6 @@ def setupDeployer(graph: gs.Graph,
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
 
-    if overwriteRecentState:
-        os.makedirs(f'./deeployStates/', exist_ok = True)
-        os.system(f'cp -r {_DEEPLOYSTATEDIR}/* ./deeployStates/')
-
     return deployer
 
 
@@ -252,9 +244,6 @@ if __name__ == '__main__':
     parser.add_argument('--l1', metavar = 'l1', dest = 'l1', type = int, default = 64000, help = 'Set L1 size\n')
     parser.add_argument('--l2', metavar = 'l2', dest = 'l2', type = int, default = 1024000, help = 'Set L2 size\n')
     parser.add_argument('--shouldFail', action = 'store_true')
-    parser.add_argument('--overwriteRecentState',
-                        action = 'store_true',
-                        help = 'Copy the recent deeply state to the ./deeployStates folder\n')
     parser.add_argument('--memAllocStrategy',
                         metavar = 'memAllocStrategy',
                         dest = 'memAllocStrategy',
@@ -337,8 +326,7 @@ if __name__ == '__main__':
                              memoryHierarchy,
                              defaultTargetMemoryLevel = L1,
                              defaultIoMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel],
-                             verbose = verbosityCfg,
-                             overwriteRecentState = args.overwriteRecentState)
+                             verbose = verbosityCfg)
 
     platform = deployer.Platform
     signProp = False

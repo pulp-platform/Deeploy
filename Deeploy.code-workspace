@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"cmake.buildDirectory": "${workspaceFolder}/DeeployTest/TEST_RECENT/build",
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-vscode.cpptools-extension-pack",
+			"twxs.cmake",
+			"josetr.cmake-language-support-vscode",
+			"ms-vscode.cmake-tools",
+			"ms-python.python",
+			"ms-vscode-remote.remote-containers",
+			"rioj7.command-variable"
+		],
+	}
+}

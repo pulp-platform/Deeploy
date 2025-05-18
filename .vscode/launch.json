@@ -1,0 +1,105 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Generic Platform Adder",
+            "type": "debugpy",
+            "request": "launch",
+            "justMyCode": false,
+            "program": "generateNetwork.py",
+            "cwd": "${workspaceFolder}/DeeployTest",
+            "args": [
+                "-t",
+                "Tests/Adder",
+                "-p",
+                "Generic"
+            ],
+
+        },
+        {
+            "name": "Deeploy Generate Untiled",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "generateNetwork.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/DeeployTest",
+            "justMyCode": false,
+            "args": [
+                "-v",
+                "-p${input:platformUntiled}",
+                "-t${input:model}",
+                "${input:additionalArgsUntiled}"
+            ],
+        },
+        {
+            "name": "Deeploy Generate Tiled",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "testMVP.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/DeeployTest",
+            "justMyCode": false,
+            "args": [
+                "-v",
+                "-p${input:platformTiled}",
+                "-t${input:model}",
+                "${input:additionalArgsTiled}"
+            ],
+        },
+    ],
+    "inputs": [
+        {
+            "id": "platformUntiled",
+            "type": "pickString",
+            "description": "Problem",
+            "options": [
+                "QEMU-ARM",
+                "Generic",
+                "MemPool",
+                "Apollo3",
+                "Apollo4",
+                "Snitch",
+              ],
+            "default": "Generic"
+        },
+         {
+            "id": "platformTiled",
+            "type": "pickString",
+            "description": "Problem",
+            "options": [
+                "Snitch",
+                "Siracusa",
+                "Siracusa_w_neureka",
+              ],
+            "default": "Siracusa"
+        },
+        {
+            "id": "model",
+            "type": "command",
+            "command": "extension.commandvariable.file.pickFile",
+            "args": {
+                "description": "Select ONNX File",
+                "include" : "DeeployTest/Tests/**/*.onnx",
+                "transform": {
+                    "text": "${fileDirname}",
+                }
+
+            }
+        },
+        {
+            "id": "additionalArgsUntiled",
+            "type": "promptString",
+            "description": "Additional Arguments",
+            "default": ""
+        },
+        {
+            "id": "additionalArgsTiled",
+            "type": "promptString",
+            "description": "Additional Arguments",
+            "default": "--doublebuffer"
+        }
+    ]
+}
