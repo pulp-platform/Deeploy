@@ -104,25 +104,8 @@ class RedmuleMatmulTileConstraint(TileConstraint):
         # Hardware-specific constraints for 4x12 accelerator
         tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
 
-        M_full_size = ctxt.lookup(bufferA.name).shape[(tensorsShapeLen - 2) + parseDict['transA']]
-        if M_full_size >= 16:
-            tilerModel.addTileSizeDivisibleConstraint(parseDict,
-                                                      "M",
-                                                      AFirstDimVar,
-                                                      16,
-                                                      strategy = PerformanceHint(priority = 1))
-        else:
-            tilerModel.addConstraint(AFirstDimVar == AFirstDimVar.Max(), strategy = PerformanceHint(1))
-
-        N_full_size = ctxt.lookup(bufferB.name).shape[(tensorsShapeLen - 2) + parseDict['transB']]
-        if N_full_size >= 12:
-            tilerModel.addTileSizeDivisibleConstraint(parseDict,
-                                                      "O",
-                                                      BSecondDimVar,
-                                                      12,
-                                                      strategy = PerformanceHint(priority = 1))
-        else:
-            tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
+        tilerModel.addConstraint(AFirstDimVar == AFirstDimVar.Max(), strategy = PerformanceHint(1))
+        tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
         
         return tilerModel
 
