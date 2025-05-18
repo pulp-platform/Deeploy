@@ -235,6 +235,7 @@ class FloatGEMMTileConstraint(TileConstraint):
 
         dimOffsetA = len(bufferA.shape) - 2
         dimOffsetB = len(bufferB.shape) - 2
+        dimOffsetC = len(bufferC.shape) - 2
         dimOffsetOut = len(outputBuffer.shape) - 2
 
         AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = dimOffsetA + parseDict['transA'])
@@ -253,8 +254,8 @@ class FloatGEMMTileConstraint(TileConstraint):
         # Add GEMM Geometrical constraints
         tilerModel.addConstraint(ASecondDimVar == BFirstDimVar)
 
-        addDimVar_1 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = 0)
-        addDimVar_2 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = 1)
+        addDimVar_1 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC)
+        addDimVar_2 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC + 1)
         tilerModel.addConstraint(outputFirstDimVar == addDimVar_1)
         tilerModel.addConstraint(outputSecondDimVar == addDimVar_2)
 

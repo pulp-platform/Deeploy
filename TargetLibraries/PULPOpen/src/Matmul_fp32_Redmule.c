@@ -106,11 +106,9 @@ void Gemm_fp32_fp32_fp32_fp32_Redmule(
     float32_t *__restrict__ pDstY,
     uint32_t M,
     uint32_t N,
-    uint32_t O,
-    uint32_t transA,
-    uint32_t transB) {
+    uint32_t O) {
 
-  
+    
     volatile uint16_t *mnk_m = (volatile uint16_t *)(REDMULE_BASE_ADDR + REG_MNK_M);
     volatile uint16_t *mnk_n = (volatile uint16_t *)(REDMULE_BASE_ADDR + REG_MNK_N);
     volatile uint16_t *mnk_k = (volatile uint16_t *)(REDMULE_BASE_ADDR + REG_MNK_K);
