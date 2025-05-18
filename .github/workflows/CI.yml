@@ -1,6 +1,6 @@
 name: CI
 
-on: 
+on:
   push:
   pull_request:
   workflow_dispatch:
@@ -33,8 +33,8 @@ jobs:
           submodules: recursive
       - name: Build Deeploy
         run: pip install -e .
-  
-  
+
+
   ### Generic Tests ###
   generic-kernels:
     uses: ./.github/workflows/TestRunnerGeneric.yml
@@ -76,7 +76,7 @@ jobs:
         Quant
         Dequant
         QuantizedLinear
-        
+
 
   generic-models:
     uses: ./.github/workflows/TestRunnerGeneric.yml
@@ -94,10 +94,10 @@ jobs:
         miniMobileNet
         miniMobileNetv2
         CCT/CCT_1_16_16_8
-  
+
 
   ### CortexM Tests ###
-  cortexm-kernels: 
+  cortexm-kernels:
     uses: ./.github/workflows/TestRunnerCortexM.yml
     needs: select-docker-image
     with:
@@ -115,14 +115,14 @@ jobs:
         testReduceMean
         testSlice
 
-  cortexm-models: 
+  cortexm-models:
     uses: ./.github/workflows/TestRunnerCortexM.yml
     needs: select-docker-image
     with:
       docker-image: ${{ needs.select-docker-image.outputs.image }}
       test-names: |
         simpleRegression
-        WaveFormer 
+        WaveFormer
 
   ### Snitch Tests ###
   snitch-kernels:
@@ -453,12 +453,12 @@ jobs:
         ]
       num-cores: 8
       double-buffer: true
-    
+
   siracusa-models-tiled-singlebuffer-L2:
     strategy:
       fail-fast: false
       matrix:
-        test-data: 
+        test-data:
           - name: "simpleRegression"
             L1: [45000, 30000, 15000]
           - name: "miniMobileNet"
@@ -497,7 +497,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-data: 
+        test-data:
           - name: "simpleRegression"
             L1: [45000, 30000, 16000] # SCHEREMO: 15000 leads to non-2d transfers in L3!
           - name: "miniMobileNet"
@@ -538,7 +538,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-data: 
+        test-data:
           - name: "simpleRegression"
             L1: [60000, 45000, 30000]
           - name: "miniMobileNet"
@@ -638,7 +638,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-data: 
+        test-data:
           - name: "miniMobileNet"
             L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
           - name: "Attention"
@@ -665,7 +665,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-data: 
+        test-data:
           - name: "miniMobileNet"
             L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
           - name: "Attention"
@@ -720,7 +720,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-data: 
+        test-data:
           - name: "miniMobileNet"
             L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
           - name: "Attention"
@@ -878,6 +878,26 @@ jobs:
           python testTypes.py
         shell: bash
 
+  deeploy-debug:
+    runs-on: ubuntu-22.04
+    needs: select-docker-image
+    container:
+      image: ${{ needs.select-docker-image.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testPrintInputOutputTransformation.py -p Generic -t ./Tests/simpleRegression
+          python testPrintInputOutputTransformation.py -p Siracusa -t ./Tests/simpleRegression
+          python testDebugPrintPass.py -p Generic -t ./Tests/simpleRegression
+        shell: bash
+
   deeploy-regex-matching:
     runs-on: ubuntu-22.04
     needs: select-docker-image
@@ -925,11 +945,11 @@ jobs:
         shell: bash
       - name: Format Python Licenses
         run: |
-          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude "run_clang_format.py" | grep ".*\.py$" || [[ $? == 1 ]]        
+          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude "run_clang_format.py" | grep ".*\.py$" || [[ $? == 1 ]]
         shell: bash
       - name: Format C Licenses
         run: |
-          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.c$" || [[ $? == 1 ]]        
+          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.c$" || [[ $? == 1 ]]
         shell: bash
       - name: Format C Header Licenses
         run: |
