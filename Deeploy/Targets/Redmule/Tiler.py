@@ -23,12 +23,15 @@
 # See the License for the specific language governing permissions and   
 # limitations under the License.
 
-from Deeploy.Targets.Redmule.Bindings import RedmuleMatmulBindings, RedmuleConv2DBindings
+from Deeploy.Targets.Redmule.Bindings import RedmuleMatmulBindings, RedmuleConv2DBindings, RedmuleGEMMBindings
 from Deeploy.Targets.Redmule.TileConstraints.MatmulTileConstraint import RedmuleMatmulTileConstraint
 from Deeploy.Targets.Redmule.TileConstraints.ConvTileConstraint import RedmuleConv2DTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
+from Deeploy.Targets.Redmule.TileConstraints.GEMMTileConstraint import RedmuleGEMMTileConstraint
 
 RedmuleMatMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = RedmuleMatmulBindings,
                                                                 tileConstraint = RedmuleMatmulTileConstraint())
 RedmuleConvTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = RedmuleConv2DBindings,
                                                                 tileConstraint = RedmuleConv2DTileConstraint())
+RedmuleGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = RedmuleGEMMBindings,
+                                                                tileConstraint = RedmuleGEMMTileConstraint())

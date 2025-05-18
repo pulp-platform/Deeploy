@@ -105,11 +105,11 @@ class RedmuleMatmulTileConstraint(TileConstraint):
         tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
 
         M_full_size = ctxt.lookup(bufferA.name).shape[(tensorsShapeLen - 2) + parseDict['transA']]
-        if M_full_size >= 4:
+        if M_full_size >= 16:
             tilerModel.addTileSizeDivisibleConstraint(parseDict,
                                                       "M",
                                                       AFirstDimVar,
-                                                      4,
+                                                      16,
                                                       strategy = PerformanceHint(priority = 1))
         else:
             tilerModel.addConstraint(AFirstDimVar == AFirstDimVar.Max(), strategy = PerformanceHint(1))

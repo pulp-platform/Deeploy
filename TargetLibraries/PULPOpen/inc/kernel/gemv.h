@@ -26,9 +26,19 @@
  */
 
 #include "stdint.h"
+#include "DeeployPULPMath.h"
 
 void gemv_s8_s8_plp(int8_t *pIn, int8_t *pBias, int8_t *pOut, int8_t *pWeight,
                     int32_t *pKappa, int32_t *pLambda, uint16_t out_mult,
                     uint16_t out_shift, uint16_t dim_vec,
                     uint16_t num_o_neurons, uint8_t flag_relu,
                     uint8_t flag_batch_norm);
+
+void Gemm_fp32_fp32_fp32_fp32_Redmule(
+    const float32_t *__restrict__ pSrcA,
+    const float32_t *__restrict__ pSrcB,
+    const float32_t *__restrict__ pBias,
+    float32_t *__restrict__ pDstY,
+    uint32_t M,
+    uint32_t N,
+    uint32_t O);
