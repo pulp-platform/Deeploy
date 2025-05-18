@@ -28,14 +28,12 @@ add_compile_options(
   -O2
   -g3
   -DNUM_CORES=${NUM_CORES}
-  -MMD
   -MP
   -I${TOOLCHAIN_INSTALL_DIR}/picolibc/arm/include
 )
 
 add_link_options(
   -target armv7m-none-eabi
-  -MMD
   -MP
   -mcpu=${ISA}
   -L${TOOLCHAIN_INSTALL_DIR}/picolibc/arm/lib
