@@ -17,6 +17,11 @@ jobs:
       - name: Sphinx build
         run: |
           sphinx-build docs _build
+      - name: Prepare Multipages
+        uses: rkdarst/gh-pages-multibranch@main
+        if: ${{ github.event_name == 'push' }}
+        with:
+          directory: _build
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' }}

@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## Improve Documentation and VSCode Support
+
+### Added
+- Tutorial section in the documentation
+- Guide on using the debug print topology pass and code transformation
+- VSCode configuration files for improved IDE support
+-Multi-branch GitHub Pages deployment support
+
+### Changed
+- Updated `README.md` description to use a persistent development container
+- Symlinking of the latest build and source files into `TEST_RECENT`
+- Disabled `CMAKE_VERBOSE_MAKEFILE` by default for cleaner builds.
+
+### Fixed
+- Removed unsupported `-MMD` compiler flag in LLVM-based toolchains.
+
 ## Fix Debug Print Topology Pass and Code Transformation
 
 ### Added
