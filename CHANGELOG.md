@@ -339,3 +339,9 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ## Small changes
 - HOTFIX: Deeploy subdirectories installed when installing Deeploy with pip install
+
+
+## Add RV32IMF Picolibc support for Siracusa platform
+
+### Added
+- Adds RV32IMF Picolib to the toolchain

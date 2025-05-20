@@ -724,7 +724,7 @@ jobs:
           - name: "miniMobileNet"
             L1: [2000] # LMACAN: 1000 leads to non-2d transfers in L3!
           - name: "Attention"
-            L1: [2500]
+            L1: [3500]
           # - name: "Transformer"
           #   L1: [30000]
           - name: "microLlama/microLlama1"
