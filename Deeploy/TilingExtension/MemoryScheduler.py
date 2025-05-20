@@ -302,7 +302,6 @@ class MemoryScheduler():
                 # SCHEREMO: The original level is only considered by "home-level" schedulers
                 if level.memoryLevel == homeLevel and not self.tileScheduler:
 
-                    # SCHEREMO: ConstantBuffers are assigned and allocated at compile time, Global Var Buffers are assigned at init time
                     if isinstance(ctxt.lookup(tensorMemoryConstraint.tensorName), ConstantBuffer):
                         return False
                     return True

@@ -380,7 +380,7 @@ class Tiler():
 
         return tilingSchedule, memoryMap
 
-    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
+    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: OrderedDict[str, ONNXLayer],
                    targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
 
         wrapSchedule: List[SubGraph] = []
@@ -587,7 +587,7 @@ class Tiler():
 
     def _setupMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: 'OrderedDict[str, ONNXLayer]',
+            layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
