@@ -43,8 +43,8 @@ from ortools.constraint_solver.pywrapcp import IntVar, SolutionCollector
 import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
-from Deeploy.DeeployTypes import ConstantBuffer, GlobalDefinition, NetworkContext, NodeBinding, NodeTemplate, \
-    ONNXLayer, Schedule, SubGraph, TransientBuffer, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeBinding, NodeTemplate, ONNXLayer, Schedule, \
+    SubGraph, TransientBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
@@ -118,7 +118,7 @@ class Tiler():
         # JUNGVI: Currently I/O have infinite lifetime, will change that soon...
         infiniteLifetimeBuffers = [
             buffer for buffer in ctxt.globalObjects.values()
-            if not self.arenaName in buffer.name and isinstance(buffer, VariableBuffer)
+            if not self.arenaName in buffer.name and isinstance(buffer, ConstantBuffer)
         ]
 
         constantBuffersOffset = 0
@@ -137,6 +137,8 @@ class Tiler():
             constantBuffersOffset += _ioSize
 
         for buffer in memoryMap[defaultMemoryLevel.name][-1]:
+            if hasattr(ctxt.lookup(buffer.name), "_alias"):
+                continue
             fig.add_trace(
                 go.Scatter(x = [
                     buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
@@ -217,6 +219,9 @@ class Tiler():
             ctxt.add(scratchBuffer, "global")
             scratchBuffer._instance = scratchBuffer._type(arenaName, ctxt)
             scratchBuffer._memoryLevel = level
+
+            # JUNGVI: Memory Arena buffers should be allocated first since other variable global buffers may belong to a memory arena
+            ctxt.globalObjects.move_to_end(scratchBuffer.name, last = False)
 
         # SCHEREMO: Adapt homelevel tensors to their respective arena
         for memoryLevel, patternList in memoryMap.items():
@@ -375,7 +380,7 @@ class Tiler():
 
         return tilingSchedule, memoryMap
 
-    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: OrderedDict[str, ONNXLayer],
+    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
                    targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
 
         wrapSchedule: List[SubGraph] = []
@@ -582,7 +587,7 @@ class Tiler():
 
     def _setupMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: OrderedDict[str, ONNXLayer],
+            layerBinding: 'OrderedDict[str, ONNXLayer]',
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
@@ -652,14 +657,14 @@ class Tiler():
 
         # SCHEREMO: Construct global buffer constraints
 
-        globalVariableConstraint = self._generateBufferConstraints(ctxt)
+        constantBufferConstraint = self._generateBufferConstraints(ctxt)
 
         # SCHEREMO: Construct first-level constraint set (all global buffers + tensors stored in higher level)
 
         firstLevelConstraints: List[PatternMemoryConstraints] = copy.copy(outerVariableConstraints)
         for patternConstraint in firstLevelConstraints:
             for idx in range(len(patternConstraint.nodeConstraints)):
-                patternConstraint.nodeConstraints[idx] += globalVariableConstraint
+                patternConstraint.nodeConstraints[idx] += constantBufferConstraint
 
         # SCHEREMO: Construct constraint set for tiled tensors (including double buffering, excluding static global constraints)
         tiledTensorConstraints: List[PatternMemoryConstraints] = self._generateTilePathConstraints(
@@ -702,7 +707,7 @@ class Tiler():
                 dynamicTensorPattern.addConstraint(dynamicTensorPatternStep)
             inplaceTensorConstraints.append(dynamicTensorPattern)
 
-        return inplaceTensorConstraints, globalVariableConstraint
+        return inplaceTensorConstraints, constantBufferConstraint
 
     def _generateTilePath(self, tilerModel: TilerModel, ctxt: NetworkContext,
                           tensorMemoryConstraint: TensorMemoryConstraint, pattern: SubGraph) -> TensorMemoryConstraint:
@@ -787,8 +792,7 @@ class Tiler():
 
         constantGlobalConstraint: NodeMemoryConstraint = NodeMemoryConstraint()
         constantGlobalBuffers = [
-            node for node in ctxt.globalObjects.values()
-            if not isinstance(node, GlobalDefinition) and node._deploy == True
+            node for node in ctxt.globalObjects.values() if isinstance(node, ConstantBuffer) and node._deploy == True
         ]
 
         for constantBuffer in constantGlobalBuffers:
@@ -923,6 +927,32 @@ class Tiler():
                 return False
         return True
 
+    def testMemoryMapCorrectness(self, memoryMap: Dict[str, List[List[MemoryBlock]]], graph: gs.Graph,
+                                 schedule: Schedule) -> None:
+
+        memoryBlockMap = {
+            memoryBlock.name: memoryBlock for levelMemoryMap in memoryMap.values() for memoryBlock in levelMemoryMap[-1]
+        }
+
+        # JUNGVI: Assert output buffers are alive until the end
+        for outputBuffer in graph.outputs:
+            assert memoryBlockMap[outputBuffer.name]._lifetime[-1] == len(
+                schedule), "Invalid memory map! Output buffer is not alive at the last step!"
+
+        # JUNGVI: Assert input buffers are alive at the beginning
+        for inputBuffer in graph.inputs:
+            assert memoryBlockMap[
+                inputBuffer.name]._lifetime[0] == 0, "Invalid memory map! Input buffer is not alive at step 0!"
+
+        # JUNGVI: Assert that at every computation step, the required buffers are alive somewhere in memory
+        for stepIdx, pattern in enumerate(schedule):
+            node = pattern[0]
+            nodeIO = [node for node in node.inputs + node.outputs if not isinstance(node, gs.Constant)]
+            for tensor in nodeIO:
+                lifetime = memoryBlockMap[tensor.name]._lifetime
+                assert stepIdx in range(lifetime[0], lifetime[-1] +
+                                        1), f"Invalid memory map! Buffer {tensor.name} is not alive at step {stepIdx}!"
+
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
 
@@ -961,6 +991,8 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             if self.tiler.visualizeMemoryAlloc:
                 self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,
                                            self.Platform.memoryHierarchy._defaultMemoryLevel)
+
+            self.tiler.testMemoryMapCorrectness(memoryMap, self.graph, schedule)
 
         # SCHEREMO: Annotate execution block with solution
         for layer, pattern in zip(self.layerBinding.values(), tilingSolution):
