@@ -36,7 +36,9 @@ dependencies = [
 "myst_parser",
 "meson==1.3.1", # Avoid QEMU installation issues, see here: https://gitlab.com/qemu-project/qemu/-/issues/1853
 "ninja",
-"plotly"
+"plotly",
+"netron",
+"debugpy"
 ]
 [tool.setuptools.packages.find]
 include = ["Deeploy*"]

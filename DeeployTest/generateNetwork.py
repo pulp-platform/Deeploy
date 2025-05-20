@@ -52,9 +52,6 @@ if __name__ == '__main__':
                         action = 'store_true',
                         default = False,
                         help = 'Enable debugging mode\n')
-    parser.add_argument('--overwriteRecentState',
-                        action = 'store_true',
-                        help = 'Copy the recent deeply state to the ./deeployStates folder\n')
     parser.add_argument('--profileUntiled',
                         action = 'store_true',
                         dest = 'profileUntiled',
@@ -116,10 +113,6 @@ if __name__ == '__main__':
 
     # Parse graph and infer output levels and signedness
     _ = deployer.generateFunction(verbose = verbosityCfg)
-
-    if args.overwriteRecentState:
-        os.makedirs(f'./deeployStates/', exist_ok = True)
-        os.system(f'cp -r {_DEEPLOYSTATEDIR}/* ./deeployStates/')
 
     # Create input and output vectors
     os.makedirs(f'{args.dumpdir}', exist_ok = True)

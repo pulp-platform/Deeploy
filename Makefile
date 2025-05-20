@@ -39,11 +39,13 @@ LLVM_CLANG_RT_RISCV_RV32IMAFD      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/b
 LLVM_CLANG_RT_RISCV_RV32IMC      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imc/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IMA		 ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32ima/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IM      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32im/libclang_rt.builtins-riscv32.a
+LLVM_CLANG_RT_RISCV_RV32IMF      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imf/libclang_rt.builtins-riscv32.a
 PICOLIBC_ARM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/arm
 PICOLIBC_RV32IM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32im
 PICOLIBC_RV32IMC_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc
 PICOLIBC_RV32IMA_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
 PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
+PICOLIBC_RV32IMF_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imf
 
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
@@ -253,7 +255,40 @@ ${LLVM_CLANG_RT_RISCV_RV32IMAFD}: ${TOOLCHAIN_DIR}/llvm-project
 	${CMAKE} --build . -j && \
 	${CMAKE} --install .
 
-llvm-compiler-rt-riscv: ${LLVM_CLANG_RT_RISCV_RV32IM} ${LLVM_CLANG_RT_RISCV_RV32IMA} ${LLVM_CLANG_RT_RISCV_RV32IMC} ${LLVM_CLANG_RT_RISCV_RV32IMAFD}
+${LLVM_CLANG_RT_RISCV_RV32IMF}: ${TOOLCHAIN_DIR}/llvm-project
+	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32imf \
+	&& cd build-compiler-rt-riscv-rv32imf; \
+	${CMAKE} ../compiler-rt \
+	-DCMAKE_C_COMPILER_WORKS=1 \
+	-DCMAKE_CXX_COMPILER_WORKS=1 \
+	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_C_FLAGS="-mno-relax -march=rv32imf -mabi=ilp32f" \
+	-DCMAKE_ASM_FLAGS="-march=rv32imf -mabi=ilp32f" \
+	-DCMAKE_SYSTEM_NAME=baremetal \
+	-DCMAKE_HOST_SYSTEM_NAME=baremetal \
+	-DCMAKE_C_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_CXX_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_SIZEOF_VOID_P=4 \
+	-DCMAKE_NM=${LLVM_INSTALL_DIR}/bin/llvm-nm \
+	-DCMAKE_RANLIB=${LLVM_INSTALL_DIR}/bin/llvm-ranlib \
+	-DCOMPILER_RT_BUILD_BUILTINS=ON \
+	-DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+	-DCOMPILER_RT_BUILD_MEMPROF=OFF \
+	-DCOMPILER_RT_BUILD_PROFILE=OFF \
+	-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+	-DCOMPILER_RT_BUILD_XRAY=OFF \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+	-DCOMPILER_RT_BAREMETAL_BUILD=ON \
+	-DCOMPILER_RT_OS_DIR="baremetal/rv32imf" \
+	-DLLVM_CONFIG_PATH=${LLVM_INSTALL_DIR}/bin/llvm-config && \
+	${CMAKE} --build . -j && \
+	${CMAKE} --install .
+
+llvm-compiler-rt-riscv: ${LLVM_CLANG_RT_RISCV_RV32IM} ${LLVM_CLANG_RT_RISCV_RV32IMA} ${LLVM_CLANG_RT_RISCV_RV32IMC} ${LLVM_CLANG_RT_RISCV_RV32IMAFD} ${LLVM_CLANG_RT_RISCV_RV32IMF}
 
 ${LLVM_CLANG_RT_ARM}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-arm \
@@ -352,7 +387,18 @@ ${PICOLIBC_RV32IMAFD_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
 	--cross-file ../scripts/meson-build-script-rv32imafd.txt && \
 	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
 
-picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR}
+${PICOLIBC_RV32IMF_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32imf && cd build-rv32imf && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32imf.txt ../scripts && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
+	-Dlibdir=lib \
+	-Dspecsdir=none \
+	-Dmultilib=false \
+	--prefix ${PICOLIBC_RV32IMF_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32imf.txt && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
+
+picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR} ${PICOLIBC_RV32IMF_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \

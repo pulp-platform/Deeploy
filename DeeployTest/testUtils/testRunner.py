@@ -177,9 +177,6 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           type = str,
                           default = os.environ.get('LLVM_INSTALL_DIR'),
                           help = 'Pick compiler install dir\n')
-        self.add_argument('--overwriteRecentState',
-                          action = 'store_true',
-                          help = 'Copy the recent state to the ./deeployStates folder\n')
 
         if self.tiling_arguments:
             self.add_argument('--defaultMemLevel',
@@ -248,8 +245,6 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
         command = ""
         if self.args.verbose:
             command += " -v"
-        if self.args.overwriteRecentState:
-            command += " --overwriteRecentState"
         if self.args.debug:
             command += " --debug"
         if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
