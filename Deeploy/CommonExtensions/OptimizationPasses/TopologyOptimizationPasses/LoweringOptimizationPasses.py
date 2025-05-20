@@ -635,3 +635,55 @@ class RemoveGlobalOutputReshapePass(ReplaceSequentialPatternPass):
         graph.inputs.append(_input)
 
         super().__init__(graph, _remove_global_output_reshape_fun, "_REMOVE_GLOBAL_OUTPUT_RESHAPE_PASS")
+
+
+def _compute_flexible_reshape(graph: gs.Graph, match: Match, name: str):
+    # Extract matched convolution
+    matched_nodes = list(match.nodes_map.values())
+    opNode = matched_nodes[0]
+
+    # Check if the Conv node has a bias input
+    # If it does, check if the bias only contains zeros
+    original_shape = opNode.inputs[0].shape
+    original_shape_type = type(original_shape)
+    target_shape = opNode.inputs[1].values
+
+    if -1 in target_shape:
+        # Check if only one -1 value is present
+        assert np.sum(target_shape == -1) == 1, f"Only one -1 value is allowed in the new shape. Got {target_shape}"
+
+        # Compute value
+        target_shape[target_shape == -1] = int(np.prod(original_shape) // np.prod(target_shape[target_shape != -1]))
+
+        # Update input value
+        opNode.inputs[1].values = target_shape
+
+        # Update output shape
+        opNode.outputs[0].shape = [int(i) for i in target_shape]
+
+    # Return updated graph
+    return graph
+
+
+@contextagnostic
+class ComputeFlexibleReshapePass(ReplaceSequentialPatternPass):
+    """
+    Handles -1 in new shape dimension
+    
+    In this case, Torch and NumPy work similarly,
+    by replacing -1 with the product of all the remaining dimensions
+    
+    Only one -1 value is allowed in the new shape, in any place
+    
+    E.g.:   If the original shape is [a, b, c, d, e], and the target shape
+            is [a, -1, d, e], then the new shape will be [a, b * c, d, e].
+    """
+
+    def __init__(self):
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['out'], op = 'Reshape', name = 'reshape')
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        super().__init__(graph, _compute_flexible_reshape, "_COMPUTE_FLEXIBLE_RESHAPE_PASS")
