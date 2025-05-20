@@ -345,3 +345,8 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ### Added
 - Adds RV32IMF Picolib to the toolchain
+
+## Add dynamic reshaping handling
+
+### Added
+- Adds handling of dynamic reshaping (-1 present in the target shape of the Reshape operation)
