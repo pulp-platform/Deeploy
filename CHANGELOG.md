@@ -339,6 +339,7 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ## Small changes
 - HOTFIX: Deeploy subdirectories installed when installing Deeploy with pip install
+- HOTFIX: Linking TEST_RECENT on MacOS
 
 
 ## Add RV32IMF Picolibc support for Siracusa platform
