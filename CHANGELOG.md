@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## Autoselect Self-Hosted Runners if the Action runs on Upstream
+
+### Changed
+- Adapt the select docker image stage to also select a runner depending on ` github.repository`
+- Adapt the jobs and reusable workflows to use the selected runner.
+
+
 ## Improve Documentation and VSCode Support
 
 ### Added

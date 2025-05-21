@@ -9,7 +9,7 @@ jobs:
   build-docker:
     permissions: write-all
     name: Deploy Docker image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       # Free up disk space on Github-hosted runner
       - name: Disk usage
