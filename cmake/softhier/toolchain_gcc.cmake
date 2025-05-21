@@ -38,6 +38,7 @@ add_link_options(
   -march=${ISA}
   -nostartfiles
   -Wl,--gc-sections 
+  -Wl,-rpath,$ENV{SOFTHIER_INSTALL_DIR}/third_party/systemc_install/lib64
 )
 
 link_libraries(
