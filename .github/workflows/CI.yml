@@ -23,10 +23,11 @@ jobs:
         run: echo "::set-output name=image::${{ env.DOCKER_IMAGE }}"
       - id: set-runner
         run: |
+          echo "GH REPO: ${{ github.repository }}"
           if [[ "${{ github.repository }}" == "pulp-platform/deeploy" ]]; then
             echo "::set-output name=runner::self-hosted"
           else
-            echo "::set-output name=runner::ubuntu-latest"
+            echo "::set-output name=runner::self-hosted"
           fi
 
   build-deeploy:
