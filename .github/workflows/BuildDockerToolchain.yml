@@ -36,6 +36,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build Cache for Docker
+        uses: actions/cache@v3
+        with:
+          path: var-ccache
+          key: ${{ runner.os }}-${{ matrix.platform }}-build-cache-toolchain
+
+      - name: Inject build-cache
+        uses: reproducible-containers/buildkit-cache-dance@v3.1.0
+        with:
+          cache-map: |
+            {
+              "var-ccache": "/ccache"
+            }
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+
       - name: Lower Case Repository Name
         run: |
           echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
@@ -47,6 +62,8 @@ jobs:
         with:
           platforms: linux/${{ matrix.platform }}
           context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
           file: Container/Dockerfile.toolchain
           push: true
           tags: ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:main
