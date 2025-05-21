@@ -4,8 +4,32 @@ on:
   workflow_dispatch:
 
 jobs:
+  prepare:
+    name: Fetch branch name or tag
+    runs-on: ubuntu-latest
+    outputs:
+      docker_tag: ${{ steps.generate_tag.outputs.docker_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up environment variables
+        run: |
+          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "IS_TAG=${GITHUB_REF_TYPE}" >> $GITHUB_ENV
+
+      - name: Set Docker tag
+        id: generate_tag
+        run: |
+          if [[ "${{ env.IS_TAG }}" == "tag" ]]; then
+            echo "docker_tag=${{ env.TAG_NAME }}" >> $GITHUB_OUTPUT
+          else
+            echo "docker_tag=${{ env.BRANCH_NAME }}" >> $GITHUB_OUTPUT
+          fi
+
   build-deeploy:
     name: Build Deploy Image
+    needs: [ prepare ]
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -58,7 +82,7 @@ jobs:
           OWNER: '${{ github.repository_owner }}'
 
       - name: Build and push final deploy image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           platforms: linux/${{ matrix.platform }}
           context: .
@@ -66,4 +90,30 @@ jobs:
           cache-to: type=gha,mode=min
           file: Container/Dockerfile.deeploy
           push: true
-          tags: ghcr.io/${{ env.OWNER_LC }}/deeploy:main
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-${{ matrix.platform }}
+            ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}-${{ matrix.platform }}
+
+  merge-deeploy-images:
+    name: Merge Deeploy Images
+    runs-on: ubuntu-latest
+    needs: [ prepare, build-deeploy ]
+    steps:
+      - name: GHCR Log-in
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lower Case Repository Name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
+      - uses: Noelware/docker-manifest-action@v1
+        with:
+          inputs: ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-amd64,ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-arm64
+          tags: ghcr.io/${{ env.OWNER_LC }}/deeploy:latest,ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}
+          push: true
