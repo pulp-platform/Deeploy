@@ -14,6 +14,10 @@ ENV LLVM_INSTALL_DIR=/app/install/llvm
 
 WORKDIR /app
 
+# Make sure updates in the repo are reflected in the image
+COPY toolchain/*.patch toolchain/
+COPY Makefile ./
+
 # Compile emulators
 RUN --mount=type=cache,target=/ccache \
     ccache -z && \
