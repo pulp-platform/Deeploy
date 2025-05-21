@@ -14,7 +14,7 @@ env:
 jobs:
 
   select-docker-image:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       image: ${{ steps.docker-image.outputs.image }}
     steps:
@@ -22,7 +22,7 @@ jobs:
         run: echo "::set-output name=image::${{ env.DOCKER_IMAGE }}"
 
   build-deeploy:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -751,7 +751,7 @@ jobs:
 
   ### Deeploy Extension and Internal Tests ###
   deeploy-memory-allocation:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -771,7 +771,7 @@ jobs:
           python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=TetrisRandom --shouldFail
 
   deeploy-state-serialization:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -792,7 +792,7 @@ jobs:
         shell: bash
 
   deeploy-memory-level-extension:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -813,7 +813,7 @@ jobs:
         shell: bash
 
   deeploy-tiler-extension:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -838,7 +838,7 @@ jobs:
         shell: bash
 
   deeploy-memory-allocation-extension:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -861,7 +861,7 @@ jobs:
         shell: bash
 
   deeploy-typing:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -879,7 +879,7 @@ jobs:
         shell: bash
 
   deeploy-debug:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -899,7 +899,7 @@ jobs:
         shell: bash
 
   deeploy-regex-matching:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}
@@ -917,7 +917,7 @@ jobs:
         shell: bash
 
   linting:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     needs: select-docker-image
     container:
       image: ${{ needs.select-docker-image.outputs.image }}

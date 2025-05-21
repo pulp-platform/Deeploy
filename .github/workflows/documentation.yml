@@ -1,32 +1,32 @@
-name: documentation
+# name: documentation
 
-on: [push, pull_request]
+# on: [push, pull_request]
 
-permissions:
-  contents: write
+# permissions:
+#   contents: write
 
-jobs:
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-      - name: Install dependencies
-        run: |
-          pip install numpy mako onnx_graphsurgeon ortools sphinx sphinx_rtd_theme myst_parser
-      - name: Sphinx build
-        run: |
-          sphinx-build docs _build
-      - name: Prepare Multipages
-        uses: rkdarst/gh-pages-multibranch@main
-        if: ${{ github.event_name == 'push' }}
-        with:
-          directory: _build
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' }}
-        with:
-          publish_branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _build/
-          force_orphan: true
+# jobs:
+#   docs:
+#     runs-on: self-hosted
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-python@v5
+#       - name: Install dependencies
+#         run: |
+#           pip install numpy mako onnx_graphsurgeon ortools sphinx sphinx_rtd_theme myst_parser
+#       - name: Sphinx build
+#         run: |
+#           sphinx-build docs _build
+#       - name: Prepare Multipages
+#         uses: rkdarst/gh-pages-multibranch@main
+#         if: ${{ github.event_name == 'push' }}
+#         with:
+#           directory: _build
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         if: ${{ github.event_name == 'push' }}
+#         with:
+#           publish_branch: gh-pages
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: _build/
+#           force_orphan: true

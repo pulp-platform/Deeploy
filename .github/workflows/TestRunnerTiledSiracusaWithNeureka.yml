@@ -46,7 +46,7 @@ jobs:
       fail-fast: false
       matrix:
         L1: ${{ fromJSON(inputs.L1) }}
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     container:
       image: ${{ inputs.docker-image }}
     steps:

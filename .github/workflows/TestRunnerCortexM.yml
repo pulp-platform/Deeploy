@@ -12,7 +12,7 @@ on:
 
 jobs:
   test-runner-cortexm:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     container:
       image: ${{ inputs.docker-image }}
     steps:
