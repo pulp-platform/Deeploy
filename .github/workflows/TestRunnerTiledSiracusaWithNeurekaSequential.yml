@@ -3,6 +3,9 @@ name: TestRunnerTiledSiracusaWithNeurekaSequential
 on:
   workflow_call:
     inputs:
+      runner:
+        required: true
+        type: string
       docker-image:
         required: true
         type: string
@@ -37,7 +40,7 @@ on:
 jobs:
 
   test-runner-siracusa-neureka-tiled:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
     steps:
