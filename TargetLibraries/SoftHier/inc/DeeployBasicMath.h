@@ -55,20 +55,4 @@
 #include "types.h"
 #include "util.h"
 
-#include "kernel/Convolution.h"
-#include "kernel/DWConvolution.h"
-#include "kernel/Div.h"
-#include "kernel/GELU.h"
-#include "kernel/Gemm.h"
-#include "kernel/Hardswish.h"
-#include "kernel/Layernorm.h"
-#include "kernel/MatMul.h"
-#include "kernel/MaxPool.h"
-#include "kernel/RMSNorm.h"
-#include "kernel/RQDiv.h"
-#include "kernel/RQGELU.h"
-#include "kernel/RQHardswish.h"
-#include "kernel/RequantShift.h"
-#include "kernel/Softmax.h"
-
 #endif //__DEEPLOY_BASIC_MATH_HEADER_
