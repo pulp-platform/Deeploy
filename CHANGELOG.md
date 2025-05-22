@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## ARM Docker Container and Minor Bug Fix
+### Added
+- `BuildDockerToolchain.yml` to build Toolchain Docker container
+- `BuildDockerDeeploy.yml` to build Deeploy Docker container
+- Add support for `linux/arm64` containers
+- Added caching to speed up container builds
+- Makefile to simplify local container build
+
+### Changed
+- Split the original build flow into two container
+
+### Fixed
+- Fixed broken VSCode launch configuration
+- Fixed broken `pulp-sdk` hash
+- Fix issue with building `banshee` on `linux/arm
+
 ## Autoselect Self-Hosted Runners if the Action runs on Upstream
 
 ### Changed
@@ -238,14 +254,14 @@ Change main.c to use OUTPUTTYPE instead of float
 
 ## Add MiniMalloc and Decouple Memory Allocation and Tiling
 
-## Added
+### Added
 -  Installation and compilation flow for MiniMalloc through Makefile.
 - Adapt the docker to install MiniMalloc and declare necessary symbols.
 - Add the `constraintTileBuffersWithOverlappingLifetime` method to the memory scheduler to add the necessary memory constraint when we decouple memory allocation and tiling.
 - Add the `minimalloc` method to the `Tiler` class. MiniMalloc comes as a precompiled cpp library using CSV for I/O. Hence, this method converts Deeploy's memory map to MiniMalloc's CSV representation, calls a subprocess to run MiniMalloc, reads the output CSV, and translates it back to Deeploy's memory map.
 - Add MiniMalloc to the memory allocation strategies and add a new argument to the test runner to control the L2 size.
 
-## Fixed
+### Fixed
 - Fix `testMVP.py` to get a proper should fail test.
 
 ## Implemented Quant Layer for Generic and Siracusa
