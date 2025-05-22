@@ -75,7 +75,8 @@ void Layernorm_s8_s8(int8_t *data_in, int8_t *data_out, int32_t *weight,
   int32_t std;
   int16_t temp;
 
-  for (int lastDimStart = 0; lastDimStart < size; lastDimStart += lastDimLength) {
+  for (int lastDimStart = 0; lastDimStart < size;
+       lastDimStart += lastDimLength) {
     sum = 0;
     mean = 0;
     for (int j = 0; j < lastDimLength; j++) {
