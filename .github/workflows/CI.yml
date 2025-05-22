@@ -123,9 +123,10 @@ jobs:
   ### SoftHier Tests ###
   softhier-kernels:
     uses: ./.github/workflows/TestRunnerSoftHier.yml
-    needs: select-docker-image
+    needs: select-docker-image-and-runner
     with:
-      docker-image: ${{ needs.select-docker-image.outputs.image }}
+      runner: ${{ needs.select-docker-image-and-runner.outputs.runner }}
+      docker-image: ${{ needs.select-docker-image-and-runner.outputs.image }}
       test-names: |
         Adder
 
