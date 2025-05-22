@@ -530,9 +530,6 @@ format:
 	yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
 	isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
 
-format-diff-only:
-	source scripts/format_diff_only.sh
-
 docs:
 	make -C docs html
 clean-docs:
