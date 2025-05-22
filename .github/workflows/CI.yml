@@ -8,18 +8,15 @@ on:
       docker_image_deeploy:
         description: 'Deeploy Image to use'
         required: false
-        default: 'ghcr.io/pulp-platform/deeploy:devel'
+        default: 'ghcr.io/bowwwang/deeploy:main'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-<<<<<<< HEAD
   DOCKER_IMAGE: ${{ github.event.inputs.docker_image_deeploy || (github.ref_name == 'main' && 'ghcr.io/pulp-platform/deeploy:main' || 'ghcr.io/pulp-platform/deeploy:devel') }}
-=======
-  DOCKER_IMAGE: ghcr.io/bowwwang/deeploy:main
->>>>>>> 68166e8... [CI] switch to homemade Docker image
+
 
 jobs:
 
