@@ -86,6 +86,8 @@ jobs:
         with:
           platforms: linux/${{ matrix.platform }}
           context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
           file: Container/Dockerfile.deeploy
           push: true
           tags: |
