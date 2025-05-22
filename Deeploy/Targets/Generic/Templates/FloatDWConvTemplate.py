@@ -1,13 +1,12 @@
 # ----------------------------------------------------------------------
 #
-# File: FLoatConvTemplate.py
+# File: FLoatDWConvTemplate.py
 #
 # Last edited: 12.05.2025
 #
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
+# Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
-# Authors:
-# - Run Wang, ETH Zurich
+# Author:
 # - Calin Diaconu, University of Bologna
 #
 # ----------------------------------------------------------------------
@@ -32,16 +31,16 @@ reference2DTemplate = NodeTemplate("""
 batchOffsetIn = ch_im_in * dim_im_in_x * dim_im_in_y
 batchOffsetOut = ch_im_out * dim_im_out_x * dim_im_out_y
 %>
-
-// 2D FP Conv (Name: ${nodeName}, Op: ${nodeOp})
+// 2D FP Depth-wise Conv (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
     ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
     ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
-
     for (uint32_t n=0; n<${batch}; ++n) {
-        Conv2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_NCHW(
-            ref_${data_out}_${data_in}, ${ch_im_in}, ${dim_im_in_x}, ${dim_im_in_y},
-            ${weight}, ${ch_im_out}, ${dim_kernel_x}, ${dim_kernel_y},
+        DWConv2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_NCHW(
+            ref_${data_out}_${data_in},
+            ${ch_im_in}, ${dim_im_in_x}, ${dim_im_in_y},
+            ${weight},
+            ${ch_im_out}, ${dim_kernel_x}, ${dim_kernel_y},
             ${stride_x}, ${stride_y},
             ${bias},
             ${has_bias},

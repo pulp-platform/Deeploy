@@ -2,13 +2,14 @@
 #
 # File: GenericPlatform.py
 #
-# Last edited: 17.12.2022
+# Last edited: 05.05.2025
 #
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
+# Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
 # Author:
 # - Moritz Scherer, ETH Zurich
 # - Philip Wiese, ETH Zurich
+# - Calin Diaconu, University of Bologna
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -25,10 +26,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
+    RemoveEmptyConvBiasPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBinding, BasicConv2DBindings, \
-    BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBinding, \
+    BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, \
     BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, \
     BasicLayerNormBindings, BasicMatMulBindings, BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, \
     BasicPad2DBindings, BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, \
@@ -54,7 +57,7 @@ Conv1DMapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBinding])
 Conv2DMapper = NodeMapper(GenericConv2DParser(), BasicConv2DBindings)
 DebugMapper = NodeMapper(DebugParser(), BasicDebugPrintBindings)
 DWConv1DMapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
-DWConv2DMapper = NodeMapper(GenericDWConv2DParser(), [BasicDWConv2DBinding])
+DWConv2DMapper = NodeMapper(GenericDWConv2DParser(), BasicDWConv2DBindings)
 FlattenMapper = NodeMapper(FlattenParser(), BasicReshapeBindings)
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
 GELUMapper = NodeMapper(GELUParser(), BasicGELUBindings)
@@ -169,6 +172,7 @@ GenericOptimizer = TopologyOptimizer([
     MergeConstAddAndRequantPass(),
     ExtractPaddingFromConvPass(),
     ExtractPaddingFromPoolPass(),
+    RemoveEmptyConvBiasPass(),
     # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
 ])
 

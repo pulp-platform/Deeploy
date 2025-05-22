@@ -2,13 +2,14 @@
 #
 # File: BasicParsers.py
 #
-# Last edited: 15.12.2021
+# Last edited: 12.05.2025
 #
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
+# Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
 # Authors:
 # - Moritz Scherer, ETH Zurich
 # - Victor Jung, ETH Zurich
+# - Calin Diaconu, University of Bologna
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -2138,7 +2139,22 @@ class GenericConv2DParser(Conv2DParser):
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
-        if not ret:
+        if ret:
+            inputs = ['data_in', 'weight']
+
+            # Handle bias, if present
+            if len(node.inputs) > 2:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
+            else:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
+
+            for idx, inputNode in enumerate(node.inputs):
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+
+            return newCtxt, True
+        else:
             return ctxt, False
 
         assert len(node.inputs
@@ -2178,8 +2194,18 @@ class GenericDWConv2DParser(Conv2DParser):
 
         if ret:
             inputs = ['data_in', 'weight']
+
+            # Handle bias, if present
+            if len(node.inputs) > 2:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
+            else:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
+
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+
             if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
                 return newCtxt, True
 
