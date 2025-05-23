@@ -8,8 +8,8 @@ on:
         required: false
         default: 'ghcr.io/pulp-platform/deeploy:devel'
   schedule:
-    # Runs the workflow on the default branch every 6 days at 2AM CET to keep the cache fresh
-    - cron: "0 1 */6 * *"
+    # Runs the workflow on the default branch every day at 1AM CET to keep the cache fresh
+    - cron: "0 1 * * *"
 
 jobs:
 
