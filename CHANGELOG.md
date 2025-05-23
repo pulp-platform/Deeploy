@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Fix Linting in CI and Reformat C Files [#86](https://github.com/pulp-platform/Deeploy/pull/86)
 - Fix Broken CMake Flow For pulp-sdk [#87](https://github.com/pulp-platform/Deeploy/pull/87)
 - Refactor Changelog For Release [#85](https://github.com/pulp-platform/Deeploy/pull/85)
 - ARM Docker Container and Minor Bug Fix [#84](https://github.com/pulp-platform/Deeploy/pull/84)
@@ -202,6 +203,7 @@ This release containing major architectural changes, new platform support, enhan
 - All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
 - Split the original build flow into two container
 - Refactor changelog for better readability
+- Reformatted all C files
 
 ### Fixed
 - Removed unsupported `-MMD` compiler flag in LLVM-based toolchains.
@@ -236,6 +238,7 @@ This release containing major architectural changes, new platform support, enhan
 - Fixed broken `pulp-sdk` hash
 - Fix issue with building `banshee` on `linux/arm
 - Removed `i3c` related files from the `pulp-sdk` CMake flow
+- Fixed C-code linting stage in CI
 
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
