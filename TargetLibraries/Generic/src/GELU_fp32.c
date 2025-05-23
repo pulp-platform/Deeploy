@@ -32,9 +32,10 @@
 #define M_PI 3.14159265358979323846
 
 void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize) {
-   for (int i = 0; i < dataSize; i++) {
-        float32_t x = data_in[i];
-        float32_t cdf = 0.5 * (1.0 + tanh((sqrt(2 / M_PI) * (x + 0.044715 * pow(x, 3)))));
-        data_out[i] = x * cdf;
-    }
+  for (int i = 0; i < dataSize; i++) {
+    float32_t x = data_in[i];
+    float32_t cdf =
+        0.5 * (1.0 + tanh((sqrt(2 / M_PI) * (x + 0.044715 * pow(x, 3)))));
+    data_out[i] = x * cdf;
+  }
 }
