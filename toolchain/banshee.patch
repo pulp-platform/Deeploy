@@ -1,10 +1,10 @@
 diff --git a/Cargo.toml b/Cargo.toml
-index d406357..492c1e0 100644
+index d406357..eb5ce8e 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -11,30 +11,31 @@ edition = "2018"
+@@ -11,30 +11,32 @@ edition = "2018"
  build = "build/build.rs"
- 
+
  [dependencies]
 -anyhow = "1"
 -binread = "2.2.0"
@@ -50,7 +50,8 @@ index d406357..492c1e0 100644
 +termion = "=2.0.3"
 +thiserror = "=1.0.21"
 +to-binary = "=0.4.0"
- 
++libc = "0.2"
+
  [build-dependencies]
  cc = "1.0"
 diff --git a/build/runtime.rs b/build/runtime.rs
@@ -72,10 +73,26 @@ index 216996b..e5abe38 100644
 --- a/src/engine.rs
 +++ b/src/engine.rs
 @@ -281,7 +281,6 @@ impl Engine {
- 
+
              LLVMPassManagerBuilderPopulateFunctionPassManager(builder, func_passes);
              LLVMAddAnalysisPasses(tm, module_passes);
 -            LLVMPassManagerBuilderPopulateLTOPassManager(builder, module_passes, 0, 1);
              LLVMPassManagerBuilderPopulateModulePassManager(builder, module_passes);
- 
+
              // Create and run the function pass manager.
+diff --git a/src/tran.rs b/src/tran.rs
+index 1054744..ae5ae78 100644
+--- a/src/tran.rs
++++ b/src/tran.rs
+@@ -18,9 +18,10 @@ use std::{
+     collections::{BTreeSet, HashMap},
+     ffi::CString,
+ };
++use libc;
+ extern crate flexfloat;
+
+-static NONAME: &'static i8 = unsafe { std::mem::transmute("\0".as_ptr()) };
++static NONAME: &'static libc::c_char = unsafe { std::mem::transmute("\0".as_ptr()) };
+
+ /// Base address of the stream semantic regsiters
+ static SSR_BASE: u64 = 0x204800;
