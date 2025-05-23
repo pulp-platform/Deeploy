@@ -1,5 +1,6 @@
 ########## Stage 1: Large image to build toolchains and emulator ##########
-FROM ghcr.io/pulp-platform/deeploy-toolchain AS toolchain
+ARG BASE_IMAGE=ghcr.io/pulp-platform/deeploy-toolchain
+FROM ${BASE_IMAGE} AS toolchain
 
 # Intermediate Stage
 ARG DEBIAN_FRONTEND=noninteractive

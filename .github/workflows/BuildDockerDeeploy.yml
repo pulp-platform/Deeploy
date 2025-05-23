@@ -2,6 +2,11 @@ name: BuildDockerDeeploy
 
 on:
   workflow_dispatch:
+    inputs:
+      docker_image_toolchain:
+        description: 'Deeploy Toolchain Image to use'
+        required: false
+        default: 'ghcr.io/pulp-platform/deeploy-toolchain:latest'
 
 jobs:
   prepare:
@@ -90,6 +95,8 @@ jobs:
           cache-to: type=gha,mode=min
           file: Container/Dockerfile.deeploy
           push: true
+          build-args: |
+            BASE_IMAGE=${{ github.event.inputs.docker_image_toolchain }}
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-${{ matrix.platform }}
             ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}-${{ matrix.platform }}
