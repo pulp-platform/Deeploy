@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Refactor Changelog For Release [#85](https://github.com/pulp-platform/Deeploy/pull/85)
 - ARM Docker Container and Minor Bug Fix [#84](https://github.com/pulp-platform/Deeploy/pull/84)
 - Added Kernel for Generic Float DW Conv2D [#63](https://github.com/pulp-platform/Deeploy/pull/63)
 - Autoselect Self-Hosted Runners if the Action is on Upstream [#81](https://github.com/pulp-platform/Deeploy/pull/81)
@@ -163,6 +164,7 @@ This release containing major architectural changes, new platform support, enhan
 - Add support for `linux/arm64` containers
 - Added caching to speed up container builds
 - Makefile to simplify local container build
+- Add helper script to generate a baseline changelog.
 
 ### Changed
 - Adapt the select docker image stage to also select a runner depending on ` github.repository`
@@ -198,6 +200,7 @@ This release containing major architectural changes, new platform support, enhan
 - The ISA for the Siracusa platform has been updated from rv32imc_zfinx_xpulpv2 to rv32imf_xpulpv2.
 - All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
 - Split the original build flow into two container
+- Refactor changelog for better readability
 
 ### Fixed
 - Removed unsupported `-MMD` compiler flag in LLVM-based toolchains.
