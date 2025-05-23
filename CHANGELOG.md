@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Fix Broken CMake Flow For pulp-sdk [#87](https://github.com/pulp-platform/Deeploy/pull/87)
 - Refactor Changelog For Release [#85](https://github.com/pulp-platform/Deeploy/pull/85)
 - ARM Docker Container and Minor Bug Fix [#84](https://github.com/pulp-platform/Deeploy/pull/84)
 - Added Kernel for Generic Float DW Conv2D [#63](https://github.com/pulp-platform/Deeploy/pull/63)
@@ -234,6 +235,7 @@ This release containing major architectural changes, new platform support, enhan
 - Fixed broken VSCode launch configuration
 - Fixed broken `pulp-sdk` hash
 - Fix issue with building `banshee` on `linux/arm
+- Removed `i3c` related files from the `pulp-sdk` CMake flow
 
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
