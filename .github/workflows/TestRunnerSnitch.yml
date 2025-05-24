@@ -31,11 +31,18 @@ jobs:
           submodules: recursive
       - name: Build Deeploy
         run: pip install -e .
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: /app/.ccache
+          key: ccache-ci
       - name: Run Test
         run: |
           testNames="${{ inputs.test-names }}"
           simulators="${{inputs.simulators}}"
           cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
           echo "$simulators" | while IFS= read -r simulator; do
             if [[ -n "$simulator" ]]; then
               echo "$testNames" | while IFS= read -r testName; do

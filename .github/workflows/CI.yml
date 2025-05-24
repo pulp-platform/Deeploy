@@ -8,13 +8,14 @@ on:
       docker_image_deeploy:
         description: 'Deeploy Image to use'
         required: false
-        default: 'ghcr.io/pulp-platform/deeploy:main'
-  schedule:
-    # Runs the CI on the default branch every 6 days at 2AM CET to keep the cache fresh
-    - cron: "0 1 */6 * *"
+        default: 'ghcr.io/pulp-platform/deeploy:devel'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
-  DOCKER_IMAGE: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy:main' }}
+  DOCKER_IMAGE: ${{ github.event.inputs.docker_image_deeploy || (github.ref_name == 'main' && 'ghcr.io/pulp-platform/deeploy:main' || 'ghcr.io/pulp-platform/deeploy:devel') }}
 
 jobs:
 
