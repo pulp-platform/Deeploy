@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Cache Build Artefacts [#82](https://github.com/pulp-platform/Deeploy/pull/82)
 - Fix Linting in CI and Reformat C Files [#86](https://github.com/pulp-platform/Deeploy/pull/86)
 - Fix Broken CMake Flow For pulp-sdk [#87](https://github.com/pulp-platform/Deeploy/pull/87)
 - Refactor Changelog For Release [#85](https://github.com/pulp-platform/Deeploy/pull/85)
@@ -57,6 +58,9 @@ This release containing major architectural changes, new platform support, enhan
 - Port GitLab CI [#1](https://github.com/pulp-platform/Deeploy/pull/1)
 
 ### Added
+- Generate CCcache action
+- Concurrency group by branch name
+- Define a default container on main branch
 - Tutorial section in the documentation
 - Guide on using the debug print topology pass and code transformation
 - VSCode configuration files for improved IDE support
@@ -169,6 +173,7 @@ This release containing major architectural changes, new platform support, enhan
 - Add helper script to generate a baseline changelog.
 
 ### Changed
+- CI tests use ccache in a read-only manner
 - Adapt the select docker image stage to also select a runner depending on ` github.repository`
 - Adapt the jobs and reusable workflows to use the selected runner.
 - Updated `README.md` description to use a persistent development container
