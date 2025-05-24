@@ -16,7 +16,7 @@ jobs:
     generate-ccache:
       runs-on: ubuntu-latest
       container:
-        image:  ${{ github.event.inputs.docker_image_deeploy }}
+        image:  ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy:devel' }}
       steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
