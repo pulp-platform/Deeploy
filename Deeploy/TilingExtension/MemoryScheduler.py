@@ -35,7 +35,7 @@ from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     _permuteList
-from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
 from Deeploy.TilingExtension.MemoryConstraints import PatternMemoryConstraints, TensorMemoryConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
@@ -261,7 +261,7 @@ class MemoryScheduler():
 
         return cost
 
-    def _buildInterferenceGraph(self, lifetimeMap):
+    def _buildInterferenceGraph(self, lifetimeMap) -> Dict[str, List[str]]:
 
         interferenceGraph: Dict[str, List[str]] = {}
         for name, lifetime in lifetimeMap.items():
@@ -302,9 +302,7 @@ class MemoryScheduler():
                 # SCHEREMO: The original level is only considered by "home-level" schedulers
                 if level.memoryLevel == homeLevel and not self.tileScheduler:
 
-                    # SCHEREMO: ConstantBuffers are assigned and allocated at compile time, Global Var Buffers are assigned at init time
-                    if isinstance(ctxt.lookup(tensorMemoryConstraint.tensorName), ConstantBuffer) or ctxt.is_global(
-                            tensorMemoryConstraint.tensorName):
+                    if isinstance(ctxt.lookup(tensorMemoryConstraint.tensorName), ConstantBuffer):
                         return False
                     return True
 
@@ -315,6 +313,7 @@ class MemoryScheduler():
 
         tensorMap = OrderedDict()
         tensorLifetimeMap: Dict[str, Tuple[int, int]] = dict()
+        maxStepIdx = len(patternMemoryConstraint.nodeConstraints)
 
         for stepIdx, nodeConstraint in enumerate(patternMemoryConstraint.nodeConstraints):
             for tensorName, tensorMemoryConstraint in nodeConstraint.tensorMemoryConstraints.items():
@@ -322,12 +321,32 @@ class MemoryScheduler():
                 if not filterTensorMemoryConstraint(ctxt, tensorMemoryConstraint):
                     continue
 
+                buffer = ctxt.lookup(tensorName)
+                # JUNGVI: Buffer targeted by alias have to say alive as long as their "aliasers"
+                if hasattr(buffer, "_alias"):
+                    alias = buffer._alias
+                    if alias in tensorLifetimeMap.keys():
+                        prevLifetime = tensorLifetimeMap[alias]
+                        tensorLifetimeMap[alias] = tuple((prevLifetime[0], stepIdx))
+
                 if tensorName in tensorLifetimeMap.keys():
                     prevLifetime = tensorLifetimeMap[tensorName]
                     tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], stepIdx))
                 else:
                     tensorLifetimeMap[tensorName] = tuple((stepIdx, stepIdx))
                     tensorMap[tensorName] = tensorMemoryConstraint
+
+        # JUNGVI: Align the lifetime of I/O tensors accordignly:
+        #   - Input Tensors are alive at step 0
+        #   - Output Tensors are alive until the last step
+        for tensorName, lifetime in tensorLifetimeMap.items():
+            buffer = ctxt.lookup(tensorName)
+            new_lifetime = lifetime
+            if buffer.is_input:
+                new_lifetime = (0, lifetime[-1])
+            if buffer.is_output:
+                new_lifetime = (lifetime[0], maxStepIdx)
+            tensorLifetimeMap[tensorName] = new_lifetime
 
         return tensorLifetimeMap, tensorMap
 
@@ -431,9 +450,8 @@ class MemoryScheduler():
     def getConstantTensorOffset(self, ctxt: NetworkContext, memoryLevel: str):
         constantTensorSize = 0
         for buffer in ctxt.globalObjects.values():
-            # JUNGVI: TODO: Once I/O have finite lifetime we can just check for ConstantBuffer here
             if not "MEMORYARENA" in buffer.name and isinstance(buffer,
-                                                               VariableBuffer) and buffer._memoryLevel == memoryLevel:
+                                                               ConstantBuffer) and buffer._memoryLevel == memoryLevel:
                 constantTensorSize += np.prod(buffer.shape) * buffer._type.referencedType.typeWidth // 8
 
         return int(constantTensorSize)
@@ -451,24 +469,21 @@ class MemoryScheduler():
 
         for patternIdx, patternMemoryConstraint in enumerate(allMemoryConstraints):
 
-            # SCHEREMO: Calculate lifetimes
             tensorLifetimeMap, tensorMap = self._calculateLifetimes(ctxt, patternMemoryConstraint, memoryLevel)
 
             tensorLifetimeMap = self._dealiasLifetimeMap(ctxt, tensorLifetimeMap)
 
-            # SCHEREMO: Build interference graph
-            graph = self._buildInterferenceGraph(tensorLifetimeMap)
+            interferenceGraph = self._buildInterferenceGraph(tensorLifetimeMap)
 
-            numVars = len(graph)
+            numVars = len(interferenceGraph)
 
-            # SCHEREMO: Build adjacency matrices for memoryLevel
-            adjacencyMatrix = self._buildAdjacencyMatrix(graph, tensorMap)
-            costVector = self._buildCostVector(ctxt, graph, tensorMap, memoryLevel)
+            adjacencyMatrix = self._buildAdjacencyMatrix(interferenceGraph, tensorMap)
+            costVector = self._buildCostVector(ctxt, interferenceGraph, tensorMap, memoryLevel)
             nameVector: List[str] = []
 
             blockList = []
 
-            for node, neighbors in graph.items():
+            for node, neighbors in interferenceGraph.items():
                 nameVector.append(node)
                 relativeLifeTime = tensorLifetimeMap[node]
                 absoluteLifetime = (relativeLifeTime[0] + patternIdx, relativeLifeTime[1] + patternIdx)

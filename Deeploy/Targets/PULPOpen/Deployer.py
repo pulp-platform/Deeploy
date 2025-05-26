@@ -112,19 +112,33 @@ class PULPDeployer(SignPropDeployer):
         self.extNameCount += 1
         return name
 
-    def _generateL3BufferAllocationCode(self, buf: VariableBuffer) -> str:
-        retStr = ""
-        locPtr = str(buf._instance)
-        extName = self._newExtName()
-        buf.extName = extName
-        size = np.prod(buf.shape) * (buf._type.referencedType.typeWidth // 8)
-        if isinstance(buf, ConstantBuffer):
-            retStr += _L3AllocTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
-        retStr += _L3InitTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
-        return retStr
-
     def generateBufferAllocationCode(self) -> str:
         retStr = super().generateBufferAllocationCode()
-        for buf in self._l3ConstBuffer():
-            retStr += self._generateL3BufferAllocationCode(buf)
+
+        L3FileStr = ""
+        globalConstBuffers = [
+            buf for key, buf in self.ctxt.globalObjects.items() if isinstance(buf, VariableBuffer) and buf._deploy
+        ]
+        nonArenaBuffers = [buf for buf in globalConstBuffers if buf._users != []]
+        outputBuffNames = [outputBuffer.name for outputBuffer in self.graph.outputs]
+
+        l3ConstBuffer = []
+        for buf in nonArenaBuffers:
+            if hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3" and not buf.name in outputBuffNames:
+                l3ConstBuffer.append(buf)
+
+        for idx, buf in enumerate(l3ConstBuffer):
+
+            locPtr = str(buf._instance)
+            extName = str(idx)
+            buf.extName = extName
+            size = np.prod(buf.shape) * (buf._type.referencedType.typeWidth // 8)
+
+            if isinstance(buf, ConstantBuffer):
+                L3FileStr += _L3AllocTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
+
+            L3FileStr += _L3InitTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
+
+        retStr = retStr + L3FileStr
+
         return retStr
