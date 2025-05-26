@@ -3,7 +3,8 @@
 [![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
 )](https://pulp-platform.github.io/Deeploy/)
 ![CI](https://github.com/pulp-platform/Deeploy/actions/workflows/CI.yml/badge.svg?branch=devel)
-![Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/BuildDocker.yml/badge.svg)
+![Deeploy Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/BuildDockerDeeploy.yml/badge.svg)
+![Toolchain Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/BuildDockerToolchain.yml/badge.svg)
 [![GitHub last commit](https://img.shields.io/github/last-commit/pulp-platform/Deeploy)](#)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![](https://img.shields.io/badge/Provided_by_PULP_Platform-24AF4B)
