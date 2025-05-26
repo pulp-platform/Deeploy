@@ -6,9 +6,10 @@
 #
 # Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
-# Authors: 
+# Authors:
 # - Moritz Scherer, ETH Zurich
 # - Victor Jung, ETH Zurich
+# - Philip Wiese, ETH Zurich
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -62,7 +63,7 @@ CMAKE ?= cmake
 
 LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
-PULP_SDK_COMMIT_HASH ?= 3e1e569bd789a11d9dde6d6b3930849505e68b4a
+PULP_SDK_COMMIT_HASH ?= d44cd601c67319dd8f35ab349568aab51f371248
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
@@ -119,6 +120,8 @@ ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 	-DLLVM_OPTIMIZED_TABLEGEN=ON \
 	-DLLVM_PARALLEL_LINK_JOBS=2 \
 	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER_LAUNCHER=ccache \
+	-DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
 	../llvm && \
 	${CMAKE} --build . -j && \
 	${CMAKE} --install .
@@ -525,7 +528,7 @@ ${TOOLCHAIN_DIR}/minimalloc:
 .PHONY: docs clean-docs format
 
 format:
-	python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -ir ./ scripts --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format
+	python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
 	autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
 	yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
 	isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./

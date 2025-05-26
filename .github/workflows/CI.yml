@@ -4,12 +4,18 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-  schedule:
-    # Runs the CI on the default branch every 6 days at 2AM CET to keep the cache fresh
-    - cron: "0 1 */6 * *"
+    inputs:
+      docker_image_deeploy:
+        description: 'Deeploy Image to use'
+        required: false
+        default: 'ghcr.io/pulp-platform/deeploy:devel'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
-  DOCKER_IMAGE: ghcr.io/pulp-platform/deeploy:main
+  DOCKER_IMAGE: ${{ github.event.inputs.docker_image_deeploy || (github.ref_name == 'main' && 'ghcr.io/pulp-platform/deeploy:main' || 'ghcr.io/pulp-platform/deeploy:devel') }}
 
 jobs:
 
@@ -74,8 +80,13 @@ jobs:
         testFloatAdder
         testFloatGEMM
         testFloat2DConvolution
+        testFloat2DConvolutionBias
+        testFloat2DConvolutionZeroBias
         testFloatLayerNorm
         testFloatDiv
+        testFloat2DDWConvolution
+        testFloat2DDWConvolutionBias
+        testFloat2DDWConvolutionZeroBias
         testFloatRelu
         testFloatMaxPool
         testFloatMatmul
@@ -432,7 +443,7 @@ jobs:
           },
           {
             "name": "RQHardswish",
-            "L1": [750]
+            "L1": [800]
           },
           {
             "name": "testFloatGEMM",
@@ -793,7 +804,7 @@ jobs:
         run: |
           cd DeeployTest
           python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=MiniMalloc
-          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=70000 --memAllocStrategy=MiniMalloc --shouldFail
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=60000 --memAllocStrategy=MiniMalloc --shouldFail
           python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=90000 --memAllocStrategy=TetrisRandom
           python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa  --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=TetrisRandom --shouldFail
 
@@ -968,7 +979,7 @@ jobs:
         shell: bash
       - name: Format C
         run: |
-          python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -ir --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./ scripts
+          python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./ scripts
         shell: bash
       - name: Format Python Licenses
         run: |

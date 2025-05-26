@@ -5,20 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Generic Platform Adder",
-            "type": "debugpy",
-            "request": "launch",
-            "justMyCode": false,
-            "program": "generateNetwork.py",
-            "cwd": "${workspaceFolder}/DeeployTest",
-            "args": [
-                "-t",
-                "Tests/Adder",
-                "-p",
-                "Generic"
-            ]
-        },
-        {
             "name": "Deeploy Generate Untiled",
             "type": "debugpy",
             "request": "launch",
@@ -26,12 +12,7 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/DeeployTest",
             "justMyCode": false,
-            "args": [
-                "-v",
-                "-p${input:platformUntiled}",
-                "-t${input:model}",
-                "${input:additionalArgsUntiled}"
-            ]
+            "args": "-p${input:platformUntiled} -t${input:model} ${input:additionalArgsUntiled}"
         },
         {
             "name": "Deeploy Generate Tiled",
@@ -41,11 +22,7 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/DeeployTest",
             "justMyCode": false,
-            "args": [
-                "-p${input:platformTiled}",
-                "-t${input:model}",
-                "${input:additionalArgsTiled}"
-            ]
+            "args": "-p${input:platformTiled} -t${input:model} ${input:additionalArgsTiled}"
         }
     ],
     "inputs": [

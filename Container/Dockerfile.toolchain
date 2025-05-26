@@ -1,0 +1,93 @@
+########## Stage 1: Large image to build toolchains and emulator ##########
+FROM ubuntu:22.04 AS toolchain
+
+ARG PYTHON_VERSION=3.8.0
+ARG TARGETPLATFORM
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV TZ=Etc/UTC
+ENV CC="ccache gcc"
+ENV CXX="ccache g++"
+ENV CCACHE_DIR=/ccache
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Change the working directory
+WORKDIR /app
+
+# Install dependencies
+RUN apt-get upgrade && \
+    apt-get update && \
+    apt-get install -y git-lfs \
+    build-essential \
+    ccache \
+    ninja-build \
+    pkg-config \
+    ibglib2.0-dev \
+    libpixman-1-dev \
+    python3 \
+    python3-dev \
+    python-is-python3 \
+    curl \
+    protobuf-compiler \
+    libftdi-dev \
+    libftdi1 \
+    doxygen \
+    libsdl2-dev \
+    scons \
+    gtkwave \
+    libsndfile1-dev \
+    rsync \
+    autoconf \
+    automake \
+    texinfo \
+    libtool \
+    libsdl2-ttf-dev \
+    gcc \
+    wget \
+    clang-format
+
+# Install CMake
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    wget https://github.com/Kitware/CMake/releases/download/v3.31.1/cmake-3.31.1-linux-x86_64.sh && \
+    chmod +x cmake-3.31.1-linux-x86_64.sh && \
+    ./cmake-3.31.1-linux-x86_64.sh --prefix=/usr --skip-license; \
+elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    wget https://github.com/Kitware/CMake/releases/download/v3.31.1/cmake-3.31.1-linux-aarch64.sh && \
+    chmod +x ./cmake-3.31.1-linux-aarch64.sh && \
+    ./cmake-3.31.1-linux-aarch64.sh --prefix=/usr --skip-license; \
+fi
+
+# Install pip
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py && \
+    rm get-pip.py
+
+# Build Rust tools
+RUN apt remove cargo -y && \
+    apt autoremove -y && \
+    curl https://sh.rustup.rs -sSf | bash -s -- -y && \
+    rustup install 1.63.0 && \
+    rustup default 1.63.0 && \
+    rustup component add rust-src
+
+# Install meson
+RUN pip install meson
+
+COPY toolchain/ toolchain/
+COPY Makefile ./
+
+# Compile minimalloc
+RUN --mount=type=cache,target=/ccache \
+    ccache -z && make minimalloc && ccache -s
+
+# Compile toolchains
+RUN --mount=type=cache,target=/ccache \
+    ccache -z && make llvm && make llvm-compiler-rt-riscv && \
+    make llvm-compiler-rt-arm && make picolibc-arm && \
+    make picolibc-riscv && ccache -s
+
+# Remove unecessary files
+RUN rm -rf cmake-* && \
+    rm -rf toolchain/llvm-project && \
+    rm -rf toolchain/minimalloc && \
+    rm -rf toolchain/picolibc
