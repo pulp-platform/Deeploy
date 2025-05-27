@@ -153,6 +153,9 @@ class RQConv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def computeMargins(kernelShape: Tuple[int, ...]) -> Tuple[int, ...]:
+        # TODO: Margins on even kernels are wrong. They should also be calculated,
+        #       but just unequal on each side. E.g. left one is floor, and right one
+        #       is ceil of kernelShape[1] / 2.
         if kernelShape[1] % 2 == 0:
             leftMargin = 0
             rightMargin = 0
@@ -185,8 +188,8 @@ class RQConv2DTileConstraint(TileConstraint):
         padding_left = (WOffset == 0) * pads[1]
         padding_right = (WOffset + WSize == outputDims[2]) * pads[3]
 
-        inputHOffset = HOffset * strides[0] - topMargin * (HOffset != 0)
-        inputWOffset = WOffset * strides[1] - leftMargin * (WOffset != 0)
+        inputHOffset = HOffset * strides[0]
+        inputWOffset = WOffset * strides[1]
 
         inputHSize = HSize * strides[0] + (topMargin + bottomMargin) - (padding_top + padding_bottom)
         inputWSize = WSize * strides[1] + (leftMargin + rightMargin) - (padding_left + padding_right)
@@ -417,8 +420,8 @@ class Conv2DTileConstraint(TileConstraint):
         padding_left = (WOffset == 0) * pads[1]
         padding_right = (WOffset + WSize == outputDims[2]) * pads[3]
 
-        inputHOffset = HOffset * strides[0] - topMargin * (HOffset != 0)
-        inputWOffset = WOffset * strides[1] - leftMargin * (WOffset != 0)
+        inputHOffset = HOffset * strides[0]
+        inputWOffset = WOffset * strides[1]
 
         inputHSize = HSize * strides[0] + (topMargin + bottomMargin) - (padding_top + padding_bottom)
         inputWSize = WSize * strides[1] + (leftMargin + rightMargin) - (padding_left + padding_right)
