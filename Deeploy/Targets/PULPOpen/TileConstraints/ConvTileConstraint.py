@@ -188,8 +188,8 @@ class RQConv2DTileConstraint(TileConstraint):
         padding_left = (WOffset == 0) * pads[1]
         padding_right = (WOffset + WSize == outputDims[2]) * pads[3]
 
-        inputHOffset = HOffset * strides[0]
-        inputWOffset = WOffset * strides[1]
+        inputHOffset = max(HOffset * strides[0] - pads[0], 0)
+        inputWOffset = max(WOffset * strides[1] - pads[2], 0)
 
         inputHSize = HSize * strides[0] + (topMargin + bottomMargin) - (padding_top + padding_bottom)
         inputWSize = WSize * strides[1] + (leftMargin + rightMargin) - (padding_left + padding_right)
@@ -420,8 +420,8 @@ class Conv2DTileConstraint(TileConstraint):
         padding_left = (WOffset == 0) * pads[1]
         padding_right = (WOffset + WSize == outputDims[2]) * pads[3]
 
-        inputHOffset = HOffset * strides[0]
-        inputWOffset = WOffset * strides[1]
+        inputHOffset = max(HOffset * strides[0] - pads[0], 0)
+        inputWOffset = max(WOffset * strides[1] - pads[2], 0)
 
         inputHSize = HSize * strides[0] + (topMargin + bottomMargin) - (padding_top + padding_bottom)
         inputWSize = WSize * strides[1] + (leftMargin + rightMargin) - (padding_left + padding_right)
