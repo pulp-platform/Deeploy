@@ -70,8 +70,7 @@ class CodeGenVerbosity:
     """
 
     tilingProfiling: Optional[bool] = False  # Specifies if we should profile the tiling code
-    untiledProfiling: Optional[
-        bool] = None  #  Specifies if we should profile the untilied code
+    untiledProfiling: Optional[bool] = None  #  Specifies if we should profile the untilied code
 
 
 _NoVerbosity = CodeGenVerbosity(None)

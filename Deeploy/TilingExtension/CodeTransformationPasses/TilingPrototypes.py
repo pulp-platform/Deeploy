@@ -6,7 +6,7 @@
 #
 # Copyright (C) 2024, ETH Zurich and University of Bologna.
 #
-# Authors: 
+# Authors:
 # - Moritz Scherer, ETH Zurich
 # - Victor Jung, ETH Zurich
 #
@@ -151,7 +151,8 @@ class TilingCodeGenMixin(ABC):
 class ProfilingPrototypeMixIn(ABC):
 
     @classmethod
-    def measurementArrayDeclaration(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo, bufferingStr: Literal["SB", "DB"]) -> ExecutionBlock:
+    def measurementArrayDeclaration(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
+                                    bufferingStr: Literal["SB", "DB"]) -> ExecutionBlock:
 
         nodeName = metaInfo.nodeName
         numTiles = metaInfo.numTiles
@@ -181,7 +182,7 @@ class ProfilingPrototypeMixIn(ABC):
 
     @classmethod
     def injectPrintCycleDiff(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo) -> ExecutionBlock:
-        
+
         numTiles = metaInfo.numTiles
         nodeName = metaInfo.nodeName
 
@@ -233,7 +234,7 @@ class ProfilingPrototypeMixIn(ABC):
                 "measurementName": "kernel_end",
                 "tileIdx": tileIdxVar
             })
-        
+
         return executionBlock
 
 
@@ -278,7 +279,7 @@ class ProfilingSingleBufferingTilingMixIn(SingleBufferingTilingMixIn, ProfilingP
         executionBlock = super().generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements,
                                                               teardownStatements)
 
-        executionBlock = cls.measurementArrayDeclaration(executionBlock, metaInfo, bufferingStr="SB")
+        executionBlock = cls.measurementArrayDeclaration(executionBlock, metaInfo, bufferingStr = "SB")
 
         executionBlock = cls.injectPrintCycleDiff(executionBlock, metaInfo)
 
@@ -381,7 +382,7 @@ class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn, ProfilingP
             "tileIdx": 0
         })
 
-        executionBlock = cls.measurementArrayDeclaration(executionBlock, metaInfo, bufferingStr="DB")
+        executionBlock = cls.measurementArrayDeclaration(executionBlock, metaInfo, bufferingStr = "DB")
 
         executionBlock.addRight(_measureCycles, {
             "nodeName": nodeName,
@@ -397,7 +398,7 @@ class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn, ProfilingP
         })
 
         executionBlock = cls.injectPrintCycleDiff(executionBlock, metaInfo)
-        
+
         return executionBlock
 
     @classmethod
