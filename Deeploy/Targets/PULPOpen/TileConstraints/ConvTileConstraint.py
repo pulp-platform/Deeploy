@@ -151,54 +151,6 @@ class RQConv2DTileConstraint(TileConstraint):
 
         return symbolicParseDict
 
-    @staticmethod
-    def computeMargins(kernelShape: Tuple[int, ...]) -> Tuple[int, ...]:
-        # TODO: Margins on even kernels are wrong. They should also be calculated,
-        #       but just unequal on each side. E.g. left one is floor, and right one
-        #       is ceil of kernelShape[1] / 2.
-        if kernelShape[1] % 2 == 0:
-            leftMargin = 0
-            rightMargin = 0
-        else:
-            leftMargin = ((kernelShape[1]) // 2)
-            rightMargin = ((kernelShape[1]) // 2)
-
-        if kernelShape[0] % 2 == 0:
-            topMargin = 0
-            bottomMargin = 0
-        else:
-            topMargin = ((kernelShape[0]) // 2)
-            bottomMargin = ((kernelShape[0]) // 2)
-
-        return leftMargin, rightMargin, topMargin, bottomMargin
-
-    @staticmethod
-    def computeInputCube(kernelShape: Tuple[int, ...], pads: Tuple[int, ...], strides: Tuple[int, ...],
-                         weightChannels: int, outputCube: HyperRectangle,
-                         outputDims: Tuple[int, ...]) -> Tuple[HyperRectangle, Tuple[int, ...]]:
-
-        (BatchOffset, HOffset, WOffset, COffset) = outputCube.offset
-        (BatchSize, HSize, WSize, CSize) = outputCube.dims
-
-        leftMargin, rightMargin, topMargin, bottomMargin = Conv2DTileConstraint.computeMargins(kernelShape)
-
-        padding_top = (HOffset == 0) * pads[0]
-        padding_bottom = (HOffset + HSize == outputDims[1]) * pads[2]
-
-        padding_left = (WOffset == 0) * pads[1]
-        padding_right = (WOffset + WSize == outputDims[2]) * pads[3]
-
-        inputHOffset = max(HOffset * strides[0] - pads[0], 0)
-        inputWOffset = max(WOffset * strides[1] - pads[2], 0)
-
-        inputHSize = HSize * strides[0] + (topMargin + bottomMargin) - (padding_top + padding_bottom)
-        inputWSize = WSize * strides[1] + (leftMargin + rightMargin) - (padding_left + padding_right)
-
-        InCube = HyperRectangle((BatchOffset, inputHOffset, inputWOffset, 0),
-                                (BatchSize, inputHSize, inputWSize, weightChannels))
-
-        return InCube, (padding_left, padding_right, padding_top, padding_bottom)
-
     @classmethod
     def serializeTilingSolution(
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
@@ -387,49 +339,46 @@ class Conv2DTileConstraint(TileConstraint):
         return symbolicParseDict
 
     @staticmethod
-    def computeMargins(kernelShape: Tuple[int, ...]) -> Tuple[int, ...]:
-        if kernelShape[1] % 2 == 0:
-            leftMargin = 0
-            rightMargin = 0
-        else:
-            leftMargin = ((kernelShape[1]) // 2)
-            rightMargin = ((kernelShape[1]) // 2)
-
-        if kernelShape[0] % 2 == 0:
-            topMargin = 0
-            bottomMargin = 0
-        else:
-            topMargin = ((kernelShape[0]) // 2)
-            bottomMargin = ((kernelShape[0]) // 2)
-
+    def computeMargins(kernelShape: Tuple[int, int]) -> Tuple[int, int, int, int]:
+        assert kernelShape[0] % 2 != 0 and kernelShape[
+            1] % 2 != 0, f'Even kernels ({kernelShape}) not supported currently'
+        leftMargin = kernelShape[1] // 2
+        rightMargin = kernelShape[1] // 2
+        topMargin = kernelShape[0] // 2
+        bottomMargin = kernelShape[0] // 2
         return leftMargin, rightMargin, topMargin, bottomMargin
 
     @staticmethod
-    def computeInputCube(kernelShape: Tuple[int, ...], pads: Tuple[int, ...], strides: Tuple[int, ...],
-                         weightChannels: int, outputCube: HyperRectangle,
-                         outputDims: Tuple[int, ...]) -> Tuple[HyperRectangle, Tuple[int, ...]]:
+    def computeInputCube(kernelShape: Tuple[int, int], pads: Tuple[int, int, int, int], strides: Tuple[int, int],
+                         inputCSize: int, outputCube: HyperRectangle,
+                         outputDims: Tuple[int, int, int]) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
 
-        (BatchOffset, HOffset, WOffset, COffset) = outputCube.offset
-        (BatchSize, HSize, WSize, CSize) = outputCube.dims
+        (outputBatchOffset, outputHOffset, outputWOffset, outputCOffset) = outputCube.offset
+        (outputBatchSize, outputHSize, outputWSize, outputCSize) = outputCube.dims
 
         leftMargin, rightMargin, topMargin, bottomMargin = Conv2DTileConstraint.computeMargins(kernelShape)
 
-        padding_top = (HOffset == 0) * pads[0]
-        padding_bottom = (HOffset + HSize == outputDims[1]) * pads[2]
+        padTop, padLeft, padBottom, padRight = pads
+        strideH, strideW = strides
 
-        padding_left = (WOffset == 0) * pads[1]
-        padding_right = (WOffset + WSize == outputDims[2]) * pads[3]
+        tilePadTop = padTop if (outputHOffset == 0) else 0
+        tilePadLeft = padLeft if (outputWOffset == 0) else 0
+        tilePadBottom = padBottom if (outputHOffset + outputHSize == outputDims[1]) else 0
+        tilePadRight = padRight if (outputWOffset + outputWSize == outputDims[2]) else 0
 
-        inputHOffset = max(HOffset * strides[0] - pads[0], 0)
-        inputWOffset = max(WOffset * strides[1] - pads[2], 0)
+        # LMACAN: Calculating the per-dimension relative tile offset without padding
+        #         The offset is relative to the upstream bigger tile, and represents the offset to
+        #         "useful" data, so padding is not included.
+        inputHOffset = max(outputHOffset * strideH - padTop, 0)
+        inputWOffset = max(outputWOffset * strideW - padLeft, 0)
 
-        inputHSize = HSize * strides[0] + (topMargin + bottomMargin) - (padding_top + padding_bottom)
-        inputWSize = WSize * strides[1] + (leftMargin + rightMargin) - (padding_left + padding_right)
+        inputHSize = outputHSize * strideH + (topMargin + bottomMargin) - (tilePadTop + tilePadBottom)
+        inputWSize = outputWSize * strideW + (leftMargin + rightMargin) - (tilePadLeft + tilePadRight)
 
-        InCube = HyperRectangle((BatchOffset, inputHOffset, inputWOffset, 0),
-                                (BatchSize, inputHSize, inputWSize, weightChannels))
+        InCube = HyperRectangle((outputBatchOffset, inputHOffset, inputWOffset, 0),
+                                (outputBatchSize, inputHSize, inputWSize, inputCSize))
 
-        return InCube, (padding_left, padding_right, padding_top, padding_bottom)
+        return InCube, (tilePadLeft, tilePadRight, tilePadTop, tilePadBottom)
 
     @classmethod
     def serializeTilingSolution(
