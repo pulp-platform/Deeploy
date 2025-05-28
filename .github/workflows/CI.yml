@@ -16,7 +16,7 @@ concurrency:
 
 env:
   # DOCKER_IMAGE: ${{ github.event.inputs.docker_image_deeploy || (github.ref_name == 'main' && 'ghcr.io/pulp-platform/deeploy:main' || 'ghcr.io/pulp-platform/deeploy:devel') }}
-  DOCKER_IMAGE: ${{ github.event.inputs.docker_image_deeploy || (github.ref_name == 'main' && 'ghcr.io/pulp-platform/deeploy:main' || 'ghcr.io/francescoconti/deeploy:new-pulp-sdk') }}
+  DOCKER_IMAGE: ${{ github.event.inputs.docker_image_deeploy || (github.ref_name == 'main' && 'ghcr.io/pulp-platform/deeploy:main' || 'ghcr.io/francescoconti/deeploy:devel') }}
 
 jobs:
 
