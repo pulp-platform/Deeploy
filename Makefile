@@ -412,7 +412,6 @@ ${TOOLCHAIN_DIR}/pulp-sdk:
 ${PULP_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/pulp-sdk
 	mkdir -p ${PULP_SDK_INSTALL_DIR}
 	cp -r ${TOOLCHAIN_DIR}/pulp-sdk/ ${PULP_SDK_INSTALL_DIR}/../
-	cd ${PULP_SDK_INSTALL_DIR}
 
 pulp-sdk: ${PULP_SDK_INSTALL_DIR}
 
