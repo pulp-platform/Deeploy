@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Move PULP SDK to main branch/fork [#88](https://github.com/pulp-platform/Deeploy/pull/88)
 - Finite Lifetime for IO Tensors [#51](https://github.com/pulp-platform/Deeploy/pull/51)
 - Fix Linting in CI and Reformat C Files [#86](https://github.com/pulp-platform/Deeploy/pull/86)
 - Fix Broken CMake Flow For pulp-sdk [#87](https://github.com/pulp-platform/Deeploy/pull/87)
@@ -173,6 +174,7 @@ This release containing major architectural changes, new platform support, enhan
 - Add helper script to generate a baseline changelog.
 
 ### Changed
+- Moved PULP SDK from Victor-Jung/pulp-sdk branch deeploy to pulp-platform/pulp-sdk branch main.
 - Memory arena buffers are now declared at the beginning of the `InitNetwork` function
 - Adapt the select docker image stage to also select a runner depending on ` github.repository`
 - Adapt the jobs and reusable workflows to use the selected runner.
