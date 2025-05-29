@@ -405,7 +405,7 @@ picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} $
 
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/FrancescoConti/pulp-sdk.git && \
+	git clone https://github.com/pulp-platform/pulp-sdk.git && \
 	cd ${TOOLCHAIN_DIR}/pulp-sdk && git checkout ${PULP_SDK_COMMIT_HASH} && \
 	git submodule update --init --recursive
 
