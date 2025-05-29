@@ -339,24 +339,12 @@ class Conv2DTileConstraint(TileConstraint):
         return symbolicParseDict
 
     @staticmethod
-    def computeMargins(kernelShape: Tuple[int, int]) -> Tuple[int, int, int, int]:
-        assert kernelShape[0] % 2 != 0 and kernelShape[
-            1] % 2 != 0, f'Even kernels ({kernelShape}) not supported currently'
-        leftMargin = kernelShape[1] // 2
-        rightMargin = kernelShape[1] // 2
-        topMargin = kernelShape[0] // 2
-        bottomMargin = kernelShape[0] // 2
-        return leftMargin, rightMargin, topMargin, bottomMargin
-
-    @staticmethod
     def computeInputCube(kernelShape: Tuple[int, int], pads: Tuple[int, int, int, int], strides: Tuple[int, int],
                          inputCSize: int, outputCube: HyperRectangle,
                          outputDims: Tuple[int, int, int]) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
 
         (outputBatchOffset, outputHOffset, outputWOffset, outputCOffset) = outputCube.offset
         (outputBatchSize, outputHSize, outputWSize, outputCSize) = outputCube.dims
-
-        leftMargin, rightMargin, topMargin, bottomMargin = Conv2DTileConstraint.computeMargins(kernelShape)
 
         padTop, padLeft, padBottom, padRight = pads
         strideH, strideW = strides
@@ -372,8 +360,8 @@ class Conv2DTileConstraint(TileConstraint):
         inputHOffset = max(outputHOffset * strideH - padTop, 0)
         inputWOffset = max(outputWOffset * strideW - padLeft, 0)
 
-        inputHSize = outputHSize * strideH + (topMargin + bottomMargin) - (tilePadTop + tilePadBottom)
-        inputWSize = outputWSize * strideW + (leftMargin + rightMargin) - (tilePadLeft + tilePadRight)
+        inputHSize = outputHSize * strideH + (kernelShape[0] - 1) - (tilePadTop + tilePadBottom)
+        inputWSize = outputWSize * strideW + (kernelShape[1] - 1) - (tilePadLeft + tilePadRight)
 
         InCube = HyperRectangle((outputBatchOffset, inputHOffset, inputWOffset, 0),
                                 (outputBatchSize, inputHSize, inputWSize, inputCSize))
