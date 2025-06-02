@@ -152,16 +152,38 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
         # We have to allocate the output buffers, unless they are global
 
         for buffer in list(reversed(outputNames)) + transientBuffers:
+            # Extract buffer info from context
             nb = ctxt.lookup(buffer)
+
+            # Check that it was not already allocated
             assert ctxt.localObjects[nb.name]._live == False, f"Tried to allocate already live buffer {nb.name}"
+
+            # Mark it as live
             ctxt.localObjects[nb.name]._live = True
+
+            # Add the allocation code to the execution block
             executionBlock.addLeft(nb.allocTemplate, nb._bufferRepresentation())
 
         for buffer in inputNames + transientBuffers:
+            # Extract buffer info from context
             nb = ctxt.lookup(buffer)
+
+            # Check that it was not already deallocated
             assert ctxt.localObjects[nb.name]._live == True, f"Tried to deallocate already dead buffer {nb.name}"
+
+            # Mark it as dead (not useful anymore)
             ctxt.localObjects[nb.name]._live = False
-            executionBlock.addRight(nb.deallocTemplate, nb._bufferRepresentation())
+
+            # Check for live ancestors (buffers that this is an alias of, that are still live)
+            has_live_ancestors = False
+            for ancestor in nb.alias_of:
+                if ctxt.localObjects[ancestor]._live:
+                    has_live_ancestors = True
+                    break
+
+            # Add the deallocation code to the execution block
+            if not has_live_ancestors:
+                executionBlock.addRight(nb.deallocTemplate, nb._bufferRepresentation())
 
         return ctxt, executionBlock
 

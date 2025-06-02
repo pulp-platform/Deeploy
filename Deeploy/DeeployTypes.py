@@ -256,7 +256,7 @@ class VariableBuffer():
     allocTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's allocation code
     deallocTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's deallocation code
 
-    def __init__(self, name: str = '', shape = [1]):
+    def __init__(self, name: str = '', shape = [1], alias_of: Optional[List[str]] = []):
         self.name: str = name  #: str: Canonical name that this buffer is registered as in the NetworkContext
         self.shape: Sequence[
             int] = shape  #: Sequence[int]: Represents the dimensions of the underlying tensor as a sequence of dimension sizes
@@ -274,6 +274,8 @@ class VariableBuffer():
 
         self.is_input: bool = False
         self.is_output: bool = False
+
+        self.alias_of: List[str] = alias_of if alias_of is not None else []
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._instance, "name": self.name, "size": int(np.prod(self.shape))}
