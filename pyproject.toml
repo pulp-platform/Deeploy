@@ -55,6 +55,6 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ['Deeploy']
-include-package-data = true
+[tool.setuptools.packages.find]
+include = ["Deeploy*"]
+exclude = ["DeeployTest*"]
