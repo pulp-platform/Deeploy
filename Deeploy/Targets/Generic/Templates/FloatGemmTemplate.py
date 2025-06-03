@@ -46,8 +46,6 @@ BEGIN_SINGLE_CORE
         );
 
         ref_${data_out}_${A} += ${M} * ${N};
-        ref_${data_out}_${B} += ${N} * ${O};
-        ref_${data_out}_${C} += ${M} * ${O};
         ref_${data_out}_${data_out} += ${M} * ${O};
     }
 END_SINGLE_CORE
