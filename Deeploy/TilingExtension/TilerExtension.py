@@ -89,103 +89,87 @@ class Tiler():
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
 
-    def plotMemoryAlloc(self,
-                        memoryMap: Dict[str, List[List[MemoryBlock]]],
-                        ctxt: NetworkContext,
-                        deeployStateDir: str,
-                        defaultMemoryLevel: MemoryLevel,
-                        targetMemLevelName: str = 'L1'):
+    def plotMemoryAlloc(self, memoryMap: Dict[str, List[List[MemoryBlock]]], ctxt: NetworkContext, deeployStateDir: str,
+                        memoryHierarchy: MemoryHierarchy):
 
-        innerMemoryAllocDir = os.path.join(deeployStateDir, f"MemoryAlloc{targetMemLevelName}")
         os.makedirs(os.path.abspath(deeployStateDir), exist_ok = True)
-        os.makedirs(os.path.abspath(innerMemoryAllocDir), exist_ok = True)
-        defaultMemLevelPlotPath = os.path.abspath(
-            os.path.join(deeployStateDir, f"memory_alloc_{defaultMemoryLevel.name}.html"))
+        memoryAllocPlotPath = os.path.abspath(os.path.join(deeployStateDir, f"memory_alloc.html"))
 
         addTraceConfig = {"fill": "toself", "hoverinfo": "text", "mode": "lines", "line": dict(width = 2)}
 
-        updateLayoutConfig = {
-            "xaxis_title": "Lifetime",
-            "yaxis_title": "Address Space (Bytes)",
-            "xaxis": dict(tickformat = "d", showgrid = True),
-            "yaxis": dict(tickformat = "d", showgrid = True),
-            "hovermode": "closest",
-            "showlegend": False,
-        }
-
-        fig = go.Figure()
-
-        # JUNGVI: Currently I/O have infinite lifetime, will change that soon...
-        infiniteLifetimeBuffers = [
-            buffer for buffer in ctxt.globalObjects.values()
-            if not self.arenaName in buffer.name and isinstance(buffer, ConstantBuffer)
-        ]
-
-        constantBuffersOffset = 0
-        for ioBuffers in infiniteLifetimeBuffers:
-            _ioSize = np.prod(ioBuffers.shape) * ioBuffers._type.referencedType.typeWidth // 8
-            _maxLifetime = len(memoryMap[defaultMemoryLevel.name])
-            fig.add_trace(
-                go.Scatter(x = [-0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5],
-                           y = [
-                               constantBuffersOffset, constantBuffersOffset + _ioSize, constantBuffersOffset + _ioSize,
-                               constantBuffersOffset
-                           ],
-                           name = ioBuffers.name,
-                           text = ioBuffers.name,
-                           **addTraceConfig))
-            constantBuffersOffset += _ioSize
-
-        for buffer in memoryMap[defaultMemoryLevel.name][-1]:
-            if hasattr(ctxt.lookup(buffer.name), "_alias"):
-                continue
-            fig.add_trace(
-                go.Scatter(x = [
-                    buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
-                    buffer._lifetime[1] + 0.5
-                ],
-                           y = [
-                               constantBuffersOffset + buffer._addrSpace[0],
-                               constantBuffersOffset + buffer._addrSpace[1],
-                               constantBuffersOffset + buffer._addrSpace[1],
-                               constantBuffersOffset + buffer._addrSpace[0]
-                           ],
-                           name = buffer.name,
-                           text = buffer.name,
-                           **addTraceConfig))
-
-        fig.add_trace(
-            go.Scatter(
-                x = [-0.5, len(memoryMap[defaultMemoryLevel.name]) - 1.5],
-                y = [defaultMemoryLevel.size, defaultMemoryLevel.size],
-                name = f"{defaultMemoryLevel.name} Memory Size",
-                text = f"{defaultMemoryLevel.name} Memory Size",
-                line = dict(color = "red", width = 2, dash = "dash"),
-                fill = "toself",
-                hoverinfo = "text",
-                mode = "lines",
-            ))
-        fig.update_layout(title = f"Deeploy Memory Allocation {defaultMemoryLevel.name}", **updateLayoutConfig)
-        pio.write_html(fig, defaultMemLevelPlotPath)
-
-        for step_idx, innerMemoryAlloc in enumerate(memoryMap[targetMemLevelName]):
-            targetMemLevelPlotPath = os.path.abspath(
-                os.path.join(innerMemoryAllocDir, f"memory_alloc_{targetMemLevelName}_step{step_idx}.html"))
+        def plotSingleMemoryLevel(memoryLevel: MemoryLevel):
+            """ Generates a single Plotly subplot for a memory level. """
             fig = go.Figure()
-            for buffer in innerMemoryAlloc:
+            constantBuffersOffset = 0
+
+            infiniteLifetimeBuffers = [
+                buffer for buffer in ctxt.globalObjects.values()
+                if not self.arenaName in buffer.name and isinstance(buffer, ConstantBuffer)
+            ]
+
+            constantBuffersOffset = 0
+            for ioBuffer in infiniteLifetimeBuffers:
+                if not ioBuffer._memoryLevel == memoryLevel.name:
+                    continue
+                _ioSize = np.prod(ioBuffer.shape) * ioBuffer._type.referencedType.typeWidth // 8
+                _maxLifetime = len(memoryMap[memoryLevel.name])
                 fig.add_trace(
-                    go.Scatter(
-                        x = [
+                    go.Scatter(x = [-0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5],
+                               y = [
+                                   constantBuffersOffset, constantBuffersOffset + _ioSize,
+                                   constantBuffersOffset + _ioSize, constantBuffersOffset
+                               ],
+                               name = ioBuffer.name,
+                               text = ioBuffer.name,
+                               **addTraceConfig))
+                constantBuffersOffset += _ioSize
+
+            for memoryMapStep in memoryMap[memoryLevel.name]:
+                for buffer in memoryMapStep:
+                    fig.add_trace(
+                        go.Scatter(x = [
                             buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
                             buffer._lifetime[1] + 0.5
                         ],
-                        y = [buffer._addrSpace[0], buffer._addrSpace[1], buffer._addrSpace[1], buffer._addrSpace[0]],
-                        name = buffer.name,
-                        text = buffer.name,
-                        **addTraceConfig))
-            fig.update_layout(title = f"Deeploy Memory Allocation {targetMemLevelName} Step {step_idx}",
-                              **updateLayoutConfig)
-            pio.write_html(fig, targetMemLevelPlotPath)
+                                   y = [
+                                       constantBuffersOffset + buffer._addrSpace[0],
+                                       constantBuffersOffset + buffer._addrSpace[1],
+                                       constantBuffersOffset + buffer._addrSpace[1],
+                                       constantBuffersOffset + buffer._addrSpace[0]
+                                   ],
+                                   name = buffer.name,
+                                   text = buffer.name,
+                                   **addTraceConfig))
+
+            fig.update_xaxes(title_text = "Lifetime")
+            fig.update_yaxes(title_text = "Address Space (Bytes)")
+            fig.update_layout(title = f"Memory Allocation - {memoryLevel.name}", showlegend = False)
+
+            fig.add_trace(
+                go.Scatter(
+                    x = [-0.5, len(memoryMap[memoryLevel.name]) - 1.5],
+                    y = [memoryLevel.size, memoryLevel.size],
+                    name = f"{memoryLevel.name} Memory Size",
+                    text = f"{memoryLevel.name} Memory Size",
+                    line = dict(color = "red", width = 2, dash = "dash"),
+                    fill = "toself",
+                    hoverinfo = "text",
+                    mode = "lines",
+                ))
+
+            return fig
+
+        from Deeploy.TilingExtension.HtmlTemplates import getHtmlMemoryAllocationVisualisation, getSubplotHtml
+
+        subplotHtml = ""
+        for memoryLevelName in memoryMap.keys():
+            figJson = pio.to_json(plotSingleMemoryLevel(memoryHierarchy.memoryLevels[memoryLevelName]))
+            subplotHtml += getSubplotHtml(figJson, memoryLevelName)
+
+        outputHtml = getHtmlMemoryAllocationVisualisation(subplotHtml)
+
+        with open(memoryAllocPlotPath, "w", encoding = "utf-8") as f:
+            f.write(outputHtml)
 
     def _convertCtxtToStaticSchedule(self, ctxt: NetworkContext,
                                      memoryMap: Dict[str, List[List[MemoryBlock]]]) -> NetworkContext:
@@ -989,8 +973,7 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
                                   targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
             tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
             if self.tiler.visualizeMemoryAlloc:
-                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir,
-                                           self.Platform.memoryHierarchy._defaultMemoryLevel)
+                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir, self.Platform.memoryHierarchy)
 
             self.tiler.testMemoryMapCorrectness(memoryMap, self.graph, schedule)
 

@@ -45,7 +45,7 @@ class PULPL3Tiling(CodeTransformationPass):
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        if verbose.tilingProfiling == "L3":
+        if verbose.tilingProfiling:
             ctxt, executionBlock = self.profilingSB.apply(ctxt, executionBlock, name)
             ctxt, executionBlock = self.profilingDB.apply(ctxt, executionBlock, name)
         else:
