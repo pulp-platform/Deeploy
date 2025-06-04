@@ -527,7 +527,7 @@ class FloatReduceMeanParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         ret = all(['keepdims' in node.attrs, len(node.inputs) >= 1, len(node.outputs) == 1])
-        
+
         if ret:
             self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
 
