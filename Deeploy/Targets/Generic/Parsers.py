@@ -1020,7 +1020,7 @@ class ReshapeParser(NodeParser):
             output_node.alias_of = input_node.alias_of + [
                 input_node.name,
             ]
-        
+
         if "alias_of" in input_node.__dict__.keys():
             input_node.alias_of += [
                 output_node.name,

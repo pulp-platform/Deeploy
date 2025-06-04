@@ -176,7 +176,7 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
 
             # Check for live ancestors (buffers that this is an alias of, that are still live)
             has_live_ancestors = False
-            
+
             if "alias_of" in nb.__dict__.keys():
                 for ancestor in nb.alias_of:
                     if ctxt.localObjects[ancestor]._live:
