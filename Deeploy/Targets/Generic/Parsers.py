@@ -1016,8 +1016,12 @@ class ReshapeParser(NodeParser):
         output_node = ctxt.lookup(node.outputs[outputs.index("data_out")].name)
         input_node = ctxt.lookup(node.inputs[inputs.index("data_in")].name)
 
-        output_node.alias_of = input_node.alias_of + [input_node.name, ]
-        input_node.alias_of += [output_node.name, ]
+        output_node.alias_of = input_node.alias_of + [
+            input_node.name,
+        ]
+        input_node.alias_of += [
+            output_node.name,
+        ]
 
         # Compute data size
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
@@ -1656,13 +1660,20 @@ class MatMulParser(NodeParser):
         self.operatorRepresentation['batch_A'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[:-2])
         self.operatorRepresentation['batch_B'] = np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2])
 
-        self.operatorRepresentation['batch'] = max(self.operatorRepresentation['batch_A'], self.operatorRepresentation['batch_B'])
+        self.operatorRepresentation['batch'] = max(self.operatorRepresentation['batch_A'],
+                                                   self.operatorRepresentation['batch_B'])
 
-        assert (self.operatorRepresentation["batch_A"] == self.operatorRepresentation["batch_B"]) or (self.operatorRepresentation["batch_A"] == 1) or (self.operatorRepresentation["batch_B"] == 1), "Incompatible dimensions for input matrices. Broadcasting not yet supported for dimensions larger than 1 on one of the inputs, or equal dimensions between the 2."
+        assert (self.operatorRepresentation["batch_A"] == self.operatorRepresentation["batch_B"]) or (
+            self.operatorRepresentation["batch_A"] == 1
+        ) or (
+            self.operatorRepresentation["batch_B"] == 1
+        ), "Incompatible dimensions for input matrices. Broadcasting not yet supported for dimensions larger than 1 on one of the inputs, or equal dimensions between the 2."
 
         # SCHEREMO: Create flags for same dimension between each input matrix and the final batch dimension
-        self.operatorRepresentation['A_batched'] = (self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[0].name).shape[:-2]))
-        self.operatorRepresentation['W_batched'] = self.operatorRepresentation['B_batched'] = (self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2]))
+        self.operatorRepresentation['A_batched'] = (self.operatorRepresentation['batch'] == np.prod(
+            ctxt.lookup(node.inputs[0].name).shape[:-2]))
+        self.operatorRepresentation['W_batched'] = self.operatorRepresentation['B_batched'] = (
+            self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2]))
 
         return ctxt, ret
 
@@ -1771,7 +1782,8 @@ class GEMMParser(MatMulParser):
                 self.operatorRepresentation['C_shape'] = newCtxt.lookup(node.inputs[2].name).shape
 
                 # Create flag for same dimension between bias matrix and the final batch dimension
-                self.operatorRepresentation['C_batched'] = (self.operatorRepresentation['batch'] == np.prod(newCtxt.lookup(node.inputs[2].name).shape[:-2]))
+                self.operatorRepresentation['C_batched'] = (self.operatorRepresentation['batch'] == np.prod(
+                    newCtxt.lookup(node.inputs[2].name).shape[:-2]))
             elif not self.noBiasHoisting:
                 # Create mock bias matrix if not present in the inputs
                 values = np.zeros((1))
