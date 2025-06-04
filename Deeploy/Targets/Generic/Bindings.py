@@ -38,11 +38,11 @@ from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation i
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
     DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, \
     FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
-    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatReluTemplate, FloatReduceMeanTemplate, FloatSoftmaxTemplate, GatherTemplate, \
-    GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, \
-    MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, \
-    ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, \
-    iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
+    FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
+    MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
+    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, \
+    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
     DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, \
     MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReduceSumChecker, \
@@ -214,8 +214,8 @@ BasicReduceMeanBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
-    NodeBinding(ReduceMeanChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatReduceMeanTemplate.referenceTemplate,
-                BasicTransformer)
+    NodeBinding(ReduceMeanChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatReduceMeanTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicReduceSumBindings = [
