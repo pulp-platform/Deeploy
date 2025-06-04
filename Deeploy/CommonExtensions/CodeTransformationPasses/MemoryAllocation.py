@@ -179,7 +179,7 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
 
             if "alias_of" in nb.__dict__.keys():
                 for ancestor in nb.alias_of:
-                    if ctxt.localObjects[ancestor]._live:
+                    if (ancestor in ctxt.localObjects.keys()) and ctxt.localObjects[ancestor]._live:
                         has_live_ancestors = True
                         break
 
