@@ -176,10 +176,12 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
 
             # Check for live ancestors (buffers that this is an alias of, that are still live)
             has_live_ancestors = False
-            for ancestor in nb.alias_of:
-                if ctxt.localObjects[ancestor]._live:
-                    has_live_ancestors = True
-                    break
+            
+            if "alias_of" in nb.__dict__.keys():
+                for ancestor in nb.alias_of:
+                    if ctxt.localObjects[ancestor]._live:
+                        has_live_ancestors = True
+                        break
 
             # Add the deallocation code to the execution block
             if not has_live_ancestors:

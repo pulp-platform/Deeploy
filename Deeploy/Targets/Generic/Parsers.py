@@ -1016,12 +1016,15 @@ class ReshapeParser(NodeParser):
         output_node = ctxt.lookup(node.outputs[outputs.index("data_out")].name)
         input_node = ctxt.lookup(node.inputs[inputs.index("data_in")].name)
 
-        output_node.alias_of = input_node.alias_of + [
-            input_node.name,
-        ]
-        input_node.alias_of += [
-            output_node.name,
-        ]
+        if "alias_of" in output_node.__dict__.keys():
+            output_node.alias_of = input_node.alias_of + [
+                input_node.name,
+            ]
+        
+        if "alias_of" in input_node.__dict__.keys():
+            input_node.alias_of += [
+                output_node.name,
+            ]
 
         # Compute data size
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
