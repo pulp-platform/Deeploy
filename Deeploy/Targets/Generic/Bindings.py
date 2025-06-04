@@ -38,7 +38,7 @@ from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation i
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
     DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, \
     FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
-    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, \
+    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatReluTemplate, FloatReduceMeanTemplate, FloatSoftmaxTemplate, GatherTemplate, \
     GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, \
     MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, \
     ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, \
@@ -64,6 +64,15 @@ BasicSliceBindings = [
             PointerClass(uint8_t),
             PointerClass(uint8_t)
         ], [PointerClass(type)]), SliceTemplate.referenceTemplate, BasicTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(
+        SliceChecker([
+            PointerClass(float32_t),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t)
+        ], [PointerClass(float32_t)]), SliceTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicAddBindings = [
@@ -204,6 +213,9 @@ BasicPad2DBindings = [
 BasicReduceMeanBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
+] + [
+    NodeBinding(ReduceMeanChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatReduceMeanTemplate.referenceTemplate,
+                BasicTransformer)
 ]
 
 BasicReduceSumBindings = [

@@ -42,7 +42,7 @@ from Deeploy.Targets.Generic.Layers import AddLayer, ConvLayer, DebugPrintLayer,
     ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
     SliceLayer, SoftmaxLayer, TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DequantParser, DivParser, DummyParser, \
-    FlattenParser, GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, \
+    FlattenParser, FloatReduceMeanParser, GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, \
     GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, \
     ITAPartialMaxParser, LayerNormParser, MatMulParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, \
     ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQIntegerDivParser, \
@@ -59,6 +59,7 @@ DebugMapper = NodeMapper(DebugParser(), BasicDebugPrintBindings)
 DWConv1DMapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
 DWConv2DMapper = NodeMapper(GenericDWConv2DParser(), BasicDWConv2DBindings)
 FlattenMapper = NodeMapper(FlattenParser(), BasicReshapeBindings)
+FloatReduceMeanMapper = NodeMapper(FloatReduceMeanParser(), BasicReduceMeanBindings)
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
 GELUMapper = NodeMapper(GELUParser(), BasicGELUBindings)
 GEMMMapper = NodeMapper(GenericGEMMParser(), BasicGEMMBindings)
@@ -116,7 +117,7 @@ GenericMapping = {
     'MaxPool': MaxPoolLayer([MaxPoolMapper]),
     'Mul': MulLayer([MulMapper]),
     'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
-    'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
+    'ReduceMean': ReduceMeanLayer([ReduceMeanMapper, FloatReduceMeanMapper]),
     'ReduceSum': ReduceSumLayer([ReduceSumMapper]),
     'Relu': ReluLayer([ReluMapper]),
     'RequantizediGELU': RQSiGELULayer([RQGELUMapper]),

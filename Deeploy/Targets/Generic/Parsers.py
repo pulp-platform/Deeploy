@@ -520,6 +520,40 @@ class ReduceMeanParser(ReduceParser):
         return newCtxt, ret
 
 
+class FloatReduceMeanParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = all(['keepdims' in node.attrs, len(node.inputs) >= 1, len(node.outputs) == 1])
+        
+        if ret:
+            self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        axes = ctxt.lookup(node.inputs[1].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['data_in_shape'] = data_in.shape
+        self.operatorRepresentation['data_out_shape'] = data_out.shape
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+        self.operatorRepresentation['axisLength'] = data_in.shape[axes.values[0]]
+        self.operatorRepresentation['axes'] = axes.values
+
+        return ctxt, True
+
+
 class ReduceSumParser(ReduceParser):
 
     def __init__(self):
