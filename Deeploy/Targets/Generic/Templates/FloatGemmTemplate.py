@@ -45,7 +45,18 @@ BEGIN_SINGLE_CORE
             ${transB}
         );
 
+        % if A_batched:
         ref_${data_out}_${A} += ${M} * ${N};
+        % endif
+                                 
+        % if B_batched:
+        ref_${data_out}_${B} += ${N} * ${O};
+        % endif
+        
+        % if C_batched:
+        ref_${data_out}_${C} += ${M} * ${O};
+        % endif
+                                 
         ref_${data_out}_${data_out} += ${M} * ${O};
     }
 END_SINGLE_CORE
