@@ -526,7 +526,7 @@ class FloatReduceMeanParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        ret = all(['keepdims' in node.attrs, len(node.inputs) >= 1, len(node.outputs) == 1])
+        ret = all(['keepdims' in node.attrs, len(node.inputs) == 2, len(node.outputs) == 1])
 
         if ret:
             self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
@@ -550,6 +550,10 @@ class FloatReduceMeanParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
         self.operatorRepresentation['axisLength'] = data_in.shape[axes.values[0]]
         self.operatorRepresentation['axes'] = axes.values
+
+        # Mark the axes variable to be excluded from the context, since only used in the template, as part of the operator representation
+        axes._live = False
+        axes._deploy = False
 
         return ctxt, True
 

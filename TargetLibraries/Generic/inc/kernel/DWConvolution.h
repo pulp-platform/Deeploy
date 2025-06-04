@@ -72,12 +72,10 @@ void DWConv2d_s8_s8_s32_NCHW(int8_t const *__restrict__ pSrcA, uint32_t C,
  * unrolling   = no
  * simd        = no
  */
-void DWConv2d_fp32_fp3_fp32_NCHW(const float *__restrict__ pSrcA, uint32_t C,
-                                 uint32_t H_padded, uint32_t W_padded,
-                                 const float *__restrict__ pSrcB, uint32_t P,
-                                 uint32_t Q, uint32_t SP, uint32_t SQ,
-                                 const float32_t *__restrict__ pSrcBias,
-                                 const bool has_bias,
-                                 float *__restrict__ pDstC);
+void DWConv2d_fp32_fp32_fp32_NCHW(const float32_t *__restrict__ pSrcA, uint32_t C, uint32_t H_padded,
+    uint32_t W_padded, const float32_t *__restrict__ pSrcB, uint32_t F,
+    uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
+    const float32_t *__restrict__ pSrcBias, const bool has_bias,
+    float32_t *__restrict__ pDstC);
 
 #endif //__DEEPLOY_BASIC_MATH_DWCONVOLUTION_KERNEL_HEADER_

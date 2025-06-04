@@ -49,7 +49,7 @@ class _FloatReduceMeanTemplate(NodeTemplate):
 
 
 referenceTemplate = _FloatReduceMeanTemplate("""
-// ReduceMean (Name: ${nodeName}, Op: ${nodeOp})
+// FloatReduceMean (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
 ${data_out_type.referencedType.typeName} ${data_out}_accumulator = 0;
 <%
