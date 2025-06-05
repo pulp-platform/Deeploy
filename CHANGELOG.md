@@ -265,7 +265,3 @@ This release containing major architectural changes, new platform support, enhan
 
 ## Release v0.1.0 (2024-08-08)
 This release contains the first version of Deeploy, which includes the initial implementation of the Deeploy framework, support for various platforms, and basic functionality for deploying deep learning models on PULP-based systems.
-
-### Changed
-- The ISA for the Siracusa platform has been updated from rv32imc_zfinx_xpulpv2 to rv32imf_xpulpv2.
-- All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
