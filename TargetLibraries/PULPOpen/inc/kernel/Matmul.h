@@ -1,14 +1,16 @@
+
+
 /* =====================================================================
- * Title:        DeeployMath.h
+ * Title:        Matmul.h
  * Description:
  *
- * $Date:        30.12.2021
+ * $Date:        05.06.2025
  *
  * ===================================================================== */
 /*
  * Copyright (C) 2020 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Author: Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -25,31 +27,11 @@
  * limitations under the License.
  */
 
-#ifndef __DEEPLOY_MATH_HEADER_
-#define __DEEPLOY_MATH_HEADER_
+#include "DeeployPULPMath.h"
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "types.h"
-
-#include "DeeployBasicMath.h"
-
-#include "pmsis.h"
-
-#include "kernel/RQiHardswish.h"
-#include "kernel/RequantShift.h"
-#include "kernel/UniformRequantShift.h"
-#include "kernel/gemv.h"
-#include "kernel/iRMSnorm.h"
-#include "kernel/iSoftmax.h"
-#include "kernel/Layernorm.h"
-#include "kernel/GELU.h"
-#include "kernel/Conv.h"
-#include "kernel/MaxPool.h"
-#include "kernel/Matmul.h"
-
-#endif // __DEEPLOY_MATH_HEADER_
+void PULP_MatMul_fp32_fp32_fp32_unroll1x7(const float32_t *__restrict__ pSrcA,
+                                     const float32_t *__restrict__ pSrcB,
+                                     float32_t *__restrict__ pDstY,
+                                     uint32_t M,
+                                     uint32_t N,
+                                     uint32_t O);

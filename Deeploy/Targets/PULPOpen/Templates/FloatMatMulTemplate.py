@@ -27,27 +27,18 @@ from Deeploy.DeeployTypes import NodeTemplate
 referenceTemplate = NodeTemplate("""
 // Matmul with row parallelism (Name: ${nodeName}, Op: ${nodeOp})
 
-int8_t ${nodeName}_core_id = pi_core_id();
-int8_t ${nodeName}_log2Core = log2(NUM_CORES);
-int32_t ${nodeName}_M_chunk = (${M} >> ${nodeName}_log2Core) + ((${M} & (NUM_CORES-1))!=0);
-int32_t ${nodeName}_M_start = MIN(${nodeName}_core_id * ${nodeName}_M_chunk, ${M});
-int32_t ${nodeName}_M_end = MIN(${nodeName}_M_start + ${nodeName}_M_chunk, ${M});
-int32_t ${nodeName}_M_size = ${nodeName}_M_end - ${nodeName}_M_start;
-                                 
 for(uint32_t b=0; b<${batch}; b++) {
     ${A_type.typeName} batch_A = ${A} + b * ${M} * ${N};
     ${B_type.typeName} batch_B = ${B} + b * ${N} * ${O};
     ${data_out_type.typeName} batch_out = ${data_out} + b * ${M} * ${O};
     
-    if (${nodeName}_M_size > 0) {
-        MatMul_fp32_fp32_fp32_unroll1x7(
-            batch_A + ${nodeName}_M_start * ${N},  
-            batch_B,                              
-            batch_out + ${nodeName}_M_start * ${O}, 
-            ${nodeName}_M_size,                    
-            ${N},                                  
-            ${O}                                  
-        );
-    }
+    PULP_MatMul_fp32_fp32_fp32_unroll1x7(
+        batch_A,
+        batch_B, 
+        batch_out,
+        ${M},
+        ${N}, 
+        ${O}
+    );
 }
 """)
