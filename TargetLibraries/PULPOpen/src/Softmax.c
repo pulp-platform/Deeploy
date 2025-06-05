@@ -124,43 +124,44 @@ void PULPSoftmax_i8_u8(int8_t *data_in, uint8_t *data_out,
 }
 
 void PULP_Softmax_fp32_fp32(float32_t *input, float32_t *output, uint32_t size,
-                             uint32_t last_dim_length) {
-    
-    int8_t core_id = pi_core_id();
-    int8_t log2Core = log2(NUM_CORES);
-    
-    int32_t num_vectors = size / last_dim_length;
-    int32_t chunk = (num_vectors >> log2Core) + ((num_vectors & (NUM_CORES-1)) != 0);
-    int32_t vector_start = MIN(chunk * core_id, num_vectors);
-    int32_t vector_end = MIN(vector_start + chunk, num_vectors);
-    int32_t local_vectors = vector_end - vector_start;
-    
-    if (local_vectors <= 0) {
-        return;
+                            uint32_t last_dim_length) {
+
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = log2(NUM_CORES);
+
+  int32_t num_vectors = size / last_dim_length;
+  int32_t chunk =
+      (num_vectors >> log2Core) + ((num_vectors & (NUM_CORES - 1)) != 0);
+  int32_t vector_start = MIN(chunk * core_id, num_vectors);
+  int32_t vector_end = MIN(vector_start + chunk, num_vectors);
+  int32_t local_vectors = vector_end - vector_start;
+
+  if (local_vectors <= 0) {
+    return;
+  }
+
+  int32_t data_offset = vector_start * last_dim_length;
+  float32_t *local_input = input + data_offset;
+  float32_t *local_output = output + data_offset;
+
+  for (int32_t b = 0; b < local_vectors; b++) {
+    float32_t max_val = -inf;
+    for (int32_t i = 0; i < last_dim_length; i++) {
+      if (local_input[b * last_dim_length + i] > max_val) {
+        max_val = local_input[b * last_dim_length + i];
+      }
     }
-    
-    int32_t data_offset = vector_start * last_dim_length;
-    float32_t *local_input = input + data_offset;
-    float32_t *local_output = output + data_offset;
-    
-    for (int32_t b = 0; b < local_vectors; b++) {
-        float32_t max_val = -inf;
-        for (int32_t i = 0; i < last_dim_length; i++) {
-            if (local_input[b * last_dim_length + i] > max_val) {
-                max_val = local_input[b * last_dim_length + i];
-            }
-        }
-        
-        float32_t sum = 0.0f;
-        for (int32_t i = 0; i < last_dim_length; i++) {
-            float32_t exp_val = local_input[b * last_dim_length + i] - max_val;
-            local_output[b * last_dim_length + i] = expf(exp_val);
-            sum += local_output[b * last_dim_length + i];
-        }
-        
-        float32_t inv_sum = 1.0f / sum;
-        for (int32_t i = 0; i < last_dim_length; i++) {
-            local_output[b * last_dim_length + i] *= inv_sum;
-        }
+
+    float32_t sum = 0.0f;
+    for (int32_t i = 0; i < last_dim_length; i++) {
+      float32_t exp_val = local_input[b * last_dim_length + i] - max_val;
+      local_output[b * last_dim_length + i] = expf(exp_val);
+      sum += local_output[b * last_dim_length + i];
     }
+
+    float32_t inv_sum = 1.0f / sum;
+    for (int32_t i = 0; i < last_dim_length; i++) {
+      local_output[b * last_dim_length + i] *= inv_sum;
+    }
+  }
 }

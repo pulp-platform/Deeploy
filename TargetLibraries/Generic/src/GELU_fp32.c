@@ -40,14 +40,15 @@ void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize) {
   }
 }
 
-void GELU_fp32_fp32_sigmoid(float32_t *data_in, float32_t *data_out, int32_t dataSize) {
+void GELU_fp32_fp32_sigmoid(float32_t *data_in, float32_t *data_out,
+                            int32_t dataSize) {
 
-    const float32_t scale = 1.702f;
-    for (int i = 0; i < dataSize; i++) {
-        float32_t x = data_in[i];
-        float32_t sigmoid_in = scale * x;
-        // sigmoid(z) = 1 / (1 + exp(-z))
-        float32_t sigmoid = 1.0f / (1.0f + expf(-sigmoid_in));
-        data_out[i] = x * sigmoid;
-    }
+  const float32_t scale = 1.702f;
+  for (int i = 0; i < dataSize; i++) {
+    float32_t x = data_in[i];
+    float32_t sigmoid_in = scale * x;
+    // sigmoid(z) = 1 / (1 + exp(-z))
+    float32_t sigmoid = 1.0f / (1.0f + expf(-sigmoid_in));
+    data_out[i] = x * sigmoid;
+  }
 }
