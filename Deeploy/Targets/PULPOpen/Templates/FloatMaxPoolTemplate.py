@@ -28,25 +28,17 @@ from Deeploy.DeeployTypes import NodeTemplate
 referenceTemplate = NodeTemplate("""
 // 2D Float MaxPool Channel Parallel (Name: ${nodeName}, Op: ${nodeOp})
 
-int8_t ${nodeName}_core_id = pi_core_id();
-int8_t ${nodeName}_log2Core = log2(NUM_CORES);
-int16_t ${nodeName}_ch_chunk = (${ch_im_in} >> ${nodeName}_log2Core) + ((${ch_im_in} & (NUM_CORES-1))!=0);
-int16_t ${nodeName}_ch_start = MIN(${nodeName}_ch_chunk*${nodeName}_core_id, ${ch_im_in});
-int16_t ${nodeName}_ch_stop = MIN(${nodeName}_ch_start + ${nodeName}_ch_chunk, ${ch_im_in});
-int16_t ${nodeName}_ch_count = ${nodeName}_ch_stop - ${nodeName}_ch_start;
-
 ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
 ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
 for (uint32_t n=0; n<${batch}; ++n) {
-    MaxPool2d_ChannelRange_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
+    PULP_MaxPool2d_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
         ref_${data_out}_${data_in}, 
         ${dim_im_in_x}, ${dim_im_in_y}, ${ch_im_in},
         ${dim_kernel_x}, ${dim_kernel_y}, 
         ${stride_x}, ${stride_y},
         ref_${data_out}_${data_out},
-        ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right},
-        ${nodeName}_ch_start, ${nodeName}_ch_count
+        ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}
     );
     ref_${data_out}_${data_in} += ${ch_im_in}*${dim_im_in_x}*${dim_im_in_y};
     ref_${data_out}_${data_out} += ${ch_im_out}*${dim_im_out_x}*${dim_im_out_y};
