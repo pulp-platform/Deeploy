@@ -45,7 +45,7 @@
 #include "kernel/UniformRequantShift.h"
 #include "kernel/gemv.h"
 #include "kernel/iRMSnorm.h"
-#include "kernel/iSoftmax.h"
+#include "kernel/Softmax.h"
 #include "kernel/Layernorm.h"
 #include "kernel/GELU.h"
 #include "kernel/Conv.h"
