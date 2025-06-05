@@ -53,7 +53,6 @@ void PULP_MatMul_fp32_fp32_fp32_unroll1x7(const float32_t *__restrict__ pSrcA,
     uint32_t M_size = M_end - M_start;
     
     if (M_size == 0) {
-        printf("Core %d: no rows to process\n", core_id);
         return;
     }
     
