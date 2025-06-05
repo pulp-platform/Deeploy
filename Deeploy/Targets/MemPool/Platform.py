@@ -2,12 +2,13 @@
 #
 # File: MemPoolPlatform.py
 #
-# Last edited: 17.12.2022
+# Last edited: 05.05.2025
 #
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
+# Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
-# Author:
+# Authors:
 # - Philip Wiese, ETH Zurich
+# - Calin Diaconu, University of Bologna
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -31,7 +32,7 @@ import numpy as np
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBinding, BasicConv2DBindings, \
-    BasicDebugPrintBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBinding, BasicGatherBindings, \
+    BasicDebugPrintBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicGatherBindings, \
     BasicGELUBindings, BasicLayerNormBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, \
     BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, BasicTransposeBindings, DummyBinding
@@ -62,7 +63,7 @@ from Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes import MemPoolFus
 GenericConv1D_Mapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBinding])
 GenericDWConv1D_Mapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
 GenericConv2D_Mapper = NodeMapper(GenericConv2DParser(), BasicConv2DBindings)
-GenericDWConv2D_Mapper = NodeMapper(GenericDWConv2DParser(), [BasicDWConv2DBinding])
+GenericDWConv2D_Mapper = NodeMapper(GenericDWConv2DParser(), BasicDWConv2DBindings)
 
 GenericConv_Mappers = [GenericConv2D_Mapper, GenericDWConv2D_Mapper, GenericConv1D_Mapper, GenericDWConv1D_Mapper]
 

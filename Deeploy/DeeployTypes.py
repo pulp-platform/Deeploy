@@ -69,9 +69,8 @@ class CodeGenVerbosity:
     Encapsulates verbosity options for downstream configuration
     """
 
-    tilingProfiling: Optional[str]  #: str: Specifies the name of the memory level on which to profile tiling
-    untiledProfiling: Optional[
-        bool] = None  #: str: Specifies the name of the memory level on which to profile untiled code
+    tilingProfiling: Optional[bool] = False  # Specifies if we should profile the tiling code
+    untiledProfiling: Optional[bool] = None  #  Specifies if we should profile the untilied code
 
 
 _NoVerbosity = CodeGenVerbosity(None)
@@ -272,6 +271,9 @@ class VariableBuffer():
         self._signed = None
         self.nLevels = None
 
+        self.is_input: bool = False
+        self.is_output: bool = False
+
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._instance, "name": self.name, "size": int(np.prod(self.shape))}
 
@@ -359,6 +361,9 @@ class TransientBuffer(VariableBuffer):
 
         # Do not override - Set in Templates depending on platform
         self._deploy = True
+
+        self.is_input: bool = False
+        self.is_output: bool = False
 
     def __eq__(self, other):
 
@@ -899,7 +904,7 @@ class NetworkContext():
 
         """
 
-        assert len(node.outputs) <= 1, "Constant has more than one output"
+        assert len(node.outputs) <= 1, f"Constant {node.name} has more than one output"
 
         if name == "":
             name = node.name
@@ -1073,6 +1078,21 @@ class NodeParser():
                 nb = ctxt.lookup(name)
 
         return ctxt
+
+    @staticmethod
+    def _unpack_const(attr) -> Union[int, float]:
+        """DON'T OVERRIDE - Helper function to get a Python scalar from an ONNX attribute.
+        The attributes can either be a numpy scalar value or a Constant tensor.
+        This expects the numpy value to be of size 1.
+        """
+        if isinstance(attr, gs.Constant):
+            value = attr.values
+        elif isinstance(attr, np.ndarray):
+            value = attr
+        else:
+            assert False, f"Unsupported attribute type {type(attr)}"
+        assert value.size == 1, f"Expected attribute of size 1. Got an array of shape {value.shape}"
+        return value.item()
 
     # Don't touch this
     def parse(self,
@@ -2350,6 +2370,7 @@ class NetworkContainer():
             data_size = node.shape
             data_type = self.inputTypes[node.name]
             nb = ctxt.VariableBuffer(data_name, data_size)
+            nb.is_input = True
 
             ctxt.add(nb, 'global')
             ctxt.annotateType(data_name, data_type)
@@ -2359,6 +2380,7 @@ class NetworkContainer():
             data_size = node.shape
             # WIESEP: The shape and type will be parsed from the graph
             nb = ctxt.VariableBuffer(data_name, data_size)
+            nb.is_output = True
             ctxt.add(nb, 'global')
 
         return ctxt
@@ -2533,8 +2555,10 @@ class NetworkContainer():
 
                 # SCHEREMO: If we can't find a mapping for the root, we must exit
                 if idx == 0:
+                    deepestLayer = scheduledLayerList[deepestIdx]
+                    deepestNodeName = deepestLayer.node.name
                     raise RuntimeError(
-                        f'Did not find adequate mapping for graph! Explored until {scheduledLayerList[deepestIdx]} Candidates: {[type(x.parser).__name__ for x in scheduledLayerList[deepestIdx].maps]}. Exhausted backtracking.'
+                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer} of node {deepestNodeName} Candidates: {[type(x.parser).__name__ for x in deepestLayer.maps]}. Exhausted backtracking.'
                     )
 
                 previousLayer = scheduledLayerList[idx - 1]
@@ -3113,17 +3137,79 @@ class NetworkDeployer(NetworkContainer):
         """
         return self.loweringOptimizer.optimize(graph)
 
+    # Helper function for duplicate constants
+    # Makes sure to copy the value because otherwise, constant folding fails with a warning
+    def _duplicateConstantNode(self,
+                               node: gs.Node,
+                               name: str,
+                               inputs: Optional[List[gs.Tensor]] = None,
+                               outputs: Optional[List[gs.Tensor]] = None) -> gs.Node:
+        assert node.op == "Constant", f"Expected a Constant node, received node of op {node.op}"
+        assert "value" in node.attrs, f"Constant node doesn't have a \"value\" attribute"
+        value = node.attrs["value"]
+        if isinstance(value, gs.Constant):
+            newValue = gs.Constant(f'{value.name}_OF_{name}', value.values.copy())
+        elif isinstance(value, np.ndarray):
+            newValue = value.copy()
+        else:
+            assert False, f"Node {node.name}: Unrecognized value type {type(value)}"
+        return gs.Node(
+            op = "Constant",
+            name = name,
+            attrs = {"value": newValue},
+            inputs = inputs,
+            outputs = outputs,
+        )
+
     # Don't override this
     # Duplicate constants with multiple users
-    def _duplicateConstants(self, graph: gs.Graph):
-        idx = 0
-        for node in self.graph.nodes:
-            for i, inputNode in enumerate(node.inputs):
-                if type(inputNode) == gs.ir.tensor.Constant and len(inputNode.outputs) > 1:
-                    newConst = gs.Constant(name = f"{inputNode.name}_EXTRACT_CONST_{idx}", values = inputNode.values)
-                    node.inputs[i] = newConst
-                    # graph.nodes.append(newConst)
-                    idx += 1
+    def _duplicateConstants(self, graph: gs.Graph) -> None:
+        # Duplicate constant tensors
+        for tensor in filter(lambda t: isinstance(t, gs.Constant) and len(t.outputs) > 1, graph.tensors().values()):
+            for node in tensor.outputs:
+                newConst = tensor.copy()
+                newConst.name += f"_DUPLICATE_FOR_{node.name}"
+                assert isinstance(node, gs.Node), f"Expected node to be an instance of gs.Node. Received {type(node)}"
+                node.inputs.insert(node.inputs.index(tensor), newConst)
+            tensor.outputs.clear()
+
+        # Duplicate constant nodes with multiple outputs
+        nodes = list(graph.nodes)
+        for node in filter(lambda n: n.op == "Constant" and len(n.outputs) > 1, nodes):
+            output_tensors = list(node.outputs)
+            for tensor in output_tensors:
+                assert len(
+                    tensor.inputs
+                ) == 1, f"Expected output tensor to have only a single input. The tensor has {len(tensor.inputs)}"
+                tensor.inputs.clear()
+                newConst = self._duplicateConstantNode(
+                    node,
+                    f"{node.name}_DUPLICATE_FOR_{tensor.name}",
+                    outputs = [tensor],
+                )
+                graph.nodes.append(newConst)
+            node.outputs.clear()
+
+        # Duplicate constant nodes which have an output tensor that connects to multiple outputs
+        for node in filter(lambda n: n.op == "Constant" and len(n.outputs) == 1 and len(n.outputs[0].outputs) > 1,
+                           nodes):
+            tensor = node.outputs[0]
+            for downstreamNode in tensor.outputs:
+                assert isinstance(
+                    downstreamNode, gs.Node
+                ), f"Expected the downstream node to be an instance of gs.Node. Received {type(downstreamNode)}"
+                newTensor = tensor.copy()
+                newTensor.name += f"_DUPLICATE_FOR_{downstreamNode.name}"
+                newNode = self._duplicateConstantNode(
+                    node,
+                    f"{node.name}_DUPLICATE_FOR_{downstreamNode.name}",
+                    outputs = [newTensor],
+                )
+                graph.nodes.append(newNode)
+                downstreamNode.inputs.insert(downstreamNode.inputs.index(tensor), newTensor)
+            tensor.outputs.clear()
+
+        graph.cleanup().toposort()
 
     def _foldConstants(self, graph: gs.Graph):
         graph.fold_constants()
@@ -3142,17 +3228,35 @@ class NetworkDeployer(NetworkContainer):
                 tensor.name = sanitize(tensor.name)
 
     # Don't override this
-    # Duplicate constants with multiple users
     def _removeEmptyInputs(self, graph: gs.Graph):
         _inps = self.graph.inputs.copy()
         for inp in _inps:
             if np.prod(inp.shape) == 0:
                 self.graph.inputs.remove(inp)
 
+    # Don't override this
+    def _mangleTensorNames(self):
+        """Mangle tensor names
+
+        This adds _tensor suffix to all tensors in hopes to make them distinct from other graph elements, e.g., nodes.
+        Deeploy needs tensor names to be distinct for code snippet introspection.
+        """
+        for tensor in self.graph.tensors().values():
+            tensor.name = f"{tensor.name}_tensor"
+
+    # Don't override this
+    def _removeIdentityNodes(self):
+        for node in filter(lambda x: x.op == "Identity", self.graph.nodes):
+            self.graph.deleteNode(node)
+
     def frontEnd(self):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
 
         """
+        self._removeIdentityNodes()
+
+        self._mangleTensorNames()
+
         # Rename graph inputs and outputs:
         for idx, inputNode in enumerate(self.graph.inputs):
             inputNode.name = "input_" + str(idx)

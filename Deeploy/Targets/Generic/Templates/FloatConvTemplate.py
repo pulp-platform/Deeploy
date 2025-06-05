@@ -2,11 +2,13 @@
 #
 # File: FLoatConvTemplate.py
 #
-# Last edited: 23.01.2025
+# Last edited: 12.05.2025
 #
 # Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
-# Author: Run Wang, ETH Zurich
+# Authors:
+# - Run Wang, ETH Zurich
+# - Calin Diaconu, University of Bologna
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -41,6 +43,8 @@ BEGIN_SINGLE_CORE
             ref_${data_out}_${data_in}, ${ch_im_in}, ${dim_im_in_x}, ${dim_im_in_y},
             ${weight}, ${ch_im_out}, ${dim_kernel_x}, ${dim_kernel_y},
             ${stride_x}, ${stride_y},
+            ${bias},
+            ${has_bias},
             ref_${data_out}_${data_out}
         );
         ref_${data_out}_${data_in} += ${batchOffsetIn};

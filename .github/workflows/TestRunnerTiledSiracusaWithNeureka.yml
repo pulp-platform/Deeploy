@@ -3,6 +3,9 @@ name: TestRunnerTiledSiracusaWithNeureka
 on:
   workflow_call:
     inputs:
+      runner:
+        required: true
+        type: string
       docker-image:
         required: true
         type: string
@@ -46,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         L1: ${{ fromJSON(inputs.L1) }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
     steps:
@@ -57,11 +60,10 @@ jobs:
       - name: Build Deeploy
         run: pip install -e .
       - name: Cache ccache
-        id: ccache-cache-neureka
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: /app/.ccache
-          key: ${{ runner.os }}-ccache-neureka
+          key: ccache-ci
       - name: Run Test
         uses: nick-fields/retry@v3
         with:

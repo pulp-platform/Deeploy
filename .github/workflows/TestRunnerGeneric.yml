@@ -3,6 +3,9 @@ name: TestRunnerGeneric
 on:
   workflow_call:
     inputs:
+      runner:
+        required: true
+        type: string
       docker-image:
         required: true
         type: string
@@ -12,7 +15,7 @@ on:
 
 jobs:
   test-runner-generic:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
     steps:
@@ -22,10 +25,17 @@ jobs:
           submodules: recursive
       - name: Build Deeploy
         run: pip install -e .
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: /app/.ccache
+          key: ccache-ci
       - name: Run Test
         run: |
           testNames="${{ inputs.test-names }}"
           cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
           echo "$testNames" | while IFS= read -r testName; do
             if [[ -n "$testName" ]]; then
               echo "Running test: $testName"

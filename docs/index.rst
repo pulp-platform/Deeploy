@@ -6,5 +6,6 @@ Deeploy Documentation
    :caption: Contents:
 
    install
+   tutorials/overview
    structure
    apidocs

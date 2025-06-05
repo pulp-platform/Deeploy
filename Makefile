@@ -6,9 +6,10 @@
 #
 # Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
-# Authors: 
+# Authors:
 # - Moritz Scherer, ETH Zurich
 # - Victor Jung, ETH Zurich
+# - Philip Wiese, ETH Zurich
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -39,11 +40,13 @@ LLVM_CLANG_RT_RISCV_RV32IMAFD      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/b
 LLVM_CLANG_RT_RISCV_RV32IMC      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imc/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IMA		 ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32ima/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IM      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32im/libclang_rt.builtins-riscv32.a
+LLVM_CLANG_RT_RISCV_RV32IMF      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imf/libclang_rt.builtins-riscv32.a
 PICOLIBC_ARM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/arm
 PICOLIBC_RV32IM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32im
 PICOLIBC_RV32IMC_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc
 PICOLIBC_RV32IMA_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
 PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
+PICOLIBC_RV32IMF_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imf
 
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
@@ -60,7 +63,7 @@ CMAKE ?= cmake
 
 LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
-PULP_SDK_COMMIT_HASH ?= 3e1e569bd789a11d9dde6d6b3930849505e68b4a
+PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
@@ -117,6 +120,8 @@ ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 	-DLLVM_OPTIMIZED_TABLEGEN=ON \
 	-DLLVM_PARALLEL_LINK_JOBS=2 \
 	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER_LAUNCHER=ccache \
+	-DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
 	../llvm && \
 	${CMAKE} --build . -j && \
 	${CMAKE} --install .
@@ -253,7 +258,40 @@ ${LLVM_CLANG_RT_RISCV_RV32IMAFD}: ${TOOLCHAIN_DIR}/llvm-project
 	${CMAKE} --build . -j && \
 	${CMAKE} --install .
 
-llvm-compiler-rt-riscv: ${LLVM_CLANG_RT_RISCV_RV32IM} ${LLVM_CLANG_RT_RISCV_RV32IMA} ${LLVM_CLANG_RT_RISCV_RV32IMC} ${LLVM_CLANG_RT_RISCV_RV32IMAFD}
+${LLVM_CLANG_RT_RISCV_RV32IMF}: ${TOOLCHAIN_DIR}/llvm-project
+	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32imf \
+	&& cd build-compiler-rt-riscv-rv32imf; \
+	${CMAKE} ../compiler-rt \
+	-DCMAKE_C_COMPILER_WORKS=1 \
+	-DCMAKE_CXX_COMPILER_WORKS=1 \
+	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
+	-DCMAKE_C_FLAGS="-mno-relax -march=rv32imf -mabi=ilp32f" \
+	-DCMAKE_ASM_FLAGS="-march=rv32imf -mabi=ilp32f" \
+	-DCMAKE_SYSTEM_NAME=baremetal \
+	-DCMAKE_HOST_SYSTEM_NAME=baremetal \
+	-DCMAKE_C_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_CXX_COMPILER_TARGET="riscv32-unknown-elf" \
+	-DCMAKE_SIZEOF_VOID_P=4 \
+	-DCMAKE_NM=${LLVM_INSTALL_DIR}/bin/llvm-nm \
+	-DCMAKE_RANLIB=${LLVM_INSTALL_DIR}/bin/llvm-ranlib \
+	-DCOMPILER_RT_BUILD_BUILTINS=ON \
+	-DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+	-DCOMPILER_RT_BUILD_MEMPROF=OFF \
+	-DCOMPILER_RT_BUILD_PROFILE=OFF \
+	-DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+	-DCOMPILER_RT_BUILD_XRAY=OFF \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+	-DCOMPILER_RT_BAREMETAL_BUILD=ON \
+	-DCOMPILER_RT_OS_DIR="baremetal/rv32imf" \
+	-DLLVM_CONFIG_PATH=${LLVM_INSTALL_DIR}/bin/llvm-config && \
+	${CMAKE} --build . -j && \
+	${CMAKE} --install .
+
+llvm-compiler-rt-riscv: ${LLVM_CLANG_RT_RISCV_RV32IM} ${LLVM_CLANG_RT_RISCV_RV32IMA} ${LLVM_CLANG_RT_RISCV_RV32IMC} ${LLVM_CLANG_RT_RISCV_RV32IMAFD} ${LLVM_CLANG_RT_RISCV_RV32IMF}
 
 ${LLVM_CLANG_RT_ARM}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-arm \
@@ -352,20 +390,28 @@ ${PICOLIBC_RV32IMAFD_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
 	--cross-file ../scripts/meson-build-script-rv32imafd.txt && \
 	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
 
-picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR}
+${PICOLIBC_RV32IMF_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32imf && cd build-rv32imf && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32imf.txt ../scripts && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
+	-Dlibdir=lib \
+	-Dspecsdir=none \
+	-Dmultilib=false \
+	--prefix ${PICOLIBC_RV32IMF_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32imf.txt && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
+
+picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR} ${PICOLIBC_RV32IMF_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/Victor-Jung/pulp-sdk.git -b deeploy && \
+	git clone https://github.com/pulp-platform/pulp-sdk.git && \
 	cd ${TOOLCHAIN_DIR}/pulp-sdk && git checkout ${PULP_SDK_COMMIT_HASH} && \
 	git submodule update --init --recursive
 
 ${PULP_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/pulp-sdk
 	mkdir -p ${PULP_SDK_INSTALL_DIR}
 	cp -r ${TOOLCHAIN_DIR}/pulp-sdk/ ${PULP_SDK_INSTALL_DIR}/../
-	cd ${PULP_SDK_INSTALL_DIR} && \
-	source configs/siracusa.sh && \
-	make build
 
 pulp-sdk: ${PULP_SDK_INSTALL_DIR}
 
@@ -479,7 +525,7 @@ ${TOOLCHAIN_DIR}/minimalloc:
 .PHONY: docs clean-docs format
 
 format:
-	python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -ir ./ scripts --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format
+	python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
 	autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
 	yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
 	isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./

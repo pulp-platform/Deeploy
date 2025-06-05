@@ -635,3 +635,33 @@ class RemoveGlobalOutputReshapePass(ReplaceSequentialPatternPass):
         graph.inputs.append(_input)
 
         super().__init__(graph, _remove_global_output_reshape_fun, "_REMOVE_GLOBAL_OUTPUT_RESHAPE_PASS")
+
+
+def _remove_empty_conv_bias_fun(graph: gs.Graph, match: Match, name: str):
+    # Extract matched convolution
+    matched_nodes = list(match.nodes_map.values())
+    opNode = matched_nodes[0]
+
+    # Check if the Conv node has a bias input
+    # If it does, check if the bias only contains zeros
+    if len(opNode.inputs) > 2 and np.all(opNode.inputs[2].values == 0):
+        del opNode.inputs[2]
+
+    # Return updated graph
+    return graph
+
+
+@contextagnostic
+class RemoveEmptyConvBiasPass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        # Initialized graph with a Conv node
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['convOut'], op = 'Conv', name = 'conv')
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        # Apply function
+        name = "_REMOVE_EMPTY_CONV_BIAS_PASS"
+        super().__init__(graph, _remove_empty_conv_bias_fun, name)

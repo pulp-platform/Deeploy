@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "cMake",
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "compileCommands": [
+                "${workspaceFolder}/DeeployTest/TEST_RECENT/build/compile_commands.json"
+            ]
+        }
+    ],
+    "version": 4
+}

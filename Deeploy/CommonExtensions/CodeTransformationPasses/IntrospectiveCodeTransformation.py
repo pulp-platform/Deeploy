@@ -32,7 +32,7 @@ from mako.lexer import Lexer
 from mako.parsetree import Expression, TemplateNode
 
 from Deeploy.AbstractDataTypes import Pointer, Struct
-from Deeploy.DeeployTypes import ExecutionBlock, NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.DeeployTypes import ExecutionBlock, NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
 
 _NULL: str = "NULL"
 
@@ -105,13 +105,15 @@ class IntrospectiveCodeTransformationMixIn():
     def extractDynamicReferences(self,
                                  ctxt: NetworkContext,
                                  executionBlock: ExecutionBlock = None,
-                                 unrollStructs = False):
+                                 unrollStructs = False,
+                                 includeGobalReferences = False):
 
         makoDynamicReferences = []
         for codeSnippet in executionBlock.codeSnippets:
             template, operatorRepresentation = codeSnippet.template, codeSnippet.operatorRepresentation
 
-            newRefs = self._extractDynamicExpressions(ctxt, operatorRepresentation, template, unrollStructs)
+            newRefs = self._extractDynamicExpressions(ctxt, operatorRepresentation, template, unrollStructs,
+                                                      includeGobalReferences)
 
             makoDynamicReferences += newRefs
 
@@ -131,7 +133,8 @@ class IntrospectiveCodeTransformationMixIn():
                                    ctxt: NetworkContext,
                                    operatorRepresentation: OperatorRepresentation,
                                    template: NodeTemplate,
-                                   unrollStructs = False):
+                                   unrollStructs = False,
+                                   includeGobalReferences = False):
 
         codeHash = hash(template.template._source)
 
@@ -145,11 +148,18 @@ class IntrospectiveCodeTransformationMixIn():
         # Filter parsing tree for expressions
         makoExpressions = [node.text for node in makoParseTree.nodes if type(node) == Expression]
 
-        # Filter expressions for variables contained in operatorRepresentation
-        makoReferences = [
+        # Filter expressions for local variables contained in operatorRepresentation
+        makoLocalReferences = [
             node for node in makoExpressions
             if ((node in operatorRepresentation) and type(operatorRepresentation[node]) == str and (
                 operatorRepresentation[node] in ctxt.localObjects.keys()))
+        ]
+
+        # Filter expressions for global variables contained in operatorRepresentation
+        makoGlobalReferences = [
+            node for node in makoExpressions
+            if ((node in operatorRepresentation) and type(operatorRepresentation[node]) == str and (
+                operatorRepresentation[node] in ctxt.globalObjects.keys()))
         ]
 
         def _unrollStructReferences(val) -> List[str]:
@@ -163,17 +173,35 @@ class IntrospectiveCodeTransformationMixIn():
                         structReferences.append(val.value[key].referenceName)
             return structReferences
 
-        references = []
-        structReferences = []
-        for ref in makoReferences:
-            references.append(operatorRepresentation[ref])
+        # Unroll local struct references
+        localReferences = []
+        localStructReferences = []
+        for ref in makoLocalReferences:
+            localReferences.append(operatorRepresentation[ref])
             if unrollStructs:
-                if (ctxt.is_local(operatorRepresentation[ref])
-                        or ctxt.is_global(operatorRepresentation[ref])) and hasattr(
-                            ctxt.lookup(operatorRepresentation[ref]), "structDict"):
-                    structReferences += _unrollStructReferences(ctxt.lookup(operatorRepresentation[ref]).structDict)
+                if ctxt.is_local(operatorRepresentation[ref]) and hasattr(ctxt.lookup(operatorRepresentation[ref]),
+                                                                          "structDict"):
+                    localStructReferences += _unrollStructReferences(
+                        ctxt.lookup(operatorRepresentation[ref]).structDict)
+
+        # Unroll global struct references
+        globalReferences = []
+        globalStructReferences = []
+        for ref in makoGlobalReferences:
+            globalReferences.append(operatorRepresentation[ref])
+            if unrollStructs:
+                if ctxt.is_global(operatorRepresentation[ref]) and hasattr(ctxt.lookup(operatorRepresentation[ref]),
+                                                                           "structDict"):
+                    globalStructReferences += _unrollStructReferences(
+                        ctxt.lookup(operatorRepresentation[ref]).structDict)
 
         # Filter for dynamically allocated tensors
+        dynamicLocalReferences = [ref for ref in localReferences + localStructReferences if ctxt.lookup(ref)._deploy]
+        dynamicGlobalReferences = [
+            ref for ref in globalReferences + globalStructReferences if isinstance(ctxt.lookup(ref), VariableBuffer)
+        ]
 
-        dynamicReferences = [ref for ref in references + structReferences if (ctxt.lookup(ref)._deploy)]
-        return dynamicReferences
+        if includeGobalReferences:
+            return dynamicLocalReferences + dynamicGlobalReferences
+        else:
+            return dynamicLocalReferences

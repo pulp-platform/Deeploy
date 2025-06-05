@@ -17,20 +17,17 @@ elseif(DEEPLOY_ARCH STREQUAL CMSIS)
   endif()
 
 elseif(DEEPLOY_ARCH STREQUAL PULP)
-
-
   file(GLOB_RECURSE HEXLIST
     "${GENERATED_SOURCE}/hex/**"
   )
-  list(TRANSFORM HEXLIST PREPEND "--flash-property=")
-  list(TRANSFORM HEXLIST APPEND "@hyperflash:readfs:files")
-  set(GVSOCHEXINCLUDE ${HEXLIST})
 
   if (NOT HEXLIST)
-    target_compile_options(network PUBLIC
-      -DNOFLASH
-    )
+    target_compile_options(network PUBLIC -DNOFLASH)
+  else()
+    gvsoc_flags_add_files_to_hyperflash(GVSOC_HEX_HYPERFLASH_FLAGS HEXLIST)
+    list(APPEND GVSOC_EXTRA_FLAGS ${GVSOC_HEX_HYPERFLASH_FLAGS})
   endif()
+
   # SCHEREMO: Waive warnings
   # Pointer sign warnings are caused by the data width abstraction used in Deeploy. Signedness is not explicitly modelled, as this is handled by kernels
   target_compile_options(network PRIVATE
@@ -38,13 +35,11 @@ elseif(DEEPLOY_ARCH STREQUAL PULP)
   )
 
   if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka)
-    set(USE_NEUREKA ON)
     add_subdirectory(Platforms/Siracusa)
   elseif(platform STREQUAL PULPOpen)
-    set(USE_NEUREKA OFF)
     add_subdirectory(Platforms/PULPOpen)
   endif()
-  elseif(DEEPLOY_ARCH STREQUAL SNITCH)
-    add_subdirectory(Platforms/Snitch)
+elseif(DEEPLOY_ARCH STREQUAL SNITCH)
+  add_subdirectory(Platforms/Snitch)
 
 endif()

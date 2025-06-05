@@ -27,6 +27,7 @@ import argparse
 import codecs
 import os
 import re
+import shutil
 import subprocess
 from typing import Literal, Tuple
 
@@ -176,9 +177,6 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           type = str,
                           default = os.environ.get('LLVM_INSTALL_DIR'),
                           help = 'Pick compiler install dir\n')
-        self.add_argument('--overwriteRecentState',
-                          action = 'store_true',
-                          help = 'Copy the recent state to the ./deeployStates folder\n')
 
         if self.tiling_arguments:
             self.add_argument('--defaultMemLevel',
@@ -203,12 +201,7 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
             self.add_argument('--randomizedMemoryScheduler',
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
-            self.add_argument('--profileTiling',
-                              metavar = '<level>',
-                              dest = 'profileTiling',
-                              type = str,
-                              default = None,
-                              help = 'Profile tiling for a given memory level (eg. "L2")\n')
+            self.add_argument('--profileTiling', action = 'store_true', help = 'Enable tiling profiling\n')
             self.add_argument('--memAllocStrategy',
                               metavar = 'memAllocStrategy',
                               dest = 'memAllocStrategy',
@@ -247,8 +240,6 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
         command = ""
         if self.args.verbose:
             command += " -v"
-        if self.args.overwriteRecentState:
-            command += " --overwriteRecentState"
         if self.args.debug:
             command += " --debug"
         if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
@@ -265,8 +256,8 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                 command += f" --l2={self.args.l2}"
             if self.args.randomizedMemoryScheduler:
                 command += " --randomizedMemoryScheduler"
-            if self.args.profileTiling is not None:
-                command += f" --profileTiling {self.args.profileTiling}"
+            if self.args.profileTiling:
+                command += f" --profileTiling"
             if self.args.memAllocStrategy:
                 command += f" --memAllocStrategy={self.args.memAllocStrategy}"
             if self.args.plotMemAlloc:
@@ -316,6 +307,14 @@ class TestRunner():
         self._dir_toolchain = os.path.normpath(self._args.toolchain_install_dir)
         self._dir_build = f"{self._dir_gen_root}/build"
         self._dir_gen, self._dir_test, self._name_test = getPaths(self._args.dir, self._dir_gen_root)
+
+        if "CMAKE" not in os.environ:
+            if self._args.verbose >= 1:
+                prRed(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
+            assert shutil.which(
+                "cmake"
+            ) is not None, "CMake not found. Please check that CMake is installed and available in your system’s PATH, or set the CMAKE environment variable to the full path of your preferred CMake executable."
+            os.environ["CMAKE"] = "cmake"
 
         print("Generation Directory: ", self._dir_gen)
         print("Test Directory      : ", self._dir_test)
