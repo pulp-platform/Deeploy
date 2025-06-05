@@ -542,11 +542,9 @@ jobs:
             L1: [60000, 30000, 15000]
           - name: "microLlama/microLlama1"
             L1: [60000, 10000, 5000]
-          - name: "CCT/CCT_1_32_32_8"
-            L1: [64000]
-          - name: "CCT/CCT_1_16_16_64"
-            L1: [64000]
-          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
+          - name: "CCT/CCT_2_32_32_128"
+            L1: [128000]
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8
@@ -584,11 +582,9 @@ jobs:
             L1: [60000, 20000, 10000]
           - name: "microLlama/microLlama8_parallel"
             L1: [60000, 20000, 10000]
-          - name: "CCT/CCT_1_32_32_8"
-            L1: [64000]
-          - name: "CCT/CCT_1_16_16_64"
-            L1: [64000]
-          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_64"
+          - name: "CCT/CCT_2_32_32_128"
+            L1: [128000]
+          - name: "testTrainCCT/CCT_Classifier_Training/CCT_1_16_16_128"
             L1: [64000]
         num-cores:
           - 8

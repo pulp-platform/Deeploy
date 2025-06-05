@@ -174,6 +174,11 @@ This release containing major architectural changes, new platform support, enhan
 - Added caching to speed up container builds
 - Makefile to simplify local container build
 - Add helper script to generate a baseline changelog.
+- Parallel implementations of the following operators on Siracusa: Matmul, Softmax, Gelu, Conv, Layernorm, Maxpool, Add, Mul,and Relu
+- Gelu with Sigmoid implementation
+- ComputeOp support for multiple float kernels: Maxpool, Relu, and Mul
+
+
 
 ### Changed
 - Moved PULP SDK from Victor-Jung/pulp-sdk branch deeploy to pulp-platform/pulp-sdk branch main.
@@ -215,6 +220,7 @@ This release containing major architectural changes, new platform support, enhan
 - Split the original build flow into two container
 - Refactor changelog for better readability
 - Reformatted all C files
+- Temporarily modified tile Conv constraints to tile over output channels instead of spatial dimensions (H/W), due to padding transmission issues in L3 when passing tile solutions
 
 ### Fixed
 - Fix the PULP Deployer where outputs were unecessary loaded in L3
