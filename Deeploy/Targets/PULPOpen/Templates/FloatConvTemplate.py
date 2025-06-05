@@ -56,30 +56,19 @@ class PULP2DFloatConvIm2ColTemplate(NodeTemplate):
 
 
 reference2DTemplate = NodeTemplate("""
-
-// 2D FP Conv HWC Parallel (Name: ${nodeName}, Op: ${nodeOp})
-
-int8_t ${nodeName}_core_id = pi_core_id();
-int8_t ${nodeName}_log2Core = log2(NUM_CORES);
-int16_t ${nodeName}_ch_out_chunk = (${ch_im_out} >> ${nodeName}_log2Core) + ((${ch_im_out} & (NUM_CORES-1))!=0);
-int16_t ${nodeName}_ch_out_start = MIN(${nodeName}_ch_out_chunk*${nodeName}_core_id, ${ch_im_out});
-int16_t ${nodeName}_ch_out_stop = MIN(${nodeName}_ch_out_start + ${nodeName}_ch_out_chunk, ${ch_im_out});
-int16_t ${nodeName}_ch_out_count = ${nodeName}_ch_out_stop - ${nodeName}_ch_out_start;
-
-${weight_type.typeName} ${nodeName}_weight_ptr = ${weight} + ${nodeName}_ch_out_start * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y};
+// 2D FP Conv HWC with ChannelOut parallelism (Name: ${nodeName}, Op: ${nodeOp})
 
 ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
 ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
-                                   
 
 for (uint32_t n=0; n<${batch}; ++n) {
-
-    Conv2d_ChannelRange_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
-        ref_${data_out}_${data_in}, ${dim_im_in_y}, ${dim_im_in_x}, ${ch_im_in},
-        ${nodeName}_weight_ptr, ${nodeName}_ch_out_count,
+    PULP_Conv2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
+        ref_${data_out}_${data_in}, 
+        ${dim_im_in_y}, ${dim_im_in_x}, ${ch_im_in},
+        ${weight}, ${ch_im_out},
         ${dim_kernel_y}, ${dim_kernel_x},
         ${stride_y}, ${stride_x},
-        ref_${data_out}_${data_out}, ${ch_im_out}, ${nodeName}_ch_out_start,
+        ref_${data_out}_${data_out}, 
         ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}
     );
     
@@ -87,48 +76,32 @@ for (uint32_t n=0; n<${batch}; ++n) {
     ref_${data_out}_${data_in} += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};
     ref_${data_out}_${data_out} += ${ch_im_out} * ${dim_im_out_x} * ${dim_im_out_y};
 }
-
 """)
 
 reference2DIm2ColTemplate = PULP2DFloatConvIm2ColTemplate("""
-// 2D FP Conv HWC Parallel with Im2Col (Name: ${nodeName}, Op: ${nodeOp})
-int8_t ${nodeName}_core_id = pi_core_id();
-int8_t ${nodeName}_log2Core = log2(NUM_CORES);
-int16_t ${nodeName}_ch_out_chunk = (${ch_im_out} >> ${nodeName}_log2Core) + ((${ch_im_out} & (NUM_CORES-1))!=0);
-int16_t ${nodeName}_ch_out_start = MIN(${nodeName}_ch_out_chunk*${nodeName}_core_id, ${ch_im_out});
-int16_t ${nodeName}_ch_out_stop = MIN(${nodeName}_ch_out_start + ${nodeName}_ch_out_chunk, ${ch_im_out});
-int16_t ${nodeName}_ch_out_count = ${nodeName}_ch_out_stop - ${nodeName}_ch_out_start;
+// 2D FP Conv HWC with Im2Col and ChannelOout parallelism (Name: ${nodeName}, Op: ${nodeOp})
 
-${weight_type.typeName} ${nodeName}_weight_ptr = ${weight} + ${nodeName}_ch_out_start * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y};
-
-
-uint32_t ${nodeName}_im2col_size_per_core = ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y};
-${data_out_type.typeName} ${nodeName}_im2col_buffer = ((${data_out_type.typeName})${ctxtBuffer}) + ${nodeName}_core_id * ${nodeName}_im2col_size_per_core;
-                                                          
 ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
 ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
 for (uint32_t n=0; n<${batch}; ++n) {   
-    
-    Conv2d_Im2Col_ChannelRange_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
+    PULP_Conv2d_Im2Col_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
         ref_${data_out}_${data_in},            
         ${dim_im_in_y},                      
         ${dim_im_in_x},                      
         ${ch_im_in},                          
-        ${nodeName}_weight_ptr,               
-        ${nodeName}_ch_out_count,            
+        ${weight},               
+        ${ch_im_out},            
         ${dim_kernel_y},                      
         ${dim_kernel_x},                      
         ${stride_y},                          
         ${stride_x},                          
         ref_${data_out}_${data_out},         
-        ${ch_im_out},                         
-        ${nodeName}_ch_out_start,             
         ${padding_y_top},                    
         ${padding_y_bottom},                  
         ${padding_x_left},                    
         ${padding_x_right},                   
-        ${nodeName}_im2col_buffer             
+        ${ctxtBuffer}             
     );
 
     ref_${data_out}_${data_in} += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};
