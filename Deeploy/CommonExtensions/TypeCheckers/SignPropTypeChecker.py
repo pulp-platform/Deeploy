@@ -41,22 +41,31 @@ class SignPropTypeChecker(NodeTypeChecker):
 
         inputs = [ctxt.lookup(inputNode.name) for inputNode in node.inputs]
         outputs = [ctxt.lookup(outputNode.name) for outputNode in node.outputs]
-
+        print(f"[DEBUG - typeInferOutput] Node: {node.name}")
+        for i, inp in enumerate(inputs):
+            print(f"  Input {i}: name={inp.name}, has _signed={hasattr(inp, '_signed')}, has nLevels={hasattr(inp, 'nLevels')}")
         signProp = all([hasattr(_input, "_signed") and hasattr(_input, "nLevels") for _input in inputs])
-
+        print(f"  signProp = {signProp}")
         if signProp:
             nLevels = self._inferNumLevels(inputs, operatorRepresentation)
             signedness = self._inferSignedness(inputs, operatorRepresentation)
+            print(f"  inferred nLevels = {nLevels}")
+            print(f"  inferred signedness = {signedness}")
 
             if nLevels is None or signedness is None:
                 return ctxt
             for obj, nLevel, sign in zip(outputs, nLevels, signedness):
                 obj.nLevels = nLevel
                 obj._signed = sign
+        else:
+            if issubclass(obj._type.referencedType, IntegerImmediate) and not obj._type.fitsNumLevels(nLevel):
+                log.warning(
+                    f"{obj.name} has {nLevel} levels, but {obj._type.referencedType.typeName} only supports {obj._type.referencedType.nLevels} levels."
+                )
 
-                if issubclass(obj._type.referencedType, IntegerImmediate) and not obj._type.fitsNumLevels(nLevel):
-                    log.warning(
-                        f"{obj.name} has {nLevel} levels, but {obj._type.referencedType.typeName} only supports {obj._type.referencedType.nLevels} levels."
-                    )
+            if issubclass(obj._type.referencedType, IntegerImmediate) and not obj._type.fitsNumLevels(nLevel):
+                log.warning(
+                    f"{obj.name} has {nLevel} levels, but {obj._type.referencedType.typeName} only supports {obj._type.referencedType.nLevels} levels."
+                )
 
         return ctxt

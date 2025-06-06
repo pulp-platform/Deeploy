@@ -9,7 +9,7 @@ import numpy as np
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
 from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
-
+from Deeploy.CommonExtensions.DataTypes import float32_t
 
 class ConcatChecker(SignPropTypeChecker):
 
@@ -596,3 +596,38 @@ class SGDChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
         return [True]
+
+
+
+class BatchNormChecker(SignPropTypeChecker):
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
+
+class ConvTransposeChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        # Come per ConvChecker: n livelli = kernel_size * livelli_pesi * canali_input * 2^bit_input
+        weight = inputs[1]
+        return [
+            np.prod(operatorRepresentation['kernel_shape']) *
+            weight.nLevels *
+            weight.shape[1] *  # ch_im_in
+            2**(self.input_types[0].referencedType.typeWidth)
+        ]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [inputs[0]._signed]

@@ -1350,12 +1350,16 @@ class NodeTypeChecker():
 
         for inputNode, _type in zip(node.inputs, self.input_types):
             reference = ctxt.lookup(inputNode.name)
+            print(f"[DEBUG] Checking input '{inputNode.name}': expected {_type}, got {reference}")
 
             if not isinstance(reference, VariableBuffer):
+                print(f"[DEBUG] -> Not a VariableBuffer: {reference}")
                 return False
 
             if hasattr(reference, "values"):
-                retCheck &= _type.referencedType.checkPromotion(reference.values)
+                ok =  _type.referencedType.checkPromotion(reference.values)
+                print(f"[DEBUG] -> checkPromotion: {ok}")  ##### ricordati di cambiare questo
+                retCheck &= ok
             else:
                 if ctxt.is_global(inputNode.name):
                     retCheck &= _type.referencedType.partialOrderUpcast(reference._type.referencedType)
@@ -1586,6 +1590,7 @@ class NodeBinding():
     def typeChecker(self):
         """Read-only wrapper around the encapsulated type checker
         """
+        
         return self._typeChecker
 
     @property
@@ -1642,9 +1647,11 @@ class NodeBinding():
             Updated and NetworkContext and true if the typing rule
             matches the node
 
+        
         """
 
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
+        print(f'value of ret inside typeCheck  of NodeBinding {ret}')
         if ret:
             log.debug(f" {SUCCESS_MARK} Type check passed for {self}")
             return newCtxt, True
@@ -1805,10 +1812,13 @@ class NodeMapper():
 
             if binder in self.discardedBindings:
                 continue
-
+            print(f"Trying binder {binder} ({type(binder)}) for node {node.name}")
             newCtxt, ret = binder.typeCheck(ctxt.copy(), node, self.parser.operatorRepresentation)
+            print(f"typeCheck result: {ret}")
 
             if not ret:
+                if hasattr(binder, 'debugInfo'):
+                    print(f"Binder debug info: {binder.debugInfo()}")
                 self.discardedBindings.add(binder)
                 continue
 
@@ -2110,6 +2120,7 @@ class ONNXLayer():
             return ctxt, False
 
         newCtxt = ctxt.copy()
+        print(f"[DEBUG] NodeBinding: Using typeChecker: {type(self.typeCheck)} for node {self.node.name}")
         newCtxt, ret = self.mapper.typeCheck(newCtxt, self.node)
 
         if ret:
@@ -2648,6 +2659,7 @@ class NetworkContainer():
         newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
 
         if not parsePass:
+            print(f"[DEBUG] Parsing failed at node {node.node.name} during parse step.")
             return ctxt, False
 
         return newCtxt, True
@@ -2656,6 +2668,7 @@ class NetworkContainer():
         newCtxt, LayerBindSuccess = node.typeCheck(ctxt)
 
         if not LayerBindSuccess:
+            print(f"[DEBUG] Type check failed at node {node.node.name}.")
             return ctxt, False
 
         return newCtxt, True

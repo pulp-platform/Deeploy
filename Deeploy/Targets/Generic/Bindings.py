@@ -18,12 +18,12 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvT
     FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
     MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
     RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, \
-    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate, BatchNormalizationTemplate, ConvTransposeTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
     DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, \
     MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReduceSumChecker, \
     ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, \
-    TransposeChecker
+    TransposeChecker, BatchNormChecker, ConvTransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -265,4 +265,36 @@ BasicDequantBindings = [
 ] + [
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 BasicTransformer),
+]
+
+
+BasicBatchNormBindings = [
+    NodeBinding(
+        BatchNormChecker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],
+            [PointerClass(float32_t)]
+        ),
+        BatchNormalizationTemplate.referenceTemplate,
+        BasicTransformer  # usa lo stesso se non hai un transformer dedicato
+    )
+]
+
+
+BasicConvTransposeBindings = [
+    NodeBinding(
+        ConvTransposeChecker(
+            [PointerClass(float32_t), PointerClass(float32_t)],  # input e peso
+            [PointerClass(float32_t)]
+        ),
+        ConvTransposeTemplate.referenceTemplate,
+        BasicTransformer
+    ),
+    NodeBinding(
+        ConvTransposeChecker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],  # input, peso, bias
+            [PointerClass(float32_t)]
+        ),
+        ConvTransposeTemplate.referenceTemplate,
+        BasicTransformer
+    )
 ]

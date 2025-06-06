@@ -618,3 +618,43 @@ class DequantLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+
+class BatchNormalizationLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        # 5 operazioni per elemento: sub, mul, add, sqrt, div
+        return self.mapper.parser.operatorRepresentation['size'] * 5
+
+
+
+class ConvTransposeLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation, channels_first) -> Tuple[Shape, Shape]:
+        # Se l'input ha 3 shape (es. [input, weight, bias]), il terzo è il numero di canali in output
+        if len(inputShapes) == 3:
+            inputShapes[2] = operatorRepresentation['ch_im_out']
+        return inputShapes, outputShapes
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+
+        groups = opRep.get('group', 1)
+        kernel_shape = np.prod(opRep['kernel_shape'])  # es. [3, 3] -> 9
+        ch_in = opRep['ch_im_in']
+        ch_out = opRep['ch_im_out']
+
+        opsPerPx = int(kernel_shape * ch_in * ch_out / groups) * 2
+
+        # ConvTranspose upscales spatial dims, quindi num pixel viene da output
+        if 'dim_im_out_y' in opRep:
+            numPx = opRep['dim_im_out_x'] * opRep['dim_im_out_y']
+        else:
+            numPx = opRep['dim_im_out_x']
+
+        return numPx * opsPerPx

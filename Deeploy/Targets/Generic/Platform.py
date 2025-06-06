@@ -63,7 +63,8 @@ TransposeMapper = NodeMapper(TransposeParser(), BasicTransposeBindings)
 UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
 DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
-
+BatchNormalizationMapper = NodeMapper(BatchNormParser(), BasicBatchNormBindings)
+ConvTransposeMapper = NodeMapper(ConvTransposeParser(), BasicConvTransposeBindings)
 SliceMapper = NodeMapper(SliceParser(), BasicSliceBindings)
 
 # Dummy nodes are intended for development purposes only!
@@ -106,7 +107,9 @@ GenericMapping = {
     'Unsqueeze': ReshapeLayer([UnsqueezeMapper]),
     'Slice': SliceLayer([SliceMapper]),
     'Quant': QuantLayer([QuantMapper]),
-    'Dequant': DequantLayer([DequantMapper])
+    'Dequant': DequantLayer([DequantMapper]),
+    'BatchNormalization': BatchNormalizationLayer([BatchNormalizationMapper]),
+    'ConvTranspose' : ConvTransposeLayer([ConvTransposeMapper])
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel
