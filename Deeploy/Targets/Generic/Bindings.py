@@ -309,3 +309,62 @@ BasicConvTransposeBindings = [
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer) for type in FloatDataTypes
 ]
+
+BasicBatchNormBindings = [
+    NodeBinding(
+        BatchNormChecker(
+            [PointerClass(type),
+             PointerClass(type),
+             PointerClass(type),
+             PointerClass(type),
+             PointerClass(type)], [PointerClass(type)]), BatchNormalizationTemplate.referenceTemplate, BasicTransformer)
+    for type in FloatDataTypes
+]
+
+BasicConvTransposeBindings = [
+    NodeBinding(
+        ConvChecker(
+            [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
+            [PointerClass(type)]),
+        ConvTransposeTemplate.referenceTemplate,
+        BasicTransformer) for type in FloatDataTypes
+] + [
+    NodeBinding(
+        ConvChecker(
+            [PointerClass(type), PointerClass(type)],  # input, weight
+            [PointerClass(type)]),
+        ConvTransposeTemplate.referenceTemplate,
+        BasicTransformer) for type in FloatDataTypes
+]
+
+
+BasicBatchNormBindings = [
+    NodeBinding(
+        BatchNormChecker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],
+            [PointerClass(float32_t)]
+        ),
+        BatchNormalizationTemplate.referenceTemplate,
+        BasicTransformer  # usa lo stesso se non hai un transformer dedicato
+    )
+]
+
+
+BasicConvTransposeBindings = [
+    NodeBinding(
+        ConvTransposeChecker(
+            [PointerClass(float32_t), PointerClass(float32_t)],  # input e peso
+            [PointerClass(float32_t)]
+        ),
+        ConvTransposeTemplate.referenceTemplate,
+        BasicTransformer
+    ),
+    NodeBinding(
+        ConvTransposeChecker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],  # input, peso, bias
+            [PointerClass(float32_t)]
+        ),
+        ConvTransposeTemplate.referenceTemplate,
+        BasicTransformer
+    )
+]
