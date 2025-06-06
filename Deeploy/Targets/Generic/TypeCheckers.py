@@ -9,7 +9,7 @@ import numpy as np
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
 from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
-
+from Deeploy.CommonExtensions.DataTypes import float32_t
 
 class ConcatChecker(SignPropTypeChecker):
 
