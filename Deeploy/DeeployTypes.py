@@ -3304,6 +3304,19 @@ class NetworkDeployer(NetworkContainer):
             tensor.name = f"{tensor.name}_tensor"
 
     # Don't override this
+    def _mangleNodeNames(self):
+        """Mangle node names
+
+        This renames nodes based on their operation and uses an incrementing counter to ensure uniqueness.
+        """
+        counter = {}
+        for node in self.graph.nodes:
+            op_name = node.op if isinstance(node.op, str) else str(node.op)
+            idx = counter.get(op_name, 0)
+            node.name = f"{op_name}_{idx}"
+            counter[op_name] = idx + 1
+
+    # Don't override this
     def _removeIdentityNodes(self):
         for node in filter(lambda x: x.op == "Identity", self.graph.nodes):
             self.graph.deleteNode(node)
@@ -3315,6 +3328,8 @@ class NetworkDeployer(NetworkContainer):
         self._removeIdentityNodes()
 
         self._mangleTensorNames()
+
+        self._mangleNodeNames()
 
         # Rename graph inputs and outputs:
         for idx, inputNode in enumerate(self.graph.inputs):
