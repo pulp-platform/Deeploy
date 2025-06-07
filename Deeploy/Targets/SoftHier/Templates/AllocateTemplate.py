@@ -44,7 +44,6 @@ SoftHierGlobalAllocateTemplate = NodeTemplate("")
 SoftHierStructInitTemplate = NodeTemplate("""
 static ${type.typeName} ${name} __attribute__((section(\".l1\")));
 """)
-#static const ${type}* ${name} = &${name}_UL;
 
 SoftHierStructAllocateTemplate = NodeTemplate("""
 if (core_id == 0) {
