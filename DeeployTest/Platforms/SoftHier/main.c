@@ -66,25 +66,24 @@ int main()
                 // original data in HBM (placed by loader)
                 void *ori_addr = testInputVector[buf];
 
-                #if DEFAULT_MEM == DEFAULT_L1 // if allowed to use L1
-                // bowwang: Trigger DMA transaction: move from HBM to L1
-                uint64_t mask = 0x00000000ffffffff;
-                uint64_t masked_addr = (uint64_t)ori_addr & mask;
-                flex_dma_async_1d(      DeeployNetwork_inputs[buf],
-                                        masked_addr, 
-                                        DeeployNetwork_inputs_bytes[buf]);
-                //Wait all DMA transaction done
-                flex_dma_async_wait_all();
-
-                #else // all data stay in HBM
-                uint64_t *dst_addr = DeeployNetwork_inputs[buf];
-                // perform mem_copy with a single core
-                for (uint32_t i=0; i<(DeeployNetwork_inputs_bytes[buf]+7)/8; i++){
-                    uint64_t data = ((uint64_t *)ori_addr)[i];
-                    dst_addr[i] = data;
+                if ((uint64_t)DeeployNetwork_inputs[buf] < (uint64_t)ARCH_HBM_START_BASE){
+                    // bowwang: Trigger DMA transaction: move from HBM to L1
+                    uint64_t mask = 0x00000000ffffffff;
+                    uint64_t masked_addr = (uint64_t)ori_addr & mask;
+                    flex_dma_async_1d(      DeeployNetwork_inputs[buf],
+                                            masked_addr, 
+                                            DeeployNetwork_inputs_bytes[buf]);
+                    //Wait all DMA transaction done
+                    flex_dma_async_wait_all();
+                } 
+                else {
+                    uint64_t *dst_addr = DeeployNetwork_inputs[buf];
+                    // perform mem_copy with a single core
+                    for (uint32_t i=0; i<(DeeployNetwork_inputs_bytes[buf]+7)/8; i++){
+                        uint64_t data = ((uint64_t *)ori_addr)[i];
+                        dst_addr[i] = data;
+                    }
                 }
-                
-                #endif
             }
             
         }
