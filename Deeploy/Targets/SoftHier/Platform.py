@@ -48,6 +48,20 @@ class SoftHierVariableBuffer(VariableBuffer):
     initTemplate = AllocateTemplate.SoftHierInitTemplate
     allocTemplate = AllocateTemplate.SoftHierAllocateTemplate
     deallocTemplate = FreeTemplate.SoftHierLocalTemplate
+    
+    def _bufferRepresentation(self):
+
+        if hasattr(self, "_memoryLevel"):
+            memoryLevel = self._memoryLevel
+        else:
+            memoryLevel = None
+
+        return {
+            "type": self._instance,
+            "name": self.name,
+            "size": int(np.prod(self.shape)),
+            "_memoryLevel": memoryLevel
+        }
 
 
 class SoftHierTransientBuffer(TransientBuffer):
@@ -55,6 +69,20 @@ class SoftHierTransientBuffer(TransientBuffer):
     initTemplate = AllocateTemplate.SoftHierInitTemplate
     allocTemplate = AllocateTemplate.SoftHierAllocateTemplate
     deallocTemplate = FreeTemplate.SoftHierLocalTemplate
+    
+    def _bufferRepresentation(self):
+
+        if hasattr(self, "_memoryLevel"):
+            memoryLevel = self._memoryLevel
+        else:
+            memoryLevel = None
+
+        return {
+            "type": self._instance,
+            "name": self.name,
+            "size": int(np.prod(self.shape)),
+            "_memoryLevel": memoryLevel
+        }
 
 
 class SoftHierConstantBuffer(ConstantBuffer):
