@@ -26,7 +26,7 @@ from testUtils.testRunner import TestRunner, TestRunnerArgumentParser
 if __name__ == "__main__":
     parser = TestRunnerArgumentParser(
         tiling_arguments = False,
-        description = "Deeploy Code Generation Utility for the Single Cluster SiftHier (no Tiling).")
+        description = "Deeploy Code Generation Utility for the Single Cluster SoftHier (no Tiling).")
 
     parser.add_argument('--num_clusters',
                         metavar = 'num_clusters',
