@@ -28,17 +28,11 @@ from Deeploy.DeeployTypes import NodeTemplate
 SoftHierInitTemplate = NodeTemplate("${type.typeName} ${name} __attribute__((section(\".l1\")));\n")
 SoftHierAllocateTemplate = NodeTemplate("""
 if (core_id ==0) {
-    ## #if DEEPLOY_TRACE_MALLOC
-    ## deeploy_log("[Deeploy] Alloc ${name} (${type.referencedType.typeName} * ${size})\\r\\n");
-    ## alloc_dump(get_alloc_l1());
-    ## #endif
-
-    ${name} = (${type.typeName}) deeploy_malloc(sizeof(${type.referencedType.typeName}) * ${size});
-
-    ## #if DEEPLOY_TRACE_MALLOC
-    ## deeploy_log("  -> @ %p\\r\\n", ${name});
-    ## alloc_dump(get_alloc_l1());
-    ## #endif
+    % if _memoryLevel == "L1":
+    ${name} = (${type.typeName}) flex_l1_malloc(sizeof(${type.referencedType.typeName}) * ${size});\n
+    % else:
+    ${name} = (${type.typeName}) flex_hbm_malloc(sizeof(${type.referencedType.typeName}) * ${size});\n
+    % endif
 }
 """)
 
