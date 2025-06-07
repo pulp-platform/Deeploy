@@ -2,11 +2,12 @@
 #
 # File: __init__.py
 #
-# Last edited: 10.07.2024
+# Last edited: 07.06.2025
 #
 # Copyright (C) 2024, ETH Zurich and University of Bologna.
 #
 # Author: Moritz Scherer, ETH Zurich
+#         Bowen Wang, ETH Zurich
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0

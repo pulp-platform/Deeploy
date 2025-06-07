@@ -2,11 +2,12 @@
 #
 # File: AllocateTemplate.py
 #
-# Last edited: 15.12.2021
+# Last edited: 07.06.2025
 #
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
+# Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
 # Author: Moritz Scherer, ETH Zurich
+#         Bowen Wang, ETH Zurich
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
