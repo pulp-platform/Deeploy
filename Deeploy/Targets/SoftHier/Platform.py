@@ -111,7 +111,7 @@ class SoftHierStructBuffer(StructBuffer):
 
 
 SoftHierOptimizer = TopologyOptimizer([])
-includeList = ["DeeployBasicMath.h"]
+includeList = ["DeeployBasicMath.h", "flex_alloc_api.h"]
 
 
 class SoftHierEngine(DeploymentEngine):
