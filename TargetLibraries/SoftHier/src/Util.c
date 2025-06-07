@@ -39,12 +39,10 @@ int deeploy_log(const char *__restrict fmt, ...) {
   va_end(args);
   return ret;
 }
-// bowwang: memory allocation function is managed by compilation flags
-#if DEFAULT_MEM == DEFAULT_L1
-void *deeploy_malloc(const size_t size) { return (void *) flex_l1_malloc(size); }
-void deeploy_free(void *const ptr) { flex_l1_free(ptr); }
-#else
+
 void *deeploy_malloc(const size_t size) { return (void *) flex_hbm_malloc(size); }
 void deeploy_free(void *const ptr) { flex_hbm_free(ptr); }
-#endif
+
+
+
 
