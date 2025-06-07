@@ -101,27 +101,13 @@ endif()
 
 if(platform STREQUAL SoftHier)
 
-  if(TOOLCHAIN STREQUAL LLVM)
-    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/toolchain_llvm.cmake)
-  else()
+  if(TOOLCHAIN STREQUAL GCC)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/toolchain_gcc.cmake)
   endif()
-
-  include(${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/softhier.cmake)
+  
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/softhier_gvsoc.cmake)
 
   project(deeploy LANGUAGES C ASM)
-
-  message(STATUS "============================= SoftHier Configuration ============================")
-  message(STATUS "[cMake  ]    # Cluster                ")
-  message(STATUS "[cMake  ]    num_cluster_x           = " ${num_cluster_x})
-  message(STATUS "[cMake  ]    num_cluster_y           = " ${num_cluster_y})
-  message(STATUS "")
-  message(STATUS "[cMake  ]    # Default Memory Level                  ")
-  message(STATUS "[cMake  ]    default_l1      = " ${default_l1})
-  message(STATUS "[cMake  ]    default_hbm     = " ${default_hbm})
-  message(STATUS "================================================================================")
-  message(STATUS "")
 
   add_subdirectory(TargetLibraries/SoftHier)
   add_subdirectory(DeeployTest)
