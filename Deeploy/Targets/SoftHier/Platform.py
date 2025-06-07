@@ -22,7 +22,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict
 
 import numpy as np
 
@@ -48,7 +47,7 @@ class SoftHierVariableBuffer(VariableBuffer):
     initTemplate = AllocateTemplate.SoftHierInitTemplate
     allocTemplate = AllocateTemplate.SoftHierAllocateTemplate
     deallocTemplate = FreeTemplate.SoftHierLocalTemplate
-    
+
     def _bufferRepresentation(self):
 
         if hasattr(self, "_memoryLevel"):
@@ -69,7 +68,7 @@ class SoftHierTransientBuffer(TransientBuffer):
     initTemplate = AllocateTemplate.SoftHierInitTemplate
     allocTemplate = AllocateTemplate.SoftHierAllocateTemplate
     deallocTemplate = FreeTemplate.SoftHierLocalTemplate
-    
+
     def _bufferRepresentation(self):
 
         if hasattr(self, "_memoryLevel"):
@@ -125,11 +124,10 @@ class SoftHierEngine(DeploymentEngine):
 
 class SoftHierPlatform(DeploymentPlatform):
 
-    def __init__(
-            self,
-            engines = [SoftHierEngine("SoftHier")],
-            variableBuffer = SoftHierVariableBuffer,
-            constantBuffer = SoftHierConstantBuffer,
-            structBuffer = SoftHierStructBuffer,
-            transientBuffer = SoftHierTransientBuffer):
+    def __init__(self,
+                 engines = [SoftHierEngine("SoftHier")],
+                 variableBuffer = SoftHierVariableBuffer,
+                 constantBuffer = SoftHierConstantBuffer,
+                 structBuffer = SoftHierStructBuffer,
+                 transientBuffer = SoftHierTransientBuffer):
         super().__init__(engines, variableBuffer, constantBuffer, structBuffer, transientBuffer)
