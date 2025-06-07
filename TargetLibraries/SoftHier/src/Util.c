@@ -2,7 +2,7 @@
  * Title:        Util.c
  * Description:
  *
- * Date:         26.05.2025
+ * Date:         06.05.2025
  *
  * ===================================================================== */
 
@@ -40,9 +40,7 @@ int deeploy_log(const char *__restrict fmt, ...) {
   return ret;
 }
 
-void *deeploy_malloc(const size_t size) { return (void *) flex_hbm_malloc(size); }
+void *deeploy_malloc(const size_t size) {
+  return (void *)flex_hbm_malloc(size);
+}
 void deeploy_free(void *const ptr) { flex_hbm_free(ptr); }
-
-
-
-
