@@ -91,16 +91,19 @@ class SoftHierConstantBuffer(ConstantBuffer):
     allocTemplate = AllocateTemplate.SoftHierGlobalAllocateTemplate
     deallocTemplate = FreeTemplate.SoftHierGlobalTemplate
 
-    def _bufferRepresentation(self) -> Dict:
-        retDict = super()._bufferRepresentation()
-        # WIESEP: Workaround for banshee simulations.
-        # Due to problems wrongly copied bytes, we want array sized a multiple of 4
-        bytes = np.prod(self.shape) * (self._type.typeWidth // 8)
-        if bytes % 4 != 0:
-            bytes = 4 * int((bytes / 4 + 1))
-        size = (bytes * 8) // self._type.typeWidth
-        retDict['size'] = int(size)
-        return retDict
+    def _bufferRepresentation(self):
+
+        if hasattr(self, "_memoryLevel"):
+            memoryLevel = self._memoryLevel
+        else:
+            memoryLevel = None
+
+        return {
+            "type": self._instance,
+            "name": self.name,
+            "size": int(np.prod(self.shape)),
+            "_memoryLevel": memoryLevel
+        }
 
 
 class SoftHierStructBuffer(StructBuffer):
@@ -124,7 +127,7 @@ class SoftHierPlatform(DeploymentPlatform):
 
     def __init__(
             self,
-            engines = [SoftHierEngine("SoftHier")],  # subject to change
+            engines = [SoftHierEngine("SoftHier")],
             variableBuffer = SoftHierVariableBuffer,
             constantBuffer = SoftHierConstantBuffer,
             structBuffer = SoftHierStructBuffer,
