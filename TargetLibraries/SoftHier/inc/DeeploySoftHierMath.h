@@ -1,17 +1,14 @@
 /* =====================================================================
- * Title:        DeeployBasicMath.h
+ * Title:        DeeployMath.h
  * Description:
  *
- * Date:         14.12.2022
+ * $Date:        07.06.2025
  *
  * ===================================================================== */
-
 /*
- * Copyright (C) 2022 ETH Zurich and University of Bologna.
+ * Copyright (C) 2025 ETH Zurich and University of Bologna.
  *
- * Authors:
- * - Philip Wiese, ETH Zurich
- * - Victor Jung, ETH Zurich
+ * Author: Bowen Wang <bowwang@iis.ee.ethz.ch>, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -28,31 +25,17 @@
  * limitations under the License.
  */
 
-#ifndef __DEEPLOY_BASIC_MATH_HEADER_
-#define __DEEPLOY_BASIC_MATH_HEADER_
-
-// Define default empty wrapper for single core section
-#ifndef BEGIN_SINGLE_CORE
-#define BEGIN_SINGLE_CORE 
-#endif
-
-#ifndef END_SINGLE_CORE
-#define END_SINGLE_CORE 
-#endif
-
-#ifndef SINGLE_CORE
-#define SINGLE_CORE
-#endif
+#ifndef __DEEPLOY_MATH_HEADER_
+#define __DEEPLOY_MATH_HEADER_
 
 #include <ctype.h>
-#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "macros.h"
 #include "types.h"
-#include "util.h"
 
-#endif //__DEEPLOY_BASIC_MATH_HEADER_
+#include "DeeployBasicMath.h"
+
+#endif // __DEEPLOY_MATH_HEADER_

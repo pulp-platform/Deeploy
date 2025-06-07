@@ -2,7 +2,7 @@
  * Title:        util.h
  * Description:
  *
- * Date:         06.12.2022
+ * Date:         07.06.2025
  *
  * ===================================================================== */
 
@@ -10,7 +10,7 @@
  * Copyright (C) 2022 ETH Zurich and University of Bologna.
  *
  * Authors:
- * - Philip Wiese, ETH Zurich
+ * - Bowen Wang <bowwang@iis.ee.ethz.ch>, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *

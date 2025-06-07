@@ -109,7 +109,10 @@ if(platform STREQUAL SoftHier)
 
   project(deeploy LANGUAGES C ASM)
 
+  add_subdirectory(TargetLibraries/Generic)
   add_subdirectory(TargetLibraries/SoftHier)
+  target_include_directories(deeploysofthier PUBLIC TargetLibraries/Generic/inc)
+
   add_subdirectory(DeeployTest)
 
   target_link_libraries(deeploylib INTERFACE deeploysofthier)

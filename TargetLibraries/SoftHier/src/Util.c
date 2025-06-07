@@ -7,10 +7,10 @@
  * ===================================================================== */
 
 /*
- * Copyright (C) 2022 ETH Zurich and University of Bologna.
+ * Copyright (C) 2025 ETH Zurich and University of Bologna.
  *
  * Authors:
- * - Philip Wiese, ETH Zurich
+ * - Bowen Wang <bowwang@iis.ee.ethz.ch>, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -27,7 +27,7 @@
  * limitations under the License.
  */
 
-#include "DeeployBasicMath.h"
+#include "DeeploySoftHierMath.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
