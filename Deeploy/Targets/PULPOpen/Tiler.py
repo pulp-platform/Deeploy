@@ -61,6 +61,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import 
 from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint import ReduceSumTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GeluTileConstraint import GeluGradTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
@@ -162,7 +163,7 @@ PULPSoftmaxGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULP
                                                              tileConstraint = SoftmaxGradTileConstraint())
 
 PULPReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceSumBindings,
-                                                           tileConstraint = UntiledTileConstraint())
+                                                           tileConstraint = ReduceSumTileConstraint())
 
 PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindings,
                                                      tileConstraint = SGDTileConstraint())
