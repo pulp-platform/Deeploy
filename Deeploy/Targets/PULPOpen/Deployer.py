@@ -70,11 +70,11 @@ class PULPDeployer(SignPropDeployer):
                          inputOffsets = inputOffsets)
 
         self.loweringOptimizer.passes += [
-            TransposeMatmulInputsPass(),
+            # TransposeMatmulInputsPass(),
             PULPNCHWtoNHWCPass(self.default_channels_first),
-            TransposeSplitPass(),
+            # TransposeSplitPass(),
             RQAddTransposeSquashPass(),
-            TransposeSplitPass(),
+            # TransposeSplitPass(),
             TransposeMergePass(),
             TransposeConstOptPass(),
             ReshapeConstOptPass(),
