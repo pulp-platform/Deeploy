@@ -1650,7 +1650,7 @@ class NodeBinding():
         
         """
 
-        print(f"[DEBUG] NodeBinding: Using typeChecker: {type(self.typeChecker)} for node {node.name}")
+        print(f"[DEBUG] NodeBinding: Using typeChecker: {self.typeChecker} for node {node.name}")
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
         print(f'value of ret inside typeCheck  of NodeBinding {ret}')
         if ret:

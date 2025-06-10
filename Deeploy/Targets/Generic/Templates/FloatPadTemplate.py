@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.DeeployTypes import NodeTemplate, NetworkContext, OperatorRepresentation
+from typing import List, Tuple, Dict
 
 reference2DTemplate = NodeTemplate("""
 <%
@@ -48,6 +50,80 @@ BEGIN_SINGLE_CORE
             xoffset_${data_out}_${data_in} += ${addoffsetOut};
             offset_in_${data_out}_${data_in} += ${addoffsetIn};
         }
+    }
+    %endif
+END_SINGLE_CORE
+""")
+
+reference1DTemplate = NodeTemplate("""
+<%
+    x_offset_out = dim_im_out_ch*(pad_y)
+    width = dim_im_in_ch*dim_im_in_y
+
+    startPosX = x_offset_out
+
+batchOffsetOut = dim_im_out_ch * dim_im_out_y
+%>
+
+// 1D Float Pad (Name: ${nodeName}, Op: ${nodeOp})
+BEGIN_SINGLE_CORE
+    memset(${data_out}, 0, ${data_out_size}*sizeof(${data_out_type.referencedType.typeName}));
+    uint32_t xoffset_${data_out}_${data_in};
+    uint32_t offset_in_${data_out}_${data_in} = 0;
+
+    % if channels_first:
+    // NCHW Layout
+    for(uint32_t n=0; n<${batch}; n++){
+        xoffset_${data_out}_${data_in} = n*${batchOffsetOut} +${pad_y};
+        for (uint32_t c=0; c<${dim_im_in_ch}; ++c) {
+            memcpy(${data_out} + xoffset_${data_out}_${data_in}, ${data_in}+offset_in_${data_out}_${data_in}, ${dim_im_in_y}*sizeof(${data_out_type.referencedType.typeName}));
+            xoffset_${data_out}_${data_in} += ${dim_im_out_y};
+            offset_in_${data_out}_${data_in} += ${dim_im_in_y};
+        }
+    }
+    % else:
+    // NHWC Layout
+    for(uint32_t n=0; n<${batch}; n++){
+        xoffset_${data_out}_${data_in} = n*${batchOffsetOut} + ${startPosX};
+        memcpy(${data_out}+xoffset_${data_out}_${data_in}, ${data_in}+offset_in_${data_out}_${data_in}, ${width}*sizeof(${data_out_type.referencedType.typeName}));
+        offset_in_${data_out}_${data_in} += ${width};
+    }
+    %endif
+END_SINGLE_CORE
+""")
+
+reference1DTemplate = NodeTemplate("""
+<%
+    x_offset_out = dim_im_out_ch*(pad_y)
+    width = dim_im_in_ch*dim_im_in_y
+
+    startPosX = x_offset_out
+
+batchOffsetOut = dim_im_out_ch * dim_im_out_y
+%>
+
+// 1D Float Pad (Name: ${nodeName}, Op: ${nodeOp})
+BEGIN_SINGLE_CORE
+    memset(${data_out}, 0, ${data_out_size}*sizeof(${data_out_type.referencedType.typeName}));
+    uint32_t xoffset_${data_out}_${data_in};
+    uint32_t offset_in_${data_out}_${data_in} = 0;
+
+    % if channels_first:
+    // NCHW Layout
+    for(uint32_t n=0; n<${batch}; n++){
+        xoffset_${data_out}_${data_in} = n*${batchOffsetOut} +${pad_y};
+        for (uint32_t c=0; c<${dim_im_in_ch}; ++c) {
+            memcpy(${data_out} + xoffset_${data_out}_${data_in}, ${data_in}+offset_in_${data_out}_${data_in}, ${dim_im_in_y}*sizeof(${data_out_type.referencedType.typeName}));
+            xoffset_${data_out}_${data_in} += ${dim_im_out_y};
+            offset_in_${data_out}_${data_in} += ${dim_im_in_y};
+        }
+    }
+    % else:
+    // NHWC Layout
+    for(uint32_t n=0; n<${batch}; n++){
+        xoffset_${data_out}_${data_in} = n*${batchOffsetOut} + ${startPosX};
+        memcpy(${data_out}+xoffset_${data_out}_${data_in}, ${data_in}+offset_in_${data_out}_${data_in}, ${width}*sizeof(${data_out_type.referencedType.typeName}));
+        offset_in_${data_out}_${data_in} += ${width};
     }
     %endif
 END_SINGLE_CORE
