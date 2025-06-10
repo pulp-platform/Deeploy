@@ -355,7 +355,7 @@ class VariableBuffer():
         None
         """
 
-        if self.alias_of:
+        if hasattr(self, "alias_of"):
             self.alias_of += alias_to_add
         else:
             self.alias_of = alias_to_add
@@ -372,7 +372,7 @@ class VariableBuffer():
             List of names o all aliases of this VariableBuffer.
         """
 
-        if self.alias_of:
+        if hasattr(self, "alias_of"):
             return self.alias_of
         else:
             return list()
@@ -390,7 +390,7 @@ class VariableBuffer():
         bool
             True if this VariableBuffer has any live ancestors, False otherwise
         """
-        if not self.alias_of:
+        if not hasattr(self, "alias_of"):
             return False
 
         for alias in self.alias_of:
