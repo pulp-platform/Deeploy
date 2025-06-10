@@ -65,8 +65,6 @@ def _squash_transpose_add_fun(graph: gs.Graph, match: Match, name: str):
                 name = addNode.name + "_transpose",
                 attrs = transposeAttrs)
 
-    #import IPython; IPython.embed()
-
     return graph
 
 

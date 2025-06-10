@@ -206,7 +206,6 @@ class _MHSATemplate(NodeTemplate):
         if hasattr(data_out, "_signed") and hasattr(data_out, "nLevels"):
             operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_out.nLevels // 2)
 
-        # import IPython; IPython.embed()
         return ctxt, operatorRepresentation, nameList
 
 
