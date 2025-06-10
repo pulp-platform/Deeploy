@@ -391,8 +391,8 @@ class Pad1DParser(PadParser):
         wellFormed = False
         if ret:
             pads = self.operatorRepresentation['pads']
-            print(pads)
-            # print(f"Pad1DParser check pads length: {len(pads)}")
+            print(f'Pad1DParser: {type(pads)}')
+            print(f"Pad1DParser check pads length: {len(pads)}")
             if len(pads) == 6 and pads[0] == 0 and pads[3] == 0 \
             and pads[1] == 0 and pads[4] == 0:
                 wellFormed = True
@@ -2155,7 +2155,17 @@ class GenericConv1DParser(Conv1DParser):
 
         if ret:
             inputs = ['data_in', 'weight']
+            # Handle bias, if present
+            if len(node.inputs) > 2:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
+            else:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
             for idx, inputNode in enumerate(node.inputs):
+                if idx >= len(inputs):
+                    print(f"[DEBUG] Node: {inputNode.name}, idx: {idx}, inputs: {inputs}")
+                    raise IndexError(f"Index {idx} out of range for inputs of length {len(inputs)} in node {inputNode.name}")
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
             return newCtxt, True
