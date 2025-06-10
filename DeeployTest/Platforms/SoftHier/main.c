@@ -51,25 +51,24 @@ int main() {
   /*  Program Execution Region -- Start */
   /**************************************/
   uint32_t CID = flex_get_cluster_id(); // Get cluster ID
+  uint32_t core_id = flex_get_core_id();
 
-  if (CID == 0) {            // only allow cluster 0 to work
-    if (flex_is_dm_core()) { // allow dm core to init network and dma
+  if (CID == 0) { // only allow cluster 0 to work
+    if (flex_is_first_core()) {
       printf("[main.c] >>> Initializing network...\n\n");
-      InitNetwork(0, 1);
+      InitNetwork(core_id, ARCH_NUM_CORE_PER_CLUSTER);
+    }
 
-      printf("[main.c] >>> original data _in0: 0x%8x, _in1: 0x%8x\n",
-             (uint32_t)testInputVector0, (uint32_t)testInputVector1);
-      printf("[main.c] >>> allocated mem _in0: 0x%8x, _in1: 0x%8x\n\n",
-             (uint32_t)DeeployNetwork_inputs[0],
-             (uint32_t)DeeployNetwork_inputs[1]);
+    flex_intra_cluster_sync();
 
+    if (flex_is_dm_core()) { // allow dm core to init network and dma
       for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
         // original data in HBM (placed by loader)
         void *ori_addr = testInputVector[buf];
 
         if ((uint64_t)DeeployNetwork_inputs[buf] <
             (uint64_t)ARCH_HBM_START_BASE) {
-          // bowwang: Trigger DMA transaction: move from HBM to L1
+          // Trigger DMA transaction: move from HBM to L1
           uint64_t mask = 0x00000000ffffffff;
           uint64_t masked_addr = (uint64_t)ori_addr & mask;
           flex_dma_async_1d(DeeployNetwork_inputs[buf], masked_addr,
@@ -91,9 +90,10 @@ int main() {
 
     if (flex_is_first_core()) { // allow core 0 to compute
       printf("[main.c] >>> Running network...\n\n");
-
-      RunNetwork(0, 1);
     }
+
+    RunNetwork(core_id, ARCH_NUM_CORE_PER_CLUSTER);
+
     flex_intra_cluster_sync(); // Cluster barrier
 
     // verification
