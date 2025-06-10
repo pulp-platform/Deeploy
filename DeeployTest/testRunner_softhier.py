@@ -36,6 +36,10 @@ if __name__ == "__main__":
                         help = 'Number of clusters\n')
 
     parser.add_argument('--verbose', metavar = 'verbose', dest = 'verbose', type = int, default = 2, help = 'verbose\n')
+
+    for action in parser._actions:
+        if action.dest == 'toolchain_install_dir':
+            action.default = "${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install"
     args = parser.parse_args()
 
     testRunner = TestRunner(platform = "SoftHier", simulator = "gvsoc", tiling = False, argument_parser = parser)

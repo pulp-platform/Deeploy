@@ -2,8 +2,7 @@ add_compile_definitions(
     DEEPLOY_SOFTHIER_PLATFORM
 )
 
-set(SOFTHIER_TOOLCHAIN_INSTALL_DIR $ENV{SOFTHIER_INSTALL_DIR}/third_party/toolchain/install)
-set(TOOLCHAIN_PREFIX ${SOFTHIER_TOOLCHAIN_INSTALL_DIR}/bin/riscv32-unknown-elf)
+set(TOOLCHAIN_PREFIX ${TOOLCHAIN_INSTALL_DIR}/bin/riscv32-unknown-elf)
 
 # Building for bare metal system
 set(CMAKE_SYSTEM_NAME Generic)
