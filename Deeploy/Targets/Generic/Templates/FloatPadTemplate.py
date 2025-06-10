@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.DeeployTypes import NodeTemplate, NetworkContext, OperatorRepresentation
+from typing import List, Tuple, Dict
 
 reference2DTemplate = NodeTemplate("""
 <%
