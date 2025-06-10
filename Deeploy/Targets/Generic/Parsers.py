@@ -1016,15 +1016,13 @@ class ReshapeParser(NodeParser):
         output_node = ctxt.lookup(node.outputs[outputs.index("data_out")].name)
         input_node = ctxt.lookup(node.inputs[inputs.index("data_in")].name)
 
-        if "alias_of" in output_node.__dict__.keys():
-            output_node.alias_of = input_node.alias_of + [
-                input_node.name,
-            ]
+        output_node.add_aliases(input_node.get_alias_of() + [
+            input_node.name,
+        ])
 
-        if "alias_of" in input_node.__dict__.keys():
-            input_node.alias_of += [
-                output_node.name,
-            ]
+        input_node.add_aliases([
+            output_node.name,
+        ])
 
         # Compute data size
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
@@ -1672,7 +1670,7 @@ class MatMulParser(NodeParser):
             self.operatorRepresentation["batch_B"] == 1
         ), "Incompatible dimensions for input matrices. Broadcasting not yet supported for dimensions larger than 1 on one of the inputs, or equal dimensions between the 2."
 
-        # SCHEREMO: Create flags for same dimension between each input matrix and the final batch dimension
+        # Create flags for same dimension between each input matrix and the final batch dimension
         self.operatorRepresentation['A_batched'] = (self.operatorRepresentation['batch'] == np.prod(
             ctxt.lookup(node.inputs[0].name).shape[:-2]))
         self.operatorRepresentation['W_batched'] = self.operatorRepresentation['B_batched'] = (

@@ -341,6 +341,64 @@ class VariableBuffer():
     def fromNode(cls, node: gs.Node):
         return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
 
+    def add_aliases(self, alias_to_add: List[str]):
+        """
+        Adds list of aliases to the alias_of attribute.
+
+        Parameters
+        ----------
+        alias_to_add : List[str]
+            List of names of aliases to add to the alias_of attribute.
+
+        Returns
+        -------
+        None
+        """
+
+        if self.alias_of:
+            self.alias_of += alias_to_add
+        else:
+            self.alias_of = alias_to_add
+
+        return None
+
+    def get_alias_of(self):
+        """
+        Getter function for the alias_of attribute.
+
+        Returns
+        -------
+        List[str]
+            List of names o all aliases of this VariableBuffer.
+        """
+
+        if self.alias_of:
+            return self.alias_of
+        else:
+            return list()
+
+    def has_live_ancestors(self, ctxt: NetworkContext) -> bool:
+        """Checks whether this VariableBuffer has any live ancestors, i.e. buffers that are still live and are aliased by this buffer.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Current NetworkContext
+
+        Returns
+        -------
+        bool
+            True if this VariableBuffer has any live ancestors, False otherwise
+        """
+        if not self.alias_of:
+            return False
+
+        for alias in self.alias_of:
+            if ctxt.lookup(alias)._live:
+                return True
+
+        return False
+
 
 class TransientBuffer(VariableBuffer):
     """Class to represent memory space required by kernels that is not covered by input and output tensors, e.g. im2col buffers in convolutions

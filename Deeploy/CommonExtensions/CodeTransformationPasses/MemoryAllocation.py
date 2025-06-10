@@ -174,17 +174,9 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
             # Mark it as dead (not useful anymore)
             ctxt.localObjects[nb.name]._live = False
 
-            # Check for live ancestors (buffers that this is an alias of, that are still live)
-            has_live_ancestors = False
-
-            if "alias_of" in nb.__dict__.keys():
-                for ancestor in nb.alias_of:
-                    if (ancestor in ctxt.localObjects.keys()) and ctxt.localObjects[ancestor]._live:
-                        has_live_ancestors = True
-                        break
-
-            # Add the deallocation code to the execution block
-            if not has_live_ancestors:
+            # Check for live ancestors (buffers that this is an alias of, that are still live),
+            # and add the deallocation code to the execution block if none found
+            if not nb.has_live_ancestors(ctxt):
                 executionBlock.addRight(nb.deallocTemplate, nb._bufferRepresentation())
 
         return ctxt, executionBlock
