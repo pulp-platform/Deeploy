@@ -48,11 +48,12 @@ PICOLIBC_RV32IMA_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
 PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
 PICOLIBC_RV32IMF_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imf
 
+CHIMERA_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/chimera-sdk
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
+SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
 QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
 BANSHEE_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/banshee
 MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
-SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
 GVSOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc
 SOFTHIER_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/softhier
 MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
@@ -554,6 +555,13 @@ ${TOOLCHAIN_DIR}/minimalloc:
 	cmake -DCMAKE_BUILD_TYPE=Release && make -j && \
 	mkdir -p ${MINIMALLOC_INSTALL_DIR} && cp minimalloc ${MINIMALLOC_INSTALL_DIR}
 
+${CHIMERA_SDK_INSTALL_DIR}:
+	mkdir -p ${DEEPLOY_INSTALL_DIR} && cd ${DEEPLOY_INSTALL_DIR} && \
+	git clone https://github.com/pulp-platform/chimera-sdk.git && \
+	cd ${CHIMERA_SDK_INSTALL_DIR} && make gvsoc
+
+chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
+
 .PHONY: docs clean-docs format
 
 format:
@@ -564,5 +572,6 @@ format:
 
 docs:
 	make -C docs html
+
 clean-docs:
 	rm -rf docs/_autosummary docs/_build
