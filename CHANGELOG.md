@@ -273,3 +273,5 @@ This release containing major architectural changes, new platform support, enhan
 
 ## Release v0.1.0 (2024-08-08)
 This release contains the first version of Deeploy, which includes the initial implementation of the Deeploy framework, support for various platforms, and basic functionality for deploying deep learning models on PULP-based systems.
+
+Test change for CI pipeline
