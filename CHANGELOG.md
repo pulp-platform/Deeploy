@@ -183,8 +183,7 @@ This release containing major architectural changes, new platform support, enhan
 - Parallel implementations of the following operators on Siracusa: Matmul, Softmax, Gelu, Conv, Layernorm, Maxpool, Add, Mul,and Relu
 - Gelu with Sigmoid implementation
 - ComputeOp support for multiple float kernels: Maxpool, Relu, and Mul
-
-
+- `dev-requirements.txt` tracking the dependencies of the build system, linting, documentation, and QOL.
 
 ### Changed
 - Adapt pyproject.toml and freeze Python dependencies
@@ -227,6 +226,8 @@ This release containing major architectural changes, new platform support, enhan
 - Split the original build flow into two container
 - Refactor changelog for better readability
 - Reformatted all C files
+- Prepare `pyproject.toml` for a proper pip package release.
+- Packages listed in `dev-requirements.txt` are installed in the final stage of the Deeploy container.
 
 ### Fixed
 - Fix the PULP Deployer where outputs were unecessary loaded in L3
@@ -268,6 +269,7 @@ This release containing major architectural changes, new platform support, enhan
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
 - Remove the sourcing of the cursed PULP SDK script.
+- Commented IPython breakpoints.
 
 ## Release v0.1.0 (2024-08-08)
 This release contains the first version of Deeploy, which includes the initial implementation of the Deeploy framework, support for various platforms, and basic functionality for deploying deep learning models on PULP-based systems.
