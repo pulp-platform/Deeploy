@@ -8,6 +8,9 @@ target_link_libraries(network PUBLIC deeploylib)
 if(platform STREQUAL MemPool)
   add_subdirectory(Platforms/MemPool)
 
+elseif(platform STREQUAL SoftHier)
+  add_subdirectory(Platforms/SoftHier)
+
 elseif(platform STREQUAL Generic)
   add_subdirectory(Platforms/Generic)
 

@@ -54,6 +54,7 @@ BANSHEE_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/banshee
 MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
 GVSOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc
+SOFTHIER_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/softhier
 MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
 XTL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtl
 XSIMD_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xsimd
@@ -68,6 +69,7 @@ BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 GVSOC_COMMIT_HASH ?= eeb7ef8c1dfcb944ac80d797a8cea35aacc14ac5
+SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
@@ -85,6 +87,7 @@ echo-bash:
 	@echo "export PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
 	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
 	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
+	@echo "export SOFTHIER_INSTALL_DIR=${SOFTHIER_INSTALL_DIR}"
 	@echo "export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
 	@echo "export PULP_RISCV_GCC_TOOLCHAIN=/PULP_SDK_IS_A_MESS"
 	@echo "export MEMPOOL_HOME=${MEMPOOL_INSTALL_DIR}"
@@ -446,6 +449,35 @@ ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa" build INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
+
+${TOOLCHAIN_DIR}/softhier:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/gvsoc/gvsoc.git -b bowwang-dev/softhier-deeploy softhier && \
+	cd ${TOOLCHAIN_DIR}/softhier && \
+	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory.ld && \
+	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include/flex_alloc.h && \
+	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include/flex_runtime.h && \
+	mv ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory_deeploy.ld ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory.ld && \
+	cp ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/deeploy_include/* ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include      
+
+${SOFTHIER_INSTALL_DIR}: ${TOOLCHAIN_DIR}/softhier
+	cp -r ${TOOLCHAIN_DIR}/softhier ${SOFTHIER_INSTALL_DIR} && \
+	rm -rf ${TOOLCHAIN_DIR}/softhier && \
+	cd ${SOFTHIER_INSTALL_DIR} && \
+	. sourceme.sh && \
+	make hw-deeploy
+
+# bowwang: trim toolchain to make the container lighter
+softhier: ${SOFTHIER_INSTALL_DIR}
+	rm -rf ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/toolchain.tar.xz && \
+    rm -rf ${SOFTHIER_INSTALL_DIR}/build/core/CMakeFiles && \
+    rm -rf ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/bin/riscv32-unknown-elf-lto-dump && \
+    rm -rf ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/cc1plus && \
+    rm -f ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/bin/riscv32-unknown-elf-c++ && \
+    rm -f ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/g++-mapper-server && \
+    rm -f ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/libexec/gcc/riscv32-unknown-elf/14.2.0/plugin/libcc1* && \
+    rm -f ${SOFTHIER_INSTALL_DIR}/third_party/toolchain/install/lib/gcc/riscv32-unknown-elf/14.2.0/libstdc++* && \
+    rm -rf ${SOFTHIER_INSTALL_DIR}/pyenv_softhier
 
 ${XTL_INSTALL_DIR}:
 	cd ${TOOLCHAIN_DIR} && \
