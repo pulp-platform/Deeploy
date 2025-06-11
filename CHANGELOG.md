@@ -22,6 +22,7 @@ This release containing major architectural changes, new platform support, enhan
 - Find all subdirectories of Deeploy when installing with pip install [#70](https://github.com/pulp-platform/Deeploy/pull/70)
 - Add milestone issue template [#71](https://github.com/pulp-platform/Deeploy/pull/71)
 - Bunch of fixes and changes [#58](https://github.com/pulp-platform/Deeploy/pull/58)
+- Add SoftHier platform [#65](https://github.com/pulp-platform/Deeploy/pull/65)
 - rv32imf_xpulpv2 ISA support for Siracusa platform [#64](https://github.com/pulp-platform/Deeploy/pull/64)
 - One LLVM To Compile Them All [#60](https://github.com/pulp-platform/Deeploy/pull/60)
 - One GVSoC to Simulate Them All [#59](https://github.com/pulp-platform/Deeploy/pull/59)
@@ -59,6 +60,7 @@ This release containing major architectural changes, new platform support, enhan
 - GitHub-based CI/CD Flow [#4](https://github.com/pulp-platform/Deeploy/pull/4)
 - Generic Softmax Kernel [#2](https://github.com/pulp-platform/Deeploy/pull/2)
 - Port GitLab CI [#1](https://github.com/pulp-platform/Deeploy/pull/1)
+
 
 ### Added
 - New alias list parameter for buffer objects
@@ -178,6 +180,9 @@ This release containing major architectural changes, new platform support, enhan
 - Added caching to speed up container builds
 - Makefile to simplify local container build
 - Add helper script to generate a baseline changelog.
+- SoftHier Deeploy Targets, including Deployer, Platform, and Templates
+- SoftHier cmake compilation flow
+- SoftHier CI task
 
 ### Changed
 - Moved PULP SDK from Victor-Jung/pulp-sdk branch deeploy to pulp-platform/pulp-sdk branch main.
@@ -219,6 +224,9 @@ This release containing major architectural changes, new platform support, enhan
 - Split the original build flow into two container
 - Refactor changelog for better readability
 - Reformatted all C files
+- Extended testRunner flow for SoftHier
+- Extended Dockerfile for SoftHier GVSoC simulator
+- Minor change on `Util.cmake` for easier debug with assembly
 
 ### Fixed
 - Buffer deallocation to only happen when all its aliases are not live anymore (the data stored there is not needed anymore, not even by other nodes)
