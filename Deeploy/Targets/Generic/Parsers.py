@@ -220,6 +220,45 @@ class MaxPoolParser(NodeParser):
 
         return ctxt, True
 
+class MaxPool1DParser(MaxPoolParser):
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = super().parseNode(node)
+        wellFormed = False
+        if ret:
+            pads = self.operatorRepresentation['pads']
+            kernel_shape = self.operatorRepresentation['kernel_shape']
+            strides = self.operatorRepresentation['strides']
+            # 1D: pads should be length 2, kernel_shape length 1, strides length 1
+            if len(pads) == 2 and len(kernel_shape) == 1 and len(strides) == 1:
+                wellFormed = True
+                self.operatorRepresentation['padding_y'] = int(pads[0])
+                self.operatorRepresentation['padding_y_right'] = int(pads[1])
+                self.operatorRepresentation['stride_y'] = int(strides[0])
+                self.operatorRepresentation['dim_kernel_y'] = int(kernel_shape[0])
+        return wellFormed
+
+    def parseNodeCtxt(self, ctxt, node, channels_first=True):
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if ret:
+            data_in = newCtxt.lookup(self.operatorRepresentation['data_in'])
+            data_out = newCtxt.lookup(self.operatorRepresentation['data_out'])
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            if channels_first:
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+                self.operatorRepresentation['ch_im_out'] = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+            else:
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[2]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[1]
+                self.operatorRepresentation['ch_im_out'] = data_out.shape[2]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
+            if len(data_in.shape) == 3 and len(data_out.shape) == 3:
+                return newCtxt, True
+        return ctxt, False
 
 class MaxPool2DParser(MaxPoolParser):
 
@@ -1175,13 +1214,13 @@ class ConvParser(NodeParser):
             'strides' in node.attrs,
             len(node.outputs) == 1,
         ])
-
+        #print(f"[DEBUG] ConvParser wellformed: {wellFormed}")
         if wellFormed:
             self.operatorRepresentation['group'] = node.attrs['group']
             self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['strides'] = node.attrs['strides']
             self.operatorRepresentation['dilations'] = node.attrs['dilations']
-
+            
         return wellFormed
 
     def parseNodeCtxt(self,
@@ -1327,7 +1366,7 @@ class Conv1DParser(ConvParser):
             self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][0])
             self.operatorRepresentation['bias_shift'] = int(0)
             self.operatorRepresentation['out_shift'] = int(0)
-
+            
         return ret
 
     def parseNodeCtxt(self,
@@ -2134,7 +2173,7 @@ class GenericConv1DParser(Conv1DParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
         wellFormed = super().parseNode(node)
-
+        print(f"[DEBUG] Node: {node.name}, op: {node.op}, attrs: {node.attrs}, inputs: {[i.shape for i in node.inputs]}")
         if wellFormed:
             ret = all([
                 # Make sure padding is square
@@ -2143,7 +2182,7 @@ class GenericConv1DParser(Conv1DParser):
                 self.operatorRepresentation['pads'][0] == 0,
                 all([coeff == 1 for coeff in self.operatorRepresentation['dilations']]),
             ])
-
+            print(f"GenericConv1DParser ret value from parseNode: {ret}")
             return ret
 
     def parseNodeCtxt(self,
@@ -2152,7 +2191,7 @@ class GenericConv1DParser(Conv1DParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-
+        print(f"[DEBUG] newctxt: {newCtxt}")
         if ret:
             inputs = ['data_in', 'weight']
             # Handle bias, if present
@@ -2167,7 +2206,7 @@ class GenericConv1DParser(Conv1DParser):
                     print(f"[DEBUG] Node: {inputNode.name}, idx: {idx}, inputs: {inputs}")
                     raise IndexError(f"Index {idx} out of range for inputs of length {len(inputs)} in node {inputNode.name}")
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-
+            print(", ".join(f"{k}: {v}" for k, v in self.operatorRepresentation.items()))
             return newCtxt, True
 
         return ctxt, False
@@ -2586,9 +2625,10 @@ class SGDParser(NodeParser):
         return ctxt, True
 
 
-class BatchNormParser:
+class BatchNormParser(NodeParser):
     def __init__(self):
-        self.operatorRepresentation = {}
+        super().__init__()
+        
 
     def parseNode(self, node: gs.Node) -> bool:
         # Verifica attributi richiesti (epsilon è obbligatorio, momentum e training_mode opzionali)
@@ -2606,6 +2646,7 @@ class BatchNormParser:
         return True
 
     def parseNodeCtxt(self, ctxt, node: gs.Node, channels_first: bool = True):
+        print(f"[ConvTransposeParser] parseNodeCtxt called for node: {node.name}")
         inputs = ['data_in', 'scale', 'bias', 'mean', 'variance']
         outputs = ['data_out']
 
@@ -2622,38 +2663,47 @@ class BatchNormParser:
         return ctxt, True
     
 
-class ConvTransposeParser:
+class ConvTransposeParser(NodeParser):
     def __init__(self):
-        self.operatorRepresentation = {}
+        super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
+        print(f"[ConvTransposeParser] parseNode called for node: {node.name}")
         attrs = node.attrs
 
-        # Kernel shape è obbligatorio
+        # Accept both 1D and 2D ConvTranspose
         if 'kernel_shape' not in attrs:
             return False
-
-        # Impostiamo gli attributi con valori di default ove mancano
-        self.operatorRepresentation['auto_pad'] = attrs.get('auto_pad', 'NOTSET')
-        self.operatorRepresentation['dilations'] = attrs.get('dilations', [1] * len(attrs['kernel_shape']))
-        self.operatorRepresentation['group'] = attrs.get('group', 1)
-        self.operatorRepresentation['kernel_shape'] = attrs['kernel_shape']
-        self.operatorRepresentation['output_padding'] = attrs.get('output_padding', [0] * len(attrs['kernel_shape']))
-        self.operatorRepresentation['output_shape'] = attrs.get('output_shape', None)
-        self.operatorRepresentation['pads'] = attrs.get('pads', [0] * 2 * len(attrs['kernel_shape']))
-        self.operatorRepresentation['strides'] = attrs.get('strides', [1] * len(attrs['kernel_shape']))
-
-        # ConvTranspose ha 2 o 3 input (bias opzionale)
-        if not (2 <= len(node.inputs) <= 3):
+        kernel_shape = attrs['kernel_shape']
+        dims = len(kernel_shape)
+        if dims not in (1, 2):
+            print('ERROR in Dims')
             return False
 
+        print(f"Node Attributes for {node.name}: {node.attrs}")
+        print(f"Node Inputs for {node.name}: {node.inputs}")
+        self.operatorRepresentation['auto_pad'] = attrs.get('auto_pad', 'NOTSET')
+        self.operatorRepresentation['dilations'] = attrs.get('dilations', [1] * dims)
+        self.operatorRepresentation['group'] = attrs.get('group', 1)
+        self.operatorRepresentation['kernel_shape'] = kernel_shape
+        self.operatorRepresentation['output_padding'] = attrs.get('output_padding', [0] * dims)
+        self.operatorRepresentation['output_shape'] = attrs.get('output_shape', None)
+        self.operatorRepresentation['pads'] = attrs.get('pads', [0] * (2 * dims))
+        self.operatorRepresentation['strides'] = attrs.get('strides', [1] * dims)
+
+        # ConvTranspose has 2 or 3 inputs (bias is optional)
+        if not (2 <= len(node.inputs) <= 3):
+            print('ERROR in len of node inputs')
+            return False
+        print(f"[ConvTransposeParser] parseNode returns {True} for node: {node.name}")
         return True
 
     def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        print("[ConvTransposeParser] ch_im_out set to:", self.operatorRepresentation.get('ch_im_out'))
         inputs = ['data_in', 'weight']
         outputs = ['data_out']
 
-        # Se c'è il bias
+        # Handle bias if present
         if len(node.inputs) == 3:
             inputs.append('bias')
             self.operatorRepresentation['has_bias'] = True
@@ -2661,17 +2711,55 @@ class ConvTransposeParser:
             self.operatorRepresentation['has_bias'] = False
             self.operatorRepresentation['bias'] = 'NULL'
 
-        # Salviamo i nomi delle variabili per input e output
+        # Assign variable names for inputs and outputs
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        # Dimensione totale del dato di input, utile per allocazioni o ottimizzazioni
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
+        # Set input/output shapes and channels
+        data_in = ctxt.lookup(node.inputs[0].name)
+        weight = ctxt.lookup(node.inputs[1].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+        group = self.operatorRepresentation.get('group', 1)
+        dims = len(self.operatorRepresentation['kernel_shape'])
+
+        if dims == 1:
+            # 1D: N, C_in, W or N, W, C_in
+            if channels_first:
+                self.operatorRepresentation['batch'] = data_in.shape[0]
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+                self.operatorRepresentation['ch_im_out'] = weight.shape[1] * group
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+            else:
+                self.operatorRepresentation['batch'] = data_in.shape[0]
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[2]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[1]
+                self.operatorRepresentation['ch_im_out'] = weight.shape[-2] * group
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
+        elif dims == 2:
+            # 2D: N, C_in, H, W or N, H, W, C_in
+            if channels_first:
+                self.operatorRepresentation['batch'] = data_in.shape[0]
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+                self.operatorRepresentation['dim_im_in_x'] = data_in.shape[3]
+                self.operatorRepresentation['ch_im_out'] = weight.shape[1] * group
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[3]
+            else:
+                self.operatorRepresentation['batch'] = data_in.shape[0]
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[3]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
+                self.operatorRepresentation['ch_im_out'] = weight.shape[-2] * group
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[2]
 
         return ctxt, True
-    
 
 

@@ -53,8 +53,14 @@ BasicAddBindings = [
                 FloatAddTemplate.referenceTemplate, BasicTransformer)
 ]
 
-BasicConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
-                                 ConvTemplate.reference1DTemplate, BasicTransformer)
+BasicConv1DBindings =[ NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
+                                 ConvTemplate.reference1DTemplate, BasicTransformer) 
+] + [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t), 
+                     PointerClass(float32_t)], [PointerClass(float32_t)]),FloatConvTemplate.reference1DTemplate,
+            BasicTransformer)
+]
 
 BasicDWConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                    DWConvTemplate.reference1DTemplate, BasicTransformer)
@@ -146,6 +152,13 @@ BasicMatMulBindings = [
     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMatMulTemplate.referenceTemplate, BasicTransformer)
 ]
+
+BasicMaxPool1DBinding = NodeBinding(
+        MaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),  
+        FloatMaxPoolTemplate.reference1DTemplate,  
+        BasicTransformer
+    )
+
 
 BasicMaxPool2DBindings = [
     NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), MaxPoolTemplate.referenceTemplate,

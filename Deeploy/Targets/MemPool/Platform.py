@@ -8,7 +8,7 @@ import numpy as np
 
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBinding, BasicConv2DBindings, \
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBindings, BasicConv2DBindings, \
     BasicDebugPrintBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicGatherBindings, \
     BasicGELUBindings, BasicLayerNormBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, \
@@ -37,7 +37,7 @@ from Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes import MemPoolFus
 
 # Fallback bindings from the generic platform
 # (they support a wider range of attribute values)
-GenericConv1D_Mapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBinding])
+GenericConv1D_Mapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBindings])
 GenericDWConv1D_Mapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
 GenericConv2D_Mapper = NodeMapper(GenericConv2DParser(), BasicConv2DBindings)
 GenericDWConv2D_Mapper = NodeMapper(GenericDWConv2DParser(), BasicDWConv2DBindings)

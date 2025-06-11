@@ -2052,10 +2052,11 @@ class ONNXLayer():
             newCtxt = ctxt.copy()
 
             newCtxt, ret = mapper._parse(newCtxt, self.node, default_channels_first, ioParse)
-
+            print(f"Value of ret for node after _parse {self.node.name}: {ret}")
             ioParse = not ret
 
             if not ret:
+                print('!!!! Mapper Discarded  !!!')
                 self.discardedMappers.add(mapper)
                 continue
 
@@ -2065,7 +2066,7 @@ class ONNXLayer():
             self.broadcast(newCtxt, default_channels_first)
 
             newCtxt, ret = mapper._parseCtxt(newCtxt, self.node, default_channels_first)
-
+            print(f"Value of ret for node after _parseCtxt {self.node.name}: {ret}")
             if not ret:
                 log.debug(f" {FAILURE_MARK} Context parsing failed for {mapper.parser.__class__.__name__}")
                 self.discardedMappers.add(mapper)
