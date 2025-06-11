@@ -56,4 +56,5 @@
 #include "kernel/BatchNorm.h"
 #include "kernel/ConvTranspose1d_fp32.h"
 
+
 #endif //__DEEPLOY_BASIC_MATH_HEADER_

@@ -1222,7 +1222,7 @@ class ConvParser(NodeParser):
             self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['strides'] = node.attrs['strides']
             self.operatorRepresentation['dilations'] = node.attrs['dilations']
-
+            
         return wellFormed
 
     def parseNodeCtxt(self,
@@ -2659,6 +2659,7 @@ class BatchNormParser(NodeParser):
         return True
 
     def parseNodeCtxt(self, ctxt, node: gs.Node, channels_first: bool = True):
+        print(f"[ConvTransposeParser] parseNodeCtxt called for node: {node.name}")
         inputs = ['data_in', 'scale', 'bias', 'mean', 'variance']
         outputs = ['data_out']
 
