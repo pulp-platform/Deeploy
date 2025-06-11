@@ -30,6 +30,8 @@ reference1DTemplate = NodeTemplate("""
                 ${dim_kernel_y}, ${stride_y},
                 ${data_out}
             );
+            ${data_in} += ${ch_im_in} * ${dim_im_in_y};
+            ${data_out} += ${ch_im_out} * ${dim_im_out_y};
         }
     END_SINGLE_CORE
 """)

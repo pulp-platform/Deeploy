@@ -765,6 +765,8 @@ class ConvTransposeLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation, channels_first) -> Tuple[Shape, Shape]:
         # Se l'input ha 3 shape (es. [input, weight, bias]), il terzo è il numero di canali in output
+        print(", ".join(f"{k}: {v}" for k, v in operatorRepresentation.items()))
+        print("operatorRepresentation in computeShapes:", operatorRepresentation)
         if len(inputShapes) == 3:
             inputShapes[2] = operatorRepresentation['ch_im_out']
         return inputShapes, outputShapes

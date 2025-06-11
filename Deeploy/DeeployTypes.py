@@ -2054,6 +2054,7 @@ class ONNXLayer():
             ioParse = not ret
 
             if not ret:
+                print('!!!! Mapper Discarded  !!!')
                 self.discardedMappers.add(mapper)
                 continue
 
