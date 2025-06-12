@@ -264,6 +264,7 @@ This release containing major architectural changes, new platform support, enhan
 - Fix issue with building `banshee` on `linux/arm
 - Removed `i3c` related files from the `pulp-sdk` CMake flow
 - Fixed C-code linting stage in CI
+- Input offset height and width calculation for tiled PULPOpen convolution kernels
 
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.

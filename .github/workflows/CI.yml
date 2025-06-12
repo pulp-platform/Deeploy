@@ -348,6 +348,10 @@ jobs:
             "L1": [8000, 6000, 4000]
           },
           {
+            "name": "test2DRequantizedStriddedPaddedConv",
+            "L1": [600]
+          },
+          {
             "name": "testRequantizedDWConv",
             "L1": [2561]
           },
