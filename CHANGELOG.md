@@ -267,33 +267,80 @@ Change main.c to use OUTPUTTYPE instead of float
 - LLVM Compiler RT for rv32im, rv32ima, and rv32imafd.
 - Appropriate linking of picolibc and compiler RT.
 - Build and install a flow for XTensor, XTL, and XSIMD. These libraries are used in some GVSoC models, and they used to live in the PULP SDK, as a header-only library. Keeping only the library headers in the PULP SDK makes it hard to bump new versions.
+- Adds RV32IMF Picolib to the toolchain
+- Generic float DW Conv2D kernel and bindings.
+- Bias handling and computation for regular and DW Conv2D.
+- Empty bias handling for generic regular and DW Conv2D.
+- Tests for Conv2D regular and DW, with and without bias (and included them in the CI pipeline).
+- `BuildDockerToolchain.yml` to build Toolchain Docker container
+- `BuildDockerDeeploy.yml` to build Deeploy Docker container
+- Add support for `linux/arm64` containers
+- Added caching to speed up container builds
+- Makefile to simplify local container build
+- Add helper script to generate a baseline changelog.
+- SoftHier Deeploy Targets, including Deployer, Platform, and Templates
+- SoftHier cmake compilation flow
+- SoftHier CI task
+- Parallel implementations of the following operators on Siracusa: Matmul, Softmax, Gelu, Conv, Layernorm, Maxpool, Add, Mul,and Relu
+- Gelu with Sigmoid implementation
+- ComputeOp support for multiple float kernels: Maxpool, Relu, and Mul
+
+
 
 ### Changed
 - Officially depreciate Banshee as a simulator for Snitch Cluster in the CI. Maintaining this is a burden and unnecessary, as GVSoC is now the standard simulator. Additionally, newer versions of the Snitch runtime don't support Banshee anymore.
 - Bump XTensor's version to `0.25.0` to fix a bug with Intel's SSE.
 - Update snitch cluster patch to link to picolibc and add explicit target.
 - Update README to include Snitch in the Getting Started and the D&T Journal.
+- The ISA for the Siracusa platform has been updated from rv32imc_zfinx_xpulpv2 to rv32imf_xpulpv2.
+- All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
+- Split the original build flow into two container
+- Refactor changelog for better readability
+- Reformatted all C files
+- Extended testRunner flow for SoftHier
+- Extended Dockerfile for SoftHier GVSoC simulator
+- Minor change on `Util.cmake` for easier debug with assembly
+
+### Fixed
+- Fix the PULP Deployer where outputs were unecessary loaded in L3
+- Fix the lifetime computation of aliased buffers
+- Removed unsupported `-MMD` compiler flag in LLVM-based toolchains.
+- Fix `DebugPrint` topology pass
+- Fix `PrintInput` code transformations to work with global variables
+- RequantShift when log2d is 0
+- missing math.h headers
+- clang on mac doesn't support `-Wl,--gc-sections` flag, moved it into each target and for host it's checking now for host system
+- `--ffast-math` caused numerical errors on generic so moved into each target and removed from that one since I'm imagining it as the _debug_ target
+- Gather kernel on generic target
+- Update the link of the Docker container used to run the CI with the Docker published by this repo instead of my fork.
+- Add a retry on timeout step for large network tests. This is a temporary fix to address the sporadic freeze happening at the compilation stage, see [this issue](https://github.com/pulp-platform/Deeploy/issues/9).
+- Float bug on Testslice, CMSIS TestUtil, DivInterger
+- AbstractDatayType Float Bugs
+- Change main.c to use OUTPUTTYPE instead of float
+- MaxPool Padding Extract Pass for float and interger
+- Testinput, testoutput, weight type casted from double to float warning
+- Relaxed the error threshold between expected and actual values in deeploytest.
+- CycleMeasure Pass for Siracusa Untiled Profilling
+- GEMM Tiling Constraints transA and `transB' not supported
+- MatMul layer Multi-Dimensional Input Issue
+- Add Layer for Broadcasted Bias
+- Resolved an issue where concatenation of float32 with f caused inf errors during code generation
+- Fixed a bug in the MemoryScheduler where the CP problem was solved more time that it was needed.
+- Updated printinput nodetemplate for float handling.
+- Fix `testMVP.py` to get a proper should fail test.
+- Maxpool Tile Calculation Error: The last dimension padding was incorrectly calculated due to L3 wraptiling solution. This has been fixed by updating serializeTilingSolution of Maxpool to avoid incorrect padding of Maxpool and prevent potential DMA 3D transfer issues of Maxpool.
+- DMA 1D Copy Assertion Issue: Updated the DMA length datatype from uint16 to uint32 to avoid assertion failures when dealing with large block transfers.
+- Deeploy subdirectories installed when installing Deeploy with pip install
+- Fix linking TEST_RECENT on MacOS
+- Fixed broken VSCode launch configuration
+- Fixed broken `pulp-sdk` hash
+- Fix issue with building `banshee` on `linux/arm
+- Removed `i3c` related files from the `pulp-sdk` CMake flow
+- Fixed C-code linting stage in CI
 
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
 - Remove the sourcing of the cursed PULP SDK script.
 
-## rv32imf_xpulpv2 ISA support for Siracusa platform
-
-### Changed
-- The ISA for the Siracusa platform has been updated from rv32imc_zfinx_xpulpv2 to rv32imf_xpulpv2.
-- All floating-point comparison tasks in deeploytest.c are now offloaded to Cluster 0 for execution.
-
-## Add RV32IMF Picolibc support for Siracusa platform
-
-## Added
-- Adds RV32IMF Picolib to the toolchain
-
-## Parallelization and Optimization of CCT Inference and Training Kernels
-
-### Added
-- Parallel Matmul, Softmax, Gelu, Conv, Layernorm, Maxpool, Add
-- Gelu with sigmoid approximation
-- Im2col Conv
-- Matmul with pulptrainlib with 1*7 unrolling performance aligned with pulptrainlib
-- Compute op support for multiple float kernels: Maxpool, Relu, Mul
+## Release v0.1.0 (2024-08-08)
+This release contains the first version of Deeploy, which includes the initial implementation of the Deeploy framework, support for various platforms, and basic functionality for deploying deep learning models on PULP-based systems.

@@ -27,18 +27,9 @@
 
 #include "DeeployPULPMath.h"
 
-
-void MaxPool2d_fp32_fp32_HWC(
-    const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,
-    uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
-    float32_t *__restrict__ pDstC,
-    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right);
-
-
-void MaxPool2d_ChannelRange_fp32_fp32_HWC(
-    const float32_t *__restrict__ pSrcA, 
-    uint32_t W, uint32_t H, uint32_t C,
-    uint32_t Q, uint32_t P, uint32_t SQ, uint32_t SP,
-    float32_t *__restrict__ pDstC,
-    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right,
-    uint32_t ch_start, uint32_t ch_count);
+void PULP_MaxPool2d_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
+                                  uint32_t W, uint32_t H, uint32_t C,
+                                  uint32_t Q, uint32_t P, uint32_t SQ,
+                                  uint32_t SP, float32_t *__restrict__ pDstC,
+                                  uint32_t pad_top, uint32_t pad_bottom,
+                                  uint32_t pad_left, uint32_t pad_right);

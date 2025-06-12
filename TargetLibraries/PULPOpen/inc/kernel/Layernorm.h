@@ -8,7 +8,7 @@
 /*
  * Copyright (C) 2020 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Author: Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *

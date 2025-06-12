@@ -1,16 +1,8 @@
 /* =====================================================================
-<<<<<<<< HEAD:TargetLibraries/PULPOpen/inc/kernel/MaxPool.h
- * Title:        Maxpool.h
- * Description:
- *
- * $Date:       05.04.2025
-========
  * Title:      Relu.h
  * Description:
  *
  * $Date:       05.06.2025
->>>>>>>> devel:TargetLibraries/PULPOpen/inc/kernel/Relu.h
- *
  * ===================================================================== */
 /*
  * Copyright (C) 2020 ETH Zurich and University of Bologna.
@@ -34,22 +26,4 @@
 
 #include "DeeployPULPMath.h"
 
-<<<<<<<< HEAD:TargetLibraries/PULPOpen/inc/kernel/MaxPool.h
-
-void MaxPool2d_fp32_fp32_HWC(
-    const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,
-    uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
-    float32_t *__restrict__ pDstC,
-    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right);
-
-
-void MaxPool2d_ChannelRange_fp32_fp32_HWC(
-    const float32_t *__restrict__ pSrcA, 
-    uint32_t W, uint32_t H, uint32_t C,
-    uint32_t Q, uint32_t P, uint32_t SQ, uint32_t SP,
-    float32_t *__restrict__ pDstC,
-    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right,
-    uint32_t ch_start, uint32_t ch_count);
-========
 void PULP_Relu_fp32_fp32(float32_t *input, float32_t *output, uint32_t size);
->>>>>>>> devel:TargetLibraries/PULPOpen/inc/kernel/Relu.h

@@ -26,25 +26,13 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// Softmax Parallel (Name: ${nodeName}, Op: ${nodeOp})
-int8_t ${nodeName}_core_id = pi_core_id();
-int8_t ${nodeName}_log2Core = log2(NUM_CORES);
-int32_t ${nodeName}_num_vectors = ${size} / ${lastDimLength};
-int32_t ${nodeName}_chunk = (${nodeName}_num_vectors >> ${nodeName}_log2Core) + ((${nodeName}_num_vectors & (NUM_CORES-1))!=0);
-int32_t ${nodeName}_vector_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${nodeName}_num_vectors);
-int32_t ${nodeName}_vector_end = MIN(${nodeName}_vector_start + ${nodeName}_chunk, ${nodeName}_num_vectors);
-int32_t ${nodeName}_local_size = (${nodeName}_vector_end - ${nodeName}_vector_start) * ${lastDimLength};
-
-if (${nodeName}_local_size > 0) {
-    int32_t ${nodeName}_data_offset = ${nodeName}_vector_start * ${lastDimLength};
-    
-    Softmax_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
-        ${data_in} + ${nodeName}_data_offset,
-        ${data_out} + ${nodeName}_data_offset,
-        ${nodeName}_local_size,
-        ${lastDimLength}
-    );
-}
+// Softmax (Name: ${nodeName}, Op: ${nodeOp})
+PULP_Softmax_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
+    ${data_in},
+    ${data_out},
+    ${size},
+    ${lastDimLength}
+);
 """)
 
 referenceGradientTemplate = NodeTemplate("""
