@@ -1,10 +1,10 @@
 # ----------------------------------------------------------------------
 #
-# File: FloatSoftmaxTemplate.py
+# File: F；FloatMatMul.py
 #
-# Last edited: 23.1.2025
+# Last edited: 28.03.2025
 #
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
+# Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
 # Author: Run Wang, ETH Zurich
 #
@@ -21,21 +21,24 @@
 # distributed under the License is distributed on an AS IS BASIS, WITHOUT
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
-
+# limitations under the Licens
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// Softmax (Name: ${nodeName}, Op: ${nodeOp})
-PULP_Softmax_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
-    ${data_in},
-    ${data_out},
-    ${size},
-    ${lastDimLength}
-);
-""")
+// Matmul with row parallelism (Name: ${nodeName}, Op: ${nodeOp})
 
-referenceGradientTemplate = NodeTemplate("""
-// Softmax Gradient (Name: ${nodeName}, Op: ${nodeOp})
-SINGLE_CORE SoftmaxGrad_fp32_fp32_fp32(${upstream_grad}, ${softmax_output}, ${softmax_grad}, ${size}, ${lastDimLength});
+for(uint32_t b=0; b<${batch}; b++) {
+    ${A_type.typeName} batch_A = ${A} + b * ${M} * ${N};
+    ${B_type.typeName} batch_B = ${B} + b * ${N} * ${O};
+    ${data_out_type.typeName} batch_out = ${data_out} + b * ${M} * ${O};
+    
+    PULP_MatMul_fp32_fp32_fp32_unroll1x7(
+        batch_A,
+        batch_B, 
+        batch_out,
+        ${M},
+        ${N}, 
+        ${O}
+    );
+}
 """)

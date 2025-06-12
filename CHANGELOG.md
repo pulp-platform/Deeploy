@@ -179,6 +179,11 @@ This release containing major architectural changes, new platform support, enhan
 - SoftHier Deeploy Targets, including Deployer, Platform, and Templates
 - SoftHier cmake compilation flow
 - SoftHier CI task
+- Parallel implementations of the following operators on Siracusa: Matmul, Softmax, Gelu, Conv, Layernorm, Maxpool, Add, Mul,and Relu
+- Gelu with Sigmoid implementation
+- ComputeOp support for multiple float kernels: Maxpool, Relu, and Mul
+
+
 
 ### Changed
 - Moved PULP SDK from Victor-Jung/pulp-sdk branch deeploy to pulp-platform/pulp-sdk branch main.
@@ -220,9 +225,6 @@ This release containing major architectural changes, new platform support, enhan
 - Split the original build flow into two container
 - Refactor changelog for better readability
 - Reformatted all C files
-- Extended testRunner flow for SoftHier
-- Extended Dockerfile for SoftHier GVSoC simulator
-- Minor change on `Util.cmake` for easier debug with assembly
 
 ### Fixed
 - Fix the PULP Deployer where outputs were unecessary loaded in L3

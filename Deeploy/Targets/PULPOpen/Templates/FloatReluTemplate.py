@@ -1,10 +1,10 @@
 # ----------------------------------------------------------------------
 #
-# File: FloatSoftmaxTemplate.py
+# File: FloatReluTemplate.py
 #
-# Last edited: 23.1.2025
+# Last edited: 04.05.2025
 #
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
+# Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
 # Author: Run Wang, ETH Zurich
 #
@@ -26,16 +26,10 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// Softmax (Name: ${nodeName}, Op: ${nodeOp})
-PULP_Softmax_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
+// ReLU (Name: ${nodeName}, Op: ${nodeOp})
+PULP_Relu_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
     ${data_in},
     ${data_out},
-    ${size},
-    ${lastDimLength}
+    ${size}
 );
-""")
-
-referenceGradientTemplate = NodeTemplate("""
-// Softmax Gradient (Name: ${nodeName}, Op: ${nodeOp})
-SINGLE_CORE SoftmaxGrad_fp32_fp32_fp32(${upstream_grad}, ${softmax_output}, ${softmax_grad}, ${size}, ${lastDimLength});
 """)

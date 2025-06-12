@@ -28,7 +28,7 @@ import copy
 
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import MemoryPassthroughGeneration
 from Deeploy.DeeployTypes import CodeTransformation
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicReshapeBindings
+from Deeploy.Targets.Generic.Bindings import BasicReshapeBindings
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -40,7 +40,7 @@ from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import 
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
-from Deeploy.Targets.PULPOpen.Bindings import ForkTransformer, PULPConcatBindings, PULPFloatConv2DBindings, \
+from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
     PULPFloatGELUBinding, PULPFloatGEMMBindings, PULPGatherBindings, PULPiHardswishBindings, PULPiRMSNormBindings, \
     PULPiRQSGELUBindings, PULPLayernormBinding, PULPMatMulBindings, PULPMaxPool2DBindings, PULPMulBindings, \
     PULPReduceSumBindings, PULPReluBinding, PULPRQAddBindings, PULPRQSBindings, PULPRQSConv2DBindings, \
@@ -114,11 +114,7 @@ PULPUniformRQSTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPU
 PULPTransposeTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPTransposeBindings,
                                                            tileConstraint = TransposeTileConstraint())
 
-_PULPAddBindings = copy.deepcopy(BasicAddBindings)
-for binding in _PULPAddBindings:
-    binding.codeTransformer = ForkTransformer
-
-PULPAddTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = _PULPAddBindings,
+PULPAddTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPAddBindings,
                                                      tileConstraint = AddTileConstraint())
 
 PULPSoftmaxTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSoftmaxBindings,

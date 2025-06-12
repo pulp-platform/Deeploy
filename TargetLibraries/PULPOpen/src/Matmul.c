@@ -1,8 +1,9 @@
+
 /* =====================================================================
- * Title:        GEMM_fp32.c
+ * Title:        Matmul.c
  * Description:
  *
- * Date:         24.01.2025
+ * $Date:        05.06.2025
  *
  * ===================================================================== */
 
@@ -26,33 +27,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "DeeployBasicMath.h"
 
-void MatMul_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
-                           const float32_t *__restrict__ pSrcB,
-                           float32_t *__restrict__ pDstY, uint32_t M,
-                           uint32_t N, uint32_t O) {
+#include "pmsis.h"
+#include "pulp_nn_kernels.h"
+#include "pulp_nn_utils.h"
 
-  for (uint32_t i = 0; i < M; ++i) {
-    for (uint32_t j = 0; j < O; ++j) {
-      float32_t sum = 0.0f;
-      for (uint32_t k = 0; k < N; ++k) {
-        sum += pSrcA[i * N + k] * pSrcB[k * O + j];
-      }
-      pDstY[i * O + j] = sum;
-    }
+#include "DeeployPULPMath.h"
+
+void PULP_MatMul_fp32_fp32_fp32_unroll1x7(const float32_t *__restrict__ pSrcA,
+                                          const float32_t *__restrict__ pSrcB,
+                                          float32_t *__restrict__ pDstY,
+                                          uint32_t M, uint32_t N, uint32_t O) {
+
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = log2(NUM_CORES);
+
+  uint32_t M_chunk = (M >> log2Core) + ((M & (NUM_CORES - 1)) != 0);
+  uint32_t M_start = MIN(core_id * M_chunk, M);
+  uint32_t M_end = MIN(M_start + M_chunk, M);
+  uint32_t M_size = M_end - M_start;
+
+  if (M_size == 0) {
+    return;
   }
-}
 
-void MatMul_fp32_fp32_fp32_unroll1x7(const float32_t *__restrict__ pSrcA,
-                                     const float32_t *__restrict__ pSrcB,
-                                     float32_t *__restrict__ pDstY, uint32_t M,
-                                     uint32_t N, uint32_t O) {
-  uint32_t i, j, k;
+  const float32_t *local_pSrcA = pSrcA + M_start * N;
+  float32_t *local_pDstY = pDstY + M_start * O;
+
   uint32_t O_block = O - (O % 7);
 
-  for (i = 0; i < M; i++) {
-    for (j = 0; j < O_block; j += 7) {
+  for (uint32_t i = 0; i < M_size; i++) {
+
+    for (uint32_t j = 0; j < O_block; j += 7) {
       float32_t sum0 = 0.0f;
       float32_t sum1 = 0.0f;
       float32_t sum2 = 0.0f;
@@ -61,8 +67,8 @@ void MatMul_fp32_fp32_fp32_unroll1x7(const float32_t *__restrict__ pSrcA,
       float32_t sum5 = 0.0f;
       float32_t sum6 = 0.0f;
 
-      for (k = 0; k < N; k++) {
-        float32_t a0 = pSrcA[i * N + k];
+      for (uint32_t k = 0; k < N; k++) {
+        float32_t a0 = local_pSrcA[i * N + k];
 
         float32_t b0 = pSrcB[k * O + (j + 0)];
         float32_t b1 = pSrcB[k * O + (j + 1)];
@@ -81,26 +87,25 @@ void MatMul_fp32_fp32_fp32_unroll1x7(const float32_t *__restrict__ pSrcA,
         sum6 += a0 * b6;
       }
 
-      pDstY[i * O + (j + 0)] = sum0;
-      pDstY[i * O + (j + 1)] = sum1;
-      pDstY[i * O + (j + 2)] = sum2;
-      pDstY[i * O + (j + 3)] = sum3;
-      pDstY[i * O + (j + 4)] = sum4;
-      pDstY[i * O + (j + 5)] = sum5;
-      pDstY[i * O + (j + 6)] = sum6;
+      local_pDstY[i * O + (j + 0)] = sum0;
+      local_pDstY[i * O + (j + 1)] = sum1;
+      local_pDstY[i * O + (j + 2)] = sum2;
+      local_pDstY[i * O + (j + 3)] = sum3;
+      local_pDstY[i * O + (j + 4)] = sum4;
+      local_pDstY[i * O + (j + 5)] = sum5;
+      local_pDstY[i * O + (j + 6)] = sum6;
     }
 
-    for (j = O_block; j < O; j++) {
+    for (uint32_t j = O_block; j < O; j++) {
       float32_t sum = 0.0f;
 
-      for (k = 0; k < N; k++) {
-        float32_t a_val = pSrcA[i * N + k];
+      for (uint32_t k = 0; k < N; k++) {
+        float32_t a_val = local_pSrcA[i * N + k];
         float32_t b_val = pSrcB[k * O + j];
-        float32_t prod = a_val * b_val;
-        sum += prod;
+        sum += a_val * b_val;
       }
 
-      pDstY[i * O + j] = sum;
+      local_pDstY[i * O + j] = sum;
     }
   }
 }
