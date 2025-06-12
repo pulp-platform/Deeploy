@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Prepare for Release and Separate Dependencies [#90](https://github.com/pulp-platform/Deeploy/pull/90)
 - Move PULP SDK to main branch/fork [#88](https://github.com/pulp-platform/Deeploy/pull/88)
 - Finite Lifetime for IO Tensors [#51](https://github.com/pulp-platform/Deeploy/pull/51)
 - Improved Memory Visualization and Multi-Layer Tiling Profiling [#56](https://github.com/pulp-platform/Deeploy/pull/56)
@@ -182,8 +183,7 @@ This release containing major architectural changes, new platform support, enhan
 - Parallel implementations of the following operators on Siracusa: Matmul, Softmax, Gelu, Conv, Layernorm, Maxpool, Add, Mul,and Relu
 - Gelu with Sigmoid implementation
 - ComputeOp support for multiple float kernels: Maxpool, Relu, and Mul
-
-
+- `dev-requirements.txt` tracking the dependencies of the build system, linting, documentation, and QOL.
 
 ### Changed
 - Moved PULP SDK from Victor-Jung/pulp-sdk branch deeploy to pulp-platform/pulp-sdk branch main.
@@ -225,6 +225,8 @@ This release containing major architectural changes, new platform support, enhan
 - Split the original build flow into two container
 - Refactor changelog for better readability
 - Reformatted all C files
+- Prepare `pyproject.toml` for a proper pip package release.
+- Packages listed in `dev-requirements.txt` are installed in the final stage of the Deeploy container.
 
 ### Fixed
 - Fix the PULP Deployer where outputs were unecessary loaded in L3
@@ -266,6 +268,7 @@ This release containing major architectural changes, new platform support, enhan
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
 - Remove the sourcing of the cursed PULP SDK script.
+- Commented IPython breakpoints.
 
 ## Release v0.1.0 (2024-08-08)
 This release contains the first version of Deeploy, which includes the initial implementation of the Deeploy framework, support for various platforms, and basic functionality for deploying deep learning models on PULP-based systems.

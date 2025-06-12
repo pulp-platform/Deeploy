@@ -18,6 +18,7 @@ WORKDIR /app
 # Make sure updates in the repo are reflected in the image
 COPY toolchain/*.patch toolchain/
 COPY Makefile ./
+COPY requirements-dev.txt ./
 
 # Compile emulators
 RUN apt-get upgrade && \
@@ -99,7 +100,8 @@ RUN mkdir -p /root/.cargo/bin/ && \
 
 COPY --from=toolchain /app/core-requirements.txt ./core-requirements.txt
 COPY --from=toolchain /app/gapy-requirements.txt ./gapy-requirements.txt
-RUN pip install -r core-requirements.txt -r gapy-requirements.txt
+COPY --from=toolchain /app/requirements-dev.txt ./
+RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-requirements.txt
 
 # Copy pre-built toolchains and emulators
 COPY --from=toolchain /app/install ./install

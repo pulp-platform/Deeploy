@@ -198,8 +198,6 @@ def _merge_igelu_rq_fun(graph: gs.Graph, match: Match, name: str):
     _inputs = list(igelu.inputs) + list(rqs.inputs[1:]) + [shiftNode]
     _outputs = rqs.outputs
 
-    #import IPython; IPython.embed()
-
     rqsiGELU = gs.Node(op = 'RequantizediGELU', name = name, attrs = {**igelu.attrs, **rqs.attrs})
     graph.replaceInsertNode(_inputs, _outputs, rqsiGELU)
 
@@ -413,7 +411,6 @@ def _extract_padding_fun_conv(graph: gs.Graph, match: Match, name: str, value = 
         conv.inputs[0] = newConvInput
         graph.nodes.append(newPad)
         graph.cleanup().toposort()
-        #import IPython; IPython.embed()
 
     return graph
 

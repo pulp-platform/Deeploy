@@ -1,45 +1,43 @@
+[project]
+name = "PULP-Deeploy"
+version = '0.2.0'
+description = "Deeploy - DNN Compiler for Heterogeneous SoCs"
+authors = [
+    { name="Victor Jung", email="jungvi@iis.ee.ethz.ch" },
+    { name="Philip Wiese", email="wiesep@iis.ee.ethz.ch" },
+    { name="Luka Macan", email="luka.macan@unibo.it" },
+    { name="Moritz Scherer", email="scheremo@iis.ee.ethz.ch" },
+]
+
+license = "Apache-2.0"
+readme = "README.md"
+
+requires-python = ">=3.10"
+dependencies = [
+'protobuf==4.23.3',
+'numpy<2.0.0',
+'onnx',
+'onnxruntime',
+'onnx-graphsurgeon==0.3.20',
+'mako',
+'argparse',
+'toml',
+'pytest',
+'ortools',
+'plotly',
+]
+
+[project.urls]
+Homepage = "https://github.com/pulp-platform/Deeploy"
+Issues = "https://github.com/pulp-platform/Deeploy/issues"
+
 [build-system]
 requires = [
 "setuptools>=42",
 "wheel",
 ]
 build-backend = "setuptools.build_meta"
-[project]
-name = "Deeploy"
-description = "Deeploy - Bring your networks to your platforms"
-version = '0.1.0'
-readme = "README.md"
-requires-python = ">=3.10"
-dependencies = [
-'protobuf==4.23.3',
-'numpy<2.0.0',
-'onnx==1.14.0',
-'onnxruntime',
-'mako',
-'IPython',
-'argparse',
-'argcomplete',
-'pyelftools',
-'pylink-square',
-'pyserial',
-'clang-format',
-'toml',
-'dill',
-'pytest',
-'yapf==0.33.0',
-'isort==5.12.0',
-'autoflake==2.3.0',
-"ortools",
-'onnx-graphsurgeon==0.3.20',
-"sphinx>=7.0.0",
-"sphinx-rtd-theme>=1.3.0",
-"myst_parser",
-"meson==1.3.1", # Avoid QEMU installation issues, see here: https://gitlab.com/qemu-project/qemu/-/issues/1853
-"ninja",
-"plotly",
-"netron",
-"debugpy"
-]
+
 [tool.setuptools.packages.find]
 include = ["Deeploy*"]
 exclude = ["DeeployTest*"]
