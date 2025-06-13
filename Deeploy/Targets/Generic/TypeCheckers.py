@@ -613,7 +613,6 @@ class BatchNormChecker(SignPropTypeChecker):
 
 
 class ConvTransposeChecker(SignPropTypeChecker):
-
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
 
@@ -628,6 +627,6 @@ class ConvTransposeChecker(SignPropTypeChecker):
             2**(self.input_types[0].referencedType.typeWidth)
         ]
 
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+    def _inferSignedness(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        # Output is signed if input is signed
         return [inputs[0]._signed]

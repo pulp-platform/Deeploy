@@ -2633,33 +2633,33 @@ class ConvTransposeParser:
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        attrs = node.attrs
+        # Extract ONNX attributes with defaults
+        strides = node.attrs.get('strides', [1])
+        pads = node.attrs.get('pads', [0, 0])
+        kernel_shape = node.attrs.get('kernel_shape', None)
+        dilations = node.attrs.get('dilations', [1])
+        group = node.attrs.get('group', 1)
 
-        # Kernel shape è obbligatorio
-        if 'kernel_shape' not in attrs:
-            return False
+        # Check for required attributes
+        wellFormed = (
+            kernel_shape is not None and
+            len(node.outputs) == 1
+        )
+        if wellFormed:
+            self.operatorRepresentation['strides'] = strides
+            self.operatorRepresentation['pads'] = pads
+            self.operatorRepresentation['kernel_shape'] = kernel_shape
+            self.operatorRepresentation['dilations'] = dilations
+            self.operatorRepresentation['group'] = group
+            self.operatorRepresentation['nodeName'] = node.name
+            self.operatorRepresentation['nodeOp'] = node.op
+        return wellFormed
 
-        # Changing the attributes with default values if they are missing
-        self.operatorRepresentation['auto_pad'] = attrs.get('auto_pad', 'NOTSET')
-        self.operatorRepresentation['dilations'] = attrs.get('dilations', [1] * len(attrs['kernel_shape']))
-        self.operatorRepresentation['group'] = attrs.get('group', 1)
-        self.operatorRepresentation['kernel_shape'] = attrs['kernel_shape']
-        self.operatorRepresentation['output_padding'] = attrs.get('output_padding', [0] * len(attrs['kernel_shape']))
-        self.operatorRepresentation['output_shape'] = attrs.get('output_shape', None)
-        self.operatorRepresentation['pads'] = attrs.get('pads', [0] * 2 * len(attrs['kernel_shape']))
-        self.operatorRepresentation['strides'] = attrs.get('strides', [1] * len(attrs['kernel_shape']))
-
-        # ConvTranspose ha 2 o 3 input (bias opzionale)
-        if not (2 <= len(node.inputs) <= 3):
-            return False
-
-        return True
-
-    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        inputs = ['data_in', 'weight']
-        outputs = ['data_out']
-
-        # Se c'è il bias
+    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True):
+        # Register buffer names for codegen
+        self.operatorRepresentation['data_in'] = node.inputs[0].name
+        self.operatorRepresentation['weight'] = node.inputs[1].name
+        self.operatorRepresentation['data_out'] = node.outputs[0].name
         if len(node.inputs) == 3:
             self.operatorRepresentation['bias'] = node.inputs[2].name
             self.operatorRepresentation['has_bias'] = True
@@ -2667,7 +2667,7 @@ class ConvTransposeParser:
             self.operatorRepresentation['has_bias'] = False
             self.operatorRepresentation['bias'] = 'NULL'
 
-        # Salviamo i nomi delle variabili per input e output
+        # Saving input and output names
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
