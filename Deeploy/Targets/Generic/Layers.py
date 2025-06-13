@@ -764,13 +764,30 @@ class ConvTransposeLayer(ONNXLayer):
         super().__init__(maps)
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation, channels_first) -> Tuple[Shape, Shape]:
-        # Se l'input ha 3 shape (es. [input, weight, bias]), il terzo è il numero di canali in output
-        print(", ".join(f"{k}: {v}" for k, v in operatorRepresentation.items()))
-        print("operatorRepresentation in computeShapes:", operatorRepresentation)
-        if len(inputShapes) == 3:
-            inputShapes[2] = operatorRepresentation['ch_im_out']
-        return inputShapes, outputShapes
+        """
+        Infers output shapes for ConvTranspose using only static info.
+        - inputShapes[0]: input tensor shape (e.g., [N, C_in, W] for 1D, [N, C_in, H, W] for 2D)
+        - inputShapes[1]: weight tensor shape (e.g., [C_in, C_out // group, kW] for 1D)
+        - outputShapes[0]: output tensor shape (to be updated)
+        """
+        newInputShapes = list(inputShapes)
+        newOutputShapes = list(outputShapes)
+        group = operatorRepresentation.get('group', 1)
+        weight_shape = inputShapes[1]
 
+        if newOutputShapes and len(newOutputShapes[0]) >= 2:
+            if channels_first:
+                # For 1D: weight_shape = [C_in, C_out // group, kW]
+                # For 2D: weight_shape = [C_in, C_out // group, kH, kW]
+                ch_out = weight_shape[1] * group
+                newOutputShapes[0][1] = ch_out
+            else:
+                # For 1D: weight_shape = [C_in, C_out // group, kW]
+                # For 2D: weight_shape = [C_in, C_out // group, kH, kW]
+                ch_out = weight_shape[-2] * group
+                newOutputShapes[0][-1] = ch_out
+
+        return newInputShapes, newOutputShapes
     def computeOps(self):
         opRep = self.mapper.parser.operatorRepresentation
 

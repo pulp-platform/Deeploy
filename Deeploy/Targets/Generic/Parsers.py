@@ -2639,7 +2639,7 @@ class ConvTransposeParser:
         if 'kernel_shape' not in attrs:
             return False
 
-        # Impostiamo gli attributi con valori di default ove mancano
+        # Changing the attributes with default values if they are missing
         self.operatorRepresentation['auto_pad'] = attrs.get('auto_pad', 'NOTSET')
         self.operatorRepresentation['dilations'] = attrs.get('dilations', [1] * len(attrs['kernel_shape']))
         self.operatorRepresentation['group'] = attrs.get('group', 1)
@@ -2670,11 +2670,16 @@ class ConvTransposeParser:
         # Salviamo i nomi delle variabili per input e output
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-
         for idx, outputNode in enumerate(node.outputs):
+            output_name = outputNode.name
+            print(f"[DEBUG] Parser: {self.__class__.__name__}, Node: {node.name}, Output: {output_name}")
+            # Add this line to check the type before annotation
+            print(f"[DEBUG] Type of outputNode: {type(outputNode)}")
+            # Add this line to check the type before annotation
+            print(f"[DEBUG] Type of what will be annotated: {type(ctxt.globalObjects.get(output_name))}")
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        # Dimensione totale del dato di input, utile per allocazioni o ottimizzazioni
+        # Total size of the input data, used for allocations and optimizations
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
 
         return ctxt, True
