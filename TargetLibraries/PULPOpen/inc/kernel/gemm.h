@@ -1,14 +1,15 @@
+
 /* =====================================================================
- * Title:        iGELU.c
+ * Title:        gemm.h
  * Description:
  *
- * $Date:        13.11.2023
+ * $Date:       05.06.2025
  *
  * ===================================================================== */
 /*
  * Copyright (C) 2020 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Author: Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -27,7 +28,9 @@
 
 #include "DeeployPULPMath.h"
 
-void PULPiGELU_s8_s8(int8_t *data_in, int8_t *data_out, int32_t dataSize,
-                     int8_t b, int16_t one, int32_t input_offset,
-                     int32_t output_offset, int32_t *mul, int32_t *add,
-                     int32_t *shift) {}
+void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
+                                   const float32_t *__restrict__ pSrcB,
+                                   const float32_t *__restrict__ pDstC,
+                                   float32_t *__restrict__ pDstY, uint32_t M,
+                                   uint32_t N, uint32_t O, uint32_t transA,
+                                   uint32_t transB);

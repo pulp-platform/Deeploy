@@ -1,8 +1,8 @@
 /* =====================================================================
- * Title:        DeeployMath.h
+ * Title:        Layernorm.h
  * Description:
  *
- * $Date:        30.12.2021
+ * $Date:        05.06.2025
  *
  * ===================================================================== */
 /*
@@ -25,31 +25,9 @@
  * limitations under the License.
  */
 
-#ifndef __DEEPLOY_MATH_HEADER_
-#define __DEEPLOY_MATH_HEADER_
+#include "DeeployPULPMath.h"
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "types.h"
-
-#include "DeeployBasicMath.h"
-
-#include "pmsis.h"
-
-#include "kernel/Conv.h"
-#include "kernel/GELU.h"
-#include "kernel/Layernorm.h"
-#include "kernel/Matmul.h"
-#include "kernel/MaxPool.h"
-#include "kernel/RQiHardswish.h"
-#include "kernel/RequantShift.h"
-#include "kernel/Softmax.h"
-#include "kernel/UniformRequantShift.h"
-#include "kernel/gemv.h"
-#include "kernel/iRMSnorm.h"
-
-#endif // __DEEPLOY_MATH_HEADER_
+void PULP_Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
+                              float32_t *scale, float32_t *bias,
+                              float32_t epsilon, uint32_t size,
+                              uint32_t lastDimLength);

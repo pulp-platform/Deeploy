@@ -1,10 +1,12 @@
+
 /* =====================================================================
- * Title:        GELU_fp32.c
+ * Title:        Relu.c
  * Description:
  *
- * $Date:        19.12.2022
+ * Date:         05.06.2025
  *
  * ===================================================================== */
+
 /*
  * Copyright (C) 2022 ETH Zurich and University of Bologna.
  *
@@ -26,29 +28,23 @@
  * limitations under the License.
  */
 
-#include "DeeployBasicMath.h"
-#include <math.h>
+#include "DeeployPULPMath.h"
+#include "pmsis.h"
 
-#define M_PI 3.14159265358979323846
+void PULP_Relu_fp32_fp32(float32_t *input, float32_t *output, uint32_t size) {
 
-void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize) {
-  for (int i = 0; i < dataSize; i++) {
-    float32_t x = data_in[i];
-    float32_t cdf =
-        0.5 * (1.0 + tanh((sqrt(2 / M_PI) * (x + 0.044715 * pow(x, 3)))));
-    data_out[i] = x * cdf;
-  }
-}
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = log2(NUM_CORES);
 
-void GELU_fp32_fp32_sigmoid(float32_t *data_in, float32_t *data_out,
-                            int32_t dataSize) {
+  int32_t chunk = (size >> log2Core) + ((size & (NUM_CORES - 1)) != 0);
+  int32_t start = MIN(chunk * core_id, size);
+  int32_t end = MIN(start + chunk, size);
+  int32_t local_size = end - start;
 
-  const float32_t scale = 1.702f;
-  for (int i = 0; i < dataSize; i++) {
-    float32_t x = data_in[i];
-    float32_t sigmoid_in = scale * x;
-    // sigmoid(z) = 1 / (1 + exp(-z))
-    float32_t sigmoid = 1.0f / (1.0f + expf(-sigmoid_in));
-    data_out[i] = x * sigmoid;
+  float32_t *local_input = input + start;
+  float32_t *local_output = output + start;
+
+  for (int32_t i = 0; i < local_size; i++) {
+    local_output[i] = MAX(local_input[i], 0.0f);
   }
 }

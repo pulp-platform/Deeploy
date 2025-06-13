@@ -1,15 +1,15 @@
 
 /* =====================================================================
- * Title:        gelu.h
+ * Title:      Relu.h
  * Description:
  *
- * $Date:        28.01.2025
+ * $Date:       05.06.2025
  *
  * ===================================================================== */
 /*
  * Copyright (C) 2020 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Author: Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -28,4 +28,4 @@
 
 #include "DeeployPULPMath.h"
 
-void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize);
+void PULP_Relu_fp32_fp32(float32_t *input, float32_t *output, uint32_t size);

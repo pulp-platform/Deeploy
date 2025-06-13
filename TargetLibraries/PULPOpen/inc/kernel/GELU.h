@@ -1,14 +1,15 @@
+
 /* =====================================================================
- * Title:        DeeployMath.h
+ * Title:        GELU.h
  * Description:
  *
- * $Date:        30.12.2021
+ * $Date:       05.06.2025
  *
  * ===================================================================== */
 /*
  * Copyright (C) 2020 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Author: Run Wang, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -25,31 +26,10 @@
  * limitations under the License.
  */
 
-#ifndef __DEEPLOY_MATH_HEADER_
-#define __DEEPLOY_MATH_HEADER_
+#include "DeeployPULPMath.h"
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+void PULP_GELU_fp32_fp32(float32_t *data_in, float32_t *data_out,
+                         int32_t dataSize);
 
-#include "types.h"
-
-#include "DeeployBasicMath.h"
-
-#include "pmsis.h"
-
-#include "kernel/Conv.h"
-#include "kernel/GELU.h"
-#include "kernel/Layernorm.h"
-#include "kernel/Matmul.h"
-#include "kernel/MaxPool.h"
-#include "kernel/RQiHardswish.h"
-#include "kernel/RequantShift.h"
-#include "kernel/Softmax.h"
-#include "kernel/UniformRequantShift.h"
-#include "kernel/gemv.h"
-#include "kernel/iRMSnorm.h"
-
-#endif // __DEEPLOY_MATH_HEADER_
+void PULP_GELU_fp32_fp32_sigmoid(float32_t *data_in, float32_t *data_out,
+                                 int32_t dataSize);
