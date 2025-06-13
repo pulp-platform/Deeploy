@@ -1,0 +1,583 @@
+[92mMemory allocation sucessful![0m
+[92mCode Generation test ended, no memory violations![0m
+-- Building for platform 'Siracusa'
+-- ============================= Project Configuration ============================
+-- [Deeploy]     platform               = Siracusa
+-- [Deeploy]     use_dma                = 1
+-- ================================================================================
+-- 
+-- ============================= Siracusa Configuration ============================
+-- [cMake  ]   ISA                    = rv32imf_xpulpv2
+-- [cMake  ]   Cluster Cores          = 8
+-- [cMake  ]   Fabric Controller      = 1
+-- [cMake  ]   Number of used cores   = 8
+-- ================================================================================
+-- 
+-- [PULP-NNX] Using the N-EUREKA accelerator.
+-- ============================= Simulation Configuration ============================
+-- [Simulator]   QuestaSim              = questa-2022.3
+-- [Simulator]   Verilator              = verilator-4.110
+-- [Simulator]   VCS                    = vcs-2020.12
+-- [Simulator]   banshee_simulation     = OFF
+-- [Simulator]   banshee_configuration  = 
+-- [Simulator]   gvsoc_simulation       = ON
+-- [Simulator]   banshee_stack_size     = 16777216
+-- [Simulator]   num_threads            = 1
+-- ================================================================================
+-- 
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /app/Deeploy/DeeployTest/TEST_SIRACUSA/build
+Consolidate compiler generated dependencies of target pulp-nnx
+[  1%] Built target pulp-nnx
+Consolidate compiler generated dependencies of target deeploybasic
+[  4%] Built target deeploybasic
+Scanning dependencies of target pulp-sdk
+Consolidate compiler generated dependencies of target pulp-sdk
+[  8%] Built target pulp-sdk
+Consolidate compiler generated dependencies of target pulp-nn-mixed
+[ 97%] Built target pulp-nn-mixed
+Consolidate compiler generated dependencies of target deeploypulp
+[100%] Built target deeploypulp
+Consolidate compiler generated dependencies of target network
+[100%] Building C object DeeployTest/CMakeFiles/network.dir/TEST_SIRACUSA/Tests/CCT/CCT_2_32_32_128/Network.c.obj
+[100%] Built target network
+Consolidate compiler generated dependencies of target CCT_2_32_32_128
+[100%] Linking C executable ../../../bin/CCT_2_32_32_128
+[100%] Built target CCT_2_32_32_128
+Generation Directory:  /app/Deeploy/DeeployTest/TEST_SIRACUSA/Tests/CCT/CCT_2_32_32_128
+Test Directory      :  Tests/CCT/CCT_2_32_32_128
+Test Name           :  CCT_2_32_32_128
+[91m################## Testing Tests/CCT/CCT_2_32_32_128 on Siracusa Platform ##################[00m
+[  1%] Built target pulp-nnx
+[  4%] Built target deeploybasic
+[  8%] Built target pulp-sdk
+[ 97%] Built target pulp-nn-mixed
+[100%] Built target deeploypulp
+Consolidate compiler generated dependencies of target network
+[100%] Built target network
+[100%] Built target CCT_2_32_32_128
+[100%] POST_BUILD
+HELLO WORLD:
+Intializing
+Initialized
+Input copied
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeIn_L2][SB][0 ops][Tile 0] Input DMA took 1568 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeIn_L2][SB][0 ops][Tile 0] Kernel took 3074 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeIn_L2][SB][0 ops][Tile 0] Output DMA took 1618 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeIn_L3][DB][0 ops][Tile 0] Input DMA took 15326 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeIn_L3][DB][0 ops][Tile 0] Output DMA took 24743 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 0] Input DMA took 1795 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 0] Kernel took 1229941 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 0] Output DMA took 15392 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 1] Input DMA took 1939 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 1] Kernel took 1229505 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 1] Output DMA took 15375 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 2] Input DMA took 1691 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 2] Kernel took 806264 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L2][SB][3538944 ops][Tile 2] Output DMA took 6158 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L3][DB][3538944 ops][Tile 0] Input DMA took 17388 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L3][DB][3538944 ops][Tile 0] Output DMA took 103 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L3][DB][3538944 ops][Tile 1] Input DMA took 85 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L3][DB][3538944 ops][Tile 1] Output DMA took 130 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L3][DB][3538944 ops][Tile 2] Input DMA took 85 cycles
+[node_6_tokenizer_conv_layers_conv_layers_0_conv_layers_0_0_Conv_L3][DB][3538944 ops][Tile 2] Output DMA took 85964 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 0] Input DMA took 7670 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 0] Kernel took 9693 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 0] Output DMA took 7955 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 1] Input DMA took 7664 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 1] Kernel took 9261 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 1] Output DMA took 7938 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 2] Input DMA took 7688 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 2] Kernel took 9148 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 2] Output DMA took 7935 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 3] Input DMA took 7704 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 3] Kernel took 9140 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 3] Output DMA took 7937 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 4] Input DMA took 2057 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 4] Kernel took 4826 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L2][SB][0 ops][Tile 4] Output DMA took 2128 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 0] Input DMA took 84784 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 0] Output DMA took 104 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 1] Input DMA took 404 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 1] Output DMA took 169 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 2] Input DMA took 113953 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 2] Output DMA took 131 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 3] Input DMA took 112018 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 3] Output DMA took 150 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 4] Input DMA took 66219 cycles
+[_NCHW_TO_NHWC_CONV_PASS_0_TransposeOut_L3][DB][0 ops][Tile 4] Output DMA took 73525 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 0] Input DMA took 7138 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 0] Kernel took 11187 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 0] Output DMA took 10253 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 1] Input DMA took 7179 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 1] Kernel took 12810 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 1] Output DMA took 10255 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 2] Input DMA took 7191 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 2] Kernel took 10960 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 2] Output DMA took 10255 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 3] Input DMA took 7216 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 3] Kernel took 10981 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 3] Output DMA took 10254 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 4] Input DMA took 4104 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 4] Kernel took 6388 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L2][SB][65536 ops][Tile 4] Output DMA took 6159 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 0] Input DMA took 101844 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 0] Output DMA took 142 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 1] Input DMA took 2354 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 1] Output DMA took 154 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 2] Input DMA took 122706 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 2] Output DMA took 131 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 3] Input DMA took 124115 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 3] Output DMA took 152 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 4] Input DMA took 97909 cycles
+[node_7_tokenizer_conv_layers_conv_layers_0_conv_layers_0_1_Relu_L3][DB][65536 ops][Tile 4] Output DMA took 132368 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 0] Input DMA took 7139 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 0] Kernel took 13861 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 0] Output DMA took 7409 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 1] Input DMA took 7156 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 1] Kernel took 13845 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 1] Output DMA took 7406 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 2] Input DMA took 7157 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 2] Kernel took 13827 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 2] Output DMA took 7411 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 3] Input DMA took 7158 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 3] Kernel took 13750 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 3] Output DMA took 7406 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 4] Input DMA took 4083 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 4] Kernel took 9106 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L2][SB][0 ops][Tile 4] Output DMA took 4242 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 0] Input DMA took 101763 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 0] Output DMA took 143 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 1] Input DMA took 12859 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 1] Output DMA took 173 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 2] Input DMA took 116387 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 2] Output DMA took 152 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 3] Input DMA took 117124 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 3] Output DMA took 152 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 4] Input DMA took 90940 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_0_TransposeIn_L3][DB][0 ops][Tile 4] Output DMA took 87992 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 0] Input DMA took 12746 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 0] Kernel took 231945 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 0] Output DMA took 3601 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 1] Input DMA took 12766 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 1] Kernel took 231612 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 1] Output DMA took 3599 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 2] Input DMA took 7173 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 2] Kernel took 118389 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L2][SB][131072 ops][Tile 2] Output DMA took 2080 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L3][DB][131072 ops][Tile 0] Input DMA took 126132 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L3][DB][131072 ops][Tile 0] Output DMA took 120 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L3][DB][131072 ops][Tile 1] Input DMA took 44 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L3][DB][131072 ops][Tile 1] Output DMA took 166 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L3][DB][131072 ops][Tile 2] Input DMA took 47 cycles
+[node_8_tokenizer_conv_layers_conv_layers_0_conv_layers_0_2_MaxPool_L3][DB][131072 ops][Tile 2] Output DMA took 30728 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 0] Input DMA took 11817 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 0] Kernel took 3145566 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 0] Output DMA took 2067 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 1] Input DMA took 11818 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 1] Kernel took 3132098 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 1] Output DMA took 2062 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 2] Input DMA took 11813 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 2] Kernel took 3126311 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 2] Output DMA took 2041 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 3] Input DMA took 11813 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 3] Kernel took 3135930 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 3] Output DMA took 2065 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 4] Input DMA took 11813 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 4] Kernel took 3139448 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 4] Output DMA took 2078 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 5] Input DMA took 11812 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 5] Kernel took 3135284 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 5] Output DMA took 2065 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 6] Input DMA took 11793 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 6] Kernel took 3124201 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 6] Output DMA took 2061 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 7] Input DMA took 11813 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 7] Kernel took 3127042 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 7] Output DMA took 2065 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 8] Input DMA took 11813 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 8] Kernel took 3127662 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 8] Output DMA took 2061 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 9] Input DMA took 11238 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 9] Kernel took 3093505 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L2][SB][37748736 ops][Tile 9] Output DMA took 1807 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 0] Input DMA took 97640 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 0] Output DMA took 103 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 1] Input DMA took 102 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 1] Output DMA took 149 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 2] Input DMA took 68 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 2] Output DMA took 147 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 3] Input DMA took 122 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 3] Output DMA took 149 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 4] Input DMA took 85 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 4] Output DMA took 113 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 5] Input DMA took 85 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 5] Output DMA took 149 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 6] Input DMA took 105 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 6] Output DMA took 147 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 7] Input DMA took 105 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 7] Output DMA took 132 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 8] Input DMA took 85 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 8] Output DMA took 145 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 9] Input DMA took 85 cycles
+[node_9_tokenizer_conv_layers_conv_layers_1_conv_layers_1_0_Conv_L3][DB][37748736 ops][Tile 9] Output DMA took 24895 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 0] Input DMA took 7880 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 0] Kernel took 9636 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 0] Output DMA took 8196 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 1] Input DMA took 7882 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 1] Kernel took 9586 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 1] Output DMA took 8219 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 2] Input DMA took 500 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 2] Kernel took 1554 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L2][SB][0 ops][Tile 2] Output DMA took 541 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L3][DB][0 ops][Tile 0] Input DMA took 70889 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L3][DB][0 ops][Tile 0] Output DMA took 104 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L3][DB][0 ops][Tile 1] Input DMA took 67 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L3][DB][0 ops][Tile 1] Output DMA took 150 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L3][DB][0 ops][Tile 2] Input DMA took 46026 cycles
+[_NCHW_TO_NHWC_CONV_PASS_1_TransposeOut_L3][DB][0 ops][Tile 2] Output DMA took 64292 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 0] Input DMA took 7160 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 0] Kernel took 11165 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 0] Output DMA took 10233 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 1] Input DMA took 7143 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 1] Kernel took 12779 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 1] Output DMA took 10233 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 2] Input DMA took 2078 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 2] Kernel took 3307 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L2][SB][32768 ops][Tile 2] Output DMA took 4109 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L3][DB][32768 ops][Tile 0] Input DMA took 101804 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L3][DB][32768 ops][Tile 0] Output DMA took 84 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L3][DB][32768 ops][Tile 1] Input DMA took 2601 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L3][DB][32768 ops][Tile 1] Output DMA took 149 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L3][DB][32768 ops][Tile 2] Input DMA took 80510 cycles
+[node_10_tokenizer_conv_layers_conv_layers_1_conv_layers_1_1_Relu_L3][DB][32768 ops][Tile 2] Output DMA took 122804 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 0] Input DMA took 7139 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 0] Kernel took 12246 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 0] Output DMA took 7407 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 1] Input DMA took 7159 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 1] Kernel took 12142 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 1] Output DMA took 7422 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 2] Input DMA took 2035 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 2] Kernel took 3702 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L2][SB][0 ops][Tile 2] Output DMA took 2127 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L3][DB][0 ops][Tile 0] Input DMA took 101830 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L3][DB][0 ops][Tile 0] Output DMA took 86 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L3][DB][0 ops][Tile 1] Input DMA took 14772 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L3][DB][0 ops][Tile 1] Output DMA took 135 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L3][DB][0 ops][Tile 2] Input DMA took 76986 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeIn_L3][DB][0 ops][Tile 2] Output DMA took 68292 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L2][SB][65536 ops][Tile 0] Input DMA took 12743 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L2][SB][65536 ops][Tile 0] Kernel took 184553 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L2][SB][65536 ops][Tile 0] Output DMA took 3360 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L2][SB][65536 ops][Tile 1] Input DMA took 3577 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L2][SB][65536 ops][Tile 1] Kernel took 58140 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L2][SB][65536 ops][Tile 1] Output DMA took 975 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L3][DB][65536 ops][Tile 0] Input DMA took 109870 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L3][DB][65536 ops][Tile 0] Output DMA took 56 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L3][DB][65536 ops][Tile 1] Input DMA took 77 cycles
+[node_11_tokenizer_conv_layers_conv_layers_1_conv_layers_1_2_MaxPool_L3][DB][65536 ops][Tile 1] Output DMA took 15796 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeOut_L2][SB][0 ops][Tile 0] Input DMA took 4150 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeOut_L2][SB][0 ops][Tile 0] Kernel took 9844 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeOut_L2][SB][0 ops][Tile 0] Output DMA took 4220 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeOut_L3][DB][0 ops][Tile 0] Input DMA took 35108 cycles
+[_NCHW_TO_NHWC_MAXPOOL_PASS_1_TransposeOut_L3][DB][0 ops][Tile 0] Output DMA took 61329 cycles
+[node_20_tokenizer_Transpose_L2][SB][0 ops][Tile 0] Input DMA took 4131 cycles
+[node_20_tokenizer_Transpose_L2][SB][0 ops][Tile 0] Kernel took 8437 cycles
+[node_20_tokenizer_Transpose_L2][SB][0 ops][Tile 0] Output DMA took 4222 cycles
+[node_20_tokenizer_Transpose_L3][DB][0 ops][Tile 0] Input DMA took 35156 cycles
+[node_20_tokenizer_Transpose_L3][DB][0 ops][Tile 0] Output DMA took 61341 cycles
+[node_21_classifier_Add_L2][SB][8192 ops][Tile 0] Input DMA took 8171 cycles
+[node_21_classifier_Add_L2][SB][8192 ops][Tile 0] Kernel took 8855 cycles
+[node_21_classifier_Add_L2][SB][8192 ops][Tile 0] Output DMA took 4258 cycles
+[node_21_classifier_Add_L3][DB][8192 ops][Tile 0] Input DMA took 67672 cycles
+[node_21_classifier_Add_L3][DB][8192 ops][Tile 0] Output DMA took 61448 cycles
+[LayerNorm_0_L2][SB][49152 ops][Tile 0] Input DMA took 4117 cycles
+[LayerNorm_0_L2][SB][49152 ops][Tile 0] Kernel took 32725 cycles
+[LayerNorm_0_L2][SB][49152 ops][Tile 0] Output DMA took 4258 cycles
+[LayerNorm_0_L3][DB][49152 ops][Tile 0] Input DMA took 36568 cycles
+[LayerNorm_0_L3][DB][49152 ops][Tile 0] Output DMA took 61445 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 0] Input DMA took 11704 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 0] Kernel took 364726 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 0] Output DMA took 4129 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 1] Input DMA took 4159 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 1] Kernel took 29884 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 1] Output DMA took 208 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L3][DB][2097152 ops][Tile 0] Input DMA took 101017 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L3][DB][2097152 ops][Tile 0] Output DMA took 56 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L3][DB][2097152 ops][Tile 1] Input DMA took 121 cycles
+[node_64_classifier_blocks_0_self_attn_k_proj_MatMul_L3][DB][2097152 ops][Tile 1] Output DMA took 5107 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 0] Input DMA took 11639 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 0] Kernel took 364203 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 0] Output DMA took 4114 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 1] Input DMA took 4068 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 1] Kernel took 29814 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 1] Output DMA took 208 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L3][DB][2097152 ops][Tile 0] Input DMA took 100900 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L3][DB][2097152 ops][Tile 0] Output DMA took 56 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L3][DB][2097152 ops][Tile 1] Input DMA took 123 cycles
+[node_42_classifier_blocks_0_self_attn_q_proj_MatMul_L3][DB][2097152 ops][Tile 1] Output DMA took 5143 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 0] Input DMA took 11636 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 0] Kernel took 364194 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 0] Output DMA took 4111 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 1] Input DMA took 3974 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 1] Kernel took 29795 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 1] Output DMA took 225 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L3][DB][2097152 ops][Tile 0] Input DMA took 100832 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L3][DB][2097152 ops][Tile 0] Output DMA took 56 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L3][DB][2097152 ops][Tile 1] Input DMA took 121 cycles
+[node_66_classifier_blocks_0_self_attn_v_proj_MatMul_L3][DB][2097152 ops][Tile 1] Output DMA took 5187 cycles
+[node_69_classifier_blocks_0_self_attn_Transpose_2_L2][SB][0 ops][Tile 0] Input DMA took 4077 cycles
+[node_69_classifier_blocks_0_self_attn_Transpose_2_L2][SB][0 ops][Tile 0] Kernel took 9277 cycles
+[node_69_classifier_blocks_0_self_attn_Transpose_2_L2][SB][0 ops][Tile 0] Output DMA took 4220 cycles
+[node_69_classifier_blocks_0_self_attn_Transpose_2_L3][DB][0 ops][Tile 0] Input DMA took 35070 cycles
+[node_69_classifier_blocks_0_self_attn_Transpose_2_L3][DB][0 ops][Tile 0] Output DMA took 61282 cycles
+[node_63_classifier_blocks_0_self_attn_Transpose_L2][SB][0 ops][Tile 0] Input DMA took 4089 cycles
+[node_63_classifier_blocks_0_self_attn_Transpose_L2][SB][0 ops][Tile 0] Kernel took 9312 cycles
+[node_63_classifier_blocks_0_self_attn_Transpose_L2][SB][0 ops][Tile 0] Output DMA took 4222 cycles
+[node_63_classifier_blocks_0_self_attn_Transpose_L3][DB][0 ops][Tile 0] Input DMA took 35039 cycles
+[node_63_classifier_blocks_0_self_attn_Transpose_L3][DB][0 ops][Tile 0] Output DMA took 61322 cycles
+[node_68_classifier_blocks_0_self_attn_Transpose_1_L2][SB][0 ops][Tile 0] Input DMA took 4093 cycles
+[node_68_classifier_blocks_0_self_attn_Transpose_1_L2][SB][0 ops][Tile 0] Kernel took 9295 cycles
+[node_68_classifier_blocks_0_self_attn_Transpose_1_L2][SB][0 ops][Tile 0] Output DMA took 4237 cycles
+[node_68_classifier_blocks_0_self_attn_Transpose_1_L3][DB][0 ops][Tile 0] Input DMA took 35088 cycles
+[node_68_classifier_blocks_0_self_attn_Transpose_1_L3][DB][0 ops][Tile 0] Output DMA took 61476 cycles
+[node_70_classifier_blocks_0_self_attn_MatMul_L2][SB][1048576 ops][Tile 0] Input DMA took 8085 cycles
+[node_70_classifier_blocks_0_self_attn_MatMul_L2][SB][1048576 ops][Tile 0] Kernel took 185079 cycles
+[node_70_classifier_blocks_0_self_attn_MatMul_L2][SB][1048576 ops][Tile 0] Output DMA took 4260 cycles
+[node_70_classifier_blocks_0_self_attn_MatMul_L3][DB][1048576 ops][Tile 0] Input DMA took 67653 cycles
+[node_70_classifier_blocks_0_self_attn_MatMul_L3][DB][1048576 ops][Tile 0] Output DMA took 61432 cycles
+[node_72_classifier_blocks_0_self_attn_Mul_L2][SB][8192 ops][Tile 0] Input DMA took 8170 cycles
+[node_72_classifier_blocks_0_self_attn_Mul_L2][SB][8192 ops][Tile 0] Kernel took 6380 cycles
+[node_72_classifier_blocks_0_self_attn_Mul_L2][SB][8192 ops][Tile 0] Output DMA took 4257 cycles
+[node_72_classifier_blocks_0_self_attn_Mul_L3][DB][8192 ops][Tile 0] Input DMA took 67693 cycles
+[node_72_classifier_blocks_0_self_attn_Mul_L3][DB][8192 ops][Tile 0] Output DMA took 61403 cycles
+[node_73_classifier_blocks_0_self_attn_Softmax_L2][SB][40704 ops][Tile 0] Input DMA took 4075 cycles
+[node_73_classifier_blocks_0_self_attn_Softmax_L2][SB][40704 ops][Tile 0] Kernel took 252136 cycles
+[node_73_classifier_blocks_0_self_attn_Softmax_L2][SB][40704 ops][Tile 0] Output DMA took 4218 cycles
+[node_73_classifier_blocks_0_self_attn_Softmax_L3][DB][40704 ops][Tile 0] Input DMA took 35022 cycles
+[node_73_classifier_blocks_0_self_attn_Softmax_L3][DB][40704 ops][Tile 0] Output DMA took 61338 cycles
+[node_74_classifier_blocks_0_self_attn_MatMul_1_L2][SB][1048576 ops][Tile 0] Input DMA took 8081 cycles
+[node_74_classifier_blocks_0_self_attn_MatMul_1_L2][SB][1048576 ops][Tile 0] Kernel took 185043 cycles
+[node_74_classifier_blocks_0_self_attn_MatMul_1_L2][SB][1048576 ops][Tile 0] Output DMA took 4258 cycles
+[node_74_classifier_blocks_0_self_attn_MatMul_1_L3][DB][1048576 ops][Tile 0] Input DMA took 67679 cycles
+[node_74_classifier_blocks_0_self_attn_MatMul_1_L3][DB][1048576 ops][Tile 0] Output DMA took 61388 cycles
+[node_75_classifier_blocks_0_self_attn_Transpose_3_L2][SB][0 ops][Tile 0] Input DMA took 4091 cycles
+[node_75_classifier_blocks_0_self_attn_Transpose_3_L2][SB][0 ops][Tile 0] Kernel took 9123 cycles
+[node_75_classifier_blocks_0_self_attn_Transpose_3_L2][SB][0 ops][Tile 0] Output DMA took 4258 cycles
+[node_75_classifier_blocks_0_self_attn_Transpose_3_L3][DB][0 ops][Tile 0] Input DMA took 34959 cycles
+[node_75_classifier_blocks_0_self_attn_Transpose_3_L3][DB][0 ops][Tile 0] Output DMA took 61324 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L2][SB][2121728 ops][Tile 0] Input DMA took 11410 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L2][SB][2121728 ops][Tile 0] Kernel took 1736436 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L2][SB][2121728 ops][Tile 0] Output DMA took 2702 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L2][SB][2121728 ops][Tile 1] Input DMA took 8489 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L2][SB][2121728 ops][Tile 1] Kernel took 1042701 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L2][SB][2121728 ops][Tile 1] Output DMA took 1614 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L3][DB][2121728 ops][Tile 0] Input DMA took 99970 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L3][DB][2121728 ops][Tile 0] Output DMA took 77 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L3][DB][2121728 ops][Tile 1] Input DMA took 147 cycles
+[node_81_classifier_blocks_0_self_attn_proj_MatMul_fused_with_node_82_classifier_blocks_0_self_attn_proj_Add_L3][DB][2121728 ops][Tile 1] Output DMA took 24995 cycles
+[node_83_classifier_blocks_0_Add_L2][SB][8192 ops][Tile 0] Input DMA took 8169 cycles
+[node_83_classifier_blocks_0_Add_L2][SB][8192 ops][Tile 0] Kernel took 9704 cycles
+[node_83_classifier_blocks_0_Add_L2][SB][8192 ops][Tile 0] Output DMA took 4218 cycles
+[node_83_classifier_blocks_0_Add_L3][DB][8192 ops][Tile 0] Input DMA took 67746 cycles
+[node_83_classifier_blocks_0_Add_L3][DB][8192 ops][Tile 0] Output DMA took 61200 cycles
+[LayerNorm_1_L2][SB][49152 ops][Tile 0] Input DMA took 4124 cycles
+[LayerNorm_1_L2][SB][49152 ops][Tile 0] Kernel took 30948 cycles
+[LayerNorm_1_L2][SB][49152 ops][Tile 0] Output DMA took 4237 cycles
+[LayerNorm_1_L3][DB][49152 ops][Tile 0] Input DMA took 36522 cycles
+[LayerNorm_1_L3][DB][49152 ops][Tile 0] Output DMA took 61302 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L2][SB][2121728 ops][Tile 0] Input DMA took 11363 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L2][SB][2121728 ops][Tile 0] Kernel took 1738863 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L2][SB][2121728 ops][Tile 0] Output DMA took 2703 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L2][SB][2121728 ops][Tile 1] Input DMA took 8347 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L2][SB][2121728 ops][Tile 1] Kernel took 1042299 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L2][SB][2121728 ops][Tile 1] Output DMA took 1613 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L3][DB][2121728 ops][Tile 0] Input DMA took 100040 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L3][DB][2121728 ops][Tile 0] Output DMA took 58 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L3][DB][2121728 ops][Tile 1] Input DMA took 145 cycles
+[node_95_classifier_blocks_0_linear1_MatMul_fused_with_node_96_classifier_blocks_0_linear1_Add_L3][DB][2121728 ops][Tile 1] Output DMA took 25026 cycles
+[node_32_L2][SB][49152 ops][Tile 0] Input DMA took 4131 cycles
+[node_32_L2][SB][49152 ops][Tile 0] Kernel took 264693 cycles
+[node_32_L2][SB][49152 ops][Tile 0] Output DMA took 4220 cycles
+[node_32_L3][DB][49152 ops][Tile 0] Input DMA took 35119 cycles
+[node_32_L3][DB][49152 ops][Tile 0] Output DMA took 61390 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L2][SB][2121728 ops][Tile 0] Input DMA took 11428 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L2][SB][2121728 ops][Tile 0] Kernel took 1736224 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L2][SB][2121728 ops][Tile 0] Output DMA took 2705 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L2][SB][2121728 ops][Tile 1] Input DMA took 8367 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L2][SB][2121728 ops][Tile 1] Kernel took 1042050 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L2][SB][2121728 ops][Tile 1] Output DMA took 1598 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L3][DB][2121728 ops][Tile 0] Input DMA took 99959 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L3][DB][2121728 ops][Tile 0] Output DMA took 56 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L3][DB][2121728 ops][Tile 1] Input DMA took 165 cycles
+[node_105_classifier_blocks_0_linear2_MatMul_fused_with_node_106_classifier_blocks_0_linear2_Add_L3][DB][2121728 ops][Tile 1] Output DMA took 25049 cycles
+[node_107_classifier_blocks_0_Add_2_L2][SB][8192 ops][Tile 0] Input DMA took 8123 cycles
+[node_107_classifier_blocks_0_Add_2_L2][SB][8192 ops][Tile 0] Kernel took 9764 cycles
+[node_107_classifier_blocks_0_Add_2_L2][SB][8192 ops][Tile 0] Output DMA took 4220 cycles
+[node_107_classifier_blocks_0_Add_2_L3][DB][8192 ops][Tile 0] Input DMA took 67654 cycles
+[node_107_classifier_blocks_0_Add_2_L3][DB][8192 ops][Tile 0] Output DMA took 61387 cycles
+[LayerNorm_2_L2][SB][49152 ops][Tile 0] Input DMA took 4123 cycles
+[LayerNorm_2_L2][SB][49152 ops][Tile 0] Kernel took 30934 cycles
+[LayerNorm_2_L2][SB][49152 ops][Tile 0] Output DMA took 4220 cycles
+[LayerNorm_2_L3][DB][49152 ops][Tile 0] Input DMA took 36544 cycles
+[LayerNorm_2_L3][DB][49152 ops][Tile 0] Output DMA took 61452 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 0] Input DMA took 11640 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 0] Kernel took 364226 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 0] Output DMA took 4108 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 1] Input DMA took 4046 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 1] Kernel took 29950 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L2][SB][2097152 ops][Tile 1] Output DMA took 208 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L3][DB][2097152 ops][Tile 0] Input DMA took 100842 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L3][DB][2097152 ops][Tile 0] Output DMA took 75 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L3][DB][2097152 ops][Tile 1] Input DMA took 105 cycles
+[node_150_classifier_blocks_1_self_attn_k_proj_MatMul_L3][DB][2097152 ops][Tile 1] Output DMA took 5096 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 0] Input DMA took 11659 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 0] Kernel took 363304 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 0] Output DMA took 4112 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 1] Input DMA took 4045 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 1] Kernel took 29895 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L2][SB][2097152 ops][Tile 1] Output DMA took 205 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L3][DB][2097152 ops][Tile 0] Input DMA took 100919 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L3][DB][2097152 ops][Tile 0] Output DMA took 75 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L3][DB][2097152 ops][Tile 1] Input DMA took 122 cycles
+[node_128_classifier_blocks_1_self_attn_q_proj_MatMul_L3][DB][2097152 ops][Tile 1] Output DMA took 5233 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 0] Input DMA took 11685 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 0] Kernel took 363051 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 0] Output DMA took 4130 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 1] Input DMA took 4111 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 1] Kernel took 29862 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L2][SB][2097152 ops][Tile 1] Output DMA took 168 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L3][DB][2097152 ops][Tile 0] Input DMA took 100993 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L3][DB][2097152 ops][Tile 0] Output DMA took 56 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L3][DB][2097152 ops][Tile 1] Input DMA took 123 cycles
+[node_152_classifier_blocks_1_self_attn_v_proj_MatMul_L3][DB][2097152 ops][Tile 1] Output DMA took 5239 cycles
+[node_155_classifier_blocks_1_self_attn_Transpose_2_L2][SB][0 ops][Tile 0] Input DMA took 4091 cycles
+[node_155_classifier_blocks_1_self_attn_Transpose_2_L2][SB][0 ops][Tile 0] Kernel took 9294 cycles
+[node_155_classifier_blocks_1_self_attn_Transpose_2_L2][SB][0 ops][Tile 0] Output DMA took 4235 cycles
+[node_155_classifier_blocks_1_self_attn_Transpose_2_L3][DB][0 ops][Tile 0] Input DMA took 35118 cycles
+[node_155_classifier_blocks_1_self_attn_Transpose_2_L3][DB][0 ops][Tile 0] Output DMA took 61362 cycles
+[node_149_classifier_blocks_1_self_attn_Transpose_L2][SB][0 ops][Tile 0] Input DMA took 4130 cycles
+[node_149_classifier_blocks_1_self_attn_Transpose_L2][SB][0 ops][Tile 0] Kernel took 9314 cycles
+[node_149_classifier_blocks_1_self_attn_Transpose_L2][SB][0 ops][Tile 0] Output DMA took 4259 cycles
+[node_149_classifier_blocks_1_self_attn_Transpose_L3][DB][0 ops][Tile 0] Input DMA took 35124 cycles
+[node_149_classifier_blocks_1_self_attn_Transpose_L3][DB][0 ops][Tile 0] Output DMA took 61379 cycles
+[node_154_classifier_blocks_1_self_attn_Transpose_1_L2][SB][0 ops][Tile 0] Input DMA took 4130 cycles
+[node_154_classifier_blocks_1_self_attn_Transpose_1_L2][SB][0 ops][Tile 0] Kernel took 9300 cycles
+[node_154_classifier_blocks_1_self_attn_Transpose_1_L2][SB][0 ops][Tile 0] Output DMA took 4260 cycles
+[node_154_classifier_blocks_1_self_attn_Transpose_1_L3][DB][0 ops][Tile 0] Input DMA took 35025 cycles
+[node_154_classifier_blocks_1_self_attn_Transpose_1_L3][DB][0 ops][Tile 0] Output DMA took 61446 cycles
+[node_156_classifier_blocks_1_self_attn_MatMul_L2][SB][1048576 ops][Tile 0] Input DMA took 8107 cycles
+[node_156_classifier_blocks_1_self_attn_MatMul_L2][SB][1048576 ops][Tile 0] Kernel took 184808 cycles
+[node_156_classifier_blocks_1_self_attn_MatMul_L2][SB][1048576 ops][Tile 0] Output DMA took 4260 cycles
+[node_156_classifier_blocks_1_self_attn_MatMul_L3][DB][1048576 ops][Tile 0] Input DMA took 67669 cycles
+[node_156_classifier_blocks_1_self_attn_MatMul_L3][DB][1048576 ops][Tile 0] Output DMA took 61372 cycles
+[node_158_classifier_blocks_1_self_attn_Mul_L2][SB][8192 ops][Tile 0] Input DMA took 8202 cycles
+[node_158_classifier_blocks_1_self_attn_Mul_L2][SB][8192 ops][Tile 0] Kernel took 6380 cycles
+[node_158_classifier_blocks_1_self_attn_Mul_L2][SB][8192 ops][Tile 0] Output DMA took 4260 cycles
+[node_158_classifier_blocks_1_self_attn_Mul_L3][DB][8192 ops][Tile 0] Input DMA took 67594 cycles
+[node_158_classifier_blocks_1_self_attn_Mul_L3][DB][8192 ops][Tile 0] Output DMA took 61438 cycles
+[node_159_classifier_blocks_1_self_attn_Softmax_L2][SB][40704 ops][Tile 0] Input DMA took 4074 cycles
+[node_159_classifier_blocks_1_self_attn_Softmax_L2][SB][40704 ops][Tile 0] Kernel took 252110 cycles
+[node_159_classifier_blocks_1_self_attn_Softmax_L2][SB][40704 ops][Tile 0] Output DMA took 4220 cycles
+[node_159_classifier_blocks_1_self_attn_Softmax_L3][DB][40704 ops][Tile 0] Input DMA took 35100 cycles
+[node_159_classifier_blocks_1_self_attn_Softmax_L3][DB][40704 ops][Tile 0] Output DMA took 61330 cycles
+[node_160_classifier_blocks_1_self_attn_MatMul_1_L2][SB][1048576 ops][Tile 0] Input DMA took 8078 cycles
+[node_160_classifier_blocks_1_self_attn_MatMul_1_L2][SB][1048576 ops][Tile 0] Kernel took 184700 cycles
+[node_160_classifier_blocks_1_self_attn_MatMul_1_L2][SB][1048576 ops][Tile 0] Output DMA took 4275 cycles
+[node_160_classifier_blocks_1_self_attn_MatMul_1_L3][DB][1048576 ops][Tile 0] Input DMA took 67692 cycles
+[node_160_classifier_blocks_1_self_attn_MatMul_1_L3][DB][1048576 ops][Tile 0] Output DMA took 61356 cycles
+[node_161_classifier_blocks_1_self_attn_Transpose_3_L2][SB][0 ops][Tile 0] Input DMA took 4091 cycles
+[node_161_classifier_blocks_1_self_attn_Transpose_3_L2][SB][0 ops][Tile 0] Kernel took 9117 cycles
+[node_161_classifier_blocks_1_self_attn_Transpose_3_L2][SB][0 ops][Tile 0] Output DMA took 4258 cycles
+[node_161_classifier_blocks_1_self_attn_Transpose_3_L3][DB][0 ops][Tile 0] Input DMA took 35012 cycles
+[node_161_classifier_blocks_1_self_attn_Transpose_3_L3][DB][0 ops][Tile 0] Output DMA took 61399 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L2][SB][2121728 ops][Tile 0] Input DMA took 11390 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L2][SB][2121728 ops][Tile 0] Kernel took 1733878 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L2][SB][2121728 ops][Tile 0] Output DMA took 2705 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L2][SB][2121728 ops][Tile 1] Input DMA took 8348 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L2][SB][2121728 ops][Tile 1] Kernel took 1042165 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L2][SB][2121728 ops][Tile 1] Output DMA took 1593 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L3][DB][2121728 ops][Tile 0] Input DMA took 99976 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L3][DB][2121728 ops][Tile 0] Output DMA took 77 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L3][DB][2121728 ops][Tile 1] Input DMA took 147 cycles
+[node_167_classifier_blocks_1_self_attn_proj_MatMul_fused_with_node_168_classifier_blocks_1_self_attn_proj_Add_L3][DB][2121728 ops][Tile 1] Output DMA took 24976 cycles
+[node_169_classifier_blocks_1_Add_L2][SB][8192 ops][Tile 0] Input DMA took 8168 cycles
+[node_169_classifier_blocks_1_Add_L2][SB][8192 ops][Tile 0] Kernel took 9616 cycles
+[node_169_classifier_blocks_1_Add_L2][SB][8192 ops][Tile 0] Output DMA took 4235 cycles
+[node_169_classifier_blocks_1_Add_L3][DB][8192 ops][Tile 0] Input DMA took 67629 cycles
+[node_169_classifier_blocks_1_Add_L3][DB][8192 ops][Tile 0] Output DMA took 61331 cycles
+[LayerNorm_3_L2][SB][49152 ops][Tile 0] Input DMA took 4122 cycles
+[LayerNorm_3_L2][SB][49152 ops][Tile 0] Kernel took 30945 cycles
+[LayerNorm_3_L2][SB][49152 ops][Tile 0] Output DMA took 4256 cycles
+[LayerNorm_3_L3][DB][49152 ops][Tile 0] Input DMA took 36445 cycles
+[LayerNorm_3_L3][DB][49152 ops][Tile 0] Output DMA took 61378 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L2][SB][2121728 ops][Tile 0] Input DMA took 11375 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L2][SB][2121728 ops][Tile 0] Kernel took 1735811 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L2][SB][2121728 ops][Tile 0] Output DMA took 2703 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L2][SB][2121728 ops][Tile 1] Input DMA took 8360 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L2][SB][2121728 ops][Tile 1] Kernel took 1042152 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L2][SB][2121728 ops][Tile 1] Output DMA took 1615 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L3][DB][2121728 ops][Tile 0] Input DMA took 99998 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L3][DB][2121728 ops][Tile 0] Output DMA took 58 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L3][DB][2121728 ops][Tile 1] Input DMA took 163 cycles
+[node_181_classifier_blocks_1_linear1_MatMul_fused_with_node_182_classifier_blocks_1_linear1_Add_L3][DB][2121728 ops][Tile 1] Output DMA took 24996 cycles
+[node_58_L2][SB][49152 ops][Tile 0] Input DMA took 4091 cycles
+[node_58_L2][SB][49152 ops][Tile 0] Kernel took 264870 cycles
+[node_58_L2][SB][49152 ops][Tile 0] Output DMA took 4258 cycles
+[node_58_L3][DB][49152 ops][Tile 0] Input DMA took 35001 cycles
+[node_58_L3][DB][49152 ops][Tile 0] Output DMA took 61335 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L2][SB][2121728 ops][Tile 0] Input DMA took 11427 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L2][SB][2121728 ops][Tile 0] Kernel took 1735537 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L2][SB][2121728 ops][Tile 0] Output DMA took 2706 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L2][SB][2121728 ops][Tile 1] Input DMA took 8342 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L2][SB][2121728 ops][Tile 1] Kernel took 1042371 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L2][SB][2121728 ops][Tile 1] Output DMA took 1618 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L3][DB][2121728 ops][Tile 0] Input DMA took 100063 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L3][DB][2121728 ops][Tile 0] Output DMA took 75 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L3][DB][2121728 ops][Tile 1] Input DMA took 146 cycles
+[node_191_classifier_blocks_1_linear2_MatMul_fused_with_node_192_classifier_blocks_1_linear2_Add_L3][DB][2121728 ops][Tile 1] Output DMA took 24948 cycles
+[node_193_classifier_blocks_1_Add_2_L2][SB][8192 ops][Tile 0] Input DMA took 8170 cycles
+[node_193_classifier_blocks_1_Add_2_L2][SB][8192 ops][Tile 0] Kernel took 10304 cycles
+[node_193_classifier_blocks_1_Add_2_L2][SB][8192 ops][Tile 0] Output DMA took 4220 cycles
+[node_193_classifier_blocks_1_Add_2_L3][DB][8192 ops][Tile 0] Input DMA took 67609 cycles
+[node_193_classifier_blocks_1_Add_2_L3][DB][8192 ops][Tile 0] Output DMA took 61294 cycles
+[LayerNorm_4_L2][SB][49152 ops][Tile 0] Input DMA took 4064 cycles
+[LayerNorm_4_L2][SB][49152 ops][Tile 0] Kernel took 32707 cycles
+[LayerNorm_4_L2][SB][49152 ops][Tile 0] Output DMA took 4257 cycles
+[LayerNorm_4_L3][DB][49152 ops][Tile 0] Input DMA took 36502 cycles
+[LayerNorm_4_L3][DB][49152 ops][Tile 0] Output DMA took 61322 cycles
+[node_205_classifier_attention_pool_MatMul_L2][SB][16384 ops][Tile 0] Input DMA took 4139 cycles
+[node_205_classifier_attention_pool_MatMul_L2][SB][16384 ops][Tile 0] Kernel took 8038 cycles
+[node_205_classifier_attention_pool_MatMul_L2][SB][16384 ops][Tile 0] Output DMA took 55 cycles
+[node_205_classifier_attention_pool_MatMul_L3][DB][16384 ops][Tile 0] Input DMA took 35388 cycles
+[node_205_classifier_attention_pool_MatMul_L3][DB][16384 ops][Tile 0] Output DMA took 2884 cycles
+[node_207_classifier_Transpose_L2][SB][0 ops][Tile 0] Input DMA took 109 cycles
+[node_207_classifier_Transpose_L2][SB][0 ops][Tile 0] Kernel took 453 cycles
+[node_207_classifier_Transpose_L2][SB][0 ops][Tile 0] Output DMA took 75 cycles
+[node_207_classifier_Transpose_L3][DB][0 ops][Tile 0] Input DMA took 2608 cycles
+[node_207_classifier_Transpose_L3][DB][0 ops][Tile 0] Output DMA took 2808 cycles
+[node_208_classifier_Softmax_L2][SB][318 ops][Tile 0] Input DMA took 109 cycles
+[node_208_classifier_Softmax_L2][SB][318 ops][Tile 0] Kernel took 16813 cycles
+[node_208_classifier_Softmax_L2][SB][318 ops][Tile 0] Output DMA took 56 cycles
+[node_208_classifier_Softmax_L3][DB][318 ops][Tile 0] Input DMA took 2579 cycles
+[node_208_classifier_Softmax_L3][DB][318 ops][Tile 0] Output DMA took 2807 cycles
+[node_209_classifier_MatMul_L2][SB][16384 ops][Tile 0] Input DMA took 4107 cycles
+[node_209_classifier_MatMul_L2][SB][16384 ops][Tile 0] Kernel took 23192 cycles
+[node_209_classifier_MatMul_L2][SB][16384 ops][Tile 0] Output DMA took 88 cycles
+[node_209_classifier_MatMul_L3][DB][16384 ops][Tile 0] Input DMA took 36742 cycles
+[node_209_classifier_MatMul_L3][DB][16384 ops][Tile 0] Output DMA took 3347 cycles
+[node_211_classifier_fc_Gemm_L2][SB][2590 ops][Tile 0] Input DMA took 596 cycles
+[node_211_classifier_fc_Gemm_L2][SB][2590 ops][Tile 0] Kernel took 26428 cycles
+[node_211_classifier_fc_Gemm_L2][SB][2590 ops][Tile 0] Output DMA took 56 cycles
+[node_211_classifier_fc_Gemm_L3][DB][2590 ops][Tile 0] Input DMA took 9349 cycles
+[node_211_classifier_fc_Gemm_L3][DB][2590 ops][Tile 0] Output DMA took 2537 cycles
+Output:
+Runtime: 65942664 cycles
+Errors: 0 out of 10
+Input error: Platform returned an error (exitcode: 22)
+gmake[3]: *** [DeeployTest/Platforms/Siracusa/CMakeFiles/gvsoc_CCT_2_32_32_128.dir/build.make:71: DeeployTest/Platforms/Siracusa/CMakeFiles/gvsoc_CCT_2_32_32_128] Error 1
+gmake[2]: *** [CMakeFiles/Makefile2:408: DeeployTest/Platforms/Siracusa/CMakeFiles/gvsoc_CCT_2_32_32_128.dir/all] Error 2
+gmake[1]: *** [CMakeFiles/Makefile2:415: DeeployTest/Platforms/Siracusa/CMakeFiles/gvsoc_CCT_2_32_32_128.dir/rule] Error 2
+gmake: *** [Makefile:228: gvsoc_CCT_2_32_32_128] Error 2
+[92m✅ No errors found in in Tests/CCT/CCT_2_32_32_128[00m
