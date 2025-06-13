@@ -176,7 +176,7 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
 
             # Check for live ancestors (buffers that this is an alias of, that are still live),
             # and add the deallocation code to the execution block if none found
-            if not nb.has_live_ancestors(ctxt):
+            if not nb.has_live_ancestors(ctxt = ctxt):
                 executionBlock.addRight(nb.deallocTemplate, nb._bufferRepresentation())
 
         return ctxt, executionBlock

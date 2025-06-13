@@ -341,31 +341,30 @@ class VariableBuffer():
     def fromNode(cls, node: gs.Node):
         return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
 
-    def add_aliases(self, alias_to_add: List[str]):
+    def add_aliases(self, aliases_to_add: List[str]):
         """
         Adds list of aliases to the alias_of attribute.
-
         Parameters
         ----------
         alias_to_add : List[str]
             List of names of aliases to add to the alias_of attribute.
-
         Returns
         -------
         None
         """
 
-        if hasattr(self, "alias_of"):
-            self.alias_of += alias_to_add
-        else:
-            self.alias_of = alias_to_add
+        if not hasattr(self, "alias_of"):
+            return None
+
+        for alias in aliases_to_add:
+            if alias not in self.alias_of:
+                self.alias_of.append(alias)
 
         return None
 
-    def get_alias_of(self):
+    def get_aliases_of(self):
         """
         Getter function for the alias_of attribute.
-
         Returns
         -------
         List[str]
@@ -379,12 +378,10 @@ class VariableBuffer():
 
     def has_live_ancestors(self, ctxt: NetworkContext) -> bool:
         """Checks whether this VariableBuffer has any live ancestors, i.e. buffers that are still live and are aliased by this buffer.
-
         Parameters
         ----------
         ctxt : NetworkContext
             Current NetworkContext
-
         Returns
         -------
         bool
@@ -424,6 +421,8 @@ class TransientBuffer(VariableBuffer):
 
         self.is_input: bool = False
         self.is_output: bool = False
+
+        self.alias_of: List[str] = []
 
     def __eq__(self, other):
 

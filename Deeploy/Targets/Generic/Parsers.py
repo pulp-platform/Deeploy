@@ -1011,18 +1011,16 @@ class ReshapeParser(NodeParser):
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        # Update alias_of parameter for the input and output nodes
-        # It's a reflexive relationship: A is alias of B, but B is also alias of A
+        # Update alias_of parameter for the output node
         output_node = ctxt.lookup(node.outputs[outputs.index("data_out")].name)
         input_node = ctxt.lookup(node.inputs[inputs.index("data_in")].name)
 
-        output_node.add_aliases(input_node.get_alias_of() + [
-            input_node.name,
-        ])
+        # Prepare new aliases
+        new_output_node_aliases = input_node.get_aliases_of()
+        new_output_node_aliases.append(input_node.name)
 
-        input_node.add_aliases([
-            output_node.name,
-        ])
+        # Add new aliases
+        output_node.add_aliases(aliases_to_add = new_output_node_aliases)
 
         # Compute data size
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
