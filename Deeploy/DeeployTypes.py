@@ -1066,6 +1066,9 @@ class NetworkContext():
 
         """
         obj = self.lookup(name)
+        if not isinstance(_type, type):
+            print(f"[ERROR] annotateType: _type is not a class! name={name}, type={_type}")
+        print(f"[DEBUG] annotateType: About to assign type {_type} (type: {type(_type)}) to {name}")
         obj._type = _type
         obj._instance = _type(name, ctxt = self)
 
@@ -1324,8 +1327,9 @@ class NodeTypeChecker():
         outputNames = [node.name for node in node.outputs]
 
         outputTypes = self.output_types
-
+        
         for name, output_type in zip(outputNames, outputTypes):
+            print(f"[DEBUG] Annotating output {name} with type {output_type}")
             newCtxt.annotateType(name, output_type)
 
         return newCtxt
@@ -1350,15 +1354,15 @@ class NodeTypeChecker():
 
         for inputNode, _type in zip(node.inputs, self.input_types):
             reference = ctxt.lookup(inputNode.name)
-            print(f"[DEBUG] Checking input '{inputNode.name}': expected {_type}, got {reference}")
+            #print(f"[DEBUG] Checking input '{inputNode.name}': expected {_type}, got {reference}")
 
             if not isinstance(reference, VariableBuffer):
-                print(f"[DEBUG] -> Not a VariableBuffer: {reference}")
+                #print(f"[DEBUG] -> Not a VariableBuffer: {reference}")
                 return False
 
             if hasattr(reference, "values"):
                 ok =  _type.referencedType.checkPromotion(reference.values)
-                print(f"[DEBUG] -> checkPromotion: {ok}")  ##### ricordati di cambiare questo
+                #print(f"[DEBUG] -> checkPromotion: {ok}")  ##### ricordati di cambiare questo
                 retCheck &= ok
             else:
                 if ctxt.is_global(inputNode.name):
@@ -1651,7 +1655,7 @@ class NodeBinding():
         """
 
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
-        print(f'value of ret inside typeCheck  of NodeBinding {ret}')
+        #print(f'value of ret inside typeCheck  of NodeBinding {ret}')
         if ret:
             log.debug(f" {SUCCESS_MARK} Type check passed for {self}")
             return newCtxt, True
@@ -1812,9 +1816,9 @@ class NodeMapper():
 
             if binder in self.discardedBindings:
                 continue
-            print(f"Trying binder {binder} ({type(binder)}) for node {node.name}")
+            #print(f"Trying binder {binder} ({type(binder)}) for node {node.name}")
             newCtxt, ret = binder.typeCheck(ctxt.copy(), node, self.parser.operatorRepresentation)
-            print(f"typeCheck result: {ret}")
+            #print(f"typeCheck result: {ret}")
 
             if not ret:
                 if hasattr(binder, 'debugInfo'):
@@ -1963,10 +1967,10 @@ class ONNXLayer():
             channels_first = default_channels_first
         else:
             channels_first = self.mapper.parser.operatorRepresentation['channels_first']
-
+        #print(f"Broadcasting shapes for node {self.node.name} with channels_first={channels_first}")
         newInputShapes, newOutputShapes = self.computeShapes(inputShapes, outputShapes,
                                                              self.mapper.parser.operatorRepresentation, channels_first)
-
+        #print(f"New input shapes: {newInputShapes}, New output shapes: {newOutputShapes}")
         for node, newShape in zip(self.node.inputs + self.node.outputs, newInputShapes + newOutputShapes):
             if ctxt.is_local(node.name):
                 ctxt.localObjects[node.name].shape = newShape
@@ -2052,11 +2056,11 @@ class ONNXLayer():
             newCtxt = ctxt.copy()
 
             newCtxt, ret = mapper._parse(newCtxt, self.node, default_channels_first, ioParse)
-            print(f"Value of ret for node after _parse {self.node.name}: {ret}")
+            #print(f"Value of ret for node after _parse {self.node.name}: {ret}")
             ioParse = not ret
 
             if not ret:
-                print('!!!! Mapper Discarded  !!!')
+                #print('!!!! Mapper Discarded  !!!')
                 self.discardedMappers.add(mapper)
                 continue
 
@@ -2064,9 +2068,9 @@ class ONNXLayer():
 
             # Perform broadcasting
             self.broadcast(newCtxt, default_channels_first)
-
+            #print(f"Broadcasted shapes for node {self.node.name}: {[node.shape for node in self.node.inputs + self.node.outputs]}")
             newCtxt, ret = mapper._parseCtxt(newCtxt, self.node, default_channels_first)
-            print(f"Value of ret for node after _parseCtxt {self.node.name}: {ret}")
+            #print(f"Value of ret for node after _parseCtxt {self.node.name}: {ret}")
             if not ret:
                 log.debug(f" {FAILURE_MARK} Context parsing failed for {mapper.parser.__class__.__name__}")
                 self.discardedMappers.add(mapper)
@@ -2090,7 +2094,7 @@ class ONNXLayer():
 
         def _broadcastFloat(ty: Type[FloatImmediate]):
             return np.dtype(getattr(np, "double"))
-
+        #print(f"[DEBUG] _broadcastToNpType: ty={ty} ({type(ty)}) for node {getattr(self.node, 'name', None)}")
         if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
             if issubclass(ty.referencedType, IntegerImmediate):
                 return _broadcastInteger(ty.referencedType)
