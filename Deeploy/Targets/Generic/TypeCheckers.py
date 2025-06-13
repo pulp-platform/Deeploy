@@ -613,13 +613,11 @@ class BatchNormChecker(SignPropTypeChecker):
 
 
 class ConvTransposeChecker(SignPropTypeChecker):
-
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
 
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        # Come per ConvChecker: n livelli = kernel_size * livelli_pesi * canali_input * 2^bit_input
+    def _inferNumLevels(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> List[int]:
+        # Like ConvChecker: n_levels = kernel_size * weight_levels * ch_in * 2^bit_input
         weight = inputs[1]
         return [
             np.prod(operatorRepresentation['kernel_shape']) *
@@ -628,6 +626,6 @@ class ConvTransposeChecker(SignPropTypeChecker):
             2**(self.input_types[0].referencedType.typeWidth)
         ]
 
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+    def _inferSignedness(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        # Output is signed if input is signed
         return [inputs[0]._signed]

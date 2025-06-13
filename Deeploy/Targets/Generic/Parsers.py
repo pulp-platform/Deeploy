@@ -2668,102 +2668,51 @@ class ConvTransposeParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        #print(f"[ConvTransposeParser] parseNode called for node: {node.name}")
-        attrs = node.attrs
+        # Extract ONNX attributes with defaults
+        strides = node.attrs.get('strides', [1])
+        pads = node.attrs.get('pads', [0, 0])
+        kernel_shape = node.attrs.get('kernel_shape', None)
+        dilations = node.attrs.get('dilations', [1])
+        group = node.attrs.get('group', 1)
 
-        # Accept both 1D and 2D ConvTranspose
-        if 'kernel_shape' not in attrs:
-            return False
-        kernel_shape = attrs['kernel_shape']
-        dims = len(kernel_shape)
-        if dims not in (1, 2):
-            print('ERROR in Dims')
-            return False
+        # Check for required attributes
+        wellFormed = (
+            kernel_shape is not None and
+            len(node.outputs) == 1
+        )
+        if wellFormed:
+            self.operatorRepresentation['strides'] = strides
+            self.operatorRepresentation['pads'] = pads
+            self.operatorRepresentation['kernel_shape'] = kernel_shape
+            self.operatorRepresentation['dilations'] = dilations
+            self.operatorRepresentation['group'] = group
+            self.operatorRepresentation['nodeName'] = node.name
+            self.operatorRepresentation['nodeOp'] = node.op
+        return wellFormed
 
-        #print(f"Node Attributes for {node.name}: {node.attrs}")
-        #print(f"Node Inputs for {node.name}: {node.inputs}")
-        self.operatorRepresentation['auto_pad'] = attrs.get('auto_pad', 'NOTSET')
-        self.operatorRepresentation['dilations'] = attrs.get('dilations', [1] * dims)
-        self.operatorRepresentation['group'] = attrs.get('group', 1)
-        self.operatorRepresentation['kernel_shape'] = kernel_shape
-        self.operatorRepresentation['output_padding'] = attrs.get('output_padding', [0] * dims)
-        self.operatorRepresentation['output_shape'] = attrs.get('output_shape', None)
-        self.operatorRepresentation['pads'] = attrs.get('pads', [0] * (2 * dims))
-        self.operatorRepresentation['strides'] = attrs.get('strides', [1] * dims)
-
-        # ConvTranspose has 2 or 3 inputs (bias is optional)
-        if not (2 <= len(node.inputs) <= 3):
-            print('ERROR in len of node inputs')
-            return False
-        #print(f"[ConvTransposeParser] parseNode returns {True} for node: {node.name}")
-        return True
-
-    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        inputs = ['data_in', 'weight']
-        outputs = ['data_out']
-
-        # Handle bias if present
+    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True):
+        # Register buffer names for codegen
+        self.operatorRepresentation['data_in'] = node.inputs[0].name
+        self.operatorRepresentation['weight'] = node.inputs[1].name
+        self.operatorRepresentation['data_out'] = node.outputs[0].name
         if len(node.inputs) == 3:
-            inputs.append('bias')
+            self.operatorRepresentation['bias'] = node.inputs[2].name
             self.operatorRepresentation['has_bias'] = True
         else:
             self.operatorRepresentation['has_bias'] = False
-            self.operatorRepresentation['bias'] = 'NULL'
-
-        # Assign variable names for inputs and outputs
-        for idx, inputNode in enumerate(node.inputs):
-            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-        for idx, outputNode in enumerate(node.outputs):
-            output_name = outputNode.name
-            print(f"[DEBUG] Parser: {self.__class__.__name__}, Node: {node.name}, Output: {output_name}")
-            # Add this line to check the type before annotation
-            print(f"[DEBUG] Type of outputNode: {type(outputNode)}")
-            # Add this line to check the type before annotation
-            print(f"[DEBUG] Type of what will be annotated: {type(ctxt.globalObjects.get(output_name))}")
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
-
-        # Set input/output shapes and channels
-        data_in = ctxt.lookup(node.inputs[0].name)
-        weight = ctxt.lookup(node.inputs[1].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-
-        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
-        group = self.operatorRepresentation.get('group', 1)
-        dims = len(self.operatorRepresentation['kernel_shape'])
-        print(f"[ConvTransposeParser] parseNodeCtxt called for node: {node.name}, dims: {dims}, group: {group}")
-        if dims == 1:
-            # 1D: N, C_in, W or N, W, C_in
-            if channels_first:
-                self.operatorRepresentation['batch'] = data_in.shape[0]
-                self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
-                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
-                self.operatorRepresentation['ch_im_out'] = weight.shape[1] * group
-                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
-            else:
-                self.operatorRepresentation['batch'] = data_in.shape[0]
-                self.operatorRepresentation['ch_im_in'] = data_in.shape[2]
-                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[1]
-                self.operatorRepresentation['ch_im_out'] = weight.shape[-2] * group
-                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
-        elif dims == 2:
-            # 2D: N, C_in, H, W or N, H, W, C_in
-            if channels_first:
-                self.operatorRepresentation['batch'] = data_in.shape[0]
-                self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
-                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
-                self.operatorRepresentation['dim_im_in_x'] = data_in.shape[3]
-                self.operatorRepresentation['ch_im_out'] = weight.shape[1] * group
-                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
-                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[3]
-            else:
-                self.operatorRepresentation['batch'] = data_in.shape[0]
-                self.operatorRepresentation['ch_im_in'] = data_in.shape[3]
-                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[1]
-                self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
-                self.operatorRepresentation['ch_im_out'] = weight.shape[-2] * group
-                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
-                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[2]
-
         return ctxt, True
 
+class ConvTranspose1DParser(ConvTransposeParser):
+    def __init__(self):
+        super().__init__()
 
+    def parseNode(self, node: gs.Node) -> bool:
+        # 1D ConvTranspose expects 3D input/output and 3D weight
+        wellFormed = super().parseNode(node)
+        if wellFormed:
+            input_shape = node.inputs[0].shape
+            weight_shape = node.inputs[1].shape
+            output_shape = node.outputs[0].shape
+            if not (len(input_shape) == 3 and len(weight_shape) == 3 and len(output_shape) == 3):
+                return False
+        return wellFormed
