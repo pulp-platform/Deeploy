@@ -5,7 +5,6 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
-- Reshape Memory Freeing and Generic Float GEMM Fixes [#91](https://github.com/pulp-platform/Deeploy/pull/91)
 - Move PULP SDK to main branch/fork [#88](https://github.com/pulp-platform/Deeploy/pull/88)
 - Finite Lifetime for IO Tensors [#51](https://github.com/pulp-platform/Deeploy/pull/51)
 - Improved Memory Visualization and Multi-Layer Tiling Profiling [#56](https://github.com/pulp-platform/Deeploy/pull/56)
@@ -273,5 +272,3 @@ This release containing major architectural changes, new platform support, enhan
 
 ## Release v0.1.0 (2024-08-08)
 This release contains the first version of Deeploy, which includes the initial implementation of the Deeploy framework, support for various platforms, and basic functionality for deploying deep learning models on PULP-based systems.
-
-Test change for CI pipeline
