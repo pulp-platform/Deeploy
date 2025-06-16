@@ -27,6 +27,8 @@ RUN apt-get upgrade && \
     python3 \
     python3-dev \
     python-is-python3 \
+    python3.10-venv \
+    python3.10-distutils \
     curl \
     protobuf-compiler \
     libftdi-dev \

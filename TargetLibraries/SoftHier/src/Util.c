@@ -1,14 +1,16 @@
 /* =====================================================================
- * Title:        iGELU.c
+ * Title:        Util.c
  * Description:
  *
- * $Date:        13.11.2023
+ * Date:         06.05.2025
  *
  * ===================================================================== */
+
 /*
- * Copyright (C) 2020 ETH Zurich and University of Bologna.
+ * Copyright (C) 2025 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Authors:
+ * - Bowen Wang <bowwang@iis.ee.ethz.ch>, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -25,9 +27,20 @@
  * limitations under the License.
  */
 
-#include "DeeployPULPMath.h"
+#include "DeeploySoftHierMath.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-void PULPiGELU_s8_s8(int8_t *data_in, int8_t *data_out, int32_t dataSize,
-                     int8_t b, int16_t one, int32_t input_offset,
-                     int32_t output_offset, int32_t *mul, int32_t *add,
-                     int32_t *shift) {}
+int deeploy_log(const char *__restrict fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  int ret = vprintf(fmt, args);
+  va_end(args);
+  return ret;
+}
+
+void *deeploy_malloc(const size_t size) {
+  return (void *)flex_hbm_malloc(size);
+}
+void deeploy_free(void *const ptr) { flex_hbm_free(ptr); }

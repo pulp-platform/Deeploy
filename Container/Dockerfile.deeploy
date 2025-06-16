@@ -18,14 +18,21 @@ WORKDIR /app
 # Make sure updates in the repo are reflected in the image
 COPY toolchain/*.patch toolchain/
 COPY Makefile ./
+COPY requirements-dev.txt ./
 
 # Compile emulators
+RUN apt-get upgrade && \
+    apt-get update && \
+    apt-get install -y python3.10-venv \
+    python3.10-distutils 
+
 RUN --mount=type=cache,target=/ccache \
     ccache -z && \
     make pulp-sdk qemu mempool banshee xtensor && \
     make gvsoc && \
     cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
     cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
+    make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
     ccache -s
 
 # Install Bender
@@ -62,6 +69,7 @@ ENV PULP_SDK_HOME=/app/install/pulp-sdk
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV SNITCH_HOME=/app/install/snitch_cluster
 ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
+ENV SOFTHIER_INSTALL_DIR=/app/install/softhier
 ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
 ENV MEMPOOL_HOME=/app/install/mempool
 ENV PATH=/root/.cargo/bin:/app/install/qemu/bin:/app/install/banshee:$PATH
@@ -79,7 +87,9 @@ RUN mkdir -p /root/.cargo/bin/ && \
     curl \
     libpixman-1-dev \
     libsdl2-dev \
-    python-is-python3 && \
+    python-is-python3 \
+    python3.10-venv \
+    python3.10-distutils && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && \
     rm get-pip.py && \
@@ -90,7 +100,8 @@ RUN mkdir -p /root/.cargo/bin/ && \
 
 COPY --from=toolchain /app/core-requirements.txt ./core-requirements.txt
 COPY --from=toolchain /app/gapy-requirements.txt ./gapy-requirements.txt
-RUN pip install -r core-requirements.txt -r gapy-requirements.txt
+COPY --from=toolchain /app/requirements-dev.txt ./
+RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-requirements.txt
 
 # Copy pre-built toolchains and emulators
 COPY --from=toolchain /app/install ./install

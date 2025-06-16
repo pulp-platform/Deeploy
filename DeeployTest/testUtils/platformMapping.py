@@ -43,8 +43,10 @@ from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform
 from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
+from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
+from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
-_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool"]
+_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
 _NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
@@ -80,6 +82,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Snitch":
         Platform = SnitchPlatform()
+
+    elif platformName == "SoftHier":
+        Platform = SoftHierPlatform()
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -153,6 +158,24 @@ def mapDeployer(platform: DeploymentPlatform,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir,
                                    inputOffsets = inputOffsets)
+
+    elif isinstance(platform, SoftHierPlatform):
+
+        if loweringOptimizer is None:
+            loweringOptimizer = SoftHierOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = True
+
+        deployer = SoftHierDeployer(graph,
+                                    platform,
+                                    inputTypes,
+                                    loweringOptimizer,
+                                    scheduler,
+                                    name = name,
+                                    default_channels_first = default_channels_first,
+                                    deeployStateDir = deeployStateDir,
+                                    inputOffsets = inputOffsets)
 
     elif isinstance(platform, GenericPlatform):
         # WIESEP: CMSIS performs add-multiply-divide and we normally do multiply-add-divide

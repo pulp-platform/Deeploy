@@ -53,15 +53,12 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
     rqs.inputs[1].values = rqs.inputs[1].values * 2**MultShift
     shiftNode = gs.Constant(f'{conv.name}_shift', np.array(remainingShift))
     # rqs.inputs[-1].values = np.round(rqs.inputs[-1].values / rqs.inputs[-2].values) # normalize add
-    # #import IPython; IPython.embed()
     # shiftNode = gs.Constant(f'{conv.name}_shift', np.array((31-np.log2(rqs.attrs['div'].values),)))
 
     shiftNode = gs.Constant(f'{conv.name}_shift', np.array(remainingShift))
     _inputs = list(conv.inputs) + list(rqs.inputs[1:]) + [shiftNode]
 
     _outputs = rqs.outputs
-
-    #import IPython; IPython.embed()
 
     rqsConv = gs.Node(op = 'RequantizedConv', name = name, attrs = {**conv.attrs, **rqs.attrs})
     graph.replaceInsertNode(_inputs, _outputs, rqsConv)
@@ -102,7 +99,6 @@ def _merge_gemm_rq_fun(graph: gs.Graph, match: Match, name: str):
     # shift mult:
     rqs.inputs[1].values = rqs.inputs[1].values * 2**MultShift
     # rqs.inputs[-1].values = np.round(rqs.inputs[-1].values / rqs.inputs[-2].values) # normalize add
-    # #import IPython; IPython.embed()
     # shiftNode = gs.Constant(f'{gemm.name}_shift', np.array((31-np.log2(rqs.attrs['div'].values),)))
 
     # GEMM has add

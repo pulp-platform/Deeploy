@@ -1,15 +1,16 @@
-
 /* =====================================================================
- * Title:        gelu.h
+ * Title:        util.h
  * Description:
  *
- * $Date:        28.01.2025
+ * Date:         07.06.2025
  *
  * ===================================================================== */
+
 /*
- * Copyright (C) 2020 ETH Zurich and University of Bologna.
+ * Copyright (C) 2022 ETH Zurich and University of Bologna.
  *
- * Author: Moritz Scherer, ETH Zurich
+ * Authors:
+ * - Bowen Wang <bowwang@iis.ee.ethz.ch>, ETH Zurich
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,6 +27,12 @@
  * limitations under the License.
  */
 
-#include "DeeployPULPMath.h"
+#ifndef __DEEPLOY_BASIC_MATH_UTIL_HEADER_
+#define __DEEPLOY_BASIC_MATH_UTIL_HEADER_
 
-void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize);
+int deeploy_log(const char *__restrict fmt, ...)
+    __attribute__((__format__(__printf__, 1, 2)));
+void *deeploy_malloc(const size_t size);
+void deeploy_free(void *const ptr);
+
+#endif //__DEEPLOY_BASIC_MATH_UTIL_HEADER_

@@ -6,6 +6,7 @@ This release containing major architectural changes, new platform support, enhan
 
 ### List of Pull Requests
 - Reduce Mean Float Template [#92](https://github.com/pulp-platform/Deeploy/pull/92)
+- Prepare for Release and Separate Dependencies [#90](https://github.com/pulp-platform/Deeploy/pull/90)
 - Move PULP SDK to main branch/fork [#88](https://github.com/pulp-platform/Deeploy/pull/88)
 - Finite Lifetime for IO Tensors [#51](https://github.com/pulp-platform/Deeploy/pull/51)
 - Improved Memory Visualization and Multi-Layer Tiling Profiling [#56](https://github.com/pulp-platform/Deeploy/pull/56)
@@ -22,6 +23,7 @@ This release containing major architectural changes, new platform support, enhan
 - Find all subdirectories of Deeploy when installing with pip install [#70](https://github.com/pulp-platform/Deeploy/pull/70)
 - Add milestone issue template [#71](https://github.com/pulp-platform/Deeploy/pull/71)
 - Bunch of fixes and changes [#58](https://github.com/pulp-platform/Deeploy/pull/58)
+- Add SoftHier platform [#65](https://github.com/pulp-platform/Deeploy/pull/65)
 - rv32imf_xpulpv2 ISA support for Siracusa platform [#64](https://github.com/pulp-platform/Deeploy/pull/64)
 - One LLVM To Compile Them All [#60](https://github.com/pulp-platform/Deeploy/pull/60)
 - One GVSoC to Simulate Them All [#59](https://github.com/pulp-platform/Deeploy/pull/59)
@@ -59,6 +61,7 @@ This release containing major architectural changes, new platform support, enhan
 - GitHub-based CI/CD Flow [#4](https://github.com/pulp-platform/Deeploy/pull/4)
 - Generic Softmax Kernel [#2](https://github.com/pulp-platform/Deeploy/pull/2)
 - Port GitLab CI [#1](https://github.com/pulp-platform/Deeploy/pull/1)
+
 
 ### Added
 - Generic FP32 reduce mean bindings, parser, and template
@@ -176,6 +179,13 @@ This release containing major architectural changes, new platform support, enhan
 - Added caching to speed up container builds
 - Makefile to simplify local container build
 - Add helper script to generate a baseline changelog.
+- SoftHier Deeploy Targets, including Deployer, Platform, and Templates
+- SoftHier cmake compilation flow
+- SoftHier CI task
+- Parallel implementations of the following operators on Siracusa: Matmul, Softmax, Gelu, Conv, Layernorm, Maxpool, Add, Mul,and Relu
+- Gelu with Sigmoid implementation
+- ComputeOp support for multiple float kernels: Maxpool, Relu, and Mul
+- `dev-requirements.txt` tracking the dependencies of the build system, linting, documentation, and QOL.
 
 ### Changed
 - Moved PULP SDK from Victor-Jung/pulp-sdk branch deeploy to pulp-platform/pulp-sdk branch main.
@@ -217,6 +227,8 @@ This release containing major architectural changes, new platform support, enhan
 - Split the original build flow into two container
 - Refactor changelog for better readability
 - Reformatted all C files
+- Prepare `pyproject.toml` for a proper pip package release.
+- Packages listed in `dev-requirements.txt` are installed in the final stage of the Deeploy container.
 
 ### Fixed
 - DW Conv2D kernel header to avoid warnings
@@ -256,10 +268,12 @@ This release containing major architectural changes, new platform support, enhan
 - Fix issue with building `banshee` on `linux/arm
 - Removed `i3c` related files from the `pulp-sdk` CMake flow
 - Fixed C-code linting stage in CI
+- Input offset height and width calculation for tiled PULPOpen convolution kernels
 
 ### Removed
 - Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
 - Remove the sourcing of the cursed PULP SDK script.
+- Commented IPython breakpoints.
 
 ## Release v0.1.0 (2024-08-08)
 This release contains the first version of Deeploy, which includes the initial implementation of the Deeploy framework, support for various platforms, and basic functionality for deploying deep learning models on PULP-based systems.
