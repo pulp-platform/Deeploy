@@ -34,9 +34,8 @@
 void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize) {
   for (int i = 0; i < dataSize; i++) {
     float32_t x = data_in[i];
-    float32_t cdf =
-        (float)(0.5 *
-                (1.0 + tanh((sqrt(2 / M_PI) * (x + 0.044715 * pow(x, 3))))));
+    float32_t cdf = 0.5f * (1.0f + tanhf((sqrtf(2.0f / (float)M_PI) *
+                                          (x + 0.044715f * powf(x, 3.0f)))));
     data_out[i] = x * cdf;
   }
 }
