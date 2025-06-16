@@ -45,8 +45,10 @@ from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
+from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
+from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 
-_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
+_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool"]
 _NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
@@ -85,6 +87,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "SoftHier":
         Platform = SoftHierPlatform()
+
+    elif platformName == "Chimera":
+        Platform = ChimeraPlatform()
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -240,6 +245,22 @@ def mapDeployer(platform: DeploymentPlatform,
             default_channels_first = False
 
         deployer = SnitchDeployer(graph,
+                                  platform,
+                                  inputTypes,
+                                  loweringOptimizer,
+                                  scheduler,
+                                  name = name,
+                                  default_channels_first = default_channels_first,
+                                  deeployStateDir = deeployStateDir)
+        
+    elif isinstance(platform, (ChimeraPlatform)):
+        if loweringOptimizer is None:
+            loweringOptimizer = ChimeraOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = ChimeraDeployer(graph,
                                   platform,
                                   inputTypes,
                                   loweringOptimizer,

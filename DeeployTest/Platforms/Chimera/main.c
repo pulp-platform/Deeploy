@@ -8,8 +8,6 @@
 
 #include <stdio.h>
 
-#include "soc.h"
-#include "driver.h"
 #include "uart.h"
 
 int main() {

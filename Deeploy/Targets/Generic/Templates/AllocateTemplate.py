@@ -30,7 +30,7 @@ referenceAllocateTemplate = NodeTemplate(
     "${name} = (${type.typeName}) deeploy_malloc(${type.referencedType.typeWidth//8} * ${size});\n")
 
 referenceGlobalInitTemplate = NodeTemplate("static ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
-#referenceGlobalInitTemplate = NodeTemplate("static const ${type} ${name}[${size}];\n")
+
 referenceGlobalAllocateTemplate = NodeTemplate("")
 
 referenceStructInitTemplate = NodeTemplate("""

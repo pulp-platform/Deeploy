@@ -14,7 +14,6 @@ add_deeploy_library(deeploychimera STATIC ${SOURCES})
 target_include_directories(deeploychimera
   PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/inc
-  ${CMAKE_CURRENT_LIST_DIR}/inc/kernel
 )
 
 target_link_libraries(deeploychimera INTERFACE runtime_host hal_host)
