@@ -90,6 +90,7 @@ jobs:
         testFloatRelu
         testFloatMaxPool
         testFloatMatmul
+        testFloatReshapeWithSkipConnection
         testFloatSoftmax
         testFloatTranspose
         testFloatMul

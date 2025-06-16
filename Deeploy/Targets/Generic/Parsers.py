@@ -1001,14 +1001,28 @@ class ReshapeParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
+        # Define names of node inputs and outputs, according to the ONNX standard
         inputs = ['data_in', 'shape']
         outputs = ['data_out']
 
+        # Map inputs and outputs to their corresponding names in the operator representation
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
+        # Update alias_of parameter for the output node
+        output_node = ctxt.lookup(node.outputs[outputs.index("data_out")].name)
+        input_node = ctxt.lookup(node.inputs[inputs.index("data_in")].name)
+
+        # Prepare new aliases
+        new_output_node_aliases = input_node.get_aliases_of()
+        new_output_node_aliases.append(input_node.name)
+
+        # Add new aliases
+        output_node.add_aliases(aliases_to_add = new_output_node_aliases)
+
+        # Compute data size
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
 
         return ctxt, True
@@ -1623,9 +1637,13 @@ class MatMulParser(NodeParser):
             node.inputs.append(zeroTensor)
             self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
 
+        # Store the input and output shapes in the operator representation
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['A_shape'] = ctxt.lookup(node.inputs[0].name).shape
         self.operatorRepresentation['B_shape'] = ctxt.lookup(node.inputs[1].name).shape
+        self.operatorRepresentation['data_out_shape'] = ctxt.lookup(node.outputs[0].name).shape
+
+        # Store the matrix dimensions in the operator representation
         self.operatorRepresentation['M'] = ctxt.lookup(
             node.inputs[0].name).shape[(-2 + self.operatorRepresentation['transA'])]
         self.operatorRepresentation['N'] = ctxt.lookup(
@@ -1637,11 +1655,24 @@ class MatMulParser(NodeParser):
         ret = ret and (self.operatorRepresentation['N'] == ctxt.lookup(
             node.inputs[1].name).shape[-2 + self.operatorRepresentation['transB']])
 
-        self.operatorRepresentation['batch'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[:-2])
+        # Check if the batch dimensions are compatible
+        self.operatorRepresentation['batch_A'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[:-2])
+        self.operatorRepresentation['batch_B'] = np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2])
 
-        # SCHEREMO: Assert that batch is the same on both matrices
-        W_batched = (self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2]))
-        self.operatorRepresentation['W_batched'] = W_batched
+        self.operatorRepresentation['batch'] = max(self.operatorRepresentation['batch_A'],
+                                                   self.operatorRepresentation['batch_B'])
+
+        assert (self.operatorRepresentation["batch_A"] == self.operatorRepresentation["batch_B"]) or (
+            self.operatorRepresentation["batch_A"] == 1
+        ) or (
+            self.operatorRepresentation["batch_B"] == 1
+        ), "Incompatible dimensions for input matrices. Broadcasting not yet supported for dimensions larger than 1 on one of the inputs, or equal dimensions between the 2."
+
+        # Create flags for same dimension between each input matrix and the final batch dimension
+        self.operatorRepresentation['A_batched'] = (self.operatorRepresentation['batch'] == np.prod(
+            ctxt.lookup(node.inputs[0].name).shape[:-2]))
+        self.operatorRepresentation['W_batched'] = self.operatorRepresentation['B_batched'] = (
+            self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2]))
 
         return ctxt, ret
 
@@ -1745,12 +1776,25 @@ class GEMMParser(MatMulParser):
                 self.operatorRepresentation[outputs[idx]] = newCtxt.lookup(outputNode.name).name
 
             if len(node.inputs) == 3:
+                # Compute bias name and shape if present in the inputs
                 self.operatorRepresentation['C'] = newCtxt.lookup(node.inputs[2].name).name
+                self.operatorRepresentation['C_shape'] = newCtxt.lookup(node.inputs[2].name).shape
+
+                # Create flag for same dimension between bias matrix and the final batch dimension
+                self.operatorRepresentation['C_batched'] = (self.operatorRepresentation['batch'] == np.prod(
+                    newCtxt.lookup(node.inputs[2].name).shape[:-2]))
             elif not self.noBiasHoisting:
+                # Create mock bias matrix if not present in the inputs
                 values = np.zeros((1))
                 zeroTensor = gs.Constant(f'{node.name}_C_Tensor', values = values)
                 newCtxt.hoistConstant(zeroTensor)
+
+                # Store it in the operator representation
                 self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
+                self.operatorRepresentation['C_shape'] = (0,)
+
+                # Create flag for same dimension between bias matrix and the final batch dimension
+                self.operatorRepresentation['C_batched'] = False
 
             self.operatorRepresentation['size'] = np.prod(newCtxt.lookup(node.inputs[0].name).shape)
 
