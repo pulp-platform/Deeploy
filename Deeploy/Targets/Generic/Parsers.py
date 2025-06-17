@@ -506,8 +506,15 @@ class ReduceMeanParser(ReduceParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
+        if len(node.inputs) == 2:
+            # Float node, requiring 2 inputs (ONNX opset version >= 18)
+            wellFormed = all(['keepdims' in node.attrs, len(node.inputs) == 2, len(node.outputs) == 1])
 
-        wellFormed = super().parseNode(node)
+            if wellFormed:
+                self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
+        else:
+            # Integer node, requiring 1 input (ONNX opset version < 18)
+            wellFormed = super().parseNode(node)
 
         return wellFormed
 
@@ -516,46 +523,28 @@ class ReduceMeanParser(ReduceParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-        return newCtxt, ret
+        if len(node.inputs) == 2:
+            data_in = ctxt.lookup(node.inputs[0].name)
+            data_out = ctxt.lookup(node.outputs[0].name)
 
+            axes = ctxt.lookup(node.inputs[1].name)
 
-class FloatReduceMeanParser(NodeParser):
+            self.operatorRepresentation['data_in'] = data_in.name
+            self.operatorRepresentation['data_out'] = data_out.name
+            self.operatorRepresentation['data_in_shape'] = data_in.shape
+            self.operatorRepresentation['data_out_shape'] = data_out.shape
+            self.operatorRepresentation['size'] = np.prod(data_in.shape)
+            self.operatorRepresentation['axisLength'] = data_in.shape[axes.values[0]]
+            self.operatorRepresentation['axes'] = axes.values
 
-    def __init__(self):
-        super().__init__()
+            # Mark the axes variable to be excluded from the context, since only used in the template, as part of the operator representation
+            axes._live = False
+            axes._deploy = False
 
-    def parseNode(self, node: gs.Node) -> bool:
-        ret = all(['keepdims' in node.attrs, len(node.inputs) == 2, len(node.outputs) == 1])
-
-        if ret:
-            self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
-
-        return ret
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-
-        axes = ctxt.lookup(node.inputs[1].name)
-
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['data_in_shape'] = data_in.shape
-        self.operatorRepresentation['data_out_shape'] = data_out.shape
-        self.operatorRepresentation['size'] = np.prod(data_in.shape)
-        self.operatorRepresentation['axisLength'] = data_in.shape[axes.values[0]]
-        self.operatorRepresentation['axes'] = axes.values
-
-        # Mark the axes variable to be excluded from the context, since only used in the template, as part of the operator representation
-        axes._live = False
-        axes._deploy = False
-
-        return ctxt, True
+            return ctxt, True
+        else:
+            newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+            return newCtxt, ret
 
 
 class ReduceSumParser(ReduceParser):

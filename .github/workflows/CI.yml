@@ -116,6 +116,7 @@ jobs:
         miniMobileNet
         miniMobileNetv2
         CCT/CCT_1_16_16_8
+        testFloatDemoTinyViT
   
   ### SoftHier Tests ###
   softhier-kernels:

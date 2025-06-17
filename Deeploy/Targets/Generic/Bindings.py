@@ -214,8 +214,10 @@ BasicReduceMeanBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
-    NodeBinding(ReduceMeanChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
-                FloatReduceMeanTemplate.referenceTemplate, BasicTransformer) for type in SignedIntegerDataTypes
+    NodeBinding(ReduceMeanChecker([PointerClass(float_type), PointerClass(integer_type)], [PointerClass(float_type)]),
+                FloatReduceMeanTemplate.referenceTemplate, BasicTransformer)
+    for integer_type in SignedIntegerDataTypes
+    for float_type in FloatDataTypes
 ]
 
 BasicReduceSumBindings = [
