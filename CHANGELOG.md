@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Reduce Mean Float Template [#92](https://github.com/pulp-platform/Deeploy/pull/92)
 - Reshape Memory Freeing and Generic Float GEMM Fixes [#91](https://github.com/pulp-platform/Deeploy/pull/91)
 - Prepare for Release and Separate Dependencies [#90](https://github.com/pulp-platform/Deeploy/pull/90)
 - Move PULP SDK to main branch/fork [#88](https://github.com/pulp-platform/Deeploy/pull/88)
@@ -64,6 +65,7 @@ This release containing major architectural changes, new platform support, enhan
 
 
 ### Added
+- Generic FP32 reduce mean bindings, parser, and template
 - New alias list parameter for buffer objects
 - New test, also included in the CI pipeline, for the reshape and skip connection situation
 - 'shape' parameter handling similar to the 'indices' parameter in the generic reshape template
@@ -233,6 +235,8 @@ This release containing major architectural changes, new platform support, enhan
 - Packages listed in `dev-requirements.txt` are installed in the final stage of the Deeploy container.
 
 ### Fixed
+- DW Conv2D kernel header to avoid warnings
+- FP casting in GELU kernel to avoid warnings
 - Buffer deallocation to only happen when all its aliases are not live anymore (the data stored there is not needed anymore, not even by other nodes)
 - GEMM Generic float template to iterate through terms only when they actually contain multiple matrices
 - Fix the PULP Deployer where outputs were unecessary loaded in L3
