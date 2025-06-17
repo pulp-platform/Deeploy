@@ -85,6 +85,7 @@ RUN mkdir -p /root/.cargo/bin/ && \
     apt-get install -y git-lfs \
     wget \
     ccache \
+    cmake \
     curl \
     libpixman-1-dev \
     libsdl2-dev \
