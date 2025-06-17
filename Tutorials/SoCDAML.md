@@ -13,9 +13,26 @@ Date: 27th May 2025
 
 ## Installation
 
-A Singularity container file (extension .sif) with Deeploy and its dependencies has been installed on the system; Build the sandbox container with `singularity build --sandbox /scratch/$USER/DeeployContainer/ /home/soc_042fs25/deeploy-container-socdaml.sif`
+**⚠️ DISCLAIMER: The current container and commit are from main and devel, they will be tagged in the next release**
 
-Then you can find Deeploy's source code in `/scratch/$USER/DeeployContainer/app/Deeploy`. To spawn a shell from the container, from your home, run `singularity shell --writable --cleanenv --contain /scratch/$USER/DeeployContainer/`. Then you can navigate to the `DeeployTest` folder with `cd /app/Deeploy/DeeployTest`.
+Clone Deeploy and its submodules:
+```
+git clone https://github.com/pulp-platform/Deeploy.git && cd Deeploy
+git submodule update --init --recursive 
+```
+Pull the docker image:
+```
+docker pull ghcr.io/pulp-platform/deeploy:main
+```
+Run the container and bind Deeploy's folder in the container:
+```
+docker run -it --name deeploy_main -v $(pwd):/app/Deeploy ghcr.io/pulp-platform/deeploy:main
+```
+Install Deeploy inside the container:
+```
+cd Deeploy
+pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
+```
 
 From the `DeeployTest` folder, you can use the `testRunner` to compile ONNXs and execute the output code using the appropriate simulators.
 
