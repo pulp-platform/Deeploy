@@ -69,9 +69,10 @@ PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
 BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
-GVSOC_COMMIT_HASH ?= eeb7ef8c1dfcb944ac80d797a8cea35aacc14ac5
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
+GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
+CHIMERA_SDK_COMMIT_HASH ?= b10071b55432fd26420c2de4c4e0562eb41d5420
 XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
 XTENSOR_VERSION ?= 0.25.0
@@ -447,7 +448,7 @@ ${TOOLCHAIN_DIR}/gvsoc:
 
 ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	cd ${TOOLCHAIN_DIR}/gvsoc && \
-	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa" build INSTALLDIR=${GVSOC_INSTALL_DIR}
+	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera" build INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
 
@@ -557,8 +558,8 @@ ${TOOLCHAIN_DIR}/minimalloc:
 
 ${CHIMERA_SDK_INSTALL_DIR}:
 	mkdir -p ${DEEPLOY_INSTALL_DIR} && cd ${DEEPLOY_INSTALL_DIR} && \
-	git clone https://github.com/pulp-platform/chimera-sdk.git && \
-	cd ${CHIMERA_SDK_INSTALL_DIR} && make gvsoc
+	git clone https://github.com/victor-jung/chimera-sdk.git && \
+	cd ${CHIMERA_SDK_INSTALL_DIR} && git checkout ${CHIMERA_SDK_COMMIT_HASH}
 
 chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
 

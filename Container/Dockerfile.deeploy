@@ -78,11 +78,21 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 
+# Install CMake
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    wget https://github.com/Kitware/CMake/releases/download/v3.24.0/cmake-3.24.0-linux-x86_64.sh && \
+    chmod +x cmake-3.24.0-linux-x86_64.sh && \
+    ./cmake-3.24.0-linux-x86_64.sh --prefix=/usr --skip-license; \
+elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    wget https://github.com/Kitware/CMake/releases/download/v3.24.0/cmake-3.24.0-linux-aarch64.sh && \
+    chmod +x ./cmake-3.24.0-linux-aarch64.sh && \
+    ./cmake-3.24.0-linux-aarch64.sh --prefix=/usr --skip-license; \
+fi
+
 # Install dependencies
 RUN mkdir -p /root/.cargo/bin/ && \
     apt-get update && \
     apt-get install -y git-lfs \
-    cmake \
     ccache \
     curl \
     libpixman-1-dev \
