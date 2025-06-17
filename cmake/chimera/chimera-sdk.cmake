@@ -13,9 +13,6 @@ add_link_options(
   -Wl,--gc-sections
 )
 
-
-set(CHIMERA_SDK_HOME /app/Deeploy/install/chimera-sdk)
-
 set(ABI ilp32)
 set(ISA_CLUSTER_SNITCH rv32im)
 set(ISA_HOST rv32imc)
