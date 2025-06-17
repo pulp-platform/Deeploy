@@ -30,12 +30,12 @@ if __name__ == "__main__":
     parser = TestRunnerArgumentParser(
         tiling_arguments = False,
         description = "Deeploy Code Generation Utility for the Chimera Platform (Host, no Tiling).")
-    
+
     parser.add_argument('--simulator',
                         metavar = "<simulator>",
                         dest = "simulator",
                         type = str,
-                        choices = ["gvsoc"], 
+                        choices = ["gvsoc"],
                         default = "gvsoc",
                         help = "Select the simulator to use")
 

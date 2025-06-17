@@ -30,6 +30,8 @@ import onnx_graphsurgeon as gs
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
+from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
+from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
 from Deeploy.Targets.CortexM.Platform import CMSISOptimizer, CMSISPlatform
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
@@ -252,7 +254,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                   name = name,
                                   default_channels_first = default_channels_first,
                                   deeployStateDir = deeployStateDir)
-        
+
     elif isinstance(platform, (ChimeraPlatform)):
         if loweringOptimizer is None:
             loweringOptimizer = ChimeraOptimizer
@@ -261,13 +263,13 @@ def mapDeployer(platform: DeploymentPlatform,
             default_channels_first = False
 
         deployer = ChimeraDeployer(graph,
-                                  platform,
-                                  inputTypes,
-                                  loweringOptimizer,
-                                  scheduler,
-                                  name = name,
-                                  default_channels_first = default_channels_first,
-                                  deeployStateDir = deeployStateDir)
+                                   platform,
+                                   inputTypes,
+                                   loweringOptimizer,
+                                   scheduler,
+                                   name = name,
+                                   default_channels_first = default_channels_first,
+                                   deeployStateDir = deeployStateDir)
 
     else:
         raise RuntimeError(f"Deployer for platform {platform} is not implemented")

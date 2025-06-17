@@ -23,16 +23,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from typing import List
 
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Parsers import AddParser
+from Deeploy.Targets.Chimera.Templates import AllocateTemplate as ChimeraAllocateTemplate
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings
 from Deeploy.Targets.Generic.Layers import AddLayer
+from Deeploy.Targets.Generic.Parsers import AddParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.Chimera.Templates import AllocateTemplate as ChimeraAllocateTemplate
 
 AddMapper = NodeMapper(AddParser(), BasicAddBindings)
 

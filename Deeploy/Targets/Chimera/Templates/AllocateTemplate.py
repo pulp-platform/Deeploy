@@ -23,11 +23,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from Deeploy.DeeployTypes import NodeTemplate
 
 memoryIslandAllocateTemplate = NodeTemplate(
     "${name} = (${type.typeName}) memory_island_malloc(${type.referencedType.typeWidth//8} * ${size});\n")
 
-memoryIslandFreeTemplate = NodeTemplate(
-    "memory_island_free(${name})")
+memoryIslandFreeTemplate = NodeTemplate("memory_island_free(${name})")
