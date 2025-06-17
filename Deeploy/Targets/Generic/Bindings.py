@@ -63,16 +63,9 @@ BasicSliceBindings = [
             PointerClass(uint8_t),
             PointerClass(uint8_t),
             PointerClass(uint8_t)
-        ], [PointerClass(type)]), SliceTemplate.referenceTemplate, BasicTransformer) for type in IntegerDataTypes
-] + [
-    NodeBinding(
-        SliceChecker([
-            PointerClass(type),
-            PointerClass(uint8_t),
-            PointerClass(uint8_t),
-            PointerClass(uint8_t),
-            PointerClass(uint8_t)
-        ], [PointerClass(type)]), SliceTemplate.referenceTemplate, BasicTransformer) for type in FloatDataTypes
+        ], [PointerClass(type)]), SliceTemplate.referenceTemplate, BasicTransformer)
+    for type in (*FloatDataTypes, *IntegerDataTypes)
+]
 ]
 
 BasicAddBindings = [
