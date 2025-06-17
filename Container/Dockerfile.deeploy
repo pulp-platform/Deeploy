@@ -28,7 +28,7 @@ RUN apt-get upgrade && \
 
 RUN --mount=type=cache,target=/ccache \
     ccache -z && \
-    make pulp-sdk qemu mempool banshee xtensor && \
+    make pulp-sdk chimera-sdk qemu mempool banshee xtensor && \
     make gvsoc && \
     cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
     cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
@@ -60,6 +60,7 @@ RUN rm -rf toolchain
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
 FROM ubuntu:22.04 AS deeploy
 
+ARG TARGETPLATFORM
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
