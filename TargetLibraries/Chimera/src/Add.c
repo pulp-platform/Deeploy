@@ -8,4 +8,3 @@
 
 #include "DeeployChimeraMath.h"
 
-int test() { return 0; }
