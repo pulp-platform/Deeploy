@@ -158,6 +158,20 @@ jobs:
         simpleRegression
         WaveFormer
 
+
+  ### Chimera Tests ###
+  chimera-kernels:
+    uses: ./.github/workflows/TestRunnerChimera.yml
+    needs: select-docker-image-and-runner
+    with:
+      runner: ${{ needs.select-docker-image-and-runner.outputs.runner }}
+      docker-image: ${{ needs.select-docker-image-and-runner.outputs.image }}
+      test-names: |
+        Adder
+      simulators: |
+        gvsoc
+  
+        
   ### Snitch Tests ###
   snitch-kernels:
     uses: ./.github/workflows/TestRunnerSnitch.yml
