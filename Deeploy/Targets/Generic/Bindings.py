@@ -66,7 +66,6 @@ BasicSliceBindings = [
         ], [PointerClass(type)]), SliceTemplate.referenceTemplate, BasicTransformer)
     for type in (*FloatDataTypes, *IntegerDataTypes)
 ]
-]
 
 BasicAddBindings = [
     NodeBinding(AddChecker([PointerClass(type1), PointerClass(type2)], [PointerClass(int32_t)]),
