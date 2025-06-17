@@ -6,7 +6,7 @@ file(GLOB_RECURSE SOURCES
 set(TARGET_PLATFORM "chimera-open")
 set(TEST_MODE "none")
 add_subdirectory(
-  $ENV{CHIMERA_SDK_INSTALL_DIR}
+  $ENV{CHIMERA_SDK_HOME}
   ${CMAKE_BINARY_DIR}/chimera-open
 )
 

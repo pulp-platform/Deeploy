@@ -67,8 +67,9 @@ ENV TZ=Etc/UTC
 # Export symbols necessary for Deeploy's build flow
 ENV CMAKE=/usr/bin/cmake
 ENV PULP_SDK_HOME=/app/install/pulp-sdk
-ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV SNITCH_HOME=/app/install/snitch_cluster
+ENV CHIMERA_SDK_HOME=/app/install/chimera-sdk
+ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
 ENV SOFTHIER_INSTALL_DIR=/app/install/softhier
 ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
