@@ -191,13 +191,13 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               dest = 'l1',
                               type = int,
                               default = 64000,
-                              help = 'Set L1 size\n')
+                              help = 'Set L1 size in bytes.\n')
             self.add_argument('--l2',
                               metavar = '<size>',
                               dest = 'l2',
                               type = int,
                               default = 1024000,
-                              help = 'Set L2 size\n')
+                              help = 'Set L2 size in bytes.\n')
             self.add_argument('--randomizedMemoryScheduler',
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')

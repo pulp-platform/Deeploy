@@ -1,4 +1,9 @@
-# Deeploy
+<div align="center">
+
+  <img src="docs/img/DeeployLogoGreen.svg" alt="Logo" width="300">
+
+# Deeploy: DNN Compiler for Heterogeneous SoCs
+</div>
 
 [![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
 )](https://pulp-platform.github.io/Deeploy/)
@@ -50,6 +55,7 @@ cd DeeployTest
 python testRunner_generic.py -t Tests/Adder
 python testRunner_cortexm.py -t Tests/Adder
 python testRunner_mempool.py -t Tests/Adder
+python testRunner_snitch.py -t Tests/Adder/
 python testRunner_siracusa.py -t Tests/Adder --cores=8
 python testRunner_snitch.py -t Tests/Adder --cores=9
 ```
