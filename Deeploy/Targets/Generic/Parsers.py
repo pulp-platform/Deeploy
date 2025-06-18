@@ -2664,10 +2664,11 @@ class BatchNormParser(NodeParser):
         # Output principale (Y)
         self.operatorRepresentation[outputs[0]] = ctxt.lookup(node.outputs[0].name).name
 
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
         # Salviamo la dimensione totale dell'input (per es. per allocazioni)
-        self.operatorRepresentation['batch_size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['channel_size'] = np.prod(ctxt.lookup(node.inputs[1].name).shape)
-        self.operatorRepresentation['window_size'] = np.prod(ctxt.lookup(node.inputs[2].name).shape)
+        self.operatorRepresentation['batch_size'] = input_shape[0]
+        self.operatorRepresentation['channel_size'] = input_shape[1]
+        self.operatorRepresentation['window_size'] = input_shape[2]
 
         return ctxt, True
     
