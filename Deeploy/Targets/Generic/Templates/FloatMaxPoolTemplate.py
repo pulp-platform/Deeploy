@@ -23,6 +23,7 @@ END_SINGLE_CORE
 
 reference1DTemplate = NodeTemplate("""
     // 1D Float MaxPool (Name: ${nodeName}, Op: ${nodeOp})
+    fprintf(stderr, "Error inside MaxPool1D");
     BEGIN_SINGLE_CORE
         for (uint32_t n=0; n<${batch}; ++n) {
             MaxPool1d_fp32_fp32(
@@ -30,8 +31,6 @@ reference1DTemplate = NodeTemplate("""
                 ${dim_kernel_y}, ${stride_y},
                 ${data_out}
             );
-            ${data_in} += ${ch_im_in} * ${dim_im_in_y};
-            ${data_out} += ${ch_im_out} * ${dim_im_out_y};
         }
     END_SINGLE_CORE
 """)
