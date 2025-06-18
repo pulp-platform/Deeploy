@@ -40,6 +40,7 @@
 #include "kernel/DWConvolution.h"
 #include "kernel/Div.h"
 #include "kernel/GELU.h"
+#include "kernel/Relu.h"
 #include "kernel/Gemm.h"
 #include "kernel/Hardswish.h"
 #include "kernel/Layernorm.h"

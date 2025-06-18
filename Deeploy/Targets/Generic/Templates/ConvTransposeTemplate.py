@@ -60,6 +60,7 @@ batchOffsetOut = ch_im_out * dim_im_out_y
 %>
 
 // 1D Transposed Conv (Name: ${nodeName}, Op: ${nodeOp})
+fprintf(stderr, "ConvTranspose\\n");
 BEGIN_SINGLE_CORE
     ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
     ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
