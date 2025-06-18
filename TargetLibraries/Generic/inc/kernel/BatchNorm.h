@@ -13,7 +13,9 @@ void BatchNorm_fp32(
     const float32_t *mean,
     const float32_t *var,
     float32_t *output,
-    int N
+    int N,
+    int C,
+    int L
 );
 
 #endif // BATCHNORM_H

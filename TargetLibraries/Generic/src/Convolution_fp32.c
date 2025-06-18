@@ -81,13 +81,13 @@ void Conv1d_fp32_fp32_fp32(
     float32_t *__restrict__ pDstC,       // Output: [C_out, W_out]
     uint32_t W_out
 ) {
-    uint32_t c_out, c_in, w_out, k;
+    uint32_t c_out, c_in, w_out, k, w_in;
     for (c_out = 0; c_out < C_out; ++c_out) {
         for (w_out = 0; w_out < W_out; ++w_out) {
             float32_t sum = 0.0f;
             for (c_in = 0; c_in < C_in; ++c_in) {
                 for (k = 0; k < K; ++k) {
-                    int w_in = w_out * stride + k;
+                    w_in = w_out * stride + k;
                     if (w_in < W_in) {
                         sum += pSrcA[c_in * W_in + w_in] *
                                pSrcB[c_out * C_in * K + c_in * K + k];

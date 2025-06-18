@@ -625,8 +625,11 @@ class BatchNormalizationLayer(ONNXLayer):
         super().__init__(maps)
 
     def computeOps(self):
-        # 5 operazioni per elemento: sub, mul, add, sqrt, div
-        return self.mapper.parser.operatorRepresentation['size'] * 5
+        # 5 operations per element: sub, mul, add, sqrt, div
+        B = self.mapper.parser.operatorRepresentation['batch_size'] 
+        C = self.mapper.parser.operatorRepresentation['channel_size'] 
+        W  = self.mapper.parser.operatorRepresentation['window_size'] 
+        return B * C * W * 5
 
 
 

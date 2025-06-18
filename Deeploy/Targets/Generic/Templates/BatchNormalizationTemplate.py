@@ -2,11 +2,11 @@ from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
 // BatchNorm (Name: ${nodeName}, Op: ${nodeOp})
-
+fprintf(stderr, "Batch\\n");
 BEGIN_SINGLE_CORE
     BatchNorm_fp32(
         ${data_in}, ${scale}, ${bias}, ${mean}, ${variance},
-        ${data_out}, ${size}
+        ${data_out}, ${batch_size}, ${channel_size}, ${window_size}
     );
 END_SINGLE_CORE
 """)
