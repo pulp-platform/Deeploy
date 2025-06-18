@@ -7,4 +7,3 @@
  */
 
 #include "DeeployChimeraMath.h"
-
