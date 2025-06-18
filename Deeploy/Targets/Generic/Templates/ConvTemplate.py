@@ -46,8 +46,7 @@ BEGIN_SINGLE_CORE
             1, ${stride_y},
             ref_${data_out}_${data_out}, ${input_offset}, ${output_offset}
         );
-        ref_${data_out}_${data_in} += ${batchOffsetIn};
-        ref_${data_out}_${data_out} += ${batchOffsetOut};
+       
     }
 END_SINGLE_CORE
 """)
