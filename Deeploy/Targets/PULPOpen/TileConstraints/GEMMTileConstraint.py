@@ -226,16 +226,23 @@ class FloatGEMMTileConstraint(TileConstraint):
         # Get to-be-tiled tensor's buffers
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
-        bufferC = ctxt.lookup(name = parseDict['C'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
+        
+        has_bias = 'C' in parseDict and parseDict['C'] is not None
+        bufferC = None
+        if has_bias:
+            bufferC = ctxt.lookup(name = parseDict['C'])
 
         # Add I/O dimensions to the model as variables
-        for bufferName in [bufferA.name, bufferB.name, bufferC.name, outputBuffer.name]:
+        buffer_names = [bufferA.name, bufferB.name, outputBuffer.name]
+        if has_bias:
+            buffer_names.append(bufferC.name)
+            
+        for bufferName in buffer_names:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         dimOffsetA = len(bufferA.shape) - 2
         dimOffsetB = len(bufferB.shape) - 2
-        dimOffsetC = len(bufferC.shape) - 2
         dimOffsetOut = len(outputBuffer.shape) - 2
 
         AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = dimOffsetA + parseDict['transA'])
@@ -254,10 +261,13 @@ class FloatGEMMTileConstraint(TileConstraint):
         # Add GEMM Geometrical constraints
         tilerModel.addConstraint(ASecondDimVar == BFirstDimVar)
 
-        addDimVar_1 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC)
-        addDimVar_2 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC + 1)
-        tilerModel.addConstraint(outputFirstDimVar == addDimVar_1)
-        tilerModel.addConstraint(outputSecondDimVar == addDimVar_2)
+        # Add bias constraints only if bias is present
+        if has_bias:
+            dimOffsetC = len(bufferC.shape) - 2
+            addDimVar_1 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC)
+            addDimVar_2 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC + 1)
+            tilerModel.addConstraint(outputFirstDimVar == addDimVar_1)
+            tilerModel.addConstraint(outputSecondDimVar == addDimVar_2)
 
         return tilerModel
 
@@ -295,7 +305,14 @@ class FloatGEMMTileConstraint(TileConstraint):
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        addrNames = ['A', 'B', 'C', 'data_out']
+        # Check if C (bias) is present
+        has_bias = 'C' in operatorRepresentation and operatorRepresentation['C'] is not None
+        
+        # Build address names list based on whether bias is present
+        addrNames = ['A', 'B', 'data_out']
+        if has_bias:
+            addrNames.insert(2, 'C')  # Insert 'C' before 'data_out'
+
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
@@ -350,11 +367,13 @@ class FloatGEMMTileConstraint(TileConstraint):
             else:
                 BCube = HyperRectangle((BatchOffset, BOffset, OOffset, NOffset), (BatchSize, BSize, OSize, NSize))
 
-            CCube = HyperRectangle(cube.offset, cube.dims)
-
             inputACubes.append(ACube)
             inputBCubes.append(BCube)
-            inputAddCubes.append(CCube)
+            
+            # Only create C cubes if bias is present
+            if has_bias:
+                CCube = HyperRectangle(cube.offset, cube.dims)
+                inputAddCubes.append(CCube)
 
         inputLoadSchedule = []
         outputLoadSchedule = []
@@ -368,8 +387,13 @@ class FloatGEMMTileConstraint(TileConstraint):
             "batch": PointerClass(uint8_t)
         }
 
-        for a, b, c in zip(inputACubes, inputBCubes, inputAddCubes):
-            inputLoadSchedule.append({"A": a, "B": b, "C": c})
+        # Build input load schedule based on whether bias is present
+        if has_bias:
+            for a, b, c in zip(inputACubes, inputBCubes, inputAddCubes):
+                inputLoadSchedule.append({"A": a, "B": b, "C": c})
+        else:
+            for a, b in zip(inputACubes, inputBCubes):
+                inputLoadSchedule.append({"A": a, "B": b})
 
         for out in outputCubes:
             outputLoadSchedule.append({"data_out": out})

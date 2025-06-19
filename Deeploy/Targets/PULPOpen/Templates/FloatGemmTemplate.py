@@ -22,9 +22,26 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the Licens
-from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.DeeployTypes import NodeTemplate, NetworkContext, OperatorRepresentation
+from Deeploy.AbstractDataTypes import float32_tPtr
+from typing import Tuple, Dict, List
 
-referenceTemplate = NodeTemplate("""
+class FloatGEMMTemplate(NodeTemplate):
+    
+    def __init__(self, templateStr):
+        super().__init__(templateStr)
+    
+    def alignToContext(self, ctxt: NetworkContext,
+                      operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
+    
+        if 'C' not in operatorRepresentation or operatorRepresentation['C'] is None:
+            # No bias case - set C to NULL and provide a default type
+            operatorRepresentation['C'] = None
+            operatorRepresentation['C_type'] = float32_tPtr  # Default to fp32 type
+        
+        return ctxt, operatorRepresentation, []
+
+referenceTemplate = FloatGEMMTemplate("""
 // GEMM (Name: ${nodeName}, Op: ${nodeOp})
 int8_t ${nodeName}_core_id = pi_core_id();
 int8_t ${nodeName}_log2Core = log2(NUM_CORES);
@@ -35,13 +52,21 @@ int32_t ${nodeName}_M_size = ${nodeName}_M_end - ${nodeName}_M_start;
 
 ${A_type.typeName} ref_${data_out}_${A} = ${A};
 ${B_type.typeName} ref_${data_out}_${B} = ${B};
+% if C is not None:
 ${C_type.typeName} ref_${data_out}_${C} = ${C};
+% else:
+${C_type.typeName} ref_${data_out}_C = NULL;
+% endif
 ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
 for(uint32_t i=0; i<${batch}; i++) {
     ${A_type.typeName} batch_A = ref_${data_out}_${A} + i * ${M} * ${N};
     ${B_type.typeName} batch_B = ref_${data_out}_${B} + i * ${N} * ${O};
+% if C is not None:
     ${C_type.typeName} batch_C = ref_${data_out}_${C} + i * ${M} * ${O};
+% else:
+    ${C_type.typeName} batch_C = NULL;
+% endif
     ${data_out_type.typeName} batch_out = ref_${data_out}_${data_out} + i * ${M} * ${O};
     
     if (${nodeName}_M_size > 0) {
