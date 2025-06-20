@@ -1,4 +1,3 @@
-
 # ----------------------------------------------------------------------
 #
 # File: GEMMTileConstraint.py
@@ -8,8 +7,7 @@
 # Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
 # Author:
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-# - Moritz Scherer, scheremo@iis.ee.ethz.ch, ETH Zurich
+# - Run Wang, ETH Zurich
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -46,16 +44,23 @@ class RedmuleGEMMTileConstraint(TileConstraint):
         # Get to-be-tiled tensor's buffers
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
-        bufferC = ctxt.lookup(name = parseDict['C'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
 
+        # Check if bias exists
+        has_bias = 'C' in parseDict and parseDict['C'] is not None
+        if has_bias:
+            bufferC = ctxt.lookup(name = parseDict['C'])
+
         # Add I/O dimensions to the model as variables
-        for bufferName in [bufferA.name, bufferB.name, bufferC.name, outputBuffer.name]:
+        tensor_names = [bufferA.name, bufferB.name, outputBuffer.name]
+        if has_bias:
+            tensor_names.append(bufferC.name)
+            
+        for bufferName in tensor_names:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         dimOffsetA = len(bufferA.shape) - 2
         dimOffsetB = len(bufferB.shape) - 2
-        dimOffsetC = len(bufferC.shape) - 2
         dimOffsetOut = len(outputBuffer.shape) - 2
 
         AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = dimOffsetA + parseDict['transA'])
@@ -74,10 +79,13 @@ class RedmuleGEMMTileConstraint(TileConstraint):
         # Add GEMM Geometrical constraints
         tilerModel.addConstraint(ASecondDimVar == BFirstDimVar)
 
-        addDimVar_1 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC)
-        addDimVar_2 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC + 1)
-        tilerModel.addConstraint(outputFirstDimVar == addDimVar_1)
-        tilerModel.addConstraint(outputSecondDimVar == addDimVar_2)
+        # Add bias constraints only if bias exists
+        if has_bias:
+            dimOffsetC = len(bufferC.shape) - 2
+            addDimVar_1 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC)
+            addDimVar_2 = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = dimOffsetC + 1)
+            tilerModel.addConstraint(outputFirstDimVar == addDimVar_1)
+            tilerModel.addConstraint(outputSecondDimVar == addDimVar_2)
 
         return tilerModel
 
@@ -114,7 +122,15 @@ class RedmuleGEMMTileConstraint(TileConstraint):
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        addrNames = ['A', 'B', 'C', 'data_out']
+        # Check if bias exists
+        has_bias = 'C' in operatorRepresentation and operatorRepresentation['C'] is not None
+        
+        # Adjust address names based on bias existence
+        if has_bias:
+            addrNames = ['A', 'B', 'C', 'data_out']
+        else:
+            addrNames = ['A', 'B', 'data_out']
+            
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
@@ -169,11 +185,13 @@ class RedmuleGEMMTileConstraint(TileConstraint):
             else:
                 BCube = HyperRectangle((BatchOffset, BOffset, OOffset, NOffset), (BatchSize, BSize, OSize, NSize))
 
-            CCube = HyperRectangle(cube.offset, cube.dims)
-
             inputACubes.append(ACube)
             inputBCubes.append(BCube)
-            inputAddCubes.append(CCube)
+            
+            # Only add bias cubes if bias exists
+            if has_bias:
+                CCube = HyperRectangle(cube.offset, cube.dims)
+                inputAddCubes.append(CCube)
 
         inputLoadSchedule = []
         outputLoadSchedule = []
@@ -187,8 +205,13 @@ class RedmuleGEMMTileConstraint(TileConstraint):
             "batch": PointerClass(uint8_t)
         }
 
-        for a, b, c in zip(inputACubes, inputBCubes, inputAddCubes):
-            inputLoadSchedule.append({"A": a, "B": b, "C": c})
+        # Create input load schedule based on bias existence
+        if has_bias:
+            for a, b, c in zip(inputACubes, inputBCubes, inputAddCubes):
+                inputLoadSchedule.append({"A": a, "B": b, "C": c})
+        else:
+            for a, b in zip(inputACubes, inputBCubes):
+                inputLoadSchedule.append({"A": a, "B": b})
 
         for out in outputCubes:
             outputLoadSchedule.append({"data_out": out})

@@ -1,5 +1,0 @@
-[92mMemory allocation sucessful![0m
-Generation Directory:  /app/Deeploy/DeeployTest/TEST_SIRACUSA/Tests/testTrainCCT/CCT2_test2
-Test Directory      :  Tests/testTrainCCT/CCT2_test2
-Test Name           :  CCT2_test2
-[91m################## Testing Tests/testTrainCCT/CCT2_test2 on Siracusa Platform ##################[00m

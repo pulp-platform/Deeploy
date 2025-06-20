@@ -42,11 +42,11 @@ class TilingMetaInfo:
 _CodeSegmentType = List[CodeSnippet]
 
 _measureCycles = NodeTemplate("""
-${nodeName}_${measurementName}_measurements[${tileIdx}] = getCycles();
+${nodeName}_${measurementName}_t[${tileIdx}] = getCycles();
 """)
 
 _measurementArrayDeclaration = NodeTemplate("""
-uint32_t ${nodeName}_${measurementName}_measurements[${numTiles}];
+static uint32_t ${nodeName}_${measurementName}_t[${numTiles}];
 """)
 
 _printPrefixAndSufixDeclaration = NodeTemplate("""
@@ -74,7 +74,7 @@ for (int printLoopIdx = DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nod
 """)
 _printCycleDifference = NodeTemplate(r"""
 printf("%s%u] %s%u%s", ${nodeName}_prefix,${tileIdx},"${flavorStr}", \
-${nodeName}_${endMeasurementName}_measurements[${tileIdx}] - ${nodeName}_${startMeasurementName}_measurements[${tileIdx}],${nodeName}_suffix);
+${nodeName}_${endMeasurementName}_t[${tileIdx}] - ${nodeName}_${startMeasurementName}_t[${tileIdx}],${nodeName}_suffix);
 """)
 
 _printLoopTeardown = NodeTemplate("""

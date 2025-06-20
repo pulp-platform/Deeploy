@@ -51,5 +51,6 @@
 #include "kernel/UniformRequantShift.h"
 #include "kernel/gemv.h"
 #include "kernel/iRMSnorm.h"
+#include "kernel/Redmule.h"
 
 #endif // __DEEPLOY_MATH_HEADER_
