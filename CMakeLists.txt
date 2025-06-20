@@ -244,8 +244,13 @@ if(platform STREQUAL Chimera)
 
   project(deeploy LANGUAGES C ASM)
 
+  set(TARGET_PLATFORM "chimera-open")
+  set(TEST_MODE "none")
+
   message(STATUS "============================= ${platform} Configuration ============================")
-  message(STATUS "[cMake  ]   TODO                                                                    ")
+  message(STATUS "[cMake  ]   TARGET_PLATFORM          = " ${TARGET_PLATFORM})
+  message(STATUS "[cMake  ]   ISA                      = " ${ISA})
+  message(STATUS "[cMake  ]   TEST_MODE                = " ${TEST_MODE})
   message(STATUS "====================================================================================")
   message(STATUS "")
 

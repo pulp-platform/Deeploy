@@ -72,7 +72,7 @@ SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
 GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
-CHIMERA_SDK_COMMIT_HASH ?= b10071b55432fd26420c2de4c4e0562eb41d5420
+CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
 XTENSOR_VERSION ?= 0.25.0
@@ -558,7 +558,7 @@ ${TOOLCHAIN_DIR}/minimalloc:
 
 ${CHIMERA_SDK_INSTALL_DIR}:
 	mkdir -p ${DEEPLOY_INSTALL_DIR} && cd ${DEEPLOY_INSTALL_DIR} && \
-	git clone https://github.com/victor-jung/chimera-sdk.git && \
+	git clone https://github.com/pulp-platform/chimera-sdk.git && \
 	cd ${CHIMERA_SDK_INSTALL_DIR} && git checkout ${CHIMERA_SDK_COMMIT_HASH}
 
 chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
