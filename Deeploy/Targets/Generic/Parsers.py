@@ -334,7 +334,7 @@ class PadParser(NodeParser):
 
 
     def parseNode(self, node: gs.Node) -> bool:
-        print(f"PadParser parseNode: attributi nodo = {node.attrs}")
+        
 
         ret = all([
             'mode' in node.attrs, 'pads' in node.attrs, 'value' in node.attrs,
@@ -350,8 +350,7 @@ class PadParser(NodeParser):
                 self.operatorRepresentation['pads'] = node.attrs['pads']
             # self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['value'] = node.attrs['value']
-        print(f"PadParser pasds: { self.operatorRepresentation['pads'] }")
-        print(f"PadParser value: {self.operatorRepresentation['value']}")
+
         return ret
 
     def parseNodeCtxt(self,
@@ -447,7 +446,7 @@ class Pad1DParser(PadParser):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        print(f"Pad1DParser.parseNodeCtxt CALLED for node: {node.name}")
+
         
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
@@ -455,7 +454,6 @@ class Pad1DParser(PadParser):
         if ret:
             data_in = newCtxt.lookup(node.inputs[0].name)
             data_out = newCtxt.lookup(node.outputs[0].name)
-            # print(f"Pad1DParser.parseNodeCtxt: data_in.shape={data_in.shape}, data_out.shape={data_out.shape}")
             if len(data_in.shape) == 3:
                 wellFormed = True
                 self.operatorRepresentation['batch'] = data_in.shape[0]
@@ -471,7 +469,6 @@ class Pad1DParser(PadParser):
                     self.operatorRepresentation['dim_im_in_ch'] = data_in.shape[2]
                     self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
                     self.operatorRepresentation['dim_im_out_ch'] = data_out.shape[2]
-        print(f'value of wellformed1d {wellFormed}')
         return newCtxt, wellFormed
 
 
@@ -2660,7 +2657,6 @@ class BatchNormParser(NodeParser):
         return True
 
     def parseNodeCtxt(self, ctxt, node: gs.Node, channels_first: bool = True):
-        print(f"[ConvTransposeParser] parseNodeCtxt called for node: {node.name}")
         inputs = ['data_in', 'scale', 'bias', 'mean', 'variance']
         outputs = ['data_out']
 
@@ -2692,10 +2688,6 @@ class ConvTransposeParser(NodeParser):
         kernel_shape = node.attrs.get('kernel_shape', None)
         dilations = node.attrs.get('dilations', [1])
         group = node.attrs.get('group', 1)
-        for i, inp in enumerate(node.inputs):
-            print(f"ConvTranspose input {i}: name={inp.name}, shape={getattr(inp, 'shape', None)}")
-        for i, out in enumerate(node.outputs):
-            print(f"ConvTranspose output {i}: name={out.name}, shape={getattr(out, 'shape', None)}")
         
         
         # Check for required attributes
