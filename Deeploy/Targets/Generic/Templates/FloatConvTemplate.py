@@ -46,18 +46,5 @@ reference1DTemplate = NodeTemplate("""
                 ${dim_im_out_y}
             );
         }
-                                   
-        // Stampa output 
-        for (int b = 0; b < ${batch}; ++b) {
-            printf("Batch %d:\\n", b);
-            for (int c = 0; c < ${ch_im_out}; ++c) {
-                printf("Channel %d: ", c);
-                for (int x = 0; x < ${dim_im_out_y}; ++x) {
-                    int idx = b * (${ch_im_out} * ${dim_im_out_y}) + c * ${dim_im_out_y} + x;
-                    printf("%f ", ref_${data_out}_${data_out}[idx]);
-                }
-                printf("\\n");
-            }
-        }
     END_SINGLE_CORE
     """)

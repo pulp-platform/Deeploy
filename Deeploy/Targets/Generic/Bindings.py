@@ -7,8 +7,8 @@ import itertools
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
-    int8_t, int32_t, uint8_t
+from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, FloatDataTypes, float32_t, int8_t, int32_t, \
+    uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
@@ -341,31 +341,31 @@ BasicConvTransposeBindings = [
 BasicBatchNormBindings = [
     NodeBinding(
         BatchNormChecker(
-            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],
-            [PointerClass(float32_t)]
+            [PointerClass(type), PointerClass(type), PointerClass(type), PointerClass(type), PointerClass(type)],
+            [PointerClass(type)]
         ),
         BatchNormalizationTemplate.referenceTemplate,
-        BasicTransformer  # usa lo stesso se non hai un transformer dedicato
-    )
+        BasicTransformer 
+    ) for type in FloatDataTypes
 ]
 
 
 BasicConvTransposeBindings = [
     NodeBinding(
         ConvTransposeChecker(
-            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],  # input, weight, bias
-            [PointerClass(float32_t)]
+            [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
+            [PointerClass(type)]
         ),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer
-    ),
+    ) for type in FloatDataTypes ] + [
     NodeBinding(
         ConvTransposeChecker(
-            [PointerClass(float32_t), PointerClass(float32_t)],  # input, weight
-            [PointerClass(float32_t)]
+            [PointerClass(type), PointerClass(type)],  # input, weight
+            [PointerClass(type)]
         ),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer
-    )
+    ) for type in FloatDataTypes
     
 ]

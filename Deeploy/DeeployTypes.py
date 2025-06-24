@@ -1066,9 +1066,6 @@ class NetworkContext():
 
         """
         obj = self.lookup(name)
-        if not isinstance(_type, type):
-            print(f"[ERROR] annotateType: _type is not a class! name={name}, type={_type}")
-        print(f"[DEBUG] annotateType: About to assign type {_type} (type: {type(_type)}) to {name}")
         obj._type = _type
         obj._instance = _type(name, ctxt = self)
 
@@ -1329,7 +1326,6 @@ class NodeTypeChecker():
         outputTypes = self.output_types
         
         for name, output_type in zip(outputNames, outputTypes):
-            print(f"[DEBUG] Annotating output {name} with type {output_type}")
             newCtxt.annotateType(name, output_type)
 
         return newCtxt
@@ -1354,15 +1350,12 @@ class NodeTypeChecker():
 
         for inputNode, _type in zip(node.inputs, self.input_types):
             reference = ctxt.lookup(inputNode.name)
-            #print(f"[DEBUG] Checking input '{inputNode.name}': expected {_type}, got {reference}")
 
             if not isinstance(reference, VariableBuffer):
-                #print(f"[DEBUG] -> Not a VariableBuffer: {reference}")
                 return False
 
             if hasattr(reference, "values"):
                 ok =  _type.referencedType.checkPromotion(reference.values)
-                #print(f"[DEBUG] -> checkPromotion: {ok}")  ##### ricordati di cambiare questo
                 retCheck &= ok
             else:
                 if ctxt.is_global(inputNode.name):
@@ -1654,9 +1647,9 @@ class NodeBinding():
         
         """
 
-        #print(f"[DEBUG] NodeBinding: Using typeChecker: {self.typeChecker} for node {node.name}")
+
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
-        #print(f'value of ret inside typeCheck  of NodeBinding {ret}')
+
         if ret:
             log.debug(f" {SUCCESS_MARK} Type check passed for {self}")
             return newCtxt, True
@@ -1817,13 +1810,9 @@ class NodeMapper():
 
             if binder in self.discardedBindings:
                 continue
-            #print(f"Trying binder {binder} ({type(binder)}) for node {node.name}")
             newCtxt, ret = binder.typeCheck(ctxt.copy(), node, self.parser.operatorRepresentation)
-            #print(f"typeCheck result: {ret}")
 
             if not ret:
-                if hasattr(binder, 'debugInfo'):
-                    print(f"Binder debug info: {binder.debugInfo()}")
                 self.discardedBindings.add(binder)
                 continue
 
@@ -2058,7 +2047,6 @@ class ONNXLayer():
             ioParse = not ret
 
             if not ret:
-                #print('!!!! Mapper Discarded  !!!')
                 self.discardedMappers.add(mapper)
                 continue
 
@@ -2090,7 +2078,6 @@ class ONNXLayer():
 
         def _broadcastFloat(ty: Type[FloatImmediate]):
             return np.dtype(getattr(np, "double"))
-        #print(f"[DEBUG] _broadcastToNpType: ty={ty} ({type(ty)}) for node {getattr(self.node, 'name', None)}")
         if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
             if issubclass(ty.referencedType, IntegerImmediate):
                 return _broadcastInteger(ty.referencedType)
@@ -2121,7 +2108,6 @@ class ONNXLayer():
             return ctxt, False
 
         newCtxt = ctxt.copy()
-        print(f"[DEBUG] NodeBinding: Using typeChecker: {type(self.typeCheck)} for node {self.node.name}")
         newCtxt, ret = self.mapper.typeCheck(newCtxt, self.node)
 
         if ret:
@@ -2660,7 +2646,6 @@ class NetworkContainer():
         newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
 
         if not parsePass:
-            print(f"[DEBUG] Parsing failed at node {node.node.name} during parse step.")
             return ctxt, False
 
         return newCtxt, True
@@ -2669,7 +2654,6 @@ class NetworkContainer():
         newCtxt, LayerBindSuccess = node.typeCheck(ctxt)
 
         if not LayerBindSuccess:
-            print(f"[DEBUG] Type check failed at node {node.node.name}.")
             return ctxt, False
 
         return newCtxt, True
