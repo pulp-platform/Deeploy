@@ -392,10 +392,8 @@ def _extract_padding_fun_conv(graph: gs.Graph, match: Match, name: str, value = 
                          },
                          inputs = [conv.inputs[0]],
                          outputs = [newConvInput])
-        print(f"[DEBUG] Pad input dtype: {conv.inputs[0].dtype}")
 
         conv.inputs[0] = newConvInput
-        print(f"[DEBUG] Pad new input dtype: {newConvInput.dtype}")
         graph.nodes.append(newPad)
         graph.cleanup().toposort()
 

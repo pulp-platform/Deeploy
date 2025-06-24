@@ -331,7 +331,7 @@ class PadParser(NodeParser):
 
 
     def parseNode(self, node: gs.Node) -> bool:
-        print(f"PadParser parseNode: attributi nodo = {node.attrs}")
+        
 
         ret = all([
             'mode' in node.attrs, 'pads' in node.attrs, 'value' in node.attrs,
@@ -347,8 +347,7 @@ class PadParser(NodeParser):
                 self.operatorRepresentation['pads'] = node.attrs['pads']
             # self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['value'] = node.attrs['value']
-        print(f"PadParser pasds: { self.operatorRepresentation['pads'] }")
-        print(f"PadParser value: {self.operatorRepresentation['value']}")
+
         return ret
 
     def parseNodeCtxt(self,
@@ -378,8 +377,7 @@ class Pad2DParser(PadParser):
         wellFormed = False
         if ret:
             pads = self.operatorRepresentation['pads']
-            print(f"Pad2DParser parseNode: pads={pads}")
-            # print(f"Pad2DParser check pads length: {len(pads)}")
+
             if len(pads) == 8 and pads[0] == 0 and pads[4] == 0 \
             and pads[1] == 0 and pads[5] == 0:
                 wellFormed = True
@@ -431,8 +429,7 @@ class Pad1DParser(PadParser):
         wellFormed = False
         if ret:
             pads = self.operatorRepresentation['pads']
-            print(f'Pad1DParser: {type(pads)}')
-            print(f"Pad1DParser check pads length: {len(pads)}")
+
             if len(pads) == 6 and pads[0] == 0 and pads[3] == 0 \
             and pads[1] == 0 and pads[4] == 0:
                 wellFormed = True
@@ -445,15 +442,14 @@ class Pad1DParser(PadParser):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        print(f"Pad1DParser.parseNodeCtxt CALLED for node: {node.name}")
+
         
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-        print(f"Pad1DParser.parseNodeCtxt: ret={ret}")
+    
         wellFormed = False
         if ret:
             data_in = newCtxt.lookup(node.inputs[0].name)
             data_out = newCtxt.lookup(node.outputs[0].name)
-            # print(f"Pad1DParser.parseNodeCtxt: data_in.shape={data_in.shape}, data_out.shape={data_out.shape}")
             if len(data_in.shape) == 3:
                 wellFormed = True
                 self.operatorRepresentation['batch'] = data_in.shape[0]
@@ -469,7 +465,6 @@ class Pad1DParser(PadParser):
                     self.operatorRepresentation['dim_im_in_ch'] = data_in.shape[2]
                     self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
                     self.operatorRepresentation['dim_im_out_ch'] = data_out.shape[2]
-        print(f'value of wellformed1d {wellFormed}')
         return newCtxt, wellFormed
 
 
@@ -1215,7 +1210,6 @@ class ConvParser(NodeParser):
             'strides' in node.attrs,
             len(node.outputs) == 1,
         ])
-        #print(f"[DEBUG] ConvParser wellformed: {wellFormed}")
         if wellFormed:
             self.operatorRepresentation['group'] = node.attrs['group']
             self.operatorRepresentation['pads'] = node.attrs['pads']
@@ -2180,7 +2174,6 @@ class GenericConv1DParser(Conv1DParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
         wellFormed = super().parseNode(node)
-        #print(f"[DEBUG] Node: {node.name}, op: {node.op}, attrs: {node.attrs}, inputs: {[i.shape for i in node.inputs]}")
         if wellFormed:
             ret = all([
                 # Make sure padding is square
@@ -2189,7 +2182,6 @@ class GenericConv1DParser(Conv1DParser):
                 self.operatorRepresentation['pads'][0] == 0,
                 all([coeff == 1 for coeff in self.operatorRepresentation['dilations']]),
             ])
-            print(f"GenericConv1DParser ret value from parseNode: {ret}")
             return ret
 
     def parseNodeCtxt(self,
@@ -2198,7 +2190,6 @@ class GenericConv1DParser(Conv1DParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-        print(f"[DEBUG] newctxt: {newCtxt}")
         if ret:
             inputs = ['data_in', 'weight']
             # Handle bias, if present
@@ -2210,10 +2201,8 @@ class GenericConv1DParser(Conv1DParser):
                 self.operatorRepresentation["bias"] = "NULL"
             for idx, inputNode in enumerate(node.inputs):
                 if idx >= len(inputs):
-                    print(f"[DEBUG] Node: {inputNode.name}, idx: {idx}, inputs: {inputs}")
                     raise IndexError(f"Index {idx} out of range for inputs of length {len(inputs)} in node {inputNode.name}")
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-            print(", ".join(f"{k}: {v}" for k, v in self.operatorRepresentation.items()))
             return newCtxt, True
 
         return ctxt, False
@@ -2638,14 +2627,14 @@ class BatchNormParser(NodeParser):
         
 
     def parseNode(self, node: gs.Node) -> bool:
-        # Verifica attributi richiesti (epsilon è obbligatorio, momentum e training_mode opzionali)
+        # Verify the attributes (epsilon is mandatory, momentum and training_mode  are optional)
         if 'epsilon' not in node.attrs:
             return False
-        # Inputs tipici: 5 (X, scale, B, mean, var)
+        # Common Inputs: 5 (X, scale, B, mean, var)
         if len(node.inputs) < 5:
             return False
 
-        # Salviamo gli attributi rilevanti, con valori di default se mancano
+        # Save the attributes, default values are provided if not present
         self.operatorRepresentation['epsilon'] = node.attrs.get('epsilon', 1e-5)
         self.operatorRepresentation['momentum'] = node.attrs.get('momentum', 0.9)
         self.operatorRepresentation['training_mode'] = node.attrs.get('training_mode', 0)
@@ -2653,19 +2642,18 @@ class BatchNormParser(NodeParser):
         return True
 
     def parseNodeCtxt(self, ctxt, node: gs.Node, channels_first: bool = True):
-        print(f"[ConvTransposeParser] parseNodeCtxt called for node: {node.name}")
         inputs = ['data_in', 'scale', 'bias', 'mean', 'variance']
         outputs = ['data_out']
 
-        # Assumiamo solo il primo output (Y) per semplicità, anche se ci possono essere running_mean e running_var opzionali
+        
         for idx, inputNode in enumerate(node.inputs[:5]):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
-        # Output principale (Y)
+        # Output (Y)
         self.operatorRepresentation[outputs[0]] = ctxt.lookup(node.outputs[0].name).name
 
         input_shape = ctxt.lookup(node.inputs[0].name).shape
-        # Salviamo la dimensione totale dell'input (per es. per allocazioni)
+        # Save input shape information
         self.operatorRepresentation['batch_size'] = input_shape[0]
         self.operatorRepresentation['channel_size'] = input_shape[1]
         self.operatorRepresentation['window_size'] = input_shape[2]
@@ -2685,10 +2673,6 @@ class ConvTransposeParser(NodeParser):
         kernel_shape = node.attrs.get('kernel_shape', None)
         dilations = node.attrs.get('dilations', [1])
         group = node.attrs.get('group', 1)
-        for i, inp in enumerate(node.inputs):
-            print(f"ConvTranspose input {i}: name={inp.name}, shape={getattr(inp, 'shape', None)}")
-        for i, out in enumerate(node.outputs):
-            print(f"ConvTranspose output {i}: name={out.name}, shape={getattr(out, 'shape', None)}")
         
         
         # Check for required attributes

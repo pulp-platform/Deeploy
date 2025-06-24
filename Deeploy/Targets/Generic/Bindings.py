@@ -7,7 +7,7 @@ import itertools
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, FloatDataTypes, float32_t, \
     int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
@@ -55,9 +55,9 @@ BasicAddBindings = [
 
 BasicConv1DBindings =[
     NodeBinding(
-        ConvChecker([PointerClass(float32_t), PointerClass(float32_t), 
-                     PointerClass(float32_t)], [PointerClass(float32_t)]),FloatConvTemplate.reference1DTemplate,
-            BasicTransformer)
+        ConvChecker([PointerClass(type), PointerClass(type), 
+                     PointerClass(type)], [PointerClass(type)]),FloatConvTemplate.reference1DTemplate,
+            BasicTransformer) for type in FloatDataTypes
 ] + [ NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                  ConvTemplate.reference1DTemplate, BasicTransformer) 
 ]  
@@ -153,11 +153,11 @@ BasicMatMulBindings = [
                 FloatMatMulTemplate.referenceTemplate, BasicTransformer)
 ]
 
-BasicMaxPool1DBinding = NodeBinding(
-        MaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),  
+BasicMaxPool1DBindings = [NodeBinding(
+        MaxPoolChecker([PointerClass(type)], [PointerClass(type)]),  
         FloatMaxPoolTemplate.reference1DTemplate,  
         BasicTransformer
-    )
+    ) for type in FloatDataTypes ]
 
 
 BasicMaxPool2DBindings = [
@@ -182,10 +182,10 @@ BasicPad1DBindings = [
                 BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
     NodeBinding(
-        PadChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        PadChecker([PointerClass(type)], [PointerClass(type)]),
         FloatPadTemplate.reference1DTemplate,
         BasicTransformer
-    )
+    ) for type in FloatDataTypes
 ]
 
 BasicPad2DBindings = [
@@ -291,31 +291,31 @@ BasicDequantBindings = [
 BasicBatchNormBindings = [
     NodeBinding(
         BatchNormChecker(
-            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],
-            [PointerClass(float32_t)]
+            [PointerClass(type), PointerClass(type), PointerClass(type), PointerClass(type), PointerClass(type)],
+            [PointerClass(type)]
         ),
         BatchNormalizationTemplate.referenceTemplate,
-        BasicTransformer  # usa lo stesso se non hai un transformer dedicato
-    )
+        BasicTransformer 
+    ) for type in FloatDataTypes
 ]
 
 
 BasicConvTransposeBindings = [
     NodeBinding(
         ConvTransposeChecker(
-            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],  # input, weight, bias
-            [PointerClass(float32_t)]
+            [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
+            [PointerClass(type)]
         ),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer
-    ),
+    ) for type in FloatDataTypes ] + [
     NodeBinding(
         ConvTransposeChecker(
-            [PointerClass(float32_t), PointerClass(float32_t)],  # input, weight
-            [PointerClass(float32_t)]
+            [PointerClass(type), PointerClass(type)],  # input, weight
+            [PointerClass(type)]
         ),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer
-    )
+    ) for type in FloatDataTypes
     
 ]

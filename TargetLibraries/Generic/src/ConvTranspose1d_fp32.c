@@ -14,21 +14,21 @@ void ConvTranspose1d_fp32(const float32_t *input, uint32_t C_in, uint32_t W_in,
     bias:        [C_out] opzionale
     */
 
-    // Inizializzo output a zero
+    // Output initialization 
     for (uint32_t c = 0; c < C_out; ++c) {
         for (uint32_t w = 0; w < W_out; ++w) {
             output[c * W_out + w] = 0.0f;
         }
     }
 
-    // Per ogni output canale
+    //For each output channel
     for (uint32_t cout = 0; cout < C_out; ++cout) {
-        // Per ogni input canale
+        // For each input channel
         for (uint32_t cin = 0; cin < C_in; ++cin) {
-            // Per ogni elemento input
+            // For each input width
             for (uint32_t w_in = 0; w_in < W_in; ++w_in) {
                 float32_t val = input[cin * W_in + w_in];
-                // Convoluzione trasposta: moltiplico input per filtro e accumulo
+                // Transposed convolution: output width is calculated based on stride
                 for (uint32_t k = 0; k < K; ++k) {
                     uint32_t w_out = w_in * stride + k;
                     if (w_out < W_out) {
