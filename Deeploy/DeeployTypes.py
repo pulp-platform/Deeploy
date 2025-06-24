@@ -1350,15 +1350,12 @@ class NodeTypeChecker():
 
         for inputNode, _type in zip(node.inputs, self.input_types):
             reference = ctxt.lookup(inputNode.name)
-            print(f"[DEBUG] Checking input '{inputNode.name}': expected {_type}, got {reference}")
 
             if not isinstance(reference, VariableBuffer):
-                print(f"[DEBUG] -> Not a VariableBuffer: {reference}")
                 return False
 
             if hasattr(reference, "values"):
                 ok =  _type.referencedType.checkPromotion(reference.values)
-                print(f"[DEBUG] -> checkPromotion: {ok}")  ##### ricordati di cambiare questo
                 retCheck &= ok
             else:
                 if ctxt.is_global(inputNode.name):
@@ -1650,7 +1647,9 @@ class NodeBinding():
         
         """
 
+
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
+
 
         if ret:
             log.debug(f" {SUCCESS_MARK} Type check passed for {self}")
@@ -1813,11 +1812,8 @@ class NodeMapper():
             if binder in self.discardedBindings:
                 continue
             newCtxt, ret = binder.typeCheck(ctxt.copy(), node, self.parser.operatorRepresentation)
-            print(f"typeCheck result: {ret}")
 
             if not ret:
-                if hasattr(binder, 'debugInfo'):
-                    print(f"Binder debug info: {binder.debugInfo()}")
                 self.discardedBindings.add(binder)
                 continue
 
@@ -2052,7 +2048,6 @@ class ONNXLayer():
             ioParse = not ret
 
             if not ret:
-                print('!!!! Mapper Discarded  !!!')
                 self.discardedMappers.add(mapper)
                 continue
 
@@ -2084,7 +2079,6 @@ class ONNXLayer():
 
         def _broadcastFloat(ty: Type[FloatImmediate]):
             return np.dtype(getattr(np, "double"))
-
         if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
             if issubclass(ty.referencedType, IntegerImmediate):
                 return _broadcastInteger(ty.referencedType)
@@ -2115,7 +2109,6 @@ class ONNXLayer():
             return ctxt, False
 
         newCtxt = ctxt.copy()
-        print(f"[DEBUG] NodeBinding: Using typeChecker: {type(self.typeCheck)} for node {self.node.name}")
         newCtxt, ret = self.mapper.typeCheck(newCtxt, self.node)
 
         if ret:
@@ -2654,7 +2647,6 @@ class NetworkContainer():
         newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
 
         if not parsePass:
-            print(f"[DEBUG] Parsing failed at node {node.node.name} during parse step.")
             return ctxt, False
 
         return newCtxt, True
@@ -2663,7 +2655,6 @@ class NetworkContainer():
         newCtxt, LayerBindSuccess = node.typeCheck(ctxt)
 
         if not LayerBindSuccess:
-            print(f"[DEBUG] Type check failed at node {node.node.name}.")
             return ctxt, False
 
         return newCtxt, True

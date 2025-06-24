@@ -333,7 +333,7 @@ class PadParser(NodeParser):
 
 
     def parseNode(self, node: gs.Node) -> bool:
-        print(f"PadParser parseNode: attributi nodo = {node.attrs}")
+        
 
         ret = all([
             'mode' in node.attrs, 'pads' in node.attrs, 'value' in node.attrs,
@@ -349,8 +349,7 @@ class PadParser(NodeParser):
                 self.operatorRepresentation['pads'] = node.attrs['pads']
             # self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['value'] = node.attrs['value']
-        print(f"PadParser pasds: { self.operatorRepresentation['pads'] }")
-        print(f"PadParser value: {self.operatorRepresentation['value']}")
+
         return ret
 
     def parseNodeCtxt(self,
@@ -380,6 +379,7 @@ class Pad2DParser(PadParser):
         wellFormed = False
         if ret:
             pads = self.operatorRepresentation['pads']
+
 
             if len(pads) == 8 and pads[0] == 0 and pads[4] == 0 \
             and pads[1] == 0 and pads[5] == 0:
@@ -445,15 +445,14 @@ class Pad1DParser(PadParser):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        print(f"Pad1DParser.parseNodeCtxt CALLED for node: {node.name}")
+
         
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-
+    
         wellFormed = False
         if ret:
             data_in = newCtxt.lookup(node.inputs[0].name)
             data_out = newCtxt.lookup(node.outputs[0].name)
-            # print(f"Pad1DParser.parseNodeCtxt: data_in.shape={data_in.shape}, data_out.shape={data_out.shape}")
             if len(data_in.shape) == 3:
                 wellFormed = True
                 self.operatorRepresentation['batch'] = data_in.shape[0]
@@ -469,7 +468,6 @@ class Pad1DParser(PadParser):
                     self.operatorRepresentation['dim_im_in_ch'] = data_in.shape[2]
                     self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
                     self.operatorRepresentation['dim_im_out_ch'] = data_out.shape[2]
-        print(f'value of wellformed1d {wellFormed}')
         return newCtxt, wellFormed
 
 
@@ -2209,8 +2207,7 @@ class GenericConv1DParser(Conv1DParser):
                 self.operatorRepresentation["bias"] = "NULL"
             for idx, inputNode in enumerate(node.inputs):
                 if idx >= len(inputs):
-                    raise IndexError(
-                        f"Index {idx} out of range for inputs of length {len(inputs)} in node {inputNode.name}")
+                    raise IndexError(f"Index {idx} out of range for inputs of length {len(inputs)} in node {inputNode.name}")
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
             return newCtxt, True
@@ -2652,7 +2649,6 @@ class BatchNormParser(NodeParser):
         return True
 
     def parseNodeCtxt(self, ctxt, node: gs.Node, channels_first: bool = True):
-        print(f"[ConvTransposeParser] parseNodeCtxt called for node: {node.name}")
         inputs = ['data_in', 'scale', 'bias', 'mean', 'variance']
         outputs = ['data_out']
 
