@@ -7,7 +7,6 @@ from typing import Tuple
 
 import numpy as np
 import onnx_graphsurgeon as gs
-import warnings
 
 from Deeploy.DeeployTypes import NetworkContext, NodeParser, VariableBuffer
 
@@ -222,6 +221,48 @@ class MaxPoolParser(NodeParser):
         return ctxt, True
 
 
+class MaxPool1DParser(MaxPoolParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = super().parseNode(node)
+        wellFormed = False
+        if ret:
+            pads = self.operatorRepresentation['pads']
+            kernel_shape = self.operatorRepresentation['kernel_shape']
+            strides = self.operatorRepresentation['strides']
+            # 1D: pads should be length 2, kernel_shape length 1, strides length 1
+            if len(pads) == 2 and len(kernel_shape) == 1 and len(strides) == 1:
+                wellFormed = True
+                self.operatorRepresentation['padding_y'] = int(pads[0])
+                self.operatorRepresentation['padding_y_right'] = int(pads[1])
+                self.operatorRepresentation['stride_y'] = int(strides[0])
+                self.operatorRepresentation['dim_kernel_y'] = int(kernel_shape[0])
+        return wellFormed
+
+    def parseNodeCtxt(self, ctxt, node, channels_first = True):
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if ret:
+            data_in = newCtxt.lookup(self.operatorRepresentation['data_in'])
+            data_out = newCtxt.lookup(self.operatorRepresentation['data_out'])
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            if channels_first:
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+                self.operatorRepresentation['ch_im_out'] = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+            else:
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[2]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[1]
+                self.operatorRepresentation['ch_im_out'] = data_out.shape[2]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
+            if len(data_in.shape) == 3 and len(data_out.shape) == 3:
+                return newCtxt, True
+        return ctxt, False
+
+
 class MaxPool2DParser(MaxPoolParser):
 
     def __init__(self):
@@ -288,11 +329,8 @@ class PadParser(NodeParser):
 
     def __init__(self):
         super().__init__()
-        
-
 
     def parseNode(self, node: gs.Node) -> bool:
-        
 
         ret = all([
             'mode' in node.attrs, 'pads' in node.attrs, 'value' in node.attrs,
@@ -330,9 +368,9 @@ class Pad2DParser(PadParser):
 
     def __init__(self):
         super().__init__()
-        
+
     def parseNode(self, node: gs.Node) -> bool:
-        
+
         ret = super().parseNode(node)
 
         wellFormed = False
@@ -381,10 +419,9 @@ class Pad1DParser(PadParser):
 
     def __init__(self):
         super().__init__()
-        
 
     def parseNode(self, node: gs.Node) -> bool:
-        
+
         ret = super().parseNode(node)
 
         wellFormed = False
@@ -396,7 +433,7 @@ class Pad1DParser(PadParser):
                 wellFormed = True
                 self.operatorRepresentation['pad_y'] = int(pads[2])
                 self.operatorRepresentation['pad_x'] = 0
-        
+
         return wellFormed
 
     def parseNodeCtxt(self,
@@ -404,7 +441,6 @@ class Pad1DParser(PadParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
         wellFormed = False
@@ -1177,7 +1213,7 @@ class ConvParser(NodeParser):
             self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['strides'] = node.attrs['strides']
             self.operatorRepresentation['dilations'] = node.attrs['dilations']
-            
+
         return wellFormed
 
     def parseNodeCtxt(self,
@@ -1325,7 +1361,7 @@ class Conv1DParser(ConvParser):
             self.operatorRepresentation['out_shift'] = int(0)
             self.operatorRepresentation['dim_kernel_x'] = int(1)
             self.operatorRepresentation['stride_x'] = int(1)
-            
+
         return ret
 
     def parseNodeCtxt(self,
@@ -1343,7 +1379,6 @@ class Conv1DParser(ConvParser):
             self.operatorRepresentation['batch'] = data_in.shape[0]
             self.operatorRepresentation['dim_im_in_x'] = int(1)
             self.operatorRepresentation['dim_im_out_x'] = int(1)
-            
 
             if channels_first:
                 self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
@@ -2590,9 +2625,10 @@ class SGDParser(NodeParser):
         return ctxt, True
 
 
-class BatchNormParser:
+class BatchNormParser(NodeParser):
+
     def __init__(self):
-        self.operatorRepresentation = {}
+        super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
         # Verify the attributes (epsilon is mandatory, momentum and training_mode  are optional)
@@ -2628,25 +2664,22 @@ class BatchNormParser:
         return ctxt, True
 
 
-class ConvTransposeParser:
+class ConvTransposeParser(NodeParser):
+
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
         # Extract ONNX attributes with defaults
         strides = node.attrs.get('strides', [1])
-    
+
         pads = node.attrs.get('pads', [0, 0])
         kernel_shape = node.attrs.get('kernel_shape', None)
         dilations = node.attrs.get('dilations', [1])
         group = node.attrs.get('group', 1)
-        
-        
+
         # Check for required attributes
-        wellFormed = (
-            kernel_shape is not None and
-            len(node.outputs) == 1
-        )
+        wellFormed = (kernel_shape is not None and len(node.outputs) == 1)
         if wellFormed:
             self.operatorRepresentation['strides'] = strides
             self.operatorRepresentation['pads'] = pads
@@ -2692,9 +2725,6 @@ class ConvTransposeParser:
             kernel_shape_x = 1
             kernel_shape_y = 1
 
-        
-          
-
         data_in = ctxt.lookup(node.inputs[0].name)
         data_out = ctxt.lookup(node.outputs[0].name)
         in_shape = data_in.shape
@@ -2705,13 +2735,15 @@ class ConvTransposeParser:
         self.operatorRepresentation['ch_im_out'] = out_shape[1]
         self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
 
-        
-        self.operatorRepresentation['batchOffsetIn'] = self.operatorRepresentation['ch_im_in'] * self.operatorRepresentation['dim_im_in_y']
-        self.operatorRepresentation['batchOffsetOut'] = self.operatorRepresentation['ch_im_out'] * self.operatorRepresentation['dim_im_out_y']
+        self.operatorRepresentation[
+            'batchOffsetIn'] = self.operatorRepresentation['ch_im_in'] * self.operatorRepresentation['dim_im_in_y']
+        self.operatorRepresentation[
+            'batchOffsetOut'] = self.operatorRepresentation['ch_im_out'] * self.operatorRepresentation['dim_im_out_y']
         return ctxt, True
-    
+
 
 class ConvTranspose1DParser(ConvTransposeParser):
+
 
     def __init__(self):
         super().__init__()
@@ -2726,19 +2758,15 @@ class ConvTranspose1DParser(ConvTransposeParser):
                 len(node.attrs['strides']) == 1,
                 len(node.attrs['pads']) == 2,
                 len(node.attrs['dilations']) == 1,
-                ])
+            ])
         if ret:
-            
 
-            
             self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
             self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][0])
             self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][0])
             self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][0])
-            
-                
-        
+
         return wellFormed
 
     def parseNodeCtxt(self,

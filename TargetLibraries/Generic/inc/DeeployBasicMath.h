@@ -22,12 +22,11 @@
 
 #include <ctype.h>
 #include <inttypes.h>
-
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 #include "macros.h"
 #include "types.h"
@@ -39,7 +38,6 @@
 #include "kernel/DWConvolution.h"
 #include "kernel/Div.h"
 #include "kernel/GELU.h"
-#include "kernel/Relu.h"
 #include "kernel/Gemm.h"
 #include "kernel/Hardswish.h"
 #include "kernel/Layernorm.h"
@@ -53,8 +51,5 @@
 #include "kernel/Relu.h"
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
-#include "kernel/BatchNorm.h"
-#include "kernel/ConvTranspose1d_fp32.h"
-
 
 #endif //__DEEPLOY_BASIC_MATH_HEADER_

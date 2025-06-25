@@ -40,7 +40,7 @@ BEGIN_SINGLE_CORE
     ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
     for (uint32_t n=0; n<${batch}; ++n) {
-        Conv1d_${data_in_type.referencedType.typeWidth}_s${weight_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}(
+        Conv2d_${data_in_type.referencedType.typeWidth}_s${weight_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}(
             ref_${data_out}_${data_in}, ${ch_im_in}, 1, ${dim_im_in_y},
             ${weight}, ${ch_im_out}, 1, ${dim_kernel_y},
             1, ${stride_y},

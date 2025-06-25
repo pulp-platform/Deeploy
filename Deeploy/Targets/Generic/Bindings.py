@@ -7,8 +7,8 @@ import itertools
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, FloatDataTypes, float32_t, int8_t, int32_t, \
-    uint8_t
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
+    int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
@@ -296,76 +296,16 @@ BasicBatchNormBindings = [
 
 BasicConvTransposeBindings = [
     NodeBinding(
-        ConvChecker(
+        ConvTransposeChecker(
             [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
             [PointerClass(type)]),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer) for type in FloatDataTypes
 ] + [
     NodeBinding(
-        ConvChecker(
-            [PointerClass(type), PointerClass(type)],  # input, weight
-            [PointerClass(type)]),
-        ConvTransposeTemplate.referenceTemplate,
-        BasicTransformer) for type in FloatDataTypes
-]
-
-BasicBatchNormBindings = [
-    NodeBinding(
-        BatchNormChecker(
-            [PointerClass(type),
-             PointerClass(type),
-             PointerClass(type),
-             PointerClass(type),
-             PointerClass(type)], [PointerClass(type)]), BatchNormalizationTemplate.referenceTemplate, BasicTransformer)
-    for type in FloatDataTypes
-]
-
-BasicConvTransposeBindings = [
-    NodeBinding(
-        ConvChecker(
-            [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
-            [PointerClass(type)]),
-        ConvTransposeTemplate.referenceTemplate,
-        BasicTransformer) for type in FloatDataTypes
-] + [
-    NodeBinding(
-        ConvChecker(
-            [PointerClass(type), PointerClass(type)],  # input, weight
-            [PointerClass(type)]),
-        ConvTransposeTemplate.referenceTemplate,
-        BasicTransformer) for type in FloatDataTypes
-]
-
-
-BasicBatchNormBindings = [
-    NodeBinding(
-        BatchNormChecker(
-            [PointerClass(type), PointerClass(type), PointerClass(type), PointerClass(type), PointerClass(type)],
-            [PointerClass(type)]
-        ),
-        BatchNormalizationTemplate.referenceTemplate,
-        BasicTransformer 
-    ) for type in FloatDataTypes
-]
-
-
-BasicConvTransposeBindings = [
-    NodeBinding(
-        ConvTransposeChecker(
-            [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
-            [PointerClass(type)]
-        ),
-        ConvTransposeTemplate.referenceTemplate,
-        BasicTransformer
-    ) for type in FloatDataTypes ] + [
-    NodeBinding(
         ConvTransposeChecker(
             [PointerClass(type), PointerClass(type)],  # input, weight
-            [PointerClass(type)]
-        ),
+            [PointerClass(type)]),
         ConvTransposeTemplate.referenceTemplate,
-        BasicTransformer
-    ) for type in FloatDataTypes
-    
+        BasicTransformer) for type in FloatDataTypes
 ]

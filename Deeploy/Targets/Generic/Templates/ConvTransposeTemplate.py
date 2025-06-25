@@ -45,8 +45,10 @@ class _ConvTranspose1D_Template(NodeTemplate):
         operatorRepresentation["has_bias"] = "true" if "bias" in operatorRepresentation else "false"
         operatorRepresentation["bias"] = operatorRepresentation.get("bias", "NULL")
 
-        operatorRepresentation["batchOffsetIn"] = operatorRepresentation["ch_im_in"] * operatorRepresentation["dim_im_in_y"]
-        operatorRepresentation["batchOffsetOut"] = operatorRepresentation["ch_im_out"] * operatorRepresentation["dim_im_out_y"]
+        operatorRepresentation[
+            "batchOffsetIn"] = operatorRepresentation["ch_im_in"] * operatorRepresentation["dim_im_in_y"]
+        operatorRepresentation[
+            "batchOffsetOut"] = operatorRepresentation["ch_im_out"] * operatorRepresentation["dim_im_out_y"]
 
         operatorRepresentation[
             "batchOffsetIn"] = operatorRepresentation["ch_im_in"] * operatorRepresentation["dim_im_in_y"]
@@ -54,7 +56,6 @@ class _ConvTranspose1D_Template(NodeTemplate):
             "batchOffsetOut"] = operatorRepresentation["ch_im_out"] * operatorRepresentation["dim_im_out_y"]
 
         return ctxt, operatorRepresentation, []
-
 
 referenceTemplate = _ConvTranspose1D_Template("""
 <%

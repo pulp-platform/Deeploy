@@ -9,7 +9,7 @@ import numpy as np
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
 from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
-from Deeploy.CommonExtensions.DataTypes import float32_t
+
 
 class ConcatChecker(SignPropTypeChecker):
 
@@ -598,8 +598,8 @@ class SGDChecker(SignPropTypeChecker):
         return [True]
 
 
-
 class BatchNormChecker(SignPropTypeChecker):
+
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
 
@@ -613,20 +613,20 @@ class BatchNormChecker(SignPropTypeChecker):
 
 
 class ConvTransposeChecker(SignPropTypeChecker):
+
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
-        # Same as ConvChecker: number of channels = kernel_size * num_weights * input_channels * 2^bit_input
+        # Like ConvChecker: n_levels = kernel_size * weight_levels * ch_in * 2^bit_input
         weight = inputs[1]
         return [
-            np.prod(operatorRepresentation['kernel_shape']) *
-            weight.nLevels *
-            weight.shape[1] *  # ch_im_in
+            np.prod(operatorRepresentation['kernel_shape']) * weight.nLevels * weight.shape[1] *  # ch_im_in
             2**(self.input_types[0].referencedType.typeWidth)
         ]
 
-    def _inferSignedness(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> List[bool]:
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
         # Output is signed if input is signed
         return [inputs[0]._signed]
