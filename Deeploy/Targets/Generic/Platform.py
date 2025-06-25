@@ -94,7 +94,7 @@ GenericMapping = {
     'ITAPartialMax': ITAMaxLayer([ITAPartialMaxMapper]),
     'MatMul': GEMMLayer([MatMulMapper]),
     'MatMulInteger': MatMulLayer([MatMulMapper]),
-    'MaxPool': MaxPoolLayer([MaxPool1DMapper,MaxPoolMapper]),
+    'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPoolMapper]),
     'Mul': MulLayer([MulMapper]),
     'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
     'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
@@ -111,7 +111,7 @@ GenericMapping = {
     'Quant': QuantLayer([QuantMapper]),
     'Dequant': DequantLayer([DequantMapper]),
     'BatchNormalization': BatchNormalizationLayer([BatchNormalizationMapper]),
-    'ConvTranspose' : ConvTransposeLayer([ConvTransposeMapper])
+    'ConvTranspose': ConvTransposeLayer([ConvTransposeMapper])
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel

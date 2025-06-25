@@ -619,6 +619,7 @@ class DequantLayer(ONNXLayer):
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
+
 class BatchNormalizationLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
@@ -626,11 +627,10 @@ class BatchNormalizationLayer(ONNXLayer):
 
     def computeOps(self):
         # 5 operations per element: sub, mul, add, sqrt, div
-        B = self.mapper.parser.operatorRepresentation['batch_size'] 
-        C = self.mapper.parser.operatorRepresentation['channel_size'] 
-        W  = self.mapper.parser.operatorRepresentation['window_size'] 
+        B = self.mapper.parser.operatorRepresentation['batch_size']
+        C = self.mapper.parser.operatorRepresentation['channel_size']
+        W = self.mapper.parser.operatorRepresentation['window_size']
         return B * C * W * 5
-
 
 
 class ConvTransposeLayer(ONNXLayer):
@@ -638,7 +638,8 @@ class ConvTransposeLayer(ONNXLayer):
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
-    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation, channels_first) -> Tuple[Shape, Shape]:
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
         """
         Infers output shapes for ConvTranspose using only static info.
         - inputShapes[0]: input tensor shape (e.g., [N, C_in, W] for 1D, [N, C_in, H, W] for 2D)

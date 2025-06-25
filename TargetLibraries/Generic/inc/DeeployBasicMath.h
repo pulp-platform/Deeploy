@@ -22,35 +22,34 @@
 
 #include <ctype.h>
 #include <inttypes.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 #include "macros.h"
 #include "types.h"
 #include "utils.h"
 
-#include "kernel/MaxPool1d.h"
+#include "kernel/BatchNorm.h"
+#include "kernel/ConvTranspose1d_fp32.h"
 #include "kernel/Convolution.h"
 #include "kernel/DWConvolution.h"
 #include "kernel/Div.h"
 #include "kernel/GELU.h"
-#include "kernel/Relu.h"
 #include "kernel/Gemm.h"
 #include "kernel/Hardswish.h"
 #include "kernel/Layernorm.h"
 #include "kernel/MatMul.h"
 #include "kernel/MaxPool.h"
+#include "kernel/MaxPool1d.h"
 #include "kernel/RMSNorm.h"
 #include "kernel/RQDiv.h"
 #include "kernel/RQGELU.h"
 #include "kernel/RQHardswish.h"
+#include "kernel/Relu.h"
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
-#include "kernel/BatchNorm.h"
-#include "kernel/ConvTranspose1d_fp32.h"
-
 
 #endif //__DEEPLOY_BASIC_MATH_HEADER_

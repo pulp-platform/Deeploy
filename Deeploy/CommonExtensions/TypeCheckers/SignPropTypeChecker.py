@@ -41,7 +41,7 @@ class SignPropTypeChecker(NodeTypeChecker):
 
         inputs = [ctxt.lookup(inputNode.name) for inputNode in node.inputs]
         outputs = [ctxt.lookup(outputNode.name) for outputNode in node.outputs]
-        
+
         signProp = all([hasattr(_input, "_signed") and hasattr(_input, "nLevels") for _input in inputs])
 
         if signProp:

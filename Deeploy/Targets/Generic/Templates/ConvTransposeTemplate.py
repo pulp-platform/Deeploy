@@ -1,16 +1,15 @@
 from typing import Dict, List, Tuple
+
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
 class _ConvTranspose1D_Template(NodeTemplate):
+
     def __init__(self, templateStr):
         super().__init__(templateStr)
 
-    def alignToContext(
-        self,
-        ctxt: NetworkContext,
-        operatorRepresentation: OperatorRepresentation
-    ) -> Tuple[NetworkContext, Dict, List[str]]:
+    def alignToContext(self, ctxt: NetworkContext,
+                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
 
         # Recupera i tensori input/output
         data_in = ctxt.lookup(operatorRepresentation["data_in"])
@@ -46,11 +45,12 @@ class _ConvTranspose1D_Template(NodeTemplate):
         operatorRepresentation["has_bias"] = "true" if "bias" in operatorRepresentation else "false"
         operatorRepresentation["bias"] = operatorRepresentation.get("bias", "NULL")
 
-        operatorRepresentation["batchOffsetIn"] = operatorRepresentation["ch_im_in"] * operatorRepresentation["dim_im_in_y"]
-        operatorRepresentation["batchOffsetOut"] = operatorRepresentation["ch_im_out"] * operatorRepresentation["dim_im_out_y"]
+        operatorRepresentation[
+            "batchOffsetIn"] = operatorRepresentation["ch_im_in"] * operatorRepresentation["dim_im_in_y"]
+        operatorRepresentation[
+            "batchOffsetOut"] = operatorRepresentation["ch_im_out"] * operatorRepresentation["dim_im_out_y"]
 
         return ctxt, operatorRepresentation, []
-
 
 
 referenceTemplate = _ConvTranspose1D_Template("""

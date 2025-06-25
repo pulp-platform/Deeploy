@@ -1,10 +1,8 @@
 #ifndef CONV_TRANSPOSE1D_FP32_H
 #define CONV_TRANSPOSE1D_FP32_H
 
-#include <stdint.h>
 #include <stdbool.h>
-
-
+#include <stdint.h>
 
 void ConvTranspose1d_fp32(const float32_t *input, uint32_t C_in, uint32_t W_in,
                           const float32_t *weight, uint32_t C_out, uint32_t K,
