@@ -1324,7 +1324,7 @@ class NodeTypeChecker():
         outputNames = [node.name for node in node.outputs]
 
         outputTypes = self.output_types
-        
+
         for name, output_type in zip(outputNames, outputTypes):
             newCtxt.annotateType(name, output_type)
 
@@ -2078,6 +2078,7 @@ class ONNXLayer():
 
         def _broadcastFloat(ty: Type[FloatImmediate]):
             return np.dtype(getattr(np, "double"))
+
         if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
             if issubclass(ty.referencedType, IntegerImmediate):
                 return _broadcastInteger(ty.referencedType)

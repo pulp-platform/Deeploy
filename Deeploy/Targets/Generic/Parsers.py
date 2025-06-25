@@ -7,7 +7,6 @@ from typing import Tuple
 
 import numpy as np
 import onnx_graphsurgeon as gs
-import warnings
 
 from Deeploy.DeeployTypes import NetworkContext, NodeParser, VariableBuffer
 
@@ -330,11 +329,8 @@ class PadParser(NodeParser):
 
     def __init__(self):
         super().__init__()
-        
-
 
     def parseNode(self, node: gs.Node) -> bool:
-        
 
         ret = all([
             'mode' in node.attrs, 'pads' in node.attrs, 'value' in node.attrs,
@@ -372,11 +368,11 @@ class Pad2DParser(PadParser):
 
     def __init__(self):
         super().__init__()
-        
+
     def parseNode(self, node: gs.Node) -> bool:
-        
+
         ret = super().parseNode(node)
-        
+
         wellFormed = False
         if ret:
             pads = self.operatorRepresentation['pads']
@@ -424,10 +420,9 @@ class Pad1DParser(PadParser):
 
     def __init__(self):
         super().__init__()
-        
 
     def parseNode(self, node: gs.Node) -> bool:
-        
+
         ret = super().parseNode(node)
 
         wellFormed = False
@@ -439,7 +434,7 @@ class Pad1DParser(PadParser):
                 wellFormed = True
                 self.operatorRepresentation['pad_y'] = int(pads[2])
                 self.operatorRepresentation['pad_x'] = 0
-        
+
         return wellFormed
 
     def parseNodeCtxt(self,
@@ -447,7 +442,6 @@ class Pad1DParser(PadParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
         wellFormed = False
@@ -1220,7 +1214,7 @@ class ConvParser(NodeParser):
             self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['strides'] = node.attrs['strides']
             self.operatorRepresentation['dilations'] = node.attrs['dilations']
-            
+
         return wellFormed
 
     def parseNodeCtxt(self,
@@ -2688,8 +2682,7 @@ class ConvTransposeParser(NodeParser):
         kernel_shape = node.attrs.get('kernel_shape', None)
         dilations = node.attrs.get('dilations', [1])
         group = node.attrs.get('group', 1)
-        
-        
+
         # Check for required attributes
         wellFormed = (kernel_shape is not None and len(node.outputs) == 1)
         if wellFormed:
