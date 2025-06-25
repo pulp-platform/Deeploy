@@ -7,7 +7,7 @@ import itertools
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, FloatDataTypes, float32_t, \
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
     int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
@@ -154,12 +154,10 @@ BasicMatMulBindings = [
                 FloatMatMulTemplate.referenceTemplate, BasicTransformer)
 ]
 
-BasicMaxPool1DBindings = [NodeBinding(
-        MaxPoolChecker([PointerClass(type)], [PointerClass(type)]),  
-        FloatMaxPoolTemplate.reference1DTemplate,  
-        BasicTransformer
-    ) for type in FloatDataTypes ]
-
+BasicMaxPool1DBindings = [
+    NodeBinding(MaxPoolChecker([PointerClass(type)], [PointerClass(type)]), FloatMaxPoolTemplate.reference1DTemplate,
+                BasicTransformer) for type in FloatDataTypes
+]
 
 BasicMaxPool2DBindings = [
     NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), MaxPoolTemplate.referenceTemplate,
@@ -182,11 +180,8 @@ BasicPad1DBindings = [
     NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference1DTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
-    NodeBinding(
-        PadChecker([PointerClass(type)], [PointerClass(type)]),
-        FloatPadTemplate.reference1DTemplate,
-        BasicTransformer
-    ) for type in FloatDataTypes
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), FloatPadTemplate.reference1DTemplate,
+                BasicTransformer) for type in FloatDataTypes
 ]
 
 BasicPad2DBindings = [

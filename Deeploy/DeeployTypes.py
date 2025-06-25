@@ -1355,7 +1355,7 @@ class NodeTypeChecker():
                 return False
 
             if hasattr(reference, "values"):
-                ok =  _type.referencedType.checkPromotion(reference.values)
+                ok = _type.referencedType.checkPromotion(reference.values)
                 retCheck &= ok
             else:
                 if ctxt.is_global(inputNode.name):
@@ -1646,7 +1646,6 @@ class NodeBinding():
 
         
         """
-
 
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
 
@@ -2079,6 +2078,7 @@ class ONNXLayer():
 
         def _broadcastFloat(ty: Type[FloatImmediate]):
             return np.dtype(getattr(np, "double"))
+
         if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
             if issubclass(ty.referencedType, IntegerImmediate):
                 return _broadcastInteger(ty.referencedType)

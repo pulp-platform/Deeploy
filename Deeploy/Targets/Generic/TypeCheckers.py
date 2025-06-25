@@ -9,7 +9,7 @@ import numpy as np
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
 from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
-from Deeploy.CommonExtensions.DataTypes import float32_t
+
 
 class ConcatChecker(SignPropTypeChecker):
 
@@ -599,6 +599,7 @@ class SGDChecker(SignPropTypeChecker):
 
 
 class BatchNormChecker(SignPropTypeChecker):
+
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
