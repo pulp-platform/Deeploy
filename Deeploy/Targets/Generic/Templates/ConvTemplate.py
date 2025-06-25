@@ -40,13 +40,14 @@ BEGIN_SINGLE_CORE
     ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
     for (uint32_t n=0; n<${batch}; ++n) {
-        Conv2d_${data_in_type.referencedType.typeWidth}_s${weight_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}(
+        Conv2d_s${data_in_type.referencedType.typeWidth}_s${weight_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}_NCHW(
             ref_${data_out}_${data_in}, ${ch_im_in}, 1, ${dim_im_in_y},
             ${weight}, ${ch_im_out}, 1, ${dim_kernel_y},
             1, ${stride_y},
             ref_${data_out}_${data_out}, ${input_offset}, ${output_offset}
         );
-       
+        ref_${data_out}_${data_in} += ${batchOffsetIn};
+        ref_${data_out}_${data_out} += ${batchOffsetOut};
     }
 END_SINGLE_CORE
 """)
