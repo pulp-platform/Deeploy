@@ -39,7 +39,7 @@ reference1DTemplate = NodeTemplate("""
             Conv1d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
                 ref_${data_out}_${data_in}, ${ch_im_in}, ${dim_im_in_y},
                 ${weight}, ${ch_im_out}, ${dim_kernel_y},
-                ${stride_x},
+                ${stride_y},
                 ${bias},
                 ${has_bias},
                 ref_${data_out}_${data_out},
