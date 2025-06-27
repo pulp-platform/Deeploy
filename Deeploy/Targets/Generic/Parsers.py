@@ -1375,7 +1375,7 @@ class Conv1DParser(ConvParser):
 
             self.operatorRepresentation['batch'] = data_in.shape[0]
             self.operatorRepresentation['dim_im_in_x'] = 1
-            self.operatorRepresentation['dim_im_out_x'] = 1  # necessary since we use the same Convlayer for all convolutions
+            self.operatorRepresentation['dim_im_out_x'] = 1
 
             if channels_first:
                 self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
