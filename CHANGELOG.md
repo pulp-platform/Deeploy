@@ -98,6 +98,7 @@ This release containing major architectural changes, new platform support, enhan
 - Chimera Platform Integration [#96](https://github.com/pulp-platform/Deeploy/pull/96)
 - Add Tutorial and Refactor README [#97](https://github.com/pulp-platform/Deeploy/pull/97)
 - Reduce Mean Float Template [#92](https://github.com/pulp-platform/Deeploy/pull/92)
+- Support for 1D Autoencoder [#93](https://github.com/pulp-platform/Deeploy/pull/93)
 - Reshape Memory Freeing and Generic Float GEMM Fixes [#91](https://github.com/pulp-platform/Deeploy/pull/91)
 - Prepare for Release and Separate Dependencies [#90](https://github.com/pulp-platform/Deeploy/pull/90)
 - Fix input offsets calculation [#89](https://github.com/pulp-platform/Deeploy/pull/89)
@@ -165,6 +166,13 @@ This release containing major architectural changes, new platform support, enhan
 - Install flow for chimera-sdk via Makefile
 - DeeployChimeraMath library
 - Generic FP32 reduce mean bindings, parser, and template
+- BatchNorm kernel 
+- ConvTranspose kernel 
+- MaxPool1D kernel 
+- Template for 1D Convolution
+- Support for float32 data type in the previous kernels
+- Float binding for Pad1D kernel
+- Test for Autoencoder1D in the CI pipeline
 - New alias list parameter for buffer objects
 - New test, also included in the CI pipeline, for the reshape and skip connection situation
 - 'shape' parameter handling similar to the 'indices' parameter in the generic reshape template
@@ -294,6 +302,8 @@ This release containing major architectural changes, new platform support, enhan
 - Bump the CMake version to 3.24 as required for the chimera-sdk
 - Bump GVSoC's version and add chimera simulation target
 - Rename the generic source util to utils to avoid name collision with chimera-sdk
+- FloatConvTemplate file
+- Platform.py file  
 - Moved PULP SDK from Victor-Jung/pulp-sdk branch deeploy to pulp-platform/pulp-sdk branch main.
 - Memory arena buffers are now declared at the beginning of the `InitNetwork` function
 - Tiling profiling is now an ON/OFF version where you get the I/O DMA time for each DMA call

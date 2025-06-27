@@ -1356,6 +1356,8 @@ class Conv1DParser(ConvParser):
             self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][0])
             self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][0])
+            self.operatorRepresentation['bias_shift'] = int(0)
+            self.operatorRepresentation['out_shift'] = int(0)
 
         return ret
 
@@ -1372,8 +1374,8 @@ class Conv1DParser(ConvParser):
             weight = newCtxt.lookup(self.operatorRepresentation['weight'])
 
             self.operatorRepresentation['batch'] = data_in.shape[0]
-            self.operatorRepresentation['dim_im_out_x'] = int(
-                1)  # necessary since we use the same Convlayer for all convolutions
+            self.operatorRepresentation['dim_im_in_x'] = 1
+            self.operatorRepresentation['dim_im_out_x'] = 1  # necessary since we use the same Convlayer for all convolutions
 
             if channels_first:
                 self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
