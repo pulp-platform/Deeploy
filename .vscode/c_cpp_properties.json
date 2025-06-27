@@ -5,6 +5,10 @@
             "configurationProvider": "ms-vscode.cmake-tools",
             "compileCommands": [
                 "${workspaceFolder}/DeeployTest/TEST_RECENT/build/compile_commands.json"
+            ],
+            "includePath": [
+                "${default}",
+                "${workspaceFolder}/TargetLibraries/PULPOpen/inc"
             ]
         }
     ],
