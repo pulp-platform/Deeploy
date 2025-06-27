@@ -100,7 +100,6 @@ This release containing major architectural changes, new platform support, enhan
 - Add Tutorial and Refactor README [#97](https://github.com/pulp-platform/Deeploy/pull/97)
 - Support for 1D Autoencoder [#98](https://github.com/pulp-platform/Deeploy/pull/98)
 - Reduce Mean Float Template [#92](https://github.com/pulp-platform/Deeploy/pull/92)
-- Support for 1D Autoencoder [#98](https://github.com/pulp-platform/Deeploy/pull/98)
 - Reshape Memory Freeing and Generic Float GEMM Fixes [#91](https://github.com/pulp-platform/Deeploy/pull/91)
 - Prepare for Release and Separate Dependencies [#90](https://github.com/pulp-platform/Deeploy/pull/90)
 - Fix input offsets calculation [#89](https://github.com/pulp-platform/Deeploy/pull/89)
