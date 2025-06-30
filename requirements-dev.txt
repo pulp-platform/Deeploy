@@ -20,4 +20,4 @@ clang-format
 # Documentation
 sphinx
 sphinx-rtd-theme
-myst_parser
+myst-parser[linkify]

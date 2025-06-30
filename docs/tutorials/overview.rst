@@ -8,5 +8,7 @@ Each tutorial covers a specific topic and includes code examples to illustrate t
    :maxdepth: 1
    :caption: Tutorials
 
+   introduction
    debugging
+
 
