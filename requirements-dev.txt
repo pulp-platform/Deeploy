@@ -22,4 +22,3 @@ sphinx
 sphinx-rtd-theme
 myst-parser[linkify]
 sphinx_favicon
-pandoc
