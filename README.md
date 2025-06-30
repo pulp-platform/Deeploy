@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="docs/img/DeeployLogoGreen.svg" alt="Logo" width="300">
+  <img src="docs/_static/DeeployLogoGreen.svg" alt="Logo" width="300">
 
 # Deeploy: DNN Compiler for Heterogeneous SoCs
 </div>
