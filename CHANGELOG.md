@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Fix CI, Docker Files, and Documentation Workflow [#100](https://github.com/pulp-platform/Deeploy/pull/100)
 - Chimera Platform Integration [#96](https://github.com/pulp-platform/Deeploy/pull/96)
 - Add Tutorial and Refactor README [#97](https://github.com/pulp-platform/Deeploy/pull/97)
 - Reduce Mean Float Template [#92](https://github.com/pulp-platform/Deeploy/pull/92)
