@@ -87,7 +87,8 @@ RUN mkdir -p /root/.cargo/bin/ && \
     libsdl2-dev \
     python-is-python3 \
     python3.10-venv \
-    python3.10-distutils && \
+    python3.10-distutils \
+    gcc && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && \
     rm get-pip.py && \
