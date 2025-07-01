@@ -26,8 +26,6 @@ You can find the documentation at the following links:
 
 A DeepWiki generated documentation is availabe [here](https://deepwiki.com/pulp-platform/Deeploy).
 
-A tutorial, originally made for the ETH SoCDAML course, is available in `Tutorials/SoCDAML.md`.
-
 ## Getting started
 
 Download the repository and its submodules:
