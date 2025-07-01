@@ -12,10 +12,11 @@ class _ConvTranspose1D_Template(NodeTemplate):
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
 
         # input/output tensors
+        # input/output tensors
         data_in = ctxt.lookup(operatorRepresentation["data_in"])
         data_out = ctxt.lookup(operatorRepresentation["data_out"])
 
-        #quantized tensor offset computation
+        # quantized tensor offset computation 
         operatorRepresentation["input_offset"] = 0
         if hasattr(data_in, "_signed") and hasattr(data_in, "nLevels"):
             operatorRepresentation["input_offset"] = (data_in._signed == 0) * int(data_in.nLevels // 2)
