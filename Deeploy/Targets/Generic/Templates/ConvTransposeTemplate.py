@@ -11,11 +11,11 @@ class _ConvTranspose1D_Template(NodeTemplate):
     def alignToContext(self, ctxt: NetworkContext,
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
 
-        # Recupera i tensori input/output
+        # input/output tensors
         data_in = ctxt.lookup(operatorRepresentation["data_in"])
         data_out = ctxt.lookup(operatorRepresentation["data_out"])
 
-        # Calcolo offset per tensori quantizzati (se applicabile)
+        # quantized tensor offset computation 
         operatorRepresentation["input_offset"] = 0
         if hasattr(data_in, "_signed") and hasattr(data_in, "nLevels"):
             operatorRepresentation["input_offset"] = (data_in._signed == 0) * int(data_in.nLevels // 2)
@@ -27,21 +27,21 @@ class _ConvTranspose1D_Template(NodeTemplate):
         # Batch size
         operatorRepresentation["batch"] = data_in.shape[0]
 
-        # Dimensioni input/output (formato NCW)
+        # input/output shape (format NCW)
         operatorRepresentation["ch_im_in"] = data_in.shape[1]
         operatorRepresentation["dim_im_in_y"] = data_in.shape[2]
 
         operatorRepresentation["ch_im_out"] = data_out.shape[1]
         operatorRepresentation["dim_im_out_y"] = data_out.shape[2]
 
-        # Peso e kernel
+        # weights and kernel
         weight = ctxt.lookup(operatorRepresentation["weight"])
-        operatorRepresentation["dim_kernel_y"] = weight.shape[2]  # Forma: [C_out, C_in, K]
+        operatorRepresentation["dim_kernel_y"] = weight.shape[2]  # Shape: [C_out, C_in, K]
 
         # Stride
         operatorRepresentation["stride_y"] = operatorRepresentation.get("stride_y", 1)
 
-        # Bias (opzionale)
+        # Bias (optional)
         operatorRepresentation["has_bias"] = "true" if "bias" in operatorRepresentation else "false"
         operatorRepresentation["bias"] = operatorRepresentation.get("bias", "NULL")
 

@@ -166,6 +166,13 @@ This release containing major architectural changes, new platform support, enhan
 - Adder CI test for Chimera
 - Install flow for chimera-sdk via Makefile
 - DeeployChimeraMath library
+- BatchNorm kernel
+- ConvTranspose kernel
+- MaxPool1D kernel
+- Template for 1D Convolution
+- Support for float32 data type in the previous kernels
+- Float binding for Pad1D kernel
+- Test for Autoencoder1D in the CI pipeline
 - Generic FP32 reduce mean bindings, parser, and template
 - BatchNorm kernel 
 - ConvTranspose kernel 
