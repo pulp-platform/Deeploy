@@ -27,6 +27,13 @@ RUN --mount=type=cache,target=/ccache \
     make gvsoc && \
     cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
     cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
+    ccache -s
+
+# Install SoftHier emulator and toolchain
+# WIESEP: We need to already clean up some space, otherwise the GitHub runners run out of disk space
+RUN --mount=type=cache,target=/ccache \
+    ccache -z && \
+    rm -rf toolchain/pulp-sdk toolchain/qemu toolchain/mempool toolchain/banshee toolchain/xtensor toolchain/xtl toolchain/xsimd toolchain/gvsoc && \
     make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
     ccache -s
 
