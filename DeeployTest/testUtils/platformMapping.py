@@ -30,6 +30,8 @@ import onnx_graphsurgeon as gs
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
+from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
+from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
 from Deeploy.Targets.CortexM.Platform import CMSISOptimizer, CMSISPlatform
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
@@ -45,8 +47,10 @@ from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
+from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
+from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 
-_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
+_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool"]
 _NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
@@ -85,6 +89,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "SoftHier":
         Platform = SoftHierPlatform()
+
+    elif platformName == "Chimera":
+        Platform = ChimeraPlatform()
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -247,6 +254,22 @@ def mapDeployer(platform: DeploymentPlatform,
                                   name = name,
                                   default_channels_first = default_channels_first,
                                   deeployStateDir = deeployStateDir)
+
+    elif isinstance(platform, (ChimeraPlatform)):
+        if loweringOptimizer is None:
+            loweringOptimizer = ChimeraOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = ChimeraDeployer(graph,
+                                   platform,
+                                   inputTypes,
+                                   loweringOptimizer,
+                                   scheduler,
+                                   name = name,
+                                   default_channels_first = default_channels_first,
+                                   deeployStateDir = deeployStateDir)
 
     else:
         raise RuntimeError(f"Deployer for platform {platform} is not implemented")

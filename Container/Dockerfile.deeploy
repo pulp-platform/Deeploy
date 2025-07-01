@@ -28,7 +28,7 @@ RUN apt-get upgrade && \
 
 RUN --mount=type=cache,target=/ccache \
     ccache -z && \
-    make pulp-sdk qemu mempool banshee xtensor && \
+    make pulp-sdk chimera-sdk qemu mempool banshee xtensor && \
     make gvsoc && \
     cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
     cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
@@ -60,14 +60,16 @@ RUN rm -rf toolchain
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
 FROM ubuntu:22.04 AS deeploy
 
+ARG TARGETPLATFORM
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
 # Export symbols necessary for Deeploy's build flow
 ENV CMAKE=/usr/bin/cmake
 ENV PULP_SDK_HOME=/app/install/pulp-sdk
-ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV SNITCH_HOME=/app/install/snitch_cluster
+ENV CHIMERA_SDK_HOME=/app/install/chimera-sdk
+ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
 ENV SOFTHIER_INSTALL_DIR=/app/install/softhier
 ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
@@ -82,8 +84,9 @@ COPY pyproject.toml ./
 RUN mkdir -p /root/.cargo/bin/ && \
     apt-get update && \
     apt-get install -y git-lfs \
-    cmake \
+    wget \
     ccache \
+    make \
     curl \
     libpixman-1-dev \
     libsdl2-dev \
@@ -97,6 +100,17 @@ RUN mkdir -p /root/.cargo/bin/ && \
     pip install toml-to-requirements && \
     toml-to-req --toml-file pyproject.toml && \
     pip install -r requirements.txt
+
+# Install CMake
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    wget https://github.com/Kitware/CMake/releases/download/v3.24.0/cmake-3.24.0-linux-x86_64.sh && \
+    chmod +x cmake-3.24.0-linux-x86_64.sh && \
+    ./cmake-3.24.0-linux-x86_64.sh --prefix=/usr --skip-license; \
+elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    wget https://github.com/Kitware/CMake/releases/download/v3.24.0/cmake-3.24.0-linux-aarch64.sh && \
+    chmod +x ./cmake-3.24.0-linux-aarch64.sh && \
+    ./cmake-3.24.0-linux-aarch64.sh --prefix=/usr --skip-license; \
+fi
 
 COPY --from=toolchain /app/core-requirements.txt ./core-requirements.txt
 COPY --from=toolchain /app/gapy-requirements.txt ./gapy-requirements.txt

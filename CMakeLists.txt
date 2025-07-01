@@ -34,6 +34,8 @@ elseif(platform STREQUAL Snitch)
   message(STATUS "Building for platform 'Snitch'")
 elseif(platform STREQUAL SoftHier)
   message(STATUS "Building for platform 'SoftHier'")
+elseif(platform STREQUAL Chimera)
+  message(STATUS "Building for platform 'Chimera'")
 else()
   message(FATAL_ERROR "Invalid platform '${platform}' specified!")
 endif()
@@ -230,6 +232,34 @@ if(platform STREQUAL Snitch)
 
   add_subdirectory(DeeployTest)
   target_link_libraries(deeploylib INTERFACE deeploybasic deeploysnitch)
+
+endif()
+
+if(platform STREQUAL Chimera)
+
+  # JUNGVI: Currently only LLVM is supported by the Chimera SDK
+  set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/chimera/toolchain_llvm.cmake)
+
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/chimera/chimera-sdk.cmake)
+
+  project(deeploy LANGUAGES C ASM)
+
+  set(TARGET_PLATFORM "chimera-open")
+  set(TEST_MODE "none")
+
+  message(STATUS "============================= ${platform} Configuration ============================")
+  message(STATUS "[cMake  ]   TARGET_PLATFORM          = " ${TARGET_PLATFORM})
+  message(STATUS "[cMake  ]   ISA                      = " ${ISA})
+  message(STATUS "[cMake  ]   TEST_MODE                = " ${TEST_MODE})
+  message(STATUS "====================================================================================")
+  message(STATUS "")
+
+  add_subdirectory(TargetLibraries/Generic)
+  add_subdirectory(TargetLibraries/Chimera)
+  target_include_directories(deeploychimera PUBLIC TargetLibraries/Generic/inc)
+
+  add_subdirectory(DeeployTest)
+  target_link_libraries(deeploylib INTERFACE deeploybasic deeploychimera)
 
 endif()
 
