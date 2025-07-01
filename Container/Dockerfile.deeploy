@@ -21,11 +21,6 @@ COPY Makefile ./
 COPY requirements-dev.txt ./
 
 # Compile emulators
-RUN apt-get upgrade && \
-    apt-get update && \
-    apt-get install -y python3.10-venv \
-    python3.10-distutils 
-
 RUN --mount=type=cache,target=/ccache \
     ccache -z && \
     make pulp-sdk chimera-sdk qemu mempool banshee xtensor && \

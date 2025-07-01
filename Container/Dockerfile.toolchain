@@ -15,8 +15,8 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /app
 
 # Install dependencies
-RUN apt-get upgrade && \
-    apt-get update && \
+RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y git-lfs \
     build-essential \
     ccache \
