@@ -7,10 +7,10 @@ void ConvTranspose1d_fp32(const float32_t *input, uint32_t C_in, uint32_t W_in,
                           float32_t *output, uint32_t W_out) {
   /*
   input:       [C_in, W_in]
-  weight:      [C_in, C_out, K]  
-  output:      [C_out, W_out] 
+  weight:      [C_in, C_out, K]
+  output:      [C_out, W_out]
   bias:        [C_out] optionally
-  
+
   */
 
   // Output initialization
