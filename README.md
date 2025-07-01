@@ -1,4 +1,9 @@
-# Deeploy
+<div align="center">
+
+  <img src="docs/_static/DeeployLogoGreen.svg" alt="Logo" width="300">
+
+# Deeploy: DNN Compiler for Heterogeneous SoCs
+</div>
 
 [![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
 )](https://pulp-platform.github.io/Deeploy/)
@@ -13,9 +18,15 @@ Deeploy is an ONNX-to-C compiler that generates low-level optimized C Code for m
 
 Deeploy is developed as part of the PULP project, a joint effort between ETH Zurich and the University of Bologna.
 
-## License
+## Documentation & Tutorials
 
-Unless specified otherwise in the respective file headers, all code checked into this repository is made available under a permissive license. All software sources and tool scripts are licensed under Apache 2.0, except for files contained in the `scripts` directory, which are licensed under the MIT license, and files contained in the `DeeployTest/Tests`directory, which are licensed under the [Creative Commons Attribution-NoDerivates 4.0 International](https://creativecommons.org/licenses/by-nd/4.0) license (CC BY-ND 4.0).
+You can find the documentation at the following links:
+- [Devel Branch Docs](https://pulp-platform.github.io/Deeploy/branch/devel/)
+- [Main Branch Docs](https://pulp-platform.github.io/Deeploy/)
+
+A DeepWiki generated documentation is availabe [here](https://deepwiki.com/pulp-platform/Deeploy).
+
+A tutorial, originally made for the ETH SoCDAML course, is available in `Tutorials/SoCDAML.md`.
 
 ## Getting started
 
@@ -50,8 +61,11 @@ cd DeeployTest
 python testRunner_generic.py -t Tests/Adder
 python testRunner_cortexm.py -t Tests/Adder
 python testRunner_mempool.py -t Tests/Adder
+python testRunner_snitch.py -t Tests/Adder/
 python testRunner_siracusa.py -t Tests/Adder --cores=8
 python testRunner_snitch.py -t Tests/Adder --cores=9
+python testRunner_softhier.py -t Tests/Adder --toolchain=GCC
+python testRunner_chimera.py -t Tests/Adder
 ```
 
 To restart and connect to the container, run:
@@ -68,32 +82,20 @@ Now you can open the generated code in `DeeployTest/TEST_SIRACUSA/Tests/testMatM
 
 ## Supported Platforms
 
-- **Generic CPU:**
-- **CortexM Processors:**
-    - Simulators: [QEMU](https://www.qemu.org/)
-- **MemPool extended with ITA:**
-    - Hardware: [Mempool paper](https://arxiv.org/abs/2303.17742), [ITA paper](https://arxiv.org/abs/2307.03493)
-    - Simulators: [Banshee](https://github.com/pulp-platform/banshee)
-- **Siracusa:**
-    - Hardware: [Siracusa paper](https://arxiv.org/abs/2312.14750)
-    - Simulators: [GVSoC](https://github.com/gvsoc/gvsoc)
-- **Snitch Cluster**
-    - Hardware: [Snitch paper](https://arxiv.org/abs/2002.10143)
-    - Simlators: [GVSoC](https://github.com/gvsoc/gvsoc)
+| **Platform**           | **Hardware**                                                                                     | **Simulator**                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| **Generic CPU**        | Your laptop CPU :)                                                                               | Host                                         |
+| **CortexM Processors** | [Documentation](https://www.arm.com/products/silicon-ip-cpu/cortex-m/cortex-m4)                  | [QEMU](https://www.qemu.org/)                |
+| **MemPool + ITA**      | [Mempool paper](https://arxiv.org/abs/2303.17742), [ITA paper](https://arxiv.org/abs/2307.03493) | [Banshee](https://github.com/pulp-platform/banshee)            |
+| **Siracusa**           | [Siracusa paper](https://arxiv.org/abs/2312.14750)                                               | [GVSoC](https://github.com/gvsoc/gvsoc)                        |
+| **Snitch Cluster**     | [Snitch paper](https://arxiv.org/abs/2002.10143)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        |
+| **SoftHier**           | [Repo](https://github.com/gvsoc/gvsoc/tree/soft_hier_release)                                    | [GVSoC](https://github.com/gvsoc/gvsoc/tree/soft_hier_release) |
+| **Chimera**            | [Repo](https://github.com/pulp-platform/chimera)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        |
 
-## Documentation
-
-All relevant documentation can be found in the `docs` folder and is hosted on [GitHub Pages](https://pulp-platform.github.io/Deeploy/).
-
-To build the documentation locally, simply run:
-```
-make docs
-```
-Then open `docs/_build/html/index.html` .
 
 ## Publications
 
-If you use Deeploy in your work or research, you can cite us:
+If you use Deeploy in your work or research, you can cite us with:
 
 ### ESWEEK 2024: Deeploy: Enabling Energy-Efficient Deployment of Small Language Models On Heterogeneous Microcontrollers
 ```
@@ -126,3 +128,7 @@ The preprint is available on arXiv @ [arXiv:2408.04413](https://arxiv.org/abs/24
 
 ```
 The preprint is available on arXiv @ [arXiv:2408.02473](https://arxiv.org/abs/2408.02473).
+
+## License
+
+Unless specified otherwise in the respective file headers, all code checked into this repository is made available under a permissive license. All software sources and tool scripts are licensed under Apache 2.0, except for files contained in the `scripts` directory, which are licensed under the MIT license, and files contained in the `DeeployTest/Tests`directory, which are licensed under the [Creative Commons Attribution-NoDerivates 4.0 International](https://creativecommons.org/licenses/by-nd/4.0) license (CC BY-ND 4.0).

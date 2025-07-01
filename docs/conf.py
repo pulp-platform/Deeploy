@@ -37,11 +37,8 @@ release = '2024'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'myst_parser',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.autosummary',
+    'myst_parser', 'sphinx.ext.napoleon', 'sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.autosummary',
+    'sphinx_favicon'
 ]
 autosummary_generate = True
 napoleon_use_ivar = True
@@ -55,7 +52,12 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "*flycheck_*"]
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
+html_theme_options = {
+    'style_nav_header_background': 'white',
+    'logo_only': True,
+}
 html_static_path = ['_static']
+html_logo = '_static/DeeployBannerGreen-640x-320.png'
 
 # -- Options for HTML templates ------------------------------------------------
 
@@ -68,3 +70,20 @@ html_context = {
     'versions': [["main", f"https://pulp-platform.github.io/Deeploy"],
                  ["devel", f"https://pulp-platform.github.io/Deeploy/branch/devel"]],
 }
+
+# -- Options for myst_parser -------------------------------------------------
+# https://myst-parser.readthedocs.io/en/latest/syntax/optional.html
+myst_enable_extensions = ["html_image", "dollarmath", "linkify", "replacements"]
+
+# -- Options for sphinx_favicon ------------------------------------------------
+favicons = [
+    {
+        "href": "DeeployIconGreen.svg"
+    },
+    {
+        "href": "DeeployIconGreen-32x32.png"
+    },
+    {
+        "href": "DeeployIconGreen-64x64.png"
+    },
+]

@@ -238,6 +238,9 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
     typeMantissa: int  #: int: Represents the number of bits reserved for the mantissa part
     typeExponent: int  #: int: Represents the number of bits reserved for the exponent part
+
+    typeExponentMax: int  #: int: Represents the maximum representable exponent value.
+    typeExponentOffset: int  #: int: Represents the offset added to the exponent.
     typeMin: float
 
     @_classproperty
