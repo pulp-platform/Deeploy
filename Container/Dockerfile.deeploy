@@ -21,17 +21,19 @@ COPY Makefile ./
 COPY requirements-dev.txt ./
 
 # Compile emulators
-RUN apt-get upgrade && \
-    apt-get update && \
-    apt-get install -y python3.10-venv \
-    python3.10-distutils 
-
+# WIESEP: We need to already clean up some space, otherwise the GitHub runners run out of disk space
 RUN --mount=type=cache,target=/ccache \
     ccache -z && \
     make pulp-sdk chimera-sdk qemu mempool banshee xtensor && \
     make gvsoc && \
     cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
     cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
+    rm -rf toolchain/pulp-sdk toolchain/qemu toolchain/mempool toolchain/banshee toolchain/xtensor toolchain/xtl toolchain/xsimd toolchain/gvsoc && \
+    ccache -s
+
+# Install SoftHier emulator and toolchain
+RUN --mount=type=cache,target=/ccache \
+    ccache -z && \
     make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
     ccache -s
 
@@ -92,7 +94,8 @@ RUN mkdir -p /root/.cargo/bin/ && \
     libsdl2-dev \
     python-is-python3 \
     python3.10-venv \
-    python3.10-distutils && \
+    python3.10-distutils \
+    gcc && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && \
     rm get-pip.py && \
