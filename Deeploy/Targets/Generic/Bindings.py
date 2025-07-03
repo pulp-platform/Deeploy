@@ -21,7 +21,7 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
-    ConvTransposeChecker, DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, \
+     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, \
     GEMMChecker, LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, \
     ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, \
     SliceChecker, SoftmaxChecker, TransposeChecker
@@ -296,14 +296,14 @@ BasicBatchNormBindings = [
 
 BasicConvTransposeBindings = [
     NodeBinding(
-        ConvTransposeChecker(
+        ConvChecker(
             [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
             [PointerClass(type)]),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer) for type in FloatDataTypes
 ] + [
     NodeBinding(
-        ConvTransposeChecker(
+        ConvChecker(
             [PointerClass(type), PointerClass(type)],  # input, weight
             [PointerClass(type)]),
         ConvTransposeTemplate.referenceTemplate,
