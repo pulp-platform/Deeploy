@@ -28,7 +28,7 @@ import pickle
 import pytest
 
 from Deeploy.AbstractDataTypes import PointerClass, StructClass
-from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, int8_t, int16_t, int32_t
+from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, bfloat16_t, float32_t, int8_t, int16_t, int32_t
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, StructBuffer, TransientBuffer, VariableBuffer
 
 
@@ -89,6 +89,32 @@ def testImmediatePromotion():
     _ = int32_t(b)
 
     _ = int32_t(c)
+
+    return True
+
+
+def testImmediatePromotionFloat():
+    with pytest.raises(Exception):
+        _ = bfloat16_t(0.1)
+        _ = bfloat16_t(7777777.0)
+        _ = bfloat16_t(0.2)
+        _ = float32_t(77777777.0)
+        _ = float32_t(0.0000800006853044033050537109375)
+        c = bfloat16_t(7777777)
+    a = bfloat16_t(12.375)
+    b = bfloat16_t(0.5)
+    c = float32_t(7777777.0)
+    d = float32_t(77777776.0)
+
+    e = float32_t(0.0000900006853044033050537109375)
+
+    _ = bfloat16_t(0.000079631805419921875)
+
+    with pytest.raises(Exception):
+        _ = bfloat16_t(c)
+        _ = bfloat16_t(d)
+        _ = bfloat16_t(e)
+        _ = bfloat16_t(0.000079631805419921885)
 
     return True
 
@@ -223,6 +249,7 @@ if __name__ == "__main__":
     testImmediateSerialization()
     testImmediatePromotion()
     testImmediateTypeEquivalence()
+    testImmediatePromotionFloat()
 
     testStructSerialization()
     testStructPromotion()

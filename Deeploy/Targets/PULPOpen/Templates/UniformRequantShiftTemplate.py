@@ -77,8 +77,10 @@ else:
 
 inSignage = "s" if signedI else "u"
 outSignage = "s" if signedO else "u"
+mul_int_immediate = int(mul_immediate)
+add_int_immediate = int(add_immediate)                    
 %>
 
 // UniformRequantShift (Name: ${nodeName}, Op: ${nodeOp})
-UniformRequantShift_${inSignage}${data_in_type.referencedType.typeWidth}_${outSignage}${data_out_type.referencedType.typeWidth}(${data_in}, ${size}, ${mul_immediate}, ${add_immediate}, ${data_out}, ${log2Dstring}, ${channel_width}, 0, 0 , ${output_min}, ${output_max}, 1);
+UniformRequantShift_${inSignage}${data_in_type.referencedType.typeWidth}_${outSignage}${data_out_type.referencedType.typeWidth}(${data_in}, ${size}, ${mul_int_immediate}, ${add_int_immediate}, ${data_out}, ${log2Dstring}, ${channel_width}, 0, 0 , ${output_min}, ${output_max}, 1);
 """)

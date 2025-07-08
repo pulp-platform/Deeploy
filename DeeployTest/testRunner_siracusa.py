@@ -36,8 +36,15 @@ if __name__ == "__main__":
                         metavar = '<cores>',
                         dest = 'cores',
                         type = int,
-                        default = 1,
+                        default = 8,
                         help = 'Set number of cluster cores')
+
+    parser.add_argument('--profileUntiled',
+                        action = 'store_true',
+                        dest = 'profileUntiled',
+                        default = False,
+                        help = 'Profile Untiled')
+
     args = parser.parse_args()
 
     testRunner = TestRunner(platform = "Siracusa", simulator = "gvsoc", tiling = False, argument_parser = parser)

@@ -1,0 +1,76 @@
+name: TestRunnerTiledSnitchSequential
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      tests-config:
+        required: true
+        type: string
+      num-cores:
+        required: false
+        default: 9
+        type: number
+      default-memory-level:
+        required: false
+        default: "L2"
+        type: string
+      memory-allocation-strategy:
+          required: false
+          default: "MiniMalloc"
+          type: string
+      search-strategy:
+          required: false
+          default: "random-max"
+          type: string
+      simulators:
+        required: true
+        type: string
+
+
+jobs:
+
+  test-runner-snitch-tiled:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Install jq
+        run: apt-get install -y jq
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: /app/.ccache
+          key: ccache-ci
+      - name: Run Tests
+        run: |
+          simulators="${{inputs.simulators}}"
+          cd DeeployTest
+          echo '${{ inputs.tests-config }}' > tests.json
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          echo "$simulators" | while IFS= read -r simulator; do
+            if [[ -n "$simulator" ]]; then
+              jq -c '.[]' tests.json | while read test; do
+                testName=$(echo "$test" | jq -r '.name')
+                L1_values=$(echo "$test" | jq -r '.L1[]')
+                for L1_value in $L1_values; do
+                  echo "Running test: $testName with L1: $L1_value using $simulator"
+                  python testRunner_tiled_snitch.py -t Tests/$testName --cores=${{ inputs.num-cores }} --simulator=$simulator --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
+                done
+              done
+            fi
+          done
+        shell: bash
+        

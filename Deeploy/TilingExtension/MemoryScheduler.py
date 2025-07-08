@@ -28,7 +28,7 @@ from __future__ import annotations
 import random
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
@@ -115,7 +115,7 @@ class MemoryScheduler():
 
         return overlap
 
-    def __init__(self, stringSuffix: str, tileScheduler: bool, seed: int = 19960801):
+    def __init__(self, stringSuffix: str, tileScheduler: bool, seed: int = 1996080121):
         self._stringSuffix = stringSuffix
         self.stringSuffix = ""
         self.tileScheduler = tileScheduler
@@ -261,7 +261,7 @@ class MemoryScheduler():
 
         return cost
 
-    def _buildInterferenceGraph(self, lifetimeMap):
+    def _buildInterferenceGraph(self, lifetimeMap) -> Dict[str, List[str]]:
 
         interferenceGraph: Dict[str, List[str]] = {}
         for name, lifetime in lifetimeMap.items():
@@ -302,9 +302,7 @@ class MemoryScheduler():
                 # SCHEREMO: The original level is only considered by "home-level" schedulers
                 if level.memoryLevel == homeLevel and not self.tileScheduler:
 
-                    # SCHEREMO: ConstantBuffers are assigned and allocated at compile time, Global Var Buffers are assigned at init time
-                    if isinstance(ctxt.lookup(tensorMemoryConstraint.tensorName), ConstantBuffer) or ctxt.is_global(
-                            tensorMemoryConstraint.tensorName):
+                    if isinstance(ctxt.lookup(tensorMemoryConstraint.tensorName), ConstantBuffer):
                         return False
                     return True
 
@@ -315,6 +313,7 @@ class MemoryScheduler():
 
         tensorMap = OrderedDict()
         tensorLifetimeMap: Dict[str, Tuple[int, int]] = dict()
+        maxStepIdx = len(patternMemoryConstraint.nodeConstraints)
 
         for stepIdx, nodeConstraint in enumerate(patternMemoryConstraint.nodeConstraints):
             for tensorName, tensorMemoryConstraint in nodeConstraint.tensorMemoryConstraints.items():
@@ -322,12 +321,32 @@ class MemoryScheduler():
                 if not filterTensorMemoryConstraint(ctxt, tensorMemoryConstraint):
                     continue
 
+                buffer = ctxt.lookup(tensorName)
+                # JUNGVI: Buffer targeted by alias have to say alive as long as their "aliasers"
+                if hasattr(buffer, "_alias"):
+                    alias = buffer._alias
+                    if alias in tensorLifetimeMap.keys():
+                        prevLifetime = tensorLifetimeMap[alias]
+                        tensorLifetimeMap[alias] = tuple((prevLifetime[0], stepIdx))
+
                 if tensorName in tensorLifetimeMap.keys():
                     prevLifetime = tensorLifetimeMap[tensorName]
                     tensorLifetimeMap[tensorName] = tuple((prevLifetime[0], stepIdx))
                 else:
                     tensorLifetimeMap[tensorName] = tuple((stepIdx, stepIdx))
                     tensorMap[tensorName] = tensorMemoryConstraint
+
+        # JUNGVI: Align the lifetime of I/O tensors accordignly:
+        #   - Input Tensors are alive at step 0
+        #   - Output Tensors are alive until the last step
+        for tensorName, lifetime in tensorLifetimeMap.items():
+            buffer = ctxt.lookup(tensorName)
+            new_lifetime = lifetime
+            if buffer.is_input:
+                new_lifetime = (0, lifetime[-1])
+            if buffer.is_output:
+                new_lifetime = (lifetime[0], maxStepIdx)
+            tensorLifetimeMap[tensorName] = new_lifetime
 
         return tensorLifetimeMap, tensorMap
 
@@ -428,37 +447,43 @@ class MemoryScheduler():
 
         return tensorLifetimeMap
 
+    def getConstantTensorOffset(self, ctxt: NetworkContext, memoryLevel: str):
+        constantTensorSize = 0
+        for buffer in ctxt.globalObjects.values():
+            if not "MEMORYARENA" in buffer.name and isinstance(buffer,
+                                                               ConstantBuffer) and buffer._memoryLevel == memoryLevel:
+                constantTensorSize += np.prod(buffer.shape) * buffer._type.referencedType.typeWidth // 8
+
+        return int(constantTensorSize)
+
     def _scheduleMemoryConstraints(self,
                                    tilerModel: TilerModel,
                                    ctxt: NetworkContext,
                                    allMemoryConstraints: List[PatternMemoryConstraints],
                                    memoryHierarchy: MemoryHierarchy,
-                                   memoryLevel: str = "L1",
-                                   optimizeSchedule: bool = False):
+                                   memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt"],
+                                   memoryLevel: str = "L1"):
 
         if memoryLevel not in self.memoryMap:
             self.memoryMap[memoryLevel] = []
 
         for patternIdx, patternMemoryConstraint in enumerate(allMemoryConstraints):
 
-            # SCHEREMO: Calculate lifetimes
             tensorLifetimeMap, tensorMap = self._calculateLifetimes(ctxt, patternMemoryConstraint, memoryLevel)
 
             tensorLifetimeMap = self._dealiasLifetimeMap(ctxt, tensorLifetimeMap)
 
-            # SCHEREMO: Build interference graph
-            graph = self._buildInterferenceGraph(tensorLifetimeMap)
+            interferenceGraph = self._buildInterferenceGraph(tensorLifetimeMap)
 
-            numVars = len(graph)
+            numVars = len(interferenceGraph)
 
-            # SCHEREMO: Build adjacency matrices for memoryLevel
-            adjacencyMatrix = self._buildAdjacencyMatrix(graph, tensorMap)
-            costVector = self._buildCostVector(ctxt, graph, tensorMap, memoryLevel)
+            adjacencyMatrix = self._buildAdjacencyMatrix(interferenceGraph, tensorMap)
+            costVector = self._buildCostVector(ctxt, interferenceGraph, tensorMap, memoryLevel)
             nameVector: List[str] = []
 
             blockList = []
 
-            for node, neighbors in graph.items():
+            for node, neighbors in interferenceGraph.items():
                 nameVector.append(node)
                 relativeLifeTime = tensorLifetimeMap[node]
                 absoluteLifetime = (relativeLifeTime[0] + patternIdx, relativeLifeTime[1] + patternIdx)
@@ -469,7 +494,7 @@ class MemoryScheduler():
             self.memoryMap[memoryLevel].append(blockList)
 
             # SCHEREMO: Build permutation matrix
-            if optimizeSchedule:
+            if memoryAllocStrategy == 'TetrisCo-Opt':
                 if numVars > 1:
 
                     permutationMatrix = self._addPermutationMatrix(tilerModel, numVars, patternIdx)
@@ -480,15 +505,22 @@ class MemoryScheduler():
                     permutationMatrix = np.ones((1,))
                     permAdj, permCost = adjacencyMatrix, costVector
 
-            else:
+            elif memoryAllocStrategy == 'TetrisRandom':
                 permutationList = self.heuristicPermutation(adjacencyMatrix, costVector)
                 permAdj, permCost, permutationMatrix = self._stablePermutation(adjacencyMatrix, costVector,
                                                                                permutationList)
+            elif memoryAllocStrategy == "MiniMalloc":
+                #JUNVI: When using MiniMalloc we don't perform memory allocation with Tiling, hence we don't add the permutation constraints
+                continue
+            else:
+                raise ("Unrecognized memory allocation strategy!")
 
             self._permutationState[memoryLevel + f"_{patternIdx}"] = permutationMatrix
 
+            constantTensorOffset = self.getConstantTensorOffset(ctxt, memoryLevel)
+
             cost = self._generateCost(tilerModel, permAdj, permCost, patternIdx)
-            constr = cost < memoryHierarchy.memoryLevels[memoryLevel].size
+            constr = (cost + constantTensorOffset) < memoryHierarchy.memoryLevels[memoryLevel].size
             tilerModel.addConstraint(constr)
 
         return
@@ -498,12 +530,52 @@ class MemoryScheduler():
                                   ctxt: NetworkContext,
                                   allMemoryConstraints: List[PatternMemoryConstraints],
                                   memoryHierarchy: MemoryHierarchy,
-                                  memoryLevel: str = "L1",
-                                  optimizeSchedule: bool = False):
+                                  memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt"],
+                                  memoryLevel: str = "L1"):
 
         self.stringSuffix = self._stringSuffix + f"_{memoryLevel}"
-        return self._scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints, memoryHierarchy, memoryLevel,
-                                               optimizeSchedule)
+        return self._scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints, memoryHierarchy,
+                                               memoryAllocStrategy, memoryLevel)
+
+    def constraintTileBuffersWithOverlappingLifetime(self, tilerModel: TilerModel, ctxt: NetworkContext,
+                                                     patternMemoryConstraint: PatternMemoryConstraints,
+                                                     memoryHierarchy: MemoryHierarchy):
+        """This method adds the necessay constraints for tiling to be performed before the static memory allocation of the tile buffers.
+        To perform static memory allocation after tiling (i.e. decouple tiling and memory alloc), we need to do two assumptions
+
+            1. All tile buffers for each node have overlapping lifetime, so we can find their memory footprint by just summing their sizes and hence we don't need to know the specific memory allocation. This assumption is true as soon as we don't do tile several nodes together (ask me if you don't know what I mean here).
+            2. We don't allocate the tensors of the graph in the same memory level than the tiles (for instance we put all tensor in L2 and the tiles only live in L1).
+        """
+
+        for nodeConstraint in patternMemoryConstraint.nodeConstraints:
+            tileMemoryConstraint = {}
+
+            for tensorMemoryConstraints in nodeConstraint.tensorMemoryConstraints.values():
+                for memoryConstraint in tensorMemoryConstraints.memoryConstraints.values():
+                    if isinstance(memoryConstraint.size, IntVar):
+
+                        _buffer = ctxt.lookup(tensorMemoryConstraints.tensorName)
+
+                        if not isinstance(_buffer, TransientBuffer):
+                            _typeWidthFactor = int(_buffer._type.referencedType.typeWidth / 8)
+                        else:
+                            _typeWidthFactor = 1
+
+                        tileMemoryConstraint[tensorMemoryConstraints.tensorName] = {
+                            "sizeVar": memoryConstraint.size,
+                            "typeWidthFactor": _typeWidthFactor,
+                            "memoryLevel": memoryConstraint.memoryLevel,
+                            "multiBufferCoeff": memoryConstraint.multiBufferCoefficient,
+                        }
+
+            for memoryLevel in memoryHierarchy.memoryLevels.values():
+                sumExpr = 0
+                constantTensorOffset = self.getConstantTensorOffset(ctxt, memoryLevel.name)
+                for infoDict in tileMemoryConstraint.values():
+                    if memoryLevel.name == infoDict['memoryLevel']:
+                        sumExpr += infoDict['sizeVar'] * infoDict['typeWidthFactor'] * infoDict['multiBufferCoeff']
+                if sumExpr != 0:
+                    tilerModel.addConstraint(sumExpr + constantTensorOffset <= memoryLevel.size)
 
     def getSymbolicCostName(self, patternIdx: int, memoryLevel: str) -> str:
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
@@ -515,9 +587,6 @@ class MemoryScheduler():
 
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
 
-        collector = tilerModel._solveModel("max")
-        numVars = len(self.memoryMap[memoryLevel][patternIdx])
-
         name = f"cost{stringSuffix}_copyIdx_{patternIdx}"
         symVar = tilerModel._variables[name]
         var = tilerModel._resolveVariable(symVar)
@@ -528,8 +597,6 @@ class MemoryScheduler():
     def getHVector(self, tilerModel, patternIdx: int, memoryLevel: str) -> np.ndarray:
 
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
-
-        collector = tilerModel._solveModel("max")
         numVars = len(self.memoryMap[memoryLevel][patternIdx])
 
         hVec = np.zeros((numVars))
@@ -549,10 +616,7 @@ class MemoryScheduler():
     def getPMatrix(self, tilerModel, patternIdx: int, memoryLevel: str) -> np.ndarray:
 
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
-
-        collector = tilerModel._solveModel("max")
         numVars = len(self.memoryMap[memoryLevel][patternIdx])
-
         permMat = np.zeros((numVars, numVars))
 
         for i in range(numVars):

@@ -27,6 +27,7 @@ import argparse
 import codecs
 import os
 import re
+import shutil
 import subprocess
 from typing import Literal, Tuple
 
@@ -176,9 +177,6 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           type = str,
                           default = os.environ.get('LLVM_INSTALL_DIR'),
                           help = 'Pick compiler install dir\n')
-        self.add_argument('--overwriteRecentState',
-                          action = 'store_true',
-                          help = 'Copy the recent state to the ./deeployStates folder\n')
 
         if self.tiling_arguments:
             self.add_argument('--defaultMemLevel',
@@ -187,23 +185,47 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               type = str,
                               default = "L2",
                               help = 'Set default memory level\n')
-
             self.add_argument('--doublebuffer', action = 'store_true', help = 'Enable double buffering\n')
             self.add_argument('--l1',
                               metavar = '<size>',
                               dest = 'l1',
                               type = int,
                               default = 64000,
-                              help = 'Set L1 size\n')
+                              help = 'Set L1 size in bytes.\n')
+            self.add_argument('--l2',
+                              metavar = '<size>',
+                              dest = 'l2',
+                              type = int,
+                              default = 1024000,
+                              help = 'Set L2 size in bytes.\n')
             self.add_argument('--randomizedMemoryScheduler',
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
-            self.add_argument('--profileTiling',
-                              metavar = '<level>',
-                              dest = 'profileTiling',
+            self.add_argument('--profileTiling', action = 'store_true', help = 'Enable tiling profiling\n')
+            self.add_argument('--memAllocStrategy',
+                              metavar = 'memAllocStrategy',
+                              dest = 'memAllocStrategy',
                               type = str,
-                              default = None,
-                              help = 'Profile tiling for a given memory level (eg. "L2")\n')
+                              default = "MiniMalloc",
+                              help = """Choose the memory allocation strategy, possible values are:
+                            - TetrisRandom: Randomly sample an placement schedule (order) for the Tetris Memory Allocation.
+                            - TetrisCo-Opt: Co-optimize the placement schedule with the tiling solver (works best with random-max solver strategy).
+                            - MiniMalloc: Use SotA static memory allocator from https://dl.acm.org/doi/10.1145/3623278.3624752
+                        """)
+            self.add_argument('--searchStrategy',
+                              metavar = 'searchStrategy',
+                              dest = 'searchStrategy',
+                              type = str,
+                              default = "random-max",
+                              help = """Choose the search strategy for the CP solver:
+                            - random-max: Initalize the permutation matrix variables randomly and initalize all other variables at their maximal value. This is recommended and lead to better solutions.
+                            - max: Initalize all variables at their maximal value.
+                            - min: Initalize all variables at their minimal value.
+                        """)
+            self.add_argument(
+                '--plotMemAlloc',
+                action = 'store_false',
+                help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
         self.args = None
 
@@ -218,10 +240,10 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
         command = ""
         if self.args.verbose:
             command += " -v"
-        if self.args.overwriteRecentState:
-            command += " --overwriteRecentState"
         if self.args.debug:
             command += " --debug"
+        if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
+            command += " --profileUntiled"
 
         if self.tiling_arguments:
             if self.args.defaultMemLevel:
@@ -230,10 +252,18 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                 command += " --doublebuffer"
             if self.args.l1:
                 command += f" --l1={self.args.l1}"
+            if self.args.l2:
+                command += f" --l2={self.args.l2}"
             if self.args.randomizedMemoryScheduler:
                 command += " --randomizedMemoryScheduler"
-            if self.args.profileTiling is not None:
-                command += f" --profileTiling {self.args.profileTiling}"
+            if self.args.profileTiling:
+                command += f" --profileTiling"
+            if self.args.memAllocStrategy:
+                command += f" --memAllocStrategy={self.args.memAllocStrategy}"
+            if self.args.plotMemAlloc:
+                command += f" --plotMemAlloc"
+            if self.args.searchStrategy:
+                command += f" --searchStrategy={self.args.searchStrategy}"
 
         return command
 
@@ -278,6 +308,14 @@ class TestRunner():
         self._dir_build = f"{self._dir_gen_root}/build"
         self._dir_gen, self._dir_test, self._name_test = getPaths(self._args.dir, self._dir_gen_root)
 
+        if "CMAKE" not in os.environ:
+            if self._args.verbose >= 1:
+                prRed(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
+            assert shutil.which(
+                "cmake"
+            ) is not None, "CMake not found. Please check that CMake is installed and available in your system’s PATH, or set the CMAKE environment variable to the full path of your preferred CMake executable."
+            os.environ["CMAKE"] = "cmake"
+
         print("Generation Directory: ", self._dir_gen)
         print("Test Directory      : ", self._dir_test)
         print("Test Name           : ", self._name_test)
@@ -318,6 +356,11 @@ class TestRunner():
             self.cmake_args += " -D banshee_simulation=ON"
         else:
             self.cmake_args += " -D banshee_simulation=OFF"
+
+        if self._simulator == 'gvsoc':
+            self.cmake_args += " -D gvsoc_simulation=ON"
+        else:
+            self.cmake_args += " -D gvsoc_simulation=OFF"
 
         command = f"$CMAKE -D TOOLCHAIN={self._args.toolchain} -D TOOLCHAIN_INSTALL_DIR={self._dir_toolchain} -D GENERATED_SOURCE={self._dir_gen} -D platform={self._platform} {self.cmake_args} -B {self._dir_build} -D TESTNAME={self._name_test} .."
 

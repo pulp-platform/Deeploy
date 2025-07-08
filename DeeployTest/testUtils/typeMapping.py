@@ -29,7 +29,7 @@ from typing import List, Optional
 import numpy as np
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, int8_t
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, int8_t
 
 offsetType = namedtuple("offsetType", ("type", "offset"))
 
@@ -68,9 +68,6 @@ def inferInputType(_input: np.ndarray,
         print(f"Warning: Empty input array for type inference for {_input}!")
         return [(defaultType, defaultOffset)]
 
-    if not isInteger(_input):
-        raise Exception("Deeploy currently only handles integer types!")
-
     if signProp is None:
         signProp = False
 
@@ -78,13 +75,20 @@ def inferInputType(_input: np.ndarray,
 
     matchingTypes = []
 
-    if signProp and isUnsigned(_input):
+    # FIXME: this is okay for now (3 distinctions are fine), but there is implicit
+    # knowledge encoded in the order of the checks (i.e. first unsigned, signed
+    # and then float). It might be good to extract that implicit knowledge into an ordered list.
+    if signProp and isUnsigned(_input) and isInteger(_input):
         for _type in sorted(signedPlatformTypes, key = lambda x: x.typeWidth):
             signPropOffset = (2**(_type.typeWidth - 1))
             if _type.checkPromotion(_input - signPropOffset):
                 matchingTypes.append(offsetType(PointerClass(_type), signPropOffset))
-    else:
+    elif isInteger(_input):
         for _type in sorted(IntegerDataTypes, key = lambda x: x.typeWidth):
+            if _type.checkPromotion(_input):
+                matchingTypes.append(offsetType(PointerClass(_type), 0))
+    else:
+        for _type in sorted(FloatDataTypes, key = lambda x: x.typeWidth):
             if _type.checkPromotion(_input):
                 matchingTypes.append(offsetType(PointerClass(_type), 0))
 

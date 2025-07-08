@@ -2,13 +2,14 @@
 #
 # File: BasicParsers.py
 #
-# Last edited: 15.12.2021
+# Last edited: 12.05.2025
 #
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
+# Copyright (C) 2025, ETH Zurich and University of Bologna.
 #
 # Authors:
 # - Moritz Scherer, ETH Zurich
 # - Victor Jung, ETH Zurich
+# - Calin Diaconu, University of Bologna
 #
 # ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
@@ -31,7 +32,7 @@ from typing import Tuple
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import NetworkContext, NodeParser
+from Deeploy.DeeployTypes import NetworkContext, NodeParser, VariableBuffer
 
 
 class ConcatParser(NodeParser):
@@ -101,22 +102,20 @@ class iRMSNormParser(NodeParser):
 
 class RQSParserInterface():
 
-    def parseNode(self, node: gs.Node) -> (bool):
-        ret = all([
-            'div' in node.attrs,
-            any(['n_levels' in node.attrs, 'n_levels_out' in node.attrs]),
-            'signed' in node.attrs,
-        ])
+    def parseNode(self, node: gs.Node) -> bool:
+        if not all([
+                'div' in node.attrs,
+                'n_levels' in node.attrs or 'n_levels_out' in node.attrs,
+                'signed' in node.attrs,
+        ]):
+            return False
 
-        if ret:
-            if 'n_levels' in node.attrs:
-                self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-            else:
-                self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels_out'].values)
-            self.operatorRepresentation['signed'] = int(node.attrs['signed'].values)
-            self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div'].values))
+        n_levels = node.attrs['n_levels'] if 'n_levels' in node.attrs else node.attrs['n_levels_out']
+        self.operatorRepresentation['n_levels'] = int(NodeParser._unpack_const(n_levels))
+        self.operatorRepresentation['signed'] = int(NodeParser._unpack_const(node.attrs['signed']))
+        self.operatorRepresentation['log2D'] = int(math.log2(NodeParser._unpack_const(node.attrs['div'])))
 
-        return ret
+        return True
 
 
 class SliceParser(NodeParser):
@@ -507,8 +506,15 @@ class ReduceMeanParser(ReduceParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
+        if len(node.inputs) == 2:
+            # Float node, requiring 2 inputs (ONNX opset version >= 18)
+            wellFormed = all(['keepdims' in node.attrs, len(node.inputs) == 2, len(node.outputs) == 1])
 
-        wellFormed = super().parseNode(node)
+            if wellFormed:
+                self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
+        else:
+            # Integer node, requiring 1 input (ONNX opset version < 18)
+            wellFormed = super().parseNode(node)
 
         return wellFormed
 
@@ -517,8 +523,28 @@ class ReduceMeanParser(ReduceParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-        return newCtxt, ret
+        if len(node.inputs) == 2:
+            data_in = ctxt.lookup(node.inputs[0].name)
+            data_out = ctxt.lookup(node.outputs[0].name)
+
+            axes = ctxt.lookup(node.inputs[1].name)
+
+            self.operatorRepresentation['data_in'] = data_in.name
+            self.operatorRepresentation['data_out'] = data_out.name
+            self.operatorRepresentation['data_in_shape'] = data_in.shape
+            self.operatorRepresentation['data_out_shape'] = data_out.shape
+            self.operatorRepresentation['size'] = np.prod(data_in.shape)
+            self.operatorRepresentation['axisLength'] = data_in.shape[axes.values[0]]
+            self.operatorRepresentation['axes'] = axes.values
+
+            # Mark the axes variable to be excluded from the context, since only used in the template, as part of the operator representation
+            axes._live = False
+            axes._deploy = False
+
+            return ctxt, True
+        else:
+            newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+            return newCtxt, ret
 
 
 class ReduceSumParser(ReduceParser):
@@ -549,10 +575,6 @@ class SoftmaxParser(NodeParser):
     def parseNode(self, node: gs.Node) -> bool:
 
         ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
-
-        if ret:
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-
         return ret
 
     def parseNodeCtxt(self,
@@ -565,8 +587,45 @@ class SoftmaxParser(NodeParser):
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
-        self.operatorRepresentation['lastDimLength'] = data_in.shape[-1]
+        if 'axis' in node.attrs:
+            self.operatorRepresentation['axis'] = int(node.attrs['axis'])
+            axis = self.operatorRepresentation['axis']
+            self.operatorRepresentation['lastDimLength'] = data_in.shape[axis]
+        else:
+            self.operatorRepresentation['lastDimLength'] = data_in.shape[-1]
 
+        return ctxt, True
+
+
+class SoftmaxGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        upstream_grad = ctxt.lookup(node.inputs[0].name)
+        softmax_output = ctxt.lookup(node.inputs[1].name)
+        softmax_grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['upstream_grad'] = upstream_grad.name
+        self.operatorRepresentation['softmax_output'] = softmax_output.name
+        self.operatorRepresentation['softmax_grad'] = softmax_grad.name
+        self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
+        if 'axis' in node.attrs:
+            self.operatorRepresentation['axis'] = int(node.attrs['axis'])
+            axis = self.operatorRepresentation['axis']
+            self.operatorRepresentation['lastDimLength'] = upstream_grad.shape[axis]
+        else:
+            self.operatorRepresentation['lastDimLength'] = upstream_grad.shape[-1]
         return ctxt, True
 
 
@@ -591,6 +650,7 @@ class iSoftmaxParser(SoftmaxParser):
             self.operatorRepresentation['coeffB'] = int(node.attrs['coeffB'].values)
             self.operatorRepresentation['coeffC'] = int(node.attrs['coeffC'].values)
             self.operatorRepresentation['log2'] = int(node.attrs['log2'].values)
+            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
 
         return wellFormed
 
@@ -658,16 +718,16 @@ class ITAPartialMaxParser(SoftmaxParser):
         return newCtxt, ret
 
 
-class iGELUParser(NodeParser):
+class GELUParser(NodeParser):
 
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all(['b' in node.attrs, 'one' in node.attrs, len(node.inputs) >= 1, len(node.outputs) == 1])
+        ret = all([len(node.inputs) >= 1, len(node.outputs) == 1])
 
-        if ret:
+        if 'b' in node.attrs and 'one' in node.attrs:
             self.operatorRepresentation['b'] = node.attrs['b']
             self.operatorRepresentation['one'] = node.attrs['one']
 
@@ -687,7 +747,7 @@ class iGELUParser(NodeParser):
         return ctxt, True
 
 
-class RQSiGELUParser(iGELUParser):
+class RQSiGELUParser(GELUParser):
 
     def __init__(self):
         super().__init__()
@@ -697,9 +757,11 @@ class RQSiGELUParser(iGELUParser):
         wellFormed = all([
             len(node.inputs) == 4,
         ])
-        ret = super().parseNode(node)
 
-        return (ret and wellFormed)
+        ret = super().parseNode(node)
+        ret_RQ = all(['b' in node.attrs, 'one' in node.attrs])
+
+        return (ret and ret_RQ and wellFormed)
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -752,6 +814,41 @@ class iHardswishParser(NodeParser):
         return ctxt, True
 
 
+class iNoNormParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all(['D' in node.attrs, 'mul' in node.attrs, 'n_levels' in node.attrs])
+
+        if ret:
+            self.operatorRepresentation['D'] = node.attrs['D']
+            self.operatorRepresentation['log2D'] = int(np.log2(node.attrs['D'].values).tolist()[0])
+            self.operatorRepresentation['mul'] = int(node.attrs['mul'].values.tolist()[0])
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        weights = ctxt.lookup(node.inputs[1].name)
+        bias = ctxt.lookup(node.inputs[2].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['weights'] = weights.name
+        self.operatorRepresentation['bias'] = bias.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True
+
+
 class RQSiHardswishParser(iHardswishParser):
 
     def __init__(self):
@@ -798,13 +895,14 @@ class GatherParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> (bool):
+        if not (len(node.inputs) == 2 and len(node.outputs) == 1):
+            return False
 
-        ret = all(['axis' in node.attrs, len(node.inputs) == 2, len(node.outputs) == 1])
+        indices_shape = node.inputs[1].shape
+        assert np.prod(indices_shape) == 1, f"Only indices of size 1 supported. Got indices of shape {indices_shape}"
 
-        if ret:
-            self.operatorRepresentation['axis'] = node.attrs['axis']
-
-        return ret
+        self.operatorRepresentation['axis'] = node.attrs['axis'] if 'axis' in node.attrs else 0
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -820,10 +918,11 @@ class GatherParser(NodeParser):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
         axis = self.operatorRepresentation['axis']
-        self.operatorRepresentation['numIndices'] = int(
-            np.prod(ctxt.lookup(self.operatorRepresentation['indices']).values.shape))
-        self.operatorRepresentation['offset'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[axis + 1:])
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
+        shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['batch'] = np.prod(shape[:axis])
+        self.operatorRepresentation['batch_length'] = np.prod(shape[axis:])
+        self.operatorRepresentation['axis_length'] = np.prod(shape[axis + 1:])
+        self.operatorRepresentation['index'] = int(node.inputs[1].values.item())
 
         return ctxt, True
 
@@ -888,6 +987,31 @@ class UnsqueezeParser(NodeParser):
         return ctxt, True
 
 
+class ReluParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True
+
+
 class ReshapeParser(NodeParser):
 
     def __init__(self):
@@ -904,14 +1028,28 @@ class ReshapeParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['data_in', 'indices']
+        # Define names of node inputs and outputs, according to the ONNX standard
+        inputs = ['data_in', 'shape']
         outputs = ['data_out']
 
+        # Map inputs and outputs to their corresponding names in the operator representation
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
+        # Update alias_of parameter for the output node
+        output_node = ctxt.lookup(node.outputs[outputs.index("data_out")].name)
+        input_node = ctxt.lookup(node.inputs[inputs.index("data_in")].name)
+
+        # Prepare new aliases
+        new_output_node_aliases = input_node.get_aliases_of()
+        new_output_node_aliases.append(input_node.name)
+
+        # Add new aliases
+        output_node.add_aliases(aliases_to_add = new_output_node_aliases)
+
+        # Compute data size
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
 
         return ctxt, True
@@ -923,20 +1061,15 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> (bool):
-        ret_rqs = RQSParserInterface.parseNode(self, node)
-
-        ret = all([
-            ret_rqs == True,
-            len(node.inputs) == 3,
-            len(node.outputs) == 1,
-        ])
-
-        return ret
+        if not RQSParserInterface.parseNode(self, node):
+            return False
+        return len(node.inputs) == 3 and len(node.outputs) == 1
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        _ = channels_first
 
         inputs = ['data_in', 'mul', 'add']
         outputs = ['data_out']
@@ -946,18 +1079,17 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['channels'] = ctxt.lookup(node.inputs[0].name).shape[1]
-
         data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        self.operatorRepresentation['channel_width'] = int(self.operatorRepresentation['size'] /
-                                                           self.operatorRepresentation['channels'])
+        assert isinstance(data_in, VariableBuffer)
+        shape = data_in.shape
 
-        if len(data_in.shape) == 4:
-            self.operatorRepresentation['batch'] = data_in.shape[0]
-            self.operatorRepresentation['channel_width'] = int(self.operatorRepresentation['channel_width'] /
-                                                               self.operatorRepresentation['batch'])
+        assert len(shape) >= 2, f"Unsupported shape length ({len(shape)}). Supported shape lengths greater then 2"
+
+        # Assumes shape [ Batch, Channels, ...]
+        self.operatorRepresentation['batch'] = shape[0]
+        self.operatorRepresentation['channels'] = shape[1]
+        self.operatorRepresentation['channel_width'] = np.prod(shape[2:]) if len(shape) > 2 else 1
+        self.operatorRepresentation['size'] = np.prod(shape)
 
         return ctxt, True
 
@@ -1022,7 +1154,6 @@ class ConvParser(NodeParser):
         wellFormed = all([
             'dilations' in node.attrs,
             'group' in node.attrs,
-            'kernel_shape' in node.attrs,
             'pads' in node.attrs,
             'strides' in node.attrs,
             len(node.outputs) == 1,
@@ -1030,7 +1161,6 @@ class ConvParser(NodeParser):
 
         if wellFormed:
             self.operatorRepresentation['group'] = node.attrs['group']
-            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
             self.operatorRepresentation['pads'] = node.attrs['pads']
             self.operatorRepresentation['strides'] = node.attrs['strides']
             self.operatorRepresentation['dilations'] = node.attrs['dilations']
@@ -1078,8 +1208,6 @@ class Conv2DParser(ConvParser):
 
         if wellFormed:
             ret = all([
-                # Make sure kernel is 2D
-                len(node.attrs['kernel_shape']) == 2,
                 # Make sure strides are 2D
                 len(node.attrs['strides']) == 2,
                 len(node.attrs['pads']) == 4,
@@ -1087,6 +1215,9 @@ class Conv2DParser(ConvParser):
             ])
 
         if ret:
+            if 'kernel_shape' not in node.attrs:
+                node.attrs['kernel_shape'] = node.inputs[1].shape[-2:]
+            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
             self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
             self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
             self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
@@ -1163,8 +1294,6 @@ class Conv1DParser(ConvParser):
 
         if wellFormed:
             ret = all([
-                # Make sure kernel is 2D
-                len(node.attrs['kernel_shape']) == 1,
                 # Make sure strides are 2D
                 len(node.attrs['strides']) == 1,
                 len(node.attrs['pads']) == 2,
@@ -1172,6 +1301,9 @@ class Conv1DParser(ConvParser):
             ])
 
         if ret:
+            if 'kernel_shape' not in node.attrs:
+                node.attrs['kernel_shape'] = node.inputs[1].shape[-1:]
+            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
             self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][0])
             self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][0])
             self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][0])
@@ -1435,8 +1567,38 @@ class iLayerNormParser(NodeParser):
         ret = all(['D' in node.attrs, 'n_levels' in node.attrs, len(node.inputs) == 3, len(node.outputs) == 1])
 
         if ret:
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-            self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['D'].values))
+            self.operatorRepresentation['n_levels'] = int(self._unpack_const(node.attrs['n_levels']))
+            self.operatorRepresentation['log2D'] = int(math.log2(self._unpack_const(node.attrs['D'])))
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['data_in', 'weight', 'bias']
+        outputs = ['data_out']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
+        self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
+
+        return ctxt, True
+
+
+class LayerNormParser(iLayerNormParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 3, len(node.outputs) >= 1])
+
+        if ret:
+            self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
 
         return ret
 
@@ -1496,15 +1658,19 @@ class MatMulParser(NodeParser):
 
         # Create fake C node for GEMM-compatibility and hoist it
         if not self.noBiasHoisting:
-            values = np.zeros((1))
+            values = np.zeros(ctxt.lookup(node.inputs[0].name).shape, dtype = inputNode.dtype)
             zeroTensor = gs.Constant(f'{node.name}_C_Tensor', values = values)
-            ctxt.hoistConstant(zeroTensor)
+            ctxt.hoistConstant(zeroTensor, _type = ctxt.lookup(inputNode.name)._type)
             node.inputs.append(zeroTensor)
             self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
 
+        # Store the input and output shapes in the operator representation
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['A_shape'] = ctxt.lookup(node.inputs[0].name).shape
         self.operatorRepresentation['B_shape'] = ctxt.lookup(node.inputs[1].name).shape
+        self.operatorRepresentation['data_out_shape'] = ctxt.lookup(node.outputs[0].name).shape
+
+        # Store the matrix dimensions in the operator representation
         self.operatorRepresentation['M'] = ctxt.lookup(
             node.inputs[0].name).shape[(-2 + self.operatorRepresentation['transA'])]
         self.operatorRepresentation['N'] = ctxt.lookup(
@@ -1516,11 +1682,24 @@ class MatMulParser(NodeParser):
         ret = ret and (self.operatorRepresentation['N'] == ctxt.lookup(
             node.inputs[1].name).shape[-2 + self.operatorRepresentation['transB']])
 
-        self.operatorRepresentation['batch'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[:-2])
+        # Check if the batch dimensions are compatible
+        self.operatorRepresentation['batch_A'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[:-2])
+        self.operatorRepresentation['batch_B'] = np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2])
 
-        # SCHEREMO: Assert that batch is the same on both matrices
-        W_batched = (self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2]))
-        self.operatorRepresentation['W_batched'] = W_batched
+        self.operatorRepresentation['batch'] = max(self.operatorRepresentation['batch_A'],
+                                                   self.operatorRepresentation['batch_B'])
+
+        assert (self.operatorRepresentation["batch_A"] == self.operatorRepresentation["batch_B"]) or (
+            self.operatorRepresentation["batch_A"] == 1
+        ) or (
+            self.operatorRepresentation["batch_B"] == 1
+        ), "Incompatible dimensions for input matrices. Broadcasting not yet supported for dimensions larger than 1 on one of the inputs, or equal dimensions between the 2."
+
+        # Create flags for same dimension between each input matrix and the final batch dimension
+        self.operatorRepresentation['A_batched'] = (self.operatorRepresentation['batch'] == np.prod(
+            ctxt.lookup(node.inputs[0].name).shape[:-2]))
+        self.operatorRepresentation['W_batched'] = self.operatorRepresentation['B_batched'] = (
+            self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2]))
 
         return ctxt, ret
 
@@ -1624,12 +1803,25 @@ class GEMMParser(MatMulParser):
                 self.operatorRepresentation[outputs[idx]] = newCtxt.lookup(outputNode.name).name
 
             if len(node.inputs) == 3:
+                # Compute bias name and shape if present in the inputs
                 self.operatorRepresentation['C'] = newCtxt.lookup(node.inputs[2].name).name
+                self.operatorRepresentation['C_shape'] = newCtxt.lookup(node.inputs[2].name).shape
+
+                # Create flag for same dimension between bias matrix and the final batch dimension
+                self.operatorRepresentation['C_batched'] = (self.operatorRepresentation['batch'] == np.prod(
+                    newCtxt.lookup(node.inputs[2].name).shape[:-2]))
             elif not self.noBiasHoisting:
+                # Create mock bias matrix if not present in the inputs
                 values = np.zeros((1))
                 zeroTensor = gs.Constant(f'{node.name}_C_Tensor', values = values)
                 newCtxt.hoistConstant(zeroTensor)
+
+                # Store it in the operator representation
                 self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
+                self.operatorRepresentation['C_shape'] = (0,)
+
+                # Create flag for same dimension between bias matrix and the final batch dimension
+                self.operatorRepresentation['C_batched'] = False
 
             self.operatorRepresentation['size'] = np.prod(newCtxt.lookup(node.inputs[0].name).shape)
 
@@ -1759,6 +1951,35 @@ class IntegerDivParser(NodeParser):
                 self.operatorRepresentation['denomStep'] = np.prod(
                     ctxt.lookup(self.operatorRepresentation['B']).shape[idx:])
                 break
+
+        return ctxt, True
+
+
+class DivParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ["input1", "input2"]
+        outputs = ["output"]
+        for idx, inputNode in enumerate(node.inputs):
+            if idx < len(inputs):
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(self.operatorRepresentation['input1']).shape)
 
         return ctxt, True
 
@@ -1991,11 +2212,28 @@ class GenericConv2DParser(Conv2DParser):
 
         if ret:
             inputs = ['data_in', 'weight']
+
+            # Handle bias, if present
+            if len(node.inputs) > 2:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
+            else:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
+
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-            return newCtxt, True
 
-        return ctxt, False
+            return newCtxt, True
+        else:
+            return ctxt, False
+
+        assert len(node.inputs
+                  ) == 2, f'Supports only parsing 2 input tensors, data_in and weight. Received: {len(node.inputs)}'
+        for node, sym_name in zip(node.inputs, ['data_in', 'weight']):
+            self.operatorRepresentation[sym_name] = ctxt.lookup(node.name).name
+
+        return newCtxt, True
 
 
 class GenericDWConv2DParser(Conv2DParser):
@@ -2027,8 +2265,18 @@ class GenericDWConv2DParser(Conv2DParser):
 
         if ret:
             inputs = ['data_in', 'weight']
+
+            # Handle bias, if present
+            if len(node.inputs) > 2:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
+            else:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
+
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+
             if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
                 return newCtxt, True
 
@@ -2080,3 +2328,232 @@ class GenericGEMMParser(GEMMParser):
             return newCtxt, True
 
         return ctxt, False
+
+
+class RQAddParser(AddParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        if not super().parseNode(node):
+            return False
+
+        ret = all([
+            'rqs1_mul' in node.attrs,
+            'rqs1_add' in node.attrs,
+            'rqs1_div' in node.attrs,
+            'rqs1_signed' in node.attrs,
+            any(['rqs1_n_levels' in node.attrs, 'rqs1_n_levels_out' in node.attrs]),
+            'rqs2_mul' in node.attrs,
+            'rqs2_add' in node.attrs,
+            'rqs2_div' in node.attrs,
+            'rqs2_signed' in node.attrs,
+            any(['rqs2_n_levels' in node.attrs, 'rqs2_n_levels_out' in node.attrs]),
+            'rqsOut_mul' in node.attrs,
+            'rqsOut_add' in node.attrs,
+            'rqsOut_div' in node.attrs,
+            'rqsOut_signed' in node.attrs,
+            any(['rqsOut_n_levels' in node.attrs, 'rqsOut_n_levels_out' in node.attrs]),
+        ])
+
+        if ret:
+            if 'rqs1_n_levels' in node.attrs:
+                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels'].values)
+            else:
+                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels_out'].values)
+            self.operatorRepresentation['rqs1_mul'] = int(node.attrs['rqs1_mul'])
+            self.operatorRepresentation['rqs1_add'] = int(node.attrs['rqs1_add'])
+            self.operatorRepresentation['rqs1_signed'] = int(node.attrs['rqs1_signed'].values)
+            self.operatorRepresentation['rqs1_log2D'] = int(math.log2(node.attrs['rqs1_div'].values))
+
+            if 'rqs2_n_levels' in node.attrs:
+                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels'].values)
+            else:
+                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels_out'].values)
+            self.operatorRepresentation['rqs2_mul'] = int(node.attrs['rqs2_mul'])
+            self.operatorRepresentation['rqs2_add'] = int(node.attrs['rqs2_add'])
+            self.operatorRepresentation['rqs2_signed'] = int(node.attrs['rqs2_signed'].values)
+            self.operatorRepresentation['rqs2_log2D'] = int(math.log2(node.attrs['rqs2_div'].values))
+
+            if 'rqsOut_n_levels' in node.attrs:
+                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels'].values)
+            else:
+                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels_out'].values)
+            self.operatorRepresentation['rqsOut_mul'] = int(node.attrs['rqsOut_mul'])
+            self.operatorRepresentation['rqsOut_add'] = int(node.attrs['rqsOut_add'])
+            self.operatorRepresentation['rqsOut_signed'] = int(node.attrs['rqsOut_signed'].values)
+            self.operatorRepresentation['rqsOut_log2D'] = int(math.log2(node.attrs['rqsOut_div'].values))
+
+        return ret
+
+
+class QuantParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all([
+            'scale' in node.attrs, 'zero_point' in node.attrs, 'bit_width' in node.attrs,
+            len(node.inputs) == 1,
+            len(node.outputs) == 1
+        ])
+
+        if ret:
+            self.operatorRepresentation['scale'] = float(node.attrs['scale'])
+            self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
+            self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
+
+            # Handle optional signed attribute
+            if 'signed' in node.attrs:
+                self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
+            else:
+                self.operatorRepresentation['signed'] = True  # Default to signed
+
+            # Calculate min and max values based on bit_width and signed
+            bit_width_int = self.operatorRepresentation['bit_width']
+            if self.operatorRepresentation['signed']:
+                self.operatorRepresentation['min_val'] = -(2**(bit_width_int - 1))
+                self.operatorRepresentation['max_val'] = (2**(bit_width_int - 1)) - 1
+            else:
+                self.operatorRepresentation['min_val'] = 0
+                self.operatorRepresentation['max_val'] = (2**bit_width_int) - 1
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True
+
+
+class DequantParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = all([
+            'scale' in node.attrs, 'zero_point' in node.attrs, 'bit_width' in node.attrs,
+            len(node.inputs) == 1,
+            len(node.outputs) == 1
+        ])
+
+        if ret:
+            self.operatorRepresentation['scale'] = float(node.attrs['scale'])
+            self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
+            self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
+
+            self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True
+
+
+class SoftmaxCrossEntropyLossParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        logits = ctxt.lookup(node.inputs[0].name)
+        labels = ctxt.lookup(node.inputs[1].name)
+        log_prob = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['logits'] = logits.name
+        self.operatorRepresentation['labels'] = labels.name
+        self.operatorRepresentation['log_prob'] = log_prob.name
+        self.operatorRepresentation['batch'] = logits.shape[0]
+        self.operatorRepresentation['num_classes'] = logits.shape[1]
+
+        return ctxt, True
+
+
+class SoftmaxCrossEntropyLossGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        log_prob = ctxt.lookup(node.inputs[0].name)
+        labels = ctxt.lookup(node.inputs[1].name)
+        grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['log_prob'] = log_prob.name
+        self.operatorRepresentation['labels'] = labels.name
+        self.operatorRepresentation['grad'] = grad.name
+        self.operatorRepresentation['batch'] = log_prob.shape[0]  # RW: used for tiling
+        self.operatorRepresentation['total_batch'] = log_prob.shape[0]  # RW: total batch num for normalization
+        self.operatorRepresentation['num_classes'] = log_prob.shape[1]
+
+        return ctxt, True
+
+
+class SGDParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1, 'lr' in node.attrs])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        weight = ctxt.lookup(node.inputs[0].name)
+        grad = ctxt.lookup(node.inputs[1].name)
+        weight_updated = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['weight'] = weight.name
+        self.operatorRepresentation['grad'] = grad.name
+        self.operatorRepresentation['weight_updated'] = weight_updated.name
+        self.operatorRepresentation['size'] = np.prod(weight.shape)
+        self.operatorRepresentation['lr'] = node.attrs['lr']
+
+        return ctxt, True

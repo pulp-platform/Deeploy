@@ -298,6 +298,8 @@ class PULPClusterTilingSB(TilingCodeGeneration):
             mchan_flags += 0x4
         mchan_cmd = length_2d_copy + (mchan_flags << 17)
 
+        assert length_2d_copy <= 2**17, f"The DMA transfer size for mchan should be representable with 17 bits, current number of bits required is {np.ceil(np.log2(length_2d_copy))}"
+
         struct = PULPStructDataTypes.DMA_copy(
             {
                 "ext": referenceBuffer.name,
@@ -625,7 +627,8 @@ class PULPClusterTilingSB(TilingCodeGeneration):
         metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'] + "_L2",
                                   nodeOps = operatorRepresentation['nodeOps'],
                                   numTiles = len(tilingSchedule.outputLoadSchedule),
-                                  tileIdxVar = "TILING_I")
+                                  tileIdxVar = "TILING_I",
+                                  kernelLevelTiling = True)
 
         newExecutionBlock = self.generateAllTilingCode(executionBlock, metaInfo, ingressDMATransferCalls,
                                                        ingressDMAWaitStatements, ingressDMAUpdates,

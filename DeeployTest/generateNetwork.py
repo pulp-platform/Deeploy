@@ -40,6 +40,7 @@ from testUtils.typeMapping import inferInputType
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import EmulateCMSISRequantPass
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
+from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
 
 _TEXT_ALIGN = 30
 
@@ -51,9 +52,11 @@ if __name__ == '__main__':
                         action = 'store_true',
                         default = False,
                         help = 'Enable debugging mode\n')
-    parser.add_argument('--overwriteRecentState',
+    parser.add_argument('--profileUntiled',
                         action = 'store_true',
-                        help = 'Copy the recent deeply state to the ./deeployStates folder\n')
+                        dest = 'profileUntiled',
+                        default = False,
+                        help = 'Profile Untiled for L2\n')
 
     args = parser.parse_args()
 
@@ -76,9 +79,9 @@ if __name__ == '__main__':
         test_inputs, test_outputs, graph = generateDebugConfig(inputs, outputs, activations, graph)
 
     else:
-        # Load as int64 and infer types later
-        test_inputs = [inputs[x].reshape(-1).astype(np.int64) for x in inputs.files]
-        test_outputs = [outputs[x].reshape(-1).astype(np.int64) for x in outputs.files]
+        # Load as float64 and infer types later
+        test_inputs = [inputs[x].reshape(-1).astype(np.float64) for x in inputs.files]
+        test_outputs = [outputs[x].reshape(-1).astype(np.float64) for x in outputs.files]
 
         # WIESEP: Hack to get CI running because only one specific array is used
         if "WaveFormer" in args.dir:
@@ -104,12 +107,12 @@ if __name__ == '__main__':
     ) and not "simpleCNN" in args.dir and not "testRQMatMul" in args.dir and not "testRQGEMM" in args.dir:
         deployer.loweringOptimizer.passes.insert(0, EmulateCMSISRequantPass())
 
-    # Parse graph and infer output levels and signedness
-    _ = deployer.generateFunction(verbose = _NoVerbosity)
+    verbosityCfg = _NoVerbosity
+    if isinstance(platform, PULPPlatform):
+        verbosityCfg.untiledProfiling = args.profileUntiled
 
-    if args.overwriteRecentState:
-        os.makedirs(f'./deeployStates/', exist_ok = True)
-        os.system(f'cp -r {_DEEPLOYSTATEDIR}/* ./deeployStates/')
+    # Parse graph and infer output levels and signedness
+    _ = deployer.generateFunction(verbose = verbosityCfg)
 
     # Create input and output vectors
     os.makedirs(f'{args.dumpdir}', exist_ok = True)

@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import copy
+import math
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Generic, Iterable, List, Optional, Type, TypeVar, Union
@@ -216,7 +217,7 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
             return False
 
     @classmethod
-    def checkValue(cls, value: Union[int, Iterable[int]], ctxt: Optional[_NetworkContext] = None):
+    def checkValue(cls, value: Union[int, Iterable[int], np.ndarray], ctxt: Optional[_NetworkContext] = None):
 
         if isinstance(value, int):
             _max, _min = (value, value)
@@ -231,6 +232,82 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
             return False
         if _min < cls.typeMin:
             return False
+        return True
+
+
+class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
+    typeMantissa: int  #: int: Represents the number of bits reserved for the mantissa part
+    typeExponent: int  #: int: Represents the number of bits reserved for the exponent part
+
+    typeExponentMax: int  #: int: Represents the maximum representable exponent value.
+    typeExponentOffset: int  #: int: Represents the offset added to the exponent.
+    typeMin: float
+
+    @_classproperty
+    def typeExponentMax(cls) -> int:
+        # In floating point, all 1 in exponent is reserved for special numbers (i.e. NaN or Inf)
+        return 2**(cls.typeExponent) - 2
+
+    @_classproperty
+    def typeExponentOffset(cls) -> int:
+        # The offset added to the exponent
+        return 2**(cls.typeExponent - 1) - 1
+
+    @_classproperty
+    def typeMin(cls) -> float:
+        return -math.inf
+
+    @classmethod
+    def partialOrderUpcast(cls, otherCls: Type[Immediate]) -> bool:
+        if issubclass(otherCls, FloatImmediate):
+            return cls.typeMantissa >= otherCls.typeMantissa and cls.typeExponent >= otherCls.typeExponent
+        else:
+            return False
+
+    @classmethod
+    def checkValue(cls, value: Union[float, Iterable[float], np.ndarray], ctxt: Optional[_NetworkContext] = None):
+        """
+        This method tries to manually cast standard python's standard immediate float precision values 
+        (64 bits) to an arbitrary FP representation and check if the new representation is close enough 
+        to the original value.
+        """
+        _val_list = []
+
+        if isinstance(value, float):
+            _val_list.append(value)
+        elif isinstance(value, np.ndarray):
+            _val_list = value.flatten().tolist()
+        elif isinstance(value, Iterable):
+            for i in value:
+                _val_list.append(i)
+        else:
+            raise Exception("Immediate type not recognized.")
+
+        # The exponent bias for FP64 is 2**(11-1)-1 as the exponent has 11 bits.
+        DOUBLE_MIN_EXP = -1023
+
+        for val in _val_list:
+
+            # Extract mantissa, exponent, and sign.
+            # Also bring mantissa and exponent to IEEE754 compliant form for non-denormals.
+            mantissa, exponent = math.frexp(val)
+            sign = True if mantissa < 0 else False
+            mantissa = -mantissa * 2 if sign else mantissa * 2
+            exponent -= 1
+
+            # Check if the number is finite, nonzero and not denormal, otherwise skip the check.
+            if not (math.isfinite(val) and val != 0 and exponent > DOUBLE_MIN_EXP):
+                continue
+
+            # Check if exponent is representable.
+            if (cls.typeExponentOffset + exponent) > cls.typeExponentMax or (cls.typeExponentOffset + exponent) < 0:
+                return False
+
+            # Check if mantissa is representable. Implicit assumption is that cls.typeMantissa < 52 (like in FP64)
+            truncated_mantissa = 1 + math.floor((2**cls.typeMantissa) * (mantissa - 1)) / (2**cls.typeMantissa)
+            if math.fabs(truncated_mantissa - mantissa) > 0.0:
+                return False
+
         return True
 
 

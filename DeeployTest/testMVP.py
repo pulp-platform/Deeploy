@@ -24,7 +24,7 @@
 # limitations under the License.
 
 import os
-import random
+import sys
 from collections import OrderedDict
 from typing import List, Union
 
@@ -47,7 +47,6 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel, AnnotateNeurekaWeightMemoryLevel
-from Deeploy.TilingExtension.MemoryScheduler import MemoryScheduler
 from Deeploy.TilingExtension.TilerExtension import Tiler, TilerDeployerWrapper
 from Deeploy.TilingExtension.TilerModel import TilerModel
 
@@ -97,37 +96,7 @@ class DBTiler(Tiler):
         return coefficient
 
 
-class SBTiler(DBTiler):
-
-    def multiBufferStrategy(self, tilerModel: TilerModel, ctxt: NetworkContext, pattern: SubGraph, path: List[str],
-                            hop: str, tensorName: str) -> Union[int, IntVar]:
-        varBuffer = ctxt.lookup(tensorName)
-
-        generalCoeff = 1
-
-        if isinstance(varBuffer, TransientBuffer):
-            coefficient = 1
-        elif isinstance(varBuffer, ConstantBuffer):
-            coefficient = generalCoeff
-        else:
-            coefficient = generalCoeff
-
-        return coefficient
-
-
-class RandomizedMemoryScheduler(MemoryScheduler):
-
-    def heuristicPermutation(self, adjacencyMatrix, costVector) -> List[int]:
-        permutationList = list(range(len(costVector)))
-        random.seed(self.seed)
-        random.shuffle(permutationList)
-
-        return permutationList
-
-
-class RandomizedSBTiler(DBTiler):
-
-    memorySchedulerClass = RandomizedMemoryScheduler
+class SBTiler(Tiler):
 
     def multiBufferStrategy(self, tilerModel: TilerModel, ctxt: NetworkContext, pattern: SubGraph, path: List[str],
                             hop: str, tensorName: str) -> Union[int, IntVar]:
@@ -170,12 +139,8 @@ def _filterSchedule(schedule: List[List[gs.Node]], layerBinding: 'OrderedDict[st
     return filteredSchedule
 
 
-def setupDeployer(graph: gs.Graph,
-                  memoryHierarchy: MemoryHierarchy,
-                  defaultTargetMemoryLevel: MemoryLevel,
-                  defaultIoMemoryLevel: MemoryLevel,
-                  verbose: CodeGenVerbosity,
-                  overwriteRecentState = False) -> NetworkDeployer:
+def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTargetMemoryLevel: MemoryLevel,
+                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity) -> NetworkDeployer:
 
     inputTypes = {}
     inputOffsets = {}
@@ -186,7 +151,7 @@ def setupDeployer(graph: gs.Graph,
     tensors = graph.tensors()
 
     # Load as int64 and infer types later
-    test_inputs = [inputs[x].reshape(-1).astype(np.int64) for x in inputs.files]
+    test_inputs = [inputs[x].reshape(-1).astype(np.float64) for x in inputs.files]
 
     platform, signProp = mapPlatform(args.platform)
 
@@ -234,22 +199,12 @@ def setupDeployer(graph: gs.Graph,
     # Make the deployer tiler aware
     if args.doublebuffer:
         deployer = TilerDeployerWrapper(deployer, DBOnlyL3Tiler)
-    elif args.randomizedMemoryScheduler:
-        deployer = TilerDeployerWrapper(deployer, RandomizedSBTiler)
     else:
         deployer = TilerDeployerWrapper(deployer, SBTiler)
 
-    deployer.frontEnd()
-    deployer.midEnd()
-
-    # Decomposed Backend to mock the scheduler
-    deployer.backEnd(verbose)
-
-    deployer.prepared = True
-
-    if overwriteRecentState:
-        os.makedirs(f'./deeployStates/', exist_ok = True)
-        os.system(f'cp -r {_DEEPLOYSTATEDIR}/* ./deeployStates/')
+    deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
+    deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
+    deployer.tiler.searchStrategy = args.searchStrategy
 
     return deployer
 
@@ -285,26 +240,52 @@ if __name__ == '__main__':
                         action = "store_true",
                         default = False,
                         help = 'Adds EXPERIMENTAL support for strided convolutions on N-EUREKA\n')
-    parser.add_argument('--randomizedMemoryScheduler', action = "store_true")
     parser.add_argument('--doublebuffer', action = 'store_true')
-    parser.add_argument('--l1', metavar = 'l1', dest = 'l1', type = int, default = 64000, help = 'Set L1 size\n')
+    parser.add_argument('--l1',
+                        metavar = 'l1',
+                        dest = 'l1',
+                        type = int,
+                        default = 64000,
+                        help = 'Set L1 size in bytes. \n')
+    parser.add_argument('--l2',
+                        metavar = 'l2',
+                        dest = 'l2',
+                        type = int,
+                        default = 1024000,
+                        help = 'Set L2 size in bytes.\n')
     parser.add_argument('--shouldFail', action = 'store_true')
-    parser.add_argument('--profileTiling',
-                        metavar = 'profileTiling',
-                        dest = 'profileTiling',
+    parser.add_argument('--memAllocStrategy',
+                        metavar = 'memAllocStrategy',
+                        dest = 'memAllocStrategy',
                         type = str,
-                        default = None)
-    parser.add_argument('--overwriteRecentState',
-                        action = 'store_true',
-                        help = 'Copy the recent deeply state to the ./deeployStates folder\n')
+                        default = "MiniMalloc",
+                        help = """Choose the memory allocation strategy, possible values are:
+                            - TetrisRandom: Randomly sample an placement schedule (order) for the Tetris Memory Allocation.
+                            - TetrisCo-Opt: Co-optimize the placement schedule with the tiling solver (works best with random-max solver strategy).
+                            - MiniMalloc: Use SotA static memory allocator from https://dl.acm.org/doi/10.1145/3623278.3624752
+                        """)
+    parser.add_argument('--searchStrategy',
+                        metavar = 'searchStrategy',
+                        dest = 'searchStrategy',
+                        type = str,
+                        default = "random-max",
+                        help = """Choose the search strategy for the CP solver:
+                            - random-max: Initalize the permutation matrix variables randomly and initalize all other variables at their maximal value. This is recommended and lead to better solutions.
+                            - max: Initalize all variables at their maximal value.
+                            - min: Initalize all variables at their minimal value.
+                        """)
+    parser.add_argument('--profileTiling', action = "store_true")
+    parser.add_argument('--plotMemAlloc',
+                        action = 'store_false',
+                        help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
     parser.set_defaults(shouldFail = False)
     args = parser.parse_args()
 
     verbosityCfg = CodeGenVerbosity(None)
 
-    if args.profileTiling is not None:
-        verbosityCfg.tilingProfiling = args.profileTiling
+    if args.profileTiling:
+        verbosityCfg.tilingProfiling = True
 
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
@@ -325,8 +306,8 @@ if __name__ == '__main__':
         test_inputs, test_outputs, graph = generateDebugConfig(inputs, outputs, activations, graph)
     else:
         # Load as int64 and infer types later
-        test_inputs = [inputs[x].reshape(-1).astype(np.int64) for x in inputs.files]
-        test_outputs = [outputs[x].reshape(-1).astype(np.int64) for x in outputs.files]
+        test_inputs = [inputs[x].reshape(-1).astype(np.float64) for x in inputs.files]
+        test_outputs = [outputs[x].reshape(-1).astype(np.float64) for x in outputs.files]
 
         # WIESEP: Hack to get CI running because only one specific array is used
         if "WaveFormer" in args.dir:
@@ -335,7 +316,7 @@ if __name__ == '__main__':
 
     # Instantiate Classes Requried for Memory Level Annotation Extension
     L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64000000)
-    L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = 512000)
+    L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = args.l2)
     L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = args.l1)
     memoryLevels = [L3, L2, L1]
 
@@ -349,8 +330,7 @@ if __name__ == '__main__':
                              memoryHierarchy,
                              defaultTargetMemoryLevel = L1,
                              defaultIoMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel],
-                             verbose = verbosityCfg,
-                             overwriteRecentState = args.overwriteRecentState)
+                             verbose = verbosityCfg)
 
     platform = deployer.Platform
     signProp = False
@@ -367,9 +347,10 @@ if __name__ == '__main__':
 
     if args.shouldFail:
         with pytest.raises(Exception):
-            tilingSchedule = deployer.tiler.computeTilingSchedule(deployer.ctxt)
+            _ = deployer.generateFunction(verbosityCfg)
 
-        print("Tiler test ended, failed as expected!")
+        print("\033[92mCode Generation test ended, failed as expected!\033[0m")
+        sys.exit(0)
     else:
 
         _ = deployer.generateFunction(verbosityCfg)
@@ -418,4 +399,4 @@ if __name__ == '__main__':
                 print(f"{'  ' + str(level) + ':' :<{_TEXT_ALIGN}} {deployer.worstCaseBufferSize[level]}")
             print(f"{'Model Parameters: ' :<{_TEXT_ALIGN}} {deployer.getParameterSize()}")
 
-        print("Tiler test ended, no memory violations!")
+        print("\033[92mCode Generation test ended, no memory violations!\033[0m")

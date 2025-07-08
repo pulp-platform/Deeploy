@@ -218,7 +218,7 @@ class GEMMChecker(SignPropTypeChecker):
         return [True]
 
 
-class iLayerNormChecker(SignPropTypeChecker):
+class LayerNormChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
@@ -249,7 +249,7 @@ class MulChecker(SignPropTypeChecker):
             return [False]
 
 
-class IntegerDivChecker(SignPropTypeChecker):
+class DivChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
@@ -364,6 +364,19 @@ class ReduceSumChecker(SignPropTypeChecker):
             return [False]
 
 
+class ReluChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs, operatorRepresentation):
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [False]
+
+
 class SoftmaxChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -376,6 +389,23 @@ class SoftmaxChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [False]
+
+
+class iNoNormChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(4 * self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        if inputs[0]._signed:
+            return [True]
+        else:
+            return [False]
 
 
 class GELUChecker(SignPropTypeChecker):
@@ -506,3 +536,86 @@ class DebugPrintChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
+
+
+class RQAddChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [operatorRepresentation['rqsOut_n_levels']]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [bool(operatorRepresentation["rqsOut_signed"])]
+
+    # Override this. This should compute the signednes of each output node of the Layer
+    def checkOutputType(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> bool:
+        outputTypeSigned = self.output_types[0].referencedType.typeMin < 0
+        if operatorRepresentation['rqsOut_signed'] and outputTypeSigned:
+            return True
+        if (not operatorRepresentation['rqsOut_signed']) and (not outputTypeSigned):
+            return True
+        return False
+
+
+class QuantChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        # Calculate number of levels based on bit_width
+        bit_width = operatorRepresentation['bit_width']
+        return [2**bit_width]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        # Return signedness from the operation attributes
+        return [bool(operatorRepresentation['signed'])]
+
+
+class DequantChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.output_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
+
+class SoftmaxCrossEntropyLossChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [False]
+
+
+class SGDChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [True]

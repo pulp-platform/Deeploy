@@ -1,0 +1,127 @@
+name: BuildDockerDeeploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker_image_toolchain:
+        description: 'Deeploy Toolchain Image to use'
+        required: false
+        default: 'ghcr.io/pulp-platform/deeploy-toolchain:latest'
+
+jobs:
+  prepare:
+    name: Fetch branch name or tag
+    runs-on: ubuntu-latest
+    outputs:
+      docker_tag: ${{ steps.generate_tag.outputs.docker_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up environment variables
+        run: |
+          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "IS_TAG=${GITHUB_REF_TYPE}" >> $GITHUB_ENV
+
+      - name: Set Docker tag
+        id: generate_tag
+        run: |
+          if [[ "${{ env.IS_TAG }}" == "tag" ]]; then
+            echo "docker_tag=${{ env.TAG_NAME }}" >> $GITHUB_OUTPUT
+          else
+            echo "docker_tag=${{ env.BRANCH_NAME }}" >> $GITHUB_OUTPUT
+          fi
+
+  build-deeploy:
+    name: Build Deploy Image
+    needs: [ prepare ]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [amd64, arm64]
+        include:
+          - platform: amd64
+            runner: ubuntu-latest
+          - platform: arm64
+            runner: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free up disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+
+      - uses: docker/setup-buildx-action@v1
+
+      - name: GHCR Log-in
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Cache for Docker
+        uses: actions/cache@v3
+        with:
+          path: var-ccache
+          key: ${{ runner.os }}-${{ matrix.platform }}-build-cache-deeploy
+
+      - name: Inject build-cache
+        uses: reproducible-containers/buildkit-cache-dance@v3.1.0
+        with:
+          cache-map: |
+            {
+              "var-ccache": "/ccache"
+            }
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: Lower Case Repository Name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
+      - name: Build and push final deploy image
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/${{ matrix.platform }}
+          context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
+          file: Container/Dockerfile.deeploy
+          push: true
+          build-args: |
+            BASE_IMAGE=${{ github.event.inputs.docker_image_toolchain }}
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-${{ matrix.platform }}
+            ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}-${{ matrix.platform }}
+
+  merge-deeploy-images:
+    name: Merge Deeploy Images
+    runs-on: ubuntu-latest
+    needs: [ prepare, build-deeploy ]
+    steps:
+      - name: GHCR Log-in
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lower Case Repository Name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
+      - uses: Noelware/docker-manifest-action@v1
+        with:
+          inputs: ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-amd64,ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-arm64
+          tags: ghcr.io/${{ env.OWNER_LC }}/deeploy:latest,ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}
+          push: true

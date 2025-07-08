@@ -41,6 +41,11 @@ class _ReshapeTemplate(NodeTemplate):
             ctxt.globalObjects[operatorRepresentation['indices']]._deploy = False
             ctxt.globalObjects[operatorRepresentation['indices']]._live = False
 
+        # Same for "shape"
+        if "shape" in operatorRepresentation.keys():
+            ctxt.globalObjects[operatorRepresentation["shape"]]._deploy = False
+            ctxt.globalObjects[operatorRepresentation["shape"]]._live = False
+
         inBuffer = ctxt.lookup(operatorRepresentation['data_in'])
         outBuffer = ctxt.lookup(operatorRepresentation['data_out'])
         outBuffer._alias = inBuffer.name

@@ -36,10 +36,17 @@ if __name__ == "__main__":
                         type = int,
                         default = 9,
                         help = 'Set number of cluster cores')
-    parser.set_defaults(toolchain_install_dir = "/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0")
+    parser.add_argument('--simulator',
+                        metavar = "<simulator>",
+                        dest = "simulator",
+                        type = str,
+                        choices = ["gvsoc", "banshee", "vsim", "vsim.gui"],
+                        default = "gvsoc",
+                        help = "Select the simulator to use")
+
     args = parser.parse_args()
 
-    testRunner = TestRunner(platform = "Snitch", simulator = "banshee", tiling = True, argument_parser = parser)
+    testRunner = TestRunner(platform = "Snitch", simulator = args.simulator, tiling = True, argument_parser = parser)
 
     testRunner.cmake_args += f" -D NUM_CORES={args.cores}"
 

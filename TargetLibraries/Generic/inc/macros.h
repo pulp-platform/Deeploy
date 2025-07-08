@@ -49,4 +49,6 @@
 #define CLAMP(x, low, high)                                                    \
   (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
+#define inf 1.0f / 0.0f
+
 #endif //__DEEPLOY_BASIC_MATH_MACROS_HEADER_

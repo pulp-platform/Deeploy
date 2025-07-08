@@ -40,13 +40,16 @@ for idx, dim in enumerate(bufferShape):
     accessStr += "[" + f"print_iter_{idx}" + "]"
     if idx > 0:
         dimStr += "[" + f"{dim}" + "]"
+formatSpecifier = "%*i" 
+if "float" in bufferType.referencedType.typeName or "double" in bufferType.referencedType.typeName:
+    formatSpecifier = "%*.6f"  
 %>
 printf("${nodeName} ${bufferName}: ${bufferType.referencedType.typeName}, ${bufferShape}, %p\\n", ${bufferName});
 % for idx, dim in enumerate(bufferShape):
 printf("[");
 for (int print_iter_${idx}=0; print_iter_${idx} < ${dim}; print_iter_${idx}++){
 % endfor
-printf("%*i,", 4, ((${bufferType.referencedType.typeName} (*)${dimStr})${bufferName})${accessStr});
+printf("${formatSpecifier},", 4, ((${bufferType.referencedType.typeName} (*)${dimStr})${bufferName})${accessStr});
 % for dim in bufferShape:
 }
 printf("], \\n");
@@ -77,7 +80,10 @@ class PrintInputGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         for ref in references:
             refDict = self._getRepDict(ctxt, ref, name)
@@ -117,7 +123,10 @@ class MemoryAwarePrintInputGeneration(MemoryAwareGeneration, PrintInputGeneratio
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 
@@ -155,7 +164,10 @@ class PrintOutputGeneration(CodeTransformationPass, IntrospectiveCodeTransformat
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         for ref in references:
             rep = self._getRepDict(ctxt, ref, name)
@@ -173,7 +185,10 @@ class MemoryAwarePrintOutputGeneration(MemoryAwareGeneration, PrintOutputGenerat
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 
@@ -202,7 +217,10 @@ class PrintConstantGeneration(CodeTransformationPass, IntrospectiveCodeTransform
     def apply(self, ctxt: NetworkContext, executionBlock: ExecutionBlock,
               name: str) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         for ref in references:
             rep = self._getRepDict(ctxt, ref, name)
@@ -214,10 +232,16 @@ class PrintConstantGeneration(CodeTransformationPass, IntrospectiveCodeTransform
 
 class MemoryAwarePrintConstantGeneration(MemoryAwareGeneration, PrintConstantGeneration):
 
-    def apply(self, ctxt: NetworkContext, executionBlock: ExecutionBlock,
-              name: str) -> Tuple[NetworkContext, ExecutionBlock]:
+    def apply(self,
+              ctxt: NetworkContext,
+              executionBlock: ExecutionBlock,
+              name: str,
+              verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 

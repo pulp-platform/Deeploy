@@ -35,7 +35,7 @@ if __name__ == "__main__":
                         metavar = '<cores>',
                         dest = 'cores',
                         type = int,
-                        default = 1,
+                        default = 8,
                         help = 'Set number of cluster cores')
     parser.add_argument('--neureka-wmem',
                         dest = "neureka_wmem",

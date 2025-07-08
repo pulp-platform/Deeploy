@@ -29,63 +29,8 @@ from typing import Tuple
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.Targets.Generic.Parsers import AddParser, GEMMParser, RQSConv1DParser, RQSConv2DParser, RQSParserInterface
-
-
-class PULPRQAddParser(AddParser):
-
-    def parseNode(self, node: gs.Node) -> bool:
-
-        if not super().parseNode(node):
-            return False
-
-        ret = all([
-            'rqs1_mul' in node.attrs,
-            'rqs1_add' in node.attrs,
-            'rqs1_div' in node.attrs,
-            'rqs1_signed' in node.attrs,
-            any(['rqs1_n_levels' in node.attrs, 'rqs1_n_levels_out' in node.attrs]),
-            'rqs2_mul' in node.attrs,
-            'rqs2_add' in node.attrs,
-            'rqs2_div' in node.attrs,
-            'rqs2_signed' in node.attrs,
-            any(['rqs2_n_levels' in node.attrs, 'rqs2_n_levels_out' in node.attrs]),
-            'rqsOut_mul' in node.attrs,
-            'rqsOut_add' in node.attrs,
-            'rqsOut_div' in node.attrs,
-            'rqsOut_signed' in node.attrs,
-            any(['rqsOut_n_levels' in node.attrs, 'rqsOut_n_levels_out' in node.attrs]),
-        ])
-
-        if ret:
-            if 'rqs1_n_levels' in node.attrs:
-                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels_out'].values)
-            self.operatorRepresentation['rqs1_mul'] = int(node.attrs['rqs1_mul'])
-            self.operatorRepresentation['rqs1_add'] = int(node.attrs['rqs1_add'])
-            self.operatorRepresentation['rqs1_signed'] = int(node.attrs['rqs1_signed'].values)
-            self.operatorRepresentation['rqs1_log2D'] = int(math.log2(node.attrs['rqs1_div'].values))
-
-            if 'rqs2_n_levels' in node.attrs:
-                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels_out'].values)
-            self.operatorRepresentation['rqs2_mul'] = int(node.attrs['rqs2_mul'])
-            self.operatorRepresentation['rqs2_add'] = int(node.attrs['rqs2_add'])
-            self.operatorRepresentation['rqs2_signed'] = int(node.attrs['rqs2_signed'].values)
-            self.operatorRepresentation['rqs2_log2D'] = int(math.log2(node.attrs['rqs2_div'].values))
-
-            if 'rqsOut_n_levels' in node.attrs:
-                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels_out'].values)
-            self.operatorRepresentation['rqsOut_mul'] = int(node.attrs['rqsOut_mul'])
-            self.operatorRepresentation['rqsOut_add'] = int(node.attrs['rqsOut_add'])
-            self.operatorRepresentation['rqsOut_signed'] = int(node.attrs['rqsOut_signed'].values)
-            self.operatorRepresentation['rqsOut_log2D'] = int(math.log2(node.attrs['rqsOut_div'].values))
-
-        return ret
+from Deeploy.Targets.Generic.Parsers import Conv2DParser, GEMMParser, RQSConv1DParser, RQSConv2DParser, \
+    RQSParserInterface
 
 
 class PULPConv2DParser(RQSConv2DParser):
@@ -103,9 +48,6 @@ class PULPConv2DParser(RQSConv2DParser):
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
-                #self.operatorRepresentation['pads'][0] == 0,
-                # Don't support dilations
-                #all([coeff == 1 for coeff in self.operatorRepresentation['dilations']]),
                 len(node.inputs) == 4,
                 'shift' in node.attrs,
             ])
@@ -136,6 +78,51 @@ class PULPConv2DParser(RQSConv2DParser):
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
+            return newCtxt, True
+
+        return ctxt, False
+
+
+class PULPFPConv2DParser(Conv2DParser):
+
+    def __init__(self, noBiasHoisting = True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        wellFormed = super().parseNode(node)
+        if wellFormed:
+            ret = all([
+                # Make sure padding is square
+                self.operatorRepresentation['group'] == 1,
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
+                self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+                len(node.inputs) == 2
+            ])
+
+            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
+            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
+            self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
+            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][1])
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
+            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
+
+            return ret
+        return False
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
             return newCtxt, True
 
         return ctxt, False

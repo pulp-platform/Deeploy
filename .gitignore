@@ -6,6 +6,8 @@ dist
 *.vscode
 .DS_Store
 *.html
+!docs/_templates/*
+*.csv
 .ipynb_checkpoints/
 *#
 install/
@@ -37,3 +39,5 @@ DeeployTest/Tests/**/*.py
 DeeployTest/Tests/**/*.json
 DeeployTest/Tests/**/generateTest.py
 DeeployTest/out.txt
+
+CHANGELOG_GEN.md

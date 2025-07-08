@@ -52,7 +52,8 @@
 #include <string.h>
 
 #include "macros.h"
-#include "util.h"
+#include "types.h"
+#include "utils.h"
 
 #include "kernel/Convolution.h"
 #include "kernel/DWConvolution.h"

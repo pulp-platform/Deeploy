@@ -24,13 +24,14 @@
 # limitations under the License.
 
 import copy
+from collections import OrderedDict
 from functools import partial
 from typing import List
 
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.CommonExtensions.OptimizationPasses.Matchers import Match, NonBranchingMatcher
+from Deeploy.CommonExtensions.OptimizationPasses.Matchers import BranchingMatcher, Match, NonBranchingMatcher
 from Deeploy.CommonExtensions.OptimizationPasses.PassClasses import ReplaceSequentialPatternPass, contextagnostic
 
 
@@ -196,8 +197,6 @@ def _merge_igelu_rq_fun(graph: gs.Graph, match: Match, name: str):
     shiftNode = gs.Constant(f'{igelu.name}_shift', np.array(totalShift))
     _inputs = list(igelu.inputs) + list(rqs.inputs[1:]) + [shiftNode]
     _outputs = rqs.outputs
-
-    #import IPython; IPython.embed()
 
     rqsiGELU = gs.Node(op = 'RequantizediGELU', name = name, attrs = {**igelu.attrs, **rqs.attrs})
     graph.replaceInsertNode(_inputs, _outputs, rqsiGELU)
@@ -375,7 +374,7 @@ class SplitAddPass(ReplaceSequentialPatternPass):
         super().__init__(graph, _split_add_fun, name)
 
 
-def _extract_padding_fun(graph: gs.Graph, match: Match, name: str, value = 0):
+def _extract_padding_fun_conv(graph: gs.Graph, match: Match, name: str, value = 0):
 
     matched_nodes = [m for k, m in match.nodes_map.items()]
     conv = matched_nodes[0]
@@ -412,7 +411,56 @@ def _extract_padding_fun(graph: gs.Graph, match: Match, name: str, value = 0):
         conv.inputs[0] = newConvInput
         graph.nodes.append(newPad)
         graph.cleanup().toposort()
-        #import IPython; IPython.embed()
+
+    return graph
+
+
+def _extract_padding_fun_maxpool(graph: gs.Graph, match: Match, name: str, value = 0):
+
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    pool = matched_nodes[0]
+
+    if 'pads' in pool.attrs and np.sum(pool.attrs['pads']) > 1:
+        pads = copy.deepcopy(pool.attrs['pads'])
+        shape = copy.deepcopy(pool.inputs[0].shape)
+        newPads = np.zeros(2 * len(shape))
+
+        if len(shape) - 2 != len(pads) / 2:
+            raise ValueError(f"MaxPool padding dims do not match! Shape: {shape}, Pads: {pads}")
+
+        newShape = shape
+        beginPads = pads[:len(pads) // 2]
+        endPads = pads[len(pads) // 2:]
+
+        for idx, i in enumerate(beginPads):
+            newShape[2 + idx] += i
+            newPads[2 + idx] = i
+
+        for idx, i in enumerate(endPads):
+            newShape[2 + idx] += i
+            newPads[len(newPads) // 2 + 2 + idx] = i
+
+        newPoolInput = gs.Variable(name + '_padded_input', dtype = np.float32, shape = newShape)
+        pool.attrs['pads'] = [0 for _ in pool.attrs['pads']]
+
+        if pool.inputs[0].dtype == np.float32:
+            value = -np.inf
+        else:
+            value = -128
+
+        newPad = gs.Node(op = 'Pad',
+                         name = name + '_pad',
+                         attrs = {
+                             'pads': newPads,
+                             'mode': 'constant',
+                             'value': value
+                         },
+                         inputs = [pool.inputs[0]],
+                         outputs = [newPoolInput])
+
+        pool.inputs[0] = newPoolInput
+        graph.nodes.append(newPad)
+        graph.cleanup().toposort()
 
     return graph
 
@@ -428,8 +476,8 @@ class ExtractPaddingFromPoolPass(ReplaceSequentialPatternPass):
         graph.inputs = [_input]
 
         name = "_EXTRACT_POOL_PASS"
-        # SCHEREMO: This is a workaround!!!
-        super().__init__(graph, partial(_extract_padding_fun, value = -128), name)
+
+        super().__init__(graph, _extract_padding_fun_maxpool, name)
 
 
 @contextagnostic
@@ -444,7 +492,7 @@ class ExtractPaddingFromConvPass(ReplaceSequentialPatternPass):
         graph.inputs = [_input]
 
         name = "_EXTRACT_CONV_PASS"
-        super().__init__(graph, _extract_padding_fun, name)
+        super().__init__(graph, _extract_padding_fun_conv, name)
 
 
 def _merge_matmul_add_fun(graph: gs.Graph, match: Match, name: str):
@@ -865,3 +913,288 @@ class RQSSplitPass(ReplaceSequentialPatternPass):
 
         name = "_SPLIT_RequantShift_PASS"
         super().__init__(graph, partial(_split_rqs_fun, splitSet = self.splitSet), name)
+
+
+def _merge_add_rq_fun(graph: gs.Graph, match: Match, name: str):
+
+    nodes_map = match.nodes_map
+    addNode = nodes_map['add']
+
+    rqDict = OrderedDict([("rqs1", None), ("rqs2", None), ("rqsOut", None)])
+
+    for key, node in nodes_map.items():
+
+        if node.outputs[0].name == addNode.inputs[0].name:
+            rqDict['rqs1'] = node
+        elif node.outputs[0].name == addNode.inputs[1].name:
+            rqDict['rqs2'] = node
+        elif node.inputs[0].name == addNode.outputs[0].name:
+            rqDict['rqsOut'] = node
+
+    newAttrs = copy.copy(addNode.attrs)
+    newInputs = []
+
+    if rqDict['rqsOut'] is not None:
+        newOutputs = rqDict['rqsOut'].outputs
+    else:
+        newOutputs = addNode.outputs
+
+    defaultAttrs = {
+        "mul": 1,
+        "add": 0,
+        "div": gs.Constant('div', np.array(1)),
+        'shift': gs.Constant('div', np.array(0))
+    }
+    guessAttrs = {"n_levels_out": 256, "signed": np.array([True])}
+    for idx, (rqKey, node) in enumerate(rqDict.items()):
+        if node.op == "RequantShift":
+            for key, attr in node.attrs.items():
+                newAttrs[f"{rqKey}_{key}"] = attr
+
+            if np.prod(node.inputs[1].values.shape) != 1:
+                return graph
+
+            if np.prod(node.inputs[2].values.shape) != 1:
+                return graph
+
+            if rqKey != 'rqsOut':
+                newInputs.append(node.inputs[0])
+
+            newAttrs[f"{rqKey}_mul"] = int(node.inputs[1].values.item())
+            newAttrs[f"{rqKey}_add"] = int(node.inputs[2].values.item() + newAttrs[f"{rqKey}_div"].values.item() // 2)
+            newAttrs[f"{rqKey}_shift"] = int(np.log2(newAttrs[f"{rqKey}_div"].values.item()))
+
+        else:
+            for key, attr in defaultAttrs.items():
+                newAttrs[f"{rqKey}_{key}"] = attr
+
+            for key, attr in guessAttrs.items():
+                if not key in node.attrs:
+                    newAttrs[f"{rqKey}_{key}"] = attr
+                else:
+                    newAttrs[f"{rqKey}_{key}"] = node.attrs[key]
+            if rqKey != 'rqsOut':
+                newInputs.append(addNode.inputs[idx])
+
+    rqAdd = gs.Node(op = "RequantizedAdd", name = name, attrs = newAttrs)
+    graph.replaceInsertNode(newInputs, newOutputs, rqAdd)
+
+    return graph
+
+
+@contextagnostic
+class AddRequantMergePass(ReplaceSequentialPatternPass):
+    pass
+
+    def __init__(self):
+        _input1 = gs.Variable(name = 'input_1')
+        _input2 = gs.Variable(name = 'input_2')
+        _addIn1 = gs.Variable(name = 'addIn1')
+        _addIn2 = gs.Variable(name = 'addIn2')
+        _addOut = gs.Variable(name = 'addOut')
+        _rqs = gs.Variable(name = 'rqs')
+
+        anyIn1 = gs.Node(inputs = [_input1], outputs = [_addIn1], op = r'.*', name = 'any1')
+        anyIn2 = gs.Node(inputs = [_input2], outputs = [_addIn2], op = r'.*', name = 'any2')
+
+        addOut = gs.Node(inputs = [_addIn1, _addIn2], outputs = [_addOut], op = 'Add', name = 'add')
+        output = gs.Node(inputs = [_addOut], outputs = [_rqs], op = r'RequantShift', name = 'rqsOut')
+
+        graph = gs.Graph(nodes = [anyIn1, anyIn2, addOut, output], inputs = [_input1, _input2], outputs = [_rqs])
+
+        super().__init__(graph,
+                         replacement_fn = _merge_add_rq_fun,
+                         name = "_MERGE_ADDRQ_PASS",
+                         matcher = BranchingMatcher(regex_op = True))
+
+
+def merge_gemm_rq_fun(graph: gs.Graph, match: Match, name: str):
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    gemm = matched_nodes[0]
+    rqs = matched_nodes[1]
+
+    # WIESEP: Per element quantization is not supported for RQGemm
+    if len(rqs.inputs[2].shape) > 0 and rqs.inputs[2].shape[-1] != 1:
+        return graph
+
+    # WIESEP: Per column quantization is not supported for RQGemm
+    if len(rqs.inputs[2].shape) > 2 and rqs.inputs[2].shape[-3] != 1:
+        return graph
+
+    _inputs = list(gemm.inputs) + list(rqs.inputs[2:]) + list(rqs.inputs[1:2])
+    _outputs = rqs.outputs
+
+    attrs = {**gemm.attrs, **rqs.attrs}
+    rqsGemm = gs.Node(op = 'RQGemm', name = name, attrs = attrs)
+    graph.replaceInsertNode(_inputs, _outputs, rqsGemm)
+
+    return graph
+
+
+@contextagnostic
+class GEMMRequantMergePass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        passes = []
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['matmul_out'], op = 'Gemm', name = 'gemm')
+        output = graph.layer(inputs = output, outputs = ['rqs'], op = 'RequantShift', name = 'rqs')
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        name = f"_MERGE_GEMM_RQ_PASS"
+        super().__init__(graph, merge_gemm_rq_fun, name)
+
+
+def _quant_pattern_fun(graph: gs.Graph, match: Match, name: str):
+    # Get all nodes in the match
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+
+    # The pattern should be: Div -> Add -> Round -> Clip
+    # Extract each operation from the matched nodes
+    div_node = matched_nodes[0]  # Div operation for scaling
+    add_node = matched_nodes[1]  # Add operation for zero_point
+    round_node = matched_nodes[2]  # Round operation
+    clip_node = matched_nodes[3]  # Clip operation for clamping
+
+    # Get input and output tensors
+    input_tensor = div_node.inputs[0]
+    output_tensor = clip_node.outputs[0]
+
+    # Extract scale (from the second input of Div node)
+    scale_input = div_node.inputs[1]
+    scale_value = 1.0 / float(scale_input.values.item()) if hasattr(scale_input, 'values') else 1.0
+
+    # Extract zero_point (from the second input of Add node)
+    zero_point_input = add_node.inputs[1]
+    zero_point_value = float(zero_point_input.values.item()) if hasattr(zero_point_input, 'values') else 0.0
+
+    # Extract min and max values from Clip node inputs (not attributes)
+    # In ONNX opset 13, Clip takes min and max as inputs rather than attributes
+    min_input = clip_node.inputs[1] if len(clip_node.inputs) > 1 else None
+    max_input = clip_node.inputs[2] if len(clip_node.inputs) > 2 else None
+
+    min_value = float(min_input.values.item()) if (min_input is not None and hasattr(min_input, 'values')) else None
+    max_value = float(max_input.values.item()) if (max_input is not None and hasattr(max_input, 'values')) else None
+
+    # Safely determine bit_width and signed from min/max with null checks
+    if min_value is not None and max_value is not None:
+        if min_value < 0:
+            signed = True
+            bit_width = int(np.log2(max_value - min_value + 1))
+        else:
+            signed = False
+            bit_width = int(np.log2(max_value + 1))
+    else:
+        # Default values if min or max is None
+        # You might want to extract these from the model parameters instead
+        signed = True
+        bit_width = 8
+
+    # Create a new Quant node with all attributes
+    quant_attrs = {
+        'scale': np.array([scale_value], dtype = np.float32),
+        'zero_point': np.array([zero_point_value], dtype = np.float32),
+        'bit_width': np.array([bit_width], dtype = np.int32),
+        'signed': np.array([1 if signed else 0], dtype = np.int32),
+    }
+
+    # Only add min/max if they're not None
+    if min_value is not None:
+        quant_attrs['min_val'] = np.array([min_value], dtype = np.int32)
+    if max_value is not None:
+        quant_attrs['max_val'] = np.array([max_value], dtype = np.int32)
+
+    # Create the new Quant node
+    quant_node = gs.Node(op = 'Quant',
+                         name = name + '_Quant',
+                         inputs = [input_tensor],
+                         outputs = [output_tensor],
+                         attrs = quant_attrs)
+
+    # Add the new node to the graph
+    graph.nodes.append(quant_node)
+
+    # Remove the old nodes
+    for node in matched_nodes:
+        node.inputs.clear()
+        node.outputs.clear()
+        graph.nodes.remove(node)
+
+    return graph
+
+
+@contextagnostic
+class QuantPatternPass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        # Define the pattern to match: Div -> Add -> Round -> Clip
+        graph = gs.Graph()
+        input_var = gs.Variable(name = 'input_0')
+        scale_var = gs.Variable(name = 'scale')
+        zero_point_var = gs.Variable(name = 'zero_point')
+
+        # Create the pattern
+        div_out = graph.layer(inputs = [input_var], outputs = ['div_out'], op = 'Div', name = 'div')
+        add_out = graph.layer(inputs = div_out, outputs = ['add_out'], op = 'Add', name = 'add')
+        round_out = graph.layer(inputs = add_out, outputs = ['round_out'], op = 'Round', name = 'round')
+        clip_out = graph.layer(inputs = round_out, outputs = ['clip_out'], op = 'Clip', name = 'clip')
+
+        graph.outputs.append(clip_out)
+        graph.inputs.append(input_var)
+
+        name = "_QUANT_PATTERN_PASS"
+        super().__init__(graph, _quant_pattern_fun, name)
+
+
+def _recognize_dequant_fun(graph: gs.Graph, match: Match, name: str):
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+
+    sub_node = matched_nodes[0]
+    mul_node = matched_nodes[1]
+
+    zero_point = float(sub_node.inputs[1].values.item())
+
+    mul_input_idx = 0 if mul_node.inputs[0] == sub_node.outputs[0] else 1
+
+    const_input_idx = 1 - mul_input_idx
+
+    scale = float(mul_node.inputs[const_input_idx].values.item())
+
+    bit_width = 8
+    if hasattr(sub_node.inputs[0], 'dtype'):
+        input_dtype = sub_node.inputs[0].dtype
+        if input_dtype == np.int8:
+            bit_width = 8
+        elif input_dtype == np.int16:
+            bit_width = 16
+        elif input_dtype == np.int32:
+            bit_width = 32
+
+    dequant_attrs = {'scale': scale, 'zero_point': zero_point, 'bit_width': bit_width, 'signed': True}
+
+    _inputs = [sub_node.inputs[0]]
+    _outputs = mul_node.outputs
+
+    dequant_node = gs.Node(op = 'Dequant', name = name, attrs = dequant_attrs)
+    graph.replaceInsertNode(_inputs, _outputs, dequant_node)
+
+    return graph
+
+
+@contextagnostic
+class DequantPatternPass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+
+        sub_output = graph.layer(inputs = [_input], outputs = ['sub_out'], op = 'Sub', name = 'sub')
+        mul_output = graph.layer(inputs = sub_output, outputs = ['mul_out'], op = 'Mul', name = 'mul')
+
+        graph.outputs.append(mul_output)
+        graph.inputs.append(_input)
+
+        name = "_RECOGNIZE_DEQUANT_PASS"
+        super().__init__(graph, _recognize_dequant_fun, name)

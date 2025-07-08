@@ -59,20 +59,25 @@ _moveTileInTemplate = NodeTemplate("""
 
 // IMPORT TILE ${innerTilePtr} from ${outerTilePtr}
 pi_cl_ram_copy_2d(get_ram_ptr(), ${stateReference}.pi_ram_addr, ${stateReference}.addr, ${stateReference}.size, ${stateReference}.stride, ${stateReference}.length, ${stateReference}.ext2loc, &${stateReference});
-
+// L3 TRANSFERS CANNOT BE CONCURRENT WITH CURRENT DRIVER
+pi_cl_ram_copy_wait(&${stateReference});
+                                   
 """)
 
 _blockTileInTemplate = NodeTemplate("""
 
 // BLOCKING IMPORT TILE ${innerTilePtr}
 pi_cl_ram_copy_wait(&${stateReference});
+                                    
 """)
 
 _moveTileOutTemplate = NodeTemplate("""
 
 // EXPORT TILE ${innerTilePtr} to ${outerTilePtr}
 pi_cl_ram_copy_2d(get_ram_ptr(), ${stateReference}.pi_ram_addr, ${stateReference}.addr, ${stateReference}.size, ${stateReference}.stride, ${stateReference}.length, ${stateReference}.ext2loc, &${stateReference});
-
+// L3 TRANSFERS CANNOT BE CONCURRENT WITH CURRENT DRIVER
+pi_cl_ram_copy_wait(&${stateReference});
+                                    
 """)
 
 _blockTileOutTemplate = NodeTemplate("""
@@ -416,10 +421,11 @@ class PULPL3TilingSB(TilingCodeGeneration):
             })
         ]
 
-        metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'],
+        metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'] + "_L3",
                                   nodeOps = operatorRepresentation['nodeOps'],
                                   numTiles = len(tilingSchedule.outputLoadSchedule),
-                                  tileIdxVar = "TILING_I")
+                                  tileIdxVar = "TILING_I",
+                                  kernelLevelTiling = False)
 
         newExecutionBlock = self.generateAllTilingCode(executionBlock, metaInfo, ingressDMATransferCalls,
                                                        ingressDMAWaitStatements, ingressDMAUpdates,

@@ -45,7 +45,7 @@ from mako.template import Template
 from onnx.external_data_helper import convert_model_to_external_data
 from ortools.constraint_solver.pywrapcp import IntVar
 
-from .AbstractDataTypes import BaseType, IntegerImmediate, Pointer, PointerClass, Struct, VoidType
+from .AbstractDataTypes import BaseType, FloatImmediate, IntegerImmediate, Pointer, PointerClass, Struct, VoidType
 
 Shape = TypeVar("Shape", bound = Any)
 SubGraph = List[gs.Node]
@@ -69,7 +69,8 @@ class CodeGenVerbosity:
     Encapsulates verbosity options for downstream configuration
     """
 
-    tilingProfiling: Optional[str]  #: str: Specifies the name of the memory level on which to profile tiling
+    tilingProfiling: Optional[bool] = False  # Specifies if we should profile the tiling code
+    untiledProfiling: Optional[bool] = None  #  Specifies if we should profile the untilied code
 
 
 _NoVerbosity = CodeGenVerbosity(None)
@@ -254,7 +255,7 @@ class VariableBuffer():
     allocTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's allocation code
     deallocTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's deallocation code
 
-    def __init__(self, name: str = '', shape = [1]):
+    def __init__(self, name: str = '', shape = [1], alias_of: Optional[List[str]] = []):
         self.name: str = name  #: str: Canonical name that this buffer is registered as in the NetworkContext
         self.shape: Sequence[
             int] = shape  #: Sequence[int]: Represents the dimensions of the underlying tensor as a sequence of dimension sizes
@@ -269,6 +270,11 @@ class VariableBuffer():
 
         self._signed = None
         self.nLevels = None
+
+        self.is_input: bool = False
+        self.is_output: bool = False
+
+        self.alias_of: List[str] = alias_of if alias_of is not None else []
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._instance, "name": self.name, "size": int(np.prod(self.shape))}
@@ -335,6 +341,61 @@ class VariableBuffer():
     def fromNode(cls, node: gs.Node):
         return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
 
+    def add_aliases(self, aliases_to_add: List[str]):
+        """
+        Adds list of aliases to the alias_of attribute.
+        Parameters
+        ----------
+        alias_to_add : List[str]
+            List of names of aliases to add to the alias_of attribute.
+        Returns
+        -------
+        None
+        """
+
+        if not hasattr(self, "alias_of"):
+            return None
+
+        for alias in aliases_to_add:
+            if alias not in self.alias_of:
+                self.alias_of.append(alias)
+
+        return None
+
+    def get_aliases_of(self):
+        """
+        Getter function for the alias_of attribute.
+        Returns
+        -------
+        List[str]
+            List of names o all aliases of this VariableBuffer.
+        """
+
+        if hasattr(self, "alias_of"):
+            return self.alias_of
+        else:
+            return list()
+
+    def has_live_ancestors(self, ctxt: NetworkContext) -> bool:
+        """Checks whether this VariableBuffer has any live ancestors, i.e. buffers that are still live and are aliased by this buffer.
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Current NetworkContext
+        Returns
+        -------
+        bool
+            True if this VariableBuffer has any live ancestors, False otherwise
+        """
+        if not hasattr(self, "alias_of"):
+            return False
+
+        for alias in self.alias_of:
+            if ctxt.lookup(alias)._live:
+                return True
+
+        return False
+
 
 class TransientBuffer(VariableBuffer):
     """Class to represent memory space required by kernels that is not covered by input and output tensors, e.g. im2col buffers in convolutions
@@ -357,6 +418,11 @@ class TransientBuffer(VariableBuffer):
 
         # Do not override - Set in Templates depending on platform
         self._deploy = True
+
+        self.is_input: bool = False
+        self.is_output: bool = False
+
+        self.alias_of: List[str] = []
 
     def __eq__(self, other):
 
@@ -385,9 +451,9 @@ class ConstantBuffer(VariableBuffer):
     def __init__(self, name: str = '', shape = [1], values = [0]):
         super().__init__(name, shape)
         values = np.asarray(values)
-        intArray = values.astype(int)
-        assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
-        self.values = intArray  #: np.array: Stores the underlying weights in Ptyhon-type representation
+        # intArray = values.astype(int)
+        # assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
+        self.values = values  #: np.array: Stores the underlying weights in Python-type representation
 
         # Do not override - ConstantBuffers are assumed to be always live!
         self._live = True
@@ -398,7 +464,12 @@ class ConstantBuffer(VariableBuffer):
 
     def _valueString(self) -> str:
         values = list(self.values.reshape(-1))
-        strValues = [str(value) for value in values]
+        if self._type.typeName == 'float32_t*':
+            strValues = [f'{value}f' for value in values]
+        elif self._type.typeName == 'int8_t*':
+            strValues = [f'{int(value)}' for value in values]
+        else:
+            strValues = [str(value) for value in values]
         valueString = ', '.join(strValues)
         return valueString
 
@@ -892,7 +963,7 @@ class NetworkContext():
 
         """
 
-        assert len(node.outputs) <= 1, "Constant has more than one output"
+        assert len(node.outputs) <= 1, f"Constant {node.name} has more than one output"
 
         if name == "":
             name = node.name
@@ -901,7 +972,7 @@ class NetworkContext():
         localBuffer = self.VariableBuffer.fromNode(node = node)
         globalBuffer = self.ConstantBuffer.fromVariableBuffer(localBuffer, values = node.values)
         globalBuffer.name = name
-        globalBuffer._type = type
+        globalBuffer._type = _type
 
         self.add(globalBuffer, 'global')
 
@@ -1066,6 +1137,21 @@ class NodeParser():
                 nb = ctxt.lookup(name)
 
         return ctxt
+
+    @staticmethod
+    def _unpack_const(attr) -> Union[int, float]:
+        """DON'T OVERRIDE - Helper function to get a Python scalar from an ONNX attribute.
+        The attributes can either be a numpy scalar value or a Constant tensor.
+        This expects the numpy value to be of size 1.
+        """
+        if isinstance(attr, gs.Constant):
+            value = attr.values
+        elif isinstance(attr, np.ndarray):
+            value = attr
+        else:
+            assert False, f"Unsupported attribute type {type(attr)}"
+        assert value.size == 1, f"Expected attribute of size 1. Got an array of shape {value.shape}"
+        return value.item()
 
     # Don't touch this
     def parse(self,
@@ -1903,11 +1989,16 @@ class ONNXLayer():
             else:
                 return np.dtype(getattr(np, "uint" + str(ty.typeWidth)))
 
+        def _broadcastFloat(ty: Type[FloatImmediate]):
+            return np.dtype(getattr(np, "double"))
+
         if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
             if issubclass(ty.referencedType, IntegerImmediate):
                 return _broadcastInteger(ty.referencedType)
         elif issubclass(ty, IntegerImmediate):
             return _broadcastInteger(ty)
+        elif issubclass(ty, FloatImmediate):
+            return _broadcastFloat(ty)
 
         return None
 
@@ -2338,6 +2429,7 @@ class NetworkContainer():
             data_size = node.shape
             data_type = self.inputTypes[node.name]
             nb = ctxt.VariableBuffer(data_name, data_size)
+            nb.is_input = True
 
             ctxt.add(nb, 'global')
             ctxt.annotateType(data_name, data_type)
@@ -2347,6 +2439,7 @@ class NetworkContainer():
             data_size = node.shape
             # WIESEP: The shape and type will be parsed from the graph
             nb = ctxt.VariableBuffer(data_name, data_size)
+            nb.is_output = True
             ctxt.add(nb, 'global')
 
         return ctxt
@@ -2521,8 +2614,10 @@ class NetworkContainer():
 
                 # SCHEREMO: If we can't find a mapping for the root, we must exit
                 if idx == 0:
+                    deepestLayer = scheduledLayerList[deepestIdx]
+                    deepestNodeName = deepestLayer.node.name
                     raise RuntimeError(
-                        f'Did not find adequate mapping for graph! Explored until {scheduledLayerList[deepestIdx]} Candidates: {[type(x.parser).__name__ for x in scheduledLayerList[deepestIdx].maps]}. Exhausted backtracking.'
+                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer} of node {deepestNodeName} Candidates: {[type(x.parser).__name__ for x in deepestLayer.maps]}. Exhausted backtracking.'
                     )
 
                 previousLayer = scheduledLayerList[idx - 1]
@@ -3101,39 +3196,139 @@ class NetworkDeployer(NetworkContainer):
         """
         return self.loweringOptimizer.optimize(graph)
 
-    # Don't override this
-    # Duplicate constants with multiple users
-    def _duplicateConstants(self, graph: gs.Graph):
-        idx = 0
-        for node in self.graph.nodes:
-            for i, inputNode in enumerate(node.inputs):
-                if type(inputNode) == gs.ir.tensor.Constant and len(inputNode.outputs) > 1:
-                    newConst = gs.Constant(name = f"{inputNode.name}_EXTRACT_CONST_{idx}", values = inputNode.values)
-                    node.inputs[i] = newConst
-                    # graph.nodes.append(newConst)
-                    idx += 1
+    # Helper function for duplicate constants
+    # Makes sure to copy the value because otherwise, constant folding fails with a warning
+    def _duplicateConstantNode(self,
+                               node: gs.Node,
+                               name: str,
+                               inputs: Optional[List[gs.Tensor]] = None,
+                               outputs: Optional[List[gs.Tensor]] = None) -> gs.Node:
+        assert node.op == "Constant", f"Expected a Constant node, received node of op {node.op}"
+        assert "value" in node.attrs, f"Constant node doesn't have a \"value\" attribute"
+        value = node.attrs["value"]
+        if isinstance(value, gs.Constant):
+            newValue = gs.Constant(f'{value.name}_OF_{name}', value.values.copy())
+        elif isinstance(value, np.ndarray):
+            newValue = value.copy()
+        else:
+            assert False, f"Node {node.name}: Unrecognized value type {type(value)}"
+        return gs.Node(
+            op = "Constant",
+            name = name,
+            attrs = {"value": newValue},
+            inputs = inputs,
+            outputs = outputs,
+        )
 
     # Don't override this
     # Duplicate constants with multiple users
+    def _duplicateConstants(self, graph: gs.Graph) -> None:
+        # Duplicate constant tensors
+        for tensor in filter(lambda t: isinstance(t, gs.Constant) and len(t.outputs) > 1, graph.tensors().values()):
+            for node in tensor.outputs:
+                newConst = tensor.copy()
+                newConst.name += f"_DUPLICATE_FOR_{node.name}"
+                assert isinstance(node, gs.Node), f"Expected node to be an instance of gs.Node. Received {type(node)}"
+                node.inputs.insert(node.inputs.index(tensor), newConst)
+            tensor.outputs.clear()
+
+        # Duplicate constant nodes with multiple outputs
+        nodes = list(graph.nodes)
+        for node in filter(lambda n: n.op == "Constant" and len(n.outputs) > 1, nodes):
+            output_tensors = list(node.outputs)
+            for tensor in output_tensors:
+                assert len(
+                    tensor.inputs
+                ) == 1, f"Expected output tensor to have only a single input. The tensor has {len(tensor.inputs)}"
+                tensor.inputs.clear()
+                newConst = self._duplicateConstantNode(
+                    node,
+                    f"{node.name}_DUPLICATE_FOR_{tensor.name}",
+                    outputs = [tensor],
+                )
+                graph.nodes.append(newConst)
+            node.outputs.clear()
+
+        # Duplicate constant nodes which have an output tensor that connects to multiple outputs
+        for node in filter(lambda n: n.op == "Constant" and len(n.outputs) == 1 and len(n.outputs[0].outputs) > 1,
+                           nodes):
+            tensor = node.outputs[0]
+            for downstreamNode in tensor.outputs:
+                assert isinstance(
+                    downstreamNode, gs.Node
+                ), f"Expected the downstream node to be an instance of gs.Node. Received {type(downstreamNode)}"
+                newTensor = tensor.copy()
+                newTensor.name += f"_DUPLICATE_FOR_{downstreamNode.name}"
+                newNode = self._duplicateConstantNode(
+                    node,
+                    f"{node.name}_DUPLICATE_FOR_{downstreamNode.name}",
+                    outputs = [newTensor],
+                )
+                graph.nodes.append(newNode)
+                downstreamNode.inputs.insert(downstreamNode.inputs.index(tensor), newTensor)
+            tensor.outputs.clear()
+
+        graph.cleanup().toposort()
+
+    def _foldConstants(self, graph: gs.Graph):
+        graph.fold_constants()
+        graph.cleanup().toposort()
+
+    def _sanitizeGraphNames(self, graph: gs.Graph):
+
+        def sanitize(name: str) -> str:
+            # Remove illegal characters: anything not a letter, digit, or underscore.
+            sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '', name)
+            return sanitized_name
+
+        for node in graph.nodes:
+            node.name = sanitize(node.name)
+            for tensor in node.inputs + node.outputs:
+                tensor.name = sanitize(tensor.name)
+
+    # Don't override this
     def _removeEmptyInputs(self, graph: gs.Graph):
         _inps = self.graph.inputs.copy()
         for inp in _inps:
             if np.prod(inp.shape) == 0:
                 self.graph.inputs.remove(inp)
 
+    # Don't override this
+    def _mangleTensorNames(self):
+        """Mangle tensor names
+
+        This adds _tensor suffix to all tensors in hopes to make them distinct from other graph elements, e.g., nodes.
+        Deeploy needs tensor names to be distinct for code snippet introspection.
+        """
+        for tensor in self.graph.tensors().values():
+            tensor.name = f"{tensor.name}_tensor"
+
+    # Don't override this
+    def _removeIdentityNodes(self):
+        for node in filter(lambda x: x.op == "Identity", self.graph.nodes):
+            self.graph.deleteNode(node)
+
     def frontEnd(self):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
 
         """
+        self._removeIdentityNodes()
+
+        self._mangleTensorNames()
+
         # Rename graph inputs and outputs:
         for idx, inputNode in enumerate(self.graph.inputs):
             inputNode.name = "input_" + str(idx)
         for idx, outputNode in enumerate(self.graph.outputs):
             outputNode.name = "output_" + str(idx)
 
+        self._sanitizeGraphNames(self.graph)
+
         self._removeEmptyInputs(self.graph)
 
         self._duplicateConstants(self.graph)
+
+        self._foldConstants(self.graph)
 
         self.exportDeeployState(self.deeployStateDir, _middlewarePreLoweringFilename)
 

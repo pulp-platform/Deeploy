@@ -74,7 +74,10 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List, input
 
         retStr += f"{data_type.referencedType.typeName} testInputVector{index}[] ="
         retStr += "{"
-        list_str = (", ").join([str(x) for x in broadcastNum])
+        if data_type.referencedType.typeName == 'float32_t':
+            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in broadcastNum])
+        else:
+            list_str = (", ").join([str(x) for x in broadcastNum])
 
         # WIESEP: Arrays have to be 4 byte alinged (at lest in banshee)
         bytes = len(broadcastNum) * (data_width // 8)
@@ -117,19 +120,29 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
     for index, num in enumerate(test_outputs):
         output_data_type[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._type
 
-        if signProp:
+        data_type = output_data_type[f"output_{index}"]
+        isdatafloat = (data_type.referencedType.typeName == "float32_t")
+
+        if signProp and not isdatafloat:
             output_n_levels[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}').nLevels
             output_signed[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._signed
             test_outputs[index] -= int(
                 ((1 - output_signed[f"output_{index}"]) * (output_n_levels[f"output_{index}"] / 2)))
 
-        data_type = output_data_type[f"output_{index}"]
         data_width = data_type.referencedType.typeWidth
+        retStr += f"#define OUTPUTTYPE {data_type.referencedType.typeName}\n"
+        if isdatafloat:
+            retStr += f"#define ISOUTPUTFLOAT 1\n"
+        else:
+            retStr += f"#define ISOUTPUTFLOAT 0\n"
         retStr += f"{data_type.referencedType.typeName} testOutputVector{index}[] ="
         retStr += "{"
 
         # WIESEP: Arrays have to be 4 byte alinged (at lest in banshee)
-        list_str = (", ").join([str(x) for x in num])
+        if data_type.referencedType.typeName == 'float32_t':
+            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in num])
+        else:
+            list_str = (", ").join([str(x) for x in num])
 
         bytes = len(num) * (data_width // 8)
         if bytes % 4 != 0:
@@ -194,6 +207,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer,
 
     retStr += """#include <stdio.h>
     #include <stdlib.h>
+    #include <math.h>
     """
     retStr += deployer.generateIncludeString()
     retStr += """
@@ -235,17 +249,21 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer,
 def generateL3HexDump(deployer: NetworkDeployer, path: str, test_inputs: List, test_outputs: List):
 
     def type2TypeStr(dataType) -> Tuple[str, int]:
-        width = dataType.referencedType.typeWidth
-        signed = (dataType.referencedType.typeMin < 0)
-
-        retStr = ""
-
-        if signed:
-            retStr += "int"
+        if dataType.referencedType.typeName == "float32_t":
+            retStr = "float32"
+            width = 32
         else:
-            retStr += "uint"
+            width = dataType.referencedType.typeWidth
+            signed = (dataType.referencedType.typeMin < 0)
 
-        retStr += str(width)
+            retStr = ""
+
+            if signed:
+                retStr += "int"
+            else:
+                retStr += "uint"
+
+            retStr += str(width)
 
         return retStr, width
 
@@ -274,15 +292,9 @@ def generateL3HexDump(deployer: NetworkDeployer, path: str, test_inputs: List, t
 
         paddedArray.astype(typeStr).tofile(path)
 
-    # SCHEREMO: Dump all global const buffers as hex files
-    globalConstBuffers = [
-        buf for key, buf in deployer.ctxt.globalObjects.items() if isinstance(buf, VariableBuffer) and buf._deploy
-    ]
-    l3ConstBuffer = [buf for buf in globalConstBuffers if hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3"]
-
+    # LMACAN: Dump all global buffers with the "extName" attribute
     os.makedirs(path, exist_ok = True)
-
-    for idx, buf in enumerate(l3ConstBuffer):
+    for buf in deployer.ctxt.globalObjects.values():
         if hasattr(buf, "extName"):
             pathName = os.path.join(path, f"{buf.extName}.hex")
             dumpBuffer(buf, pathName)

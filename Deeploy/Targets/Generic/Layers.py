@@ -25,11 +25,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 from typing import List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, Shape
+from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, OperatorRepresentation, Shape
 
 
 class ConcatLayer(ONNXLayer):
@@ -62,21 +63,22 @@ class GatherLayer(ONNXLayer):
         super().__init__(maps)
 
 
-class iGELULayer(ONNXLayer):
+class GELULayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
     def computeOps(self):
-        compAbs = self.mapper.parser.operatorRepresentation['size']
-        compAdd = self.mapper.parser.operatorRepresentation['size']
-        compSqr = self.mapper.parser.operatorRepresentation['size']
-        compMul = self.mapper.parser.operatorRepresentation['size']
-        compAdd = self.mapper.parser.operatorRepresentation['size']
-        compMul2 = self.mapper.parser.operatorRepresentation['size']
-        compAdd2 = self.mapper.parser.operatorRepresentation['size']
-        compDiv = self.mapper.parser.operatorRepresentation['size']
-        return compAbs + compAdd + compSqr + compMul + compAdd + compMul2 + compAdd2 + compDiv
+        size = self.mapper.parser.operatorRepresentation['size']
+        # RW: Sigmoid approximation
+        mul1 = size  # Multiply by 1.702
+        neg = size  # Negate the result
+        exp = size  # Compute exponential
+        add = size  # Add 1
+        div = size  # Division for sigmoid
+        mul2 = size  # Final multiplication by x
+
+        return mul1 + neg + exp + add + div + mul2
 
 
 class iHardswishLayer(ONNXLayer):
@@ -85,7 +87,24 @@ class iHardswishLayer(ONNXLayer):
         super().__init__(maps)
 
 
-class RQSiGELULayer(iGELULayer):
+class iNoNormLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size'] * 4  # 2 mul, 1 add, 1 right shift
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation: OperatorRepresentation,
+                      channels_first: bool) -> Tuple[Shape]:
+
+        # JUNGVI: Broadcast the weights and bias to have as many dimensions as the inputs
+        inputShapes[1] = [1] * (len(inputShapes[0]) - len(inputShapes[1])) + list(inputShapes[1])
+        inputShapes[2] = inputShapes[1]
+        return (inputShapes, outputShapes)
+
+
+class RQSiGELULayer(GELULayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
@@ -97,10 +116,43 @@ class RQSiHardswishLayer(iHardswishLayer):
         super().__init__(maps)
 
 
-class iSoftmaxLayer(ONNXLayer):
+class SoftmaxLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+
+    def computeOps(self):
+
+        size = self.mapper.parser.operatorRepresentation['size']
+        last_dim_length = self.mapper.parser.operatorRepresentation['lastDimLength']
+        batch_size = size // last_dim_length
+
+        max_ops = last_dim_length - 1
+        exp_ops = last_dim_length * 2
+        sum_ops = last_dim_length - 1
+        div_ops = last_dim_length
+        ops_per_batch = max_ops + exp_ops + sum_ops + div_ops
+        total_ops = ops_per_batch * batch_size
+
+        return total_ops
+
+
+class SoftmaxGradLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        input_size = self.mapper.parser.operatorRepresentation['size']
+
+        # SoftmaxGrad operation: dy * (y - (y * sum(dy * y)))
+        mul_ops = input_size
+        sum_ops = input_size
+        broadcast_mul_ops = input_size
+        sub_ops = input_size
+        final_mul_ops = input_size
+
+        return mul_ops + sum_ops + broadcast_mul_ops + sub_ops + final_mul_ops
 
 
 class ITAMaxLayer(ONNXLayer):
@@ -134,12 +186,13 @@ class AddLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-        outputShapes = inputShapes.copy()
+
         if len(inputShapes[0]) > len(inputShapes[1]):
             inputShapes[1] = inputShapes[0]
         else:
             inputShapes[0] = inputShapes[1]
 
+        outputShapes = [inputShapes[0]]
         return (inputShapes, outputShapes)
 
     def computeOps(self):
@@ -154,6 +207,27 @@ class MatMulLayer(ONNXLayer):
     def computeOps(self):
         return 2 * self.mapper.parser.operatorRepresentation['M'] * self.mapper.parser.operatorRepresentation[
             'N'] * self.mapper.parser.operatorRepresentation['O'] * self.mapper.parser.operatorRepresentation['batch']
+
+    def computeShapes(self, inputShapes: Tuple[Shape, Shape], outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Tuple[Shape, Shape], Shape]:
+
+        A_shape, B_shape = inputShapes
+        if len(A_shape) < 2:
+            A_shape = [1] * (2 - len(A_shape)) + A_shape
+
+        if len(B_shape) < 2:
+            B_shape = B_shape + [1] * (2 - len(B_shape))
+
+        if A_shape[-1] != B_shape[-2]:
+            raise ValueError(f"MatMul requires A.shape[-1] == B.shape[-2], but got {A_shape} and {B_shape}")
+
+        if len(A_shape) > len(B_shape):
+            B_shape = [1] * (len(A_shape) - len(B_shape)) + list(B_shape)
+
+        elif len(A_shape) < len(B_shape):
+            A_shape = [1] * (len(B_shape) - len(A_shape)) + list(A_shape)
+
+        return [A_shape, B_shape], outputShapes
 
 
 class RQMatMulLayer(MatMulLayer):
@@ -176,13 +250,13 @@ class RQMatMulLayer(MatMulLayer):
         return matmul + rqs
 
 
-class IntegerDivLayer(ONNXLayer):
+class DivLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
 
-class RQIntegerDivLayer(IntegerDivLayer):
+class RQIntegerDivLayer(DivLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
@@ -261,11 +335,18 @@ class MulLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
+
+        if inputShapes[1] == () or inputShapes[1] == []:
+            inputShapes[1] = (1,)
+
         if len(inputShapes[0]) > len(inputShapes[1]):
             inputShapes[1] = inputShapes[0]
         else:
             inputShapes[0] = inputShapes[1]
         return (inputShapes, outputShapes)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
 
 
 class ConvLayer(ONNXLayer):
@@ -324,6 +405,14 @@ class MaxPoolLayer(ONNXLayer):
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
+    def computeOps(self):
+        kernel_shape = self.mapper.parser.operatorRepresentation['kernel_shape']
+        elements_per_window = int(np.prod(kernel_shape))
+        data_out_size = self.mapper.parser.operatorRepresentation['data_out_size']
+        comparisons_per_window = elements_per_window - 1
+        total_ops = data_out_size * comparisons_per_window
+        return total_ops
+
 
 class ReduceMeanLayer(ONNXLayer):
 
@@ -338,7 +427,7 @@ class ReduceSumLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-        outputShapes = inputShapes.copy()
+        outputShapes = copy.deepcopy(inputShapes)
         axis = operatorRepresentation['axes'][0]
 
         if operatorRepresentation['keepdims']:
@@ -348,7 +437,16 @@ class ReduceSumLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
 
-class iLayerNormLayer(ONNXLayer):
+class ReluLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+
+class LayerNormLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
@@ -364,6 +462,24 @@ class iLayerNormLayer(ONNXLayer):
 
 
 class TransposeLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SoftmaxCrossEntropyLossLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SoftmaxCrossEntropyLossGradLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SGDLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
@@ -510,6 +626,18 @@ class MHSALayer(ONNXLayer):
 
 
 class DebugPrintLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class QuantLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class DequantLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)

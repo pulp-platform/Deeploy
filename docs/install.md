@@ -83,8 +83,8 @@ To get started with Deeploy, you can run any of the regression tests in `deeploy
 For example, you can run
 
 ```
-cd deeploytest
-python testRunner_generic -t Tests/simpleRegression
+cd DeeployTest
+python testRunner_generic.py -t Tests/simpleRegression
 ```
 
 to run the `simpleRegression` test on your workstation. Various other tests are available and compatibility between tests and platforms is tested in the `.gitlab-ci.yml` file.

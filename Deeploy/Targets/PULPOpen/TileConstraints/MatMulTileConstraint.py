@@ -99,9 +99,6 @@ class MatMulTileConstraint(TileConstraint):
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])
         tilerModel.addConstraint(BFirstDimVar == parseDict['N'])
 
-        # VIC: For now we tile only one of the inputs
-        tilerModel.addConstraint(BSecondDimVar == parseDict['O'])
-
         return tilerModel
 
     @classmethod
@@ -127,8 +124,21 @@ class MatMulTileConstraint(TileConstraint):
 
         # Every output is constructed by a pair of inputs. Reconstruct this pair.
         for cube in outputCubes:
-            (BatchOffset, BOffset, MOffset, OOffset) = cube.offset
-            (BatchSize, BSize, MSize, OSize) = cube.dims
+
+            BSize = 1
+            BOffset = 0
+            BatchSize = 1
+            BatchOffset = 0
+
+            if len(cube.offset) == 2:
+                (MOffset, OOffset) = cube.offset
+                (MSize, OSize) = cube.dims
+            elif len(cube.offset) == 3:
+                (BatchOffset, MOffset, OOffset) = cube.offset
+                (BatchSize, MSize, OSize) = cube.dims
+            else:
+                (BatchOffset, BOffset, MOffset, OOffset) = cube.offset
+                (BatchSize, BSize, MSize, OSize) = cube.dims
 
             replacements["M"].append(MSize)
             replacements["O"].append(OSize)

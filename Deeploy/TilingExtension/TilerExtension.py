@@ -29,18 +29,23 @@
 # Like Template-T-Obj mapping, propagate cst, graph edition, etc
 
 import copy
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+import csv
+import os
+import subprocess
+from typing import Dict, List, Literal, Optional, OrderedDict, Tuple, Type, Union
 
 import numpy as np
 import onnx_graphsurgeon as gs
+import plotly.graph_objects as go
+import plotly.io as pio
 from ortools.constraint_solver.pywrapcp import IntVar, SolutionCollector
 
 import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
-from Deeploy.AbstractDataTypes import Pointer, PointerClass
+from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
-from Deeploy.DeeployTypes import ConstantBuffer, GlobalDefinition, NetworkContext, NetworkOptimizationPass, \
-    NodeBinding, NodeTemplate, ONNXLayer, Schedule, SubGraph, TopologyOptimizer, TransientBuffer
-from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeBinding, NodeTemplate, ONNXLayer, Schedule, \
+    SubGraph, TransientBuffer
+from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
 from Deeploy.TilingExtension.GenericFlow import GenericFlowState
@@ -62,6 +67,9 @@ class Tiler():
     arenaName = "MEMORYARENA"
     memorySchedulerClass: Type[MemoryScheduler] = MemoryScheduler
 
+    _MINIMALLOC_INPUT_FILENAME = "input_minimalloc"
+    _MINIMALLOC_OUTPUT_FILENAME = "output_minimalloc"
+
     # Initialize with the list of TemplateTCFbinding
     def __init__(self, memoryHierarchy: MemoryHierarchy):
 
@@ -73,9 +81,95 @@ class Tiler():
 
         self._worstCaseBufferSize: Dict[str, int] = {}
 
+        self.visualizeMemoryAlloc: bool = False
+        self.memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt", "MiniMalloc"] = "TetrisRandom"
+        self.searchStrategy: Literal["min", "max", "random-max"] = "random-max"
+
     @property
     def worstCaseBufferSize(self):
         return self._worstCaseBufferSize
+
+    def plotMemoryAlloc(self, memoryMap: Dict[str, List[List[MemoryBlock]]], ctxt: NetworkContext, deeployStateDir: str,
+                        memoryHierarchy: MemoryHierarchy):
+
+        os.makedirs(os.path.abspath(deeployStateDir), exist_ok = True)
+        memoryAllocPlotPath = os.path.abspath(os.path.join(deeployStateDir, f"memory_alloc.html"))
+
+        addTraceConfig = {"fill": "toself", "hoverinfo": "text", "mode": "lines", "line": dict(width = 2)}
+
+        def plotSingleMemoryLevel(memoryLevel: MemoryLevel):
+            """ Generates a single Plotly subplot for a memory level. """
+            fig = go.Figure()
+            constantBuffersOffset = 0
+
+            infiniteLifetimeBuffers = [
+                buffer for buffer in ctxt.globalObjects.values()
+                if not self.arenaName in buffer.name and isinstance(buffer, ConstantBuffer)
+            ]
+
+            constantBuffersOffset = 0
+            for ioBuffer in infiniteLifetimeBuffers:
+                if not ioBuffer._memoryLevel == memoryLevel.name:
+                    continue
+                _ioSize = np.prod(ioBuffer.shape) * ioBuffer._type.referencedType.typeWidth // 8
+                _maxLifetime = len(memoryMap[memoryLevel.name])
+                fig.add_trace(
+                    go.Scatter(x = [-0.5, -0.5, _maxLifetime + 0.5, _maxLifetime + 0.5],
+                               y = [
+                                   constantBuffersOffset, constantBuffersOffset + _ioSize,
+                                   constantBuffersOffset + _ioSize, constantBuffersOffset
+                               ],
+                               name = ioBuffer.name,
+                               text = ioBuffer.name,
+                               **addTraceConfig))
+                constantBuffersOffset += _ioSize
+
+            for memoryMapStep in memoryMap[memoryLevel.name]:
+                for buffer in memoryMapStep:
+                    fig.add_trace(
+                        go.Scatter(x = [
+                            buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
+                            buffer._lifetime[1] + 0.5
+                        ],
+                                   y = [
+                                       constantBuffersOffset + buffer._addrSpace[0],
+                                       constantBuffersOffset + buffer._addrSpace[1],
+                                       constantBuffersOffset + buffer._addrSpace[1],
+                                       constantBuffersOffset + buffer._addrSpace[0]
+                                   ],
+                                   name = buffer.name,
+                                   text = buffer.name,
+                                   **addTraceConfig))
+
+            fig.update_xaxes(title_text = "Lifetime")
+            fig.update_yaxes(title_text = "Address Space (Bytes)")
+            fig.update_layout(title = f"Memory Allocation - {memoryLevel.name}", showlegend = False)
+
+            fig.add_trace(
+                go.Scatter(
+                    x = [-0.5, len(memoryMap[memoryLevel.name]) - 1.5],
+                    y = [memoryLevel.size, memoryLevel.size],
+                    name = f"{memoryLevel.name} Memory Size",
+                    text = f"{memoryLevel.name} Memory Size",
+                    line = dict(color = "red", width = 2, dash = "dash"),
+                    fill = "toself",
+                    hoverinfo = "text",
+                    mode = "lines",
+                ))
+
+            return fig
+
+        from Deeploy.TilingExtension.HtmlTemplates import getHtmlMemoryAllocationVisualisation, getSubplotHtml
+
+        subplotHtml = ""
+        for memoryLevelName in memoryMap.keys():
+            figJson = pio.to_json(plotSingleMemoryLevel(memoryHierarchy.memoryLevels[memoryLevelName]))
+            subplotHtml += getSubplotHtml(figJson, memoryLevelName)
+
+        outputHtml = getHtmlMemoryAllocationVisualisation(subplotHtml)
+
+        with open(memoryAllocPlotPath, "w", encoding = "utf-8") as f:
+            f.write(outputHtml)
 
     def _convertCtxtToStaticSchedule(self, ctxt: NetworkContext,
                                      memoryMap: Dict[str, List[List[MemoryBlock]]]) -> NetworkContext:
@@ -109,6 +203,9 @@ class Tiler():
             ctxt.add(scratchBuffer, "global")
             scratchBuffer._instance = scratchBuffer._type(arenaName, ctxt)
             scratchBuffer._memoryLevel = level
+
+            # JUNGVI: Memory Arena buffers should be allocated first since other variable global buffers may belong to a memory arena
+            ctxt.globalObjects.move_to_end(scratchBuffer.name, last = False)
 
         # SCHEREMO: Adapt homelevel tensors to their respective arena
         for memoryLevel, patternList in memoryMap.items():
@@ -152,20 +249,94 @@ class Tiler():
 
         return ctxt
 
-    def computeTilingSchedule(self, ctxt: NetworkContext) -> TilingSolution:
+    def minimalloc(self, memoryMap, ctxt, nodeMemoryConstraint, capacity: int, memoryLevel: str):
+
+        with open(f"{self._MINIMALLOC_INPUT_FILENAME}.csv", mode = "w", newline = "") as file:
+            writer = csv.writer(file, lineterminator = "\n")
+            writer.writerow(["id", "lower", "upper", "size"])
+            for memoryBlock in memoryMap:
+
+                _buffer = ctxt.lookup(memoryBlock.name)
+                if nodeMemoryConstraint is None:
+                    _bufferSize = _buffer.size if isinstance(
+                        _buffer,
+                        TransientBuffer) else np.prod(_buffer.shape) * (_buffer._type.referencedType.typeWidth / 8)
+                else:
+                    if isinstance(_buffer, TransientBuffer):
+                        _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[
+                            memoryBlock.name].memoryConstraints[memoryLevel].size
+                    else:
+                        _bufferSize = nodeMemoryConstraint.tensorMemoryConstraints[
+                            memoryBlock.name].memoryConstraints[memoryLevel].size * (
+                                _buffer._type.referencedType.typeWidth /
+                                8) * nodeMemoryConstraint.tensorMemoryConstraints[
+                                    memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
+
+                writer.writerow([
+                    memoryBlock.name,
+                    str(memoryBlock.lifetime[0]),
+                    str(memoryBlock.lifetime[1] + 1),
+                    str(int(_bufferSize))
+                ])
+
+        try:
+            minimallocInstallDir = os.environ["MINIMALLOC_INSTALL_DIR"]
+        except KeyError:
+            raise KeyError("MINIMALLOC_INSTALL_DIR symbol not found!")
+
+        minimallocOutput = subprocess.run([
+            f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}",
+            f"--input={self._MINIMALLOC_INPUT_FILENAME}.csv", f"--output={self._MINIMALLOC_OUTPUT_FILENAME}.csv"
+        ],
+                                          capture_output = True,
+                                          text = True)
+
+        if minimallocOutput.returncode != 0:
+            print(
+                f"\033[91mError: Memory allocator failed with return code {minimallocOutput.returncode} at memory level {memoryLevel} with capacity of {capacity} bytes \033[0m"
+            )
+            raise subprocess.CalledProcessError(minimallocOutput.returncode, " ".join(minimallocOutput.args))
+
+        with open(f"{self._MINIMALLOC_OUTPUT_FILENAME}.csv", mode = "r", newline = "") as file:
+            reader = csv.reader(file)
+            header = next(reader)
+            for row in reader:
+                for memoryBlock in memoryMap:
+                    if memoryBlock.name == row[0]:
+                        memoryBlock._addrSpace = (int(row[-1]), int(row[-1]) + int(row[-2]))
+
+        return memoryMap
+
+    def computeTilingSchedule(self, ctxt: NetworkContext) -> Tuple[TilingSolution, Dict[str, List[List[MemoryBlock]]]]:
 
         assert self.tilerModel is not None and self.symbolicMemoryConstraints is not None, "Set up the model before trying to compute a schedule!"
 
         collector = self.tilerModel.trySolveModel()
         tilingSchedule = self._getTilingSolution(self.tilerModel, ctxt, collector, self.symbolicMemoryConstraints)
 
-        self.innerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
-        self.outerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
+        if not self.memoryAllocStrategy == "MiniMalloc":
+            self.innerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
+            self.outerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
 
         memoryMap = {}
 
         for key in self.innerMemoryScheduler.memoryMap.keys():
             memoryMap[key] = [*self.innerMemoryScheduler.memoryMap[key], *self.outerMemoryScheduler.memoryMap[key]]
+
+        if self.memoryAllocStrategy == "MiniMalloc":
+            for memoryLevel in memoryMap.keys():
+                constantTensorOffset = self.outerMemoryScheduler.getConstantTensorOffset(ctxt, memoryLevel)
+                if memoryLevel == self.memoryHierarchy._defaultMemoryLevel.name:
+                    memoryMap[memoryLevel][-1] = self.minimalloc(
+                        memoryMap[memoryLevel][-1], ctxt, None,
+                        self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset, memoryLevel)
+                else:
+                    for idx, memMap in enumerate(memoryMap[memoryLevel]):
+                        if len(memoryMap[memoryLevel][idx]) != 0:
+                            memoryMap[memoryLevel][idx] = self.minimalloc(
+                                memMap, ctxt, tilingSchedule[idx].nodeConstraints[0],
+                                self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset, memoryLevel)
+            print(f"\033[92mMemory allocation sucessful!\033[0m")
 
         for idx, pattern in enumerate(tilingSchedule):
             for nodeIdx, nodeConstraint in enumerate(pattern.nodeConstraints):
@@ -191,9 +362,9 @@ class Tiler():
 
         self._convertCtxtToStaticSchedule(ctxt, memoryMap)
 
-        return tilingSchedule
+        return tilingSchedule, memoryMap
 
-    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
+    def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: OrderedDict[str, ONNXLayer],
                    targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
 
         wrapSchedule: List[SubGraph] = []
@@ -203,7 +374,7 @@ class Tiler():
             else:
                 wrapSchedule.append(entry)
 
-        tilerModel = TilerModel()
+        tilerModel = TilerModel(searchStrategy = self.searchStrategy)
         tilerModel = self._setupGeometricConstraints(tilerModel, ctxt, wrapSchedule, layerBinding)
         tilerModel = self._setupTensorDimensionProducts(tilerModel, ctxt, wrapSchedule)
         tilerModel = self._setupHeuristics(tilerModel, ctxt, wrapSchedule)
@@ -326,7 +497,7 @@ class Tiler():
 
         for idx, pattern in enumerate(schedule):
             subGraph = gs.Graph(nodes = pattern)
-            subgraphTensors: 'OrderedDict[str, gs.Tensor]' = subGraph.tensors(check_duplicates = True)
+            subgraphTensors: OrderedDict[str, gs.Tensor] = subGraph.tensors(check_duplicates = True)
 
             for _, tensor in subgraphTensors.items():
                 if not ctxt.lookup(tensor.name)._deploy:
@@ -337,7 +508,7 @@ class Tiler():
         return tilerModel
 
     def _setupGeometricConstraints(self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-                                   layerBinding: 'OrderedDict[str, ONNXLayer]') -> TilerModel:
+                                   layerBinding: OrderedDict[str, ONNXLayer]) -> TilerModel:
 
         # SCHEREMO: Each pattern is a decoupled sub-problem w.r.t the geometric constraints.
         # We need to regenerate dimension variables for each tensor
@@ -400,7 +571,7 @@ class Tiler():
 
     def _setupMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: 'OrderedDict[str, ONNXLayer]',
+            layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
@@ -411,28 +582,36 @@ class Tiler():
             for nodeConstraint in constraint.nodeConstraints:
                 outerMemoryConstraints.addConstraint(nodeConstraint)
 
+        if self.memoryAllocStrategy == "MiniMalloc":
+            # JUNGVI: This method adds the memory constraints in case of decoupled tiling and memory allocation.
+            self.outerMemoryScheduler.constraintTileBuffersWithOverlappingLifetime(tilerModel, ctxt,
+                                                                                   outerMemoryConstraints,
+                                                                                   self.memoryHierarchy)
+
         for level in self.memoryHierarchy.memoryLevels.keys():
             self.outerMemoryScheduler.scheduleMemoryConstraints(tilerModel, ctxt, [outerMemoryConstraints],
-                                                                self.memoryHierarchy, level)
+                                                                self.memoryHierarchy, self.memoryAllocStrategy, level)
 
         # Update inner memoryHierarchy with outer constraints
         innerMemoryHierarchy = MemoryHierarchy([])
         for level, memLevel in self.memoryHierarchy.memoryLevels.items():
             newMemLevel = copy.copy(memLevel)
-            outerConstraint = tilerModel.getVariable(self.outerMemoryScheduler.getSymbolicCostName(0, level), 0)
 
-            newMemLevel.size = newMemLevel.size - outerConstraint
+            if not self.memoryAllocStrategy == "MiniMalloc":
+                outerConstraint = tilerModel.getVariable(self.outerMemoryScheduler.getSymbolicCostName(0, level), 0)
+                newMemLevel.size = newMemLevel.size - outerConstraint
+
             innerMemoryHierarchy._add(newMemLevel)
 
         for level in innerMemoryHierarchy.memoryLevels.keys():
             self.innerMemoryScheduler.scheduleMemoryConstraints(tilerModel, ctxt, allMemoryConstraints,
-                                                                innerMemoryHierarchy, level)
+                                                                innerMemoryHierarchy, self.memoryAllocStrategy, level)
 
         return tilerModel, allMemoryConstraints
 
     def _generateAllMemoryConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-            layerBinding: 'OrderedDict[str, ONNXLayer]',
+            layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> List[PatternMemoryConstraints]:
 
         dynamicTensorConstraints, constantTensorConstraints = self._generateMemoryConstraints(
@@ -452,7 +631,7 @@ class Tiler():
 
     def _generateMemoryConstraints(
         self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-        layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping
+        layerBinding: OrderedDict[str, ONNXLayer], targetMemoryLevelMapping: TargetMemoryLevelMapping
     ) -> Tuple[List[PatternMemoryConstraints], NodeMemoryConstraint]:
 
         # SCHEREMO: Construct non-double-buffered constraints of local variable buffers
@@ -462,14 +641,14 @@ class Tiler():
 
         # SCHEREMO: Construct global buffer constraints
 
-        globalVariableConstraint = self._generateBufferConstraints(ctxt)
+        constantBufferConstraint = self._generateBufferConstraints(ctxt)
 
         # SCHEREMO: Construct first-level constraint set (all global buffers + tensors stored in higher level)
 
         firstLevelConstraints: List[PatternMemoryConstraints] = copy.copy(outerVariableConstraints)
         for patternConstraint in firstLevelConstraints:
             for idx in range(len(patternConstraint.nodeConstraints)):
-                patternConstraint.nodeConstraints[idx] += globalVariableConstraint
+                patternConstraint.nodeConstraints[idx] += constantBufferConstraint
 
         # SCHEREMO: Construct constraint set for tiled tensors (including double buffering, excluding static global constraints)
         tiledTensorConstraints: List[PatternMemoryConstraints] = self._generateTilePathConstraints(
@@ -512,7 +691,7 @@ class Tiler():
                 dynamicTensorPattern.addConstraint(dynamicTensorPatternStep)
             inplaceTensorConstraints.append(dynamicTensorPattern)
 
-        return inplaceTensorConstraints, globalVariableConstraint
+        return inplaceTensorConstraints, constantBufferConstraint
 
     def _generateTilePath(self, tilerModel: TilerModel, ctxt: NetworkContext,
                           tensorMemoryConstraint: TensorMemoryConstraint, pattern: SubGraph) -> TensorMemoryConstraint:
@@ -597,8 +776,7 @@ class Tiler():
 
         constantGlobalConstraint: NodeMemoryConstraint = NodeMemoryConstraint()
         constantGlobalBuffers = [
-            node for node in ctxt.globalObjects.values()
-            if not isinstance(node, GlobalDefinition) and node._deploy == True
+            node for node in ctxt.globalObjects.values() if isinstance(node, ConstantBuffer) and node._deploy == True
         ]
 
         for constantBuffer in constantGlobalBuffers:
@@ -617,7 +795,7 @@ class Tiler():
 
     def _generateVariableBufferConstraints(
         self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
-        layerBinding: 'OrderedDict[str, ONNXLayer]', targetMemoryLevelMapping: TargetMemoryLevelMapping
+        layerBinding: OrderedDict[str, ONNXLayer], targetMemoryLevelMapping: TargetMemoryLevelMapping
     ) -> Tuple[List[PatternMemoryConstraints], List[PatternMemoryConstraints]]:
 
         def deltaFlow(
@@ -689,7 +867,7 @@ class Tiler():
         return outerMemConstraints, innerMemConstraints
 
     def _generatePatternStepTransientBufferConstraints(
-            self, tilerModel: TilerModel, ctxt: NetworkContext, layerBinding: 'OrderedDict[str, ONNXLayer]',
+            self, tilerModel: TilerModel, ctxt: NetworkContext, layerBinding: OrderedDict[str, ONNXLayer],
             step: gs.Node, targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NodeMemoryConstraint:
 
         patternStepTransientBufferSizes = NodeMemoryConstraint()
@@ -720,56 +898,44 @@ class Tiler():
 
         return patternStepTransientBufferSizes
 
+    def assertLayerWiseTiling(self, schedule: List[List[gs.Node]]) -> bool:
+        for pattern in schedule:
+            if len(pattern) > 1:
+                return False
 
-class TilerAwareDeployer(MemoryLevelAwareDeployer):
-
-    def __init__(self,
-                 graph: gs.Graph,
-                 deploymentPlatform: Union[MemoryPlatform, MemoryPlatformWrapper],
-                 inputTypes: Dict[str, Type[Pointer]],
-                 loweringOptimizer: TopologyOptimizer,
-                 scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
-                 name: str = 'DeeployNetwork',
-                 default_channels_first: bool = True,
-                 deeployStateDir: str = "DeeployState",
-                 memoryLevelAnnotationPasses: List[NetworkOptimizationPass] = [],
-                 tilerCls: Type[Tiler] = Tiler):
-        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
-                         default_channels_first, deeployStateDir, memoryLevelAnnotationPasses)
-        self.tiler = tilerCls(deploymentPlatform.memoryHierarchy)
-
-    @property
-    def worstCaseBufferSize(self):
-        maxAddr: Dict[str, int] = self.tiler.worstCaseBufferSize
-
-        # WIESEP: Memory map form tiler does not include inputs and outputs
-        for node in (self.inputs() + self.outputs()):
-            maxAddr[node._memoryLevel] += np.prod(node.shape) * node._type.referencedType.typeWidth // 8
-
-        return maxAddr
-
-    def tile(self, tilingSolution: Optional[TilingSolution] = None):
-        if tilingSolution is None:
-            schedule = self.scheduler(self.graph)
-
-            self.tiler.setupModel(ctxt = self.ctxt,
-                                  schedule = schedule,
-                                  layerBinding = self.layerBinding,
-                                  targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
-            tilingSolution = self.tiler.computeTilingSchedule(self.ctxt)
-
-        # SCHEREMO: Annotate execution block with solution
-        for layer, pattern in zip(self.layerBinding.values(), tilingSolution):
-            layer.mapper.binder.executionBlock.patternMemoryConstraint = pattern
-
-        # SCHEREMO: Code generation STUB
-
-    def bind(self):
-        if not super().bind():
-            return False
-
-        self.tile()
         return True
+
+    def assertUniformMemoryLevelAllocation(self, ctxt: NetworkContext, defaultMemoryLevel: str) -> bool:
+        for buffer in ctxt.localObjects.values():
+            if buffer._memoryLevel != defaultMemoryLevel:
+                return False
+        return True
+
+    def testMemoryMapCorrectness(self, memoryMap: Dict[str, List[List[MemoryBlock]]], graph: gs.Graph,
+                                 schedule: Schedule) -> None:
+
+        memoryBlockMap = {
+            memoryBlock.name: memoryBlock for levelMemoryMap in memoryMap.values() for memoryBlock in levelMemoryMap[-1]
+        }
+
+        # JUNGVI: Assert output buffers are alive until the end
+        for outputBuffer in graph.outputs:
+            assert memoryBlockMap[outputBuffer.name]._lifetime[-1] == len(
+                schedule), "Invalid memory map! Output buffer is not alive at the last step!"
+
+        # JUNGVI: Assert input buffers are alive at the beginning
+        for inputBuffer in graph.inputs:
+            assert memoryBlockMap[
+                inputBuffer.name]._lifetime[0] == 0, "Invalid memory map! Input buffer is not alive at step 0!"
+
+        # JUNGVI: Assert that at every computation step, the required buffers are alive somewhere in memory
+        for stepIdx, pattern in enumerate(schedule):
+            node = pattern[0]
+            nodeIO = [node for node in node.inputs + node.outputs if not isinstance(node, gs.Constant)]
+            for tensor in nodeIO:
+                lifetime = memoryBlockMap[tensor.name]._lifetime
+                assert stepIdx in range(lifetime[0], lifetime[-1] +
+                                        1), f"Invalid memory map! Buffer {tensor.name} is not alive at step {stepIdx}!"
 
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
@@ -794,11 +960,22 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         if tilingSolution is None:
             schedule = self.scheduler(self.graph)
 
+            # JUNGVI: Currently using MiniMalloc is only supported for layer-wise execution and all tensors in the default memory level.
+            if self.tiler.memoryAllocStrategy == "MiniMalloc":
+                assert self.tiler.assertLayerWiseTiling(schedule), "Using MiniMalloc and DFT is not supported!"
+                assert self.tiler.assertUniformMemoryLevelAllocation(
+                    self.ctxt, self.Platform.memoryHierarchy._defaultMemoryLevel.name
+                ), "All tensors have to be in the default memory level when using MiniMalloc!"
+
             self.tiler.setupModel(ctxt = self.ctxt,
                                   schedule = schedule,
                                   layerBinding = self.layerBinding,
                                   targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
-            tilingSolution = self.tiler.computeTilingSchedule(self.ctxt)
+            tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
+            if self.tiler.visualizeMemoryAlloc:
+                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir, self.Platform.memoryHierarchy)
+
+            self.tiler.testMemoryMapCorrectness(memoryMap, self.graph, schedule)
 
         # SCHEREMO: Annotate execution block with solution
         for layer, pattern in zip(self.layerBinding.values(), tilingSolution):

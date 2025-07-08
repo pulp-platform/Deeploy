@@ -191,10 +191,10 @@ def bindFCParams(ctxt,
     if isinstance(mul, str):
         __mul = ctxt.lookup(mul).values
         assert np.ndim(__mul) == 0, "Mul is not scalar!"
-        _mul = __mul.item()
+        _mul = int(__mul.item())
         ctxt.lookup(mul)._deploy = False
     else:
-        _mul = mul
+        _mul = int(mul)
 
     if isinstance(shift, str):
         __shift = ctxt.lookup(shift).values
