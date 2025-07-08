@@ -1,6 +1,6 @@
 [project]
 name = "PULP-Deeploy"
-version = '0.2.0'
+version = '0.2.1'
 description = "Deeploy - DNN Compiler for Heterogeneous SoCs"
 authors = [
     { name="Victor Jung", email="jungvi@iis.ee.ethz.ch" },
