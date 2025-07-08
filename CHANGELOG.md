@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Support for 1D Autoencoder [#98](https://github.com/pulp-platform/Deeploy/pull/98)
 - Refactor Logging for Improved Debugging [#115](https://github.com/pulp-platform/Deeploy/pull/115)
 - Add reuse-tool as an SPDX license header linter [#113](https://github.com/pulp-platform/Deeploy/pull/113)
 - Bug fixes, API Cleanup and Reduce Compiler Warning on PULP [#112](https://github.com/pulp-platform/Deeploy/pull/112)
@@ -92,7 +93,6 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
-- Support for 1D Autoencoder [#93](https://github.com/pulp-platform/Deeploy/pull/93)
 - Prepare v0.2.0 release [#102](https://github.com/pulp-platform/Deeploy/pull/102)
 - Add Luka as Code Owner [#101](https://github.com/pulp-platform/Deeploy/pull/101)
 - Fix CI, Docker Files, and Documentation Workflow [#100](https://github.com/pulp-platform/Deeploy/pull/100)
