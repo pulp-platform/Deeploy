@@ -1,0 +1,24 @@
+{
+    "image": "ghcr.io/pulp-platform/deeploy:main",
+    "name": "deeploy_main",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools-extension-pack",
+                "twxs.cmake",
+                "josetr.cmake-language-support-vscode",
+                "ms-vscode.cmake-tools",
+                "ms-python.python",
+                "ms-vscode-remote.remote-containers",
+                "rioj7.command-variable"
+            ]
+        }
+    },
+    "mounts": [
+        {
+            "source": "${localWorkspaceFolder}",
+            "target": "/app/Deeploy",
+            "type": "bind"
+        }
+    ]
+}

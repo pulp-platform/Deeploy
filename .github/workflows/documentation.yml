@@ -22,7 +22,7 @@ jobs:
         run: |
           sphinx-build docs _build
       - name: Prepare Multipages
-        uses: rkdarst/gh-pages-multibranch@main
+        uses: xeratec/gh-pages-multibranch@pr/support_tags
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         with:
           directory: _build

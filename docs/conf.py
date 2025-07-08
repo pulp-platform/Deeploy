@@ -24,6 +24,7 @@
 # limitations under the License.
 
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.abspath('../'))
@@ -62,13 +63,35 @@ html_logo = '_static/DeeployBannerGreen-640x-320.png'
 # -- Options for HTML templates ------------------------------------------------
 
 # Extract branch name from git
-branch = os.popen("git rev-parse --abbrev-ref HEAD").read().strip()
+
+# Try to get branch name
+branch = None
+try:
+    branch = subprocess.check_output(["git", "symbolic-ref", "--short", "HEAD"],
+                                     stderr = subprocess.DEVNULL).decode().strip()
+except subprocess.CalledProcessError:
+    pass  # Not a branch, maybe a tag?
+
+# Try to get tag name if branch not available
+tag = None
+if not branch:
+    try:
+        tag = subprocess.check_output(["git", "describe", "--tags", "--exact-match"],
+                                      stderr = subprocess.DEVNULL).decode().strip()
+    except subprocess.CalledProcessError:
+        pass  # Not on a tag either
+
+# Fallback
+current = branch or tag or "unknown"
 
 html_context = {
     'current_version':
-        f"{branch}",
-    'versions': [["main", f"https://pulp-platform.github.io/Deeploy"],
-                 ["devel", f"https://pulp-platform.github.io/Deeploy/branch/devel"]],
+        current,
+    'versions': [
+        ["main", "https://pulp-platform.github.io/Deeploy"],
+        ["devel", "https://pulp-platform.github.io/Deeploy/branch/devel"],
+        ["v0.2.0", "https://pulp-platform.github.io/Deeploy/tag/v0.2.0"],
+    ],
 }
 
 # -- Options for myst_parser -------------------------------------------------

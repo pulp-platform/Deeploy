@@ -2,6 +2,10 @@ name: CI
 
 on:
   push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'
   pull_request:
   workflow_dispatch:
     inputs:
@@ -14,11 +18,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  DOCKER_IMAGE: ${{ github.event.inputs.docker_image_deeploy || (github.ref_name == 'main' && 'ghcr.io/pulp-platform/deeploy:main' || 'ghcr.io/pulp-platform/deeploy:devel') }}
-
 jobs:
-
   select-docker-image-and-runner:
     runs-on: ubuntu-latest
     outputs:
@@ -26,13 +26,28 @@ jobs:
       runner: ${{ steps.set-runner.outputs.runner }}
     steps:
       - id: set-docker-image
-        run: echo "::set-output name=image::${{ env.DOCKER_IMAGE }}"
+        run: |
+          if [[ -n "${{ github.event.inputs.docker_image_deeploy }}" ]]; then
+            IMAGE="${{ github.event.inputs.docker_image_deeploy }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF##refs/tags/}"
+            IMAGE="ghcr.io/pulp-platform/deeploy:${TAG_NAME}"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            IMAGE="ghcr.io/pulp-platform/deeploy:main"
+          else
+            IMAGE="ghcr.io/pulp-platform/deeploy:devel"
+          fi
+          echo "Selected image: ${IMAGE}"
+          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+
       - id: set-runner
         run: |
           if [[ "${{ github.repository }}" == "pulp-platform/Deeploy" ]]; then
-            echo "::set-output name=runner::self-hosted"
+            echo "Selected self-hosted runner for Deeploy repository"
+            echo "runner=self-hosted" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=runner::ubuntu-latest"
+            echo "Selected ubuntu-latest runner for external repository"
+            echo "runner=ubuntu-latest" >> $GITHUB_OUTPUT
           fi
 
   build-deeploy:
@@ -117,7 +132,7 @@ jobs:
         miniMobileNetv2
         CCT/CCT_1_16_16_8
         testFloatDemoTinyViT
-  
+
   ### SoftHier Tests ###
   softhier-kernels:
     uses: ./.github/workflows/TestRunnerSoftHier.yml
@@ -170,8 +185,8 @@ jobs:
         Adder
       simulators: |
         gvsoc
-  
-        
+
+
   ### Snitch Tests ###
   snitch-kernels:
     uses: ./.github/workflows/TestRunnerSnitch.yml
