@@ -35,8 +35,10 @@ from testUtils.codeGenerate import generateTestInputsHeader, generateTestNetwork
 from testUtils.graphDebug import generateDebugConfig
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferInputType, parseDataType
 
+from Deeploy.AbstractDataTypes import PointerClass
+from Deeploy.CommonExtensions.DataTypes import int8_t
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import EmulateCMSISRequantPass
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
@@ -57,6 +59,18 @@ if __name__ == '__main__':
                         dest = 'profileUntiled',
                         default = False,
                         help = 'Profile Untiled for L2\n')
+    parser.add_argument('--input-type-map',
+                        nargs = '*',
+                        default = [],
+                        help = '(Optional) mapping of input names to data types. '
+                        'If not specified, types are inferred from the input data. '
+                        'Example: --input-type-map input_0=int8_t input_1=float32 ...')
+    parser.add_argument('--input-offset-map',
+                        nargs = '*',
+                        default = [],
+                        help = '(Optional) mapping of input names to offsets. '
+                        'If not specified, offsets are set to 0. '
+                        'Example: --input-offset-map input_0=0 input_1=128 ...')
 
     args = parser.parse_args()
 
@@ -75,6 +89,24 @@ if __name__ == '__main__':
 
     tensors = graph.tensors()
 
+    # build name→type and name→offset maps
+    manual_types = {}
+    manual_offsets = {}
+    for kv in args.input_type_map:
+        name, tstr = kv.split('=', 1)
+        manual_types[name] = PointerClass(parseDataType(tstr))
+    for kv in args.input_offset_map:
+        name, ostr = kv.split('=', 1)
+        manual_offsets[name] = int(ostr)
+
+    # Sanity check for unknown input names
+    npz_names = set(inputs.files)
+    bad_names = (set(manual_types) | set(manual_offsets)) - npz_names
+    if bad_names:
+        raise ValueError(f"Unknown input names in overrides: {bad_names}")
+
+    manual_keys = set(manual_types) | set(manual_offsets)
+
     if args.debug:
         test_inputs, test_outputs, graph = generateDebugConfig(inputs, outputs, activations, graph)
 
@@ -90,11 +122,21 @@ if __name__ == '__main__':
 
     platform, signProp = mapPlatform(args.platform)
 
-    for index, num in enumerate(test_inputs):
+    for index, name in enumerate(inputs.files):
         # WIESP: Do not infer types and offset of empty arrays
+        num = test_inputs[index]
         if np.prod(num.shape) == 0:
             continue
-        _type, offset = inferInputType(num, signProp)[0]
+        num = test_inputs[index]
+        defaultType = manual_types.get(name, PointerClass(int8_t))
+        defaultOffset = manual_offsets.get(name, 0)
+        autoInfer = name not in manual_keys
+
+        _type, offset = inferInputType(num,
+                                       signProp,
+                                       defaultType = defaultType,
+                                       defaultOffset = defaultOffset,
+                                       autoInfer = autoInfer)[0]
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 

@@ -33,6 +33,19 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 
 offsetType = namedtuple("offsetType", ("type", "offset"))
 
+_ALL_DTYPES = {t.typeName: t for t in (*IntegerDataTypes, *FloatDataTypes)}
+
+
+def parseDataType(name: str):
+    """
+    Parses a data type from its name.
+    :param name: The name of the data type.
+    :return: The corresponding data type class.
+    """
+    if name not in _ALL_DTYPES:
+        raise ValueError(f"Unknown data type: {name}")
+    return _ALL_DTYPES[name]
+
 
 def isInteger(_input: np.array) -> bool:
     if np.abs((_input.astype(int) - _input)).max() > 0.001:
@@ -61,11 +74,34 @@ def dataWidth(n):
 def inferInputType(_input: np.ndarray,
                    signProp: Optional[bool] = None,
                    defaultType = PointerClass(int8_t),
-                   defaultOffset = 0) -> List[offsetType]:
+                   defaultOffset = 0,
+                   *,
+                   autoInfer: bool = True) -> List[offsetType]:
 
     # WIESEP: We cannot do type inference for empty arrays.
     if np.prod(_input.shape) == 0:
         print(f"Warning: Empty input array for type inference for {_input}!")
+        return [(defaultType, defaultOffset)]
+
+    # If the caller provided a manual override, skip all inference.
+    if not autoInfer:
+        rawType = defaultType.referencedType
+        vals = (_input.astype(np.int64) - defaultOffset)
+        if not rawType.checkPromotion(vals):
+            lo, hi = rawType.typeMin, rawType.typeMax
+            raise RuntimeError(f"Provided type {rawType.typeName} with offset {defaultOffset} "
+                               f"does not match input values in range [{vals.min()}, {vals.max()}] "
+                               f"(expected range [{lo}, {hi}])")
+
+        smallest = rawType
+        for caand in sorted(IntegerDataTypes, key = lambda x: x.typeWidth):
+            if caand.checkPromotion(vals):
+                smallest = caand
+                break
+        if smallest is not rawType:
+            print(f"WARNING: Data spans [{int(vals.min())}, {int(vals.max())}], "
+                  f"which would fit in {smallest.typeName}, "
+                  f"but user forced {rawType.typeName}.")
         return [(defaultType, defaultOffset)]
 
     if signProp is None:
