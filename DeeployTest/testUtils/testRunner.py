@@ -256,10 +256,10 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
             command += " --debug"
         if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
             command += " --profileUntiled"
-        if self.args.input_types:
-            command += " --input-types=" + " ".join(self.args.input_types)
-        if self.args.input_offsets:
-            command += " --input-offsets=" + " ".join(self.args.input_offsets)
+        if self.args.input_type_map:
+            command += " --input-type-map=" + " ".join(self.args.input_type_map)
+        if self.args.input_offset_map:
+            command += " --input-offset-map=" + " ".join(self.args.input_offset_map)
 
         if self.tiling_arguments:
             if self.args.defaultMemLevel:
