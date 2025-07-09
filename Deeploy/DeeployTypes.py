@@ -3305,16 +3305,21 @@ class NetworkDeployer(NetworkContainer):
 
     # Don't override this
     def _mangleNodeNames(self):
-        """Mangle node names
-
-        This renames nodes based on their operation and uses an incrementing counter to ensure uniqueness.
-        """
-        counter = {}
+        """Mangle node names only if duplicates exist. Unique names are preserved."""
+        # Count occurrences of each original name
+        counts: Dict[str, int] = {}
         for node in self.graph.nodes:
-            op_name = node.op if isinstance(node.op, str) else str(node.op)
-            idx = counter.get(op_name, 0)
-            node.name = f"{op_name}_{idx}"
-            counter[op_name] = idx + 1
+            counts[node.name] = counts.get(node.name, 0) + 1
+
+        # For any name that appears more than once, append a counter suffix
+        seen: Dict[str, int] = {}
+        for node in self.graph.nodes:
+            orig = node.name
+            if counts[orig] > 1:
+                idx = seen.get(orig, 0)
+                node.name = f"{orig}_{idx}"
+                seen[orig] = idx + 1
+            # else: unique name, leave it unchanged
 
     # Don't override this
     def _removeIdentityNodes(self):
