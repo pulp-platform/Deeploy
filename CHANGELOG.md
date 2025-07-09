@@ -1,7 +1,23 @@
 # Changelog
 This file contains the changelog for the Deeploy project. The changelog is divided into sections based on the version of the project. Each section contains a list of pull requests, features, changes, fixes, and removals that were made in that version.
 
-## Release v0.2.0 (2025-07-09)
+## Unreleased (Planned Release Target: v0.2.1)
+### List of Pull Requests
+- Prepare Post v0.2.0 Release [#104](https://github.com/pulp-platform/Deeploy/pull/104)
+
+### Added
+- 
+
+### Changed
+-
+
+### Fixed
+-
+
+### Removed
+-
+
+## Release v0.2.0 (2025-07-08) [#103](https://github.com/pulp-platform/Deeploy/pull/103)
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
