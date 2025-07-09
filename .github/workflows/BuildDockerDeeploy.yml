@@ -36,6 +36,9 @@ jobs:
     name: Build Deploy Image
     needs: [ prepare ]
     runs-on: ${{ matrix.runner }}
+    outputs:
+      digest-amd64: ${{ steps.digest.outputs.digest-amd64 }}
+      digest-arm64: ${{ steps.digest.outputs.digest-arm64 }}
     strategy:
       fail-fast: false
       matrix:
@@ -89,6 +92,7 @@ jobs:
           OWNER: '${{ github.repository_owner }}'
 
       - name: Build and push final deploy image
+        id: build
         uses: docker/build-push-action@v6
         with:
           platforms: linux/${{ matrix.platform }}
@@ -99,9 +103,11 @@ jobs:
           push: true
           build-args: |
             BASE_IMAGE=${{ github.event.inputs.docker_image_toolchain }}
-          tags: |
-            ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-${{ matrix.platform }}
-            ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}-${{ matrix.platform }}
+          outputs: type=image,name=ghcr.io/${{ env.OWNER_LC }}/deeploy,annotation-index=true,name-canonical=true,push=true
+
+      - name: Extract image digest
+        id: digest
+        run: echo "digest-${{ matrix.platform }}=${{ steps.build.outputs.digest }}" >> $GITHUB_OUTPUT
 
   merge-deeploy-images:
     name: Merge Deeploy Images
@@ -121,8 +127,13 @@ jobs:
         env:
           OWNER: '${{ github.repository_owner }}'
 
-      - uses: Noelware/docker-manifest-action@v1
+      - name: Merge Deeploy Images
+        uses: Noelware/docker-manifest-action@v1
         with:
-          inputs: ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-amd64,ghcr.io/${{ env.OWNER_LC }}/deeploy:latest-arm64
-          tags: ghcr.io/${{ env.OWNER_LC }}/deeploy:latest,ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}
+          inputs: |
+            ghcr.io/${{ env.OWNER_LC }}/deeploy@${{ needs.build-deeploy.outputs.digest-amd64 }},
+            ghcr.io/${{ env.OWNER_LC }}/deeploy@${{ needs.build-deeploy.outputs.digest-arm64 }}
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/deeploy:latest,
+            ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}
           push: true
