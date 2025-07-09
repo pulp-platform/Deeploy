@@ -599,6 +599,59 @@ run_generic_test_models:   # This job runs in the test stage.
     paths:
       - ./DeeployTest/TEST_*/build
 
+test_generate_network_type_inference_fail_input0:
+  stage: test
+  parallel:
+    matrix:
+    - PLATFORM: ['Generic']
+      TEST: ['testTypeInferenceDifferentTypes']
+      MAP: [
+        'A=int8_t B=int8_t C=int8_t',
+      ]
+  script:
+    - !reference [.setup_test, script]
+    - python generateNetwork.py \
+        -p $PLATFORM \
+        -t ./Tests/$TEST \
+        -v \
+        --input-type-map $MAP \
+        --shouldFail
+
+test_generate_network_type_inference_fail_input2:
+  stage: test
+  parallel:
+    matrix:
+    - PLATFORM: ['Generic']
+      TEST: ['testTypeInferenceDifferentTypes']
+      MAP: [
+        'A=int16_t B=int8_t C=int16_t',
+      ]
+  script:
+    - !reference [.setup_test, script]
+    - python generateNetwork.py \
+        -p $PLATFORM \
+        -t ./Tests/$TEST \
+        -v \
+        --input-type-map $MAP \
+        --shouldFail
+
+test_generate_network_type_inference_pass:
+  stage: test
+  parallel:
+    matrix:
+    - PLATFORM: ['Generic']
+      TEST: ['testTypeInferenceDifferentTypes']
+      MAP: [
+        'A=int16_t B=int8_t C=int32_t',
+      ]
+  script:
+    - !reference [.setup_test, script]
+    - python generateNetwork.py \
+        -p $PLATFORM \
+        -t ./Tests/$TEST \
+        -v \
+        --input-type-map $MAP
+
 test_deeploy_state_serialization:
   stage: test
   parallel:
