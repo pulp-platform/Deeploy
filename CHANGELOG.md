@@ -91,6 +91,7 @@ This release containing major architectural changes, new platform support, enhan
 
 
 ### Added
+- Add manual type inference feature due to ambiguous inference when test inputs are not representing the type well enough
 - ChimeraDeployer, currently mainly a placeholder
 - Allocate templates for Chimera
 - ChimeraPlatform, using appropriate allocation templates and using the generic Parser + Binding for the Add node
