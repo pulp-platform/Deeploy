@@ -600,7 +600,6 @@ class SGDChecker(SignPropTypeChecker):
 
 class BatchNormChecker(SignPropTypeChecker):
 
-
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
 
