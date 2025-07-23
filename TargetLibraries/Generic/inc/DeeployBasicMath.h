@@ -32,7 +32,7 @@
 #include "macros.h"
 #include "types.h"
 #include "utils.h"
-#include <math.h>
+
 #include "kernel/BatchNorm.h"
 #include "kernel/ConvTranspose1d_fp32.h"
 #include "kernel/Convolution.h"
