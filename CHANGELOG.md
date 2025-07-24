@@ -173,13 +173,6 @@ This release containing major architectural changes, new platform support, enhan
 - Install flow for chimera-sdk via Makefile
 - DeeployChimeraMath library
 - Generic FP32 reduce mean bindings, parser, and template
-- BatchNorm kernel 
-- ConvTranspose kernel 
-- MaxPool1D kernel 
-- Template for 1D Convolution
-- Support for float32 data type in the previous kernels
-- Float binding for Pad1D kernel
-- Test for Autoencoder1D in the CI pipeline
 - New alias list parameter for buffer objects
 - New test, also included in the CI pipeline, for the reshape and skip connection situation
 - 'shape' parameter handling similar to the 'indices' parameter in the generic reshape template
@@ -306,11 +299,11 @@ This release containing major architectural changes, new platform support, enhan
 - `dev-requirements.txt` tracking the dependencies of the build system, linting, documentation, and QOL.
 
 ### Changed
+- FloatConvTemplate file
+- Platform.py file  
 - Bump the CMake version to 3.24 as required for the chimera-sdk
 - Bump GVSoC's version and add chimera simulation target
 - Rename the generic source util to utils to avoid name collision with chimera-sdk
-- FloatConvTemplate file
-- Platform.py file  
 - Moved PULP SDK from Victor-Jung/pulp-sdk branch deeploy to pulp-platform/pulp-sdk branch main.
 - Memory arena buffers are now declared at the beginning of the `InitNetwork` function
 - Tiling profiling is now an ON/OFF version where you get the I/O DMA time for each DMA call
