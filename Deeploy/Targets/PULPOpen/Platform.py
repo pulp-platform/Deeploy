@@ -5,6 +5,8 @@
 import numpy as np
 import onnx_graphsurgeon as gs
 
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
+    RemoveEmptyConvBiasPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NetworkContext, NodeMapper, \
     NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
@@ -225,9 +227,9 @@ PULPOptimizer = TopologyOptimizer([
     MergeConstAddAndRequantPass(),
     PULPGEMMRequantMergePass(),
     PULPMatMulRequantMergePass(),
-    PULPAddRequantMergePass()
-],
-                                  name = "PULPOptimizer")
+    PULPAddRequantMergePass(),
+    RemoveEmptyConvBiasPass(),
+])
 
 # SCHEREMO: stdint is included before pulp_nn_kernels.h because it is supposed to be included in there, but isn't...
 _includeList = [
