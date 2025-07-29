@@ -179,7 +179,7 @@ class PULPFPDWConv2DParser(Conv2DParser):
             if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
                 return newCtxt, True
 
-        return ctxt, False
+        return newCtxt, False
 
 
 class PULPDWConv1DParser(RQSConv1DParser):
