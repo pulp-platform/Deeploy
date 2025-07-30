@@ -4,15 +4,16 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 ### List of Pull Requests
 - Prepare Post v0.2.0 Release [#104](https://github.com/pulp-platform/Deeploy/pull/104)
+- Use Docker digests instead of arch-specific tags [#106](https://github.com/pulp-platform/Deeploy/pull/106)
 
 ### Added
-- 
+- Output Docker image digests per platform (`amd64`, `arm64`) after build, which is used to construct the multi-arch Docker manifest. This preventes registry clutter caused by unnecessary per-architecture Docker tags.
 
 ### Changed
--
+- Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
 
 ### Fixed
--
+- Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
 
 ### Removed
 -

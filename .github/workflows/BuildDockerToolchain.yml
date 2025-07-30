@@ -31,6 +31,9 @@ jobs:
     name: Build Deeploy Toolchain Image
     needs: [ prepare ]
     runs-on: ${{ matrix.runner }}
+    outputs:
+      digest-amd64: ${{ steps.digest.outputs.digest-amd64 }}
+      digest-arm64: ${{ steps.digest.outputs.digest-arm64 }}
     strategy:
       fail-fast: false
       matrix:
@@ -41,7 +44,7 @@ jobs:
           - platform: arm64
             runner: ubuntu-22.04-arm
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Free up disk space
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -51,17 +54,18 @@ jobs:
           haskell: true
           large-packages: true
 
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v3
 
       - name: GHCR Log-in
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Cache for Docker
-        uses: actions/cache@v3
+        id: cache
+        uses: actions/cache@v4
         with:
           path: var-ccache
           key: ${{ runner.os }}-${{ matrix.platform }}-build-cache-toolchain
@@ -82,15 +86,18 @@ jobs:
           OWNER: '${{ github.repository_owner }}'
 
       - name: Build and push toolchain image
+        id: build
         uses: docker/build-push-action@v6
         with:
           platforms: linux/${{ matrix.platform }}
           context: .
           file: Container/Dockerfile.toolchain
           push: true
-          tags: |
-            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:latest-${{ matrix.platform }}
-            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:${{ needs.prepare.outputs.docker_tag }}-${{ matrix.platform }}
+          outputs: type=image,name=ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain,annotation-index=true,name-canonical=true,push=true
+
+      - name: Extract image digest
+        id: digest
+        run: echo "digest-${{ matrix.platform }}=${{ steps.build.outputs.digest }}" >> $GITHUB_OUTPUT
 
   merge-toolchain-images:
     name: Merge Deeploy Toolchain Images
@@ -98,7 +105,7 @@ jobs:
     needs: [ prepare, build-toolchain ]
     steps:
       - name: GHCR Log-in
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -110,8 +117,13 @@ jobs:
         env:
           OWNER: '${{ github.repository_owner }}'
 
-      - uses: Noelware/docker-manifest-action@v1
+      - name: Merge Toolchain Images
+        uses: Noelware/docker-manifest-action@v1
         with:
-          inputs: ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:latest-amd64,ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:latest-arm64
-          tags: ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:latest,ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:${{ needs.prepare.outputs.docker_tag }}
+          inputs: |
+            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain@${{ needs.build-toolchain.outputs.digest-amd64 }},
+            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain@${{ needs.build-toolchain.outputs.digest-arm64 }}
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:latest,
+            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:${{ needs.prepare.outputs.docker_tag }}
           push: true
