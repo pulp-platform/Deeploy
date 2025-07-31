@@ -1586,7 +1586,6 @@ class NodeBinding():
     def typeChecker(self):
         """Read-only wrapper around the encapsulated type checker
         """
-
         return self._typeChecker
 
     @property
@@ -1642,12 +1641,8 @@ class NodeBinding():
         Tuple[NetworkContext, bool]
             Updated and NetworkContext and true if the typing rule
             matches the node
-
-        
         """
-
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
-
         if ret:
             log.debug(f" {SUCCESS_MARK} Type check passed for {self}")
             return newCtxt, True
