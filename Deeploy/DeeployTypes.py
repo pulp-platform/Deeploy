@@ -1782,7 +1782,7 @@ class NodeMapper():
         """
         self.discardedBindings = set()
 
-   def typeCheck(self, ctxt: NetworkContext, node: gs.Graph) -> Tuple[NetworkContext, bool]:
+    def typeCheck(self, ctxt: NetworkContext, node: gs.Graph) -> Tuple[NetworkContext, bool]:
         """Tries to elect a binder object whose typeChecker allows the node configuration
 
         Parameters
