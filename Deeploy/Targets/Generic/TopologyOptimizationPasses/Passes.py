@@ -375,10 +375,8 @@ def _extract_padding_fun_conv(graph: gs.Graph, match: Match, name: str, value = 
             newPads[len(newPads) // 2 + 2 + idx] = i
 
         newConvInput = gs.Variable(name + '_padded_input', dtype = np.float32, shape = newShape)
-
         #valConst = gs.Constant('value', np.array(0))
         conv.attrs['pads'] = [0 for pad in conv.attrs['pads']]
-
         newPad = gs.Node(op = 'Pad',
                          name = name + '_pad',
                          attrs = {
