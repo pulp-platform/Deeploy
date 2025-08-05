@@ -1623,7 +1623,7 @@ class NodeBinding():
         self._nodeName = operatorRepresentation['nodeName']
         return ctxt
 
-       def typeCheck(self, ctxt: NetworkContext, node: gs.Node,
+    def typeCheck(self, ctxt: NetworkContext, node: gs.Node,
                   operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, bool]:
         """Runs the binding-level typechecker on a node
 
