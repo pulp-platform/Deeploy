@@ -311,6 +311,7 @@ def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channel
     return graph
 
 
+# Requantized DW Conv
 @contextagnostic
 class NCHWtoNHWCDwConvPass(ReplaceSequentialPatternPass):
 
