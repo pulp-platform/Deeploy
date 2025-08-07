@@ -9,7 +9,7 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t, \
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t, \
     uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
@@ -223,6 +223,13 @@ PULPFloatConv2DBindings = [
         ConvChecker([PointerClass(float32_t), PointerClass(float32_t),
                      PointerClass(float32_t)], [PointerClass(float32_t)]), FloatConvTemplate.reference2DIm2ColTemplate,
         ForkTransformer)
+]
+
+PULPFloatDWConv2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float_type), PointerClass(float_type),
+                     PointerClass(float_type)], [PointerClass(float_type)]), FloatConvTemplate.referenceDW2DIm2ColTemplate,
+        ForkTransformer) for float_type in FloatDataTypes
 ]
 
 PULPRQSMatrixVecBindings = [
