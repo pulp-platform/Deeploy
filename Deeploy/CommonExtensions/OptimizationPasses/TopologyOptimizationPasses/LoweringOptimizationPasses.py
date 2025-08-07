@@ -311,14 +311,53 @@ def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channel
     return graph
 
 
+# Requantized DW Conv
 @contextagnostic
 class NCHWtoNHWCDwConvPass(ReplaceSequentialPatternPass):
 
     def __init__(self, default_channels_first: bool = True):
-        graph = _singleNodePattern(op = "Conv|RequantizedConv")
+        # Define pattern graph
+        graph = gs.Graph()
+
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['convOut'], op = 'RequantizedConv', name = 'requantizedConv')
+
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        # Define name
         name = "_NCHW_TO_NHWC_DW_CONV_PASS"
-        super().__init__(graph, partial(_NCWHtoNHWC_dw_fun, default_channels_first = default_channels_first), name,
-                         NonBranchingMatcher(regex_op = True))
+
+        # Initialize Pass
+        super().__init__(
+            pattern=graph,
+            replacement_fn=partial(_PULPDWNCHWtoNHWC_fun, default_channels_first = default_channels_first),
+            name=name
+            )
+
+
+# Float DW Conv
+@contextagnostic
+class PULPFPDWConvPass(ReplaceSequentialPatternPass):
+    def __init__(self, default_channels_first: bool = True):
+        # Define pattern graph
+        graph = gs.Graph()
+
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['convOut'], op = 'Conv', name = 'conv')
+
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        # Define name
+        name = "_NCHW_TO_NHWC_FP_DW_CONV_PASS"
+
+        # Initialize Pass
+        super().__init__(
+            pattern=graph,
+            replacement_fn=partial(_PULPDWNCHWtoNHWC_fun, default_channels_first = default_channels_first),
+            name=name
+        )
 
 
 def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):
@@ -363,8 +402,10 @@ class NCHWtoNHWCPass(SequentialPass):
         passes = [
             NCHWtoNHWCPadPass(default_channels_first),
             NCHWtoNHWCMaxPoolPass(default_channels_first),
-            NCHWtoNHWCDwConvPass(default_channels_first),
-            NCHWtoNHWCConvPass(default_channels_first),
+            PULPDWConvPass(default_channels_first),
+            PULPFPDWConvPass(default_channels_first),
+            PULPNCHWtoNHWCDenseConvPass(default_channels_first),
+            PULPNCHWtoNHWCDenseRequantizedConvPass(default_channels_first),
         ]
         super().__init__(*passes)
 
