@@ -23,7 +23,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Type
+from typing import List, Tuple, Type
 
 from Deeploy.AbstractDataTypes import FloatImmediate, IntegerImmediate
 
@@ -112,3 +112,11 @@ IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (sorted((
 ),
                                                                key = lambda _type: _type.typeWidth))
 FloatDataTypes: Tuple[Type[FloatImmediate], ...] = (bfloat16_t, float16_t, float32_t, float64_t)
+
+
+def minimalIntegerType(values: List[int]) -> Type[IntegerImmediate]:
+    # This way unsigned types are tried first
+    for _type in sorted(UnsignedIntegerDataTypes + SignedIntegerDataTypes, key = lambda ty: ty.typeWidth):
+        if _type.checkValue(values):
+            return _type
+    raise RuntimeError(f"Couldn't find appropriate integer type for values: {values}")
