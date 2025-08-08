@@ -30,7 +30,7 @@ from typing import List, Optional, Tuple
 from Deeploy.CommonExtensions.CodeTransformationPasses.IntrospectiveCodeTransformation import \
     IntrospectiveCodeTransformationMixIn
 from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, \
-    NodeTemplate, StructBuffer, TransientBuffer, _NoVerbosity
+    NodeTemplate, StructBuffer, TransientBuffer, VariableBuffer, _NoVerbosity, _ReferenceBuffer
 
 
 class _ArgStructAllocateTemplate(NodeTemplate):
@@ -77,112 +77,84 @@ class ArgumentStructGeneration(CodeTransformationPass, IntrospectiveCodeTransfor
 
 class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransformationMixIn):
 
-    def __init__(self, memoryHierarchyRegex: Optional[str] = None):
+    def __init__(self, memoryLevelRegex: Optional[str] = None):
         super().__init__()
-        if memoryHierarchyRegex is not None:
-            self.regex = re.compile(memoryHierarchyRegex)
+        if memoryLevelRegex is not None:
+            self.regex = re.compile(memoryLevelRegex)
         else:
             self.regex = None
 
-    def _matchesRegex(self, ctxt: NetworkContext, key: str) -> bool:
-        _buffer = ctxt.lookup(key)
-
+    def is_memory_level(self, buffer: VariableBuffer) -> bool:
         if self.regex is None:
-            return not hasattr(_buffer, "_memoryLevel")
+            return not hasattr(buffer, "_memoryLevel")
+        else:
+            return hasattr(buffer, "_memoryLevel") and self.regex.fullmatch(buffer._memoryLevel) is not None
 
-        if not hasattr(_buffer, "_memoryLevel"):
-            return False
+    @staticmethod
+    def is_final_input(buffer: VariableBuffer, nodeName: str) -> bool:
+        return not isinstance(buffer, (StructBuffer, TransientBuffer)) and \
+            len(buffer._users) > 0 and nodeName == buffer._users[-1]
 
-        ret = self.regex.findall(ctxt.lookup(key)._memoryLevel)
-        return ret != []
+    @staticmethod
+    def is_output(buffer: VariableBuffer, nodeName: str) -> bool:
+        return not isinstance(buffer, (StructBuffer, TransientBuffer)) and nodeName not in buffer._users
 
-    def _extractTransientBuffers(self, ctxt: NetworkContext, name: str) -> List[str]:
-        names = []
+    @staticmethod
+    def is_transient(buffer: VariableBuffer, nodeName: str) -> bool:
+        return isinstance(buffer, TransientBuffer) and nodeName in buffer._users
 
-        for key, _buffer in ctxt.localObjects.items():
-            if isinstance(_buffer, TransientBuffer) and name in _buffer._users:
-                names.append(key)
+    @staticmethod
+    def topologicallySortBuffers(buffers: List[VariableBuffer]) -> List[VariableBuffer]:
+        sortedBuffers = []
+        unsortedBufferNames = [buff.name for buff in buffers]
+        lastLen = len(unsortedBufferNames)
 
-        filteredNames = [key for key in names if self._matchesRegex(ctxt, key)]
+        while len(unsortedBufferNames) > 0:
+            for buffer in buffers:
+                if isinstance(buffer, _ReferenceBuffer) and buffer._referenceName in unsortedBufferNames:
+                    continue
 
-        return filteredNames
+                sortedBuffers.append(buffer)
+                unsortedBufferNames.remove(buffer.name)
 
-    def _getOutputNames(self, ctxt: NetworkContext, executionBlock: ExecutionBlock, name: str) -> List[str]:
-        outputs = []
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
-        localKeys = [key for key in references if ctxt.is_local(key)]
+            assert len(unsortedBufferNames) != lastLen, f"Circular reference detected."
+            lastLen = len(unsortedBufferNames)
 
-        filteredKeys = [key for key in localKeys if self._matchesRegex(ctxt, key)]
-
-        for key in filteredKeys:
-            _buffer = ctxt.lookup(key)
-            if isinstance(_buffer, (StructBuffer, TransientBuffer)):
-                continue
-            if name not in _buffer._users:
-                outputs.append(_buffer.name)
-
-        return list(dict.fromkeys(outputs))
-
-    def _getFinalInputNames(self, ctxt: NetworkContext, executionBlock: ExecutionBlock, name: str) -> List[str]:
-        inputs = []
-        references = self.extractDynamicReferences(ctxt, executionBlock, True)
-        localKeys = [key for key in references if ctxt.is_local(key)]
-
-        filteredKeys = [key for key in localKeys if self._matchesRegex(ctxt, key)]
-
-        for key in filteredKeys:
-            _buffer = ctxt.lookup(key)
-            if isinstance(_buffer, (StructBuffer, TransientBuffer)) or _buffer._users == []:
-                continue
-            if name == _buffer._users[-1]:
-                inputs.append(_buffer.name)
-
-        return list(dict.fromkeys(inputs))
+        return sortedBuffers
 
     def apply(self,
               ctxt: NetworkContext,
               executionBlock: ExecutionBlock,
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = False)
+        localBuffers = [ctxt.localObjects[ref] for ref in references]
+        memoryLevelBuffers = [buff for buff in localBuffers if self.is_memory_level(buff)]
 
-        outputNames = self._getOutputNames(ctxt, executionBlock, name)
-        inputNames = self._getFinalInputNames(ctxt, executionBlock, name)
-        transientBuffers = self._extractTransientBuffers(ctxt, name)
+        transients = [buff for buff in memoryLevelBuffers if self.is_transient(buff, name)]
+        outputs = [buff for buff in memoryLevelBuffers if self.is_output(buff, name)]
+        inputs = [buff for buff in memoryLevelBuffers if self.is_final_input(buff, name)]
 
         # We have to allocate the output buffers, unless they are global
+        for buffer in reversed(self.topologicallySortBuffers(outputs + transients)):
+            assert buffer._live == False, f"Tried to allocate already live buffer {buffer.name}"
+            buffer._live = True
+            executionBlock.addLeft(buffer.allocTemplate, buffer._bufferRepresentation())
 
-        for buffer in list(reversed(outputNames)) + transientBuffers:
-            # Extract buffer info from context
-            nb = ctxt.lookup(buffer)
-
-            # Check that it was not already allocated
-            assert ctxt.localObjects[nb.name]._live == False, f"Tried to allocate already live buffer {nb.name}"
-
-            # Mark it as live
-            ctxt.localObjects[nb.name]._live = True
-
-            # Add the allocation code to the execution block
-            executionBlock.addLeft(nb.allocTemplate, nb._bufferRepresentation())
-
-        for buffer in inputNames + transientBuffers:
-            # Extract buffer info from context
-            nb = ctxt.lookup(buffer)
-
-            # Check that it was not already deallocated
-            assert ctxt.localObjects[nb.name]._live == True, f"Tried to deallocate already dead buffer {nb.name}"
-
-            # Mark it as dead (not useful anymore)
-            ctxt.localObjects[nb.name]._live = False
-
-            # Check for live ancestors (buffers that this is an alias of, that are still live),
-            # and add the deallocation code to the execution block if none found
-            if not nb.has_live_ancestors(ctxt = ctxt):
-                executionBlock.addRight(nb.deallocTemplate, nb._bufferRepresentation())
+        for buffer in inputs + transients:
+            assert buffer._live == True, f"Tried to deallocate already dead buffer {buffer.name}"
+            buffer._live = False
+            # Don't deallocate if it's an alias of a live buffer
+            if not buffer.has_live_ancestors(ctxt = ctxt):
+                executionBlock.addRight(buffer.deallocTemplate, buffer._bufferRepresentation())
 
         return ctxt, executionBlock
 
 
-class MemoryPassthroughGeneration(MemoryManagementGeneration, IntrospectiveCodeTransformationMixIn):
+class MemoryPassthroughGeneration(MemoryManagementGeneration):
 
     def __init__(self, memoryHierarchyRegex: Optional[str] = None):
         super().__init__(memoryHierarchyRegex)
@@ -192,22 +164,23 @@ class MemoryPassthroughGeneration(MemoryManagementGeneration, IntrospectiveCodeT
               executionBlock: ExecutionBlock,
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
+        references = self.extractDynamicReferences(ctxt,
+                                                   executionBlock,
+                                                   unrollStructs = True,
+                                                   includeGobalReferences = False)
+        localBuffers = [ctxt.localObjects[ref] for ref in references]
+        memoryLevelBuffers = [buff for buff in localBuffers if self.is_memory_level(buff)]
 
-        outputNames = self._getOutputNames(ctxt, executionBlock, name)
-        inputNames = self._getFinalInputNames(ctxt, executionBlock, name)
-        transientBuffers = self._extractTransientBuffers(ctxt, name)
+        transients = [buff for buff in memoryLevelBuffers if self.is_transient(buff, name)]
+        outputs = [buff for buff in memoryLevelBuffers if self.is_output(buff, name)]
+        inputs = [buff for buff in memoryLevelBuffers if self.is_final_input(buff, name)]
 
-        # We have to allocate the output buffers, unless they are global
-        for buffer in outputNames + transientBuffers:
-            nb = ctxt.lookup(buffer)
+        for buffer in outputs + transients:
+            assert buffer._live == False, f"Tried to allocate already live buffer {buffer.name}"
+            buffer._live = True
 
-            assert ctxt.localObjects[nb.name]._live == False, f"Tried to allocate already live buffer {nb.name}"
-            ctxt.localObjects[nb.name]._live = True
-
-        for buffer in inputNames + transientBuffers:
-            nb = ctxt.lookup(buffer)
-
-            assert ctxt.localObjects[nb.name]._live == True, f"Tried to deallocate already dead buffer {nb.name}"
-            ctxt.localObjects[nb.name]._live = False
+        for buffer in inputs + transients:
+            assert buffer._live == True, f"Tried to deallocate already dead buffer {buffer.name}"
+            buffer._live = False
 
         return ctxt, executionBlock
