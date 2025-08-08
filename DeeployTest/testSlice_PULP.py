@@ -30,12 +30,12 @@ import subprocess
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-from testUtils.codeGenerate import generateTestInputsHeader, generateTestNetworkHeader, \
-    generateTestNetworkImplementation, generateTestOutputsHeader
+from testUtils.codeGenerate import generateTestNetwork
 from testUtils.platformMapping import mapDeployer, setupMemoryPlatform
 from testUtils.testRunner import escapeAnsi
 from testUtils.typeMapping import inferInputType
 
+from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
@@ -100,9 +100,9 @@ if __name__ == "__main__":
     deployer.frontEnd()
     deployer.parse(deployer.default_channels_first)
 
-    deployer.ctxt.lookup('onnx::Slice_5')._memoryLevel = "L1"
-    deployer.ctxt.lookup('onnx::Slice_5').allocTemplate = pulpL1AllocateTemplate
-    deployer.ctxt.lookup('onnx::Slice_5').deallocTemplate = pulpL1FreeTemplate
+    deployer.ctxt.lookup('onnxSlice_5_tensor')._memoryLevel = "L1"
+    deployer.ctxt.lookup('onnxSlice_5_tensor').allocTemplate = pulpL1AllocateTemplate
+    deployer.ctxt.lookup('onnxSlice_5_tensor').deallocTemplate = pulpL1FreeTemplate
 
     deployer.midEnd()
 
@@ -110,35 +110,17 @@ if __name__ == "__main__":
     deployer.prepared = True
     deployer.generateInferenceCode()
 
-    # Create input and output vectors
-    os.makedirs('TEST_SIRACUSA/Tests/testSlice', exist_ok = True)
+    # Offset the values if signprop
+    if signProp:
+        test_inputs = [value - inputOffsets[f"input_{i}"] for i, value in enumerate(test_inputs)]
 
-    testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets)
-    f = open('TEST_SIRACUSA/Tests/testSlice/testinputs.h', "w")
-    f.write(testInputStr)
-    f.close()
+        for i, values in enumerate(test_outputs):
+            buffer = deployer.ctxt.lookup(f"output_{i}")
+            isFloat = buffer._type.referencedType.typeName == "float32_t"
+            if not isFloat and not buffer._signed:
+                values -= buffer.nLevels // 2
 
-    testOutputStr = generateTestOutputsHeader(deployer, test_outputs, signProp, False)
-    f = open('TEST_SIRACUSA/Tests/testSlice/testoutputs.h', "w")
-    f.write(testOutputStr)
-    f.close()
-
-    # Generate code for Network
-    testNetworkHeaderStr = generateTestNetworkHeader(deployer, platform)
-    f = open('TEST_SIRACUSA/Tests/testSlice/Network.h', "w")
-    f.write(testNetworkHeaderStr)
-    f.close()
-
-    testNetworkImplementationStr = generateTestNetworkImplementation(deployer, platform)
-    f = open('TEST_SIRACUSA/Tests/testSlice/Network.c', "w")
-    f.write(testNetworkImplementationStr)
-    f.close()
-
-    clang_format = "{BasedOnStyle: llvm, IndentWidth: 2, ColumnLimit: 160}"
-    os.system(f'clang-format -i --style="{clang_format}" TEST_SIRACUSA/Tests/testSlice/Network.c')
-    os.system(f'clang-format -i --style="{clang_format}" TEST_SIRACUSA/Tests/testSlice/Network.h')
-    os.system(f'clang-format -i --style="{clang_format}" TEST_SIRACUSA/Tests/testSlice/testoutputs.h')
-    os.system(f'clang-format -i --style="{clang_format}" TEST_SIRACUSA/Tests/testSlice/testinputs.h')
+    generateTestNetwork(deployer, test_inputs, test_outputs, 'TEST_SIRACUSA/Tests/testSlice', _NoVerbosity)
 
     os.system(
         f"$CMAKE -DTOOLCHAIN={args.toolchain} -DTOOLCHAIN_INSTALL_DIR={_TOOLCHAIN_DIR}  -DTESTNAME=testSlice -DGENERATED_SOURCE=TEST_SIRACUSA/Tests/testSlice -Dplatform=Siracusa -B TEST_SIRACUSA/build -DNUM_CORES=1 .."
