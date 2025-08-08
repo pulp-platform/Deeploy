@@ -27,32 +27,23 @@ import copy
 from typing import Dict, List, Literal, Tuple
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    _invertPermutation, _permuteList
+    _invertPermutation, _permute, _permuteHyperRectangle
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.Targets.PULPOpen.DataTypes import PULPStructDataTypes
-from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, minimizeRectangleDims
+from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, minimizeRectangle
 
 
-def _transposedDMAStrides(ctxt: NetworkContext, rectangle: HyperRectangle, direction: Literal["ToL1", "FromL1"],
+def _transposedDMAStrides(ctxt: NetworkContext, rect: HyperRectangle, direction: Literal["ToL1", "FromL1"],
                           perm: List[int], L1Name: str, L2Name: str) -> Tuple[HyperRectangle, List[int], List[int]]:
     _invPerm = _invertPermutation(perm)
-    rectangle = HyperRectangle(_permuteList(rectangle.offset, _invPerm), _permuteList(rectangle.dims, _invPerm))
+    inRect = _permuteHyperRectangle(rect, _invPerm)
 
-    contiguousDims = [permIdx == rangeIdx for permIdx, rangeIdx in zip(perm, range(len(perm)))]
-    workList = []
-
-    for idx, dim in enumerate(contiguousDims):
-        if dim:
-            workList.append(rectangle.dims[idx])
-        else:
-            workList.append(1)
-
-    maxTransferRect = copy.copy(rectangle)
-    maxTransferRect.dims = tuple(workList)
+    maxTransferDims = tuple(inRect.dims[idx] if idx == permIdx else 1 for idx, permIdx in enumerate(perm))
+    maxTransferRect = HyperRectangle(maxTransferDims, inRect.offset)
 
     referenceBuffer = copy.copy(ctxt.lookup(L2Name))
-    referenceBuffer.shape = _permuteList(referenceBuffer.shape, _invPerm)
-    minRect, referenceRect = minimizeRectangleDims(maxTransferRect, referenceBuffer)
+    referenceBuffer.shape = _permute(referenceBuffer.shape, _invPerm)
+    minRect, referenceShape = minimizeRectangle(maxTransferRect, referenceBuffer.shape)
 
     droppedIdx = [
         idx for idx in range(len(perm))
@@ -70,7 +61,7 @@ def _transposedDMAStrides(ctxt: NetworkContext, rectangle: HyperRectangle, direc
         newPerm.append(p - sub)
 
     strides = [1]
-    for dim in reversed(referenceRect.dims[1:]):
+    for dim in reversed(referenceShape[1:]):
         strides.insert(0, strides[0] * dim)
 
     permStrides = [strides[idx] for idx in newPerm]

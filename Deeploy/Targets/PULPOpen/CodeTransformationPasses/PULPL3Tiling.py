@@ -26,18 +26,38 @@
 from typing import Tuple
 
 from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, _NoVerbosity
+from Deeploy.TilingExtension.AsyncDma import AsyncDma
+from Deeploy.TilingExtension.CodeTransformationPasses.DoubleBufferingTilingCodeGeneration import \
+    DoubleBufferingTilingCodeGeneration
+from Deeploy.TilingExtension.CodeTransformationPasses.SingleBufferingTilingCodeGeneration import \
+    SingleBufferingTilingCodeGeneration
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import DoubleBufferingTilingMixIn, \
+    ProfilingDoubleBufferingTilingMixIn, ProfilingSingleBufferingTilingMixIn, SingleBufferingTilingMixIn
 
-from .PULPL3TilingDB import ProfilingPULPL3TilingGenerationDB, PULPL3TilingGenerationDB
-from .PULPL3TilingSB import ProfilingPULPL3TilingGenerationSB, PULPL3TilingGenerationSB
+
+class PULPL3TilingGenerationSB(SingleBufferingTilingCodeGeneration, SingleBufferingTilingMixIn):
+    pass
+
+
+class ProfilingPULPL3TilingGenerationSB(SingleBufferingTilingCodeGeneration, ProfilingSingleBufferingTilingMixIn):
+    pass
+
+
+class PULPL3TilingGenerationDB(DoubleBufferingTilingCodeGeneration, DoubleBufferingTilingMixIn):
+    pass
+
+
+class ProfilingPULPL3TilingGenerationDB(DoubleBufferingTilingCodeGeneration, ProfilingDoubleBufferingTilingMixIn):
+    pass
 
 
 class PULPL3Tiling(CodeTransformationPass):
 
-    def __init__(self, targetMemLevel: str):
-        self.SB = PULPL3TilingGenerationSB(targetMemLevel)
-        self.profilingSB = ProfilingPULPL3TilingGenerationSB(targetMemLevel)
-        self.DB = PULPL3TilingGenerationDB(targetMemLevel)
-        self.profilingDB = ProfilingPULPL3TilingGenerationDB(targetMemLevel)
+    def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
+        self.SB = PULPL3TilingGenerationSB(externalMemory, localMemory, dma)
+        self.DB = PULPL3TilingGenerationDB(externalMemory, localMemory, dma)
+        self.profilingSB = ProfilingPULPL3TilingGenerationSB(externalMemory, localMemory, dma)
+        self.profilingDB = ProfilingPULPL3TilingGenerationDB(externalMemory, localMemory, dma)
 
     def apply(self,
               ctxt: NetworkContext,
