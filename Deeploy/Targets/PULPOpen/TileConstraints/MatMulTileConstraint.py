@@ -112,9 +112,10 @@ class MatMulTileConstraint(TileConstraint):
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
-        varA = operatorRepresentation['A']
+        buffA = ctxt.lookup(operatorRepresentation['A'])
+        buffB = ctxt.lookup(operatorRepresentation['B'])
 
-        NSize = ctxt.lookup(varA).shape[-1]
+        NSize = buffA.shape[-1]
         NOffset = 0
 
         inputACubes = []
@@ -144,8 +145,43 @@ class MatMulTileConstraint(TileConstraint):
             replacements["O"].append(OSize)
             replacements["batch"].append(BSize)
 
-            ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
-            BCube = HyperRectangle((BatchOffset, BOffset, NOffset, OOffset), (BatchSize, BSize, NSize, OSize))
+            AMatrixOffsets = (MOffset, NOffset)
+            AMatrixShape = (MSize, NSize)
+
+            BMatrixOffsets = (NOffset, OOffset)
+            BMatrixShape = (NSize, OSize)
+
+            if len(buffA.shape) == 2:
+                ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
+            elif len(buffA.shape) == 3:
+                ACube = HyperRectangle((BatchOffset,) + AMatrixOffsets, (BatchSize,) + AMatrixShape)
+            else:
+                ACube = HyperRectangle(
+                    (
+                        BatchOffset,
+                        BOffset,
+                    ) + AMatrixOffsets,
+                    (
+                        BatchSize,
+                        BSize,
+                    ) + AMatrixShape,
+                )
+
+            if len(buffB.shape) == 2:
+                BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
+            elif len(buffB.shape) == 3:
+                BCube = HyperRectangle((BatchOffset,) + BMatrixOffsets, (BatchSize,) + BMatrixShape)
+            else:
+                BCube = HyperRectangle(
+                    (
+                        BatchOffset,
+                        BOffset,
+                    ) + BMatrixOffsets,
+                    (
+                        BatchSize,
+                        BSize,
+                    ) + BMatrixShape,
+                )
 
             inputACubes.append(ACube)
             inputBCubes.append(BCube)
