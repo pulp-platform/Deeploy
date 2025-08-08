@@ -33,8 +33,7 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
-from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    _permuteList
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import _permute
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
 from Deeploy.TilingExtension.MemoryConstraints import PatternMemoryConstraints, TensorMemoryConstraint
@@ -540,7 +539,7 @@ class MemoryScheduler():
     def constraintTileBuffersWithOverlappingLifetime(self, tilerModel: TilerModel, ctxt: NetworkContext,
                                                      patternMemoryConstraint: PatternMemoryConstraints,
                                                      memoryHierarchy: MemoryHierarchy):
-        """This method adds the necessay constraints for tiling to be performed before the static memory allocation of the tile buffers.
+        """This method adds the necessary constraints for tiling to be performed before the static memory allocation of the tile buffers.
         To perform static memory allocation after tiling (i.e. decouple tiling and memory alloc), we need to do two assumptions
 
             1. All tile buffers for each node have overlapping lifetime, so we can find their memory footprint by just summing their sizes and hence we don't need to know the specific memory allocation. This assumption is true as soon as we don't do tile several nodes together (ask me if you don't know what I mean here).
@@ -659,7 +658,7 @@ class MemoryScheduler():
                 permList = permMatrix2permList(_permutationMatrix)
 
                 if pattern != [] and len(pattern) > 1:
-                    permPattern = _permuteList(pattern, permList)
+                    permPattern = _permute(pattern, permList)
                 else:
                     permPattern = pattern
 
