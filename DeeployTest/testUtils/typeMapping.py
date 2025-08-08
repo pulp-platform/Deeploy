@@ -24,12 +24,14 @@
 # limitations under the License.
 
 from collections import namedtuple
-from typing import List
+from typing import List, Type
 
 import numpy as np
+import numpy.typing as npt
 
-from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, int8_t
+from Deeploy.AbstractDataTypes import BaseType, PointerClass
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, float32_t, int8_t, int16_t, int32_t, \
+    uint8_t, uint16_t, uint32_t
 
 offsetType = namedtuple("offsetType", ("type", "offset"))
 
@@ -144,3 +146,41 @@ def inferInputType(values: np.ndarray,
         raise RuntimeError("Could not find a matching type!")
 
     return matchingTypes
+
+
+def baseTypeFromName(name: str) -> Type[BaseType]:
+    if name == "int8_t":
+        return int8_t
+    elif name == "uint8_t":
+        return uint8_t
+    elif name == "int16_t":
+        return int16_t
+    elif name == "uint16_t":
+        return uint16_t
+    elif name == "int32_t":
+        return int32_t
+    elif name == "uint32_t":
+        return uint32_t
+    elif name == "float32_t":
+        return float32_t
+    else:
+        raise RuntimeError(f"Unrecognized name {name}")
+
+
+def dtypeFromDeeployType(_ty: Type[BaseType]) -> npt.DTypeLike:
+    if _ty == int8_t:
+        return np.int8
+    elif _ty == uint8_t:
+        return np.uint8
+    elif _ty == int16_t:
+        return np.int16
+    elif _ty == uint16_t:
+        return np.uint16
+    elif _ty == int32_t:
+        return np.int32
+    elif _ty == uint32_t:
+        return np.uint32
+    elif _ty == float32_t:
+        return np.float32
+    else:
+        raise RuntimeError(f"Unimplemented conversion for type {_ty.typeName}")
