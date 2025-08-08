@@ -44,7 +44,7 @@ class _DebugPrintTemplate(NodeTemplate):
         operatorRepresentation['data_in_signed'] = data_in._signed
         operatorRepresentation['offset'] = (data_in._signed == 0) * int(data_in.nLevels / 2)
 
-        operatorRepresentation['output_name'] = ctxt._mangle(data_out.name)
+        operatorRepresentation['output_name'] = data_out.name
 
         return ctxt, operatorRepresentation, []
 

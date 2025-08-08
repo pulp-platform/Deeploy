@@ -322,9 +322,8 @@ class _MHSATemplate(NodeTemplate):
             if hasattr(data_out, "_signed") and hasattr(data_out, "nLevels"):
                 operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_out.nLevels // 2)
 
-        operatorRepresentation['data_in_array'] = ctxt._mangle(operatorRepresentation['nodeName'] + f"_data_in_array")
-        operatorRepresentation['quant_params_array'] = ctxt._mangle(operatorRepresentation['nodeName'] +
-                                                                    f"_quant_params_array")
+        operatorRepresentation['data_in_array'] = f"{nodeName}_data_in_array"
+        operatorRepresentation['quant_params_array'] = f"{nodeName}_quant_params_array"
 
         return ctxt, operatorRepresentation, nameList
 

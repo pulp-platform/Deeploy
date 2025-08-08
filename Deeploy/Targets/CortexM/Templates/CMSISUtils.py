@@ -90,8 +90,8 @@ def bindConvParams(ctxt, name, repName, batch, operatorRepresentation):
     operatorRepresentation[f'{repName}_conv_params'] = ctxt.lookup(f'{name}_conv_params').name
 
     convQuantDict = {
-        'multiplier': ctxt._mangle(operatorRepresentation['mul']),
-        'shift': ctxt._mangle(operatorRepresentation['shift']),
+        'multiplier': operatorRepresentation['mul'],
+        'shift': operatorRepresentation['shift'],
     }
     nameList += [ctxt.hoistStruct(convQuantDict, f'{name}_quant_params', cmsis_nn_per_channel_quant_params)]
     operatorRepresentation[f'{repName}_quant_params'] = ctxt.lookup(f'{name}_quant_params').name

@@ -77,9 +77,9 @@ class _RQMatMulTemplate(NodeTemplate, OperatorRepresentation):
         name = operatorRepresentation['nodeName'] + f"_buffer_A"
         operatorRepresentation['ctxtBuffer_A_size'] = size
         if isinstance(A, ConstantBuffer):
-            names += [name]
-            ctxt.hoistTransientBuffer(name, size)
-            operatorRepresentation['ctxtBuffer_A'] = ctxt._mangle(name)
+            bufferName = ctxt.hoistTransientBuffer(name, size)
+            names += [bufferName]
+            operatorRepresentation['ctxtBuffer_A'] = bufferName
         else:
             operatorRepresentation['ctxtBuffer_A'] = operatorRepresentation['A']
 
@@ -87,9 +87,9 @@ class _RQMatMulTemplate(NodeTemplate, OperatorRepresentation):
         name = operatorRepresentation['nodeName'] + f"_buffer_B"
         operatorRepresentation['ctxtBuffer_B_size'] = size
         if isinstance(B, ConstantBuffer):
-            names += [name]
-            ctxt.hoistTransientBuffer(name, size)
-            operatorRepresentation['ctxtBuffer_B'] = ctxt._mangle(name)
+            bufferName = ctxt.hoistTransientBuffer(name, size)
+            names += [bufferName]
+            operatorRepresentation['ctxtBuffer_B'] = bufferName
         else:
             operatorRepresentation['ctxtBuffer_B'] = operatorRepresentation['B']
 
