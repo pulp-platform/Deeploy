@@ -1,3 +1,7 @@
+if(NOT DEFINED ENV{SNITCH_HOME})
+    message(FATAL_ERROR "Environment variable SNITCH_HOME not set.")
+endif()
+
 set(SNITCH_HOME $ENV{SNITCH_HOME})
 set(SNITCH_RUNTIME_HOME ${SNITCH_HOME}/sw/snRuntime)
 
