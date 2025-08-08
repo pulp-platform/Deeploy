@@ -35,7 +35,7 @@ from abc import abstractmethod
 from collections import OrderedDict, deque
 from dataclasses import dataclass
 from functools import reduce
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Set, Tuple, Type, TypeVar, Union
 
 import mako
 import numpy as np
@@ -118,7 +118,8 @@ class NodeTemplate():
 
         """
         self.template = _Template(templateStr, strict_undefined = True)
-        self.subTemplates = {}
+        self.subTemplates: Dict[str, Tuple[NodeTemplate, Callable[[NetworkContext, OperatorRepresentation],
+                                                                  Tuple[NetworkContext, OperatorRepresentation]]]] = {}
         self.subTemplateGenerators = {}
 
     def internalSize(self) -> int:
@@ -535,22 +536,33 @@ class _ReferenceBuffer(VariableBuffer):
     """Helper class to hoist references to pre-established pointers; this is used most frequently in tiling to express an offset with respect to input or output tensors
     """
 
-    allocTemplate = NodeTemplate("${type.typeName} ${name} = (${type.typeName}) ${objectName};")
+    allocTemplate = NodeTemplate("""\\
+    % if offset is None:
+    ${type.typeName} ${name} = (${type.typeName}) ${referenceName};\\
+    % else:
+    ${type.typeName} ${name} = (${type.typeName}) ${referenceName} + ${offset};\\
+    % endif
+    """)
     deallocTemplate = NodeTemplate("")
     initTemplate = NodeTemplate("")
 
-    def __init__(self, name: str = '', shape = [1], reference: Optional[VariableBuffer] = None):
-
-        assert reference is not None, "Can't have a reference to None!"
-
+    def __init__(self,
+                 name: str,
+                 reference: VariableBuffer,
+                 shape: Tuple[int, ...] = (1,),
+                 offset: Optional[Union[int, str, VariableBuffer]] = None):
         super().__init__(name, shape)
-        self._referencedBuffer = str(reference._instance)
         self._referenceName = reference.name
+        if isinstance(offset, VariableBuffer):
+            self._offset = offset.name
+        else:
+            self._offset = offset
 
     def _bufferRepresentation(self) -> Dict:
-        rep = super()._bufferRepresentation()
-        rep['objectName'] = self._referencedBuffer
-        return rep
+        repr = super()._bufferRepresentation()
+        repr['referenceName'] = self._referenceName
+        repr['offset'] = self._offset
+        return repr
 
 
 class NetworkContext():
@@ -573,7 +585,7 @@ class NetworkContext():
         self.TransientBuffer = transientBuffer
         self.name = name
 
-    def dealiasBuffer(self, referenceName: str) -> str:
+    def dealiasBuffer(self, name: str) -> str:
         """Function to unravel reference instantiated in _ReferenceBuffer objects until the underlying VariableBuffer's name is returned
 
         Parameters
@@ -593,21 +605,21 @@ class NetworkContext():
             is no underlying VariableBuffer
 
         """
-        _buffer = self.lookup(referenceName)
-        if not hasattr(_buffer, "_alias"):
-            return referenceName
-
         seenAliases: Set[str] = set()
+        alias = self.lookup(name)
+        while hasattr(alias, "_alias"):
+            seenAliases.add(alias.name)
+            alias = self.lookup(alias._alias)
+            assert alias.name not in seenAliases, "Circular aliasing detected!"
+        return alias.name
 
-        alias = _buffer._alias
-        while hasattr(self.lookup(alias), "_alias"):
-            seenAliases.add(alias)
-            alias = self.lookup(alias)._alias
-
-            if alias in seenAliases:
-                raise Exception("Circular aliasing detected!")
-
-        return alias
+    def unravelReference(self, ref: VariableBuffer) -> VariableBuffer:
+        seenRefs = set()
+        while isinstance(ref, _ReferenceBuffer):
+            seenRefs.add(ref.name)
+            ref = self.lookup(ref._referenceName)
+            assert ref.name not in seenRefs, "Circular reference found"
+        return ref
 
     def exportNetworkContext(self, folderPath: str, fileName: str):
         """Exports the NetworkContext as a pickled dictionary
@@ -706,7 +718,7 @@ class NetworkContext():
             repStr = re.sub('\.', '_', self.name) + '_' + repStr
         return repStr
 
-    def add(self, obj: VariableBuffer, ctxt: str = 'local', _id: str = ""):
+    def add(self, obj: VariableBuffer, ctxt: Literal['local', 'global'] = 'local', _id: str = ""):
         """Adds a VariableBuffer object to the NetworkContext
 
         Parameters
@@ -793,10 +805,7 @@ class NetworkContext():
             Returns true if the name matches with any global buffer
 
         """
-        if name in self.globalObjects.keys():
-            return True
-        else:
-            return False
+        return name in self.globalObjects
 
     def is_local(self, name: str) -> bool:
         """Checks whether a name is associated with a local buffer
@@ -812,11 +821,42 @@ class NetworkContext():
             Returns ture if the name matches with any local buffer
 
         """
+        return name in self.localObjects
 
-        if name in self.localObjects.keys():
-            return True
-        else:
+    def is_object(self, value: Any) -> bool:
+        """Checks whether a value is an existing object name
+
+        Parameters
+        ----------
+        value : Any
+            Value to check
+
+        Returns
+        -------
+        bool
+            Returns ture if the value is an existing buffer name
+
+        """
+        return isinstance(value, str) and (self.is_local(value) or self.is_global(value))
+
+    def is_buffer(self, value: Any) -> bool:
+        """Checks whether a value is an existing buffer name
+
+        Parameters
+        ----------
+        value : Any
+            Value to check
+
+        Returns
+        -------
+        bool
+            Returns ture if the value is an existing buffer name
+
+        """
+        if not self.is_object(value):
             return False
+        obj = self.lookup(value)
+        return isinstance(obj, VariableBuffer)
 
     def hoistTransientBuffer(self, name: str, size: int) -> str:
         """Registers a new TransientBuffer in the local context
@@ -901,48 +941,43 @@ class NetworkContext():
             name of the registered _ReferenceBuffer
 
         """
-
-        name = constBuf.name
         constBuf._type = pointerType
-
         self.add(constBuf, "global")
+        constBuf._instance = constBuf._type(constBuf.name, self)
+        ref = self.hoistReference(constBuf.name + "_ref", constBuf)
+        return ref.name
 
-        constBuf._instance = constBuf._type(name, self)
-
-        refName = name + "_ref"
-        reference = self.hoistReference(name, refName)
-
-        return refName
-
-    def hoistReference(self, _reference: str, name: str) -> str:
+    def hoistReference(self,
+                       name: str,
+                       reference: VariableBuffer,
+                       shape: Tuple[int, ...] = (1,),
+                       offset: Union[int, str, VariableBuffer] = 0,
+                       override_type: Optional[Type[BaseType]] = None) -> _ReferenceBuffer:
         """Helper function to register a _ReferenceBuffer to preexisting VariableBuffer
 
         Parameters
         ----------
-        _reference : str
-            Name of the VariableBuffer that should be referenced
         name : str
-            Name of the _ReferenceBuffer that should be registered
+            Name of the _ReferenceBuffer to register
+        referencedBuffer : VariableBuffer
+            Referenced VariableBuffer
+        override_type: Optional[Type[BaseType]]
+            Optional argument to override the reference type.
 
         Returns
         -------
-        str
-            Returns the name of the newly registered _ReferenceBuffer
+        _ReferencedBuffer
+            Returns the newly registered _ReferenceBuffer
 
         """
-
-        assert _reference != name, f"Reference name {_reference} cannot be the same as {name}"
-        assert not self.is_local(name), f"{name} is already in context!"
-
-        _object = self.lookup(_reference)
-
-        referenceBuffer = _ReferenceBuffer(name, reference = _object)
-        referenceBuffer._type = _object._type
-
-        self.add(referenceBuffer, 'local')
-        referenceBuffer._instance = _object._type(name, ctxt = self)
-
-        return name
+        ref = _ReferenceBuffer(name, reference, shape, offset)
+        if override_type is not None:
+            ref._type = PointerClass(override_type)
+        else:
+            ref._type = reference._type
+        self.add(ref, 'local')
+        ref._instance = ref._type(name, ctxt = self)
+        return ref
 
     def hoistConstant(self, node: gs.Node, name: str = '', _type: Optional[Type[Pointer]] = None) -> str:
         """Register a ConstantBuffer extracted directly from a graphsurgeon Node
@@ -1470,17 +1505,16 @@ class ExecutionBlock():
         return newCtxt, transientBuffers + contextBuffers
 
     @staticmethod
-    def _mangleNodeRep(ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> OperatorRepresentation:
-        parseDict = {}
+    def _mangleOpRepr(ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> OperatorRepresentation:
+        mangledOpRepr = {}
 
         for key, value in operatorRepresentation.items():
-            if type(value) == str and (ctxt.is_local(value) or
-                                       ctxt.is_global(value)) and not isinstance(ctxt.lookup(value), GlobalDefinition):
-                parseDict[key] = ctxt._mangle(value)
+            if ctxt.is_buffer(value):
+                mangledOpRepr[key] = ctxt._mangle(value)
             else:
-                parseDict[key] = value
+                mangledOpRepr[key] = value
 
-        return parseDict
+        return mangledOpRepr
 
     def generate(self, ctxt: NetworkContext, **kwargs) -> str:
         """Generates the code for all registered NodeTemplates and joins it to construct a single snippet
@@ -1499,7 +1533,7 @@ class ExecutionBlock():
 
         return ("\n").join([
             codeSnippet.template.generate(
-                ExecutionBlock._mangleNodeRep(ctxt, {
+                ExecutionBlock._mangleOpRepr(ctxt, {
                     **codeSnippet.operatorRepresentation,
                     **kwargs
                 })) for codeSnippet in self.codeSnippets
@@ -2455,15 +2489,12 @@ class NetworkContainer():
         """
         inputs = []
 
-        graphInputs = [tensor.name for tensor in self.graph.inputs]
+        for tensor in self.graph.inputs:
+            if self.ctxt.is_global(tensor.name):
+                buffer = self.ctxt.lookup(tensor.name)
+                if isinstance(buffer, self.ctxt.VariableBuffer) and len(buffer._users) > 0:
+                    inputs.append(buffer)
 
-        for key, value in self.ctxt.globalObjects.items():
-            if not isinstance(value, self.ctxt.VariableBuffer) or value._users == []:
-                continue
-            if key not in graphInputs:
-                continue
-
-            inputs += [value]
         return inputs
 
     def outputs(self) -> List[VariableBuffer]:
@@ -2477,16 +2508,12 @@ class NetworkContainer():
         """
         outputs = []
 
-        graphOutputs = [tensor.name for tensor in self.graph.outputs]
+        for tensor in self.graph.outputs:
+            if self.ctxt.is_global(tensor.name):
+                buffer = self.ctxt.lookup(tensor.name)
+                if isinstance(buffer, self.ctxt.VariableBuffer):
+                    outputs.append(buffer)
 
-        for key, value in self.ctxt.globalObjects.items():
-
-            if not isinstance(value, self.ctxt.VariableBuffer):
-                continue
-            if key not in graphOutputs:
-                continue
-
-            outputs += [value]
         return outputs
 
     def codeTransform(self, verbose: CodeGenVerbosity = _NoVerbosity):
