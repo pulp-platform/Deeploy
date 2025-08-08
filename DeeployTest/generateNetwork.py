@@ -31,8 +31,7 @@ import sys
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-from testUtils.codeGenerate import generateTestInputsHeader, generateTestNetworkHeader, \
-    generateTestNetworkImplementation, generateTestOutputsHeader
+from testUtils.codeGenerate import generateTestNetwork
 from testUtils.graphDebug import generateDebugConfig
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
@@ -156,38 +155,35 @@ def generateNetwork(args):
     # Parse graph and infer output levels and signedness
     _ = deployer.generateFunction(verbose = verbosityCfg)
 
-    # Create input and output vectors
-    os.makedirs(f'{args.dumpdir}', exist_ok = True)
-    print("=" * 80)
-    testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets, verbose = args.verbose)
-    f = open(f'{args.dumpdir}/testinputs.h', "w")
-    f.write(testInputStr)
-    f.close()
+    # Offset the input and output values if signprop
+    if signProp:
+        test_inputs = [value - inputOffsets[f"input_{i}"] for i, value in enumerate(test_inputs)]
 
-    testOutputStr = generateTestOutputsHeader(deployer, test_outputs, signProp, verbose = args.verbose)
-    f = open(f'{args.dumpdir}/testoutputs.h', "w")
-    f.write(testOutputStr)
-    f.close()
+        for i, values in enumerate(test_outputs):
+            buffer = deployer.ctxt.lookup(f"output_{i}")
+            if buffer._type.referencedType.typeName == "float32_t":
+                continue
+            if not buffer._signed:
+                values -= buffer.nLevels // 2
 
-    # Generate code for Network
-    testNetworkHeaderStr = generateTestNetworkHeader(deployer, platform)
-    f = open(f'{args.dumpdir}/Network.h', "w")
-    f.write(testNetworkHeaderStr)
-    f.close()
-
-    testNetworkImplementationStr = generateTestNetworkImplementation(deployer, platform, verbose = args.verbose)
-    f = open(f'{args.dumpdir}/Network.c', "w")
-    f.write(testNetworkImplementationStr)
-    f.close()
-
-    clang_format = "{BasedOnStyle: llvm, IndentWidth: 2, ColumnLimit: 160}"
-    os.system(f'clang-format -i --style="{clang_format}" {args.dumpdir}/Network.c')
-    os.system(f'clang-format -i --style="{clang_format}" {args.dumpdir}/Network.h')
-    os.system(f'clang-format -i --style="{clang_format}" {args.dumpdir}/testoutputs.h')
-    os.system(f'clang-format -i --style="{clang_format}" {args.dumpdir}/testinputs.h')
+    generateTestNetwork(deployer, test_inputs, test_outputs, args.dumpdir, verbosityCfg)
 
     if args.verbose:
         print()
+        print("=" * 80)
+        print("Output:")
+        for i in range(len(test_outputs)):
+            buffer = deployer.ctxt.lookup(f"output_{i}")
+            logLine = f" - '{buffer.name}': Type: {buffer._type.referencedType.typeName}"
+            if signProp:
+                logLine += f", nLevels: {buffer.nLevels}, Signed: {buffer._signed}"
+            print(logLine)
+        print('Input:')
+        for i in range(len(test_inputs)):
+            buffer = deployer.ctxt.lookup(f"input_{i}")
+            print(
+                f" - '{buffer.name}': Type: {buffer._type.referencedType.typeName}, Offset: {inputOffsets[buffer.name]}"
+            )
         print("=" * 80)
         num_ops = deployer.numberOfOps(args.verbose)
         print("=" * 80)

@@ -26,92 +26,28 @@
 import os
 import sys
 from collections import OrderedDict
-from typing import List, Union
+from typing import List
 
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
 import pytest
-from ortools.constraint_solver.pywrapcp import IntVar
-from testUtils.codeGenerate import generateL3HexDump, generateTestInputsHeader, generateTestNetworkHeader, \
-    generateTestNetworkImplementation, generateTestOutputsHeader
+from testUtils.codeGenerate import generateTestNetwork
 from testUtils.graphDebug import generateDebugConfig
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
+from testUtils.tilingUtils import DBOnlyL3Tiler, DBTiler, SBTiler
 from testUtils.typeMapping import inferInputType
 
-from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkContext, NetworkDeployer, ONNXLayer, \
-    SubGraph, TransientBuffer
+from Deeploy.DeeployTypes import CodeGenVerbosity, NetworkDeployer, ONNXLayer
 from Deeploy.EngineExtension.NetworkDeployers.EngineColoringDeployer import EngineColoringDeployerWrapper
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel, AnnotateNeurekaWeightMemoryLevel
-from Deeploy.TilingExtension.TilerExtension import Tiler, TilerDeployerWrapper
-from Deeploy.TilingExtension.TilerModel import TilerModel
+from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 
 _TEXT_ALIGN = 30
-
-
-class DBOnlyL3Tiler(Tiler):
-
-    def multiBufferStrategy(self, tilerModel: TilerModel, ctxt: NetworkContext, pattern: SubGraph, path: List[str],
-                            hop: str, tensorName: str) -> Union[int, IntVar]:
-
-        varBuffer = ctxt.lookup(tensorName)
-
-        generalCoeff = 2
-
-        if isinstance(varBuffer, TransientBuffer):
-            coefficient = 1
-        elif isinstance(varBuffer, ConstantBuffer):
-            coefficient = generalCoeff
-        else:
-            coefficient = generalCoeff
-
-        if args.defaultMemLevel == "L2":
-            return coefficient
-
-        if hop == 'L1':
-            return 1
-
-        return coefficient
-
-
-class DBTiler(Tiler):
-
-    def multiBufferStrategy(self, tilerModel: TilerModel, ctxt: NetworkContext, pattern: SubGraph, path: List[str],
-                            hop: str, tensorName: str) -> Union[int, IntVar]:
-        varBuffer = ctxt.lookup(tensorName)
-
-        generalCoeff = 2
-
-        if isinstance(varBuffer, TransientBuffer):
-            coefficient = 1
-        elif isinstance(varBuffer, ConstantBuffer):
-            coefficient = generalCoeff
-        else:
-            coefficient = generalCoeff
-
-        return coefficient
-
-
-class SBTiler(Tiler):
-
-    def multiBufferStrategy(self, tilerModel: TilerModel, ctxt: NetworkContext, pattern: SubGraph, path: List[str],
-                            hop: str, tensorName: str) -> Union[int, IntVar]:
-        varBuffer = ctxt.lookup(tensorName)
-
-        generalCoeff = 1
-
-        if isinstance(varBuffer, TransientBuffer):
-            coefficient = 1
-        elif isinstance(varBuffer, ConstantBuffer):
-            coefficient = generalCoeff
-        else:
-            coefficient = generalCoeff
-
-        return coefficient
 
 
 # Mock of the Global Scheduler's inteface
@@ -198,7 +134,11 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
 
     # Make the deployer tiler aware
     if args.doublebuffer:
-        deployer = TilerDeployerWrapper(deployer, DBOnlyL3Tiler)
+        assert args.defaultMemLevel in ["L3", "L2"]
+        if args.defaultMemLevel == "L3":
+            deployer = TilerDeployerWrapper(deployer, DBOnlyL3Tiler)
+        else:
+            deployer = TilerDeployerWrapper(deployer, DBTiler)
     else:
         deployer = TilerDeployerWrapper(deployer, SBTiler)
 
@@ -355,41 +295,35 @@ if __name__ == '__main__':
 
         _ = deployer.generateFunction(verbosityCfg)
 
-        # Create input and output vectors
-        os.makedirs(f'{args.dumpdir}', exist_ok = True)
+        # Offset the input and output values if signprop
+        if signProp:
+            test_inputs = [value - inputOffsets[f"input_{i}"] for i, value in enumerate(test_inputs)]
 
-        print("=" * 80)
-        testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets, args.verbose)
-        f = open(f'{args.dumpdir}/testinputs.h', "w")
-        f.write(testInputStr)
-        f.close()
+            for i, values in enumerate(test_outputs):
+                buffer = deployer.ctxt.lookup(f"output_{i}")
+                if buffer._type.referencedType.typeName == "float32_t":
+                    continue
+                if not buffer._signed:
+                    values -= buffer.nLevels // 2
 
-        testOutputStr = generateTestOutputsHeader(deployer, test_outputs, signProp, args.verbose)
-        f = open(f'{args.dumpdir}/testoutputs.h', "w")
-        f.write(testOutputStr)
-        f.close()
-
-        # Generate code for Network
-        testNetworkHeaderStr = generateTestNetworkHeader(deployer, platform)
-        f = open(f'{args.dumpdir}/Network.h', "w")
-        f.write(testNetworkHeaderStr)
-        f.close()
-
-        testNetworkImplementationStr = generateTestNetworkImplementation(deployer, platform)
-        f = open(f'{args.dumpdir}/Network.c', "w")
-        f.write(testNetworkImplementationStr)
-        f.close()
-
-        generateL3HexDump(deployer, os.path.join(f'{args.dumpdir}', 'hex'), test_inputs, test_outputs)
-
-        clang_format = "{BasedOnStyle: llvm, IndentWidth: 2, ColumnLimit: 160}"
-        os.system(f'clang-format -i --style="{clang_format}" {args.dumpdir}/Network.c')
-        os.system(f'clang-format -i --style="{clang_format}" {args.dumpdir}/Network.h')
-        os.system(f'clang-format -i --style="{clang_format}" {args.dumpdir}/testoutputs.h')
-        os.system(f'clang-format -i --style="{clang_format}" {args.dumpdir}/testinputs.h')
+        generateTestNetwork(deployer, test_inputs, test_outputs, args.dumpdir, verbosityCfg)
 
         if args.verbose:
             print()
+            print("=" * 80)
+            print("Output:")
+            for i in range(len(test_outputs)):
+                buffer = deployer.ctxt.lookup(f"output_{i}")
+                logLine = f" - '{buffer.name}': Type: {buffer._type.referencedType.typeName}"
+                if signProp:
+                    logLine += f", nLevels: {buffer.nLevels}, Signed: {buffer._signed}"
+                print(logLine)
+            print('Input:')
+            for i in range(len(test_inputs)):
+                buffer = deployer.ctxt.lookup(f"input_{i}")
+                print(
+                    f" - '{buffer.name}': Type: {buffer._type.referencedType.typeName}, Offset: {inputOffsets[buffer.name]}"
+                )
             print("=" * 80)
             num_ops = deployer.numberOfOps(args.verbose)
             print("=" * 80)
