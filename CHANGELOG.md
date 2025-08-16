@@ -25,6 +25,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
+- Change order of typeMatching entries [#68](https://github.com/pulp-platform/Deeploy/pull/68)
 - Prepare v0.2.0 release [#102](https://github.com/pulp-platform/Deeploy/pull/102)
 - Add Luka as Code Owner [#101](https://github.com/pulp-platform/Deeploy/pull/101)
 - Fix CI, Docker Files, and Documentation Workflow [#100](https://github.com/pulp-platform/Deeploy/pull/100)
