@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     tensors = graph.tensors()
 
-    # build name→type and name→offset maps
+    # build {name, type} and {name, offset} maps
     manual_types = {}
     manual_offsets = {}
     for kv in args.input_type_map:
