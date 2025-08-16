@@ -37,10 +37,22 @@ _ALL_DTYPES = {t.typeName: t for t in (*IntegerDataTypes, *FloatDataTypes)}
 
 
 def parseDataType(name: str):
-    """
-    Parses a data type from its name.
-    :param name: The name of the data type.
-    :return: The corresponding data type class.
+    """Parses a data type from its name.
+    
+    Parameters
+    ----------
+    name : str
+        The name of the data type.
+    
+    Returns
+    -------
+    class
+        The corresponding data type class.
+    
+    Raises
+    ------
+    ValueError
+        If the provided data type name is unknown.
     """
     if name not in _ALL_DTYPES:
         raise ValueError(f"Unknown data type: {name}")
