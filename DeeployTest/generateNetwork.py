@@ -122,12 +122,11 @@ if __name__ == '__main__':
 
     platform, signProp = mapPlatform(args.platform)
 
-    for index, name in enumerate(inputs.files):
+    for index, (name, num) in enumerate(zip(inputs.files, test_inputs)):
         # WIESP: Do not infer types and offset of empty arrays
         num = test_inputs[index]
         if np.prod(num.shape) == 0:
             continue
-        num = test_inputs[index]
         defaultType = manual_types.get(name, PointerClass(int8_t))
         defaultOffset = manual_offsets.get(name, 0)
         autoInfer = name not in manual_keys
