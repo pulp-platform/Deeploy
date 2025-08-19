@@ -3304,6 +3304,24 @@ class NetworkDeployer(NetworkContainer):
             tensor.name = f"{tensor.name}_tensor"
 
     # Don't override this
+    def _mangleNodeNames(self):
+        """Mangle node names only if duplicates exist. Unique names are preserved."""
+        # Count occurrences of each original name
+        counts: Dict[str, int] = {}
+        for node in self.graph.nodes:
+            counts[node.name] = counts.get(node.name, 0) + 1
+
+        # For any name that appears more than once, append a counter suffix
+        seen: Dict[str, int] = {}
+        for node in self.graph.nodes:
+            orig = node.name
+            if counts[orig] > 1:
+                idx = seen.get(orig, 0)
+                node.name = f"{orig}_{idx}"
+                seen[orig] = idx + 1
+            # else: unique name, leave it unchanged
+
+    # Don't override this
     def _removeIdentityNodes(self):
         for node in filter(lambda x: x.op == "Identity", self.graph.nodes):
             self.graph.deleteNode(node)
@@ -3315,6 +3333,8 @@ class NetworkDeployer(NetworkContainer):
         self._removeIdentityNodes()
 
         self._mangleTensorNames()
+
+        self._mangleNodeNames()
 
         # Rename graph inputs and outputs:
         for idx, inputNode in enumerate(self.graph.inputs):
