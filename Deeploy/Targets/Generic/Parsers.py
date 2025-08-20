@@ -208,6 +208,26 @@ class TransposeParser(NodeParser):
 
         return ctxt, True
 
+class GlobalAveragePoolParser(NodeParser):
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node):
+        return len(node.inputs) == 1 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self, ctxt: NetworkContext, node, channels_first=True):
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+        # [N, C, H, W]
+        self.operatorRepresentation['N'] = data_in.shape[0]
+        self.operatorRepresentation['C'] = data_in.shape[1]
+        self.operatorRepresentation['H'] = data_in.shape[2]
+        self.operatorRepresentation['W'] = data_in.shape[3]
+        return ctxt, True
+
 
 class MaxPoolParser(NodeParser):
 

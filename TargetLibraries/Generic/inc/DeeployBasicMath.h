@@ -70,5 +70,6 @@
 #include "kernel/RQHardswish.h"
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
+#include "kernel/GlobalAveragePool_fp32.h"
 
 #endif //__DEEPLOY_BASIC_MATH_HEADER_

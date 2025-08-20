@@ -42,11 +42,11 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvT
     FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
     MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
     RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, \
-    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate, GlobalAveragePoolTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
     DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, \
     MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReduceSumChecker, \
-    ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, \
+    ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, GlobalAveragePoolChecker, \
     TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
@@ -54,6 +54,14 @@ BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagem
 ReshapeSkipTransformer = CodeTransformation(
     [ArgumentStructGeneration(), MemoryPassthroughGeneration(),
      FutureGeneration()])
+
+BasicGlobalAveragePoolBindings = [
+    NodeBinding(
+        GlobalAveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        GlobalAveragePoolTemplate.referenceTemplate,
+        BasicTransformer
+    )
+]
 
 BasicSliceBindings = [
     NodeBinding(

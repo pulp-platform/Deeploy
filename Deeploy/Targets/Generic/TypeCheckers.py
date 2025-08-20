@@ -34,6 +34,19 @@ from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTy
 from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
 
 
+from Deeploy.AbstractDataTypes import PointerClass
+from Deeploy.CommonExtensions.DataTypes import float32_t
+
+class GlobalAveragePoolChecker(SignPropTypeChecker):
+    def __init__(self, input_types=[PointerClass(float32_t)], output_types=[PointerClass(float32_t)]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs, operatorRepresentation):
+        return [2**(self.output_types[0].referencedType.typeWidth)]  # FP32: 2^32 levels
+
+    def _inferSignedness(self, inputs, operatorRepresentation):
+        return [True]  # FP32 is signed
+
 class ConcatChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
