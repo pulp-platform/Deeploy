@@ -1025,3 +1025,45 @@ jobs:
         run: |
           grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.h$" || [[ $? == 1 ]]
         shell: bash
+
+  generate-network-type-inference:
+    runs-on: ${{ needs.select-docker-image-and-runner.outputs.runner }}
+    needs: select-docker-image-and-runner
+    container:
+      image: ${{ needs.select-docker-image-and-runner.outputs.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: fail-input0
+            platform: Generic
+            test: testTypeInferenceDifferentTypes
+            map: A=int8_t B=int8_t C=int8_t
+            shouldFail: true
+          - name: fail-input2
+            platform: Generic
+            test: testTypeInferenceDifferentTypes
+            map: A=int16_t B=int8_t C=int16_t
+            shouldFail: true
+          - name: pass
+            platform: Generic
+            test: testTypeInferenceDifferentTypes
+            map: A=int16_t B=int8_t C=int32_t
+            shouldFail: false
+    name: Test Type Inference (${{ matrix.name }})
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python generateNetwork.py \
+            -p ${{ matrix.platform }} \
+            -t ./Tests/${{ matrix.test }} \
+            -v \
+            --input-type-map ${{ matrix.map }} \
+            ${{ matrix.shouldFail && '--shouldFail' || '' }}

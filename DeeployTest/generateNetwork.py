@@ -26,6 +26,7 @@
 # limitations under the License.
 
 import os
+import sys
 
 import numpy as np
 import onnx
@@ -46,34 +47,8 @@ from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
 
 _TEXT_ALIGN = 30
 
-if __name__ == '__main__':
 
-    parser = TestGeneratorArgumentParser(description = "Deeploy Code Generation Utility.")
-    parser.add_argument('--debug',
-                        dest = 'debug',
-                        action = 'store_true',
-                        default = False,
-                        help = 'Enable debugging mode\n')
-    parser.add_argument('--profileUntiled',
-                        action = 'store_true',
-                        dest = 'profileUntiled',
-                        default = False,
-                        help = 'Profile Untiled for L2\n')
-    parser.add_argument('--input-type-map',
-                        nargs = '*',
-                        default = [],
-                        help = '(Optional) mapping of input names to data types. '
-                        'If not specified, types are inferred from the input data. '
-                        'Example: --input-type-map input_0=int8_t input_1=float32 ...')
-    parser.add_argument('--input-offset-map',
-                        nargs = '*',
-                        default = [],
-                        help = '(Optional) mapping of input names to offsets. '
-                        'If not specified, offsets are set to 0. '
-                        'Example: --input-offset-map input_0=0 input_1=128 ...')
-
-    args = parser.parse_args()
-
+def generateNetwork(args):
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
 
@@ -193,3 +168,46 @@ if __name__ == '__main__':
         print()
         print(f"{'Number of Ops:' :<{_TEXT_ALIGN}} {num_ops}")
         print(f"{'Model Parameters: ' :<{_TEXT_ALIGN}} {deployer.getParameterSize()}")
+
+
+if __name__ == '__main__':
+
+    parser = TestGeneratorArgumentParser(description = "Deeploy Code Generation Utility.")
+    parser.add_argument('--debug',
+                        dest = 'debug',
+                        action = 'store_true',
+                        default = False,
+                        help = 'Enable debugging mode\n')
+    parser.add_argument('--profileUntiled',
+                        action = 'store_true',
+                        dest = 'profileUntiled',
+                        default = False,
+                        help = 'Profile Untiled for L2\n')
+    parser.add_argument('--input-type-map',
+                        nargs = '*',
+                        default = [],
+                        help = '(Optional) mapping of input names to data types. '
+                        'If not specified, types are inferred from the input data. '
+                        'Example: --input-type-map input_0=int8_t input_1=float32_t ...')
+    parser.add_argument('--input-offset-map',
+                        nargs = '*',
+                        default = [],
+                        help = '(Optional) mapping of input names to offsets. '
+                        'If not specified, offsets are set to 0. '
+                        'Example: --input-offset-map input_0=0 input_1=128 ...')
+    parser.add_argument('--shouldFail', action = 'store_true')
+    parser.set_defaults(shouldFail = False)
+
+    args = parser.parse_args()
+
+    try:
+        generateNetwork(args)
+    except Exception as e:
+        if args.shouldFail:
+            print("\033[92mNetwork generation ended, failed as expected!\033[0m")
+            sys.exit(0)
+        else:
+            raise e
+
+    if args.shouldFail:
+        raise RuntimeError("Expected to fail!")
