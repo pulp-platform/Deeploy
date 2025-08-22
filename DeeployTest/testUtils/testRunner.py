@@ -182,7 +182,7 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           default = [],
                           help = '(Optional) mapping of input names to data types. '
                           'If not specified, types are inferred from the input data. '
-                          'Example: --input-type-map input_0=int8_t input_1=float32 ...')
+                          'Example: --input-type-map input_0=int8_t input_1=float32_t ...')
         self.add_argument('--input-offset-map',
                           nargs = '*',
                           default = [],
@@ -257,9 +257,9 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
         if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
             command += " --profileUntiled"
         if self.args.input_type_map:
-            command += " --input-type-map=" + " ".join(self.args.input_type_map)
+            command += " --input-type-map " + " ".join(self.args.input_type_map)
         if self.args.input_offset_map:
-            command += " --input-offset-map=" + " ".join(self.args.input_offset_map)
+            command += " --input-offset-map " + " ".join(self.args.input_offset_map)
 
         if self.tiling_arguments:
             if self.args.defaultMemLevel:

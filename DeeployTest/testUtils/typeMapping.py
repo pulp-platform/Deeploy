@@ -33,29 +33,30 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 
 offsetType = namedtuple("offsetType", ("type", "offset"))
 
-_ALL_DTYPES = {t.typeName: t for t in (*IntegerDataTypes, *FloatDataTypes)}
+_ALL_DTYPES: dict[str, type] = {t.typeName: t for t in (*IntegerDataTypes, *FloatDataTypes)}
 
 
-def parseDataType(name: str):
+def parseDataType(name: str) -> type:
     """Parses a data type from its name.
-    
+
     Parameters
     ----------
     name : str
         The name of the data type.
-    
+
     Returns
     -------
     class
         The corresponding data type class.
-    
+
     Raises
     ------
     ValueError
         If the provided data type name is unknown.
     """
     if name not in _ALL_DTYPES:
-        raise ValueError(f"Unknown data type: {name}")
+        allowed = ", ".join(sorted(_ALL_DTYPES))
+        raise ValueError(f"Unknown data type: {name}. Allowed: {allowed}")
     return _ALL_DTYPES[name]
 
 
@@ -87,7 +88,6 @@ def inferInputType(_input: np.ndarray,
                    signProp: Optional[bool] = None,
                    defaultType = PointerClass(int8_t),
                    defaultOffset = 0,
-                   *,
                    autoInfer: bool = True) -> List[offsetType]:
 
     # WIESEP: We cannot do type inference for empty arrays.
@@ -106,9 +106,9 @@ def inferInputType(_input: np.ndarray,
                                f"(expected range [{lo}, {hi}])")
 
         smallest = rawType
-        for caand in sorted(IntegerDataTypes, key = lambda x: x.typeWidth):
-            if caand.checkPromotion(vals):
-                smallest = caand
+        for t in sorted(IntegerDataTypes, key = lambda x: x.typeWidth):
+            if t.checkPromotion(vals):
+                smallest = t
                 break
         if smallest is not rawType:
             print(f"WARNING: Data spans [{int(vals.min())}, {int(vals.max())}], "

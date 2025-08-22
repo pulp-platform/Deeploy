@@ -358,7 +358,8 @@ if __name__ == '__main__':
         # Create input and output vectors
         os.makedirs(f'{args.dumpdir}', exist_ok = True)
 
-        testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets)
+        print("=" * 80)
+        testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets, args.verbose)
         f = open(f'{args.dumpdir}/testinputs.h', "w")
         f.write(testInputStr)
         f.close()

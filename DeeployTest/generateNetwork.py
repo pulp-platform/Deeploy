@@ -68,11 +68,25 @@ def generateNetwork(args):
     manual_types = {}
     manual_offsets = {}
     for kv in args.input_type_map:
-        name, tstr = kv.split('=', 1)
-        manual_types[name] = PointerClass(parseDataType(tstr))
+        try:
+            name, tstr = kv.split('=', 1)
+        except ValueError:
+            raise ValueError(f"Invalid --input-type-map entry '{kv}'. Expected NAME=TYPE.")
+        name, tstr = name.strip(), tstr.strip()
+        try:
+            manual_types[name] = PointerClass(parseDataType(tstr))
+        except ValueError as e:
+            raise ValueError(f"Invalid --input-type-map entry '{kv}': {e}")
     for kv in args.input_offset_map:
-        name, ostr = kv.split('=', 1)
-        manual_offsets[name] = int(ostr)
+        try:
+            name, ostr = kv.split('=', 1)
+        except ValueError:
+            raise ValueError(f"Invalid --input-offset-map entry '{kv}'. Expected NAME=OFFSET.")
+        name, ostr = name.strip(), ostr.strip()
+        try:
+            manual_offsets[name] = int(ostr)
+        except ValueError:
+            raise ValueError(f"Invalid --input-offset-map entry '{kv}': OFFSET must be an integer.")
 
     # Sanity check for unknown input names
     npz_names = set(inputs.files)
@@ -98,8 +112,6 @@ def generateNetwork(args):
     platform, signProp = mapPlatform(args.platform)
 
     for index, (name, num) in enumerate(zip(inputs.files, test_inputs)):
-        # WIESP: Do not infer types and offset of empty arrays
-        num = test_inputs[index]
         if np.prod(num.shape) == 0:
             continue
         defaultType = manual_types.get(name, PointerClass(int8_t))
@@ -132,8 +144,8 @@ def generateNetwork(args):
 
     # Create input and output vectors
     os.makedirs(f'{args.dumpdir}', exist_ok = True)
-
-    testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets)
+    print("=" * 80)
+    testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets, verbose = args.verbose)
     f = open(f'{args.dumpdir}/testinputs.h', "w")
     f.write(testInputStr)
     f.close()
