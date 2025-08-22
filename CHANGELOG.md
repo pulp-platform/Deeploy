@@ -3,11 +3,13 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 ## Unreleased (Planned Release Target: v0.2.1)
 ### List of Pull Requests
+- Change order of typeMatching entries [#68](https://github.com/pulp-platform/Deeploy/pull/68)
 - Node Mangling to avoid duplication [#93](https://github.com/pulp-platform/Deeploy/pull/93)
 - Prepare Post v0.2.0 Release [#104](https://github.com/pulp-platform/Deeploy/pull/104)
 - Use Docker digests instead of arch-specific tags [#106](https://github.com/pulp-platform/Deeploy/pull/106)
 
 ### Added
+- Add manual type inference feature (CLI: `--input-type-map`/`--input-offset-map`) to resolve ambiguities when test inputs are not representative enough
 - Added `_mangleNodeNames` function to avoid duplicate node mappings
 - Output Docker image digests per platform (`amd64`, `arm64`) after build, which is used to construct the multi-arch Docker manifest. This preventes registry clutter caused by unnecessary per-architecture Docker tags.
 
@@ -25,7 +27,6 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
 
 ### List of Pull Requests
-- Change order of typeMatching entries [#68](https://github.com/pulp-platform/Deeploy/pull/68)
 - Prepare v0.2.0 release [#102](https://github.com/pulp-platform/Deeploy/pull/102)
 - Add Luka as Code Owner [#101](https://github.com/pulp-platform/Deeploy/pull/101)
 - Fix CI, Docker Files, and Documentation Workflow [#100](https://github.com/pulp-platform/Deeploy/pull/100)
@@ -92,7 +93,6 @@ This release containing major architectural changes, new platform support, enhan
 
 
 ### Added
-- Add manual type inference feature due to ambiguous inference when test inputs are not representing the type well enough
 - ChimeraDeployer, currently mainly a placeholder
 - Allocate templates for Chimera
 - ChimeraPlatform, using appropriate allocation templates and using the generic Parser + Binding for the Add node
