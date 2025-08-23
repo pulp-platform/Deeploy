@@ -131,7 +131,7 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = False)
+                                                   includeGlobalReferences = False)
         localBuffers = [ctxt.localObjects[ref] for ref in references]
         memoryLevelBuffers = [buff for buff in localBuffers if self.is_memory_level(buff)]
 
@@ -168,7 +168,7 @@ class MemoryPassthroughGeneration(MemoryManagementGeneration):
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = False)
+                                                   includeGlobalReferences = False)
         localBuffers = [ctxt.localObjects[ref] for ref in references]
         memoryLevelBuffers = [buff for buff in localBuffers if self.is_memory_level(buff)]
 
