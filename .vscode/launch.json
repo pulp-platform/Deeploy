@@ -58,8 +58,17 @@
             "command": "extension.commandvariable.file.pickFile",
             "args": {
                 "description": "Select ONNX File",
-                "include": "DeeployTest/Tests/**/*.onnx",
-                "transform": {
+                "include": "**/*.onnx",
+                "display": "transform",
+                "fromFolder": {
+                    "fixed": "${workspaceFolder}/DeeployTest/Tests"
+                },
+                "labelTransform": {
+                    "text": "${fileDirname}",
+                    "find": ".*[\\/]",
+                    "replace": ""
+                },
+                "valueTransform": {
                     "text": "${fileDirname}"
                 }
             }

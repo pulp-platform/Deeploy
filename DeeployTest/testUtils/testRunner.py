@@ -177,6 +177,20 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           type = str,
                           default = os.environ.get('LLVM_INSTALL_DIR'),
                           help = 'Pick compiler install dir\n')
+        self.add_argument('--input-type-map',
+                          nargs = '*',
+                          default = [],
+                          type = str,
+                          help = '(Optional) mapping of input names to data types. '
+                          'If not specified, types are inferred from the input data. '
+                          'Example: --input-type-map input_0=int8_t input_1=float32_t ...')
+        self.add_argument('--input-offset-map',
+                          nargs = '*',
+                          default = [],
+                          type = str,
+                          help = '(Optional) mapping of input names to offsets. '
+                          'If not specified, offsets are set to 0. '
+                          'Example: --input-offset-map input_0=0 input_1=128 ...')
 
         if self.tiling_arguments:
             self.add_argument('--defaultMemLevel',
@@ -244,6 +258,10 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
             command += " --debug"
         if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
             command += " --profileUntiled"
+        if self.args.input_type_map:
+            command += " --input-type-map " + " ".join(self.args.input_type_map)
+        if self.args.input_offset_map:
+            command += " --input-offset-map " + " ".join(self.args.input_offset_map)
 
         if self.tiling_arguments:
             if self.args.defaultMemLevel:

@@ -26,6 +26,7 @@
 # limitations under the License.
 
 import os
+import sys
 
 import numpy as np
 import onnx
@@ -35,8 +36,10 @@ from testUtils.codeGenerate import generateTestInputsHeader, generateTestNetwork
 from testUtils.graphDebug import generateDebugConfig
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferInputType, parseDataType
 
+from Deeploy.AbstractDataTypes import PointerClass
+from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import EmulateCMSISRequantPass
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
@@ -44,22 +47,8 @@ from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
 
 _TEXT_ALIGN = 30
 
-if __name__ == '__main__':
 
-    parser = TestGeneratorArgumentParser(description = "Deeploy Code Generation Utility.")
-    parser.add_argument('--debug',
-                        dest = 'debug',
-                        action = 'store_true',
-                        default = False,
-                        help = 'Enable debugging mode\n')
-    parser.add_argument('--profileUntiled',
-                        action = 'store_true',
-                        dest = 'profileUntiled',
-                        default = False,
-                        help = 'Profile Untiled for L2\n')
-
-    args = parser.parse_args()
-
+def generateNetwork(args):
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
 
@@ -73,7 +62,38 @@ if __name__ == '__main__':
     else:
         activations = None
 
-    tensors = graph.tensors()
+    # build {name, type} and {name, offset} maps
+    manual_types = {}
+    manual_offsets = {}
+    for kv in args.input_type_map:
+        try:
+            name, tstr = kv.split('=', 1)
+        except ValueError as exc:
+            raise ValueError(f"Invalid --input-type-map entry '{kv}'. Expected NAME=TYPE.") from exc
+        name, tstr = name.strip(), tstr.strip()
+        try:
+            manual_types[name] = parseDataType(tstr)
+        except ValueError as exc:
+            raise ValueError(f"Invalid --input-type-map entry '{kv}': {exc}") from exc
+    for kv in args.input_offset_map:
+        try:
+            name, ostr = kv.split('=', 1)
+        except ValueError as exc:
+            raise ValueError(f"Invalid --input-offset-map entry '{kv}'. Expected NAME=OFFSET.") from exc
+        name, ostr = name.strip(), ostr.strip()
+        try:
+            manual_offsets[name] = int(ostr)
+        except ValueError as exc:
+            raise ValueError(f"Invalid --input-offset-map entry '{kv}': OFFSET must be an integer.") from exc
+
+    # Sanity check for unknown input names
+    manual_keys = set(manual_types)
+    assert manual_keys == set(
+        manual_offsets
+    ), f"Override inputs should have both type and offset specified. Inputs without both specified: {manual_keys ^ set(manual_types)}"
+    assert manual_keys <= set(
+        inputs.files
+    ), f"Unknown input names in overrides: {manual_keys - set(inputs.files)} (Valid names are: {set(inputs.files)})"
 
     if args.debug:
         test_inputs, test_outputs, graph = generateDebugConfig(inputs, outputs, activations, graph)
@@ -90,11 +110,33 @@ if __name__ == '__main__':
 
     platform, signProp = mapPlatform(args.platform)
 
-    for index, num in enumerate(test_inputs):
-        # WIESP: Do not infer types and offset of empty arrays
+    for index, (name, num) in enumerate(zip(inputs.files, test_inputs)):
         if np.prod(num.shape) == 0:
             continue
-        _type, offset = inferInputType(num, signProp)[0]
+
+        if name in manual_keys:
+            _type = manual_types[name]
+            offset = manual_offsets[name]
+
+            # Check if the provided values fit into the dereferenced type
+            vals = num.astype(np.int64) - offset
+            if not _type.checkPromotion(vals):
+                lo, hi = _type.typeMin, _type.typeMax
+                raise RuntimeError(f"Provided type '{_type.typeName}' with offset {offset} "
+                                   f"does not match input values in range [{vals.min()}, {vals.max()}] "
+                                   f"(expected range [{lo}, {hi}])")
+
+            # Suggest a smaller fitting type if possible
+            fitting_types = [t for t in sorted(IntegerDataTypes, key = lambda x: x.typeWidth) if t.checkPromotion(vals)]
+            if fitting_types and fitting_types[0] is not _type:
+                print(f"WARNING: Data spans [{int(vals.min())}, {int(vals.max())}], "
+                      f"which would fit in '{fitting_types[0].typeName}', "
+                      f"but user forced '{_type.typeName}'.")
+
+            _type = PointerClass(_type)
+        else:
+            _type, offset = inferInputType(num, signProp)[0]
+
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 
@@ -116,8 +158,8 @@ if __name__ == '__main__':
 
     # Create input and output vectors
     os.makedirs(f'{args.dumpdir}', exist_ok = True)
-
-    testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets)
+    print("=" * 80)
+    testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets, verbose = args.verbose)
     f = open(f'{args.dumpdir}/testinputs.h', "w")
     f.write(testInputStr)
     f.close()
@@ -152,3 +194,48 @@ if __name__ == '__main__':
         print()
         print(f"{'Number of Ops:' :<{_TEXT_ALIGN}} {num_ops}")
         print(f"{'Model Parameters: ' :<{_TEXT_ALIGN}} {deployer.getParameterSize()}")
+
+
+if __name__ == '__main__':
+
+    parser = TestGeneratorArgumentParser(description = "Deeploy Code Generation Utility.")
+    parser.add_argument('--debug',
+                        dest = 'debug',
+                        action = 'store_true',
+                        default = False,
+                        help = 'Enable debugging mode\n')
+    parser.add_argument('--profileUntiled',
+                        action = 'store_true',
+                        dest = 'profileUntiled',
+                        default = False,
+                        help = 'Profile Untiled for L2\n')
+    parser.add_argument('--input-type-map',
+                        nargs = '*',
+                        default = [],
+                        type = str,
+                        help = '(Optional) mapping of input names to data types. '
+                        'If not specified, types are inferred from the input data. '
+                        'Example: --input-type-map input_0=int8_t input_1=float32_t ...')
+    parser.add_argument('--input-offset-map',
+                        nargs = '*',
+                        default = [],
+                        type = str,
+                        help = '(Optional) mapping of input names to offsets. '
+                        'If not specified, offsets are set to 0. '
+                        'Example: --input-offset-map input_0=0 input_1=128 ...')
+    parser.add_argument('--shouldFail', action = 'store_true')
+    parser.set_defaults(shouldFail = False)
+
+    args = parser.parse_args()
+
+    try:
+        generateNetwork(args)
+    except Exception as e:
+        if args.shouldFail:
+            print("\033[92mNetwork generation ended, failed as expected!\033[0m")
+            sys.exit(0)
+        else:
+            raise e
+
+    if args.shouldFail:
+        raise RuntimeError("Expected to fail!")

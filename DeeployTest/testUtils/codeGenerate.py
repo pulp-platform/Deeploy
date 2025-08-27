@@ -24,7 +24,6 @@
 # limitations under the License.
 
 import os
-from pprint import pprint
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -51,7 +50,11 @@ def _shapeBroadcast(ctxt, value, name):
     return broadcastNum
 
 
-def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List, inputTypes: Dict, inputOffsets: Dict) -> str:
+def generateTestInputsHeader(deployer: NetworkDeployer,
+                             test_inputs: List,
+                             inputTypes: Dict,
+                             inputOffsets: Dict,
+                             verbose: Optional[bool] = None) -> str:
     retStr = ""
     inputNames = [deployer.ctxt.lookup(buf.name) for buf in deployer.graph.inputs]
     inputTypes = {buf.name: buf._type for buf in inputNames}
@@ -97,6 +100,12 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List, input
     ])
     retStr += "};\n"
 
+    if verbose:
+        print('Input:')
+        for name in inputTypes.keys():
+            buf = deployer.ctxt.lookup(name)
+            print(f" - '{name}': Type: {buf._type.referencedType.typeName}, Offset: {inputOffsets[name]}")
+
     return retStr
 
 
@@ -123,9 +132,9 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
         data_type = output_data_type[f"output_{index}"]
         isdatafloat = (data_type.referencedType.typeName == "float32_t")
 
+        output_n_levels[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}').nLevels
+        output_signed[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._signed
         if signProp and not isdatafloat:
-            output_n_levels[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}').nLevels
-            output_signed[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._signed
             test_outputs[index] -= int(
                 ((1 - output_signed[f"output_{index}"]) * (output_n_levels[f"output_{index}"] / 2)))
 
@@ -159,13 +168,14 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
     retStr += "};\n"
 
     if verbose:
+        print('Output:')
         if signProp:
-            print('Output N Levels:')
-            pprint(output_n_levels, indent = 2, width = 120)
-            print('Output Signed:')
-            pprint(output_signed, indent = 2, width = 120)
-        print('Output Data Type:')
-        pprint(output_data_type, indent = 2, width = 120)
+            for (name, buf), (_, n_level), (_, signed) in zip(output_data_type.items(), output_n_levels.items(),
+                                                              output_signed.items()):
+                print(f" - '{name}': Type: {buf.referencedType.typeName}, nLevels: {n_level}, Signed: {signed}")
+        else:
+            for (name, buf) in output_data_type.items():
+                print(f" - '{name}': Type: {buf.referencedType.typeName}")
 
     return retStr
 

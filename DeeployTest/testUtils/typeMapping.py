@@ -24,7 +24,7 @@
 # limitations under the License.
 
 from collections import namedtuple
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 
@@ -32,6 +32,32 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, int8_t
 
 offsetType = namedtuple("offsetType", ("type", "offset"))
+
+_ALL_DTYPES: dict[str, type] = {t.typeName: t for t in (*IntegerDataTypes, *FloatDataTypes)}
+
+
+def parseDataType(name: str) -> type:
+    """Parses a data type from its name.
+
+    Parameters
+    ----------
+    name : str
+        The name of the data type.
+
+    Returns
+    -------
+    class
+        The corresponding data type class.
+
+    Raises
+    ------
+    ValueError
+        If the provided data type name is unknown.
+    """
+    if name not in _ALL_DTYPES:
+        allowed = ", ".join(sorted(_ALL_DTYPES))
+        raise ValueError(f"Unknown data type: {name}. Allowed: {allowed}")
+    return _ALL_DTYPES[name]
 
 
 def isInteger(_input: np.array) -> bool:
@@ -58,41 +84,63 @@ def dataWidth(n):
     return ret
 
 
-def inferInputType(_input: np.ndarray,
-                   signProp: Optional[bool] = None,
-                   defaultType = PointerClass(int8_t),
+def inferInputType(values: np.ndarray,
+                   signProp: bool = False,
+                   defaultType = int8_t,
                    defaultOffset = 0) -> List[offsetType]:
+    """Infers the data type of the provided input array.
+
+    Parameters
+    ----------
+    values : np.ndarray
+        The input array for which to infer the data type.
+
+    signProp : bool
+        Whether to consider signedness when inferring the data type.
+
+    defaultType : type
+        The default data type to use if inference fails.
+
+    defaultOffset : int
+        The default offset to use if inference fails.
+
+    Returns
+    -------
+    List[offsetType]
+        A list of inferred data types and their corresponding offsets.
+    """
 
     # WIESEP: We cannot do type inference for empty arrays.
-    if np.prod(_input.shape) == 0:
-        print(f"Warning: Empty input array for type inference for {_input}!")
+    if np.prod(values.shape) == 0:
+        print(f"Warning: Empty input array for type inference for {values}!")
         return [(defaultType, defaultOffset)]
-
-    if signProp is None:
-        signProp = False
 
     signedPlatformTypes = [_type for _type in IntegerDataTypes if _type.typeMin < 0]
 
     matchingTypes = []
 
-    # FIXME: this is okay for now (3 distinctions are fine), but there is implicit
-    # knowledge encoded in the order of the checks (i.e. first unsigned, signed
-    # and then float). It might be good to extract that implicit knowledge into an ordered list.
-    if signProp and isUnsigned(_input) and isInteger(_input):
+    # There is implicit knowledge encoded in the order of the checks (i.e. first unsigned, signed
+    # and then float).
+    if signProp and isUnsigned(values) and isInteger(values):
         for _type in sorted(signedPlatformTypes, key = lambda x: x.typeWidth):
             signPropOffset = (2**(_type.typeWidth - 1))
-            if _type.checkPromotion(_input - signPropOffset):
+            if _type.checkPromotion(values - signPropOffset):
                 matchingTypes.append(offsetType(PointerClass(_type), signPropOffset))
-    elif isInteger(_input):
-        for _type in sorted(IntegerDataTypes, key = lambda x: x.typeWidth):
-            if _type.checkPromotion(_input):
+    elif isInteger(values):
+        sorted_types = sorted(
+            IntegerDataTypes,
+            key = lambda t: (t.typeWidth, t.typeMin < 0),
+        )
+
+        for _type in sorted_types:
+            if _type.checkPromotion(values):
                 matchingTypes.append(offsetType(PointerClass(_type), 0))
     else:
         for _type in sorted(FloatDataTypes, key = lambda x: x.typeWidth):
-            if _type.checkPromotion(_input):
+            if _type.checkPromotion(values):
                 matchingTypes.append(offsetType(PointerClass(_type), 0))
 
-    if matchingTypes == []:
-        raise Exception("Could not find a matching type!")
+    if not matchingTypes:
+        raise RuntimeError("Could not find a matching type!")
 
     return matchingTypes

@@ -3,11 +3,14 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 ## Unreleased (Planned Release Target: v0.2.1)
 ### List of Pull Requests
+- Change order of typeMatching entries [#68](https://github.com/pulp-platform/Deeploy/pull/68)
 - Node Mangling to avoid duplication [#93](https://github.com/pulp-platform/Deeploy/pull/93)
 - Prepare Post v0.2.0 Release [#104](https://github.com/pulp-platform/Deeploy/pull/104)
 - Use Docker digests instead of arch-specific tags [#106](https://github.com/pulp-platform/Deeploy/pull/106)
 
 ### Added
+- Add manual type inference feature (CLI: `--input-type-map`/`--input-offset-map`) to resolve ambiguities when test inputs are not representative enough
+- Added a `testTypeInferenceDifferentTypes` test case to validate type inference for different input types
 - Added `_mangleNodeNames` function to avoid duplicate node mappings
 - Output Docker image digests per platform (`amd64`, `arm64`) after build, which is used to construct the multi-arch Docker manifest. This preventes registry clutter caused by unnecessary per-architecture Docker tags.
 
@@ -19,7 +22,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
 
 ### Removed
--
+- Delete outdated and unused `.gitlab-ci.yml` file
 
 ## Release v0.2.0 (2025-07-08) [#103](https://github.com/pulp-platform/Deeploy/pull/103)
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
