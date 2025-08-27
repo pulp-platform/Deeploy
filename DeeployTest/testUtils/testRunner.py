@@ -180,12 +180,14 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
         self.add_argument('--input-type-map',
                           nargs = '*',
                           default = [],
+                          type = str,
                           help = '(Optional) mapping of input names to data types. '
                           'If not specified, types are inferred from the input data. '
                           'Example: --input-type-map input_0=int8_t input_1=float32_t ...')
         self.add_argument('--input-offset-map',
                           nargs = '*',
                           default = [],
+                          type = str,
                           help = '(Optional) mapping of input names to offsets. '
                           'If not specified, offsets are set to 0. '
                           'Example: --input-offset-map input_0=0 input_1=128 ...')

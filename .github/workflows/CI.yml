@@ -1039,16 +1039,19 @@ jobs:
             platform: Generic
             test: testTypeInferenceDifferentTypes
             map: A=int8_t B=int8_t C=int8_t
+            offset_map: A=0 B=0 C=0
             shouldFail: true
           - name: fail-input2
             platform: Generic
             test: testTypeInferenceDifferentTypes
             map: A=int16_t B=int8_t C=int16_t
+            offset_map: A=0 B=0 C=0
             shouldFail: true
           - name: pass
             platform: Generic
             test: testTypeInferenceDifferentTypes
-            map: A=int16_t B=int8_t C=int32_t
+            type_map: A=int16_t B=int8_t C=int32_t
+            offset_map: A=0 B=0 C=0
             shouldFail: false
     name: Test Type Inference (${{ matrix.name }})
     steps:
@@ -1065,5 +1068,6 @@ jobs:
             -p ${{ matrix.platform }} \
             -t ./Tests/${{ matrix.test }} \
             -v \
-            --input-type-map ${{ matrix.map }} \
+            --input-type-map ${{ matrix.type_map }} \
+            --input-type-offset ${{ matrix.offsetmap }} \
             ${{ matrix.shouldFail && '--shouldFail' || '' }}

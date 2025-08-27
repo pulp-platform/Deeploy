@@ -39,7 +39,7 @@ from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.typeMapping import inferInputType, parseDataType
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import int8_t
+from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import EmulateCMSISRequantPass
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
@@ -62,39 +62,38 @@ def generateNetwork(args):
     else:
         activations = None
 
-    tensors = graph.tensors()
-
     # build {name, type} and {name, offset} maps
     manual_types = {}
     manual_offsets = {}
     for kv in args.input_type_map:
         try:
             name, tstr = kv.split('=', 1)
-        except ValueError:
-            raise ValueError(f"Invalid --input-type-map entry '{kv}'. Expected NAME=TYPE.")
+        except ValueError as exc:
+            raise ValueError(f"Invalid --input-type-map entry '{kv}'. Expected NAME=TYPE.") from exc
         name, tstr = name.strip(), tstr.strip()
         try:
-            manual_types[name] = PointerClass(parseDataType(tstr))
-        except ValueError as e:
-            raise ValueError(f"Invalid --input-type-map entry '{kv}': {e}")
+            manual_types[name] = parseDataType(tstr)
+        except ValueError as exc:
+            raise ValueError(f"Invalid --input-type-map entry '{kv}': {exc}") from exc
     for kv in args.input_offset_map:
         try:
             name, ostr = kv.split('=', 1)
-        except ValueError:
-            raise ValueError(f"Invalid --input-offset-map entry '{kv}'. Expected NAME=OFFSET.")
+        except ValueError as exc:
+            raise ValueError(f"Invalid --input-offset-map entry '{kv}'. Expected NAME=OFFSET.") from exc
         name, ostr = name.strip(), ostr.strip()
         try:
             manual_offsets[name] = int(ostr)
-        except ValueError:
-            raise ValueError(f"Invalid --input-offset-map entry '{kv}': OFFSET must be an integer.")
+        except ValueError as exc:
+            raise ValueError(f"Invalid --input-offset-map entry '{kv}': OFFSET must be an integer.") from exc
 
     # Sanity check for unknown input names
-    npz_names = set(inputs.files)
-    bad_names = (set(manual_types) | set(manual_offsets)) - npz_names
-    if bad_names:
-        raise ValueError(f"Unknown input names in overrides: {bad_names}")
-
-    manual_keys = set(manual_types) | set(manual_offsets)
+    manual_keys = set(manual_types)
+    assert manual_keys == set(
+        manual_offsets
+    ), f"Override inputs should have both type and offset specified. Inputs without both specified: {manual_keys ^ set(manual_types)}"
+    assert manual_keys <= set(
+        inputs.files
+    ), f"Unknown input names in overrides: {manual_keys - set(inputs.files)} (Valid names are: {set(inputs.files)})"
 
     if args.debug:
         test_inputs, test_outputs, graph = generateDebugConfig(inputs, outputs, activations, graph)
@@ -114,15 +113,30 @@ def generateNetwork(args):
     for index, (name, num) in enumerate(zip(inputs.files, test_inputs)):
         if np.prod(num.shape) == 0:
             continue
-        defaultType = manual_types.get(name, PointerClass(int8_t))
-        defaultOffset = manual_offsets.get(name, 0)
-        autoInfer = name not in manual_keys
 
-        _type, offset = inferInputType(num,
-                                       signProp,
-                                       defaultType = defaultType,
-                                       defaultOffset = defaultOffset,
-                                       autoInfer = autoInfer)[0]
+        if name in manual_keys:
+            _type = manual_types[name]
+            offset = manual_offsets[name]
+
+            # Check if the provided values fit into the dereferenced type
+            vals = num.astype(np.int64) - offset
+            if not _type.checkPromotion(vals):
+                lo, hi = _type.typeMin, _type.typeMax
+                raise RuntimeError(f"Provided type '{_type.typeName}' with offset {offset} "
+                                   f"does not match input values in range [{vals.min()}, {vals.max()}] "
+                                   f"(expected range [{lo}, {hi}])")
+
+            # Suggest a smaller fitting type if possible
+            fitting_types = [t for t in sorted(IntegerDataTypes, key = lambda x: x.typeWidth) if t.checkPromotion(vals)]
+            if fitting_types and fitting_types[0] is not _type:
+                print(f"WARNING: Data spans [{int(vals.min())}, {int(vals.max())}], "
+                      f"which would fit in '{fitting_types[0].typeName}', "
+                      f"but user forced '{_type.typeName}'.")
+
+            _type = PointerClass(_type)
+        else:
+            _type, offset = inferInputType(num, signProp)[0]
+
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 
@@ -198,12 +212,14 @@ if __name__ == '__main__':
     parser.add_argument('--input-type-map',
                         nargs = '*',
                         default = [],
+                        type = str,
                         help = '(Optional) mapping of input names to data types. '
                         'If not specified, types are inferred from the input data. '
                         'Example: --input-type-map input_0=int8_t input_1=float32_t ...')
     parser.add_argument('--input-offset-map',
                         nargs = '*',
                         default = [],
+                        type = str,
                         help = '(Optional) mapping of input names to offsets. '
                         'If not specified, offsets are set to 0. '
                         'Example: --input-offset-map input_0=0 input_1=128 ...')

@@ -104,7 +104,7 @@ def generateTestInputsHeader(deployer: NetworkDeployer,
         print('Input:')
         for name in inputTypes.keys():
             buf = deployer.ctxt.lookup(name)
-            print(f" - '{name}': Type: {buf._type.typeName}, Offset: {inputOffsets[name]}")
+            print(f" - '{name}': Type: {buf._type.referencedType.typeName}, Offset: {inputOffsets[name]}")
 
     return retStr
 
@@ -172,10 +172,10 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
         if signProp:
             for (name, buf), (_, n_level), (_, signed) in zip(output_data_type.items(), output_n_levels.items(),
                                                               output_signed.items()):
-                print(f" - '{name}': Type: {buf.typeName}, nLevels: {n_level}, Signed: {signed}")
+                print(f" - '{name}': Type: {buf.referencedType.typeName}, nLevels: {n_level}, Signed: {signed}")
         else:
             for (name, buf) in output_data_type.items():
-                print(f" - '{name}': Type: {buf.typeName}")
+                print(f" - '{name}': Type: {buf.referencedType.typeName}")
 
     return retStr
 
