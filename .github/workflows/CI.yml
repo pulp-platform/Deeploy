@@ -1038,13 +1038,13 @@ jobs:
           - name: fail-input0
             platform: Generic
             test: testTypeInferenceDifferentTypes
-            map: A=int8_t B=int8_t C=int8_t
+            type_map: A=int8_t B=int8_t C=int8_t
             offset_map: A=0 B=0 C=0
             shouldFail: true
           - name: fail-input2
             platform: Generic
             test: testTypeInferenceDifferentTypes
-            map: A=int16_t B=int8_t C=int16_t
+            type_map: A=int16_t B=int8_t C=int16_t
             offset_map: A=0 B=0 C=0
             shouldFail: true
           - name: pass
@@ -1069,5 +1069,5 @@ jobs:
             -t ./Tests/${{ matrix.test }} \
             -v \
             --input-type-map ${{ matrix.type_map }} \
-            --input-type-offset ${{ matrix.offsetmap }} \
+            --input-offset-map  ${{ matrix.offset_map }} \
             ${{ matrix.shouldFail && '--shouldFail' || '' }}
