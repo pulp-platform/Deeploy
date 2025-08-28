@@ -1,7 +1,11 @@
-name: documentation
+name: Infrastructure • Generate Documentation
 
 on:
   push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'
   pull_request:
   workflow_dispatch:
 

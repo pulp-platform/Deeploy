@@ -1,4 +1,4 @@
-name: TestRunnerTiledSiracusaWithNeurekaSequential
+name: _runner-siracusa-tiled
 
 on:
   workflow_call:
@@ -25,21 +25,17 @@ on:
         default: false
         type: boolean
       memory-allocation-strategy:
-          required: false
-          default: "MiniMalloc"
-          type: string
-      search-strategy:
-          required: false
-          default: "random-max"
-          type: string
-      neureka-wmem:
         required: false
-        default: false
-        type: boolean
+        default: "MiniMalloc"
+        type: string
+      search-strategy:
+        required: false
+        default: "random-max"
+        type: string
 
 jobs:
 
-  test-runner-siracusa-neureka-tiled:
+  test-runner-siracusa-tiled:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
@@ -49,6 +45,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Install jq
         run: apt-get install -y jq
@@ -69,9 +66,7 @@ jobs:
             L1_values=$(echo "$test" | jq -r '.L1[]')
             for L1_value in $L1_values; do
               echo "Running test: $testName with L1: $L1_value"
-              python testRunner_tiled_siracusa_w_neureka.py -t Tests/$testName --cores=${{ inputs.num-cores }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} ${{ inputs.neureka-wmem && '--neureka-wmem' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
+              python testRunner_tiled_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
             done
           done
-
         shell: bash
-        

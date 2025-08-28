@@ -1,4 +1,4 @@
-name: TestRunnerSiracusa
+name: _runner-mempool
 
 on:
   workflow_call:
@@ -12,12 +12,9 @@ on:
       test-names:
         required: true
         type: string
-      num-cores:
-        required: true
-        type: number
 
 jobs:
-  test-runner-siracusa:
+  test-runner-mempool:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
@@ -27,6 +24,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4
@@ -42,8 +40,7 @@ jobs:
           echo "$testNames" | while IFS= read -r testName; do
             if [[ -n "$testName" ]]; then
               echo "Running test: $testName"
-              python testRunner_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }}
+              python testRunner_mempool.py -t Tests/$testName
             fi
           done
         shell: bash
-        

@@ -1,4 +1,4 @@
-name: TestRunnerChimera
+name: _runner-chimera
 
 on:
   workflow_call:
@@ -14,7 +14,7 @@ on:
         type: string
       simulators:
         required: true
-        type: string      
+        type: string
 
 jobs:
   test-runner-chimera:
@@ -27,6 +27,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4

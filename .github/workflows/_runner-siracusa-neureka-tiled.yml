@@ -1,4 +1,4 @@
-name: TestRunnerTiledSiracusaWithNeureka
+name: _runner-siracusa-neureka-tiled
 
 on:
   workflow_call:
@@ -40,7 +40,7 @@ on:
         required: false
         default: false
         type: boolean
-      
+
 
 jobs:
 
@@ -58,6 +58,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4
@@ -76,4 +77,3 @@ jobs:
             export CCACHE_DIR=/app/.ccache
             python testRunner_tiled_siracusa_w_neureka.py -t Tests/${{ inputs.test-name }} --cores=${{ inputs.num-cores }} --l1 ${{ matrix.L1 }} --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} ${{ inputs.neureka-wmem && '--neureka-wmem' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
           shell: bash
-        

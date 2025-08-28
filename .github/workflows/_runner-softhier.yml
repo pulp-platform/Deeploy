@@ -1,4 +1,4 @@
-name: TestRunnerSoftHier
+name: _runner-softhier
 
 on:
   workflow_call:
@@ -24,6 +24,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Run Test
         run: |
@@ -37,4 +38,3 @@ jobs:
             fi
           done
         shell: bash
-        

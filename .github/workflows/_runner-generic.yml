@@ -1,4 +1,4 @@
-name: TestRunnerSnitch
+name: _runner-generic
 
 on:
   workflow_call:
@@ -12,15 +12,9 @@ on:
       test-names:
         required: true
         type: string
-      num-cores:
-        required: true
-        type: number
-      simulators:
-        required: true
-        type: string      
 
 jobs:
-  test-runner-snitch:
+  test-runner-generic:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
@@ -30,6 +24,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4
@@ -39,18 +34,13 @@ jobs:
       - name: Run Test
         run: |
           testNames="${{ inputs.test-names }}"
-          simulators="${{inputs.simulators}}"
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          echo "$simulators" | while IFS= read -r simulator; do
-            if [[ -n "$simulator" ]]; then
-              echo "$testNames" | while IFS= read -r testName; do
-                if [[ -n "$testName" ]]; then
-                  echo "Running test $testName using $simulator"
-                  python testRunner_snitch.py -t Tests/$testName --simulator=$simulator --cores=${{ inputs.num-cores }}
-                fi
-              done
+          echo "$testNames" | while IFS= read -r testName; do
+            if [[ -n "$testName" ]]; then
+              echo "Running test: $testName"
+              python testRunner_generic.py -t Tests/$testName
             fi
           done
         shell: bash

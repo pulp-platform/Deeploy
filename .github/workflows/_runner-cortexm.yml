@@ -1,4 +1,4 @@
-name: TestRunnerCortexM
+name: _runner-cortexm
 
 on:
   workflow_call:
@@ -24,6 +24,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4
@@ -43,4 +44,3 @@ jobs:
             fi
           done
         shell: bash
-          

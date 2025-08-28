@@ -1,0 +1,65 @@
+name: CI • Lint & Licenses
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: 'Deeploy Image to use'
+        required: false
+        default: 'ghcr.io/pulp-platform/deeploy:devel'
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select-env:
+    uses: ./.github/workflows/_select-env.yml
+    with:
+      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+
+  linting:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Format Python
+        shell: bash
+        run: |
+          yapf -rpd -e "third_party/" -e "install/" -e "toolchain/" .
+      - name: Format Python Imports
+        shell: bash
+        run: |
+          isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./ -c -v
+          autoflake -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
+      - name: Format C
+        shell: bash
+        run: |
+          python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./ scripts
+      - name: Format Python Licenses
+        shell: bash
+        run: |
+          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude "run_clang_format.py" | grep ".*\.py$" || [[ $? == 1 ]]
+      - name: Format C Licenses
+        shell: bash
+        run: |
+          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.c$" || [[ $? == 1 ]]
+      - name: Format C Header Licenses
+        shell: bash
+        run: |
+          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.h$" || [[ $? == 1 ]]

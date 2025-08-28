@@ -1,0 +1,55 @@
+name: CI • Cortex-M
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: 'Deeploy Image to use'
+        required: false
+        default: 'ghcr.io/pulp-platform/deeploy:devel'
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select-env:
+    uses: ./.github/workflows/_select-env.yml
+    with:
+      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+
+  cortexm-kernels:
+    needs: select-env
+    uses: ./.github/workflows/_runner-cortexm.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      test-names: |
+        Adder
+        MultIO
+        test1DPad
+        test2DPad
+        testMatMul
+        testMatMulAdd
+        testMaxPool
+        testRQConv
+        testReduceSum
+        testReduceMean
+        testSlice
+
+  cortexm-models:
+    needs: select-env
+    uses: ./.github/workflows/_runner-cortexm.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      test-names: |
+        simpleRegression
+        WaveFormer

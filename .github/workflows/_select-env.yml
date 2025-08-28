@@ -1,0 +1,43 @@
+name: _select-env
+on:
+  workflow_call:
+    inputs:
+      docker_image_deeploy:
+        type: string
+        required: true
+    outputs:
+      image:
+        value: ${{ jobs.select.outputs.image }}
+      runner:
+        value: ${{ jobs.select.outputs.runner }}
+
+jobs:
+  select:
+    runs-on: ubuntu-latest
+    outputs:
+      image:  ${{ steps.set-docker-image.outputs.image }}
+      runner: ${{ steps.set-runner.outputs.runner }}
+    steps:
+      - id: set-docker-image
+        shell: bash
+        run: |
+          if [[ -n "${{ inputs.docker_image_deeploy }}" ]]; then
+            IMAGE="${{ inputs.docker_image_deeploy }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF##refs/tags/}"
+            IMAGE="ghcr.io/pulp-platform/deeploy:${TAG_NAME}"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            IMAGE="ghcr.io/pulp-platform/deeploy:main"
+          else
+            IMAGE="ghcr.io/pulp-platform/deeploy:devel"
+          fi
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      - id: set-runner
+        shell: bash
+        run: |
+          if [[ "${{ github.repository }}" == "pulp-platform/Deeploy" ]]; then
+            echo "runner=self-hosted" >> "$GITHUB_OUTPUT"
+          else
+            echo "runner=ubuntu-latest" >> "$GITHUB_OUTPUT"
+          fi

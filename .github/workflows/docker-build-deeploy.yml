@@ -1,7 +1,12 @@
-name: BuildDockerToolchain
+name: Docker • Build Deeploy Container
 
 on:
   workflow_dispatch:
+    inputs:
+      docker_image_toolchain:
+        description: 'Deeploy Toolchain Image to use'
+        required: false
+        default: 'ghcr.io/pulp-platform/deeploy-toolchain:latest'
 
 jobs:
   prepare:
@@ -27,8 +32,8 @@ jobs:
             echo "docker_tag=${{ env.BRANCH_NAME }}" >> $GITHUB_OUTPUT
           fi
 
-  build-toolchain:
-    name: Build Deeploy Toolchain Image
+  build-deeploy:
+    name: Build Deploy Image
     needs: [ prepare ]
     runs-on: ${{ matrix.runner }}
     outputs:
@@ -49,6 +54,7 @@ jobs:
       - name: Free up disk space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
+          tool-cache: true
           android: true
           dotnet: true
           haskell: true
@@ -68,7 +74,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: var-ccache
-          key: ${{ runner.os }}-${{ matrix.platform }}-build-cache-toolchain
+          key: ${{ runner.os }}-${{ matrix.platform }}-build-cache-deeploy
 
       - name: Inject build-cache
         uses: reproducible-containers/buildkit-cache-dance@v3.1.0
@@ -85,24 +91,28 @@ jobs:
         env:
           OWNER: '${{ github.repository_owner }}'
 
-      - name: Build and push toolchain image
+      - name: Build and push final deploy image
         id: build
         uses: docker/build-push-action@v6
         with:
           platforms: linux/${{ matrix.platform }}
           context: .
-          file: Container/Dockerfile.toolchain
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
+          file: Container/Dockerfile.deeploy
           push: true
-          outputs: type=image,name=ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain,annotation-index=true,name-canonical=true,push=true
+          build-args: |
+            BASE_IMAGE=${{ github.event.inputs.docker_image_toolchain }}
+          outputs: type=image,name=ghcr.io/${{ env.OWNER_LC }}/deeploy,annotation-index=true,name-canonical=true,push=true
 
       - name: Extract image digest
         id: digest
         run: echo "digest-${{ matrix.platform }}=${{ steps.build.outputs.digest }}" >> $GITHUB_OUTPUT
 
-  merge-toolchain-images:
-    name: Merge Deeploy Toolchain Images
+  merge-deeploy-images:
+    name: Merge Deeploy Images
     runs-on: ubuntu-latest
-    needs: [ prepare, build-toolchain ]
+    needs: [ prepare, build-deeploy ]
     steps:
       - name: GHCR Log-in
         uses: docker/login-action@v3
@@ -117,13 +127,13 @@ jobs:
         env:
           OWNER: '${{ github.repository_owner }}'
 
-      - name: Merge Toolchain Images
+      - name: Merge Deeploy Images
         uses: Noelware/docker-manifest-action@v1
         with:
           inputs: |
-            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain@${{ needs.build-toolchain.outputs.digest-amd64 }},
-            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain@${{ needs.build-toolchain.outputs.digest-arm64 }}
+            ghcr.io/${{ env.OWNER_LC }}/deeploy@${{ needs.build-deeploy.outputs.digest-amd64 }},
+            ghcr.io/${{ env.OWNER_LC }}/deeploy@${{ needs.build-deeploy.outputs.digest-arm64 }}
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:latest,
-            ghcr.io/${{ env.OWNER_LC }}/deeploy-toolchain:${{ needs.prepare.outputs.docker_tag }}
+            ghcr.io/${{ env.OWNER_LC }}/deeploy:latest,
+            ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}
           push: true
