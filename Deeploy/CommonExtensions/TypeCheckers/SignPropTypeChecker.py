@@ -6,6 +6,7 @@ from typing import List, Optional
 
 import onnx_graphsurgeon as gs
 
+from Deeploy.AbstractDataTypes import IntegerImmediate
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeTypeChecker, OperatorRepresentation, VariableBuffer
 
 
@@ -45,9 +46,14 @@ class SignPropTypeChecker(NodeTypeChecker):
         if signProp:
             nLevels = self._inferNumLevels(inputs, operatorRepresentation)
             signedness = self._inferSignedness(inputs, operatorRepresentation)
-
-            for obj, nLevels, sign in zip(outputs, nLevels, signedness):
-                obj.nLevels = nLevels
+            for obj, nLevel, sign in zip(outputs, nLevels, signedness):
+                obj.nLevels = nLevel
                 obj._signed = sign
+
+                if issubclass(obj._type.referencedType,
+                              IntegerImmediate) and not obj._type.checkNumLevels(nLevel, sign):
+                    print(
+                        f"[WARNING] {obj.name} has {nLevel} levels, but {obj._type.referencedType.typeName} only supports {obj._type.referencedType.nLevels} levels."
+                    )
 
         return ctxt
