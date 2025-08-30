@@ -110,8 +110,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             externalBufferRef = self._hoistReference(ctxt,
                                                      externalBuffer.name + "_ref",
                                                      externalBuffer,
+                                                     externalBufferShape,
                                                      override_type = VoidType)
-            externalBufferRef.shape = externalBufferShape
 
             tensorMemoryConstraint = nodeMemoryConstraint.inputTensorMemoryConstraints[externalBuffer.name]
             l1BuffersReferences = self._hoistMultibufferReferences(ctxt, localBuffer, tensorMemoryConstraint)
@@ -172,8 +172,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             externalBufferRef = self._hoistReference(ctxt,
                                                      externalBuffer.name + "_ref",
                                                      externalBuffer,
+                                                     externalBufferShape,
                                                      override_type = VoidType)
-            externalBufferRef.shape = externalBufferShape
 
             tensorMemoryConstraint = nodeMemoryConstraint.outputTensorMemoryConstraints[externalBuffer.name]
             l1BuffersReferences = self._hoistMultibufferReferences(ctxt, localBuffer, tensorMemoryConstraint)
@@ -208,7 +208,10 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             totalNumTiles = len(tilingSchedule.outputLoadSchedule),
             tileIdxPtr = operatorRepresentation['tileIdxPtr'],
             tileIdxVar = "TILING_I",
-            kernelLevelTiling = self.localMemory == "L1")  # HACK: temporary hack until reworking profiling
+            # TODO: The kernelLevelTiling field is used in profiling to know we are generating code around the kernel.
+            #       The current implementation does this by checking whether we are at the lowest memory level,
+            #       which is hardcoded by the value "L1". Change this to be memory level agnostic.
+            kernelLevelTiling = self.localMemory == "L1")
 
         executionBlock = self.generateAllTilingCode(executionBlock, metaInfo, ingressDmaTransferCalls,
                                                     ingressDmaWaitStatements, [], egressDmaTransferCalls,

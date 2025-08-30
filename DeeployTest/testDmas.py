@@ -16,7 +16,17 @@ def test(dma: str, inputShape: Tuple[int, ...], tileShape: Tuple[int, ...], node
 
     print(f"test{dma}: Testing {dma} with followig configuration:" + cfg_str)
 
-    cmd = [f"python testRunner_{dma}.py", f"-t test{dma}", "-DNUM_CORES=8"]
+    testRunnerMap = {
+        "MchanDma": "testRunner_siracusa_mchandma.py",
+        "L3Dma": "testRunner_siracusa_l3dma.py",
+        "SnitchDma": "testRunner_snitch_dma.py",
+    }
+
+    assert dma in testRunnerMap, f"{dma} missing its own testRunner mapping"
+
+    testRunner = testRunnerMap[dma]
+
+    cmd = [f"python {testRunner}", f"-t test{dma}", "-DNUM_CORES=8"]
     cmd.append(f"--input-shape {' '.join(str(x) for x in inputShape)}")
     cmd.append(f"--tile-shape {' '.join(str(x) for x in tileShape)}")
     cmd.append(f"--node-count {nodeCount}")

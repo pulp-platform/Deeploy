@@ -1,7 +1,9 @@
+import os
+
 import numpy as np
 from testUtils.codeGenerate import generateTestNetwork
 from testUtils.dmaUtils import MemcpyLayer, MemcpyParser, MemcpyTileConstraint, MemcpyTypeChecker, generate_graph, \
-    memcpyTemplate, prepare_deployer_with_custom_tiling, setup_pulp_deployer
+    memcpyTemplate, prepare_deployer_with_custom_tiling, setup_snitch_deployer
 from testUtils.testRunner import TestRunner, TestRunnerArgumentParser
 from testUtils.typeMapping import baseTypeFromName, dtypeFromDeeployType
 
@@ -9,9 +11,12 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeMapper, _NoVerbosity
-from Deeploy.Targets.PULPOpen.Bindings import MemoryAwareFunctionCallClosure, TilingCallClosure
-from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
-from Deeploy.Targets.PULPOpen.Dmas.MchanDma import MchanDma
+from Deeploy.Targets.Snitch.Bindings import MemoryAwareFunctionCallClosure, TilingCallClosure
+from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling
+from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterSynch import SnitchSynchCoresPass
+from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchCoreFilter import SnitchCoreFilterPass
+from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchProfileExecutionBlock import SnitchProfileExecutionBlockPass
+from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
     TilingVariableReplacementUpdate
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
@@ -35,7 +40,7 @@ testRunnerArgumentParser.add_argument('--node-count',
                                       default = 1,
                                       help = "Number of generated memcpy nodes")
 testRunnerArgumentParser.add_argument('--type', type = str, default = "uint8_t", help = "Tensor elements datatype")
-testRunner = TestRunner('Siracusa', 'gvsoc', True, testRunnerArgumentParser)
+testRunner = TestRunner('Snitch', 'gvsoc', tiling = True, argument_parser = testRunnerArgumentParser)
 
 inputShape = testRunner._args.input_shape
 tileShape = testRunner._args.tile_shape
@@ -52,16 +57,20 @@ assert all(tileDim <= inDim for inDim, tileDim in zip(inputShape, tileShape)), \
 
 graph = generate_graph(node_count, inputShape, dtype)
 inputTypes = {"input_0": PointerClass(_type)}
-deployer = setup_pulp_deployer(defaultMemory, targetMemory, graph, inputTypes, testRunner._args.doublebuffer)
+_DEEPLOYSTATEDIR = os.path.join(testRunner._dir_gen, "deeployStates")
+deployer = setup_snitch_deployer(defaultMemory, targetMemory, graph, inputTypes, testRunner._args.doublebuffer,
+                                 _DEEPLOYSTATEDIR)
 
 transformer = CodeTransformation([
+    SnitchCoreFilterPass("compute"),
+    SnitchProfileExecutionBlockPass(),
     TilingVariableReplacement(targetMemory),
-    TilingCallClosure(writeback = False, generateStruct = True),
+    TilingCallClosure(writeback = False),
+    SnitchSynchCoresPass(),
     TilingVariableReplacementUpdate(targetMemory),
-    PULPClusterTiling(defaultMemory, targetMemory, MchanDma()),
+    SnitchClusterTiling(defaultMemory, targetMemory, SnitchDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration(targetMemory),
-    TilingVariableReplacement(defaultMemory),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     MemoryManagementGeneration(defaultMemory),
     MemoryManagementGeneration(),

@@ -953,20 +953,24 @@ class NetworkContext():
                        shape: Tuple[int, ...] = (1,),
                        offset: Union[int, str, VariableBuffer] = 0,
                        override_type: Optional[Type[BaseType]] = None) -> _ReferenceBuffer:
-        """Helper function to register a _ReferenceBuffer to preexisting VariableBuffer
+        """Helper function to register a _ReferenceBuffer to a preexisting VariableBuffer
 
         Parameters
         ----------
         name : str
             Name of the _ReferenceBuffer to register
-        referencedBuffer : VariableBuffer
+        reference : VariableBuffer
             Referenced VariableBuffer
+        shape: Tuple[int, ...]
+            Shape of the _ReferenceBuffer
+        offset: Union[int, str, VariableBuffer]
+            Offset from the reference
         override_type: Optional[Type[BaseType]]
-            Optional argument to override the reference type.
+            Optional argument to override the reference type
 
         Returns
         -------
-        _ReferencedBuffer
+        _ReferenceBuffer
             Returns the newly registered _ReferenceBuffer
 
         """

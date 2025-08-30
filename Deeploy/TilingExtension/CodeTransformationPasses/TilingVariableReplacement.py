@@ -36,6 +36,7 @@ from Deeploy.DeeployTypes import CodeGenVerbosity, CodeSnippet, CodeTransformati
     _ReferenceBuffer
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import TilingHoistingMixIn
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
+from Deeploy.TilingExtension.TilerExtension import Tiler
 from Deeploy.TilingExtension.TilingCodegen import TilingSchedule, VariableReplacementScheme, minimizeVariableReplacement
 
 
@@ -47,7 +48,7 @@ class TilingVariableReplacement(CodeTransformationPass, IntrospectiveCodeTransfo
 
     @property
     def arenaName(self):
-        return f"MEMORYARENA_{self.targetMemLevel}"
+        return f"{Tiler.arenaName}_{self.targetMemLevel}"
 
     def _arenaAllocate(self, ctxt: NetworkContext, buffer: VariableBuffer, offset: int) -> VariableBuffer:
         arena = ctxt.lookup(self.arenaName)

@@ -276,7 +276,7 @@ def defaultScheduler(graph: gs.Graph) -> List[List[gs.Node]]:
 
 
 def setup_pulp_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph, inputTypes: Dict[str, Type[Pointer]],
-                        doublebuffer: bool) -> NetworkDeployer:
+                        doublebuffer: bool, deeployStateDir: str) -> NetworkDeployer:
     L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64000000)
     L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = 1024000)
     L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = 64000)
@@ -291,7 +291,13 @@ def setup_pulp_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph, 
 
     platform = MemoryPULPPlatform(memoryHierarchy, memoryLevelMap[targetMemory])
 
-    deployer = PULPDeployer(graph, platform, inputTypes, PULPOptimizer, defaultScheduler, default_channels_first = True)
+    deployer = PULPDeployer(graph,
+                            platform,
+                            inputTypes,
+                            PULPOptimizer,
+                            defaultScheduler,
+                            default_channels_first = True,
+                            deeployStateDir = deeployStateDir)
 
     memoryLevelAnnotationPasses = [AnnotateIOMemoryLevel(defaultMemory), AnnotateDefaultMemoryLevel(memoryHierarchy)]
     # Make the deployer memory-level aware
@@ -310,7 +316,7 @@ def setup_pulp_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph, 
 
 
 def setup_snitch_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph, inputTypes: Dict[str, Type[Pointer]],
-                          doublebuffer: bool) -> NetworkDeployer:
+                          doublebuffer: bool, deeployStateDir: str) -> NetworkDeployer:
     L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64000000)
     L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = 1024000)
     L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = 64000)
@@ -326,7 +332,12 @@ def setup_snitch_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph
     platform = SnitchPlatform()
     platform = MemoryPlatformWrapper(platform, memoryHierarchy, memoryLevelMap[targetMemory])
 
-    deployer = SnitchDeployer(graph, platform, inputTypes, SnitchOptimizer, defaultScheduler)
+    deployer = SnitchDeployer(graph,
+                              platform,
+                              inputTypes,
+                              SnitchOptimizer,
+                              defaultScheduler,
+                              deeployStateDir = deeployStateDir)
     memoryLevelAnnotationPasses = [AnnotateIOMemoryLevel(defaultMemory), AnnotateDefaultMemoryLevel(memoryHierarchy)]
     # Make the deployer memory-level aware
     deployer = MemoryDeployerWrapper(deployer, memoryLevelAnnotationPasses)

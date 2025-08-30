@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from testUtils.codeGenerate import generateTestNetwork
 from testUtils.dmaUtils import MemcpyLayer, MemcpyParser, MemcpyTileConstraint, MemcpyTypeChecker, generate_graph, \
@@ -9,9 +11,9 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeMapper, _NoVerbosity
-from Deeploy.Targets.PULPOpen.Bindings import L3MemoryAwareFunctionCallClosure, TilingCallClosure
-from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
-from Deeploy.Targets.PULPOpen.Dmas.L3Dma import l3DmaHack
+from Deeploy.Targets.PULPOpen.Bindings import MemoryAwareFunctionCallClosure, TilingCallClosure
+from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
+from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
     TilingVariableReplacementUpdate
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
@@ -42,8 +44,8 @@ tileShape = testRunner._args.tile_shape
 node_count = testRunner._args.node_count
 _type = baseTypeFromName(testRunner._args.type)
 dtype = dtypeFromDeeployType(_type)
-defaultMemory = "L3"
-targetMemory = "L2"
+defaultMemory = "L2"
+targetMemory = "L1"
 
 assert len(inputShape) == len(tileShape), \
     f'Input and tile shape should be of the same dimensionality. Received {len(inputShape)}D input shape vs. {len(tileShape)}D tile shape.'
@@ -52,17 +54,20 @@ assert all(tileDim <= inDim for inDim, tileDim in zip(inputShape, tileShape)), \
 
 graph = generate_graph(node_count, inputShape, dtype)
 inputTypes = {"input_0": PointerClass(_type)}
-deployer = setup_pulp_deployer(defaultMemory, targetMemory, graph, inputTypes, testRunner._args.doublebuffer)
+_DEEPLOYSTATEDIR = os.path.join(testRunner._dir_gen, "deeployStates")
+deployer = setup_pulp_deployer(defaultMemory, targetMemory, graph, inputTypes, testRunner._args.doublebuffer,
+                               _DEEPLOYSTATEDIR)
 
 transformer = CodeTransformation([
     TilingVariableReplacement(targetMemory),
     TilingCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacementUpdate(targetMemory),
-    PULPL3Tiling("L3", "L2", l3DmaHack),
+    PULPClusterTiling(defaultMemory, targetMemory, MchanDma()),
     ArgumentStructGeneration(),
-    L3MemoryAwareFunctionCallClosure(writeback = False),
-    MemoryManagementGeneration("L2"),
-    MemoryManagementGeneration("L3.*"),
+    MemoryManagementGeneration(targetMemory),
+    TilingVariableReplacement(defaultMemory),
+    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
+    MemoryManagementGeneration(defaultMemory),
     MemoryManagementGeneration(),
 ])
 
