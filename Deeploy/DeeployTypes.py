@@ -586,12 +586,12 @@ class NetworkContext():
         self.name = name
 
     def dealiasBuffer(self, name: str) -> str:
-        """Function to unravel reference instantiated in _ReferenceBuffer objects until the underlying VariableBuffer's name is returned
+        """Function to find the underlying aliased VariableBuffer
 
         Parameters
         ----------
-        referenceName : str
-            Name of the _ReferenceBuffer to unravel
+        name: str
+            Name of the VariableBuffer to dealias
 
         Returns
         -------
@@ -601,8 +601,7 @@ class NetworkContext():
         Raises
         ------
         Exception
-            Raises an Exception if references are circular, i.e. there
-            is no underlying VariableBuffer
+            Raises an Exception if aliases are circular
 
         """
         seenAliases: Set[str] = set()
@@ -614,6 +613,24 @@ class NetworkContext():
         return alias.name
 
     def unravelReference(self, ref: VariableBuffer) -> VariableBuffer:
+        """Function to find the underlying referenced VariableBuffer
+
+        Parameters
+        ----------
+        ref : VariableBuffer
+            Buffer to unravel
+
+        Returns
+        -------
+        str
+            Name of the original VariableBuffer that was referenced
+
+        Raises
+        ------
+        Exception
+            Raises an Exception if references are circular
+
+        """
         seenRefs = set()
         while isinstance(ref, _ReferenceBuffer):
             seenRefs.add(ref.name)
