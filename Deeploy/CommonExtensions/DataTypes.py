@@ -23,7 +23,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Tuple, Type
+from typing import Iterable, Tuple, Type, Union
+
+import numpy.typing as npt
 
 from Deeploy.AbstractDataTypes import FloatImmediate, IntegerImmediate
 
@@ -114,9 +116,29 @@ IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (sorted((
 FloatDataTypes: Tuple[Type[FloatImmediate], ...] = (bfloat16_t, float16_t, float32_t, float64_t)
 
 
-def minimalIntegerType(values: List[int]) -> Type[IntegerImmediate]:
-    # This way unsigned types are tried first
-    for _type in sorted(UnsignedIntegerDataTypes + SignedIntegerDataTypes, key = lambda ty: ty.typeWidth):
-        if _type.checkValue(values):
+def minimalIntegerType(value: Union[int, Iterable[int], npt.NDArray]) -> Type[IntegerImmediate]:
+    # Sort data types by typeWidth and signedness (unsigned types go first)
+    sorted_types = sorted(
+        IntegerDataTypes,
+        key = lambda t: (t.typeWidth, t.typeMin < 0),
+    )
+
+    for _type in sorted_types:
+        if _type.checkValue(value):
             return _type
-    raise RuntimeError(f"Couldn't find appropriate integer type for values: {values}")
+
+    raise RuntimeError(f"Couldn't find appropriate integer type for value: {value}")
+
+
+def minimalFloatType(value: Union[float, Iterable[float], npt.NDArray]) -> Type[FloatImmediate]:
+    # Sort data types by typeWidth
+    sorted_types = sorted(
+        FloatDataTypes,
+        key = lambda t: t.typeWidth,
+    )
+
+    for _type in sorted_types:
+        if _type.checkValue(value):
+            return _type
+
+    raise RuntimeError(f"Couldn't find appropriate float type for value: {value}")

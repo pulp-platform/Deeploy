@@ -37,7 +37,7 @@ from testUtils.graphDebug import generateDebugConfig
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import DBOnlyL3Tiler, DBTiler, SBTiler
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.DeeployTypes import CodeGenVerbosity, NetworkDeployer, ONNXLayer
 from Deeploy.EngineExtension.NetworkDeployers.EngineColoringDeployer import EngineColoringDeployerWrapper
@@ -97,10 +97,7 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
         platform.engines[0].enableStrides = True
 
     for index, num in enumerate(test_inputs):
-        # WIESP: Do not infer types and offset of empty arrays
-        if np.prod(num.shape) == 0:
-            continue
-        _type, offset = inferInputType(num, signProp)[0]
+        _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 
@@ -276,10 +273,7 @@ if __name__ == '__main__':
     signProp = False
 
     for index, num in enumerate(test_inputs):
-        # WIESP: Do not infer types and offset of empty arrays
-        if np.prod(num.shape) == 0:
-            continue
-        _type, offset = inferInputType(num, signProp)[0]
+        _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 

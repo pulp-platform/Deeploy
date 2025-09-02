@@ -23,10 +23,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Type, Union
 
 import onnx_graphsurgeon as gs
 
+from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
@@ -111,7 +112,7 @@ def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHie
 
 def mapDeployer(platform: DeploymentPlatform,
                 graph: gs.Graph,
-                inputTypes: Dict[str, type],
+                inputTypes: Dict[str, Type[Pointer]],
                 loweringOptimizer: Optional[TopologyOptimizer] = None,
                 scheduler: Optional[Callable] = None,
                 name: Optional[str] = None,

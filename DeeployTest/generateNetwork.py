@@ -35,7 +35,7 @@ from testUtils.codeGenerate import generateTestNetwork
 from testUtils.graphDebug import generateDebugConfig
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
-from testUtils.typeMapping import inferInputType, parseDataType
+from testUtils.typeMapping import inferTypeAndOffset, parseDataType
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes
@@ -50,9 +50,6 @@ _TEXT_ALIGN = 30
 def generateNetwork(args):
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
-
-    inputTypes = {}
-    inputOffsets = {}
 
     inputs = np.load(f'{args.dir}/inputs.npz')
     outputs = np.load(f'{args.dir}/outputs.npz')
@@ -109,8 +106,11 @@ def generateNetwork(args):
 
     platform, signProp = mapPlatform(args.platform)
 
-    for index, (name, num) in enumerate(zip(inputs.files, test_inputs)):
-        if np.prod(num.shape) == 0:
+    inputTypes = {}
+    inputOffsets = {}
+
+    for index, (name, values) in enumerate(zip(inputs.files, test_inputs)):
+        if np.prod(values.shape) == 0:
             continue
 
         if name in manual_keys:
@@ -118,7 +118,7 @@ def generateNetwork(args):
             offset = manual_offsets[name]
 
             # Check if the provided values fit into the dereferenced type
-            vals = num.astype(np.int64) - offset
+            vals = values.astype(np.int64) - offset
             if not _type.checkPromotion(vals):
                 lo, hi = _type.typeMin, _type.typeMax
                 raise RuntimeError(f"Provided type '{_type.typeName}' with offset {offset} "
@@ -134,7 +134,7 @@ def generateNetwork(args):
 
             _type = PointerClass(_type)
         else:
-            _type, offset = inferInputType(num, signProp)[0]
+            _type, offset = inferTypeAndOffset(values, signProp)
 
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset

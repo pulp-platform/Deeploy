@@ -31,7 +31,7 @@ import onnx
 import onnx_graphsurgeon as gs
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser, getPaths
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs import MemoryAwarePrintInputGeneration, \
     MemoryAwarePrintOutputGeneration, PrintInputGeneration, PrintOutputGeneration
@@ -89,10 +89,7 @@ if __name__ == "__main__":
     test_inputs = [inputs[x].reshape(-1).astype(np.float64) for x in inputs.files]
     test_outputs = [outputs[x].reshape(-1).astype(np.float64) for x in outputs.files]
     for index, num in enumerate(test_inputs):
-        # WIESP: Do not infer types and offset of empty arrays
-        if np.prod(num.shape) == 0:
-            continue
-        _type, offset = inferInputType(num, signProp)[0]
+        _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 

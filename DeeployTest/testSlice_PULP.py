@@ -33,7 +33,7 @@ import onnx_graphsurgeon as gs
 from testUtils.codeGenerate import generateTestNetwork
 from testUtils.platformMapping import mapDeployer, setupMemoryPlatform
 from testUtils.testRunner import escapeAnsi
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     platform = PULPPlatform()
 
     for index, num in enumerate(test_inputs):
-        _type, offset = inferInputType(num, signProp)[0]
+        _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 
