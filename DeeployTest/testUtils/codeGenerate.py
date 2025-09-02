@@ -58,9 +58,15 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
         if np.prod(values.shape) == 0:
             continue
 
-        values = _shapeBroadcast(deployer.ctxt, values, f"input_{index}")
+        bufferName = f"input_{index}"
 
-        buffer = deployer.ctxt.lookup(f"input_{index}")
+        #LMACAN: We have some tests which have extra inputs and this is a hack to circumvent that
+        if not deployer.ctxt.is_buffer(bufferName):
+            continue
+
+        values = _shapeBroadcast(deployer.ctxt, values, bufferName)
+
+        buffer = deployer.ctxt.lookup(bufferName)
         typeName = buffer._type.referencedType.typeName
         typeWidth = buffer._type.referencedType.typeWidth
 
