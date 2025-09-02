@@ -37,6 +37,10 @@
 #error "[mchan_v6.h] Nor MCHAN_EVENT nor MCHAN_POLLED defined!"
 #endif
 
+#if defined(MCHAN_EVENT) && defined(MCHAN_POLLED)
+#error "[mchan_v6.h] Define either MCHAN_EVENT or MCHAN_POLLED, not both!"
+#endif
+
 #if defined(MCHAN_EVENT) && !defined(MCHAN_EVENT_BIT)
 #error                                                                         \
     "[mchan_v6.h] MCHAN_EVENT_BIT should be defined when using events as signalization!"
