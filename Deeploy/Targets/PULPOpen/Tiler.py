@@ -50,8 +50,7 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBinding
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GatherTileConstraint import GatherTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint import FloatGEMMTileConstraint, GEMMTileConstraint, \
-    MatrixVecTileConstraint, TallGEMMTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint import FloatGEMMTileConstraint, GEMMTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint import iSoftmaxTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint import LayernormTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMulTileConstraint
@@ -78,10 +77,10 @@ PULPFPGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloat
                                                         tileConstraint = FloatGEMMTileConstraint())
 
 PULPRQSMatrixVecTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSMatrixVecBindings,
-                                                              tileConstraint = MatrixVecTileConstraint())
+                                                              tileConstraint = GEMMTileConstraint())
 
 PULPRQSTallGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSTallGEMMBindings,
-                                                             tileConstraint = TallGEMMTileConstraint())
+                                                             tileConstraint = GEMMTileConstraint())
 
 PULPMatMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMatMulBindings,
                                                         tileConstraint = MatMulTileConstraint())

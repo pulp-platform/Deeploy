@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Fix PULP GEMM `batch` serialization [#109](https://github.com/pulp-platform/Deeploy/pull/109)
 - Split CI Workflows by Platform and Task, Improve Formatting and Linting Reliability [#108](https://github.com/pulp-platform/Deeploy/pull/108)
 - Refactor tiling code generation [#105](https://github.com/pulp-platform/Deeploy/pull/105)
 - Change order of typeMatching entries [#68](https://github.com/pulp-platform/Deeploy/pull/68)
@@ -61,6 +62,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Prevent node duplication for graphs generated via GraphSurgeon
 - Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
 - Fix license CI check and prevent potential issues with `jq` installation
+- PULP Gemm `batch` variable serialization
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
