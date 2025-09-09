@@ -39,7 +39,7 @@ def _transposedDMAStrides(ctxt: NetworkContext, rect: HyperRectangle, direction:
     inRect = _permuteHyperRectangle(rect, _invPerm)
 
     maxTransferDims = tuple(inRect.dims[idx] if idx == permIdx else 1 for idx, permIdx in enumerate(perm))
-    maxTransferRect = HyperRectangle(maxTransferDims, inRect.offset)
+    maxTransferRect = HyperRectangle(inRect.offset, maxTransferDims)
 
     referenceBuffer = copy.copy(ctxt.lookup(L2Name))
     referenceBuffer.shape = _permute(referenceBuffer.shape, _invPerm)
