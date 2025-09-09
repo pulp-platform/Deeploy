@@ -52,9 +52,10 @@ class MchanDma(AsyncDma):
         mchanFlags += (1 << 3)  # event enable
 
         mchanTransferSize = math.prod(shape)
-        assert mchanTransferSize <= 2**17, (
-            "The Dma transfer size for mchan should be representable with 17 bits, "
-            f"current number of bits required is {math.ceil(math.log2(mchanTransferSize))}")
+        mchanTransferSizeBits = math.ceil(math.log2(mchanTransferSize))
+        assert mchanTransferSizeBits <= 17, (
+            "The transfer size is not representable with 17 bits. "
+            f"Received transfer size {mchanTransferSize} that requires {mchanTransferSizeBits}")
 
         operatorRepresentation["cmd"] = (mchanFlags << 17) + mchanTransferSize
 
