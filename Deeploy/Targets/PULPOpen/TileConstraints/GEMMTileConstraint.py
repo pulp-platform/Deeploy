@@ -117,6 +117,9 @@ class GEMMTileConstraint(TileConstraint):
         addrNames = ['A', 'B', 'mul', 'C', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
+        transA = operatorRepresentation['transA']
+        transB = operatorRepresentation['transB']
+
         buffA = ctxt.lookup(operatorRepresentation['A'])
         buffB = ctxt.lookup(operatorRepresentation['B'])
 
@@ -152,11 +155,19 @@ class GEMMTileConstraint(TileConstraint):
             replacements["O"].append(OSize)
             replacements["batch"].append(BSize)
 
-            AMatrixOffsets = (MOffset, NOffset)
-            AMatrixShape = (MSize, NSize)
+            if transA == 0:
+                AMatrixOffsets = (MOffset, NOffset)
+                AMatrixShape = (MSize, NSize)
+            else:
+                AMatrixOffsets = (NOffset, MOffset)
+                AMatrixShape = (NSize, MSize)
 
-            BMatrixOffsets = (OOffset, NOffset)
-            BMatrixShape = (OSize, NSize)
+            if transB == 0:
+                BMatrixOffsets = (NOffset, OOffset)
+                BMatrixShape = (NSize, OSize)
+            else:
+                BMatrixOffsets = (OOffset, NOffset)
+                BMatrixShape = (OSize, NSize)
 
             if len(buffA.shape) == 2:
                 ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
