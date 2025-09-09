@@ -142,7 +142,7 @@ def generate_tiling(ctxt: NetworkContext, memoryStart: str, memoryOrder: List[st
 
     tileSizeInBytes = tileSize * (_type.typeWidth // 8)
     for memory in singleTileMemories:
-        assertFitsInMemory(2 * tileSize, memory)
+        assertFitsInMemory(2 * tileSizeInBytes, memory)
 
     if doublebuffer:
         multiBufferCoefficient = 2
