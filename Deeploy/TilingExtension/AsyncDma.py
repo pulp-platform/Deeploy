@@ -1,5 +1,5 @@
 import math
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Dict, List, Literal, Set, Tuple, Type
 
 from Deeploy.DeeployTypes import CodeSnippet, NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer, \
@@ -31,7 +31,7 @@ class Future:
         return CodeSnippet(self._waitTemplate, self._operatorRepresentation())
 
 
-class AsyncDmaWaitingStrategy:
+class AsyncDmaWaitingStrategy(ABC):
 
     def __init__(self, FutureCls: Type[Future]) -> None:
         self.FutureCls = FutureCls
@@ -58,7 +58,7 @@ class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
         return self.asyncGroupFuture
 
 
-class AsyncDma:
+class AsyncDma(ABC):
 
     _waitingStrategy: AsyncDmaWaitingStrategy
 
