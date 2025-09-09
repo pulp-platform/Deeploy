@@ -118,19 +118,20 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
         assert len(transfers[0].dims) == len(externalBuffer.shape), \
             "External buffer's rank should be equal to the internal buffer's"
 
-        gen = AnydimAsyncDmaTransferAdapter(self.dma)
+        anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
-        initSnippets = gen.transfer(ctxt, externalBuffer, localBuffer, transfers[0].dims,
-                                    stridesFromShape(externalBuffer.shape), stridesFromShape(transfers[0].dims),
-                                    direction, future, math.prod(externalBuffer.shape))
+        initSnippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, transfers[0].dims,
+                                              stridesFromShape(externalBuffer.shape),
+                                              stridesFromShape(transfers[0].dims), direction, future,
+                                              math.prod(externalBuffer.shape))
 
         templates = [snippet.template for snippet in initSnippets]
         opReprUpdates = [[] for _ in range(len(initSnippets))]
 
         for rect in transfers:
-            snippets = gen.transfer(ctxt, externalBuffer,
-                                    localBuffer, rect.dims, stridesFromShape(externalBuffer.shape),
-                                    stridesFromShape(rect.dims), direction, future, math.prod(externalBuffer.shape))
+            snippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, rect.dims,
+                                              stridesFromShape(externalBuffer.shape), stridesFromShape(rect.dims),
+                                              direction, future, math.prod(externalBuffer.shape))
             for i, snippet in enumerate(snippets):
                 opReprUpdates[i].append(snippet.operatorRepresentation)
 

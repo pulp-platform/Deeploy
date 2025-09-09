@@ -92,6 +92,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         ]
 
         ingressFutures: Set[Future] = set()
+        initialFutures: Set[Future] = set()
 
         for tensorName, rectangles in dictOfArrays(tilingSchedule.inputLoadSchedule).items():
             localBuffer = ctxt.lookup(operatorRepresentation[tensorName])
@@ -129,14 +130,16 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                 self._generateDmaTransferCalls(ctxt, tensorName, rectangles, "TILING_I+1", nextLocalBufferReference,
                                                externalBufferRef, "ExternalToLocal", future))
 
-            gen = AnydimAsyncDmaTransferAdapter(self.dma)
+            anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
             initialFuture = self.dma.getFuture(tensorName + "_init")
-            initialDmaTransferCalls = gen.transfer(ctxt, externalBufferRef, localBuffer, rectangles[0].dims,
-                                                   stridesFromShape(externalBufferShape),
-                                                   stridesFromShape(rectangles[0].dims), "ExternalToLocal",
-                                                   initialFuture, math.prod(externalBufferShape))
+            initialFutures.add(initialFuture)
+            initialDmaTransferCalls = anydimAdapter.transfer(ctxt, externalBufferRef, localBuffer, rectangles[0].dims,
+                                                             stridesFromShape(externalBufferShape),
+                                                             stridesFromShape(rectangles[0].dims), "ExternalToLocal",
+                                                             initialFuture, math.prod(externalBufferShape))
             setupStatements.extend(initialDmaTransferCalls)
+            setupStatements.append(initialFuture.wait())
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I+1",
                                                                     externalBufferRef)
@@ -196,8 +199,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
         teardownStatements.extend([f.wait() for f in egressFutures])
 
-        setupStatements = [f.init() for f in ingressFutures | egressFutures] + setupStatements
-        teardownStatements.extend(f.deinit() for f in ingressFutures | egressFutures)
+        setupStatements = [f.init() for f in ingressFutures | initialFutures | egressFutures] + setupStatements
+        teardownStatements.extend(f.deinit() for f in ingressFutures | initialFutures | egressFutures)
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
 
