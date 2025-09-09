@@ -2,20 +2,52 @@
 This file contains the changelog for the Deeploy project. The changelog is divided into sections based on the version of the project. Each section contains a list of pull requests, features, changes, fixes, and removals that were made in that version.
 
 ## Unreleased (Planned Release Target: v0.2.1)
+
 ### List of Pull Requests
 - Change order of typeMatching entries [#68](https://github.com/pulp-platform/Deeploy/pull/68)
 - Node Mangling to avoid duplication [#93](https://github.com/pulp-platform/Deeploy/pull/93)
 - Prepare Post v0.2.0 Release [#104](https://github.com/pulp-platform/Deeploy/pull/104)
 - Use Docker digests instead of arch-specific tags [#106](https://github.com/pulp-platform/Deeploy/pull/106)
+- Refactor tiling code generation [#105](https://github.com/pulp-platform/Deeploy/pull/105)
 
 ### Added
 - Add manual type inference feature (CLI: `--input-type-map`/`--input-offset-map`) to resolve ambiguities when test inputs are not representative enough
 - Added a `testTypeInferenceDifferentTypes` test case to validate type inference for different input types
 - Added `_mangleNodeNames` function to avoid duplicate node mappings
 - Output Docker image digests per platform (`amd64`, `arm64`) after build, which is used to construct the multi-arch Docker manifest. This preventes registry clutter caused by unnecessary per-architecture Docker tags.
+- AsyncDma abstraction of DMA's
+- test runner per DMA and a script that tests all the DMA's
+- generic Single/DoubleBufferingTilingCodeGeneration classes
+- TilingVariableReplacementUpdate class that updates the variable replacement refs
+- TilingHoistingMixIn class that encapsulates all the hoisting helper functions of tiling
+- sorting of input memory allocations to allow references that live in the same memory level as the memory they are referencing
+- a function that tests the tiling solution for correctness which currently only tests buffer allocation for byte alignment
+- IntrospectiveCodeTransformation: `_indexPointer()`, `indexVars()`, `dereferenceVars()`. The `*Vars` functions index/dereference a list of variables (useful for tiling)
+- NetworkContext: `unravelReference()` that unravels a `_ReferenceBuffer` until the base buffer
+- NetworkContext: `is_object()` - helper function that determines whether the string represents a name of a local or global object
+- NetworkContext: `is_buffer()` - helper function that determines whether the string represents a name of a buffer
+- missing checks for environment variables
+- `_permuteHyperRectangle` helper function
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
+- mchan HAL is now reduced to bare-bones
+- refactor of the IntrospectiveCodeTransformation to work on the Mako template
+- refactor of memory allocation code transformation passes
+- _ReferenceBuffer accepts an optional `offset` argument to offset the reference
+- NetworkContext: `hoistReference` - accepts the actual buffer as reference instead of name, accepts shape, offset, and override_type arguments, and returns the actual buffer, not its name
+- `_mangleNodeRep` -> `_mangleOpRepr` - the canonical name we use is `OperatorRepresentation`. `NodeRep` and `ParseDict` are old iterations of the name.
+- rename of permutation functions to follow this convention: `permute` is an action that permutes something, `permutation` is a function that generates a permutation
+- `_permuteList` to just `_permute`
+- removed manual buffer name mangling since we do it in the ExecutionBlock generate() function, simplifies templates
+- we now check that buffer shapes/hyperrectangles/tiling ranks match which required changing a few `serializeTilingSolution` functions to preserve the same shape rank
+- big refactor of the code generation part of the TilingExtension and needed changes to PULPOpen and Snitch due to it
+- PULPClusterTilingSB and PULPClusterTilingDB now allow for transfers of any rank (dimensionality)
+- PULP's final output diff is now calculated as absolute error, instead of just subtraction
+- common code generation code between testMVP/generateNetwork/... was extracted into a single `generateTestNetwork` function
+- in some functions, instead of passing the name of a buffer, the actual buffer is just passed
+- tile function allows overriding the optimizer with external tilingSolution and memoryMap
+- refactor of the permutation functions for clarity
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
@@ -23,6 +55,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
+- dory_dma.c and dory_dma.h
 
 ## Release v0.2.0 (2025-07-08) [#103](https://github.com/pulp-platform/Deeploy/pull/103)
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
