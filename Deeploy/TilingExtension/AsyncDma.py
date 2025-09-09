@@ -119,6 +119,11 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
     def _transferTemplates(self) -> Dict[int, NodeTemplate]:
         return self.dma._transferTemplates
 
+    def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
+                       strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
+                       future: Future) -> OperatorRepresentation:
+        return self.dma.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
+
     def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
                  shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
                  direction: DmaDirection, future: Future) -> List[CodeSnippet]:
