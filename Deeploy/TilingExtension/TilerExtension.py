@@ -1001,17 +1001,18 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         return True
 
     def _printMemorySummary(self):
+        log.info("")
         log.info("Memory Usage Report:")
-        log.info(f"{'Level':<22} {'Capacity (bytes)':>16}   {'Total':>8}   {'(Static + Dynamic)':<21} {'Usage':<6}")
-        log.info("-" * 80)
+        log.info(f"  {'Level':<14} {'Capacity (bytes)':>10} {'Total':>10} (    Static + Dynamic   ) (Usage )")
+        log.info("  " + "-" * 78)
 
         for level, dynamicSize in self.worstCaseBufferSize.items():
             staticSize = self.tiler.outerMemoryScheduler.getConstantTensorOffset(self.ctxt, level)
             capacity = self.tiler.memoryHierarchy.memoryLevels[level].size
             total = staticSize + dynamicSize
 
-            log.info(f"{level:<22} {capacity:16,}   {total:8,d}   "
-                     f"({staticSize:6,d} + {dynamicSize:7,d})  "
+            log.info(f"  {level:<20} {capacity:10,} {total:10,d} "
+                     f"({staticSize:10,d} + {dynamicSize:10,d}) "
                      f"({total / capacity * 100:5.1f}%)")
 
 

@@ -3541,8 +3541,8 @@ class NetworkDeployer(NetworkContainer):
     def _printMemorySummary(self):
         log.info("")
         log.info("Memory Usage Report:")
-        log.info(f"Level                 Total (bytes)   (Static + Dynamic)    ")
-        log.info("-" * 80)
+        log.info(f"  Level                 Total (bytes)   (Static + Dynamic)    ")
+        log.info("  " + "-" * 60)
 
         _worstCaseBufferSize = self.worstCaseBufferSize
         if len(_worstCaseBufferSize) == 0:
@@ -3561,7 +3561,7 @@ class NetworkDeployer(NetworkContainer):
 
             total = staticSize + dynamicSize
 
-            log.info(f"{level:<22}     {total:8,d}   "
+            log.info(f"  {level:<22}     {total:8,d}   "
                      f"({staticSize:6,d} + {dynamicSize:7,d})  ")
 
     def generateFunction(self, verbose: CodeGenVerbosity = _NoVerbosity) -> str:
