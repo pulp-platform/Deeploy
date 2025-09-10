@@ -986,6 +986,24 @@ jobs:
           python testRegexMatching.py
         shell: bash
 
+  deeploy-test-dmas:
+    runs-on: ${{ needs.select-docker-image-and-runner.outputs.runner }}
+    needs: select-docker-image-and-runner
+    container:
+      image: ${{ needs.select-docker-image-and-runner.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          python testDmas.py
+        shell: bash
+
   linting:
     runs-on: ${{ needs.select-docker-image-and-runner.outputs.runner }}
     needs: select-docker-image-and-runner

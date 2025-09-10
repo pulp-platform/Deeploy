@@ -35,7 +35,7 @@ from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
-    VariableReplacementScheme, calculateRectangleOffset
+    VariableReplacementScheme, calculateFlatOffsetInBytes
 
 
 class NeurekaDenseConv2DTileConstraint(TileConstraint):
@@ -488,7 +488,7 @@ class NeurekaWmemDenseConv2DTileConstraint(TileConstraint):
             _, _, _, absoluteCOffset = absoluteCube.absoluteOffset
             weightShape = ctxt.lookup(varWeight).shape
             WeightCube = HyperRectangle((absoluteCOffset, 0, 0), (CSize, weightShape[-2], weightShape[-1]))
-            replacements['weight_addr_offset'].append(calculateRectangleOffset(WeightCube, ctxt.lookup(varWeight)))
+            replacements['weight_addr_offset'].append(calculateFlatOffsetInBytes(WeightCube, ctxt.lookup(varWeight)))
 
         inputLoadSchedule = []
         outputLoadSchedule = []

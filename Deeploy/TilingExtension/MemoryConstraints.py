@@ -42,7 +42,7 @@ class MemoryConstraint():
         self.size: Union[int, IntVar] = size
         self.multiBufferCoefficient: Union[int, IntVar] = 1
 
-        self.shape: Optional[Tuple[int]] = None
+        self.shape: Optional[Tuple[int, ...]] = None
         self.addrSpace: Optional[Tuple[int, int]] = None
 
     def __repr__(self) -> str:

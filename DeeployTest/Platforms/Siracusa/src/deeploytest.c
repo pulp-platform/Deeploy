@@ -169,7 +169,8 @@ void main(void) {
            i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
         OUTPUTTYPE expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
         OUTPUTTYPE actual = ((OUTPUTTYPE *)compbuf)[i];
-        OUTPUTTYPE diff = expected - actual;
+        int error = expected - actual;
+        OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
 
         if (diff) {
           tot_err += 1;

@@ -32,7 +32,7 @@ import onnx
 import onnx_graphsurgeon as gs
 from testUtils.platformMapping import defaultScheduler, mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser, getPaths
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     NCHWtoNHWCPass, TransposeMatmulInputsPass
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     platform, signProp = mapPlatform(args.platform)
 
     for index, num in enumerate(test_inputs):
-        _type, offset = inferInputType(num, signProp)[0]
+        _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
         if "simpleRegression" in args.dir:

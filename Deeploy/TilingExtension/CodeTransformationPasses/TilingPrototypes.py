@@ -36,7 +36,9 @@ from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NodeTemplate
 class TilingMetaInfo:
     nodeName: str
     nodeOps: int
-    numTiles: int
+    numTiles: str
+    totalNumTiles: int
+    tileIdxPtr: str
     tileIdxVar: str
     kernelLevelTiling: bool
 
@@ -44,16 +46,15 @@ class TilingMetaInfo:
 _CodeSegmentType = List[CodeSnippet]
 
 _measureCycles = NodeTemplate("""
-${nodeName}_${measurementName}_measurements[${tileIdx}] = getCycles();
+${measurements}[${tileIdxVar}] = getCycles();
 """)
 
 _measurementArrayDeclaration = NodeTemplate("""
-uint32_t ${nodeName}_${measurementName}_measurements[${numTiles}];
+uint32_t ${measurements}[${totalNumTiles}];
 """)
 
-_printPrefixAndSufixDeclaration = NodeTemplate("""
-const static char ${nodeName}_prefix[] = "[${nodeName}][${buffering}][${nodeOps} ops][Tile ";
-const static char ${nodeName}_suffix[] = " cycles \\n";
+_stringDeclaration = NodeTemplate("""
+const static char ${name}[] = "${string}";
 """)
 
 _measureConditionSetup = NodeTemplate("""
@@ -66,17 +67,12 @@ _measureConditionEnd = NodeTemplate("""
 
 _printLoopSetup = NodeTemplate("""
 StopTimer(); 
-<%
-current_level_num = nodeName[-1]
-lower_level_num = str(int(current_level_num) - 1)                            
-%>
-for (int printLoopIdx = DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_numTiles[*DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_tileIdxPtr -1];
-    printLoopIdx < DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_numTiles[*DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_tileIdxPtr]; 
-    printLoopIdx++){
+for (int ${profileIdxVar} = ${numTiles}[*${tileIdxPtr} -1]; ${profileIdxVar} < ${numTiles}[*${tileIdxPtr}]; ${profileIdxVar}++){
 """)
+
 _printCycleDifference = NodeTemplate(r"""
-printf("%s%u] %s%u%s", ${nodeName}_prefix,${tileIdx},"${flavorStr}", \
-${nodeName}_${endMeasurementName}_measurements[${tileIdx}] - ${nodeName}_${startMeasurementName}_measurements[${tileIdx}],${nodeName}_suffix);
+printf("%s%u] %s%u%s", ${prefixStr}, ${profileIdxVar}, "${flavorStr}", \
+${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
 """)
 
 _printLoopTeardown = NodeTemplate("""
@@ -156,26 +152,30 @@ class ProfilingPrototypeMixIn(ABC):
 
         nodeName = metaInfo.nodeName
         numTiles = metaInfo.numTiles
+        totalNumTiles = metaInfo.totalNumTiles
         nodeOps = metaInfo.nodeOps
 
-        measurementNameList = [
+        measurementsList = [
             "ingress_dma_wait_start", "ingress_dma_wait_end", "egress_dma_wait_start", "egress_dma_wait_end"
         ]
 
         if metaInfo.kernelLevelTiling:
-            measurementNameList = ["kernel_start", "kernel_end"] + measurementNameList
+            measurementsList = ["kernel_start", "kernel_end"] + measurementsList
 
-        for measurementName in measurementNameList:
+        for measurements in measurementsList:
             executionBlock.addLeft(_measurementArrayDeclaration, {
-                "nodeName": nodeName,
-                "measurementName": measurementName,
-                "numTiles": numTiles
+                "measurements": f"{nodeName}_{measurements}_measurements",
+                "totalNumTiles": totalNumTiles
             })
 
-        executionBlock.addLeft(_printPrefixAndSufixDeclaration, {
-            "nodeName": nodeName,
-            "nodeOps": nodeOps,
-            "buffering": bufferingStr
+        executionBlock.addLeft(_stringDeclaration, {
+            "name": f"{nodeName}_prefix",
+            "string": f"[{nodeName}][{bufferingStr}][{nodeOps} ops][Tile ",
+        })
+
+        executionBlock.addLeft(_stringDeclaration, {
+            "name": f"{nodeName}_suffix",
+            "string": " cycles \\n",
         })
 
         return executionBlock
@@ -185,33 +185,46 @@ class ProfilingPrototypeMixIn(ABC):
 
         numTiles = metaInfo.numTiles
         nodeName = metaInfo.nodeName
+        tileIdxPtr = metaInfo.tileIdxPtr
+        totalNumTiles = metaInfo.totalNumTiles
+        profileIdxVar = "PROFILING_I"
 
-        executionBlock.addRight(_printLoopSetup, {"numTiles": numTiles, "nodeName": nodeName})
+        executionBlock.addRight(_printLoopSetup, {
+            "numTiles": numTiles,
+            "nodeName": nodeName,
+            "profileIdxVar": profileIdxVar,
+            "tileIdxPtr": tileIdxPtr,
+        })
 
         executionBlock.addRight(
             _printCycleDifference, {
-                "nodeName": nodeName,
+                "prefixStr": f"{nodeName}_prefix",
+                "suffixStr": f"{nodeName}_suffix",
                 "flavorStr": "Input DMA took ",
-                "startMeasurementName": "ingress_dma_wait_start",
-                "endMeasurementName": "ingress_dma_wait_end",
-                "tileIdx": "printLoopIdx"
+                "measurementsStart": f"{nodeName}_ingress_dma_wait_start_measurements",
+                "measurementsEnd": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "profileIdxVar": profileIdxVar,
             })
+
         if metaInfo.kernelLevelTiling:
             executionBlock.addRight(
                 _printCycleDifference, {
-                    "nodeName": nodeName,
+                    "prefixStr": f"{nodeName}_prefix",
+                    "suffixStr": f"{nodeName}_suffix",
                     "flavorStr": "Kernel took ",
-                    "startMeasurementName": "kernel_start",
-                    "endMeasurementName": "kernel_end",
-                    "tileIdx": "printLoopIdx"
+                    "measurementsStart": f"{nodeName}_kernel_start_measurements",
+                    "measurementsEnd": f"{nodeName}_kernel_end_measurements",
+                    "profileIdxVar": profileIdxVar,
                 })
+
         executionBlock.addRight(
             _printCycleDifference, {
-                "nodeName": nodeName,
+                "prefixStr": f"{nodeName}_prefix",
+                "suffixStr": f"{nodeName}_suffix",
                 "flavorStr": "Output DMA took ",
-                "startMeasurementName": "egress_dma_wait_start",
-                "endMeasurementName": "egress_dma_wait_end",
-                "tileIdx": "printLoopIdx"
+                "measurementsStart": f"{nodeName}_egress_dma_wait_start_measurements",
+                "measurementsEnd": f"{nodeName}_egress_dma_wait_end_measurements",
+                "profileIdxVar": profileIdxVar,
             })
 
         executionBlock.addRight(_printLoopTeardown, {})
@@ -225,14 +238,12 @@ class ProfilingPrototypeMixIn(ABC):
 
         if metaInfo.kernelLevelTiling:
             executionBlock.addLeft(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "kernel_start",
-                "tileIdx": tileIdxVar
+                "measurements": f"{nodeName}_kernel_start_measurements",
+                "tileIdxVar": tileIdxVar
             })
             executionBlock.addRight(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "kernel_end",
-                "tileIdx": tileIdxVar
+                "measurements": f"{nodeName}_kernel_end_measurements",
+                "tileIdxVar": tileIdxVar
             })
 
         return executionBlock
@@ -300,31 +311,27 @@ class ProfilingSingleBufferingTilingMixIn(SingleBufferingTilingMixIn, ProfilingP
         _ingressDMAWaitStatements = []
         _ingressDMAWaitStatements.append(
             CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "ingress_dma_wait_start",
-                "tileIdx": tileIdxVar
+                "measurements": f"{nodeName}_ingress_dma_wait_start_measurements",
+                "tileIdxVar": tileIdxVar
             }))
         _ingressDMAWaitStatements += ingressDMAWaitStatements
         _ingressDMAWaitStatements.append(
             CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "ingress_dma_wait_end",
-                "tileIdx": tileIdxVar
+                "measurements": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "tileIdxVar": tileIdxVar
             }))
 
         _egressDMAWaitStatements = []
         _egressDMAWaitStatements.append(
             CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "egress_dma_wait_start",
-                "tileIdx": tileIdxVar
+                "measurements": f"{nodeName}_egress_dma_wait_start_measurements",
+                "tileIdxVar": tileIdxVar
             }))
         _egressDMAWaitStatements += egressDMAWaitStatements
         _egressDMAWaitStatements.append(
             CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "egress_dma_wait_end",
-                "tileIdx": tileIdxVar
+                "measurements": f"{nodeName}_egress_dma_wait_end_measurements",
+                "tileIdxVar": tileIdxVar
             }))
 
         executionBlock = super().generateInnerCode(executionBlock, metaInfo, ingressDMATransferCalls,
@@ -374,27 +381,24 @@ class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn, ProfilingP
                                      teardownStatements: _CodeSegmentType) -> ExecutionBlock:
 
         nodeName = metaInfo.nodeName
-        numTiles = metaInfo.numTiles
+        totalNumTiles = metaInfo.totalNumTiles
 
         executionBlock.addLeft(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "ingress_dma_wait_start",
-            "tileIdx": 0
+            "measurements": f"{nodeName}_ingress_dma_wait_start_measurements",
+            "tileIdxVar": 0
         })
 
         executionBlock = cls.measurementArrayDeclaration(executionBlock, metaInfo, bufferingStr = "DB")
 
         executionBlock.addRight(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "egress_dma_wait_start",
-            "tileIdx": numTiles - 1
+            "measurements": f"{nodeName}_egress_dma_wait_start_measurements",
+            "tileIdxVar": totalNumTiles - 1
         })
         executionBlock = super().generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements,
                                                               teardownStatements)
         executionBlock.addRight(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "egress_dma_wait_end",
-            "tileIdx": numTiles - 1
+            "measurements": f"{nodeName}_egress_dma_wait_end_measurements",
+            "tileIdxVar": totalNumTiles - 1
         })
 
         executionBlock = cls.injectPrintCycleDiff(executionBlock, metaInfo)
@@ -417,33 +421,29 @@ class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn, ProfilingP
         _ingressDMAWaitStatements.append(CodeSnippet(_measureConditionSetup, {"cond": f"{tileIdxVar} > 0"}))
         _ingressDMAWaitStatements.append(
             CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "ingress_dma_wait_start",
-                "tileIdx": tileIdxVar
+                "measurements": f"{nodeName}_ingress_dma_wait_start_measurements",
+                "tileIdxVar": tileIdxVar
             }))
         _ingressDMAWaitStatements.append(CodeSnippet(_measureConditionEnd, {}))
         _ingressDMAWaitStatements += ingressDMAWaitStatements
         _ingressDMAWaitStatements.append(
             CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "ingress_dma_wait_end",
-                "tileIdx": tileIdxVar
+                "measurements": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "tileIdxVar": tileIdxVar
             }))
 
         _egressDMAWaitStatements = []
         _egressDMAWaitStatements.append(CodeSnippet(_measureConditionSetup, {"cond": f"{tileIdxVar} > 0"}))
         _egressDMAWaitStatements.append(
             CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "egress_dma_wait_start",
-                "tileIdx": f"{tileIdxVar} - 1"
+                "measurements": f"{nodeName}_egress_dma_wait_start_measurements",
+                "tileIdxVar": f"{tileIdxVar} - 1"
             }))
         _egressDMAWaitStatements += egressDMAWaitStatements
         _egressDMAWaitStatements.append(
             CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "egress_dma_wait_end",
-                "tileIdx": f"{tileIdxVar} - 1"
+                "measurements": f"{nodeName}_egress_dma_wait_end_measurements",
+                "tileIdxVar": f"{tileIdxVar} - 1"
             }))
         _egressDMAWaitStatements.append(CodeSnippet(_measureConditionEnd, {}))
 

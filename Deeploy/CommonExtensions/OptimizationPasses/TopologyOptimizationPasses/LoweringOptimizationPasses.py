@@ -24,7 +24,7 @@
 # limitations under the License.
 
 from functools import partial
-from typing import Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Iterable, List, Optional, Sequence, Tuple, TypeVar, Union
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -32,6 +32,7 @@ import onnx_graphsurgeon as gs
 from Deeploy.CommonExtensions.OptimizationPasses.Matchers import Match
 from Deeploy.CommonExtensions.OptimizationPasses.PassClasses import ReplaceSequentialPatternPass, SequentialPass, \
     contextagnostic
+from Deeploy.TilingExtension.TilingCodegen import HyperRectangle
 
 
 def _createReshape(tensorIn: gs.Tensor,
@@ -106,59 +107,53 @@ def _prependSqueezeDims(tensor: gs.Tensor, name: str, axis: Union[int, Sequence[
 
 
 # Permute (0,1,2,3,...,N-2,N-1) -> (0,1,2,3,...,N-1,N-2)
-def _permuteLastTwoDims(length: int) -> List[int]:
-    outList = list(range(length))
-    tmp = outList[-1]
-    outList[-1] = outList[-2]
-    outList[-2] = tmp
-    return outList
+def _permutationLastTwoDims(N: int) -> List[int]:
+    assert N >= 2, "N needs to be larger then 2"
+    return list(range(N - 2)) + [N - 1, N - 2]
 
 
 # Permute (0,1,2,3,...,N-1) -> (0,2,3,...,N-1,1)
-def _permuteNCHWtoNHWC(length: int) -> List[int]:
-    outList = list(range(length))
-    outList.remove(1)
-    outList.append(1)
-    return outList
+def _permutationNCHWtoNHWC(N: int) -> List[int]:
+    assert N >= 3, "N needs to be larger then 3 for this to make any sense"
+    return [0] + list(range(2, N)) + [1]
 
 
 # Permute (0,1,2,3,...,N-1) -> (0,N-1,1,2,3,...,N-2)
-def _permuteNHWCtoNCHW(length: int) -> List[int]:
-    outList = list(range(length))
-    outList.remove(length - 1)
-    outList.insert(1, length - 1)
-    return outList
+def _permutationNHWCtoNCHW(N: int) -> List[int]:
+    assert N >= 3, "N needs to be larger then 3 for this to make any sense"
+    return [0, N - 1] + list(range(1, N - 1))
 
 
 # Calculate permutation q = p^(-1) s.t. q(p(i)) = i
 def _invertPermutation(permutation: List[int]) -> List[int]:
-    tuples = []
-    for idx, i in enumerate(permutation):
-        tuples.append((i, idx))
-    sortedTuples = sorted(tuples, key = lambda x: x[0])
-    outPermutation = []
-    for i in sortedTuples:
-        outPermutation.append(i[1])
-    return outPermutation
+    inverse = [0] * len(permutation)
+    for idx, permIdx in enumerate(permutation):
+        inverse[permIdx] = idx
+    return inverse
 
 
-def _permuteList(inputList: List, permutation: List[int]):
-    assert len(inputList) == len(permutation), "Permuted list and permutation must have equal length!"
-    outList = []
-    for i in permutation:
-        outList.append(inputList[i])
-    return outList
+T = TypeVar('T')
+
+
+def _permute(_list: Sequence[T], permutation: Sequence[int]) -> List[T]:
+    assert len(_list) == len(permutation), "Permuted list and permutation must have equal length!"
+    return [_list[i] for i in permutation]
+
+
+def _permuteHyperRectangle(rect: HyperRectangle, permutation: List[int]) -> HyperRectangle:
+    assert len(rect.dims) == len(permutation), "Permutation list and HyperRectangle must have equal dimensionality!"
+    return HyperRectangle(tuple(_permute(rect.offset, permutation)), tuple(_permute(rect.dims, permutation)))
 
 
 def _prependTransposeNode(anchor: gs.Variable,
                           nodeName: str,
                           permutation: Iterable[int],
-                          invert: bool = False) -> (gs.Node, gs.Variable):
+                          invert: bool = False) -> Tuple[gs.Node, gs.Variable]:
 
     if invert:
-        outShape = _permuteList(anchor.shape, _invertPermutation(permutation))
+        outShape = _permute(anchor.shape, _invertPermutation(permutation))
     else:
-        outShape = _permuteList(anchor.shape, permutation)
+        outShape = _permute(anchor.shape, permutation)
 
     anchorTransposeInput = gs.Variable(nodeName + "_Out", dtype = np.float32, shape = outShape)
     anchorTransposeNode = gs.Node(name = nodeName,
@@ -176,9 +171,9 @@ def _appendTransposeNode(anchor: gs.Variable,
                          invert: bool = False) -> (gs.Node, gs.Variable):
 
     if invert:
-        outShape = _permuteList(anchor.shape, _invertPermutation(permutation))
+        outShape = _permute(anchor.shape, _invertPermutation(permutation))
     else:
-        outShape = _permuteList(anchor.shape, permutation)
+        outShape = _permute(anchor.shape, permutation)
 
     anchorTransposeOutput = gs.Variable(nodeName + "_In", dtype = np.float32, shape = outShape)
     anchorTransposeNode = gs.Node(name = nodeName,
@@ -210,7 +205,7 @@ def _transposeMatMulInputs_fun(graph: gs.Graph, match: Match, name: str):
     # Prepend transpose on A if it's transposed
     if gemmNode.attrs['transA'] != 0:
         anchorTransposeNode, anchorTransposeOutput = _appendTransposeNode(inputA, name + "_A",
-                                                                          _permuteLastTwoDims(len(inputA.shape)))
+                                                                          _permutationLastTwoDims(len(inputA.shape)))
         gemmNode.inputs[0] = anchorTransposeOutput
         gemmNode.attrs['transA'] = 0
         graph.nodes.append(anchorTransposeNode)
@@ -218,7 +213,7 @@ def _transposeMatMulInputs_fun(graph: gs.Graph, match: Match, name: str):
     # Prepend transpose on B if it's not transposed
     if gemmNode.attrs['transB'] != 1:
         anchorTransposeNode, anchorTransposeOutput = _appendTransposeNode(inputB, name + "_B",
-                                                                          _permuteLastTwoDims(len(inputB.shape)))
+                                                                          _permutationLastTwoDims(len(inputB.shape)))
         gemmNode.inputs[1] = anchorTransposeOutput
         gemmNode.attrs['transB'] = 1
         graph.nodes.append(anchorTransposeNode)
@@ -256,8 +251,8 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         inputNode = opNode.inputs[0]
         outputNode = opNode.outputs[0]
 
-        inPermute = _permuteNCHWtoNHWC(len(inputNode.shape))
-        outPermute = _permuteNHWCtoNCHW(len(outputNode.shape))
+        inPermute = _permutationNCHWtoNHWC(len(inputNode.shape))
+        outPermute = _permutationNHWCtoNCHW(len(outputNode.shape))
 
         inputTransposeNode, inputTransposeOutput = _appendTransposeNode(inputNode, name + "_TransposeIn", inPermute)
         outputTransposeNode, outputTransposeInput = _prependTransposeNode(outputNode,
@@ -376,8 +371,8 @@ def _PULPDWNCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_chan
         inputNode = opNode.inputs[0]
         outputNode = opNode.outputs[0]
 
-        inPermute = _permuteNCHWtoNHWC(len(inputNode.shape))
-        outPermute = _permuteNHWCtoNCHW(len(outputNode.shape))
+        inPermute = _permutationNCHWtoNHWC(len(inputNode.shape))
+        outPermute = _permutationNHWCtoNCHW(len(outputNode.shape))
 
         outputTransposeNode, outputTransposeInput = _prependTransposeNode(outputNode,
                                                                           name + "_TransposeOut",
@@ -534,7 +529,7 @@ def _requantized_gemm_to_pw_fun(graph: gs.Graph, match: Match, name: str):
 
     # If transA is set then the matrix is of shape [B x K x M] and it needs to be transposed, otherwise its shape is  [B x M x K]
     if 'transA' in requantizedGemm.attrs and requantizedGemm.attrs['transA'] == 1:
-        matrixATransposeNode, matrixA = _appendTransposeNode(matrixA, name, _permuteLastTwoDims(len(matrixA.shape)))
+        matrixATransposeNode, matrixA = _appendTransposeNode(matrixA, name, _permutationLastTwoDims(len(matrixA.shape)))
         graph.nodes.append(matrixATransposeNode)
 
     # Align dimensions for convolution
@@ -551,7 +546,7 @@ def _requantized_gemm_to_pw_fun(graph: gs.Graph, match: Match, name: str):
     # If transB is set then the matrix is of shape [N x K] and it doesn't need to be transposed, otherwise its shape is [K x N] and it has to be transposed
     if not 'transB' in requantizedGemm.attrs or requantizedGemm.attrs['transB'] == 0:
         # matrixBTransposed, shape [N x K]
-        matrixBTransposeNode, matrixB = _appendTransposeNode(matrixB, name, _permuteLastTwoDims(len(matrixB.shape)))
+        matrixBTransposeNode, matrixB = _appendTransposeNode(matrixB, name, _permutationLastTwoDims(len(matrixB.shape)))
         graph.nodes.append(matrixBTransposeNode)
     # pwWeight, shape [N x 1 x 1 x K]
     matrixBExpandDimsNode, pwWeight = _appendExpandDims(matrixB, name, axis = (1, 2))

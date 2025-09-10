@@ -23,7 +23,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -34,7 +33,8 @@ from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
 
 
 class iRMSNormTileConstraint(TileConstraint):
@@ -75,7 +75,6 @@ class iRMSNormTileConstraint(TileConstraint):
         addrNames = ['data_in', 'weight', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
-
         replacements = {"size": []}
         replacementTypes = {"size": PointerClass(uint16_t)}
 
@@ -87,9 +86,7 @@ class iRMSNormTileConstraint(TileConstraint):
         outputLoadSchedule = []
 
         for cube in outputCubes:
-
-            weightCube = copy.deepcopy(cube)
-            weightCube.dims = (cube.dims[-1],)
+            weightCube = HyperRectangle((cube.offset[-1],), (cube.dims[-1],))
             inputLoadSchedule.append({"data_in": cube, "weight": weightCube})
 
         for out in outputCubes:

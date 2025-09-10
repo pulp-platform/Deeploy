@@ -48,6 +48,8 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import 
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
+from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
+from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatGELUTemplate, \
     FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, \
     FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, \
@@ -56,7 +58,8 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatAddTemplate, F
     iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
+    TilingVariableReplacementUpdate
 
 _clusterEntryClosureCallTemplate = NodeTemplate("""
 // ${closureName} CLOSURE CALL
@@ -115,29 +118,31 @@ ForkTransformer = CodeTransformation([
     TilingCallClosure(writeback = False),
     PULPSynchCoresPass(),
     ForkClosure(writeback = False, generateStruct = True),
-    PULPClusterTiling("L1"),
+    TilingVariableReplacementUpdate("L1"),
+    PULPClusterTiling("L2", "L1", MchanDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
-    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacement("L2"),
-    PULPL3Tiling("L2"),
+    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
+    PULPL3Tiling("L3", "L2", l3DmaHack),
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
-    MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration("L2"),
+    MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
 ])
 
 ClusterTransformer = CodeTransformation([
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False, generateStruct = True),
-    PULPClusterTiling("L1"),
+    TilingVariableReplacementUpdate("L1"),
+    PULPClusterTiling("L2", "L1", MchanDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
-    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacement("L2"),
-    PULPL3Tiling("L2"),
+    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
+    PULPL3Tiling("L3", "L2", l3DmaHack),
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),

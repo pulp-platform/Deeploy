@@ -23,15 +23,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import namedtuple
-from typing import List
+from typing import Tuple, Type
 
 import numpy as np
+import numpy.typing as npt
 
-from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, int8_t
-
-offsetType = namedtuple("offsetType", ("type", "offset"))
+from Deeploy.AbstractDataTypes import BaseType, IntegerImmediate, Pointer, PointerClass
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, float32_t, int8_t, int16_t, int32_t, \
+    minimalFloatType, minimalIntegerType, uint8_t, uint16_t, uint32_t
 
 _ALL_DTYPES: dict[str, type] = {t.typeName: t for t in (*IntegerDataTypes, *FloatDataTypes)}
 
@@ -60,34 +59,36 @@ def parseDataType(name: str) -> type:
     return _ALL_DTYPES[name]
 
 
-def isInteger(_input: np.array) -> bool:
-    if np.abs((_input.astype(int) - _input)).max() > 0.001:
-        return False
-    return True
+def isInteger(x: npt.NDArray) -> bool:
+    return np.abs((x.astype(int) - x)).max() <= 0.001
 
 
-def isUnsigned(_input: np.array) -> bool:
-    if (_input).min() < 0:
-        return False
-    return True
+def inferMinimalType(values: np.ndarray, default: Type[BaseType] = int8_t) -> Type[BaseType]:
+    # WIESEP: We cannot do type inference for empty arrays.
+    if np.prod(values.shape) == 0:
+        print(f"Warning: Empty input array for type inference for {values}!")
+        return default
+
+    if isInteger(values):
+        return minimalIntegerType(values)
+    else:
+        return minimalFloatType(values)
 
 
-def dataWidth(n):
-    count = 0
-    n = np.abs(int(n - 1))
-    while (n > 0):
-        count += 1
-        n = n >> 8
-    ret = 2**(count + 2)
-    if ret < 8:
-        ret = 8
-    return ret
+def signPropTypeAndOffset(_type: Type[IntegerImmediate]) -> Tuple[Type[IntegerImmediate], int]:
+    if _type.signed:
+        return _type, 0
+
+    unsigned2signed = {
+        unsigned.typeName: signed for unsigned, signed in zip([t for t in IntegerDataTypes if t.typeMin == 0
+                                                              ], [t for t in IntegerDataTypes if t.typeMin < 0])
+    }
+
+    signedType = unsigned2signed[_type.typeName]
+    return signedType, 2**(signedType.typeWidth - 1)
 
 
-def inferInputType(values: np.ndarray,
-                   signProp: bool = False,
-                   defaultType = int8_t,
-                   defaultOffset = 0) -> List[offsetType]:
+def inferTypeAndOffset(values: np.ndarray, signProp: bool = False) -> Tuple[Type[Pointer], int]:
     """Infers the data type of the provided input array.
 
     Parameters
@@ -97,50 +98,55 @@ def inferInputType(values: np.ndarray,
 
     signProp : bool
         Whether to consider signedness when inferring the data type.
-
-    defaultType : type
-        The default data type to use if inference fails.
-
-    defaultOffset : int
-        The default offset to use if inference fails.
-
     Returns
     -------
-    List[offsetType]
-        A list of inferred data types and their corresponding offsets.
+    Tuple[Type[BaseType], int]
+        The inferred type and offset
     """
 
-    # WIESEP: We cannot do type inference for empty arrays.
-    if np.prod(values.shape) == 0:
-        print(f"Warning: Empty input array for type inference for {values}!")
-        return [(defaultType, defaultOffset)]
+    _type = inferMinimalType(values)
 
-    signedPlatformTypes = [_type for _type in IntegerDataTypes if _type.typeMin < 0]
-
-    matchingTypes = []
-
-    # There is implicit knowledge encoded in the order of the checks (i.e. first unsigned, signed
-    # and then float).
-    if signProp and isUnsigned(values) and isInteger(values):
-        for _type in sorted(signedPlatformTypes, key = lambda x: x.typeWidth):
-            signPropOffset = (2**(_type.typeWidth - 1))
-            if _type.checkPromotion(values - signPropOffset):
-                matchingTypes.append(offsetType(PointerClass(_type), signPropOffset))
-    elif isInteger(values):
-        sorted_types = sorted(
-            IntegerDataTypes,
-            key = lambda t: (t.typeWidth, t.typeMin < 0),
-        )
-
-        for _type in sorted_types:
-            if _type.checkPromotion(values):
-                matchingTypes.append(offsetType(PointerClass(_type), 0))
+    if signProp and issubclass(_type, IntegerImmediate):
+        _type, offset = signPropTypeAndOffset(_type)
     else:
-        for _type in sorted(FloatDataTypes, key = lambda x: x.typeWidth):
-            if _type.checkPromotion(values):
-                matchingTypes.append(offsetType(PointerClass(_type), 0))
+        offset = 0
 
-    if not matchingTypes:
-        raise RuntimeError("Could not find a matching type!")
+    return PointerClass(_type), offset
 
-    return matchingTypes
+
+def baseTypeFromName(name: str) -> Type[BaseType]:
+    if name == "int8_t":
+        return int8_t
+    elif name == "uint8_t":
+        return uint8_t
+    elif name == "int16_t":
+        return int16_t
+    elif name == "uint16_t":
+        return uint16_t
+    elif name == "int32_t":
+        return int32_t
+    elif name == "uint32_t":
+        return uint32_t
+    elif name == "float32_t":
+        return float32_t
+    else:
+        raise RuntimeError(f"Unrecognized name {name}")
+
+
+def dtypeFromDeeployType(_ty: Type[BaseType]) -> npt.DTypeLike:
+    if _ty == int8_t:
+        return np.int8
+    elif _ty == uint8_t:
+        return np.uint8
+    elif _ty == int16_t:
+        return np.int16
+    elif _ty == uint16_t:
+        return np.uint16
+    elif _ty == int32_t:
+        return np.int32
+    elif _ty == uint32_t:
+        return np.uint32
+    elif _ty == float32_t:
+        return np.float32
+    else:
+        raise RuntimeError(f"Unimplemented conversion for type {_ty.typeName}")

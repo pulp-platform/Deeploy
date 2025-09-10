@@ -3,7 +3,7 @@ file(GLOB_RECURSE SOURCES
 )
 
 if(NOT DEFINED ENV{PULP_SDK_HOME})
-  message(FATAL_ERROR "Environemnt variable PULP_SDK_HOME not set.")
+  message(FATAL_ERROR "Environment variable PULP_SDK_HOME not set.")
 endif()
 
 if(platform STREQUAL "Siracusa" OR platform STREQUAL "Siracusa_w_neureka")

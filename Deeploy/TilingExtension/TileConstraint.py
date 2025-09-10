@@ -31,12 +31,11 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
-#from Deeploy import TilerModel
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import MemoryConstraint, NodeMemoryConstraint, TensorMemoryConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, MemoryTransfer, \
-    TilingSchedule, VariableReplacementScheme, computeHyperRectangleList
+    TilingSchedule, VariableReplacementScheme, computeTileHyperRectangles
 
 
 class TileConstraint():
@@ -65,19 +64,15 @@ class TileConstraint():
 
     @staticmethod
     def getBaseAddr(tilingSolution, targetMemLevel, name) -> List[Optional[int]]:
+        mc = tilingSolution.tensorMemoryConstraints[name].memoryConstraints[targetMemLevel]
 
-        block = tilingSolution.tensorMemoryConstraints[name].memoryConstraints[targetMemLevel]
-
-        if block.addrSpace is None:
+        if mc.addrSpace is None:
             return [None]
 
-        baseAddr = block.addrSpace[0]
-        endAddr = block.addrSpace[1]
-        sol = []
-        for it in range(block.multiBufferCoefficient):
-            addr = ((endAddr - baseAddr) // block.multiBufferCoefficient) * it + baseAddr
-            sol.append(addr)
-        return sol
+        start, end = mc.addrSpace
+        bufferSize = (end - start) // mc.multiBufferCoefficient
+
+        return [start + bufferSize * i for i in range(mc.multiBufferCoefficient)]
 
     @staticmethod
     def extractBaseAddr(tilingSolution: NodeMemoryConstraint, targetMemLevel: str,
@@ -102,9 +97,6 @@ class TileConstraint():
 
     @staticmethod
     def sanitizeTilingSchedule(tilingSchedule: TilingSchedule) -> TilingSchedule:
-
-        _tilingSchedule = tilingSchedule
-
         for baseOffsetName, baseOffsetValue in tilingSchedule.inputBaseOffsets.copy().items():
             if baseOffsetValue == [None]:
                 for step in tilingSchedule.inputLoadSchedule:
@@ -117,7 +109,7 @@ class TileConstraint():
                     del step[baseOffsetName]
                 del tilingSchedule.outputBaseOffsets[baseOffsetName]
 
-        return _tilingSchedule
+        return tilingSchedule
 
     @classmethod
     def wrapTilingSolution(
@@ -144,14 +136,13 @@ class TileConstraint():
         def getCubeTransfers(tensorConstraint: TensorMemoryConstraint, sourceCubes: List[AbsoluteHyperRectangle],
                              sourceMemoryLevel: str,
                              targetMemoryLevel: str) -> Tuple[List[AbsoluteHyperRectangle], List[int]]:
-
             solution = []
             solutionLengths = []
 
             for sourceCube in sourceCubes:
                 memTransfer = getMemoryTransfer(tensorConstraint, sourceCube.rectangle, sourceMemoryLevel,
                                                 targetMemoryLevel)
-                solutionCubes = computeHyperRectangleList(memTransfer)
+                solutionCubes = computeTileHyperRectangles(memTransfer)
                 solutionAbsoluteCubes = [
                     AbsoluteHyperRectangle(rectangle = cube,
                                            absoluteOffset = _offsetAdd(sourceCube.absoluteOffset, cube.offset))
@@ -162,32 +153,29 @@ class TileConstraint():
 
             return solution, solutionLengths
 
-        assert len(tilingSolution.outputTensorMemoryConstraints.keys()) == 1, "Expected node to have only one output!"
-        varOut = list(tilingSolution.outputTensorMemoryConstraints.keys())[0]
+        assert len(tilingSolution.outputTensorMemoryConstraints) == 1, "Expected node to have only one output!"
 
-        outTensorConstraint = tilingSolution.tensorMemoryConstraints[varOut]
-        outTensorMemoryLevelPath = list(outTensorConstraint.memoryConstraints.keys())
-        targetIdxs = [idx for idx, key in enumerate(outTensorMemoryLevelPath) if key == targetMemLevel]
+        outVar, outTensorConstraint = next(iter(tilingSolution.outputTensorMemoryConstraints.items()))
+        memoryPath = list(outTensorConstraint.memoryConstraints.keys())
 
-        assert len(targetIdxs) == 1, f"Received more than one spec for memoryLevel {targetMemLevel}"
-        targetIdx = targetIdxs[0]
+        assert targetMemLevel in memoryPath, \
+            f"Target memory level {targetMemLevel} does not exist in the memory path {memoryPath}"
+
+        targetIdx = memoryPath.index(targetMemLevel)
 
         if targetIdx == 0:
             # SCHEREMO: Watch out - this happens if inputs are in L(N+1) but outputs only in L(N)
             targetIdx = 1
 
-        fullShape = ctxt.lookup(varOut).shape
-        initialOffset = tuple([0] * len(fullShape))
+        fullShape = ctxt.lookup(outVar).shape
+        initialOffset = (0,) * len(fullShape)
         outputCubes = [
             AbsoluteHyperRectangle(rectangle = HyperRectangle(offset = initialOffset, dims = tuple(fullShape)),
                                    absoluteOffset = initialOffset)
         ]
 
-        for targetIdx in list(range(targetIdx + 1))[1:]:
-            sourceMemoryLevel = outTensorMemoryLevelPath[targetIdx - 1]
-            targetMemoryLevel = outTensorMemoryLevelPath[targetIdx]
-            outputCubes, solutionLengths = getCubeTransfers(outTensorConstraint, outputCubes, sourceMemoryLevel,
-                                                            targetMemoryLevel)
+        for source, target in zip(memoryPath[:targetIdx], memoryPath[1:targetIdx + 1]):
+            outputCubes, solutionLengths = getCubeTransfers(outTensorConstraint, outputCubes, source, target)
 
         arrayOfCubes = []
         _idx = 0

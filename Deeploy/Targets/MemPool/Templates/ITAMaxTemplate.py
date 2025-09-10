@@ -44,7 +44,7 @@ class _ITAMaxTemplate(NodeTemplate):
         size = operatorRepresentation['lastDimLength'] * 192
         name = operatorRepresentation['nodeName'] + f"_buffer"
         ctxt.hoistTransientBuffer(name, size)
-        operatorRepresentation['ctxtBuffer'] = ctxt._mangle(name)
+        operatorRepresentation['ctxtBuffer'] = name
         operatorRepresentation['ctxtBufferSize'] = size
 
         return ctxt, operatorRepresentation, [name]

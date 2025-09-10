@@ -114,7 +114,7 @@ class SoftmaxCrossEntropyTileConstraint(TileConstraint):
             replacements['num_classes'].append(num_classes)
             replacements['batch'].append(batch)
 
-            labelCube = HyperRectangle((0, cube.offset[0]), (1, batch))
+            labelCube = HyperRectangle((cube.offset[0],), (batch,))
             inputlabelCubes.append(labelCube)
 
         inputLoadSchedule = []

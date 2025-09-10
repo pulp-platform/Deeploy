@@ -117,9 +117,13 @@ class GEMMTileConstraint(TileConstraint):
         addrNames = ['A', 'B', 'mul', 'C', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
-        varA = operatorRepresentation['A']
+        transA = operatorRepresentation['transA']
+        transB = operatorRepresentation['transB']
 
-        NSize = ctxt.lookup(varA).shape[-1]
+        buffA = ctxt.lookup(operatorRepresentation['A'])
+        buffB = ctxt.lookup(operatorRepresentation['B'])
+
+        NSize = buffA.shape[-1]
         NOffset = 0
 
         inputACubes = []
@@ -151,8 +155,51 @@ class GEMMTileConstraint(TileConstraint):
             replacements["O"].append(OSize)
             replacements["batch"].append(BSize)
 
-            ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
-            BCube = HyperRectangle((BatchOffset, BOffset, OOffset, NOffset), (BatchSize, BSize, OSize, NSize))
+            if transA == 0:
+                AMatrixOffsets = (MOffset, NOffset)
+                AMatrixShape = (MSize, NSize)
+            else:
+                AMatrixOffsets = (NOffset, MOffset)
+                AMatrixShape = (NSize, MSize)
+
+            if transB == 0:
+                BMatrixOffsets = (NOffset, OOffset)
+                BMatrixShape = (NSize, OSize)
+            else:
+                BMatrixOffsets = (OOffset, NOffset)
+                BMatrixShape = (OSize, NSize)
+
+            if len(buffA.shape) == 2:
+                ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
+            elif len(buffA.shape) == 3:
+                ACube = HyperRectangle((BatchOffset,) + AMatrixOffsets, (BatchSize,) + AMatrixShape)
+            else:
+                ACube = HyperRectangle(
+                    (
+                        BatchOffset,
+                        BOffset,
+                    ) + AMatrixOffsets,
+                    (
+                        BatchSize,
+                        BSize,
+                    ) + AMatrixShape,
+                )
+
+            if len(buffB.shape) == 2:
+                BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
+            elif len(buffB.shape) == 3:
+                BCube = HyperRectangle((BatchOffset,) + BMatrixOffsets, (BatchSize,) + BMatrixShape)
+            else:
+                BCube = HyperRectangle(
+                    (
+                        BatchOffset,
+                        BOffset,
+                    ) + BMatrixOffsets,
+                    (
+                        BatchSize,
+                        BSize,
+                    ) + BMatrixShape,
+                )
 
             RequantCube = HyperRectangle((OOffset,), (OSize,))
 
@@ -301,13 +348,14 @@ class FloatGEMMTileConstraint(TileConstraint):
         transA = operatorRepresentation['transA']
         transB = operatorRepresentation['transB']
 
-        varA = operatorRepresentation['A']
-        varB = operatorRepresentation['B']
+        buffA = ctxt.lookup(operatorRepresentation['A'])
+        buffB = ctxt.lookup(operatorRepresentation['B'])
+        buffC = ctxt.lookup(operatorRepresentation['C'])
 
         if transA == 0:
-            NSize = ctxt.lookup(varA).shape[-1]
+            NSize = buffA.shape[-1]
         else:
-            NSize = ctxt.lookup(varA).shape[-2]
+            NSize = buffA.shape[-2]
 
         NOffset = 0
 
@@ -340,16 +388,60 @@ class FloatGEMMTileConstraint(TileConstraint):
             replacements["batch"].append(BSize)
 
             if transA == 0:
-                ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
+                AMatrixOffsets = (MOffset, NOffset)
+                AMatrixShape = (MSize, NSize)
             else:
-                ACube = HyperRectangle((BatchOffset, BOffset, NOffset, MOffset), (BatchSize, BSize, NSize, MSize))
+                AMatrixOffsets = (NOffset, MOffset)
+                AMatrixShape = (NSize, MSize)
 
             if transB == 0:
-                BCube = HyperRectangle((BatchOffset, BOffset, NOffset, OOffset), (BatchSize, BSize, NSize, OSize))
+                BMatrixOffsets = (NOffset, OOffset)
+                BMatrixShape = (NSize, OSize)
             else:
-                BCube = HyperRectangle((BatchOffset, BOffset, OOffset, NOffset), (BatchSize, BSize, OSize, NSize))
+                BMatrixOffsets = (OOffset, NOffset)
+                BMatrixShape = (OSize, NSize)
 
-            CCube = HyperRectangle(cube.offset, cube.dims)
+            if len(buffA.shape) == 2:
+                ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
+            elif len(buffA.shape) == 3:
+                ACube = HyperRectangle((BatchOffset,) + AMatrixOffsets, (BatchSize,) + AMatrixShape)
+            else:
+                ACube = HyperRectangle(
+                    (
+                        BatchOffset,
+                        BOffset,
+                    ) + AMatrixOffsets,
+                    (
+                        BatchSize,
+                        BSize,
+                    ) + AMatrixShape,
+                )
+
+            if len(buffB.shape) == 2:
+                BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
+            elif len(buffB.shape) == 3:
+                BCube = HyperRectangle((BatchOffset,) + BMatrixOffsets, (BatchSize,) + BMatrixShape)
+            else:
+                BCube = HyperRectangle(
+                    (
+                        BatchOffset,
+                        BOffset,
+                    ) + BMatrixOffsets,
+                    (
+                        BatchSize,
+                        BSize,
+                    ) + BMatrixShape,
+                )
+
+            CMatrixOffsets = (MOffset, OOffset)
+            CMatrixShape = (MSize, OSize)
+
+            if len(buffC.shape) == 2:
+                CCube = HyperRectangle(CMatrixOffsets, CMatrixShape)
+            elif len(buffC.shape) == 3:
+                CCube = HyperRectangle((BatchOffset,) + CMatrixOffsets, (BatchSize,) + CMatrixShape)
+            else:
+                CCube = HyperRectangle((BatchOffset, BOffset) + CMatrixOffsets, (BatchSize, BSize) + CMatrixShape)
 
             inputACubes.append(ACube)
             inputBCubes.append(BCube)

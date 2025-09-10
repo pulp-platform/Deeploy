@@ -62,8 +62,11 @@ class EngineColoringDeployer(NetworkDeployer):
 
     def lower(self, graph: gs.Graph) -> gs.Graph:
         graph = super().lower(graph)
-        uncoloredNodes = [node.name for node in graph.nodes if "engine" not in node.attrs]
-        assert len(uncoloredNodes) == 0, f"Missing engine color for nodes {uncoloredNodes}"
+        uncoloredNodes = [node for node in graph.nodes if "engine" not in node.attrs]
+        uncoloredOperations = set(node.op for node in uncoloredNodes)
+        assert len(
+            uncoloredNodes
+        ) == 0, f"Missing engine color for nodes {[node.name for node in uncoloredNodes]} with operations {uncoloredOperations}"
         return graph
 
     def _mapNode(self, node: gs.Node) -> Union[ONNXLayer, Any]:

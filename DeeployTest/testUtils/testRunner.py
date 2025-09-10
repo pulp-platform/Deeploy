@@ -322,6 +322,7 @@ class TestRunner():
         self.gen_args = gen_args
 
         self._dir_gen_root = f'TEST_{platform.upper()}'
+        assert self._args.toolchain_install_dir is not None, f"Environment variable LLVM_INSTALL_DIR is not set"
         self._dir_toolchain = os.path.normpath(self._args.toolchain_install_dir)
         self._dir_build = f"{self._dir_gen_root}/build"
         self._dir_gen, self._dir_test, self._name_test = getPaths(self._args.dir, self._dir_gen_root)
