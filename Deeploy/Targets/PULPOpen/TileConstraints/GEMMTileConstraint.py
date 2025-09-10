@@ -24,6 +24,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 from typing import Dict, List, Tuple
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -112,7 +113,29 @@ class GEMMTileConstraint(TileConstraint):
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+        """
+            Serialize a tiling solution for a GEMM-like operator into a VariableReplacementScheme and a TilingSchedule.
+            
+            Constructs input/output HyperRectangle tiles and replacement vectors from the provided absolute output cubes and the operator representation:
+            - Treats the last two tensor dimensions of each output cube as M and O respectively; any leading dimensions are treated as batch dimensions and their product becomes the `batch` replacement.
+            - Reconstructs corresponding A and B input tiles (respecting transposition flags `transA` / `transB`) and a per-output requantization tile for the O dimension.
+            - If an input buffer has more than two shape dimensions, the corresponding leading batch offsets/shapes from the output cube are prepended to the input tile offsets/shapes.
+            - Populates replacement lists for M, N, O, and batch and assigns pointer-sized replacement types (uint16 for M/N/O, uint8 for batch).
+            - Asserts that when there are more than three offset entries for an output cube, any extra leading offsets (above the batch dimensions considered) are zero (sanity check that upper dimensions are not tiled).
+            
+            Parameters:
+            - tilingSolution: NodeMemoryConstraint describing the tiling solution used to extract base addresses.
+            - absoluteOutputCubes: list of AbsoluteHyperRectangle objects representing absolute output rectangles to serialize.
+            - targetMemLevel: memory level name used when extracting base addresses.
+            - ctxt: network context used to look up buffer metadata (e.g., shapes) — treated as a contextual service and not documented in detail.
+            - operatorRepresentation: mapping with operator attributes required for serialization (must include keys 'A', 'B', 'transA', 'transB', and 'mul'/'C'/'data_out' names referenced by addrNames).
+            
+            Returns:
+            A tuple (VariableReplacementScheme, TilingSchedule):
+            - VariableReplacementScheme: contains replacement value lists for keys "M", "N", "O", and "batch" and their pointer-sized types.
+            - TilingSchedule: contains base addresses and per-tile input/output load schedules built from the reconstructed HyperRectangles.
+            """
+            outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         addrNames = ['A', 'B', 'mul', 'C', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
@@ -135,25 +158,21 @@ class GEMMTileConstraint(TileConstraint):
 
         # Every output is constructed by a pair of inputs. Reconstruct this pair.
         for cube in outputCubes:
+            MOffset, OOffset = cube.offset[-2:]
+            MSize, OSize = cube.dims[-2:]
 
-            BSize = 1
-            BOffset = 0
-            BatchSize = 1
-            BatchOffset = 0
+            if len(cube.offset) > 2:
+                BatchSize = math.prod(cube.dims[:-2])
 
-            if len(cube.offset) == 2:
-                (MOffset, OOffset) = cube.offset
-                (MSize, OSize) = cube.dims
-            elif len(cube.offset) == 3:
-                (BatchOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, MSize, OSize) = cube.dims
+                # Check that we don't tile upper dimensions
+                if len(cube.offset) > 3:
+                    assert all(off == 0 for off in cube.offset[:-3])
             else:
-                (BatchOffset, BOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, BSize, MSize, OSize) = cube.dims
+                BatchSize = 1
 
             replacements["M"].append(MSize)
             replacements["O"].append(OSize)
-            replacements["batch"].append(BSize)
+            replacements["batch"].append(BatchSize)
 
             if transA == 0:
                 AMatrixOffsets = (MOffset, NOffset)
@@ -162,6 +181,13 @@ class GEMMTileConstraint(TileConstraint):
                 AMatrixOffsets = (NOffset, MOffset)
                 AMatrixShape = (NSize, MSize)
 
+            if len(buffA.shape) > 2:
+                batchDimCount = len(buffA.shape) - 2
+                AMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + AMatrixOffsets
+                AMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + AMatrixShape
+
+            ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
+
             if transB == 0:
                 BMatrixOffsets = (NOffset, OOffset)
                 BMatrixShape = (NSize, OSize)
@@ -169,37 +195,12 @@ class GEMMTileConstraint(TileConstraint):
                 BMatrixOffsets = (OOffset, NOffset)
                 BMatrixShape = (OSize, NSize)
 
-            if len(buffA.shape) == 2:
-                ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
-            elif len(buffA.shape) == 3:
-                ACube = HyperRectangle((BatchOffset,) + AMatrixOffsets, (BatchSize,) + AMatrixShape)
-            else:
-                ACube = HyperRectangle(
-                    (
-                        BatchOffset,
-                        BOffset,
-                    ) + AMatrixOffsets,
-                    (
-                        BatchSize,
-                        BSize,
-                    ) + AMatrixShape,
-                )
+            if len(buffB.shape) > 2:
+                batchDimCount = len(buffB.shape) - 2
+                BMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + BMatrixOffsets
+                BMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + BMatrixShape
 
-            if len(buffB.shape) == 2:
-                BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
-            elif len(buffB.shape) == 3:
-                BCube = HyperRectangle((BatchOffset,) + BMatrixOffsets, (BatchSize,) + BMatrixShape)
-            else:
-                BCube = HyperRectangle(
-                    (
-                        BatchOffset,
-                        BOffset,
-                    ) + BMatrixOffsets,
-                    (
-                        BatchSize,
-                        BSize,
-                    ) + BMatrixShape,
-                )
+            BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
 
             RequantCube = HyperRectangle((OOffset,), (OSize,))
 
@@ -339,7 +340,24 @@ class FloatGEMMTileConstraint(TileConstraint):
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+        """
+            Build a VariableReplacementScheme and TilingSchedule by reconstructing input tiles (A, B, C) from absolute output cubes for a GEMM-like operator.
+            
+            Detailed behavior:
+            - Uses cls.extractBaseAddr to compute base offsets for inputs ['A','B','C','data_out'] at the given memory level.
+            - For each AbsoluteHyperRectangle in absoluteOutputCubes, treats the last two dimensions as (M, O) and any leading dimensions as batch dimensions. BatchSize is the product of leading dims when present; if there are more than three offset entries the function asserts that all higher offsets are zero.
+            - Reconstructs HyperRectangles for A, B, and C respecting transposition flags operatorRepresentation['transA'] and operatorRepresentation['transB'], and prepends any required batch-dimension offsets/shapes when the corresponding buffer has more than two shape dimensions.
+            - Produces replacement lists for variables "M", "O", "batch", and a constant "N" derived from the A buffer shape (respecting transposition). Replacement pointer types are set for M, N, O, and batch.
+            - Assembles inputLoadSchedule entries pairing reconstructed A/B/C tiles and outputLoadSchedule entries for data_out, then returns the VariableReplacementScheme and the constructed TilingSchedule.
+            
+            Parameters:
+                absoluteOutputCubes (List[AbsoluteHyperRectangle]): output rectangles from the tiling solution; last two axes are interpreted as M and O.
+                operatorRepresentation (OperatorRepresentation): mapping that must include keys 'A', 'B', 'C', 'transA', and 'transB' used to locate buffers and determine transposition.
+            
+            Returns:
+                Tuple[VariableReplacementScheme, TilingSchedule]: a replacement scheme mapping variables ("M","N","O","batch") to lists and types, and a TilingSchedule containing base offsets and per-tile load schedules.
+            """
+            outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         addrNames = ['A', 'B', 'C', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
@@ -367,25 +385,21 @@ class FloatGEMMTileConstraint(TileConstraint):
 
         # Every output is constructed by a pair of inputs. Reconstruct this pair.
         for cube in outputCubes:
+            MOffset, OOffset = cube.offset[-2:]
+            MSize, OSize = cube.dims[-2:]
 
-            BSize = 1
-            BOffset = 0
-            BatchSize = 1
-            BatchOffset = 0
+            if len(cube.offset) > 2:
+                BatchSize = math.prod(cube.dims[:-2])
 
-            if len(cube.offset) == 2:
-                (MOffset, OOffset) = cube.offset
-                (MSize, OSize) = cube.dims
-            elif len(cube.offset) == 3:
-                (BatchOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, MSize, OSize) = cube.dims
+                # Check that we don't tile upper dimensions
+                if len(cube.offset) > 3:
+                    assert all(off == 0 for off in cube.offset[:-3])
             else:
-                (BatchOffset, BOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, BSize, MSize, OSize) = cube.dims
+                BatchSize = 1
 
             replacements["M"].append(MSize)
             replacements["O"].append(OSize)
-            replacements["batch"].append(BSize)
+            replacements["batch"].append(BatchSize)
 
             if transA == 0:
                 AMatrixOffsets = (MOffset, NOffset)
@@ -394,6 +408,13 @@ class FloatGEMMTileConstraint(TileConstraint):
                 AMatrixOffsets = (NOffset, MOffset)
                 AMatrixShape = (NSize, MSize)
 
+            if len(buffA.shape) > 2:
+                batchDimCount = len(buffA.shape) - 2
+                AMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + AMatrixOffsets
+                AMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + AMatrixShape
+
+            ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
+
             if transB == 0:
                 BMatrixOffsets = (NOffset, OOffset)
                 BMatrixShape = (NSize, OSize)
@@ -401,47 +422,22 @@ class FloatGEMMTileConstraint(TileConstraint):
                 BMatrixOffsets = (OOffset, NOffset)
                 BMatrixShape = (OSize, NSize)
 
-            if len(buffA.shape) == 2:
-                ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
-            elif len(buffA.shape) == 3:
-                ACube = HyperRectangle((BatchOffset,) + AMatrixOffsets, (BatchSize,) + AMatrixShape)
-            else:
-                ACube = HyperRectangle(
-                    (
-                        BatchOffset,
-                        BOffset,
-                    ) + AMatrixOffsets,
-                    (
-                        BatchSize,
-                        BSize,
-                    ) + AMatrixShape,
-                )
+            if len(buffB.shape) > 2:
+                batchDimCount = len(buffB.shape) - 2
+                BMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + BMatrixOffsets
+                BMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + BMatrixShape
 
-            if len(buffB.shape) == 2:
-                BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
-            elif len(buffB.shape) == 3:
-                BCube = HyperRectangle((BatchOffset,) + BMatrixOffsets, (BatchSize,) + BMatrixShape)
-            else:
-                BCube = HyperRectangle(
-                    (
-                        BatchOffset,
-                        BOffset,
-                    ) + BMatrixOffsets,
-                    (
-                        BatchSize,
-                        BSize,
-                    ) + BMatrixShape,
-                )
+            BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
 
             CMatrixOffsets = (MOffset, OOffset)
             CMatrixShape = (MSize, OSize)
 
-            if len(buffC.shape) == 2:
-                CCube = HyperRectangle(CMatrixOffsets, CMatrixShape)
-            elif len(buffC.shape) == 3:
-                CCube = HyperRectangle((BatchOffset,) + CMatrixOffsets, (BatchSize,) + CMatrixShape)
-            else:
-                CCube = HyperRectangle((BatchOffset, BOffset) + CMatrixOffsets, (BatchSize, BSize) + CMatrixShape)
+            if len(buffC.shape) > 2:
+                batchDimCount = len(buffC.shape) - 2
+                CMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + CMatrixOffsets
+                CMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + CMatrixShape
+
+            CCube = HyperRectangle(CMatrixOffsets, CMatrixShape)
 
             inputACubes.append(ACube)
             inputBCubes.append(BCube)
