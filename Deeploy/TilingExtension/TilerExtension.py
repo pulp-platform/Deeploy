@@ -21,8 +21,8 @@ from ortools.constraint_solver.pywrapcp import IntVar, SolutionCollector
 import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
-from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkContext, NodeBinding, NodeTemplate, \
-    ONNXLayer, Schedule, SubGraph, TransientBuffer, _NoVerbosity
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeBinding, NodeTemplate, ONNXLayer, Schedule, \
+    SubGraph, TransientBuffer
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
@@ -1000,10 +1000,7 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         self.tile()
         return True
 
-    def generateFunction(self, verbose: CodeGenVerbosity = _NoVerbosity) -> str:
-        code = super().generateFunction(verbose)
-
-        log.info("")
+    def _printMemorySummary(self):
         log.info("Memory Usage Report:")
         log.info(f"{'Level':<22} {'Capacity (bytes)':>16}   {'Total':>8}   {'(Static + Dynamic)':<21} {'Usage':<6}")
         log.info("-" * 80)
@@ -1016,7 +1013,6 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             log.info(f"{level:<22} {capacity:16,}   {total:8,d}   "
                      f"({staticSize:6,d} + {dynamicSize:7,d})  "
                      f"({total / capacity * 100:5.1f}%)")
-        return code
 
 
 def TilingReadyNodeBindings(nodeBindings: List[NodeBinding], tileConstraint: TileConstraint) -> List[NodeBinding]:

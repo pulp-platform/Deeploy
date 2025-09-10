@@ -376,6 +376,17 @@ class VariableBuffer():
 
         return False
 
+    def sizeInBytes(self) -> int:
+        """Returns the size of this VariableBuffer in bytes
+
+        Returns
+        -------
+        int
+            Size of this VariableBuffer in bytes
+
+        """
+        return int(np.prod(self.shape) * (self._type.referencedType.typeWidth // 8))
+
 
 class TransientBuffer(VariableBuffer):
     """Class to represent memory space required by kernels that is not covered by input and output tensors, e.g. im2col buffers in convolutions
@@ -421,6 +432,9 @@ class TransientBuffer(VariableBuffer):
     @classmethod
     def fromVariableBuffer(cls, buffer: VariableBuffer):
         ret = cls(name = buffer.name, size = np.prod(buffer.shape) * buffer._type.typeWidth // 8)
+
+    def sizeInBytes(self) -> int:
+        return int(self.size)
 
 
 class ConstantBuffer(VariableBuffer):
@@ -563,6 +577,9 @@ class NetworkContext():
         self.StructBuffer = structBuffer
         self.TransientBuffer = transientBuffer
         self.name = name
+
+        self._maxDynamicSize = {}  #: int: Maximum dynamic memory size occupied by live buffers at any point in time
+        self._dynamicSize = {}  #: int: Current dynamic memory size occupied by live buffers
 
     def dealiasBuffer(self, name: str) -> str:
         """Function to find the underlying aliased VariableBuffer
@@ -2942,8 +2959,7 @@ class NetworkContainer():
     def worstCaseBufferSize(self):
         """Return the worst-case buffer size occupied by the network implementaiton
         """
-        # WIESEP: There is no reasonable value for a worst case buffer size without tiling
-        raise NotImplementedError("Worst case buffer size is not known or not implemented!")
+        return self.ctxt._maxDynamicSize
 
     # Don't override this
     def generateBufferInitializationCode(self) -> str:
@@ -3092,54 +3108,6 @@ class NetworkContainer():
 
         """
         return ("\n").join([engine.initCode for engine in self.Platform.engines])
-
-    # Don't override this - Returns parameter size in bytes
-    def getParameterSize(self) -> int:
-        """Return the BYTE size of all static network parameters (weights, biases, parameters,...)
-
-        Returns
-        -------
-        int
-            Size of all network parameters
-
-        Raises
-        ------
-        RuntimeError
-            Raises a RuntimeError if network is not parsed and bound
-
-
-        """
-        if not self.parsed or not self.bound:
-            raise RuntimeError('You need to parse and bind the network before getting RAM Size!')
-
-        size = 0
-        for _buffer in self.ctxt.globalObjects.values():
-            # We do not count structs for now, since they are not properly modeled
-            if isinstance(_buffer, ConstantBuffer) and _buffer._deploy:
-                size += int((np.prod(_buffer.shape) * _buffer._type.typeWidth // 8))
-
-        return size
-
-    # Don't override this - Returns worst case layer and buffering size in bytes
-    def getTotalSize(self) -> int:
-        """Returns total size of the network, consisting of all parameters and intermediate buffer size
-
-        Returns
-        -------
-        int
-            Total network size
-
-        Raises
-        ------
-        RuntimeError
-            Raises a RuntimeError if network is not parsed and bound
-
-
-        """
-        if not self.parsed or not self.bound:
-            raise RuntimeError('You need to parse and bind the network before getting RAM Size!')
-
-        return self.getParameterSize() + self.worstCaseBufferSize
 
     def numberOfOps(self, verbose: bool) -> int:
         """Returns the total number of operations per network inference
@@ -3561,6 +3529,41 @@ class NetworkDeployer(NetworkContainer):
         self.backEnd(verbose = verbose)
         self.prepared = True
 
+    def _printInputOutputSummary(self):
+        log.info("Input:")
+        for buf in self.inputs():
+            log.info(f" - '{buf.name}': Type: {buf._type.referencedType.typeName}")
+
+        log.info('Output:')
+        for buf in self.outputs():
+            log.info(f" - '{buf.name}': Type: {buf._type.referencedType.typeName}")
+
+    def _printMemorySummary(self):
+        log.info("")
+        log.info("Memory Usage Report:")
+        log.info(f"Level                 Total (bytes)   (Static + Dynamic)    ")
+        log.info("-" * 80)
+
+        _worstCaseBufferSize = self.worstCaseBufferSize
+        if len(_worstCaseBufferSize) == 0:
+            _worstCaseBufferSize = {"None": 0}
+
+        for level, dynamicSize in _worstCaseBufferSize.items():
+            staticSize = 0
+            for _buffer in self.ctxt.globalObjects.values():
+                # We do not count structs for now, since they are not properly modeled
+                if isinstance(_buffer, ConstantBuffer) or (isinstance(_buffer, VariableBuffer) and _buffer._deploy):
+                    # SCHEREMO: We only
+                    if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level == "None":
+                        staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
+                    else:
+                        log.warning(f"Buffer {_buffer.name} does not have a valid memory level")
+
+            total = staticSize + dynamicSize
+
+            log.info(f"{level:<22}     {total:8,d}   "
+                     f"({staticSize:6,d} + {dynamicSize:7,d})  ")
+
     def generateFunction(self, verbose: CodeGenVerbosity = _NoVerbosity) -> str:
         """Helper function to prepare deployment and return generated function code
 
@@ -3573,19 +3576,13 @@ class NetworkDeployer(NetworkContainer):
         log.info("Deeploy Code Generation")
         log.info("=" * 80)
 
-        log.info('Input:')
-        for name in self.inputTypes.keys():
-            buf = self.ctxt.lookup(name)
-            log.info(f" - '{name}': Type: {buf._type.referencedType.typeName}")
-
-        log.info('Output:')
-        for buf in self.outputs():
-            log.info(f" - '{buf.name}': Type: {buf._type.referencedType.typeName}")
+        self._printInputOutputSummary()
 
         num_ops = self.numberOfOps(verbose = True)
         log.info("-" * 80)
 
         log.info(f"Number of Ops.                : {num_ops}")
-        log.info(f"Model Parameters              : {self.getParameterSize()}")
+
+        self._printMemorySummary()
 
         return self.generateInferenceCode()

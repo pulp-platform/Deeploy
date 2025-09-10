@@ -5,6 +5,7 @@
 from types import MappingProxyType
 from typing import Any, Callable, Dict, List, Tuple, Type, Union
 
+import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
@@ -126,6 +127,25 @@ class MemoryLevelAwareDeployer(NetworkDeployer):
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
         super().codeTransform(verbose)
 
+    def _printMemorySummary(self):
+        log.info("Memory Usage Report:")
+        log.info(f"{'Level':<22} {'Capacity (bytes)':>16}   {'Total':>8}   {'(Static + Dynamic)':<21} {'Usage':<6}")
+        log.info("-" * 80)
+
+        for level, dynamicSize in self.worstCaseBufferSize.items():
+            staticSize = 0
+            for _buffer in self.ctxt.globalObjects.values():
+                # We do not count structs for now, since they are not properly modeled
+                if isinstance(_buffer, ConstantBuffer) and _buffer._deploy and _buffer._memoryLevel == level:
+                    staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
+
+            capacity = self.Platform.memoryHierarchy.memoryLevels[level].size
+            total = staticSize + dynamicSize
+
+            log.info(f"{level:<22} {capacity:16,}   {total:8,d}   "
+                     f"({staticSize:6,d} + {dynamicSize:7,d})  "
+                     f"({total / capacity * 100:5.1f}%)")
+
 
 class MemoryLevelAwareSignPropDeployer(SignPropDeployer):
 
@@ -183,6 +203,25 @@ class MemoryLevelAwareSignPropDeployer(SignPropDeployer):
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
         super().codeTransform(verbose)
 
+    def _printMemorySummary(self):
+        log.info("Memory Usage Report:")
+        log.info(f"{'Level':<22} {'Capacity (bytes)':>16}   {'Total':>8}   {'(Static + Dynamic)':<21} {'Usage':<6}")
+        log.info("-" * 80)
+
+        for level, dynamicSize in self.worstCaseBufferSize.items():
+            staticSize = 0
+            for _buffer in self.ctxt.globalObjects.values():
+                # We do not count structs for now, since they are not properly modeled
+                if isinstance(_buffer, ConstantBuffer) and _buffer._deploy and _buffer._memoryLevel == level:
+                    staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
+
+            capacity = self.Platform.memoryHierarchy.memoryLevels[level].size
+            total = staticSize + dynamicSize
+
+            log.info(f"{level:<22} {capacity:16,}   {total:8,d}   "
+                     f"({staticSize:6,d} + {dynamicSize:7,d})  "
+                     f"({total / capacity * 100:5.1f}%)")
+
 
 class MemoryDeployerWrapper(NetworkDeployerWrapper):
 
@@ -230,3 +269,22 @@ class MemoryDeployerWrapper(NetworkDeployerWrapper):
     def codeTransform(self, verbose: CodeGenVerbosity = _NoVerbosity):
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
         super().codeTransform(verbose)
+
+    def _printMemorySummary(self):
+        log.info("Memory Usage Report:")
+        log.info(f"{'Level':<22} {'Capacity (bytes)':>16}   {'Total':>8}   {'(Static + Dynamic)':<21} {'Usage':<6}")
+        log.info("-" * 80)
+
+        for level, dynamicSize in self.worstCaseBufferSize.items():
+            staticSize = 0
+            for _buffer in self.ctxt.globalObjects.values():
+                # We do not count structs for now, since they are not properly modeled
+                if isinstance(_buffer, ConstantBuffer) and _buffer._deploy and _buffer._memoryLevel == level:
+                    staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
+
+            capacity = self.Platform.memoryHierarchy.memoryLevels[level].size
+            total = staticSize + dynamicSize
+
+            log.info(f"{level:<22} {capacity:16,}   {total:8,d}   "
+                     f"({staticSize:6,d} + {dynamicSize:7,d})  "
+                     f"({total / capacity * 100:5.1f}%)")
