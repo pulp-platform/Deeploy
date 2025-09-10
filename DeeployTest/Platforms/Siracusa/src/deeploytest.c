@@ -41,9 +41,9 @@ struct pi_device cluster_dev;
 typedef struct {
   void *expected;
   void *actual;
-  int num_elements;
-  int output_buf_index;
-  int *err_count;
+  uint32_t num_elements;
+  uint32_t output_buf_index;
+  uint32_t *err_count;
 } FloatCompareArgs;
 
 void CompareFloatOnCluster(void *args) {
@@ -52,13 +52,13 @@ void CompareFloatOnCluster(void *args) {
     FloatCompareArgs *compare_args = (FloatCompareArgs *)args;
     float *expected = (float *)compare_args->expected;
     float *actual = (float *)compare_args->actual;
-    int num_elements = compare_args->num_elements;
-    int output_buf_index = compare_args->output_buf_index;
-    int *err_count = compare_args->err_count;
+    uint32_t num_elements = compare_args->num_elements;
+    uint32_t output_buf_index = compare_args->output_buf_index;
+    uint32_t *err_count = compare_args->err_count;
 
-    int local_err_count = 0;
+    uint32_t local_err_count = 0;
 
-    for (int i = 0; i < num_elements; i++) {
+    for (uint32_t i = 0; i < num_elements; i++) {
       float expected_val = expected[i];
       float actual_val = actual[i];
       float diff = expected_val - actual_val;
@@ -77,7 +77,7 @@ void CompareFloatOnCluster(void *args) {
   }
 }
 
-void main(void) {
+int main(void) {
 #ifndef CI
   printf("HELLO WORLD:\r\n");
 #endif
@@ -87,7 +87,7 @@ void main(void) {
   conf.id = 0;
   pi_open_from_conf(&cluster_dev, &conf);
   if (pi_cluster_open(&cluster_dev))
-    return;
+    return -1;
 
   mem_init();
 #ifndef NOFLASH
@@ -98,7 +98,7 @@ void main(void) {
 
   struct pi_cluster_task cluster_task;
 
-  pi_cluster_task(&cluster_task, InitNetwork, NULL);
+  pi_cluster_task(&cluster_task, (void (*)(void *))InitNetwork, NULL);
   cluster_task.stack_size = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
@@ -106,8 +106,8 @@ void main(void) {
 #ifndef CI
   printf("Initialized\r\n");
 #endif
-  for (int buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
-    if (DeeployNetwork_inputs[buf] >= 0x10000000) {
+  for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
+    if ((uint32_t)DeeployNetwork_inputs[buf] >= 0x10000000) {
       memcpy(DeeployNetwork_inputs[buf], testInputVector[buf],
              DeeployNetwork_inputs_bytes[buf]);
     }
@@ -117,7 +117,7 @@ void main(void) {
   printf("Input copied\r\n");
 #endif
   // RunNetwork(0, 1);
-  pi_cluster_task(&cluster_task, RunNetwork, NULL);
+  pi_cluster_task(&cluster_task, (void (*)(void *))RunNetwork, NULL);
   cluster_task.stack_size = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   ResetTimer();
@@ -136,11 +136,11 @@ void main(void) {
   FloatCompareArgs float_compare_args;
   uint32_t float_error_count = 0;
 
-  for (int buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
+  for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
     tot_tested += DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE);
 
-    if (DeeployNetwork_outputs[buf] < 0x1000000) {
-      compbuf = pi_l2_malloc(DeeployNetwork_outputs_bytes[buf]);
+    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
+      compbuf = pi_l2_malloc((int)DeeployNetwork_outputs_bytes[buf]);
       ram_read(compbuf, DeeployNetwork_outputs[buf],
                DeeployNetwork_outputs_bytes[buf]);
     } else {
@@ -165,11 +165,11 @@ void main(void) {
       tot_err += float_error_count;
     } else {
 
-      for (int i = 0;
+      for (uint32_t i = 0;
            i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
         OUTPUTTYPE expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
         OUTPUTTYPE actual = ((OUTPUTTYPE *)compbuf)[i];
-        int error = expected - actual;
+        int32_t error = expected - actual;
         OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
 
         if (diff) {
@@ -180,11 +180,13 @@ void main(void) {
         }
       }
     }
-    if (DeeployNetwork_outputs[buf] < 0x1000000) {
-      pi_l2_free(compbuf, DeeployNetwork_outputs_bytes[buf]);
+    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
+      pi_l2_free(compbuf, (int)DeeployNetwork_outputs_bytes[buf]);
     }
   }
 
   printf("Runtime: %u cycles\r\n", getCycles());
   printf("Errors: %u out of %u \r\n", tot_err, tot_tested);
+
+  return (int)tot_err;
 }

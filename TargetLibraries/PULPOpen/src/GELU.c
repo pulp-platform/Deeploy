@@ -28,8 +28,6 @@
  */
 
 #include "pmsis.h"
-#include "pulp_nn_kernels.h"
-#include "pulp_nn_utils.h"
 
 #include "DeeployPULPMath.h"
 
@@ -38,7 +36,7 @@
 void PULP_GELU_fp32_fp32(float32_t *data_in, float32_t *data_out,
                          int32_t dataSize) {
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
   int16_t chunk = (dataSize >> log2Core) + ((dataSize & (NUM_CORES - 1)) != 0);
   int16_t chunk_start = MIN(chunk * core_id, dataSize);
   int16_t chunk_stop = MIN(chunk_start + chunk, dataSize);
@@ -61,7 +59,7 @@ void PULP_GELU_fp32_fp32(float32_t *data_in, float32_t *data_out,
 void PULP_GELU_fp32_fp32_sigmoid(float32_t *data_in, float32_t *data_out,
                                  int32_t dataSize) {
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
   int16_t chunk = (dataSize >> log2Core) + ((dataSize & (NUM_CORES - 1)) != 0);
   int16_t chunk_start = MIN(chunk * core_id, dataSize);
   int16_t chunk_stop = MIN(chunk_start + chunk, dataSize);

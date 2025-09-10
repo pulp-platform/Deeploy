@@ -36,6 +36,10 @@
 
 #include "types.h"
 
+#define BEGIN_SINGLE_CORE if (pi_core_id() == 0) {
+#define END_SINGLE_CORE }
+#define SINGLE_CORE if (pi_core_id() == 0)
+
 #include "DeeployBasicMath.h"
 
 #include "pmsis.h"
@@ -51,5 +55,7 @@
 #include "kernel/UniformRequantShift.h"
 #include "kernel/gemv.h"
 #include "kernel/iRMSnorm.h"
+
+#define LOG2(x) (__builtin_pulp_fl1(x))
 
 #endif // __DEEPLOY_MATH_HEADER_

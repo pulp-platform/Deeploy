@@ -29,8 +29,6 @@
  */
 
 #include "pmsis.h"
-#include "pulp_nn_kernels.h"
-#include "pulp_nn_utils.h"
 
 #include "DeeployPULPMath.h"
 
@@ -40,7 +38,7 @@ void PULP_MatMul_fp32_fp32_fp32_unroll1x7(const float32_t *__restrict__ pSrcA,
                                           uint32_t M, uint32_t N, uint32_t O) {
 
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
 
   uint32_t M_chunk = (M >> log2Core) + ((M & (NUM_CORES - 1)) != 0);
   uint32_t M_start = MIN(core_id * M_chunk, M);

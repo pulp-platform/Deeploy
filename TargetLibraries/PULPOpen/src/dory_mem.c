@@ -101,44 +101,46 @@ void mem_init() {
 struct pi_device *get_ram_ptr() { return &ram; }
 
 void *ram_malloc(size_t size) {
-  void *ptr = NULL;
+  uint32_t ptr;
   pi_ram_alloc(&ram, &ptr, size);
-  return ptr;
+  return (void *)ptr;
 }
 
-void ram_free(void *ptr, size_t size) { pi_ram_free(&ram, ptr, size); }
+void ram_free(void *ptr, size_t size) {
+  pi_ram_free(&ram, (uint32_t)ptr, size);
+}
 
 void ram_read(void *dest, void *src, const size_t size) {
-  pi_ram_read(&ram, src, dest, size);
+  pi_ram_read(&ram, (uint32_t)src, dest, size);
 }
 
 void ram_write(void *dest, void *src, const size_t size) {
-  pi_ram_write(&ram, dest, src, size);
+  pi_ram_write(&ram, (uint32_t)dest, src, size);
 }
 
 void *cl_ram_malloc(size_t size) {
-  int addr;
-  pi_cl_ram_req_t req;
+  uint32_t addr;
+  pi_cl_ram_alloc_req_t req;
   pi_cl_ram_alloc(&ram, size, &req);
   pi_cl_ram_alloc_wait(&req, &addr);
   return (void *)addr;
 }
 
 void cl_ram_free(void *ptr, size_t size) {
-  pi_cl_ram_req_t req;
-  pi_cl_ram_free(&ram, ptr, size, &req);
+  pi_cl_ram_free_req_t req;
+  pi_cl_ram_free(&ram, (uint32_t)ptr, size, &req);
   pi_cl_ram_free_wait(&req);
 }
 
 void cl_ram_read(void *dest, void *src, const size_t size) {
   pi_cl_ram_req_t req;
-  pi_cl_ram_read(&ram, src, dest, size, &req);
+  pi_cl_ram_read(&ram, (uint32_t)src, dest, size, &req);
   pi_cl_ram_read_wait(&req);
 }
 
 void cl_ram_write(void *dest, void *src, const size_t size) {
   pi_cl_ram_req_t req;
-  pi_cl_ram_write(&ram, dest, src, size, &req);
+  pi_cl_ram_write(&ram, (uint32_t)dest, src, size, &req);
   pi_cl_ram_write_wait(&req);
 }
 
@@ -162,7 +164,7 @@ size_t load_file_to_ram(const void *dest, const char *filename) {
     pi_cl_fs_req_t req;
     pi_cl_fs_read(fd, buffer, load_size, &req);
     pi_cl_fs_wait(&req);
-    cl_ram_write(dest + offset, buffer, load_size);
+    cl_ram_write((void *)dest + offset, buffer, load_size);
     offset += load_size;
   } while (offset < size);
 

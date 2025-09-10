@@ -127,7 +127,7 @@ void PULP_Softmax_fp32_fp32(float32_t *input, float32_t *output, uint32_t size,
                             uint32_t last_dim_length) {
 
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
 
   int32_t num_vectors = size / last_dim_length;
   int32_t chunk =
