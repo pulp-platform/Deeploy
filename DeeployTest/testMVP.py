@@ -143,7 +143,7 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
 
-    return deployer
+    return deployer, signProp
 
 
 if __name__ == '__main__':
@@ -263,14 +263,13 @@ if __name__ == '__main__':
     memoryHierarchy = MemoryHierarchy(memoryLevels)
     memoryHierarchy.setDefaultMemoryLevel(args.defaultMemLevel)
 
-    deployer = setupDeployer(graph,
-                             memoryHierarchy,
-                             defaultTargetMemoryLevel = L1,
-                             defaultIoMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel],
-                             verbose = verbosityCfg)
+    deployer, signProp = setupDeployer(graph,
+                                       memoryHierarchy,
+                                       defaultTargetMemoryLevel = L1,
+                                       defaultIoMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel],
+                                       verbose = verbosityCfg)
 
     platform = deployer.Platform
-    signProp = False
 
     for index, num in enumerate(test_inputs):
         _type, offset = inferTypeAndOffset(num, signProp)
