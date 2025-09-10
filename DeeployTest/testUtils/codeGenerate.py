@@ -81,12 +81,11 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
             list_str = (", ").join([str(x) for x in values])
 
         # WIESEP: Arrays have to be 4 byte aligned (at least in banshee)
-        bytes = (len(values) * typeWidth) // 8
-        if bytes % 4 != 0:
-            paddingBytes = bytes % 4
-            paddingElements = paddingBytes * 8 // typeWidth
-            list_str += ", "
-            list_str += (", ").join([str(0) for _ in range(paddingElements)])
+        total_bytes = (values.size * typeWidth) // 8
+        pad_bytes = (-total_bytes) % 4
+        if pad_bytes:
+            paddingElements = (pad_bytes * 8 + typeWidth - 1) // typeWidth
+            list_str += ", " + (", ").join("0" for _ in range(paddingElements))
 
         retStr += list_str
         retStr += "};\n"
@@ -116,12 +115,11 @@ def generateTestOutputsHeader(deployer: NetworkDeployer, test_outputs: List[np.n
             list_str = (", ").join([str(x) for x in values])
 
         # WIESEP: Arrays have to be 4 byte aligned (at least in banshee)
-        bytes = (len(values) * typeWidth) // 8
-        if bytes % 4 != 0:
-            paddingBytes = bytes % 4
-            paddingElements = paddingBytes * 8 // typeWidth
-            list_str += ", "
-            list_str += (", ").join([str(0) for _ in range(paddingElements)])
+        total_bytes = (len(values) * typeWidth) // 8
+        pad_bytes = (-total_bytes) % 4
+        if pad_bytes:
+            paddingElements = (pad_bytes * 8 + typeWidth - 1) // typeWidth
+            list_str += ", " + (", ").join("0" for _ in range(paddingElements))
 
         retStr += list_str
         retStr += "};\n"
