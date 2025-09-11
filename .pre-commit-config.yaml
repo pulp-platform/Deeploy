@@ -22,6 +22,8 @@ repos:
     hooks:
       - id: check-added-large-files
         name: Check for added large files
+      - id: trailing-whitespace
+        name: Check for trailing whitespace
   - repo: local
     hooks:
       - id: check-licenses
