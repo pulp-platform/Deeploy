@@ -46,20 +46,35 @@ jobs:
         shell: bash
         run: |
           isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./ -c -v
-          autoflake -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
+          autoflake -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" --exclude "*/install/**" --exclude "*/toolchain/**" ./
       - name: Format C
         shell: bash
         run: |
           python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./ scripts
-      - name: Format Python Licenses
+      - name: Check Python Licenses
         shell: bash
         run: |
-          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude "run_clang_format.py" | grep ".*\.py$" || [[ $? == 1 ]]
-      - name: Format C Licenses
+          missing_py=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.py" \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude "run_clang_format.py" . || true)
+          if [[ -n "$missing_py" ]]; then
+            echo "Missing SPDX in Python files:"; echo "$missing_py"; exit 1; fi
+      - name: Check C Licenses
         shell: bash
         run: |
-          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.c$" || [[ $? == 1 ]]
-      - name: Format C Header Licenses
+          missing_c=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.c" \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude-dir="runtime" . || true)
+          if [[ -n "$missing_c" ]]; then
+            echo "Missing SPDX in C files:"; echo "$missing_c"; exit 1; fi
+      - name: Check C Header Licenses
         shell: bash
         run: |
-          grep -Lr "SPDX-License-Identifier: Apache-2.0" --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" . --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="runtime" | grep ".*\.h$" || [[ $? == 1 ]]
+          missing_h=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.h" \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude-dir="runtime" . || true)
+          if [[ -n "$missing_h" ]]; then
+            echo "Missing SPDX in headers:"; echo "$missing_h"; exit 1; fi
