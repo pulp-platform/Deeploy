@@ -460,7 +460,7 @@ ${TOOLCHAIN_DIR}/softhier:
 	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include/flex_alloc.h && \
 	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include/flex_runtime.h && \
 	mv ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory_deeploy.ld ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory.ld && \
-	cp ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/deeploy_include/* ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include      
+	cp ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/deeploy_include/* ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include
 
 ${SOFTHIER_INSTALL_DIR}: ${TOOLCHAIN_DIR}/softhier
 	cp -r ${TOOLCHAIN_DIR}/softhier ${SOFTHIER_INSTALL_DIR} && \
@@ -566,10 +566,44 @@ chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
 .PHONY: docs clean-docs format
 
 format:
-	python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
-	autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
-	yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
-	isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+	@echo "Formatting all relevant files..."
+	@echo " - Format C/C++ Files"
+	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
+	@echo " - Format Python Imports"
+	@autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" --exclude "*/install/**" --exclude "*/toolchain/**" ./
+	@echo " - Format Python Files"
+	@yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
+	@echo " - Sort Python Imports"
+	@isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+
+
+check-licenses:
+	@echo "Checking SPDX license headers in all relevant files..."
+	@echo " - Check Python Files"
+	@grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.py" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude "run_clang_format.py" .
+	@echo " - Check C Files"
+	@grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.c" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude-dir="runtime" .
+	@echo " - Check C Header Files"
+	@grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.h" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude-dir="runtime" .
+	@echo " - Check YAML Files"
+	@grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.yaml" --include="*.yml" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude-dir="runtime" .
+	@echo " - Check CMake Files"
+	@grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake" --include="CMakeLists.txt" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude-dir="runtime" .
 
 docs:
 	make -C docs html
