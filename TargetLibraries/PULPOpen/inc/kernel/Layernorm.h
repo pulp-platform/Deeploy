@@ -25,7 +25,7 @@
  * limitations under the License.
  */
 
-#ifndef __DEEPLOY_MATH_LAYERNORM_KERNEL_HEADER__
+#ifndef __DEEPLOY_MATH_LAYERNORM_KERNEL_HEADER_
 #define __DEEPLOY_MATH_LAYERNORM_KERNEL_HEADER_
 
 #include "DeeployPULPMath.h"
