@@ -83,3 +83,22 @@ jobs:
             --exclude-dir="runtime" . || true)
           if [[ -n "$missing_h" ]]; then
             echo "Missing SPDX in headers:"; echo "$missing_h"; exit 1; fi
+      - name: Check YAML Licenses
+        shell: bash
+        run: |
+          missing_yaml=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.yaml" --include="*.yml" \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude-dir="runtime" . || true)
+          if [[ -n "$missing_yaml" ]]; then
+            echo "Missing SPDX in YAML files:"; echo "$missing_yaml"; exit 1; fi
+      - name: Check CMake Licenses
+        shell: bash
+        run: |
+          missing_cmake=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake|" --include="CMakeLists.txt"  \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude-dir="runtime" . || true)
+          if [[ -n "$missing_cmake" ]]; then
+            echo "Missing SPDX in CMake files:"; echo "$missing_cmake"; exit 1; fi
+
