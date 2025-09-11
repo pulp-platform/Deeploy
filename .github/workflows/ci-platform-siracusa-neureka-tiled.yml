@@ -1,19 +1,18 @@
 name: CI • Siracusa + Neureka (Tiled)
 
-on:
+"on":
   push:
     branches:
-      - '**'
+      - "**"
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   pull_request:
   workflow_dispatch:
     inputs:
       docker_image_deeploy:
-        description: 'Deeploy Image to use'
+        description: "Deeploy Image to use"
         required: false
-        default: 'ghcr.io/pulp-platform/deeploy:devel'
-
+        default: "ghcr.io/pulp-platform/deeploy:devel"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -54,7 +53,7 @@ jobs:
           {"name":"testPointwiseUnsignedWeights","L1":[32000]}
         ]
       num-cores: 8
-        # double buffer enabled:
+      # double buffer enabled:
       double-buffer: true
 
   siracusa-neureka-models-tiled-singlebuffer-L3:
@@ -64,8 +63,8 @@ jobs:
       matrix:
         test-data:
           - { name: "miniMobileNet", L1: [2000] } # LMACAN: 1000 leads to non-2d transfers in L3!
-          - { name: "Attention",     L1: [2500] }
-          - { name: "Transformer",   L1: [15000] }
+          - { name: "Attention", L1: [2500] }
+          - { name: "Transformer", L1: [15000] }
           - { name: "microLlama/microLlama1", L1: [10000] }
         num-cores: [8]
         default-memory-level: ["L3"]
@@ -85,8 +84,8 @@ jobs:
       matrix:
         test-data:
           - { name: "miniMobileNet", L1: [2000] } # LMACAN note
-          - { name: "Attention",     L1: [5000] }
-          - { name: "Transformer",   L1: [30000] }
+          - { name: "Attention", L1: [5000] }
+          - { name: "Transformer", L1: [30000] }
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]
@@ -123,7 +122,7 @@ jobs:
       matrix:
         test-data:
           - { name: "miniMobileNet", L1: [2000] } # LMACAN note
-          - { name: "Attention",     L1: [3500] }
+          - { name: "Attention", L1: [3500] }
           # - { name: "Transformer", L1: [30000] }
           - { name: "microLlama/microLlama1", L1: [10000] }
         num-cores: [8]

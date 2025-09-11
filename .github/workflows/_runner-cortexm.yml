@@ -1,6 +1,6 @@
 name: _runner-cortexm
 
-on:
+"on":
   workflow_call:
     inputs:
       runner:

@@ -1,6 +1,6 @@
 name: _runner-snitch-tiled-sequential
 
-on:
+"on":
   workflow_call:
     inputs:
       runner:
@@ -21,17 +21,16 @@ on:
         default: "L2"
         type: string
       memory-allocation-strategy:
-          required: false
-          default: "MiniMalloc"
-          type: string
+        required: false
+        default: "MiniMalloc"
+        type: string
       search-strategy:
-          required: false
-          default: "random-max"
-          type: string
+        required: false
+        default: "random-max"
+        type: string
       simulators:
         required: true
         type: string
-
 
 jobs:
   test-runner-snitch-tiled:

@@ -1,5 +1,5 @@
 name: _select-env
-on:
+"on":
   workflow_call:
     inputs:
       docker_image_deeploy:
@@ -15,7 +15,7 @@ jobs:
   select:
     runs-on: ubuntu-latest
     outputs:
-      image:  ${{ steps.set-docker-image.outputs.image }}
+      image: ${{ steps.set-docker-image.outputs.image }}
       runner: ${{ steps.set-runner.outputs.runner }}
     steps:
       - id: set-docker-image

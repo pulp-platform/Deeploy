@@ -1,6 +1,6 @@
 name: _runner-siracusa-neureka-tiled-sequential
 
-on:
+"on":
   workflow_call:
     inputs:
       runner:
@@ -25,20 +25,19 @@ on:
         default: false
         type: boolean
       memory-allocation-strategy:
-          required: false
-          default: "MiniMalloc"
-          type: string
+        required: false
+        default: "MiniMalloc"
+        type: string
       search-strategy:
-          required: false
-          default: "random-max"
-          type: string
+        required: false
+        default: "random-max"
+        type: string
       neureka-wmem:
         required: false
         default: false
         type: boolean
 
 jobs:
-
   test-runner-siracusa-neureka-tiled:
     runs-on: ${{ inputs.runner }}
     container:

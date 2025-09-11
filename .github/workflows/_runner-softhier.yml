@@ -1,6 +1,6 @@
 name: _runner-softhier
 
-on:
+"on":
   workflow_call:
     inputs:
       runner:

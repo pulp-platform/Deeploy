@@ -1,19 +1,18 @@
 name: CI • Siracusa (Tiled)
 
-on:
+"on":
   push:
     branches:
-      - '**'
+      - "**"
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   pull_request:
   workflow_dispatch:
     inputs:
       docker_image_deeploy:
-        description: 'Deeploy Image to use'
+        description: "Deeploy Image to use"
         required: false
-        default: 'ghcr.io/pulp-platform/deeploy:devel'
-
+        default: "ghcr.io/pulp-platform/deeploy:devel"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -90,18 +89,30 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - { name: "simpleRegression", L1: [45000, 30000, 15000] }
-          - { name: "miniMobileNet",    L1: [60000, 12000, 6000, 3000] }
-          - { name: "miniMobileNetv2",  L1: [60000, 16000, 12000, 8000] }
-          - { name: "Attention",        L1: [60000, 10000, 5000] }
-          - { name: "microLlama/microLlama1",        L1: [60000, 10000, 5000] }
-          - { name: "microLlama/microLlama8",        L1: [60000, 10000, 5000] }
-          - { name: "microLlama/microLlama8_parallel", L1: [60000, 10000, 5000] }
-          - { name: "MLPerf/KeywordSpotting",        L1: [64000] }
-          - { name: "MLPerf/ImageClassification",    L1: [64000] }
-          - { name: "MLPerf/AnomalyDetection",       L1: [64000] }
-          - { name: "CCT/CCT_1_16_16_8",             L1: [64000] }
-          - { name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8", L1: [64000] }
+          - name: "simpleRegression"
+            L1: [45000, 30000, 15000]
+          - name: "miniMobileNet"
+            L1: [60000, 12000, 6000, 3000]
+          - name: "miniMobileNetv2"
+            L1: [60000, 16000, 12000, 8000]
+          - name: "Attention"
+            L1: [60000, 10000, 5000]
+          - name: "microLlama/microLlama1"
+            L1: [60000, 10000, 5000]
+          - name: "microLlama/microLlama8"
+            L1: [60000, 10000, 5000]
+          - name: "microLlama/microLlama8_parallel"
+            L1: [60000, 10000, 5000]
+          - name: "MLPerf/KeywordSpotting"
+            L1: [64000]
+          - name: "MLPerf/ImageClassification"
+            L1: [64000]
+          - name: "MLPerf/AnomalyDetection"
+            L1: [64000]
+          - name: "CCT/CCT_1_16_16_8"
+            L1: [64000]
+          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8"
+            L1: [64000]
         num-cores: [8]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
@@ -117,14 +128,22 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - { name: "simpleRegression", L1: [45000, 30000, 16000] } # SCHEREMO note
-          - { name: "miniMobileNet",    L1: [60000, 12000, 6000] }  # SCHEREMO note
-          - { name: "miniMobileNetv2",  L1: [60000, 16000, 12000, 8000] }
-          - { name: "Attention",        L1: [60000, 10000, 5000, 2500] }
-          - { name: "Transformer",      L1: [60000, 30000, 15000] }
-          - { name: "microLlama/microLlama1", L1: [60000, 10000, 5000] }
-          - { name: "CCT/CCT_2_32_32_128", L1: [128000] }
-          - { name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128", L1: [64000] }
+          - name: "simpleRegression"
+            L1: [45000, 30000, 16000] # SCHEREMO note
+          - name: "miniMobileNet"
+            L1: [60000, 12000, 6000] # SCHEREMO note
+          - name: "miniMobileNetv2"
+            L1: [60000, 16000, 12000, 8000]
+          - name: "Attention"
+            L1: [60000, 10000, 5000, 2500]
+          - name: "Transformer"
+            L1: [60000, 30000, 15000]
+          - name: "microLlama/microLlama1"
+            L1: [60000, 10000, 5000]
+          - name: "CCT/CCT_2_32_32_128"
+            L1: [128000]
+          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
+            L1: [64000]
         num-cores: [8]
         default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
@@ -143,16 +162,26 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - { name: "simpleRegression", L1: [60000, 45000, 30000] }
-          - { name: "miniMobileNet",    L1: [60000, 24000, 12000, 6000] }
-          - { name: "miniMobileNetv2",  L1: [60000, 32000, 24000, 16000] }
-          - { name: "Attention",        L1: [60000, 20000, 10000, 5000] }
-          - { name: "Transformer",      L1: [60000, 30000, 15000] }
-          - { name: "microLlama/microLlama1", L1: [60000, 20000, 10000] }
-          - { name: "microLlama/microLlama8", L1: [60000, 20000, 10000] }
-          - { name: "microLlama/microLlama8_parallel", L1: [60000, 20000, 10000] }
-          - { name: "CCT/CCT_2_32_32_128", L1: [128000] }
-          - { name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128", L1: [64000] }
+          - name: "simpleRegression"
+            L1: [60000, 45000, 30000]
+          - name: "miniMobileNet"
+            L1: [60000, 24000, 12000, 6000]
+          - name: "miniMobileNetv2"
+            L1: [60000, 32000, 24000, 16000]
+          - name: "Attention"
+            L1: [60000, 20000, 10000, 5000]
+          - name: "Transformer"
+            L1: [60000, 30000, 15000]
+          - name: "microLlama/microLlama1"
+            L1: [60000, 20000, 10000]
+          - name: "microLlama/microLlama8"
+            L1: [60000, 20000, 10000]
+          - name: "microLlama/microLlama8_parallel"
+            L1: [60000, 20000, 10000]
+          - name: "CCT/CCT_2_32_32_128"
+            L1: [128000]
+          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
+            L1: [64000]
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]

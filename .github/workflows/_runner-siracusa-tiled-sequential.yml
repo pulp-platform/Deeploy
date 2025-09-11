@@ -1,6 +1,6 @@
 name: _runner-siracusa-tiled
 
-on:
+"on":
   workflow_call:
     inputs:
       runner:
@@ -34,7 +34,6 @@ on:
         type: string
 
 jobs:
-
   test-runner-siracusa-tiled:
     runs-on: ${{ inputs.runner }}
     container:
