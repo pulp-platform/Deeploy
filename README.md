@@ -7,7 +7,7 @@
 
 [![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
 )](https://pulp-platform.github.io/Deeploy/)
-![CI](https://github.com/pulp-platform/Deeploy/actions/workflows/CI.yml/badge.svg?branch=devel)
+[![CI](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-deeploy.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-deeploy.yml)
 ![Deeploy Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/BuildDockerDeeploy.yml/badge.svg)
 ![Toolchain Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/BuildDockerToolchain.yml/badge.svg)
 [![GitHub last commit](https://img.shields.io/github/last-commit/pulp-platform/Deeploy)](#)
@@ -80,16 +80,15 @@ Now you can open the generated code in `DeeployTest/TEST_SIRACUSA/Tests/testMatM
 
 ## Supported Platforms
 
-| **Platform**           | **Hardware**                                                                                     | **Simulator**                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| **Generic CPU**        | Your laptop CPU :)                                                                               | Host                                         |
-| **CortexM Processors** | [Documentation](https://www.arm.com/products/silicon-ip-cpu/cortex-m/cortex-m4)                  | [QEMU](https://www.qemu.org/)                |
-| **MemPool + ITA**      | [Mempool paper](https://arxiv.org/abs/2303.17742), [ITA paper](https://arxiv.org/abs/2307.03493) | [Banshee](https://github.com/pulp-platform/banshee)            |
-| **Siracusa**           | [Siracusa paper](https://arxiv.org/abs/2312.14750)                                               | [GVSoC](https://github.com/gvsoc/gvsoc)                        |
-| **Snitch Cluster**     | [Snitch paper](https://arxiv.org/abs/2002.10143)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        |
-| **SoftHier**           | [Repo](https://github.com/gvsoc/gvsoc/tree/soft_hier_release)                                    | [GVSoC](https://github.com/gvsoc/gvsoc/tree/soft_hier_release) |
-| **Chimera**            | [Repo](https://github.com/pulp-platform/chimera)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        |
-
+| **Platform**           | **Hardware**                                                                                     | **Simulator**                                                  | **CI Status**
+| ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------
+| **Generic CPU**        | Your laptop CPU :)                                                                               | Host                                                           | [![CI • Generic](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-generic.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-generic.yml)
+| **CortexM Processors** | [Documentation](https://www.arm.com/products/silicon-ip-cpu/cortex-m/cortex-m4)                  | [QEMU](https://www.qemu.org/)                                  | [![CI • Cortex-M](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-cortexm.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-cortexm.yml)
+| **MemPool + ITA**      | [Mempool paper](https://arxiv.org/abs/2303.17742), [ITA paper](https://arxiv.org/abs/2307.03493) | [Banshee](https://github.com/pulp-platform/banshee)            | [![CI • Mempool](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-mempool.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-mempool.yml)
+| **Siracusa**           | [Siracusa paper](https://arxiv.org/abs/2312.14750)                                               | [GVSoC](https://github.com/gvsoc/gvsoc)                        | [![CI • Siracusa](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa.yml) [![CI • Siracusa (Tiled)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa-tiled.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa-tiled.yml) [![CI • Siracusa + Neureka (Tiled)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa-neureka-tiled.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa-neureka-tiled.yml)
+| **Snitch Cluster**     | [Snitch paper](https://arxiv.org/abs/2002.10143)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        | [![CI • Snitch](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-snitch.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-snitch.yml) [![CI • Snitch (Tiled)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-snitch-tiled.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-snitch-tiled.yml)
+| **SoftHier**           | [Repo](https://github.com/gvsoc/gvsoc/tree/soft_hier_release)                                    | [GVSoC](https://github.com/gvsoc/gvsoc/tree/soft_hier_release) | [![CI • SoftHier](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-softhier.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-softhier.yml)
+| **Chimera**            | [Repo](https://github.com/pulp-platform/chimera)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        | [![CI • Chimera](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-chimera.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-chimera.yml)
 
 ## Publications
 

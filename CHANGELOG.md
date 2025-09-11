@@ -4,11 +4,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Refactor GitHub WorkFlows [#108](https://github.com/pulp-platform/Deeploy/pull/108)
+- Refactor tiling code generation [#105](https://github.com/pulp-platform/Deeploy/pull/105)
 - Change order of typeMatching entries [#68](https://github.com/pulp-platform/Deeploy/pull/68)
 - Node Mangling to avoid duplication [#93](https://github.com/pulp-platform/Deeploy/pull/93)
 - Prepare Post v0.2.0 Release [#104](https://github.com/pulp-platform/Deeploy/pull/104)
 - Use Docker digests instead of arch-specific tags [#106](https://github.com/pulp-platform/Deeploy/pull/106)
-- Refactor tiling code generation [#105](https://github.com/pulp-platform/Deeploy/pull/105)
 
 ### Added
 - Add manual type inference feature (CLI: `--input-type-map`/`--input-offset-map`) to resolve ambiguities when test inputs are not representative enough
@@ -28,6 +29,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - NetworkContext: `is_buffer()` - helper function that determines whether the string represents a name of a buffer
 - missing checks for environment variables
 - `_permuteHyperRectangle` helper function
+- Added CI badges to the README
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -48,10 +50,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - in some functions, instead of passing the name of a buffer, the actual buffer is just passed
 - tile function allows overriding the optimizer with external tilingSolution and memoryMap
 - refactor of the permutation functions for clarity
+- Split CI into multiple files (one per platform, one for lint & license, one general Deeploy tests, one testing infrastructure, and two Docker flows)
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
 - Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
+- Fix license CI check. 
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
