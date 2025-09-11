@@ -26,6 +26,11 @@
  * limitations under the License.
  */
 
+#ifndef __DEEPLOY_MATH_RELU_KERNEL_HEADER_
+#define __DEEPLOY_MATH_RELU_KERNEL_HEADER_
+
 #include "DeeployPULPMath.h"
 
 void PULP_Relu_fp32_fp32(float32_t *input, float32_t *output, uint32_t size);
+
+#endif // __DEEPLOY_MATH_RELU_KERNEL_HEADER_

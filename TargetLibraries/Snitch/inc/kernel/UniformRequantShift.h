@@ -27,6 +27,9 @@
  * limitations under the License.
  */
 
+#ifndef __DEEPLOY_MATH_UNIFORMREQUANTSHIFT_KERNEL_HEADER_
+#define __DEEPLOY_MATH_UNIFORMREQUANTSHIFT_KERNEL_HEADER_
+
 #include "DeeploySnitchMath.h"
 
 void UniformRequantShift_s8_s8(int8_t *data_in, int32_t size, int32_t mul,
@@ -52,3 +55,5 @@ void UniformRequantShift_s32_s8(int32_t *data_in, int32_t size, int32_t mul,
                                 int32_t HW, int32_t input_offset,
                                 int32_t output_offset, int8_t output_min,
                                 int8_t output_max, bool rounding);
+
+#endif // __DEEPLOY_MATH_UNIFORMREQUANTSHIFT_KERNEL_HEADER_

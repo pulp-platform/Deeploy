@@ -24,6 +24,9 @@
 # limitations under the License.
 */
 
+#ifndef __DEEPLOY_MATH_DMASTRUCT_HEADER_
+#define __DEEPLOY_MATH_DMASTRUCT_HEADER_
+
 #include "snrt.h"
 
 typedef struct {
@@ -35,3 +38,5 @@ typedef struct {
   size_t repeat;
   snrt_dma_txid_t tid;
 } DMA_copy;
+
+#endif // __DEEPLOY_MATH_DMASTRUCT_HEADER_
