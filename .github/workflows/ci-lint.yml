@@ -37,7 +37,9 @@ jobs:
           submodules: recursive
       - name: Build Deeploy
         shell: bash
-        run: pip install -e .
+        run: |
+          pip install . --extra-index-url=https://pypi.ngc.nvidia.com
+          pip install -r requirements-dev.txt
       - name: Format Python
         shell: bash
         run: |
@@ -51,6 +53,10 @@ jobs:
         shell: bash
         run: |
           python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./ scripts
+      - name: Format YAML
+        shell: bash
+        run: |
+          yamllint -c .yamllint.yml .
       - name: Check Python Licenses
         shell: bash
         run: |
