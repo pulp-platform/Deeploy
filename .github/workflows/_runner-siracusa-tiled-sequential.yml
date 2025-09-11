@@ -48,7 +48,10 @@ jobs:
         shell: bash
         run: pip install -e .
       - name: Install jq
-        run: apt-get install -y jq
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -y
+          apt-get install -y jq
       - name: Cache ccache
         uses: actions/cache/restore@v4
         with:
