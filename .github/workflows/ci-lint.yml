@@ -51,16 +51,16 @@ jobs:
       - name: Format Python Imports
         shell: bash
         run: |
-          isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./ -c -v
-          autoflake -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" --exclude "*/install/**" --exclude "*/toolchain/**" ./
+          isort --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
+          autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
       - name: Format C
         shell: bash
         run: |
-          python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./ scripts
+          python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
       - name: Format YAML
         shell: bash
         run: |
-          yamllint -c .yamllint.yml .
+          yamllint .
       - name: Check Python Licenses
         shell: bash
         run: |
@@ -100,10 +100,9 @@ jobs:
       - name: Check CMake Licenses
         shell: bash
         run: |
-          missing_cmake=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake|" --include="CMakeLists.txt"  \
+          missing_cmake=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake" --include="CMakeLists.txt"  \
             --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
             --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
             --exclude-dir="runtime" . || true)
           if [[ -n "$missing_cmake" ]]; then
             echo "Missing SPDX in CMake files:"; echo "$missing_cmake"; exit 1; fi
-

@@ -567,14 +567,13 @@ chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
 
 format:
 	@echo "Formatting all relevant files..."
-	@echo " - Format C/C++ Files"
-	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
-	@echo " - Format Python Imports"
-	@autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" --exclude "*/install/**" --exclude "*/toolchain/**" ./
 	@echo " - Format Python Files"
 	@yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
-	@echo " - Sort Python Imports"
+	@echo " - Format Python Imports"
 	@isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+	@autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
+	@echo " - Format C/C++ Files"
+	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
 
 
 check-licenses:
