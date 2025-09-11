@@ -2,7 +2,7 @@
 #
 # File: testRunner_snitch.py
 #
-# Last edited: 23.04.2024
+# Last edited: 11.08.2025
 #
 # Copyright (C) 2024, ETH Zurich and University of Bologna.
 #
