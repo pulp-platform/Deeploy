@@ -29,7 +29,7 @@ reference2DTemplate = NodeTemplate("""
 <%
     y_offset_out = dim_im_out_ch*(pad_y*dim_im_out_y)
     x_offset_out = dim_im_out_ch*(pad_x)
-    width = dim_im_in_ch*dim_im_in_y                
+    width = dim_im_in_ch*dim_im_in_y
 
     addoffsetOut = dim_im_out_ch * dim_im_out_y
     addoffsetIn = dim_im_in_ch * dim_im_in_y

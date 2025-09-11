@@ -25,7 +25,7 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
-// Float ReduceSum (Name: ${nodeName}, Op: ${nodeOp}) 
+// Float ReduceSum (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
 float32_t ${data_out}_accumulator = 0.0f;
 <% reduceLength = 1

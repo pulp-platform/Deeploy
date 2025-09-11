@@ -40,9 +40,9 @@ for idx, dim in enumerate(bufferShape):
     accessStr += "[" + f"print_iter_{idx}" + "]"
     if idx > 0:
         dimStr += "[" + f"{dim}" + "]"
-formatSpecifier = "%*i" 
+formatSpecifier = "%*i"
 if "float" in bufferType.referencedType.typeName or "double" in bufferType.referencedType.typeName:
-    formatSpecifier = "%*.6f"  
+    formatSpecifier = "%*.6f"
 %>
 printf("${nodeName} ${bufferName}: ${bufferType.referencedType.typeName}, ${bufferShape}, %p\\n", ${bufferName});
 % for idx, dim in enumerate(bufferShape):

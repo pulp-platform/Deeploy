@@ -67,7 +67,7 @@ dimSteps.append(data_in_size//data_in_shape[0])
 for dim in data_in_shape[1:]:
      dimSteps.append(dimSteps[-1]//dim)
 %>
-<%                                   
+<%
 transferSize = dimSteps[int(axes[-1])]
 %>
 <%

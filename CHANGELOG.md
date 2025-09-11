@@ -55,7 +55,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
 - Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
-- Fix license CI check. 
+- Fix license CI check.
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file

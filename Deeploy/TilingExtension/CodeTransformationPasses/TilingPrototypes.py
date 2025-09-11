@@ -66,7 +66,7 @@ _measureConditionEnd = NodeTemplate("""
 """)
 
 _printLoopSetup = NodeTemplate("""
-StopTimer(); 
+StopTimer();
 for (int ${profileIdxVar} = ${numTiles}[*${tileIdxPtr} -1]; ${profileIdxVar} < ${numTiles}[*${tileIdxPtr}]; ${profileIdxVar}++){
 """)
 

@@ -37,7 +37,7 @@ BEGIN_SINGLE_CORE
             ref_${data_out}_${data_in}, ${ch_im_in}, ${dim_im_in_x}, ${dim_im_in_y},${dim_kernel_x}, ${dim_kernel_y}, ${stride_x}, ${stride_y},
             ref_${data_out}_${data_out}
         );
-      
+
     }
 END_SINGLE_CORE
 """)

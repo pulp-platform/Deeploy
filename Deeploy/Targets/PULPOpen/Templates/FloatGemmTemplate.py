@@ -43,7 +43,7 @@ for(uint32_t i=0; i<${batch}; i++){
         ${transA},
         ${transB}
     );
-    
+
     ref_${data_out}_${A} += ${M} * ${N};
     ref_${data_out}_${B} += ${N} * ${O};
     ref_${data_out}_${C} += ${M} * ${O};

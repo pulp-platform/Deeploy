@@ -54,5 +54,5 @@ class _SnitchAddTemplate(NodeTemplate):
 
 referenceTemplate = _SnitchAddTemplate("""
 // Snitch Add (Name: ${nodeName}, Op: ${nodeOp})
-SnitchAdd(${data_in_1}, ${data_in_2}, ${data_out}, ${size}, ${offset});                         
+SnitchAdd(${data_in_1}, ${data_in_2}, ${data_out}, ${size}, ${offset});
 """)

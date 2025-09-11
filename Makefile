@@ -575,7 +575,7 @@ format:
 	@echo " - Format C/C++ Files"
 	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
 
-lint:
+lint: check-licenses
 	@echo "Linting all relevant files..."
 	@echo " - Lint Python Files"
 	@yapf -rpd -e "third_party/" -e "install/" -e "toolchain/" .
