@@ -106,6 +106,12 @@ class Tiler():
 
             for memoryMapStep in memoryMap[memoryLevel.name]:
                 for buffer in memoryMapStep:
+                    if not hasattr(buffer, "_addrSpace") or buffer._addrSpace is None:
+                        log.warning(
+                            f"Buffer {buffer.name} has no address space assigned, skipping it in the memory allocation plot."
+                        )
+                        continue
+
                     fig.add_trace(
                         go.Scatter(x = [
                             buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
