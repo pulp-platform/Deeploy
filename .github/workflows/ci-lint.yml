@@ -51,7 +51,7 @@ jobs:
       - name: Format Python Imports
         shell: bash
         run: |
-          isort --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
+          isort --quiet --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
           autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
       - name: Format C
         shell: bash
