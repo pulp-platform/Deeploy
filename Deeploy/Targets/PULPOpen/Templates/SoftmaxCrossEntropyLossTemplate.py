@@ -35,12 +35,12 @@ BEGIN_SINGLE_CORE
                 max_logit = ${logits}[i * ${num_classes} + j];
             }
         }
-        
+
         float32_t sum_exp = 0.0f;
         for (uint32_t j = 0; j < ${num_classes}; j++) {
             sum_exp += expf(${logits}[i * ${num_classes} + j] - max_logit);
         }
-        
+
         for (uint32_t j = 0; j < ${num_classes}; j++) {
             // log_prob = logit - max_logit - log(sum_exp)
             ${log_prob}[i * ${num_classes} + j] = ${logits}[i * ${num_classes} + j] - max_logit - logf(sum_exp);
@@ -63,6 +63,6 @@ BEGIN_SINGLE_CORE
             }
         }
     }
-    
+
 END_SINGLE_CORE
 """)

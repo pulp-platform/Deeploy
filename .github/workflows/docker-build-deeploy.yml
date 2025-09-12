@@ -1,12 +1,17 @@
-name: BuildDockerDeeploy
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 
-on:
+---
+name: Docker • Build Deeploy Container
+
+"on":
   workflow_dispatch:
     inputs:
       docker_image_toolchain:
-        description: 'Deeploy Toolchain Image to use'
+        description: "Deeploy Toolchain Image to use"
         required: false
-        default: 'ghcr.io/pulp-platform/deeploy-toolchain:latest'
+        default: "ghcr.io/pulp-platform/deeploy-toolchain:latest"
 
 jobs:
   prepare:
@@ -34,7 +39,7 @@ jobs:
 
   build-deeploy:
     name: Build Deploy Image
-    needs: [ prepare ]
+    needs: [prepare]
     runs-on: ${{ matrix.runner }}
     outputs:
       digest-amd64: ${{ steps.digest.outputs.digest-amd64 }}
@@ -89,7 +94,7 @@ jobs:
         run: |
           echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
         env:
-          OWNER: '${{ github.repository_owner }}'
+          OWNER: "${{ github.repository_owner }}"
 
       - name: Build and push final deploy image
         id: build
@@ -112,7 +117,7 @@ jobs:
   merge-deeploy-images:
     name: Merge Deeploy Images
     runs-on: ubuntu-latest
-    needs: [ prepare, build-deeploy ]
+    needs: [prepare, build-deeploy]
     steps:
       - name: GHCR Log-in
         uses: docker/login-action@v3
@@ -125,7 +130,7 @@ jobs:
         run: |
           echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
         env:
-          OWNER: '${{ github.repository_owner }}'
+          OWNER: "${{ github.repository_owner }}"
 
       - name: Merge Deeploy Images
         uses: Noelware/docker-manifest-action@v1

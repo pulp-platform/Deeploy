@@ -1,6 +1,11 @@
-name: TestRunnerTiledSiracusaWithNeureka
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 
-on:
+---
+name: _runner-siracusa-neureka-tiled
+
+"on":
   workflow_call:
     inputs:
       runner:
@@ -29,21 +34,19 @@ on:
         default: false
         type: boolean
       memory-allocation-strategy:
-          required: false
-          default: "MiniMalloc"
-          type: string
+        required: false
+        default: "MiniMalloc"
+        type: string
       search-strategy:
-          required: false
-          default: "random-max"
-          type: string
+        required: false
+        default: "random-max"
+        type: string
       neureka-wmem:
         required: false
         default: false
         type: boolean
-      
 
 jobs:
-
   test-runner-siracusa-neureka-tiled:
     strategy:
       fail-fast: false
@@ -58,6 +61,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4
@@ -76,4 +80,3 @@ jobs:
             export CCACHE_DIR=/app/.ccache
             python testRunner_tiled_siracusa_w_neureka.py -t Tests/${{ inputs.test-name }} --cores=${{ inputs.num-cores }} --l1 ${{ matrix.L1 }} --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} ${{ inputs.neureka-wmem && '--neureka-wmem' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
           shell: bash
-        

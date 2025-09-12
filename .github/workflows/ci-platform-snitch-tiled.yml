@@ -1,0 +1,50 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: CI • Snitch (Tiled)
+
+"on":
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*.*.*"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "Deeploy Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy:devel"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select-env:
+    uses: ./.github/workflows/_select-env.yml
+    with:
+      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+
+  snitch-kernels-tiled-singlebuffer-L2:
+    needs: select-env
+    uses: ./.github/workflows/_runner-snitch-tiled-sequential.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      tests-config: |
+        [
+          {"name":"TestiNoNorm","L1":[5000,10000]},
+          {"name":"TestAdderLarge","L1":[5000,10000]},
+          {"name":"TestiSoftmaxLarge","L1":[5000,10000]},
+          {"name":"testRQGEMM","L1":[2000,5000]},
+          {"name":"testFloatSoftmax","L1":[2000,5000,10000]},
+          {"name":"TestRQAdd","L1":[5000,10000]},
+          {"name":"testFloatGEMM","L1":[2000,5000,10000]},
+          {"name":"testFloatGEMMtransB","L1":[2000,5000,10000]}
+        ]
+      simulators: |
+        gvsoc

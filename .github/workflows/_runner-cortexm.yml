@@ -1,6 +1,11 @@
-name: TestRunnerGeneric
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 
-on:
+---
+name: _runner-cortexm
+
+"on":
   workflow_call:
     inputs:
       runner:
@@ -14,7 +19,7 @@ on:
         type: string
 
 jobs:
-  test-runner-generic:
+  test-runner-cortexm:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
@@ -24,6 +29,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4
@@ -39,8 +45,7 @@ jobs:
           echo "$testNames" | while IFS= read -r testName; do
             if [[ -n "$testName" ]]; then
               echo "Running test: $testName"
-              python testRunner_generic.py -t Tests/$testName
+              python testRunner_cortexm.py -t Tests/$testName
             fi
           done
         shell: bash
-          

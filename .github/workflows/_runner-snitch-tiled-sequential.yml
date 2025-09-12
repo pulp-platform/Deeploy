@@ -1,6 +1,11 @@
-name: TestRunnerTiledSnitchSequential
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 
-on:
+---
+name: _runner-snitch-tiled-sequential
+
+"on":
   workflow_call:
     inputs:
       runner:
@@ -21,20 +26,18 @@ on:
         default: "L2"
         type: string
       memory-allocation-strategy:
-          required: false
-          default: "MiniMalloc"
-          type: string
+        required: false
+        default: "MiniMalloc"
+        type: string
       search-strategy:
-          required: false
-          default: "random-max"
-          type: string
+        required: false
+        default: "random-max"
+        type: string
       simulators:
         required: true
         type: string
 
-
 jobs:
-
   test-runner-snitch-tiled:
     runs-on: ${{ inputs.runner }}
     container:
@@ -45,9 +48,13 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Install jq
-        run: apt-get install -y jq
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -y
+          apt-get install -y jq
       - name: Cache ccache
         uses: actions/cache/restore@v4
         with:
@@ -73,4 +80,3 @@ jobs:
             fi
           done
         shell: bash
-        

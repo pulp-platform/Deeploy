@@ -25,6 +25,9 @@
  * limitations under the License.
  */
 
+#ifndef __DEEPLOY_MATH_GEMV_KERNEL_HEADER_
+#define __DEEPLOY_MATH_GEMV_KERNEL_HEADER_
+
 #include "stdint.h"
 
 void gemv_s8_s8_plp(int8_t *pIn, int8_t *pBias, int8_t *pOut, int8_t *pWeight,
@@ -32,3 +35,5 @@ void gemv_s8_s8_plp(int8_t *pIn, int8_t *pBias, int8_t *pOut, int8_t *pWeight,
                     uint16_t out_shift, uint16_t dim_vec,
                     uint16_t num_o_neurons, uint8_t flag_relu,
                     uint8_t flag_batch_norm);
+
+#endif // __DEEPLOY_MATH_GEMV_KERNEL_HEADER_

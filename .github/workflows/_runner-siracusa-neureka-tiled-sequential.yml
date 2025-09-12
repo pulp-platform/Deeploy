@@ -1,6 +1,11 @@
-name: TestRunnerTiledSiracusaWithNeurekaSequential
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 
-on:
+---
+name: _runner-siracusa-neureka-tiled-sequential
+
+"on":
   workflow_call:
     inputs:
       runner:
@@ -25,20 +30,19 @@ on:
         default: false
         type: boolean
       memory-allocation-strategy:
-          required: false
-          default: "MiniMalloc"
-          type: string
+        required: false
+        default: "MiniMalloc"
+        type: string
       search-strategy:
-          required: false
-          default: "random-max"
-          type: string
+        required: false
+        default: "random-max"
+        type: string
       neureka-wmem:
         required: false
         default: false
         type: boolean
 
 jobs:
-
   test-runner-siracusa-neureka-tiled:
     runs-on: ${{ inputs.runner }}
     container:
@@ -49,9 +53,13 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Install jq
-        run: apt-get install -y jq
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -y
+          apt-get install -y jq
       - name: Cache ccache
         uses: actions/cache/restore@v4
         with:
@@ -74,4 +82,3 @@ jobs:
           done
 
         shell: bash
-        

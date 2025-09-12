@@ -50,7 +50,7 @@ FloatSoftmaxTemplateStr = r"""
     uint32_t compute_num = 1; //snrt_cluster_compute_core_num();
     int32_t ldI = compute_num * ${input_samples};
     int32_t batch_offset = ${seq_len} * ${input_samples};
-    
+
     // JUNGVI: This implementation is broken and has memory leak.
     if (snrt_hartid() == 0){
         ${kernelName}(${data_in}, ${data_out}, ldI, batch_offset, batch_size, ${seq_len}, ${input_samples});

@@ -28,6 +28,9 @@
  * limitations under the License.
  */
 
+#ifndef __DEEPLOY_MATH_REQUANTSHIFT_KERNEL_HEADER_
+#define __DEEPLOY_MATH_REQUANTSHIFT_KERNEL_HEADER_
+
 #include "DeeployPULPMath.h"
 
 void RequantShift_u8_s8_NHWC(uint8_t *data_in, int32_t size, int32_t *mul,
@@ -137,3 +140,5 @@ void RequantShift_s32_u8_NCHW(int32_t *data_in, int32_t size, int32_t *mul,
                               int32_t HW, int32_t input_offset,
                               int32_t output_offset, uint8_t output_min,
                               uint8_t output_max, bool rounding);
+
+#endif // __DEEPLOY_MATH_REQUANTSHIFT_KERNEL_HEADER_

@@ -26,6 +26,9 @@
  * limitations under the License.
  */
 
+#ifndef __DEEPLOY_MATH_CONV_KERNEL_HEADER_
+#define __DEEPLOY_MATH_CONV_KERNEL_HEADER_
+
 #include "DeeployPULPMath.h"
 
 void PULP_Conv2d_fp32_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
@@ -43,3 +46,5 @@ void PULP_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     uint32_t Q, uint32_t SP, uint32_t SQ, float32_t *__restrict__ pDstC,
     uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left,
     uint32_t pad_right, float32_t *__restrict__ pContextBuffer);
+
+#endif // __DEEPLOY_MATH_CONV_KERNEL_HEADER_

@@ -78,7 +78,7 @@ else:
 inSignage = "s" if signedI else "u"
 outSignage = "s" if signedO else "u"
 mul_int_immediate = int(mul_immediate)
-add_int_immediate = int(add_immediate)                    
+add_int_immediate = int(add_immediate)
 %>
 
 // UniformRequantShift (Name: ${nodeName}, Op: ${nodeOp})

@@ -1,0 +1,78 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: CI • Deeploy Testing
+
+"on":
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*.*.*"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "Deeploy Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy:devel"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select-env:
+    uses: ./.github/workflows/_select-env.yml
+    with:
+      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+
+  generate-network-type-inference:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: fail-input0
+            platform: Generic
+            test: testTypeInferenceDifferentTypes
+            type_map: "A=int8_t B=int8_t C=int8_t"
+            offset_map: "A=0 B=0 C=0"
+            shouldFail: true
+          - name: fail-input2
+            platform: Generic
+            test: testTypeInferenceDifferentTypes
+            type_map: "A=int16_t B=int8_t C=int16_t"
+            offset_map: "A=0 B=0 C=0"
+            shouldFail: true
+          - name: pass
+            platform: Generic
+            test: testTypeInferenceDifferentTypes
+            type_map: "A=int16_t B=int8_t C=int32_t"
+            offset_map: "A=0 B=0 C=0"
+            shouldFail: false
+    name: Test Type Inference (${{ matrix.name }})
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python generateNetwork.py \
+            -p ${{ matrix.platform }} \
+            -t ./Tests/${{ matrix.test }} \
+            -v \
+            --input-type-map ${{ matrix.type_map }} \
+            --input-offset-map  ${{ matrix.offset_map }} \
+            ${{ matrix.shouldFail && '--shouldFail' || '' }}

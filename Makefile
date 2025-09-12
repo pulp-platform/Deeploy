@@ -460,7 +460,7 @@ ${TOOLCHAIN_DIR}/softhier:
 	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include/flex_alloc.h && \
 	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include/flex_runtime.h && \
 	mv ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory_deeploy.ld ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory.ld && \
-	cp ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/deeploy_include/* ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include      
+	cp ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/deeploy_include/* ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include
 
 ${SOFTHIER_INSTALL_DIR}: ${TOOLCHAIN_DIR}/softhier
 	cp -r ${TOOLCHAIN_DIR}/softhier ${SOFTHIER_INSTALL_DIR} && \
@@ -566,10 +566,61 @@ chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
 .PHONY: docs clean-docs format
 
 format:
-	python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
-	autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
-	yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
-	isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+	@echo "Formatting all relevant files..."
+	@echo " - Format Python Files"
+	@yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
+	@echo " - Format Python Imports"
+	@isort --quiet --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+	@autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
+	@echo " - Format C/C++ Files"
+	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
+
+lint: check-licenses
+	@echo "Linting all relevant files..."
+	@echo " - Lint Python Files"
+	@yapf -rpd -e "third_party/" -e "install/" -e "toolchain/" .
+	@echo " - Lint Python Imports"
+	@isort --quiet --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
+	@autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
+	@echo " - Lint C/C++ Files"
+	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
+	@echo " - Lint YAML files"
+	@yamllint .
+
+check-licenses:
+	@echo "Checking SPDX license headers in all relevant files..."
+	@rc=0; \
+	echo " - Check Python Files"; \
+	missing_py=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.py" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude "run_clang_format.py" . || true); \
+	if [ -n "$$missing_py" ]; then echo "$$missing_py"; rc=1; fi; \
+	echo " - Check C Files"; \
+	missing_c=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.c" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude-dir="runtime" . || true); \
+	if [ -n "$$missing_c" ]; then echo "$$missing_c"; rc=1; fi; \
+	echo " - Check C Header Files"; \
+	missing_h=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.h" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude-dir="runtime" . || true); \
+	if [ -n "$$missing_h" ]; then echo "$$missing_h"; rc=1; fi; \
+	echo " - Check YAML Files"; \
+	missing_yaml=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.yaml" --include="*.yml" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude-dir="runtime" . || true); \
+	if [ -n "$$missing_yaml" ]; then echo "$$missing_yaml"; rc=1; fi; \
+	echo " - Check CMake Files"; \
+	missing_cmake=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake" --include="CMakeLists.txt" \
+	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+	  --exclude-dir="runtime" . || true); \
+	if [ -n "$$missing_cmake" ]; then echo "$$missing_cmake"; rc=1; fi; \
+	exit $$rc
 
 docs:
 	make -C docs html

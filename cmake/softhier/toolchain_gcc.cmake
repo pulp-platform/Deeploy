@@ -1,3 +1,7 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
 add_compile_definitions(
     DEEPLOY_SOFTHIER_PLATFORM
 )
@@ -20,15 +24,15 @@ set(ISA rv32imafdv_zfh)
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 
 add_compile_options(
-  -mabi=ilp32d 
+  -mabi=ilp32d
   -mcmodel=medlow
   -march=${ISA}
-  -g 
-  -O3 
+  -g
+  -O3
   -ffast-math
-  -fno-builtin 
-  -fno-tree-vectorize 
-  -fno-common 
+  -fno-builtin
+  -fno-tree-vectorize
+  -fno-common
   -ffunction-sections
   -fno-strict-aliasing
 )
@@ -36,7 +40,7 @@ add_compile_options(
 add_link_options(
   -march=${ISA}
   -nostartfiles
-  -Wl,--gc-sections 
+  -Wl,--gc-sections
 )
 
 link_libraries(

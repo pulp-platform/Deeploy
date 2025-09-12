@@ -267,8 +267,8 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
     @classmethod
     def checkValue(cls, value: Union[float, Iterable[float], np.ndarray], ctxt: Optional[_NetworkContext] = None):
         """
-        This method tries to manually cast standard python's standard immediate float precision values 
-        (64 bits) to an arbitrary FP representation and check if the new representation is close enough 
+        This method tries to manually cast standard python's standard immediate float precision values
+        (64 bits) to an arbitrary FP representation and check if the new representation is close enough
         to the original value.
         """
         _val_list = []

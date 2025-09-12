@@ -1,6 +1,11 @@
-name: TestRunnerSiracusa
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 
-on:
+---
+name: _runner-chimera
+
+"on":
   workflow_call:
     inputs:
       runner:
@@ -12,12 +17,12 @@ on:
       test-names:
         required: true
         type: string
-      num-cores:
+      simulators:
         required: true
-        type: number
+        type: string
 
 jobs:
-  test-runner-siracusa:
+  test-runner-chimera:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
@@ -27,6 +32,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Deeploy
+        shell: bash
         run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4
@@ -36,14 +42,19 @@ jobs:
       - name: Run Test
         run: |
           testNames="${{ inputs.test-names }}"
+          simulators="${{inputs.simulators}}"
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          echo "$testNames" | while IFS= read -r testName; do
-            if [[ -n "$testName" ]]; then
-              echo "Running test: $testName"
-              python testRunner_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }}
+          export CHIMERA_SDK_HOME=/app/install/chimera-sdk
+          echo "$simulators" | while IFS= read -r simulator; do
+            if [[ -n "$simulator" ]]; then
+              echo "$testNames" | while IFS= read -r testName; do
+                if [[ -n "$testName" ]]; then
+                  echo "Running test $testName using $simulator"
+                  python testRunner_chimera.py -t Tests/$testName --simulator=$simulator
+                fi
+              done
             fi
           done
         shell: bash
-        

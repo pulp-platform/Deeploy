@@ -1,3 +1,7 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
 # SoftHier runtime should have structure:
 # runtime/
 # ├── include/
@@ -23,7 +27,7 @@ set_source_files_properties(
 
 
 
-add_library(softhier-sdk OBJECT 
+add_library(softhier-sdk OBJECT
             ${SOFTHIER_RUNTIME_ASM_SOURCE}
 )
 
@@ -32,7 +36,7 @@ target_compile_options(softhier-sdk PRIVATE
 )
 target_include_directories(softhier-sdk SYSTEM PUBLIC ${SOFTHIER_INCLUDES})
 
-target_compile_options(softhier-sdk PRIVATE 
+target_compile_options(softhier-sdk PRIVATE
     -Wno-sign-conversion
     -Wno-unused-function
     -Wno-unused-parameter

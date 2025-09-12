@@ -1,0 +1,108 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: CI • Lint & Licenses
+
+"on":
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*.*.*"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "Deeploy Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy:devel"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select-env:
+    uses: ./.github/workflows/_select-env.yml
+    with:
+      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+
+  linting:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: |
+          pip install . --extra-index-url=https://pypi.ngc.nvidia.com
+          pip install -r requirements-dev.txt
+      - name: Format Python
+        shell: bash
+        run: |
+          yapf -rpd -e "third_party/" -e "install/" -e "toolchain/" .
+      - name: Format Python Imports
+        shell: bash
+        run: |
+          isort --quiet --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
+          autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
+      - name: Format C
+        shell: bash
+        run: |
+          python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
+      - name: Format YAML
+        shell: bash
+        run: |
+          yamllint .
+      - name: Check Python Licenses
+        shell: bash
+        run: |
+          missing_py=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.py" \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude "run_clang_format.py" . || true)
+          if [[ -n "$missing_py" ]]; then
+            echo "Missing SPDX in Python files:"; echo "$missing_py"; exit 1; fi
+      - name: Check C Licenses
+        shell: bash
+        run: |
+          missing_c=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.c" \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude-dir="runtime" . || true)
+          if [[ -n "$missing_c" ]]; then
+            echo "Missing SPDX in C files:"; echo "$missing_c"; exit 1; fi
+      - name: Check C Header Licenses
+        shell: bash
+        run: |
+          missing_h=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.h" \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude-dir="runtime" . || true)
+          if [[ -n "$missing_h" ]]; then
+            echo "Missing SPDX in headers:"; echo "$missing_h"; exit 1; fi
+      - name: Check YAML Licenses
+        shell: bash
+        run: |
+          missing_yaml=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.yaml" --include="*.yml" \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude-dir="runtime" . || true)
+          if [[ -n "$missing_yaml" ]]; then
+            echo "Missing SPDX in YAML files:"; echo "$missing_yaml"; exit 1; fi
+      - name: Check CMake Licenses
+        shell: bash
+        run: |
+          missing_cmake=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake" --include="CMakeLists.txt"  \
+            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
+            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
+            --exclude-dir="runtime" . || true)
+          if [[ -n "$missing_cmake" ]]; then
+            echo "Missing SPDX in CMake files:"; echo "$missing_cmake"; exit 1; fi

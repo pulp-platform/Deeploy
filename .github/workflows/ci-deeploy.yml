@@ -1,0 +1,238 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: CI • Deeploy
+
+"on":
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*.*.*"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "Deeploy Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy:devel"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select-env:
+    uses: ./.github/workflows/_select-env.yml
+    with:
+      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+
+  build-deeploy:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+
+  deeploy-memory-allocation:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=MiniMalloc
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=60000 --memAllocStrategy=MiniMalloc --shouldFail
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=90000 --memAllocStrategy=TetrisRandom
+          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=TetrisRandom --shouldFail
+
+  deeploy-state-serialization:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p QEMU-ARM
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p Siracusa
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p MemPool
+          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p Generic
+
+  deeploy-memory-level-extension:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p QEMU-ARM
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p Siracusa
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p MemPool
+          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p Generic
+
+  deeploy-tiler-extension:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool --l1 2000 --shouldFail
+
+  deeploy-memory-allocation-extension:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression
+          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/miniMobileNet
+          python testTilerExtension.py -p Siracusa -t ./Tests/miniMobileNetv2
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul
+          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool
+
+  deeploy-typing:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python testTypes.py
+
+  deeploy-debug:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python testPrintInputOutputTransformation.py -p Generic -t ./Tests/simpleRegression
+          python testPrintInputOutputTransformation.py -p Siracusa -t ./Tests/simpleRegression
+          python testDebugPrintPass.py -p Generic -t ./Tests/simpleRegression
+
+  deeploy-regex-matching:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python testRegexMatching.py
+
+  deeploy-test-dmas:
+    needs: select-env
+    runs-on: ${{ needs.select-env.outputs.runner }}
+    container:
+      image: ${{ needs.select-env.outputs.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        shell: bash
+        run: |
+          cd DeeployTest
+          python testDmas.py

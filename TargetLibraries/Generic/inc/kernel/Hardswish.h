@@ -24,6 +24,9 @@
 # limitations under the License.
 */
 
+#ifndef __DEEPLOY_BASIC_MATH_HARDSWISH_KERNEL_HEADER_
+#define __DEEPLOY_BASIC_MATH_HARDSWISH_KERNEL_HEADER_
+
 #include "DeeployBasicMath.h"
 
 /******************************************************************************/
@@ -33,3 +36,5 @@
 void iHardswish_s8_s32(int8_t *input, int32_t *output, int32_t size,
                        int32_t one_over_six, int32_t three, int32_t six,
                        int32_t input_offset);
+
+#endif // __DEEPLOY_BASIC_MATH_HARDSWISH_KERNEL_HEADER_

@@ -1,0 +1,33 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+---
+extends: default
+
+rules:
+  line-length: disable
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+  braces:
+    forbid: false
+    min-spaces-inside: 0
+    max-spaces-inside: 2
+  comments:
+    min-spaces-from-content: 1
+
+
+ignore:
+  # Ignore all files in third_party
+  - "**/third_party/"
+  # Ignore all files in runtime
+  - "**/runtime/"
+  # Ignore all files in TEST_*
+  - "**/TEST_*/"
+  # Ignore all files in install
+  - "**/install/"
+  # Ignore all files in toolchain
+  - "**/toolchain/"
+  # Ignore all files in .git
+  - "**/.git/**"

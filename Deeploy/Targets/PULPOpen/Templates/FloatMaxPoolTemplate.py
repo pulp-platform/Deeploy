@@ -33,9 +33,9 @@ ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_MaxPool2d_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
-        ref_${data_out}_${data_in}, 
+        ref_${data_out}_${data_in},
         ${dim_im_in_x}, ${dim_im_in_y}, ${ch_im_in},
-        ${dim_kernel_x}, ${dim_kernel_y}, 
+        ${dim_kernel_x}, ${dim_kernel_y},
         ${stride_x}, ${stride_y},
         ref_${data_out}_${data_out},
         ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}
