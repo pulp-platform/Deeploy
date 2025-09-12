@@ -4,7 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
-- Refactor GitHub WorkFlows [#108](https://github.com/pulp-platform/Deeploy/pull/108)
+- Split CI Workflows by Platform and Task, Improve Formatting and Linting Reliability [#108](https://github.com/pulp-platform/Deeploy/pull/108)
 - Refactor tiling code generation [#105](https://github.com/pulp-platform/Deeploy/pull/105)
 - Change order of typeMatching entries [#68](https://github.com/pulp-platform/Deeploy/pull/68)
 - Node Mangling to avoid duplication [#93](https://github.com/pulp-platform/Deeploy/pull/93)
@@ -30,6 +30,9 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - missing checks for environment variables
 - `_permuteHyperRectangle` helper function
 - Added CI badges to the README
+- Added YAML linting to CI
+- Added missing license headers and C header include guards
+- Extended the pre-commit hooks to remove trailing whitespace, check licenses, format and lint files
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -50,12 +53,14 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - in some functions, instead of passing the name of a buffer, the actual buffer is just passed
 - tile function allows overriding the optimizer with external tilingSolution and memoryMap
 - refactor of the permutation functions for clarity
-- Split CI into multiple files (one per platform, one for lint & license, one general Deeploy tests, one testing infrastructure, and two Docker flows)
+- Split CI into multiple workflow files: one per platform, one for lint & license, one for general Deeploy tests, one for infrastructure, and two for Docker flows, improving maintainability and status reporting
+- Extended CI to check license in cMake and YAML files
+- Removed all trailing whitespace
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
 - Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
-- Fix license CI check.
+- Fix license CI check and prevent potential issues with `jq` installation
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
