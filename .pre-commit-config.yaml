@@ -26,12 +26,13 @@ repos:
         name: Check for trailing whitespace
   - repo: local
     hooks:
-      - id: check-licenses
+      - id: fix-licenses
         name: Check SPDX License Headers
-        entry: bash -c 'make check-licenses'
-        language: system
-        pass_filenames: false
+        entry: scripts/license_fix.py
+        language: python
         stages: [pre-commit, pre-merge-commit, pre-push, manual]
+        types: [text]
+        exclude_types: [batch, markdown, svg, json]
   - repo: https://github.com/google/yapf
     rev: v0.43.0
     hooks:
