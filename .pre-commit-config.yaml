@@ -8,12 +8,11 @@
 exclude: |
   (?x)^(
     .*third_party.*
-    | .*install.*
-    | .*toolchain.*
+    | .*install/.*
+    | .*toolchain/.*
     | .*TEST_.*
     | .*TestFiles.*
     | .*runtime.*
-    | .*\.git.*
   )
 
 repos:
