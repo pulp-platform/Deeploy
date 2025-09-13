@@ -117,7 +117,8 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
                 sortedBuffers.append(buffer)
                 unsortedBufferNames.remove(buffer.name)
 
-            assert len(unsortedBufferNames) != lastLen, f"Circular reference detected."
+            assert len(
+                unsortedBufferNames) != lastLen, f"Circular reference detected among buffers: {unsortedBufferNames}"
             lastLen = len(unsortedBufferNames)
 
         return sortedBuffers
