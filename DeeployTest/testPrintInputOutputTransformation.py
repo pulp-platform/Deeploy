@@ -11,8 +11,9 @@ from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser, getPaths
 from testUtils.typeMapping import inferTypeAndOffset
 
-from Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs import MemoryAwarePrintInputGeneration, \
-    MemoryAwarePrintOutputGeneration, PrintInputGeneration, PrintOutputGeneration
+from Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs import PrintInputGeneration, PrintOutputGeneration
+from Deeploy.MemoryLevelExtension.CodeTransformationPasses.PrintInputs import MemoryAwarePrintInputGeneration, \
+    MemoryAwarePrintOutputGeneration
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform
 

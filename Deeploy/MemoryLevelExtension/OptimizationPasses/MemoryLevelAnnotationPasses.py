@@ -4,12 +4,11 @@
 
 from typing import List, Tuple
 
-import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.CommonExtensions.OptimizationPasses.PassClasses import SequentialPass
-from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, VariableBuffer
-from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
+from Deeploy.DeeployTypes import NetworkContext, VariableBuffer
+from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
 
 
 class AnnotateDefaultMemoryLevel(SequentialPass):
@@ -47,37 +46,4 @@ class AnnotateIOMemoryLevel(SequentialPass):
         for _buffer in buffers:
             _buffer._memoryLevel = self.ioLevel
 
-        return ctxt, graph
-
-
-class AnnotateNeurekaWeightMemoryLevel(SequentialPass):
-
-    def __init__(self, neurekaEngineName: str, weightMemoryLevel: MemoryLevel):
-        self._weightMemoryLevel = weightMemoryLevel
-        self.neurekaEngineName = neurekaEngineName
-        super().__init__()
-
-    def apply(self, ctxt: NetworkContext, graph: gs.Graph) -> Tuple[NetworkContext, gs.Graph]:
-
-        def _neurekaWeightBufferSize(buffer: ConstantBuffer) -> int:
-            return int(np.prod(buffer.shape))  # Weights are encoded as bytes so no need to check for typeWidth
-
-        weightMemoryOccupation = 0
-
-        # Current weight memory occupation
-        for buffer in {**ctxt.globalObjects, **ctxt.localObjects}.values():
-            if hasattr(buffer, "_memoryLevel") and buffer._memoryLevel == self._weightMemoryLevel.name:
-                weightMemoryOccupation += _neurekaWeightBufferSize(buffer)
-
-        neurekaNodes = [node for node in graph.nodes if node.attrs["engine"] == self.neurekaEngineName]
-        for node in neurekaNodes:
-            if node.op in ["Conv", "RequantizedConv"]:
-
-                if not (ctxt.is_local(node.inputs[1].name) or ctxt.is_global(node.inputs[1].name)):
-                    continue
-
-                buffer = ctxt.lookup(node.inputs[1].name)
-                if weightMemoryOccupation + _neurekaWeightBufferSize(buffer) < self._weightMemoryLevel.size:
-                    buffer._memoryLevel = self._weightMemoryLevel.name
-                    weightMemoryOccupation += _neurekaWeightBufferSize(buffer)
         return ctxt, graph
