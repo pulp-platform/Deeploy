@@ -147,7 +147,7 @@ def skip(file: str) -> bool:
         return True
 
     # Skip runable scripts, i.e., that start with a shebang. Currently, it's only files in _scripts_ folder
-    if "scripts" in os.path.split(file):
+    if "scripts" in file.split(os.sep):
         with open(file, "r") as f:
             first_line = f.readline()
         if first_line.startswith("#!"):
