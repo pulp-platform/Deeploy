@@ -565,38 +565,8 @@ lint: check-licenses
 
 check-licenses:
 	@echo "Checking SPDX license headers in all relevant files..."
-	@rc=0; \
-	echo " - Check Python Files"; \
-	missing_py=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.py" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude "run_clang_format.py" . || true); \
-	if [ -n "$$missing_py" ]; then echo "$$missing_py"; rc=1; fi; \
-	echo " - Check C Files"; \
-	missing_c=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.c" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude-dir="runtime" . || true); \
-	if [ -n "$$missing_c" ]; then echo "$$missing_c"; rc=1; fi; \
-	echo " - Check C Header Files"; \
-	missing_h=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.h" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude-dir="runtime" . || true); \
-	if [ -n "$$missing_h" ]; then echo "$$missing_h"; rc=1; fi; \
-	echo " - Check YAML Files"; \
-	missing_yaml=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.yaml" --include="*.yml" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude-dir="runtime" . || true); \
-	if [ -n "$$missing_yaml" ]; then echo "$$missing_yaml"; rc=1; fi; \
-	echo " - Check CMake Files"; \
-	missing_cmake=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake" --include="CMakeLists.txt" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude-dir="runtime" . || true); \
-	if [ -n "$$missing_cmake" ]; then echo "$$missing_cmake"; rc=1; fi; \
-	exit $$rc
+	@scripts/license_fix.py --check $$(git ls-files '*.py' '*.c' '*.h' '*.html' '*.rst' '*.yml' '*.yaml')
+	@echo "OK"
 
 docs:
 	make -C docs html
