@@ -1,7 +1,6 @@
 # Contribution Guide
 
 We encourage submitting your issues and work in pull requests against the `devel` branch. Please understand that we are trying to maintain a consistent minimal quality standard.
-Any and all pull requests you submit can only be accepted under the Apache 2.0 License.
 
 ## Overview
 
@@ -81,3 +80,7 @@ pre-commit uninstall
 ```
 
 _Note:_ This configures only the python formatting git hooks. The c formatting is not supported at the moment.
+
+## Licensing
+
+Any and all pull requests you submit can only be accepted under the Apache 2.0 License. Every file needs to have an SPDX license header. We use the [reuse-tool](https://github.com/fsfe/reuse-tool) to check for the license header. You can use the same tool to add the license by calling it with the `annotate` command.
