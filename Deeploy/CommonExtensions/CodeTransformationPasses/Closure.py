@@ -87,7 +87,6 @@ class ClosureGeneration(CodeTransformationPass, IntrospectiveCodeTransformationM
 
     closureStructArgType: Dict[str, Type[Union[Pointer, Immediate, Struct]]]
     closureStructArgs: Dict[str, Union[Pointer, Immediate, Struct]]
-    closureStruct: Struct
 
     def __init__(self,
                  closureCallTemplate: NodeTemplate = _closureCallTemplate,
