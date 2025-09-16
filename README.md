@@ -126,5 +126,9 @@ The preprint is available on arXiv @ [arXiv:2408.04413](https://arxiv.org/abs/24
 The preprint is available on arXiv @ [arXiv:2408.02473](https://arxiv.org/abs/2408.02473).
 
 ## License
+All licenses used in this repository are listed under the `LICENSES` folder. Unless specified otherwise in the respective file headers, all code checked into this repository is made available under a permissive license.
+- Most software sources and tool scripts are licensed under the [Apache 2.0 license](https://opensource.org/licenses/Apache-2.0).
+- Some files in the `scripts` directory are licensed under the [MIT license](https://opensource.org/license/mit).
+- Markdown, JSON, text files, pictures, and files in the `DeeployTest/Tests` directory are licensed under the [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0) license (CC BY 4.0).
 
-Unless specified otherwise in the respective file headers, all code checked into this repository is made available under a permissive license. All software sources and tool scripts are licensed under Apache 2.0, except for files contained in the `scripts` directory, which are licensed under the MIT license, and files contained in the `DeeployTest/Tests`directory, which are licensed under the [Creative Commons Attribution-NoDerivates 4.0 International](https://creativecommons.org/licenses/by-nd/4.0) license (CC BY-ND 4.0).
+To extract license information for all files, you can use the [reuse tool](https://reuse.software/) and by running `reuse spdx` in the root directory of this repository.
