@@ -58,15 +58,10 @@ if (platform IN_LIST PULP_NNX_PLATFORMS)
   target_include_directories(pulp-nnx PUBLIC ${PULP_SDK_INCLUDES})
   target_compile_options(pulp-nnx PUBLIC ${PULP_SDK_COMPILE_FLAGS})
     target_compile_options(pulp-nnx PRIVATE
-    -Wno-implicit-function-declaration
     -Wno-implicit-int-conversion
     -Wno-sign-conversion
-    -Wno-sign-compare
     -Wno-typedef-redefinition
     -Wno-unused-parameter
-    -Wno-unused-function
-    -Wno-unused-variable
-    -Wno-uninitialized
     -Wno-incompatible-pointer-types-discards-qualifiers
     )
   target_link_libraries(deeploypulp INTERFACE pulp-nnx)
