@@ -1,3 +1,7 @@
+@REM SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+@REM
+@REM SPDX-License-Identifier: Apache-2.0
+
 @ECHO OFF
 
 pushd %~dp0
