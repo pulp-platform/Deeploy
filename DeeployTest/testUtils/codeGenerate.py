@@ -30,6 +30,7 @@ import numpy as np
 
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
+from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
 
 _TEXT_ALIGN = 30
 
@@ -142,11 +143,18 @@ def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
     #include <stdlib.h>
     """
     retStr += deployer.generateIncludeString()
-    retStr += """
-    void RunNetwork(uint32_t core_id, uint32_t numThreads);
-    void InitNetwork(uint32_t core_id, uint32_t numThread);
+    if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
+        retStr += """
+        void RunNetwork();
+        void InitNetwork();
 
-    """
+        """
+    else:
+        retStr += """
+        void RunNetwork(uint32_t core_id, uint32_t numThreads);
+        void InitNetwork(uint32_t core_id, uint32_t numThread);
+
+        """
 
     retStr += deployer.generateIOBufferInitializationCode()
     retStr += """
@@ -179,6 +187,11 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         retStr += """
         void RunNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
         """
+    elif isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
+        retStr += """
+        void RunNetwork(){
+        """
+        retStr += deployer.generateInferenceInitializationCode()
     else:
         retStr += """
         void RunNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
@@ -186,11 +199,18 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         retStr += deployer.generateInferenceInitializationCode()
 
     retStr += deployer.generateFunction(verbosityCfg)
-    retStr += """
-    }
+    if isinstance(deployer.Platform, MemPoolPlatform):
+        retStr += """
+        }
 
-    void InitNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
-    """
+        void InitNetwork(){
+        """
+    else:
+        retStr += """
+        }
+
+        void InitNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
+        """
     retStr += deployer.generateEngineInitializationCode()
     retStr += deployer.generateBufferAllocationCode()
     retStr += """

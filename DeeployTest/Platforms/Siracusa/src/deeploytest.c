@@ -77,15 +77,6 @@ void CompareFloatOnCluster(void *args) {
   }
 }
 
-static void ClusterInitEntry(void *arg) {
-  (void)arg;
-  InitNetwork(0, 1);
-}
-static void ClusterRunEntry(void *arg) {
-  (void)arg;
-  RunNetwork(0, 1);
-}
-
 int main(void) {
 #ifndef CI
   printf("HELLO WORLD:\r\n");
@@ -107,7 +98,7 @@ int main(void) {
 
   struct pi_cluster_task cluster_task;
 
-  pi_cluster_task(&cluster_task, ClusterInitEntry, NULL);
+  pi_cluster_task(&cluster_task, InitNetwork, NULL);
   cluster_task.stack_size = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
@@ -125,8 +116,8 @@ int main(void) {
 #ifndef CI
   printf("Input copied\r\n");
 #endif
-  // RunNetwork(0, 1);
-  pi_cluster_task(&cluster_task, ClusterRunEntry, NULL);
+
+  pi_cluster_task(&cluster_task, RunNetwork, NULL);
   cluster_task.stack_size = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   ResetTimer();
