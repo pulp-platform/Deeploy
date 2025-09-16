@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Add reuse-tool as an SPDX license header linter [#113](https://github.com/pulp-platform/Deeploy/pull/113)
 - Bug fixes, API Cleanup and Reduce Compiler Warning on PULP [#112](https://github.com/pulp-platform/Deeploy/pull/112)
 - Fix PULP GEMM `batch` serialization [#109](https://github.com/pulp-platform/Deeploy/pull/109)
 - Split CI Workflows by Platform and Task, Improve Formatting and Linting Reliability [#108](https://github.com/pulp-platform/Deeploy/pull/108)
@@ -37,6 +38,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Extended the pre-commit hooks to remove trailing whitespace, check licenses, format and lint files
 - Reshape operator support for PULP (`ReshapeTemplate` in bindings)
 - Missing class attributes in `Closure.py`
+- reuse_skip_wrapper.py to manually skip files
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -62,6 +64,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed all trailing whitespace
 - Removed unnecessary includes from the PULP platform header list, such as `DeeployBasicMath.h`, for cleaner code generation
 - Changed types and added correct casts to fix many compiler warnings in the PULP target library
+- Use [reuse-tool](https://github.com/fsfe/reuse-tool) in pre-commit, CI, and Makefile for SPDX license header linting
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
