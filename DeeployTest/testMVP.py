@@ -26,7 +26,7 @@
 import os
 import sys
 from collections import OrderedDict
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import onnx
@@ -76,7 +76,7 @@ def _filterSchedule(schedule: List[List[gs.Node]], layerBinding: 'OrderedDict[st
 
 
 def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTargetMemoryLevel: MemoryLevel,
-                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity) -> NetworkDeployer:
+                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity) -> Tuple[NetworkDeployer, bool]:
 
     inputTypes = {}
     inputOffsets = {}
