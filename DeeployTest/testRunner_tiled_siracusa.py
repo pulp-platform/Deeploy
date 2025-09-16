@@ -28,8 +28,7 @@ from testUtils.testRunner import TestRunner, TestRunnerArgumentParser
 if __name__ == "__main__":
 
     parser = TestRunnerArgumentParser(
-        tiling_arguments = True,
-        description = "Deeploy Code Generation Utility for the Siracusa Platform (Tiling & NEureka).")
+        tiling_arguments = True, description = "Deeploy Code Generation Utility for the Siracusa Platform (Tiling).")
 
     parser.add_argument('--cores',
                         metavar = '<cores>',
