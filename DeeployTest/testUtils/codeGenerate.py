@@ -199,7 +199,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         retStr += deployer.generateInferenceInitializationCode()
 
     retStr += deployer.generateFunction(verbosityCfg)
-    if isinstance(deployer.Platform, MemPoolPlatform):
+    if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
         retStr += """
         }
 
