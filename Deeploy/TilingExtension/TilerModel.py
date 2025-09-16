@@ -103,6 +103,10 @@ class TilerModel():
                       constraintExpression: IntExpr,
                       memoryLevel: Optional[MemoryLevel] = None,
                       strategy: Optional[AddConstraintStrategy] = None):
+        # Skip TrueConstraints
+        if constraintExpression.DebugString() == "TrueConstraint()":
+            return
+
         if isinstance(strategy, PerformanceHint):
             if memoryLevel is None:
                 self._performanceConstraints.append((strategy.priority, constraintExpression))
