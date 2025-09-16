@@ -117,14 +117,14 @@ class IntrospectiveCodeTransformationMixIn():
                                  ctxt: NetworkContext,
                                  executionBlock: ExecutionBlock = None,
                                  unrollStructs = False,
-                                 includeGobalReferences = False):
+                                 includeGlobalReferences = False):
 
         makoDynamicReferences = []
         for codeSnippet in executionBlock.codeSnippets:
             template, operatorRepresentation = codeSnippet.template, codeSnippet.operatorRepresentation
 
             newRefs = self._extractDynamicExpressions(ctxt, operatorRepresentation, template.template, unrollStructs,
-                                                      includeGobalReferences)
+                                                      includeGlobalReferences)
 
             makoDynamicReferences += newRefs
 
@@ -145,7 +145,7 @@ class IntrospectiveCodeTransformationMixIn():
                                    operatorRepresentation: OperatorRepresentation,
                                    template: Template,
                                    unrollStructs = False,
-                                   includeGobalReferences = False):
+                                   includeGlobalReferences = False):
         codeHash = hash(template._source)
 
         if codeHash in self.parseTreeDict.keys():
@@ -194,7 +194,7 @@ class IntrospectiveCodeTransformationMixIn():
         dynamicLocalReferences = [ref for ref in localReferences if ctxt.lookup(ref)._deploy]
         dynamicGlobalReferences = [ref for ref in globalReferences if isinstance(ctxt.lookup(ref), VariableBuffer)]
 
-        if includeGobalReferences:
+        if includeGlobalReferences:
             return dynamicLocalReferences + dynamicGlobalReferences
         else:
             return dynamicLocalReferences

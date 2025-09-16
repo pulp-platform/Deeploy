@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Bug fixes, API Cleanup and Reduce Compiler Warning on PULP [#112](https://github.com/pulp-platform/Deeploy/pull/112)
 - Fix PULP GEMM `batch` serialization [#109](https://github.com/pulp-platform/Deeploy/pull/109)
 - Split CI Workflows by Platform and Task, Improve Formatting and Linting Reliability [#108](https://github.com/pulp-platform/Deeploy/pull/108)
 - Refactor tiling code generation [#105](https://github.com/pulp-platform/Deeploy/pull/105)
@@ -34,6 +35,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added YAML linting to CI
 - Added missing license headers and C header include guards
 - Extended the pre-commit hooks to remove trailing whitespace, check licenses, format and lint files
+- Reshape operator support for PULP (`ReshapeTemplate` in bindings)
+- Missing class attributes in `Closure.py`
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -57,12 +60,17 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Split CI into multiple workflow files: one per platform, one for lint & license, one for general Deeploy tests, one for infrastructure, and two for Docker flows, improving maintainability and status reporting
 - Extended CI to check license in cMake and YAML files
 - Removed all trailing whitespace
+- Removed unnecessary includes from the PULP platform header list, such as `DeeployBasicMath.h`, for cleaner code generation
+- Changed types and added correct casts to fix many compiler warnings in the PULP target library
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
 - Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
 - Fix license CI check and prevent potential issues with `jq` installation
 - PULP Gemm `batch` variable serialization
+- Fixed multiple typos in variable and method names, such as changing `includeGobalReferences` to `includeGlobalReferences` and `dicardedMappers` to `discardedMappers`
+- Corrected method usage in `importDeeployState` to call `NetworkContext.importNetworkContext` instead of the incorrect method name
+- Correctly return `signProp` from `setupDeployer` instead of hardcoding the value to `False` in `testMVP.py`
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file

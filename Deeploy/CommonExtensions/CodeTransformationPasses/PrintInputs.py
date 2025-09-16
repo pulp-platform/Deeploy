@@ -83,7 +83,7 @@ class PrintInputGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = True)
+                                                   includeGlobalReferences = True)
 
         for ref in references:
             refDict = self._getRepDict(ctxt, ref, name)
@@ -126,7 +126,7 @@ class MemoryAwarePrintInputGeneration(MemoryAwareGeneration, PrintInputGeneratio
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = True)
+                                                   includeGlobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 
@@ -167,7 +167,7 @@ class PrintOutputGeneration(CodeTransformationPass, IntrospectiveCodeTransformat
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = True)
+                                                   includeGlobalReferences = True)
 
         for ref in references:
             rep = self._getRepDict(ctxt, ref, name)
@@ -188,7 +188,7 @@ class MemoryAwarePrintOutputGeneration(MemoryAwareGeneration, PrintOutputGenerat
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = True)
+                                                   includeGlobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 
@@ -220,7 +220,7 @@ class PrintConstantGeneration(CodeTransformationPass, IntrospectiveCodeTransform
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = True)
+                                                   includeGlobalReferences = True)
 
         for ref in references:
             rep = self._getRepDict(ctxt, ref, name)
@@ -241,7 +241,7 @@ class MemoryAwarePrintConstantGeneration(MemoryAwareGeneration, PrintConstantGen
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = True)
+                                                   includeGlobalReferences = True)
 
         filteredReferences = [ref for ref in references if self._matchesRegex(ctxt, ref)]
 

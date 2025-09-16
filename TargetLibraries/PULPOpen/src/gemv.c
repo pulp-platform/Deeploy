@@ -151,5 +151,5 @@ void gemv_s8_s8_plp(int8_t *pIn, int8_t *pBias, int8_t *pOut, int8_t *pWeight,
       }
     }
   }
-  pi_cl_team_barrier(0);
+  pi_cl_team_barrier();
 }

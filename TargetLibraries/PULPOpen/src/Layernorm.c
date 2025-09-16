@@ -29,8 +29,6 @@
  */
 
 #include "pmsis.h"
-#include "pulp_nn_kernels.h"
-#include "pulp_nn_utils.h"
 
 #include "DeeployPULPMath.h"
 
@@ -40,7 +38,7 @@ void PULP_Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
                               uint32_t lastDimLength) {
 
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
 
   int32_t seq_length = size / lastDimLength;
   int32_t chunk =

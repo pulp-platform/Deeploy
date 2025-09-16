@@ -40,7 +40,7 @@ void PULP_Conv2d_fp32_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
                                     uint32_t pad_left, uint32_t pad_right) {
 
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
 
   uint16_t ch_out_chunk =
       (F_total >> log2Core) + ((F_total & (NUM_CORES - 1)) != 0);
@@ -95,7 +95,7 @@ void PULP_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left,
     uint32_t pad_right, float32_t *__restrict__ pContextBuffer) {
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
 
   uint16_t ch_out_chunk =
       (F_total >> log2Core) + ((F_total & (NUM_CORES - 1)) != 0);

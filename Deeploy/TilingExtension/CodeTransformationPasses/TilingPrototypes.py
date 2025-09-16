@@ -67,7 +67,9 @@ _measureConditionEnd = NodeTemplate("""
 
 _printLoopSetup = NodeTemplate("""
 StopTimer();
-for (int ${profileIdxVar} = ${numTiles}[*${tileIdxPtr} -1]; ${profileIdxVar} < ${numTiles}[*${tileIdxPtr}]; ${profileIdxVar}++){
+for (int ${profileIdxVar} = ((*${tileIdxPtr} > 0) ? ${numTiles}[(*${tileIdxPtr} - 1)] : 0);
+    ${profileIdxVar} < ${numTiles}[*${tileIdxPtr}];
+    ${profileIdxVar}++){
 """)
 
 _printCycleDifference = NodeTemplate(r"""

@@ -117,7 +117,8 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
                 sortedBuffers.append(buffer)
                 unsortedBufferNames.remove(buffer.name)
 
-            assert len(unsortedBufferNames) != lastLen, f"Circular reference detected."
+            assert len(
+                unsortedBufferNames) != lastLen, f"Circular reference detected among buffers: {unsortedBufferNames}"
             lastLen = len(unsortedBufferNames)
 
         return sortedBuffers
@@ -130,7 +131,7 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = False)
+                                                   includeGlobalReferences = False)
         localBuffers = [ctxt.localObjects[ref] for ref in references]
         memoryLevelBuffers = [buff for buff in localBuffers if self.is_memory_level(buff)]
 
@@ -167,7 +168,7 @@ class MemoryPassthroughGeneration(MemoryManagementGeneration):
         references = self.extractDynamicReferences(ctxt,
                                                    executionBlock,
                                                    unrollStructs = True,
-                                                   includeGobalReferences = False)
+                                                   includeGlobalReferences = False)
         localBuffers = [ctxt.localObjects[ref] for ref in references]
         memoryLevelBuffers = [buff for buff in localBuffers if self.is_memory_level(buff)]
 

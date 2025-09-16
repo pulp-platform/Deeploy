@@ -1972,7 +1972,7 @@ class ONNXLayer():
         """Discard the current Mapper
 
         """
-        self.dicardedMappers.add(self.mapper)
+        self.discardedMappers.add(self.mapper)
         self.mapper = None
 
     def resetDiscardedMappers(self):
@@ -2124,7 +2124,7 @@ class ONNXLayer():
             self.mapper.parser.operatorRepresentation['nodeOps'] = int(self.computeOps())
             return newCtxt, True
 
-        self.discardedMappers.append(self.mapper)
+        self.discardedMappers.add(self.mapper)
         return ctxt, False
 
     def codeTransform(self, ctxt: NetworkContext, verbose: CodeGenVerbosity = _NoVerbosity) -> NetworkContext:
@@ -3175,7 +3175,7 @@ class NetworkContainer():
 
         """
         self.graph = NetworkDeployer._importONNXGraph(folderPath, f"{fileName}")
-        self.ctxt = NetworkContext.importNetworkCtxt(folderPath, f"{fileName}")
+        self.ctxt = NetworkContext.importNetworkContext(folderPath, f"{fileName}")
 
 
 class NetworkDeployer(NetworkContainer):
