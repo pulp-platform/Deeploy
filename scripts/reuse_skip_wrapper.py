@@ -10,24 +10,6 @@ import subprocess
 
 
 def skip(file: str) -> bool:
-    if os.path.basename(file) in [
-            ".clang-format",
-            ".devcontainer.json",
-            ".gitignore",
-            ".gitmodules",
-            ".isort.cfg",
-            ".pre-commit-config.yaml",
-            ".style.yapf",
-            ".yamllint",
-            ".yapfignore",
-            "Deeploy.code-workspace",
-            "pyproject.toml",
-            "requirements-dev.txt",
-            "setup.py",
-            "CODEOWNERS",
-    ]:
-        return True
-
     # Skip license directory
     if "LICENSES" in os.path.split(file):
         return True
