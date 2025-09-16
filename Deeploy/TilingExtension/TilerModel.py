@@ -10,6 +10,7 @@ import numpy as np
 from ortools.constraint_solver.pywrapcp import IntExpr, IntVar, SolutionCollector, Solver
 
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
+from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryLevel
 
 _COPYIDXSUFFIX = "_copyIdx_"
@@ -382,9 +383,11 @@ class TilerModel():
 
         timeLimit = self._model.TimeLimit(_SOLVERTIMEOUT)
 
-        log = self._model.SearchLog(1000000)
+        searchLog = self._model.SearchLog(1000000)
 
-        _ = self._model.Solve(decisionBuilder, [objective, collector, log, timeLimit])
+        log.debug(" - Solve Constraint Model")
+
+        _ = self._model.Solve(decisionBuilder, [objective, collector, None, timeLimit])
 
         assert collector.SolutionCount() > 0, "Error in Tiler: No solution found"
 

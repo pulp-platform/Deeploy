@@ -10,6 +10,10 @@ import shutil
 import subprocess
 from typing import Literal, Tuple
 
+import coloredlogs
+
+from Deeploy.Logging import DEFAULT_FMT, DEFAULT_LOGGER, DETAILED_FILE_LOG_FORMAT
+
 
 # Source: https://stackoverflow.com/a/38662876
 def escapeAnsi(line):
@@ -100,6 +104,18 @@ class TestGeneratorArgumentParser(argparse.ArgumentParser):
 
     def parse_args(self, args = None, namespace = None) -> argparse.Namespace:
         self.args = super().parse_args(args, namespace)
+
+        # Install logger based on verbosity level
+        log = DEFAULT_LOGGER
+
+        if self.args.verbose > 2:
+            coloredlogs.install(level = 'DEBUG', logger = DEFAULT_LOGGER, fmt = DETAILED_FILE_LOG_FORMAT)
+        elif self.args.verbose > 1:
+            coloredlogs.install(level = 'DEBUG', logger = DEFAULT_LOGGER, fmt = DEFAULT_FMT)
+        elif self.args.verbose > 0:
+            coloredlogs.install(level = 'INFO', logger = DEFAULT_LOGGER, fmt = DEFAULT_FMT)
+        else:
+            coloredlogs.install(level = 'WARNING', logger = DEFAULT_LOGGER, fmt = DEFAULT_FMT)
         return self.args
 
 
@@ -217,7 +233,7 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                         """)
             self.add_argument(
                 '--plotMemAlloc',
-                action = 'store_false',
+                action = 'store_true',
                 help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
         self.args = None
@@ -232,7 +248,7 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
 
         command = ""
         if self.args.verbose:
-            command += " -v"
+            command += " -" + "v" * self.args.verbose
         if self.args.debug:
             command += " --debug"
         if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
@@ -430,7 +446,7 @@ class TestRunner():
         fileHandle.close()
 
         if "Errors: 0 out of " not in result:
-            prRed(f"❌ Found errors in {self._dir_test}")
+            prRed(f"✗ Found errors in {self._dir_test}")
             raise RuntimeError(f"Found an error in {self._dir_test}")
         else:
-            prGreen(f"✅ No errors found in in {self._dir_test}")
+            prGreen(f"✓ No errors found in in {self._dir_test}")

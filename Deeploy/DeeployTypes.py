@@ -22,6 +22,8 @@ from mako.template import Template
 from onnx.external_data_helper import convert_model_to_external_data
 from ortools.constraint_solver.pywrapcp import IntVar
 
+from Deeploy.Logging import DEFAULT_LOGGER as log
+
 from .AbstractDataTypes import BaseType, FloatImmediate, IntegerImmediate, Pointer, PointerClass, Struct, VoidType
 
 Shape = TypeVar("Shape", bound = Any)
@@ -218,8 +220,8 @@ class NodeTemplate():
                 operatorRepresentation[f'RENDER_{key}'] = template.generate(**subNodeRep, **kwargs)
             callStack += self.template.render(**operatorRepresentation, **kwargs)
         except:
-            print(operatorRepresentation)
-            print(mako.exceptions.text_error_template().render())
+            log.error(operatorRepresentation)
+            log.error(mako.exceptions.text_error_template().render())
             raise KeyError(f"Template {self} failed!")
         return callStack
 
@@ -1408,6 +1410,11 @@ class NodeTypeChecker():
         self.annotateDict(newCtxt, node, operatorRepresentation)
         return (newCtxt, True)
 
+    def signature(self) -> str:
+        input_types_str = ", ".join([_type.referencedType.typeName for _type in self.input_types])
+        output_types_str = ", ".join([_type.referencedType.typeName for _type in self.output_types])
+        return f"({input_types_str}) -> {output_types_str}"
+
 
 class ExecutionBlock():
     """Deeploy abstraction to represent a operator whose kernel has been determined. Mostly used to apply various code transformations, and, finally, generate C Code
@@ -1552,6 +1559,9 @@ class NodeBinding():
         self.buffers: List[VariableBuffer] = []
         self.codeTransformer: CodeTransformation = codeTransformer
 
+    def __repr__(self):
+        return f"{self.template.__class__.__name__}{self._typeChecker.signature()}"
+
     @property
     def typeChecker(self):
         """Read-only wrapper around the encapsulated type checker
@@ -1613,9 +1623,13 @@ class NodeBinding():
             matches the node
 
         """
+
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
         if ret:
+            log.debug(f" ✓ Type check passed for {self}")
             return newCtxt, True
+        else:
+            log.debug(f" ✗ Type check failed for {self}")
 
         return ctxt, False
 
@@ -1692,6 +1706,10 @@ class NodeMapper():
 
         self.discardedBindings = set()  #: Set[NodeBinding]: Set of all bindings which have been tried unsuccessfully.
 
+    def __repr__(self):
+        bindings_str = "\n  ".join([repr(binding) for binding in self.bindings])
+        return f"{self.parser.__class__.__name__} [\n  {bindings_str}\n]"
+
     # Don't override this. Parses the networks with the correct data type
     def _parse(self,
                ctxt: NetworkContext,
@@ -1701,7 +1719,10 @@ class NodeMapper():
 
         newCtxt, ret = self.parser.parse(ctxt.copy(), node, default_channels_first, ioParse)
         if ret:
+            log.debug(f" ✓ Parser {self.parser.__class__.__name__} succeeded")
             return newCtxt, True
+        else:
+            log.debug(f" ✗ Parser {self.parser.__class__.__name__} failed")
 
         return ctxt, False
 
@@ -1711,6 +1732,10 @@ class NodeMapper():
                    default_channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         newCtxt, ret = self.parser.parseNodeCtxt(ctxt.copy(), node, default_channels_first)
+        if ret:
+            log.debug(f" ✓ Context parsing succeeded with {self.parser.__class__.__name__}")
+        else:
+            log.debug(f" ✗ Context parsing failed with {self.parser.__class__.__name__}")
         return (newCtxt, ret)
 
     def bindingsExhausted(self) -> bool:
@@ -1755,9 +1780,11 @@ class NodeMapper():
             failure
 
         """
-        for binder in self.bindings:
+
+        for idx, binder in enumerate(self.bindings):
 
             if binder in self.discardedBindings:
+                # log.debug(f" ↷ Skipping previously discarded {binder}")
                 continue
 
             newCtxt, ret = binder.typeCheck(ctxt.copy(), node, self.parser.operatorRepresentation)
@@ -1769,6 +1796,7 @@ class NodeMapper():
             self.binder = binder
             return newCtxt, True
 
+        log.debug(f" ‼ All {len(self.bindings)} bindings exhausted for {self.parser.__class__.__name__}")
         return ctxt, False
 
     # Don't override this. This should annotate the output node with the correct data type
@@ -1836,6 +1864,10 @@ class ONNXLayer():
         self.discardedMappers: Set[NodeMapper] = set(
         )  #: Set[NodeMapper]: Set of all NodeMappers which cannot be used to represent this layer
         self.node: gs.Node = None  #: gs.Node: The represented operator
+
+    def __repr__(self):
+        maps_str = "\n  ".join([repr(mapper) for mapper in self.maps])
+        return f"{self.__class__.__name__}(maps=[\n  {maps_str}\n])"
 
     def computeOps(self):
         """Returns the number of operations (1 MAC = 2 Ops) of this operator
@@ -1978,12 +2010,14 @@ class ONNXLayer():
 
 
         """
+
         ioParse = True
 
         # iterate through all possible mappings and return the first that works
         for idx, mapper in enumerate(self.maps):
 
             if mapper in self.discardedMappers:
+                log.debug(f" ⏭️  Skipping mapper {idx}: {mapper.parser.__class__.__name__} (previously discarded)")
                 continue
 
             newCtxt = ctxt.copy()
@@ -1998,11 +2032,13 @@ class ONNXLayer():
 
             self.mapper = mapper
 
+            # Perform broadcasting
             self.broadcast(newCtxt, default_channels_first)
 
             newCtxt, ret = mapper._parseCtxt(newCtxt, self.node, default_channels_first)
 
             if not ret:
+                log.debug(f" ✗ Context parsing failed for {mapper.parser.__class__.__name__}")
                 self.discardedMappers.add(mapper)
                 continue
 
@@ -2011,6 +2047,7 @@ class ONNXLayer():
 
             return newCtxt, True
 
+        log.debug(f" All {len(self.maps)} mappers exhausted for '{self.node.name}'")
         return ctxt, False
 
     def _broadcastToNpType(self, ty: Type[BaseType]):
@@ -2049,6 +2086,9 @@ class ONNXLayer():
             failure
 
         """
+        if not hasattr(self, 'mapper') or self.mapper is None:
+            log.debug(f" ✗ ONNXLayer.typeCheck() - No mapper selected for '{self.node.name}'")
+            return ctxt, False
 
         newCtxt = ctxt.copy()
         newCtxt, ret = self.mapper.typeCheck(newCtxt, self.node)
@@ -2174,7 +2214,8 @@ class TopologyOptimizer():
 
     """
 
-    def __init__(self, passes: List[TopologyOptimizationPass]):
+    def __init__(self, passes: List[TopologyOptimizationPass], name: str = "TopologyOptimizer"):
+        self.name = name
         self.passes = passes
 
     def optimize(self, graph: gs.Graph) -> Tuple[gs.Graph]:
@@ -2192,6 +2233,7 @@ class TopologyOptimizer():
 
         """
         for _pass in self.passes:
+            log.debug(f" - Apply {_pass.__class__.__name__}")
             graph = _pass.apply(graph)
             graph.cleanup().toposort()
         return graph
@@ -2363,6 +2405,9 @@ class DeploymentEngine():
         """
         return node.op in self.Mapping
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(name='{self.name}', mappings={list(self.Mapping.keys())})"
+
 
 class DeploymentPlatform():
     """Deeploy abstraction for a complete system, including at least a host core capable of memory allocation
@@ -2398,6 +2443,16 @@ class DeploymentPlatform():
         self.ConstantBuffer = constantBuffer
         self.StructBuffer = structBuffer
         self.TransientBuffer = transientBuffer
+
+    def __repr__(self) -> str:
+        retStr = f"{self.__class__.__name__}("
+        retStr += f"engines={[e.name for e in self.engines]}, "
+        retStr += f"variableBuffer={self.VariableBuffer.__name__}, "
+        retStr += f"constantBuffer={self.ConstantBuffer.__name__}, "
+        retStr += f"structBuffer={self.StructBuffer.__name__}, "
+        retStr += f"transientBuffer={self.TransientBuffer.__name__}"
+        retStr += ")"
+        return retStr
 
 
 class NetworkContainer():
@@ -2442,6 +2497,7 @@ class NetworkContainer():
                 self.ctxt.hoistConstant(x.attrs['value'], x.outputs[0].name, None)
 
         self.inputTypes = inputTypes
+        self.name = name
 
         self.ctxt = NetworkContext(variableBuffer = self.Platform.VariableBuffer,
                                    constantBuffer = self.Platform.ConstantBuffer,
@@ -2452,6 +2508,9 @@ class NetworkContainer():
 
         self.bound = False
         self.transformed = False
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(name='{self.name}', platform={self.Platform.__class__.__name__}, inputTypes={ [v.typeName for k, v in self.inputTypes.items()]}, scheduler={self.scheduler.__name__})"
 
     # Don't override this
     def _createIOBindings(self, ctxt: NetworkContext, graph: gs.Graph):
@@ -2560,17 +2619,20 @@ class NetworkContainer():
         for node in flatSchedule:
             layer = self._mapNode(node)
             if isinstance(layer, ONNXLayer):
+                log.debug(f"   ✓ Bind {node.name} to layer {layer.__class__.__name__}")
                 self.layerBinding[layer.node.name] = layer
 
     def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
                    default_channels_first: bool) -> Tuple[NetworkContext, bool]:
-
         newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
 
         if not parsePass:
             return ctxt, False
 
-        newCtxt, LayerBindSuccess = node.typeCheck(newCtxt)
+        return newCtxt, True
+
+    def _typeCheckNode(self, node: ONNXLayer, ctxt: NetworkContext) -> Tuple[NetworkContext, bool]:
+        newCtxt, LayerBindSuccess = node.typeCheck(ctxt)
 
         if not LayerBindSuccess:
             return ctxt, False
@@ -2605,8 +2667,10 @@ class NetworkContainer():
                                    structBuffer = self.Platform.StructBuffer,
                                    transientBuffer = self.Platform.TransientBuffer)
 
+        log.debug(" - Create IO Bindings")
         self.ctxt = self._createIOBindings(self.ctxt, self.graph)
 
+        log.debug(" - Bind Nodes to Layers")
         self._bindLayers()
 
         ctxt = self.ctxt.copy()
@@ -2617,15 +2681,32 @@ class NetworkContainer():
 
         deepestIdx = 0
 
+        log.debug(" - Parse and Type Check Network")
+
+        iteration_main = 0
+        iteration_sub = 0
+        iteration_tot = 0
         while (idx < len(scheduledLayerList)):
             currentLayer = scheduledLayerList[idx]
+
+            # Log current exploration state
+            if idx == 0:
+                iteration_main += 1
+                iteration_tot += 1
+                iteration_sub = 0
+                log.debug(31 * "-" + f" MAIN ITERATION {iteration_main:<2} " + 31 * "-")
+
+            log.debug(f"[Layer {idx}] Trying '{currentLayer.node.name}' (op: {currentLayer.node.op})")
 
             stCtxt = copy.deepcopy(ctxt)
 
             newCtxt, parseSuccess = self._parseNode(currentLayer, ctxt, default_channels_first)
 
+            typeCheckSuccess = False
             if parseSuccess:
+                newCtxt, typeCheckSuccess = self._typeCheckNode(currentLayer, newCtxt)
 
+            if parseSuccess and typeCheckSuccess:
                 # SCHEREMO: Continue depth-first exploration
                 ctxtStack.append(stCtxt)
                 ctxt = newCtxt
@@ -2635,15 +2716,21 @@ class NetworkContainer():
                     deepestCtxt = stCtxt
 
             else:
-                # SCHEREMO: Rollback one step
-
                 # SCHEREMO: If we can't find a mapping for the root, we must exit
                 if idx == 0:
                     deepestLayer = scheduledLayerList[deepestIdx]
                     deepestNodeName = deepestLayer.node.name
+                    log.debug("-" * 80)
+                    log.error("💥 PARSING FAILED - Backtracking exhausted at root!")
+                    log.error("=" * 80)
+                    log.error(f"🔍 Diagnosis:")
+                    log.error(f"   - Deepest successful exploration: Layer {deepestIdx} '{deepestNodeName}'")
+                    log.error(
+                        f"   - Deepest layer available mappers: {[type(x.parser).__name__ for x in deepestLayer.maps]}")
+                    log.error("=" * 80)
                     raise RuntimeError(
-                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer} of node {deepestNodeName} Candidates: {[type(x.parser).__name__ for x in deepestLayer.maps]}. Exhausted backtracking.'
-                    )
+                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer.__class__.__name__} of node {deepestNodeName}'
+                        f'Candidates: {[type(x.parser).__name__ for x in deepestLayer.maps]}. Exhausted backtracking.')
 
                 previousLayer = scheduledLayerList[idx - 1]
                 ctxt = ctxtStack.pop()
@@ -2657,8 +2744,14 @@ class NetworkContainer():
                 else:
                     previousLayer.mapper.discardCurrentBinder()
 
+                # SCHEREMO: Rollback one step
                 idx = idx - 1
+                if idx != 0:
+                    iteration_sub += 1
+                    iteration_tot += 1
+                    log.debug(31 * "-" + f" SUB ITERATION {iteration_main}.{iteration_sub:<2} " + 31 * "-")
 
+        log.info(f" ✓ Parsed network with {len(self.layerBinding)} layers after {iteration_tot} iterations")
         self.ctxt = ctxt
         self.parsed = True
         return True
@@ -2685,6 +2778,7 @@ class NetworkContainer():
         newCtxt = self.ctxt.copy()
 
         NetworkBindSuccess = True
+        log.info("- Map Layers to Bindings")
         for name, layer in self.layerBinding.items():
 
             newCtxt, LayerBindSuccess = layer.bind(newCtxt)
@@ -2692,6 +2786,8 @@ class NetworkContainer():
 
             if not NetworkBindSuccess:
                 raise RuntimeError(f'Could not find a valid binding for the graph')
+
+            log.debug(f" ✓ Mapped {layer.node.name} to {layer.mapper.binder}")
 
         self.bound = True
         self.ctxt = newCtxt
@@ -3073,7 +3169,8 @@ class NetworkContainer():
             nodeOps = i.mapper.parser.operatorRepresentation['nodeOps']
             totalSum += nodeOps
             if verbose:
-                print("Layer " + str(i.node.name) + str("\nNumber of operations: \t\t") + str("%12s\n" % nodeOps))
+                log.info(f"Layer '{i.node.name}'")
+                log.info(f"  Number of Operations        : {nodeOps}")
         return totalSum
 
         # Don't override this
@@ -3202,6 +3299,10 @@ class NetworkDeployer(NetworkContainer):
         self.default_channels_first = default_channels_first
 
         self.prepared = False
+
+    def __repr__(self):
+        return super().__repr__(
+        ) + f" (loweringOptimizer: {self.loweringOptimizer.name}, default_channels_first: {self.default_channels_first})"
 
     # Don't override this
     def lower(self, graph: gs.Graph) -> gs.Graph:
@@ -3355,10 +3456,20 @@ class NetworkDeployer(NetworkContainer):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
 
         """
+
+        log.info(80 * "=")
+        log.info("Deeploy FrontEnd")
+        log.info(80 * "=")
+
+        log.info("- Apply Preprocessing")
+
+        log.debug(" - Remove Identity Nodes")
         self._removeIdentityNodes()
 
+        log.debug(" - Mangle Tensor Names")
         self._mangleTensorNames()
 
+        log.debug(" - Mangle Node Names")
         self._mangleNodeNames()
 
         # Rename graph inputs and outputs:
@@ -3367,24 +3478,32 @@ class NetworkDeployer(NetworkContainer):
         for idx, outputNode in enumerate(self.graph.outputs):
             outputNode.name = "output_" + str(idx)
 
+        log.debug(" - Sanitize Graph Names")
         self._sanitizeGraphNames(self.graph)
 
+        log.debug(" - Remove Empty Inputs")
         self._removeEmptyInputs(self.graph)
 
+        log.debug(" - Duplicate Constants")
         self._duplicateConstants(self.graph)
 
+        log.debug(" - Constant Folding")
         self._foldConstants(self.graph)
 
+        log.info(f"> Export State to {_middlewarePreLoweringFilename}[.onnx|.pkl]")
         self.exportDeeployState(self.deeployStateDir, _middlewarePreLoweringFilename)
 
+        log.info("- Perform Graph Lowering")
         self.graph = self.lower(self.graph)  # This lowers the graph to a deployable format
 
+        log.info(f"> Export State {_middlewarePostLoweringFilename}[.onnx|.pkl]")
         self.exportDeeployState(self.deeployStateDir, _middlewarePostLoweringFilename)
 
+        log.info("- Perform Graph Parsing")
         try:
             self.parse(self.default_channels_first)  # This reparses the lowered graph
         except Exception as e:
-            print("Error during parsing! Exporting deeploy state!")
+            log.error(f"Error during parsing! Exporting deeploy state {_backendPostBindingFilename}[.onnx|.pkl]!")
             self.exportDeeployState(self.deeployStateDir, _backendPostBindingFilename)
             raise e
 
@@ -3392,12 +3511,18 @@ class NetworkDeployer(NetworkContainer):
     def midEnd(self):
         """API hook to be used after finalizing kernel selection; hoist transient buffers, and perform low-level code optimizations (e.g. tiling and static memory allocation)
         """
+        log.info(80 * "=")
+        log.info("Deeploy MidEnd")
+        log.info(80 * "=")
         try:
             self.bind()
         except Exception as e:
-            print("Error during binding! Exporting deeploy state!")
+            log.error("Error during binding! Exporting deeploy state!")
             self.exportDeeployState(self.deeployStateDir, _backendPostBindingFilename)
             raise e
+
+        log.info(f"> Export State {_backendPostParsingFilename}[.onnx|.pkl]")
+        self.exportDeeployState(self.deeployStateDir, _backendPostParsingFilename)
 
     # Don't override this unless you know what you are doin
     def backEnd(self, verbose: CodeGenVerbosity = _NoVerbosity):
@@ -3409,11 +3534,14 @@ class NetworkDeployer(NetworkContainer):
             Control verbosity of generated code
 
         """
+        log.info(80 * "=")
+        log.info("Deeploy BackEnd")
+        log.info(80 * "=")
 
-        self.exportDeeployState(self.deeployStateDir, _backendPostParsingFilename)
-
+        log.info("- Performing code transformations and optimization...")
         self.codeTransform(verbose)
 
+        log.info(f"> Export State {_backendPostBindingFilename}[.onnx|.pkl]")
         self.exportDeeployState(self.deeployStateDir, _backendPostBindingFilename)
 
     # Don't override this
@@ -3427,7 +3555,9 @@ class NetworkDeployer(NetworkContainer):
 
         """
         self.frontEnd()
+
         self.midEnd()
+
         self.backEnd(verbose = verbose)
         self.prepared = True
 
@@ -3435,7 +3565,27 @@ class NetworkDeployer(NetworkContainer):
         """Helper function to prepare deployment and return generated function code
 
         """
+
         if not self.prepared:
             self.prepare(verbose = verbose)
+
+        log.info("=" * 80)
+        log.info("Deeploy Code Generation")
+        log.info("=" * 80)
+
+        log.info('Input:')
+        for name in self.inputTypes.keys():
+            buf = self.ctxt.lookup(name)
+            log.info(f" - '{name}': Type: {buf._type.referencedType.typeName}")
+
+        log.info('Output:')
+        for buf in self.outputs():
+            log.info(f" - '{buf.name}': Type: {buf._type.referencedType.typeName}")
+
+        num_ops = self.numberOfOps(verbose = True)
+        log.info("-" * 80)
+
+        log.info(f"Number of Ops.                : {num_ops}")
+        log.info(f"Model Parameters              : {self.getParameterSize()}")
 
         return self.generateInferenceCode()

@@ -7,6 +7,7 @@ from typing import List, Optional
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
+from Deeploy.Logging import DEFAULT_LOGGER as log
 
 from .Matchers import Match, NonBranchingMatcher, SubgraphMatcher
 
@@ -129,7 +130,7 @@ class Pass():
         try:
             del self._subpasses[name]
         except KeyError:
-            print(f"No subpass with name {name}, cannot remove!")
+            log.error(f"No subpass with name {name}, cannot remove!")
         except AttributeError:
             raise AttributeError("Cannot remove sub-pass before calling Pass.__init__!")
 

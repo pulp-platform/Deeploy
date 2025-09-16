@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import argparse
 import os
 import sys
 from collections import OrderedDict
@@ -20,13 +21,12 @@ from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.DeeployTypes import CodeGenVerbosity, NetworkDeployer, ONNXLayer
 from Deeploy.EngineExtension.NetworkDeployers.EngineColoringDeployer import EngineColoringDeployerWrapper
+from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel, AnnotateNeurekaWeightMemoryLevel
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
-
-_TEXT_ALIGN = 30
 
 
 # Mock of the Global Scheduler's inteface
@@ -55,7 +55,8 @@ def _filterSchedule(schedule: List[List[gs.Node]], layerBinding: 'OrderedDict[st
 
 
 def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTargetMemoryLevel: MemoryLevel,
-                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity) -> Tuple[NetworkDeployer, bool]:
+                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity,
+                  args: argparse.Namespace) -> Tuple[NetworkDeployer, bool]:
 
     inputTypes = {}
     inputOffsets = {}
@@ -192,11 +193,13 @@ if __name__ == '__main__':
                         """)
     parser.add_argument('--profileTiling', action = "store_true")
     parser.add_argument('--plotMemAlloc',
-                        action = 'store_false',
+                        action = 'store_true',
                         help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
     parser.set_defaults(shouldFail = False)
     args = parser.parse_args()
+
+    log.debug("Arguments: %s", args)
 
     verbosityCfg = CodeGenVerbosity(None)
 
@@ -246,9 +249,18 @@ if __name__ == '__main__':
                                        memoryHierarchy,
                                        defaultTargetMemoryLevel = L1,
                                        defaultIoMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel],
-                                       verbose = verbosityCfg)
+                                       verbose = verbosityCfg,
+                                       args = args)
 
     platform = deployer.Platform
+
+    log.debug(f"Platform: {platform} (sign: {signProp})")
+
+    log.debug("Platform Engines:")
+    for engine in platform.engines:
+        log.debug(f" - {engine.name}: {engine}")
+
+    log.debug(f"Deployer: {deployer}")
 
     for index, num in enumerate(test_inputs):
         _type, offset = inferTypeAndOffset(num, signProp)
@@ -265,7 +277,7 @@ if __name__ == '__main__':
         sys.exit(0)
     else:
 
-        _ = deployer.generateFunction(verbosityCfg)
+        _ = deployer.prepare(verbosityCfg)
 
         # Offset the input and output values if signprop
         if signProp:
@@ -279,31 +291,3 @@ if __name__ == '__main__':
                     values -= buffer.nLevels // 2
 
         generateTestNetwork(deployer, test_inputs, test_outputs, args.dumpdir, verbosityCfg)
-
-        if args.verbose:
-            print()
-            print("=" * 80)
-            print("Output:")
-            for i in range(len(test_outputs)):
-                buffer = deployer.ctxt.lookup(f"output_{i}")
-                logLine = f" - '{buffer.name}': Type: {buffer._type.referencedType.typeName}"
-                if signProp:
-                    logLine += f", nLevels: {buffer.nLevels}, Signed: {buffer._signed}"
-                print(logLine)
-            print('Input:')
-            for i in range(len(test_inputs)):
-                buffer = deployer.ctxt.lookup(f"input_{i}")
-                print(
-                    f" - '{buffer.name}': Type: {buffer._type.referencedType.typeName}, Offset: {inputOffsets[buffer.name]}"
-                )
-            print("=" * 80)
-            num_ops = deployer.numberOfOps(args.verbose)
-            print("=" * 80)
-            print()
-            print(f"{'Number of Ops:' :<{_TEXT_ALIGN}} {num_ops}")
-            print('Worst Case Buffer Size:')
-            for level in deployer.worstCaseBufferSize.keys():
-                print(f"{'  ' + str(level) + ':' :<{_TEXT_ALIGN}} {deployer.worstCaseBufferSize[level]}")
-            print(f"{'Model Parameters: ' :<{_TEXT_ALIGN}} {deployer.getParameterSize()}")
-
-        print("\033[92mCode Generation test ended, no memory violations!\033[0m")

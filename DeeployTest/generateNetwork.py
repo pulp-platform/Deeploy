@@ -18,13 +18,14 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import EmulateCMSISRequantPass
 from Deeploy.DeeployTypes import _NoVerbosity
+from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
 from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
 
-_TEXT_ALIGN = 30
-
 
 def generateNetwork(args):
+    log.debug("Arguments: %s", args)
+
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
 
@@ -86,6 +87,12 @@ def generateNetwork(args):
     inputTypes = {}
     inputOffsets = {}
 
+    log.debug(f"Platform: {platform} (sign: {signProp})")
+
+    log.debug("Platform Engines:")
+    for engine in platform.engines:
+        log.debug(f" - {engine.name}: {engine}")
+
     for index, (name, values) in enumerate(zip(inputs.files, test_inputs)):
         if np.prod(values.shape) == 0:
             continue
@@ -105,9 +112,9 @@ def generateNetwork(args):
             # Suggest a smaller fitting type if possible
             fitting_types = [t for t in sorted(IntegerDataTypes, key = lambda x: x.typeWidth) if t.checkPromotion(vals)]
             if fitting_types and fitting_types[0] is not _type:
-                print(f"WARNING: Data spans [{int(vals.min())}, {int(vals.max())}], "
-                      f"which would fit in '{fitting_types[0].typeName}', "
-                      f"but user forced '{_type.typeName}'.")
+                log.warning(f"Data spans [{int(vals.min())}, {int(vals.max())}], "
+                            f"which would fit in '{fitting_types[0].typeName}', "
+                            f"but user forced '{_type.typeName}'.")
 
             _type = PointerClass(_type)
         else:
@@ -120,6 +127,8 @@ def generateNetwork(args):
 
     deployer = mapDeployer(platform, graph, inputTypes, deeployStateDir = _DEEPLOYSTATEDIR, inputOffsets = inputOffsets)
 
+    log.debug(f"Deployer: {deployer}")
+
     if not isinstance(
             platform, CMSISPlatform
     ) and not "simpleCNN" in args.dir and not "testRQMatMul" in args.dir and not "testRQGEMM" in args.dir:
@@ -130,7 +139,7 @@ def generateNetwork(args):
         verbosityCfg.untiledProfiling = args.profileUntiled
 
     # Parse graph and infer output levels and signedness
-    _ = deployer.generateFunction(verbose = verbosityCfg)
+    _ = deployer.prepare(verbosityCfg)
 
     # Offset the input and output values if signprop
     if signProp:
@@ -144,29 +153,6 @@ def generateNetwork(args):
                 values -= buffer.nLevels // 2
 
     generateTestNetwork(deployer, test_inputs, test_outputs, args.dumpdir, verbosityCfg)
-
-    if args.verbose:
-        print()
-        print("=" * 80)
-        print("Output:")
-        for i in range(len(test_outputs)):
-            buffer = deployer.ctxt.lookup(f"output_{i}")
-            logLine = f" - '{buffer.name}': Type: {buffer._type.referencedType.typeName}"
-            if signProp:
-                logLine += f", nLevels: {buffer.nLevels}, Signed: {buffer._signed}"
-            print(logLine)
-        print('Input:')
-        for i in range(len(test_inputs)):
-            buffer = deployer.ctxt.lookup(f"input_{i}")
-            print(
-                f" - '{buffer.name}': Type: {buffer._type.referencedType.typeName}, Offset: {inputOffsets[buffer.name]}"
-            )
-        print("=" * 80)
-        num_ops = deployer.numberOfOps(args.verbose)
-        print("=" * 80)
-        print()
-        print(f"{'Number of Ops:' :<{_TEXT_ALIGN}} {num_ops}")
-        print(f"{'Model Parameters: ' :<{_TEXT_ALIGN}} {deployer.getParameterSize()}")
 
 
 if __name__ == '__main__':

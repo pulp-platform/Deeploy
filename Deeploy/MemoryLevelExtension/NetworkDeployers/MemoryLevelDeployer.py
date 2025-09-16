@@ -13,6 +13,7 @@ from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropD
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, DeploymentEngine, DeploymentPlatform, \
     NetworkContext, NetworkDeployer, NetworkOptimizationPass, NetworkOptimizer, ONNXLayer, Schedule, StructBuffer, \
     TopologyOptimizer, TransientBuffer, VariableBuffer, _NoVerbosity
+from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel
 
@@ -100,18 +101,14 @@ class MemoryLevelAwareDeployer(NetworkDeployer):
     def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
                    default_channels_first: bool) -> Tuple[NetworkContext, bool]:
 
-        newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
+        newCtxt, parsePass = super()._parseNode(node, ctxt, default_channels_first)
 
         if not parsePass:
-            return ctxt, False
+            return newCtxt, False
 
         newCtxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(newCtxt, self.graph)
-        newCtxt, LayerBindSuccess = node.typeCheck(newCtxt)
 
-        if not LayerBindSuccess:
-            return ctxt, False
-
-        return newCtxt, True
+        return newCtxt, parsePass
 
     def bind(self):
 
@@ -119,6 +116,7 @@ class MemoryLevelAwareDeployer(NetworkDeployer):
         if not ret:
             return False
 
+        log.info("- Perform Memory Level Annotation")
         # SCHEREMO: There might be hoisting; reassign memoryLevel preferences
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
@@ -175,6 +173,7 @@ class MemoryLevelAwareSignPropDeployer(SignPropDeployer):
         if not ret:
             return False
 
+        log.info("- Perform Memory Level Annotation")
         # SCHEREMO: There might be hoisting; reassign memoryLevel preferences
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
@@ -222,6 +221,7 @@ class MemoryDeployerWrapper(NetworkDeployerWrapper):
         if not ret:
             return False
 
+        log.info("- Perform Memory Level Annotation")
         # SCHEREMO: There might be hoisting; reassign memoryLevel preferences
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 

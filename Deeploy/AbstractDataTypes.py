@@ -21,6 +21,8 @@ _StructType = TypeVar("Struct", bound = "Struct")
 _DeeployType = TypeVar("_DeeployType", _PointerType, _ImmediateType, _StructType)
 _PythonType = TypeVar("_PythonType", str, int, float, Dict[str, "_PythonType"], Iterable["_PythonType"])
 
+from Deeploy.Logging import DEFAULT_LOGGER as log
+
 
 class _ClassPropertyDescriptor(object):
 
@@ -316,7 +318,7 @@ class Pointer(BaseType[Optional[str], _PointerType]):
             return False
 
         if value is None or value == "NULL":
-            print("WARNING: Setting pointer value to NULL - Referenced data is invalid!")
+            log.warning("Setting pointer value to NULL - Referenced data is invalid!")
             return True
 
         reference = ctxt.lookup(value)

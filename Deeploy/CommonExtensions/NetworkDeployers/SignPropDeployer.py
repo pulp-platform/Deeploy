@@ -7,7 +7,8 @@ from typing import Callable, Dict, Type
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
-from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
+from Deeploy.DeeployTypes import CodeGenVerbosity, DeploymentPlatform, NetworkDeployer, TopologyOptimizer, _NoVerbosity
+from Deeploy.Logging import DEFAULT_LOGGER as log
 
 
 class SignPropDeployer(NetworkDeployer):
@@ -41,3 +42,36 @@ class SignPropDeployer(NetworkDeployer):
             nb.nLevels = (2**data_type.referencedType.typeWidth)
 
         return ctxt
+
+    def generateFunction(self, verbose: CodeGenVerbosity = _NoVerbosity) -> str:
+        """Helper function to prepare deployment and return generated function code
+
+        """
+
+        if not self.prepared:
+            self.prepare(verbose = verbose)
+
+        log.info("=" * 80)
+        log.info("Deeploy Code Generation")
+        log.info("=" * 80)
+
+        log.info('Input:')
+        for name in self.inputTypes.keys():
+            buf = self.ctxt.lookup(name)
+            log.info(
+                f" - '{name}': Type: {buf._type.referencedType.typeName}, nLevels: {buf.nLevels}, Signed: {buf._signed}, Offset: {self.inputOffsets[name]}"
+            )
+
+        log.info('Output:')
+        for buf in self.outputs():
+            log.info(
+                f" - '{buf.name}': Type: {buf._type.referencedType.typeName}, nLevels: {buf.nLevels}, Signed: {buf._signed}"
+            )
+
+        log.info("-" * 80)
+        num_ops = self.numberOfOps(verbose = True)
+        log.info("-" * 80)
+        log.info(f"Number of Ops.                : {num_ops}")
+        log.info(f"Model Parameters              : {self.getParameterSize()}")
+
+        return self.generateInferenceCode()
