@@ -5,7 +5,7 @@
 from typing import Dict, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, TensorGroupWaitingStrategy
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, PerTensorWaitingStrategy
 
 
 class SnitchBarrierFuture(Future):
@@ -25,7 +25,7 @@ class SnitchFuture(Future):
     % if comment:
     // ${comment}
     % endif
-    uint16_t ${name};
+    snrt_dma_txid_t ${name} = 0;
     """)
 
     _deinitTemplate = NodeTemplate("")
@@ -46,10 +46,13 @@ class SnitchDma(AsyncDma):
             % if comment:
             // ${comment}
             % endif
-            if (snrt_is_dm_core()) snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});
+            if (snrt_is_dm_core()) {
+                ${future} = snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});
+                snrt_dma_start_2d(${dest}, ${src}, 1, 0, 0, 0);
+            }
             """),
     }
-    _waitingStrategy = TensorGroupWaitingStrategy(SnitchBarrierFuture, "")
+    _waitingStrategy = PerTensorWaitingStrategy(SnitchFuture)
 
     def __init__(self, transferTemplates: Dict[int, NodeTemplate] = _transferTemplates) -> None:
         super().__init__(transferTemplates)
@@ -69,7 +72,6 @@ class SnitchDma(AsyncDma):
                        direction: DmaDirection,
                        future: Future,
                        comment: str = "") -> OperatorRepresentation:
-        _ = future
         operatorRepresentation: OperatorRepresentation = {
             "dest": localBuffer.name if direction == "ExternalToLocal" else externalBuffer.name,
             "src": externalBuffer.name if direction == "ExternalToLocal" else localBuffer.name,
@@ -77,6 +79,7 @@ class SnitchDma(AsyncDma):
             "size": shape[1],
             "stride_dest": strideLoc[0] if direction == "ExternalToLocal" else strideExt[0],
             "stride_src": strideExt[0] if direction == "ExternalToLocal" else strideLoc[0],
-            "comment": comment
+            "comment": comment,
+            "future": future.name
         }
         return operatorRepresentation
