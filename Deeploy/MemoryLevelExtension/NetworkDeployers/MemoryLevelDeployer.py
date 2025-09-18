@@ -76,7 +76,30 @@ class TargetMemoryLevelMapping:
         return self._mapping[nodeName, tensorName]
 
 
-class MemoryLevelAwareDeployer(NetworkDeployer):
+class MemorySummaryMixin:
+
+    def _printMemorySummary(self):
+        log.info("")
+        log.info("Memory Usage Report:")
+        log.info(f"  {'Level':<14} {'Capacity (bytes)':>10} {'Total':>10} (    Static + Dynamic   ) (Usage )")
+        log.info("  " + "-" * 78)
+
+        for level, dynamicSize in self.worstCaseBufferSize.items():
+            staticSize = 0
+            for _buffer in self.ctxt.globalObjects.values():
+                # We do not count structs for now, since they are not properly modeled
+                if isinstance(_buffer, ConstantBuffer) and _buffer._deploy and _buffer._memoryLevel == level:
+                    staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
+
+            capacity = self.Platform.memoryHierarchy.memoryLevels[level].size
+            total = staticSize + dynamicSize
+
+            log.info(f"  {level:<20} {capacity:10,} {total:10,d} "
+                     f"({staticSize:10,d} + {dynamicSize:10,d}) "
+                     f"({total / capacity * 100:5.1f}%)")
+
+
+class MemoryLevelAwareDeployer(NetworkDeployer, MemorySummaryMixin):
 
     def __init__(self,
                  graph: gs.Graph,
@@ -127,28 +150,8 @@ class MemoryLevelAwareDeployer(NetworkDeployer):
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
         super().codeTransform(verbose)
 
-    def _printMemorySummary(self):
-        log.info("")
-        log.info("Memory Usage Report:")
-        log.info(f"  {'Level':<14} {'Capacity (bytes)':>10} {'Total':>10} (    Static + Dynamic   ) (Usage )")
-        log.info("  " + "-" * 78)
 
-        for level, dynamicSize in self.worstCaseBufferSize.items():
-            staticSize = 0
-            for _buffer in self.ctxt.globalObjects.values():
-                # We do not count structs for now, since they are not properly modeled
-                if isinstance(_buffer, ConstantBuffer) and _buffer._deploy and _buffer._memoryLevel == level:
-                    staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
-
-            capacity = self.Platform.memoryHierarchy.memoryLevels[level].size
-            total = staticSize + dynamicSize
-
-            log.info(f"  {level:<20} {capacity:10,} {total:10,d} "
-                     f"({staticSize:10,d} + {dynamicSize:10,d}) "
-                     f"({total / capacity * 100:5.1f}%)")
-
-
-class MemoryLevelAwareSignPropDeployer(SignPropDeployer):
+class MemoryLevelAwareSignPropDeployer(SignPropDeployer, MemorySummaryMixin):
 
     def __init__(self,
                  graph: gs.Graph,
@@ -204,28 +207,8 @@ class MemoryLevelAwareSignPropDeployer(SignPropDeployer):
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
         super().codeTransform(verbose)
 
-    def _printMemorySummary(self):
-        log.info("")
-        log.info("Memory Usage Report:")
-        log.info(f"  {'Level':<14} {'Capacity (bytes)':>10} {'Total':>10} (    Static + Dynamic   ) (Usage )")
-        log.info("  " + "-" * 78)
 
-        for level, dynamicSize in self.worstCaseBufferSize.items():
-            staticSize = 0
-            for _buffer in self.ctxt.globalObjects.values():
-                # We do not count structs for now, since they are not properly modeled
-                if isinstance(_buffer, ConstantBuffer) and _buffer._deploy and _buffer._memoryLevel == level:
-                    staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
-
-            capacity = self.Platform.memoryHierarchy.memoryLevels[level].size
-            total = staticSize + dynamicSize
-
-            log.info(f"  {level:<20} {capacity:10,} {total:10,d} "
-                     f"({staticSize:10,d} + {dynamicSize:10,d}) "
-                     f"({total / capacity * 100:5.1f}%)")
-
-
-class MemoryDeployerWrapper(NetworkDeployerWrapper):
+class MemoryDeployerWrapper(NetworkDeployerWrapper, MemorySummaryMixin):
 
     def __init__(self, deployer: NetworkDeployer, memoryLevelAnnotationPasses: List[NetworkOptimizationPass] = []):
         super().__init__(deployer)
@@ -271,23 +254,3 @@ class MemoryDeployerWrapper(NetworkDeployerWrapper):
     def codeTransform(self, verbose: CodeGenVerbosity = _NoVerbosity):
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
         super().codeTransform(verbose)
-
-    def _printMemorySummary(self):
-        log.info("")
-        log.info("Memory Usage Report:")
-        log.info(f"  {'Level':<14} {'Capacity (bytes)':>10} {'Total':>10} (    Static + Dynamic   ) (Usage )")
-        log.info("  " + "-" * 78)
-
-        for level, dynamicSize in self.worstCaseBufferSize.items():
-            staticSize = 0
-            for _buffer in self.ctxt.globalObjects.values():
-                # We do not count structs for now, since they are not properly modeled
-                if isinstance(_buffer, ConstantBuffer) and _buffer._deploy and _buffer._memoryLevel == level:
-                    staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
-
-            capacity = self.Platform.memoryHierarchy.memoryLevels[level].size
-            total = staticSize + dynamicSize
-
-            log.info(f"  {level:<20} {capacity:10,} {total:10,d} "
-                     f"({staticSize:10,d} + {dynamicSize:10,d}) "
-                     f"({total / capacity * 100:5.1f}%)")
