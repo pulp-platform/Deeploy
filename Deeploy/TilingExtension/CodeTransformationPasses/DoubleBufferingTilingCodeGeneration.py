@@ -32,6 +32,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
     #         of the modulo operation. Breaking case without the brackets is when we
     #         put "TILING_I + 1" for tileIdxVar.
     _chooseBufferTemplate = NodeTemplate("""
+    // DOUBLE BUFFERING CHOOSE BUFFER
     switch((${tileIdxVar}) % 2) {
         case 0: ${reference} = (${type})${buffer_0}; break;
         case 1: ${reference} = (${type})${buffer_1}; break;
@@ -106,19 +107,32 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             ingressDmaTransferCalls.append(
                 self._generateBufferChoice(nextLocalBufferReference, l1BuffersReferences, "TILING_I+1"))
             ingressDmaTransferCalls.extend(
-                self._generateDmaTransferCalls(ctxt, tensorName, rectangles, "TILING_I+1", nextLocalBufferReference,
-                                               externalBufferRef, "ExternalToLocal", future))
+                self._generateDmaTransferCalls(ctxt,
+                                               tensorName,
+                                               rectangles,
+                                               "TILING_I+1",
+                                               nextLocalBufferReference,
+                                               externalBufferRef,
+                                               "ExternalToLocal",
+                                               future,
+                                               comment = "DMA INGRESS"))
 
             anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
             initialFuture = self.dma.getFuture(tensorName + "_init")
             initialFutures.add(initialFuture)
-            initialDmaTransferCalls = anydimAdapter.transfer(ctxt, externalBufferRef, localBuffer, rectangles[0].dims,
+            initialDmaTransferCalls = anydimAdapter.transfer(ctxt,
+                                                             externalBufferRef,
+                                                             localBuffer,
+                                                             rectangles[0].dims,
                                                              stridesFromShape(externalBufferShape),
-                                                             stridesFromShape(rectangles[0].dims), "ExternalToLocal",
-                                                             initialFuture, math.prod(externalBufferShape))
+                                                             stridesFromShape(rectangles[0].dims),
+                                                             "ExternalToLocal",
+                                                             initialFuture,
+                                                             math.prod(externalBufferShape),
+                                                             comment = "DMA INITIAL")
             setupStatements.extend(initialDmaTransferCalls)
-            setupStatements.append(initialFuture.wait())
+            setupStatements.append(initialFuture.wait("WAIT INITIAL"))
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I+1",
                                                                     externalBufferRef)
@@ -132,7 +146,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                 setupStatements.append(initialReferenceUpdate)
 
         ingressDmaTransferCalls.append(CodeSnippet(self._moveTileInCheckCloseStatement, {}))
-        ingressDmaWaitStatements = [f.wait() for f in ingressFutures]
+        ingressDmaWaitStatements = [f.wait("WAIT INGRESS") for f in ingressFutures]
 
         egressDmaTransferCalls: List[CodeSnippet] = []
         egressFutures: Set[Future] = set()
@@ -165,8 +179,15 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             future = self.dma.getFuture(tensorName)
             egressFutures.add(future)
 
-            dmaTransferCalls = self._generateDmaTransferCalls(ctxt, tensorName, rectangles, "TILING_I", localBuffer,
-                                                              externalBufferRef, "LocalToExternal", future)
+            dmaTransferCalls = self._generateDmaTransferCalls(ctxt,
+                                                              tensorName,
+                                                              rectangles,
+                                                              "TILING_I",
+                                                              localBuffer,
+                                                              externalBufferRef,
+                                                              "LocalToExternal",
+                                                              future,
+                                                              comment = "DMA EGRESS")
             egressDmaTransferCalls.extend(dmaTransferCalls)
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I",
@@ -174,12 +195,13 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             if referenceUpdate is not None:
                 egressDmaTransferCalls.append(referenceUpdate)
 
-        egressDmaWaitStatements = [f.wait() for f in egressFutures]
+        egressDmaWaitStatements = [f.wait("WAIT EGRESS") for f in egressFutures]
 
-        teardownStatements.extend([f.wait() for f in egressFutures])
+        teardownStatements.extend([f.wait("WAIT EGRESS") for f in egressFutures])
 
-        setupStatements = [f.init() for f in ingressFutures | initialFutures | egressFutures] + setupStatements
-        teardownStatements.extend(f.deinit() for f in ingressFutures | initialFutures | egressFutures)
+        setupStatements = [f.init("INIT Setup") for f in ingressFutures | initialFutures | egressFutures
+                          ] + setupStatements
+        teardownStatements.extend(f.deinit("DEINIT Setup") for f in ingressFutures | initialFutures | egressFutures)
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
 

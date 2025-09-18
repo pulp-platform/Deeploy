@@ -75,14 +75,14 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
             ctxt, operatorRepresentation, tilingSchedule.outputLoadSchedule,
             nodeMemoryConstraint.outputTensorMemoryConstraints, "TILING_I", "LocalToExternal")
 
-        ingressDmaWaitStatements = [future.wait() for future in ingressFutures]
-        egressDmaWaitStatements = [future.wait() for future in egressFutures]
+        ingressDmaWaitStatements = [future.wait("WAIT INGRESS") for future in ingressFutures]
+        egressDmaWaitStatements = [future.wait("WAIT EGRESS") for future in egressFutures]
 
         setupStatements = self.dma.setup()
-        setupStatements += [f.init() for f in ingressFutures | egressFutures]
+        setupStatements += [f.init("INIT DMA") for f in ingressFutures | egressFutures]
 
         teardownStatements = self.dma.teardown()
-        teardownStatements.extend(f.deinit() for f in ingressFutures | egressFutures)
+        teardownStatements.extend(f.deinit("DEINIT DMA") for f in ingressFutures | egressFutures)
 
         openLoopStatements = [CodeSnippet(self._openTileLoopTemplate, {**operatorRepresentation})]
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]

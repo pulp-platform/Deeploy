@@ -11,16 +11,45 @@ from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, Ten
 
 class MchanChannelFuture(Future):
 
-    _initTemplate = NodeTemplate("uint32_t ${name} = mchan_channel_alloc();")
-    _deinitTemplate = NodeTemplate("mchan_channel_free(${name});")
-    _waitTemplate = NodeTemplate("mchan_channel_wait(${name});")
+    _initTemplate = NodeTemplate("""
+    % if comment:
+    // ${comment}
+    % endif
+    uint32_t ${name} = mchan_channel_alloc();
+    """)
+
+    _deinitTemplate = NodeTemplate("""
+    % if comment:
+    // ${comment}
+    % endif
+    mchan_channel_free(${name});
+    """)
+
+    _waitTemplate = NodeTemplate("""
+    % if comment:
+    // ${comment}
+    % endif
+    mchan_channel_wait(${name});
+    """)
 
 
 class MchanDma(AsyncDma):
 
     _transferTemplates = {
-        1: NodeTemplate("mchan_transfer_1d(${cmd}, ${loc}, ${ext});"),
-        2: NodeTemplate("mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});"),
+        1:
+            NodeTemplate("""
+        % if comment:
+        // ${comment}
+        % endif
+        mchan_transfer_1d(${cmd}, ${loc}, ${ext});
+        """),
+        2:
+            NodeTemplate("""
+        % if comment:
+        // ${comment}
+        % endif
+        mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});
+        """),
     }
     _waitingStrategy = TensorGroupWaitingStrategy(MchanChannelFuture, "channel_id")
 
@@ -41,11 +70,17 @@ class MchanDma(AsyncDma):
             assert strideLoc[0] == shape[1] and strideLoc[
                 1] == 1, "Mchan supports only contigous transfers for local memory"
 
-    def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
-                       strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
-                       future: Future) -> OperatorRepresentation:
+    def transferOpRepr(self,
+                       externalBuffer: VariableBuffer,
+                       localBuffer: VariableBuffer,
+                       shape: Tuple[int, ...],
+                       strideExt: Tuple[int, ...],
+                       strideLoc: Tuple[int, ...],
+                       direction: DmaDirection,
+                       future: Future,
+                       comment: str = "") -> OperatorRepresentation:
         operatorRepresentation = super().transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc,
-                                                        direction, future)
+                                                        direction, future, comment)
 
         transferRank = len(shape)
 

@@ -86,9 +86,16 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
             return True
         return self.localMemory in memoryOrder[:2]
 
-    def _generateDmaTransferCalls(self, ctxt: NetworkContext, tensorName: str, transfers: List[HyperRectangle],
-                                  tileIdxVar: str, localBuffer: VariableBuffer, externalBuffer: VariableBuffer,
-                                  direction: DmaDirection, future: Future) -> List[CodeSnippet]:
+    def _generateDmaTransferCalls(self,
+                                  ctxt: NetworkContext,
+                                  tensorName: str,
+                                  transfers: List[HyperRectangle],
+                                  tileIdxVar: str,
+                                  localBuffer: VariableBuffer,
+                                  externalBuffer: VariableBuffer,
+                                  direction: DmaDirection,
+                                  future: Future,
+                                  comment: str = "") -> List[CodeSnippet]:
         assert all(len(transfers[0].dims) == len(rect.dims) for rect in transfers), \
             "Currently supporting only rectangles of same rank"
 
@@ -99,18 +106,31 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
 
         anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
-        initSnippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, transfers[0].dims,
+        initSnippets = anydimAdapter.transfer(ctxt,
+                                              externalBuffer,
+                                              localBuffer,
+                                              transfers[0].dims,
                                               stridesFromShape(externalBuffer.shape),
-                                              stridesFromShape(transfers[0].dims), direction, future,
-                                              math.prod(externalBuffer.shape))
+                                              stridesFromShape(transfers[0].dims),
+                                              direction,
+                                              future,
+                                              math.prod(externalBuffer.shape,),
+                                              comment = comment)
 
         templates = [snippet.template for snippet in initSnippets]
         opReprUpdates = [[] for _ in range(len(initSnippets))]
 
         for rect in transfers:
-            snippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, rect.dims,
-                                              stridesFromShape(externalBuffer.shape), stridesFromShape(rect.dims),
-                                              direction, future, math.prod(externalBuffer.shape))
+            snippets = anydimAdapter.transfer(ctxt,
+                                              externalBuffer,
+                                              localBuffer,
+                                              rect.dims,
+                                              stridesFromShape(externalBuffer.shape),
+                                              stridesFromShape(rect.dims),
+                                              direction,
+                                              future,
+                                              math.prod(externalBuffer.shape),
+                                              comment = comment)
             for i, snippet in enumerate(snippets):
                 opReprUpdates[i].append(snippet.operatorRepresentation)
 

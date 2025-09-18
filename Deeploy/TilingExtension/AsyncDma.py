@@ -22,17 +22,17 @@ class Future:
     def __init__(self, name: str):
         self.name = name
 
-    def _operatorRepresentation(self) -> OperatorRepresentation:
-        return {"name": self.name}
+    def _operatorRepresentation(self, comment: str = "") -> OperatorRepresentation:
+        return {"name": self.name, "comment": comment}
 
-    def init(self) -> CodeSnippet:
-        return CodeSnippet(self._initTemplate, self._operatorRepresentation())
+    def init(self, comment: str = "") -> CodeSnippet:
+        return CodeSnippet(self._initTemplate, self._operatorRepresentation(comment))
 
-    def deinit(self) -> CodeSnippet:
-        return CodeSnippet(self._deinitTemplate, self._operatorRepresentation())
+    def deinit(self, comment: str = "") -> CodeSnippet:
+        return CodeSnippet(self._deinitTemplate, self._operatorRepresentation(comment))
 
-    def wait(self) -> CodeSnippet:
-        return CodeSnippet(self._waitTemplate, self._operatorRepresentation())
+    def wait(self, comment: str = "") -> CodeSnippet:
+        return CodeSnippet(self._waitTemplate, self._operatorRepresentation(comment))
 
 
 class AsyncDmaWaitingStrategy(ABC):
@@ -85,16 +85,30 @@ class AsyncDma(ABC):
         ), f"Unsupported transfer rank {transferRank}. Supported ranks are {self.supportedTransferRanks()}"
 
     @abstractmethod
-    def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
-                       strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
-                       future: Future) -> OperatorRepresentation:
-        return {"loc": localBuffer.name, "ext": externalBuffer.name, "future": future.name}
+    def transferOpRepr(self,
+                       externalBuffer: VariableBuffer,
+                       localBuffer: VariableBuffer,
+                       shape: Tuple[int, ...],
+                       strideExt: Tuple[int, ...],
+                       strideLoc: Tuple[int, ...],
+                       direction: DmaDirection,
+                       future: Future,
+                       comment: str = "") -> OperatorRepresentation:
+        return {"loc": localBuffer.name, "ext": externalBuffer.name, "future": future.name, "comment": comment}
 
-    def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
-                 shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
-                 direction: DmaDirection, future: Future) -> List[CodeSnippet]:
+    def transfer(self,
+                 ctxt: NetworkContext,
+                 externalBuffer: VariableBuffer,
+                 localBuffer: VariableBuffer,
+                 shape: Tuple[int, ...],
+                 strideExt: Tuple[int, ...],
+                 strideLoc: Tuple[int, ...],
+                 direction: DmaDirection,
+                 future: Future,
+                 comment: str = "") -> List[CodeSnippet]:
         self.checkTransfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction)
-        opRepr = self.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
+        opRepr = self.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future,
+                                     comment)
         template = self._transferTemplates[len(shape)]
         return [CodeSnippet(template, opRepr)]
 
@@ -123,19 +137,41 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
     def _transferTemplates(self) -> Dict[int, NodeTemplate]:
         return self.dma._transferTemplates
 
-    def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
-                       strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
-                       future: Future) -> OperatorRepresentation:
-        return self.dma.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
+    def transferOpRepr(self,
+                       externalBuffer: VariableBuffer,
+                       localBuffer: VariableBuffer,
+                       shape: Tuple[int, ...],
+                       strideExt: Tuple[int, ...],
+                       strideLoc: Tuple[int, ...],
+                       direction: DmaDirection,
+                       future: Future,
+                       comment: str = "") -> OperatorRepresentation:
+        return self.dma.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future,
+                                       comment)
 
-    def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
-                 shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
-                 direction: DmaDirection, future: Future) -> List[CodeSnippet]:
+    def transfer(self,
+                 ctxt: NetworkContext,
+                 externalBuffer: VariableBuffer,
+                 localBuffer: VariableBuffer,
+                 shape: Tuple[int, ...],
+                 strideExt: Tuple[int, ...],
+                 strideLoc: Tuple[int, ...],
+                 direction: DmaDirection,
+                 future: Future,
+                 comment: str = "") -> List[CodeSnippet]:
         tmpFuture = self.dma.getFuture(future.name.removesuffix("_future"))
         callStack = []
         callStack.append(tmpFuture.init())
         callStack.extend(
-            self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, tmpFuture))
+            self.dma.transfer(ctxt,
+                              externalBuffer,
+                              localBuffer,
+                              shape,
+                              strideExt,
+                              strideLoc,
+                              direction,
+                              tmpFuture,
+                              comment = comment))
         callStack.append(tmpFuture.wait())
         callStack.append(tmpFuture.deinit())
         return callStack
@@ -202,7 +238,8 @@ class AnydimAsyncDmaTransferAdapter:
                  strideLoc: Tuple[int, ...],
                  direction: DmaDirection,
                  future: Future,
-                 strideExtPad: int = 0) -> List[CodeSnippet]:
+                 strideExtPad: int = 0,
+                 comment: str = "") -> List[CodeSnippet]:
         transferRank = len(shape)
         kernelRank = self.nearestSupportedTransferRank(transferRank)
 
@@ -239,13 +276,34 @@ class AnydimAsyncDmaTransferAdapter:
                 }))
 
             callStack.extend(
-                self.dma.transfer(ctxt, externalBufferOffseted, localBufferOffseted, shape[-kernelRank:],
-                                  strideExt[-kernelRank:], strideLoc[-kernelRank:], direction, future))
+                self.dma.transfer(ctxt,
+                                  externalBufferOffseted,
+                                  localBufferOffseted,
+                                  shape[-kernelRank:],
+                                  strideExt[-kernelRank:],
+                                  strideLoc[-kernelRank:],
+                                  direction,
+                                  future,
+                                  comment = comment))
             callStack.append(CodeSnippet(self.NestedForLoopCloseTemplate(nestedLoopDepth), {}))
             return callStack
         elif kernelRank == transferRank:
-            return self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
+            return self.dma.transfer(ctxt,
+                                     externalBuffer,
+                                     localBuffer,
+                                     shape,
+                                     strideExt,
+                                     strideLoc,
+                                     direction,
+                                     future,
+                                     comment = comment)
         else:
-            return self.dma.transfer(ctxt, externalBuffer, localBuffer, padShape(shape, kernelRank),
+            return self.dma.transfer(ctxt,
+                                     externalBuffer,
+                                     localBuffer,
+                                     padShape(shape, kernelRank),
                                      padStride(strideExt, kernelRank, strideExtPad),
-                                     padStride(strideLoc, kernelRank, math.prod(shape)), direction, future)
+                                     padStride(strideLoc, kernelRank, math.prod(shape)),
+                                     direction,
+                                     future,
+                                     comment = comment)
