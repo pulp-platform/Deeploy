@@ -11,7 +11,7 @@ from Deeploy.TilingExtension.CodeTransformationPasses.DoubleBufferingTilingCodeG
 from Deeploy.TilingExtension.CodeTransformationPasses.SingleBufferingTilingCodeGeneration import \
     SingleBufferingTilingCodeGeneration
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import DoubleBufferingTilingMixIn, \
-    SingleBufferingTilingMixIn
+    ProfilingDoubleBufferingTilingMixIn, ProfilingSingleBufferingTilingMixIn, SingleBufferingTilingMixIn
 
 
 class SnitchClusterTilingSB(SingleBufferingTilingCodeGeneration, SingleBufferingTilingMixIn):
@@ -22,11 +22,22 @@ class SnitchClusterTilingDB(DoubleBufferingTilingCodeGeneration, DoubleBuffering
     pass
 
 
+class ProfilingSnitchClusterTilingSB(SingleBufferingTilingCodeGeneration, ProfilingSingleBufferingTilingMixIn):
+    pass
+
+
+class ProfilingSnitchClusterTilingDB(DoubleBufferingTilingCodeGeneration, ProfilingDoubleBufferingTilingMixIn):
+    pass
+
+
 class SnitchClusterTiling(CodeTransformationPass):
 
     def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
         self.SB = SnitchClusterTilingSB(externalMemory, localMemory, dma)
+        self.profilingSB = ProfilingSnitchClusterTilingSB(externalMemory, localMemory, dma)
+
         self.DB = SnitchClusterTilingDB(externalMemory, localMemory, dma)
+        self.profilingDB = ProfilingSnitchClusterTilingDB(externalMemory, localMemory, dma)
 
     def apply(self,
               ctxt: NetworkContext,
@@ -34,8 +45,9 @@ class SnitchClusterTiling(CodeTransformationPass):
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
         if verbose.tilingProfiling:
-            raise NotImplementedError("Profiling not implemented for L2")
-
-        ctxt, executionBlock = self.SB.apply(ctxt, executionBlock, name)
-        ctxt, executionBlock = self.DB.apply(ctxt, executionBlock, name)
+            ctxt, executionBlock = self.profilingSB.apply(ctxt, executionBlock, name)
+            ctxt, executionBlock = self.profilingDB.apply(ctxt, executionBlock, name)
+        else:
+            ctxt, executionBlock = self.SB.apply(ctxt, executionBlock, name)
+            ctxt, executionBlock = self.DB.apply(ctxt, executionBlock, name)
         return ctxt, executionBlock

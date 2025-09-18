@@ -6,59 +6,61 @@
 
 #include "DeeploySnitchMath.h"
 
-static uint32_t timer_init[NUM_CORES] __attribute__((section(".l1")));
-static uint32_t timer_end[NUM_CORES] __attribute__((section(".l1")));
-static uint32_t instr_init[NUM_CORES] __attribute__((section(".l1")));
-static uint32_t instr_end[NUM_CORES] __attribute__((section(".l1")));
+// static uint32_t timer_init[NUM_CORES] __attribute__((section(".l1")));
+// static uint32_t timer_end[NUM_CORES] __attribute__((section(".l1")));
+// static uint32_t instr_init[NUM_CORES] __attribute__((section(".l1")));
+// static uint32_t instr_end[NUM_CORES] __attribute__((section(".l1")));
 
-static uint32_t running[NUM_CORES] __attribute__((section(".l1")));
+// static uint32_t running[NUM_CORES] __attribute__((section(".l1")));
 
 void ResetTimer() {
   // snrt_reset_perf_counter(SNRT_PERF_CNT0);
-  uint32_t const core_id = snrt_global_core_idx();
-  uint32_t _timer_init = read_csr(mcycle);
-  uint32_t _instr_init = read_csr(minstret);
-  timer_init[core_id] = _timer_init;
-  instr_init[core_id] = _instr_init;
-  timer_end[core_id] = _timer_init;
-  instr_end[core_id] = _instr_init;
-  running[core_id] = 0;
+  // uint32_t const core_id = snrt_global_core_idx();
+  // uint32_t _timer_init = read_csr(mcycle);
+  // uint32_t _instr_init = read_csr(minstret);
+  // timer_init[core_id] = _timer_init;
+  // instr_init[core_id] = _instr_init;
+  // timer_end[core_id] = _timer_init;
+  // instr_end[core_id] = _instr_init;
+  // running[core_id] = 0;
 }
 
 void StartTimer() {
   // snrt_start_perf_counter(SNRT_PERF_CNT0, SNRT_PERF_CNT_CYCLES, 0);
-  uint32_t const core_id = snrt_global_core_idx();
-  timer_init[core_id] = read_csr(mcycle);
-  instr_init[core_id] = read_csr(minstret);
-  running[core_id] = 1;
+  // uint32_t const core_id = snrt_global_core_idx();
+  // timer_init[core_id] = read_csr(mcycle);
+  // instr_init[core_id] = read_csr(minstret);
+  // running[core_id] = 1;
 }
 
 void StopTimer() {
   // if (!snrt_is_dm_core()) {
   //   snrt_stop_perf_counter(SNRT_PERF_CNT0);
   // }
-  uint32_t const core_id = snrt_global_core_idx();
-  timer_end[core_id] = read_csr(mcycle);
-  timer_end[core_id] = read_csr(minstret);
-  running[core_id] = 0;
+  // uint32_t const core_id = snrt_global_core_idx();
+  // timer_end[core_id] = read_csr(mcycle);
+  // timer_end[core_id] = read_csr(minstret);
+  // running[core_id] = 0;
 }
 
 uint32_t getCycles() {
   // return snrt_get_perf_counter(SNRT_PERF_CNT0);
-  uint32_t const core_id = snrt_global_core_idx();
-  if (running[core_id]) {
-    return read_csr(mcycle) - timer_init[core_id];
-  } else {
-    return timer_end[core_id] - timer_init[core_id];
-  }
+  // uint32_t const core_id = snrt_global_core_idx();
+  return read_csr(mcycle);
+  // if (running[core_id]) {
+  //   return read_csr(mcycle) - timer_init[core_id];
+  // } else {
+  //   return timer_end[core_id] - timer_init[core_id];
+  // }
 }
 
 uint32_t getInstr(void) {
-  uint32_t const core_id = snrt_global_core_idx();
+  return read_csr(minstret);
+  // uint32_t const core_id = snrt_global_core_idx();
 
-  if (running[core_id]) {
-    return read_csr(minstret) - instr_init[core_id];
-  } else {
-    return instr_end[core_id] - instr_init[core_id];
-  }
+  // if (running[core_id]) {
+  //   return read_csr(minstret) - instr_init[core_id];
+  // } else {
+  //   return instr_end[core_id] - instr_init[core_id];
+  // }
 }
