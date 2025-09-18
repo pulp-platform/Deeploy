@@ -21,7 +21,7 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
   int8_t log2Core = log2(NUM_CORES);
 
   // Compute the chunk size for each core
-  // (Splitting work along the output channels)
+  // (Split work along the output channels)
   uint16_t ch_out_chunk =
       (F_total >> log2Core) + ((F_total & (NUM_CORES - 1)) != 0);
   uint16_t ch_out_start = MIN(ch_out_chunk * core_id, F_total);
@@ -34,7 +34,7 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     return;
   }
 
-  // Move pointer of the weights for the current core
+  // Move pointer to the weights for the current core
   const float32_t *weight_ptr = pSrcB + ch_out_start * P * Q;
 
   // Move pointer of the im2col buffer for the current core
