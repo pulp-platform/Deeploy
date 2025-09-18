@@ -119,7 +119,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
-            initialFuture = self.dma.getFuture(tensorName + "_init")
+            initialFuture = self.dma.getFuture(tensorName)
             initialFutures.add(initialFuture)
             initialDmaTransferCalls = anydimAdapter.transfer(ctxt,
                                                              externalBufferRef,
@@ -132,7 +132,6 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                              math.prod(externalBufferShape),
                                                              comment = "DMA INITIAL")
             setupStatements.extend(initialDmaTransferCalls)
-            setupStatements.append(initialFuture.wait("WAIT INITIAL"))
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I+1",
                                                                     externalBufferRef)
@@ -199,9 +198,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
         teardownStatements.extend([f.wait("WAIT EGRESS") for f in egressFutures])
 
-        setupStatements = [f.init("INIT Setup") for f in ingressFutures | initialFutures | egressFutures
-                          ] + setupStatements
-        teardownStatements.extend(f.deinit("DEINIT Setup") for f in ingressFutures | initialFutures | egressFutures)
+        setupStatements = [f.init("INIT Setup") for f in ingressFutures | egressFutures] + setupStatements
+        teardownStatements.extend(f.deinit("DEINIT Setup") for f in ingressFutures | egressFutures)
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
 

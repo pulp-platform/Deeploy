@@ -6,7 +6,7 @@ import math
 from typing import Dict, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, TensorGroupWaitingStrategy
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, PerTensorWaitingStrategy
 
 
 class MchanChannelFuture(Future):
@@ -15,21 +15,17 @@ class MchanChannelFuture(Future):
     % if comment:
     // ${comment}
     % endif
-    uint32_t ${name} = mchan_channel_alloc();
+    uint32_t ${name} = 0;
     """)
 
-    _deinitTemplate = NodeTemplate("""
-    % if comment:
-    // ${comment}
-    % endif
-    mchan_channel_free(${name});
-    """)
+    _deinitTemplate = NodeTemplate("")
 
     _waitTemplate = NodeTemplate("""
     % if comment:
     // ${comment}
     % endif
     mchan_channel_wait(${name});
+    mchan_channel_free(${name});
     """)
 
 
@@ -41,6 +37,7 @@ class MchanDma(AsyncDma):
         % if comment:
         // ${comment}
         % endif
+        ${future} = mchan_channel_alloc();
         mchan_transfer_1d(${cmd}, ${loc}, ${ext});
         """),
         2:
@@ -48,10 +45,11 @@ class MchanDma(AsyncDma):
         % if comment:
         // ${comment}
         % endif
+        ${future} = mchan_channel_alloc();
         mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});
         """),
     }
-    _waitingStrategy = TensorGroupWaitingStrategy(MchanChannelFuture, "channel_id")
+    _waitingStrategy = PerTensorWaitingStrategy(MchanChannelFuture)
 
     def __init__(self, transferTemplates: Dict[int, NodeTemplate] = _transferTemplates) -> None:
         super().__init__(transferTemplates)
