@@ -1,9 +1,7 @@
 /*
- * Copyright 2025 ETH Zurich.
- * Licensed under the Apache License, Version 2.0, see LICENSE for details.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
  *
- * Victor Jung <jungvi@iis.ee.ethz.ch>
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __DEEPLOY_CHIMERA_MATH_HEADER_

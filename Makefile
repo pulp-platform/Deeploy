@@ -1,30 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: Makefile
-#
-# Created: 30.06.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Authors:
-# - Moritz Scherer, ETH Zurich
-# - Victor Jung, ETH Zurich
-# - Philip Wiese, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 SHELL = /usr/bin/env bash
 ROOT_DIR := $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
@@ -568,59 +544,26 @@ chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
 format:
 	@echo "Formatting all relevant files..."
 	@echo " - Format Python Files"
-	@yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
+	@yapf -ipr -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
 	@echo " - Format Python Imports"
-	@isort --quiet --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+	@isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./
 	@autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
 	@echo " - Format C/C++ Files"
-	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
+	@python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
 
-lint: check-licenses
+lint:
 	@echo "Linting all relevant files..."
+	@echo " - Lint License Headers"
+	@scripts/reuse_skip_wrapper.py $$(git ls-files '*.py' '*.c' '*.h' '*.html' '*.rst' '*.yml' '*.yaml')
 	@echo " - Lint Python Files"
-	@yapf -rpd -e "third_party/" -e "install/" -e "toolchain/" .
+	@yapf -rpd -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
 	@echo " - Lint Python Imports"
-	@isort --quiet --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
+	@isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
 	@autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
 	@echo " - Lint C/C++ Files"
-	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
+	@python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
 	@echo " - Lint YAML files"
 	@yamllint .
-
-check-licenses:
-	@echo "Checking SPDX license headers in all relevant files..."
-	@rc=0; \
-	echo " - Check Python Files"; \
-	missing_py=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.py" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude "run_clang_format.py" . || true); \
-	if [ -n "$$missing_py" ]; then echo "$$missing_py"; rc=1; fi; \
-	echo " - Check C Files"; \
-	missing_c=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.c" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude-dir="runtime" . || true); \
-	if [ -n "$$missing_c" ]; then echo "$$missing_c"; rc=1; fi; \
-	echo " - Check C Header Files"; \
-	missing_h=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.h" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude-dir="runtime" . || true); \
-	if [ -n "$$missing_h" ]; then echo "$$missing_h"; rc=1; fi; \
-	echo " - Check YAML Files"; \
-	missing_yaml=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.yaml" --include="*.yml" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude-dir="runtime" . || true); \
-	if [ -n "$$missing_yaml" ]; then echo "$$missing_yaml"; rc=1; fi; \
-	echo " - Check CMake Files"; \
-	missing_cmake=$$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake" --include="CMakeLists.txt" \
-	  --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-	  --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-	  --exclude-dir="runtime" . || true); \
-	if [ -n "$$missing_cmake" ]; then echo "$$missing_cmake"; rc=1; fi; \
-	exit $$rc
 
 docs:
 	make -C docs html

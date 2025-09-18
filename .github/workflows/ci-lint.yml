@@ -1,5 +1,5 @@
-# Copyright 2025 ETH Zurich and University of Bologna.
-# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 
 ---
@@ -47,62 +47,21 @@ jobs:
       - name: Format Python
         shell: bash
         run: |
-          yapf -rpd -e "third_party/" -e "install/" -e "toolchain/" .
+          yapf -rpd -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
       - name: Format Python Imports
         shell: bash
         run: |
-          isort --quiet --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
+          isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
           autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
       - name: Format C
         shell: bash
         run: |
-          python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
+          python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
       - name: Format YAML
         shell: bash
         run: |
           yamllint .
-      - name: Check Python Licenses
+      - name: Check Licenses
         shell: bash
         run: |
-          missing_py=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.py" \
-            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-            --exclude "run_clang_format.py" . || true)
-          if [[ -n "$missing_py" ]]; then
-            echo "Missing SPDX in Python files:"; echo "$missing_py"; exit 1; fi
-      - name: Check C Licenses
-        shell: bash
-        run: |
-          missing_c=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.c" \
-            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-            --exclude-dir="runtime" . || true)
-          if [[ -n "$missing_c" ]]; then
-            echo "Missing SPDX in C files:"; echo "$missing_c"; exit 1; fi
-      - name: Check C Header Licenses
-        shell: bash
-        run: |
-          missing_h=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.h" \
-            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-            --exclude-dir="runtime" . || true)
-          if [[ -n "$missing_h" ]]; then
-            echo "Missing SPDX in headers:"; echo "$missing_h"; exit 1; fi
-      - name: Check YAML Licenses
-        shell: bash
-        run: |
-          missing_yaml=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.yaml" --include="*.yml" \
-            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-            --exclude-dir="runtime" . || true)
-          if [[ -n "$missing_yaml" ]]; then
-            echo "Missing SPDX in YAML files:"; echo "$missing_yaml"; exit 1; fi
-      - name: Check CMake Licenses
-        shell: bash
-        run: |
-          missing_cmake=$(grep -Lr "SPDX-License-Identifier: Apache-2.0" --include="*.cmake" --include="CMakeLists.txt"  \
-            --exclude-dir="toolchain" --exclude-dir="install" --exclude-dir=".git" \
-            --exclude-dir="third_party" --exclude-dir="TEST_*" --exclude-dir="TestFiles" \
-            --exclude-dir="runtime" . || true)
-          if [[ -n "$missing_cmake" ]]; then
-            echo "Missing SPDX in CMake files:"; echo "$missing_cmake"; exit 1; fi
+          python scripts/reuse_skip_wrapper.py $(find . \( -name '*.py' -o -name '*.c' -o -name '*.h' -o -name '*.html' -o -name '*.rst' -o -name '*.yml' -o -name '*.yaml' \) -not -path "*toolchain*" -not -path "*third_party*" -not -path "*.git/*" -not -path "*install/*" -type f)

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ########## Stage 1: Large image to build toolchains and emulator ##########
 FROM ubuntu:22.04 AS toolchain
 

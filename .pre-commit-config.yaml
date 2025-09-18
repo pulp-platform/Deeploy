@@ -1,5 +1,5 @@
-# Copyright 2025 ETH Zurich and University of Bologna.
-# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 
 # See https://pre-commit.com for more information
@@ -8,12 +8,11 @@
 exclude: |
   (?x)^(
     .*third_party.*
-    | .*install.*
-    | .*toolchain.*
+    | .*install/.*
+    | .*toolchain/.*
     | .*TEST_.*
     | .*TestFiles.*
     | .*runtime.*
-    | .*\.git.*
   )
 
 repos:
@@ -26,12 +25,13 @@ repos:
         name: Check for trailing whitespace
   - repo: local
     hooks:
-      - id: check-licenses
+      - id: reuse
         name: Check SPDX License Headers
-        entry: bash -c 'make check-licenses'
-        language: system
-        pass_filenames: false
+        entry: scripts/reuse_skip_wrapper.py
+        language: python
         stages: [pre-commit, pre-merge-commit, pre-push, manual]
+        types: [text]
+        exclude_types: [batch, svg, json, markdown]
   - repo: https://github.com/google/yapf
     rev: v0.43.0
     hooks:
