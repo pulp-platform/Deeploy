@@ -6,6 +6,7 @@
 
 import argparse
 import os
+import shutil
 import subprocess
 
 
@@ -27,9 +28,8 @@ if __name__ == "__main__":
 
     files = [f for f in args.files if not skip(f)]
 
-    # Check if reuse is installed in ~/.local/bin otherwise try to use python -m reuse
-    reuse_path = os.path.expanduser("~/.local/bin/reuse")
-    if not os.path.isfile(reuse_path):
+    reuse_path = shutil.which("reuse")
+    if not reuse_path:
         reuse_path = "python -m reuse"
     try:
         subprocess.run(f"{reuse_path} lint-file {' '.join(files)}", shell = True, check = True)
