@@ -41,23 +41,15 @@ Additionally, add the title and link to the pull request in the list of pull req
 
 Deeploy mainly consists of code implemented in C, Makefile, and Python. To facilitate efficient collaboration among users and contributors, it is important to maintain a consistent coding style. To achieve this, it is strongly recommend to use autoformatting tools with the provided configuration files. Additionally, the Continuous Integration (CI) system checks the adherence to the style guide for each pushed commit. Currently configuration for C using `clang-format` and for Python using `yapf` and `isort` are provided.
 
-To recursively format all Python files run:
-```bash
-autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" .
-yapf -ipr .
-isort .
-```
-
-And for C files:
-```bash
-python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -ir --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./
-```
-
-Note that third party applications should not be formatted. You can alternatively also run:
+You can format all relevant files by running:
 ```bash
 make format
 ```
-to format all C and Python files.
+
+Alternatively, to only lint the files without modifying them, you can run:
+```bash
+make lint
+```
 
 ### Pre-commit
 

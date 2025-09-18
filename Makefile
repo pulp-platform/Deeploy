@@ -544,29 +544,26 @@ chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
 format:
 	@echo "Formatting all relevant files..."
 	@echo " - Format Python Files"
-	@yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
+	@yapf -ipr -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
 	@echo " - Format Python Imports"
-	@isort --quiet --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+	@isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./
 	@autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
 	@echo " - Format C/C++ Files"
-	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
+	@python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
 
-lint: check-licenses
+lint:
 	@echo "Linting all relevant files..."
+	@echo " - Lint License Headers"
+	@scripts/reuse_skip_wrapper.py $$(git ls-files '*.py' '*.c' '*.h' '*.html' '*.rst' '*.yml' '*.yaml')
 	@echo " - Lint Python Files"
-	@yapf -rpd -e "third_party/" -e "install/" -e "toolchain/" .
+	@yapf -rpd -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
 	@echo " - Lint Python Imports"
-	@isort --quiet --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
+	@isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
 	@autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
 	@echo " - Lint C/C++ Files"
-	@python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
+	@python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
 	@echo " - Lint YAML files"
 	@yamllint .
-
-check-licenses:
-	@echo "Checking SPDX license headers in all relevant files..."
-	@scripts/reuse_skip_wrapper.py $$(git ls-files '*.py' '*.c' '*.h' '*.html' '*.rst' '*.yml' '*.yaml')
-	@echo "OK"
 
 docs:
 	make -C docs html
