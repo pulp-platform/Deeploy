@@ -32,6 +32,32 @@ class PULP2DFloatConvIm2ColTemplate(NodeTemplate):
         operatorRepresentation['ctxtBuffer'] = im2col_name
         operatorRepresentation['ctxtBufferSize'] = im2col_dim
         return ctxt, operatorRepresentation, [im2col_name]
+    
+
+class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
+
+    def __init__(self, templateStr):
+        super().__init__(templateStr)
+
+    @staticmethod
+    def computeTransientBuffersSize(
+            ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
+        
+        # TODO: Get core number information to replace hard-coded value 16
+        im2col_dim = 16 * operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']
+        im2col_name = operatorRepresentation['nodeName'] + "_buffer"
+        return [(im2col_name, im2col_dim)]
+
+    def hoistTransientBuffers(self, ctxt: NetworkContext,
+                              operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
+        im2col_name, im2col_dim = PULP2DFloatDWConvIm2ColTemplate.computeTransientBuffersSize(
+            ctxt, operatorRepresentation)[0]
+        ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
+
+        operatorRepresentation['ctxtBuffer'] = im2col_name
+        operatorRepresentation['ctxtBufferSize'] = im2col_dim
+        return ctxt, operatorRepresentation, [im2col_name]
 
 
 reference2DTemplate = NodeTemplate("""
@@ -90,7 +116,7 @@ for (uint32_t n=0; n<${batch}; ++n) {
 }
 """)
 
-referenceDW2DIm2ColTemplate = PULP2DFloatConvIm2ColTemplate("""
+referenceDW2DIm2ColTemplate = PULP2DFloatDWConvIm2ColTemplate("""
 // 2D DW FP Conv HWC with Im2Col and ChannelOout parallelism (Name: ${nodeName}, Op: ${nodeOp})
 
 ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};

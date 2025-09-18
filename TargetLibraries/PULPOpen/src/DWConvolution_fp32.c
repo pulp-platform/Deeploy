@@ -39,32 +39,35 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left,
     uint32_t pad_right, float32_t *__restrict__ pContextBuffer) {
 
-  
   // Compute core
   int8_t core_id = pi_core_id();
   int8_t log2Core = log2(NUM_CORES);
 
   // Compute the chunk size for each core
+  // (Split work along the output channels)
   uint16_t ch_out_chunk =
       (F_total >> log2Core) + ((F_total & (NUM_CORES - 1)) != 0);
   uint16_t ch_out_start = MIN(ch_out_chunk * core_id, F_total);
   uint16_t ch_out_stop = MIN(ch_out_start + ch_out_chunk, F_total);
   uint16_t ch_out_count = ch_out_stop - ch_out_start;
 
+  // If there is no output channel to process, return (when F < NUM_CORES)
   if (ch_out_count == 0) {
     return;
   }
 
-  // Pointer to the weights for the current core
-  const float32_t *weight_ptr = pSrcB + ch_out_start * C * P * Q;
+  // Move pointer to the weights for the current core
+  const float32_t *weight_ptr = pSrcB + ch_out_start * P * Q;
 
-  uint32_t im2col_size_per_core = C * P * Q;
+  // LEFT HERE
+  // TODO: Reduce buffer size (from 4096 to something smaller) - should be P * Q * N_CORES
+  uint32_t im2col_size_per_core = P * Q;
   float32_t *im2col_buffer = pContextBuffer + core_id * im2col_size_per_core;
 
   // Compute the output dimensions
   uint32_t H_out = (H + pad_top + pad_bottom - P) / SP + 1;
   uint32_t W_out = (W + pad_left + pad_right - Q) / SQ + 1;
-  uint32_t kernel_size = P * Q * C;
+  uint32_t kernel_size = P * Q * F_total;
 
   // Compute the output
   if (has_bias) {
@@ -108,46 +111,71 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     }
   }
   else {
+    // ALL ARGUMENTS CHECKED
     for (uint32_t h_out = 0; h_out < H_out; h_out++) {
       for (uint32_t w_out = 0; w_out < W_out; w_out++) {
         int32_t h_in_start = h_out * SP - pad_top;
         int32_t w_in_start = w_out * SQ - pad_left;
 
-        for (uint32_t p = 0; p < P; p++) {
-          int32_t h_in = h_in_start + p;
+        // Copy input data to im2col buffer
+        // TODO: Optimization: Used by all cores, so maybe do copy once (distribute work through cores), wait, and do ops OR parallelize on the input?
+        for (uint32_t c = ch_out_start / (F_total / C); c < (ch_out_stop + 1) / (F_total / C); c++) {
+          for (uint32_t p = 0; p < P; p++) {
+            int32_t h_in = h_in_start + p;
 
-          for (uint32_t q = 0; q < Q; q++) {
-            int32_t w_in = w_in_start + q;
+            for (uint32_t q = 0; q < Q; q++) {
+              int32_t w_in = w_in_start + q;
 
-            for (uint32_t c = 0; c < C; c++) {
+              // Check input boundaries
               if (h_in >= 0 && h_in < (int32_t)H && w_in >= 0 &&
                   w_in < (int32_t)W) {
                 uint32_t in_idx = (h_in * W + w_in) * C + c;
-                im2col_buffer[p * Q * C + q * C + c] = pSrcA[in_idx];
+                im2col_buffer[p * Q + q] = pSrcA[in_idx];
               } else {
-                im2col_buffer[p * Q * C + q * C + c] = 0.0f;
+                im2col_buffer[p * Q + q] = 0.0f;
               }
             }
-          }
-        }
 
-        for (uint32_t f = ch_out_start; f < ch_out_stop; f++) {
-          float32_t sum = 0.0f;
-
-          for (uint32_t p = 0; p < P; p++) {
-            for (uint32_t q = 0; q < Q; q++) {
-              for (uint32_t c = f * F_total / C; c < (f + 1) * F_total / C; c++) {
-                sum += im2col_buffer[p * Q * C + q * C + c] * weight_ptr[f * (F_total / C) * P * Q + c * P * Q + p * Q + q];
+            #ifdef DEEPLOY_PULP_PLATFORM
+              // PULP specific hack
+              // Need to trigger a HW loop with at least 3 nops
+              #pragma nounroll
+              for (int j = 0; j < 3; j++) {
+                asm volatile("nop" ::);
               }
-            }
+            #endif
           }
-            
-          uint32_t out_idx =
-              (h_out * W_out + w_out) * F_total + f;
 
-          pDstC[out_idx] = sum;
+          uint32_t lower_f, upper_f;
+
+          if (c * (F_total / C) < ch_out_start) {
+            lower_f = ch_out_start;
+          } else {
+            lower_f = c * (F_total / C);
+          }
+
+          if ((c + 1) * (F_total / C) < ch_out_stop) {
+            upper_f = (c + 1) * (F_total / C);
+          } else {
+            upper_f = ch_out_stop;
+          }
+
+          for (uint32_t f = lower_f; f < upper_f; f++) {
+            float32_t sum = 0.0f;
+            uint32_t out_idx = (h_out * W_out + w_out) * F_total + f;
+
+            // Perform convolution for the assigned output channels
+            for (uint32_t im2col_idx = 0; im2col_idx < P * Q; im2col_idx++) {
+              sum += im2col_buffer[im2col_idx] * weight_ptr[(f - ch_out_start) * P * Q + im2col_idx % (P * Q)];
+            }
+
+            // Copy the result to the output tensor
+            pDstC[out_idx] = sum;
+          }
         }
       }
     }
   }
+
+  return;
 }
