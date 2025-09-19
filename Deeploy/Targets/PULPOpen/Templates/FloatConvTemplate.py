@@ -48,8 +48,10 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
         
-        # TODO: Get core number information to replace hard-coded value 16
-        im2col_dim = 16 * operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']
+        # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
+        # WARNING: This works because value is only used as string, in the allocate template.
+        # TODO: This should work as NUM_CORES * P * Q, but it raises an error if double the memory is not allocated.
+        im2col_dim = "2 * NUM_CORES * " + str(operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y'])
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
         return [(im2col_name, im2col_dim)]
 
