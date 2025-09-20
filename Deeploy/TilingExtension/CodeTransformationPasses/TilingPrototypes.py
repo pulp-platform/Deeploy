@@ -332,18 +332,18 @@ class DoubleBufferingTilingMixIn(PrototypeTilingMixIn, TilingCodeGenMixin):
         # Structure:
 
         # Update input DMA Structs
-        # Update tile variables
-        # Wait for current input tiles
         # Transfer in next input tiles (async)
+        # Update tile variables
         # Update output DMA Structs
+        # Wait for current input tiles
         # Wait for current output tiles
 
         # Kernel execution
 
         # Transfer out tiles (async)
 
-        for transaction in reversed(ingressDMAWaitStatements + ingressDMAUpdates + ingressDMATransferCalls +
-                                    variableUpdates + egressDMAWaitStatements + egressDMAUpdates):
+        for transaction in reversed(ingressDMAUpdates + ingressDMATransferCalls + variableUpdates + egressDMAUpdates +
+                                    ingressDMAWaitStatements + egressDMAWaitStatements):
             executionBlock.addLeft(transaction.template, transaction.operatorRepresentation)
 
         for transaction in egressDMATransferCalls:
