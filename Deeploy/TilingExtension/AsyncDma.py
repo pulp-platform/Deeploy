@@ -69,14 +69,15 @@ class AsyncDmaWaitingStrategy(ABC):
         self.FutureCls = FutureCls
 
     @abstractmethod
-    def getFuture(self, tensorName: str) -> Future:
+    def getFuture(self, tensorName: str, direction: DmaDirection, copyIdx: Optional[int] = None) -> Future:
         pass
 
 
 class PerTensorWaitingStrategy(AsyncDmaWaitingStrategy):
 
-    def getFuture(self, tensorName: str) -> Future:
-        return self.FutureCls(tensorName + "_future")
+    def getFuture(self, tensorName: str, direction: DmaDirection, copyIdx: Optional[int] = None) -> Future:
+        _ = direction
+        return self.FutureCls(tensorName, copyIdx)
 
 
 class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
@@ -85,7 +86,7 @@ class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
         super().__init__(FutureCls)
         self.asyncGroupFuture = FutureCls(f"{asyncGroupName}_future")
 
-    def getFuture(self, tensorName: str) -> Future:
+    def getFuture(self, tensorName: str, direction: DmaDirection, copyIdx: Optional[int] = None) -> Future:
         _ = tensorName
         return self.asyncGroupFuture
 
@@ -97,11 +98,8 @@ class AsyncDma(ABC):
     def __init__(self, transferTemplates: Dict[int, NodeTemplate]) -> None:
         self._transferTemplates = transferTemplates
 
-    def getFuture(self, tensorName: str, copyIdx: Optional[int] = None) -> Future:
-        name = tensorName
-        if copyIdx is not None:
-            name += f"_{copyIdx}"
-        return self._waitingStrategy.getFuture(name)
+    def getFuture(self, tensorName: str, direction: DmaDirection, copyIdx: Optional[int] = None) -> Future:
+        return self._waitingStrategy.getFuture(tensorName, direction, copyIdx)
 
     def supportedTransferRanks(self) -> Set[int]:
         return set(self._transferTemplates.keys())
@@ -162,7 +160,7 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
     def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
                  shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
                  direction: DmaDirection, future: Future) -> List[CodeSnippet]:
-        tmpFuture = self.dma.getFuture(future.name.removesuffix("_future"))
+        tmpFuture = self.dma.getFuture(future.name.removesuffix("_future"), direction)
         callStack = []
         callStack.append(tmpFuture.init())
         callStack.extend(
