@@ -115,7 +115,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                externalBufferRef,
                                                "ExternalToLocal",
                                                future,
-                                               comment = "Transfer input tile"))
+                                               comment = "Transfer next input tile"))
 
             anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
@@ -145,10 +145,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                      })
                 setupStatements.append(initialReferenceUpdate)
 
-        setupStatements.extend([f.wait("Wait for initial input tile") for f in initialFutures])
-
         ingressDmaTransferCalls.append(CodeSnippet(self._moveTileInCheckCloseStatement, {}))
-        ingressDmaWaitStatements = [f.wait("Wait for input tile") for f in ingressFutures]
+        ingressDmaWaitStatements = [f.wait("Wait for current input tile") for f in ingressFutures]
 
         egressDmaTransferCalls: List[CodeSnippet] = []
         egressFutures: Set[Future] = set()
@@ -189,7 +187,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                               externalBufferRef,
                                                               "LocalToExternal",
                                                               future,
-                                                              comment = "Transfer output tile")
+                                                              comment = "Transfer current output tile")
             egressDmaTransferCalls.extend(dmaTransferCalls)
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I",
@@ -197,7 +195,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             if referenceUpdate is not None:
                 egressDmaTransferCalls.append(referenceUpdate)
 
-        egressDmaWaitStatements = [f.wait("Wait for output tile") for f in egressFutures]
+        egressDmaWaitStatements = [f.wait("Wait for previous output tile") for f in egressFutures]
 
         teardownStatements.extend([f.wait("Wait for final output tile") for f in egressFutures])
 
