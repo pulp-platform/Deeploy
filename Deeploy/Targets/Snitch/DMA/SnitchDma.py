@@ -5,7 +5,7 @@
 from typing import Dict, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, TensorGroupWaitingStrategy
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DirectionWaitingStrategy, DmaDirection, Future
 
 
 class SnitchBarrierFuture(Future):
@@ -29,7 +29,7 @@ class SnitchDma(AsyncDma):
                 "if (snrt_is_dm_core()) snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});"
             ),
     }
-    _waitingStrategy = TensorGroupWaitingStrategy(SnitchBarrierFuture, "")
+    _waitingStrategy = DirectionWaitingStrategy(SnitchBarrierFuture, "")
 
     def __init__(self, transferTemplates: Dict[int, NodeTemplate] = _transferTemplates) -> None:
         super().__init__(transferTemplates)

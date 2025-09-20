@@ -6,15 +6,15 @@ import math
 from typing import Dict, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, TensorGroupWaitingStrategy
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DirectionWaitingStrategy, DmaDirection, Future
 
 
 class MchanChannelFuture(Future):
 
     _initTemplate = NodeTemplate("uint32_t ${name};")
-    _deinitTemplate = NodeTemplate("mchan_channel_free(${name});")
+    _deinitTemplate = NodeTemplate("")
     _allocTemplate = NodeTemplate("${name} = mchan_channel_alloc();")
-    _waitTemplate = NodeTemplate("mchan_channel_wait(${name});")
+    _waitTemplate = NodeTemplate("mchan_channel_wait(${name}); mchan_channel_free(${name});")
 
 
 class MchanDma(AsyncDma):
@@ -23,7 +23,7 @@ class MchanDma(AsyncDma):
         1: NodeTemplate("mchan_transfer_1d(${cmd}, ${loc}, ${ext});"),
         2: NodeTemplate("mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});"),
     }
-    _waitingStrategy = TensorGroupWaitingStrategy(MchanChannelFuture, "channel_id")
+    _waitingStrategy = DirectionWaitingStrategy(MchanChannelFuture, "channel")
 
     def __init__(self, transferTemplates: Dict[int, NodeTemplate] = _transferTemplates) -> None:
         super().__init__(transferTemplates)

@@ -80,15 +80,20 @@ class PerTensorWaitingStrategy(AsyncDmaWaitingStrategy):
         return self.FutureCls(tensorName, copyIdx)
 
 
-class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
+class DirectionWaitingStrategy(AsyncDmaWaitingStrategy):
 
     def __init__(self, FutureCls: Type[Future], asyncGroupName: str) -> None:
         super().__init__(FutureCls)
-        self.asyncGroupFuture = FutureCls(f"{asyncGroupName}_future")
+        self.asyncGroupName = asyncGroupName
 
     def getFuture(self, tensorName: str, direction: DmaDirection, copyIdx: Optional[int] = None) -> Future:
         _ = tensorName
-        return self.asyncGroupFuture
+        name = self.asyncGroupName
+        if direction == "ExternalToLocal":
+            name += "_input"
+        else:
+            name += "_output"
+        return self.FutureCls(name, copyIdx)
 
 
 class AsyncDma(ABC):
