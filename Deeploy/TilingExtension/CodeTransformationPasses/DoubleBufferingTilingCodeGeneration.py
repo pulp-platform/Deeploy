@@ -68,8 +68,9 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         direction: DmaDirection,
         tileIdxVar: str,
         multibufferMap: Dict[str, List[_ReferenceBuffer]],
-    ) -> Tuple[List[CodeSnippet], Set[Future]]:
-        calls, futures = [], set()
+    ) -> Tuple[List[CodeSnippet], List[Set[Future]]]:
+        calls = []
+        futures = [set() for _ in range(self.bufferCount)]
         for tensorName, rectangles in dictOfArrays(schedule).items():
             localBuffer = ctxt.lookup(operatorRepresentation[tensorName])
             assert localBuffer._memoryLevel == self.localMemory
@@ -90,15 +91,20 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                      externalBufferShape,
                                                      override_type = VoidType)
 
+            # TODO: The generate dma transfer calls cannot be called multiple times in the loop because it hoists
+            #       but it has to accept a future so now I'm stuck. I'm thinking hoisting shouldn't polute the
+            #       function that creates the call... or I do it in a hacky way where I overwrite the *future*
+            #       keyword in the opRepr in the second call...
+            transferCalls = self._generateDmaTransferCalls(ctxt, tensorName, rectangles, tileIdxVar, buff,
+                                                           externalBufferRef, direction, future)
+
             caseBlocks = []
             for i, buff in enumerate(multibufferMap[tensorName]):
-                future = self.dma.getFuture(tensorName, copyIdx = i)
-                futures.add(future)
+                future = self.dma.getFuture(tensorName, direction, copyIdx = i)
+                futures[i].add(future)
 
                 block = [future.alloc()]
-                block.extend(
-                    self._generateDmaTransferCalls(ctxt, tensorName, rectangles, tileIdxVar, buff, externalBufferRef,
-                                                   direction, future))
+                #block.extend() TODO: add transferCalls
                 caseBlocks.append(block)
 
             calls.extend(self._switch(caseBlocks, tileIdxVar))
@@ -166,7 +172,10 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         ] + ingressCalls + [CodeSnippet(self._blockClose, {})]
 
         ingressDmaWaitStatements = [CodeSnippet(self._lineComment, {"comment": "INPUT WAITING"})]
-        ingressDmaWaitStatements += [f.wait() for f in ingressFutures]
+        ingressDmaWaitStatements += self._switch(
+            [[f.wait() for f in futureSet] for futureSet in ingressFutures],
+            "TILING_I",
+        )
 
         firstIngressCalls = [CodeSnippet(self._lineComment, {"comment": "INITIAL INPUT LOADING"})]
         for snippet in ingressCalls:
@@ -181,15 +190,20 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         egressDmaTransferCalls += egressCalls
 
         egressDmaWaitStatements = [CodeSnippet(self._lineComment, {"comment": "OUTPUT WAITING"})]
-        egressDmaWaitStatements += [f.wait() for f in egressFutures]
+        egressDmaWaitStatements += self._switch([[f.wait() for f in futureSet] for futureSet in egressFutures],
+                                                "TILING_I")
+
+        allFutures = set()
+        for futureSet in ingressFutures + egressFutures:
+            allFutures = allFutures | futureSet
 
         setupStatements: List[CodeSnippet] = []
-        setupStatements += [f.init() for f in ingressFutures | egressFutures] + setupStatements
+        setupStatements += [f.init() for f in allFutures] + setupStatements
         setupStatements.extend(firstIngressCalls)
 
         teardownStatements: List[CodeSnippet] = []
-        teardownStatements.extend([f.wait() for f in egressFutures])
-        teardownStatements.extend(f.deinit() for f in ingressFutures | egressFutures)
+        teardownStatements.extend([f.wait() for futureSet in egressFutures for f in futureSet])
+        teardownStatements.extend(f.deinit() for f in allFutures)
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
 
