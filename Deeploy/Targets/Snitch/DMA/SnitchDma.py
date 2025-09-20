@@ -26,7 +26,7 @@ class SnitchFuture(Future):
     % if comment:
     // ${comment}
     % endif
-    snrt_dma_txid_t ${name} = 0;
+    snrt_dma_txid_t ${name} = (snrt_dma_txid_t) -1;
     """)
 
     _deinitTemplate = NodeTemplate("")
@@ -37,7 +37,7 @@ class SnitchFuture(Future):
     % if comment:
     // ${comment}
     % endif
-    if (snrt_is_dm_core()) snrt_dma_wait(${name});
+    if ( (${name} != ( (snrt_dma_txid_t) -1) ) && snrt_is_dm_core() ) snrt_dma_wait(${name});
     """)
 
 

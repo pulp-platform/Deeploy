@@ -15,7 +15,7 @@ class MchanChannelFuture(Future):
     % if comment:
     // ${comment}
     % endif
-    uint32_t ${name} = 0;
+    uint32_t ${name} = (uint32_t) -1;
     """)
 
     _deinitTemplate = NodeTemplate("")

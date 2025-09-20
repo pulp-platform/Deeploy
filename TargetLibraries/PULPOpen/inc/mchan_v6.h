@@ -34,6 +34,7 @@
 #include "pmsis.h"
 
 #define MCHAN_TRANSFER_LEN_SIZE (16)
+#define MCHAN_TRANSFER_ID_MAX (15)
 
 #define MCHAN_CMD_FLAG_DIRECTION_LOC2EXT (0 << (MCHAN_TRANSFER_LEN_SIZE + 0))
 #define MCHAN_CMD_FLAG_DIRECTION_EXT2LOC (1 << (MCHAN_TRANSFER_LEN_SIZE + 0))
@@ -68,17 +69,20 @@ static void mchan_transfer_2d_ext_strided(uint32_t cmd, void *loc, void *ext,
 static uint32_t mchan_channel_alloc() { return *cmd_ptr; }
 
 static void mchan_channel_free(uint32_t channel_id) {
-  // TODO: assert channel_id is smaller then 32
+  if (channel_id > MCHAN_TRANSFER_ID_MAX)
+    return;
   *status_ptr = 1 << channel_id;
 }
 
 static uint32_t mchan_channel_is_busy(uint32_t channel_id) {
-  // TODO: assert channel_id is smaller then 32
+  if (channel_id > MCHAN_TRANSFER_ID_MAX)
+    return 0;
   return *status_ptr & (1 << channel_id);
 }
 
 static void mchan_channel_wait(uint32_t channel_id) {
-  // TODO: assert channel_id is smaller then 32
+  if (channel_id > MCHAN_TRANSFER_ID_MAX)
+    return;
 #if defined(MCHAN_EVENT)
   while (mchan_channel_is_busy(channel_id))
     eu_evt_maskWaitAndClr(1 << MCHAN_EVENT_BIT);
