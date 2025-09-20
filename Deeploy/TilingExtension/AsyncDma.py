@@ -128,12 +128,6 @@ class AsyncDma(ABC):
         template = self._transferTemplates[len(shape)]
         return [future.alloc(comment)], [CodeSnippet(template, opRepr)], []
 
-    def setup(self) -> List[CodeSnippet]:
-        return []
-
-    def teardown(self) -> List[CodeSnippet]:
-        return []
-
 
 class EmptyFuture(Future):
 
@@ -194,12 +188,6 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
         callStack.append(tmpFuture.deinit(comment))
 
         return [], callStack, []
-
-    def setup(self) -> List[CodeSnippet]:
-        return self.dma.setup()
-
-    def teardown(self) -> List[CodeSnippet]:
-        return self.dma.teardown()
 
 
 class AnydimAsyncDmaTransferAdapter:

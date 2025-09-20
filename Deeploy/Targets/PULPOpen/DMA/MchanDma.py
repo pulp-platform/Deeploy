@@ -24,8 +24,7 @@ class MchanChannelFuture(Future):
      % if comment:
     // ${comment}
     % endif
-    ${name} = mchan_channel_alloc();
-    """)
+    ${name} = mchan_channel_alloc();""")
 
     _waitTemplate = NodeTemplate("""
     % if comment:
@@ -39,20 +38,8 @@ class MchanChannelFuture(Future):
 class MchanDma(AsyncDma):
 
     _transferTemplates = {
-        1:
-            NodeTemplate("""
-        % if comment:
-        // ${comment}
-        % endif
-        mchan_transfer_1d(${cmd}, ${loc}, ${ext});
-        """),
-        2:
-            NodeTemplate("""
-        % if comment:
-        // ${comment}
-        % endif
-        mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});
-        """),
+        1: NodeTemplate("mchan_transfer_1d(${cmd}, ${loc}, ${ext});"),
+        2: NodeTemplate("mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});"),
     }
     _waitingStrategy = TensorGroupWaitingStrategy(MchanChannelFuture, "mchan")
 

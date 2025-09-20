@@ -21,11 +21,14 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
     def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
         super().__init__(externalMemory, localMemory, dma, 1)
 
-    def _generateTransferScheduleCalls(
-            self, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation,
-            transferSchedule: List[Dict[str, HyperRectangle]], tensorMemoryConstraintDict: Dict[str,
-                                                                                                TensorMemoryConstraint],
-            tileIdxVar: str, direction: DmaDirection) -> Tuple[NetworkContext, List[CodeSnippet], Set[Future]]:
+    def _generateTransferScheduleCalls(self,
+                                       ctxt: NetworkContext,
+                                       operatorRepresentation: OperatorRepresentation,
+                                       transferSchedule: List[Dict[str, HyperRectangle]],
+                                       tensorMemoryConstraintDict: Dict[str, TensorMemoryConstraint],
+                                       tileIdxVar: str,
+                                       direction: DmaDirection,
+                                       comment: str = "") -> Tuple[NetworkContext, List[CodeSnippet], Set[Future]]:
         callStack: List[CodeSnippet] = []
         referenceUpdates: List[CodeSnippet] = []
         futures: Set[Future] = set()
@@ -54,8 +57,15 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
             futures.add(future)
 
             callStack.extend(
-                self._generateDmaTransferCalls(ctxt, tensorName, rectangles, tileIdxVar, localBuffer, externalBufferRef,
-                                               direction, future))
+                self._generateDmaTransferCalls(ctxt,
+                                               tensorName,
+                                               rectangles,
+                                               tileIdxVar,
+                                               localBuffer,
+                                               externalBufferRef,
+                                               direction,
+                                               future,
+                                               comment = comment))
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, tileIdxVar,
                                                                     externalBufferRef)
@@ -70,19 +80,16 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
                     operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, ExecutionBlock, bool]:
         ctxt, ingressDmaTransferCalls, ingressFutures = self._generateTransferScheduleCalls(
             ctxt, operatorRepresentation, tilingSchedule.inputLoadSchedule,
-            nodeMemoryConstraint.inputTensorMemoryConstraints, "TILING_I", "ExternalToLocal")
+            nodeMemoryConstraint.inputTensorMemoryConstraints, "TILING_I", "ExternalToLocal", "Transfer input tile")
         ctxt, egressDmaTransferCalls, egressFutures = self._generateTransferScheduleCalls(
             ctxt, operatorRepresentation, tilingSchedule.outputLoadSchedule,
-            nodeMemoryConstraint.outputTensorMemoryConstraints, "TILING_I", "LocalToExternal")
+            nodeMemoryConstraint.outputTensorMemoryConstraints, "TILING_I", "LocalToExternal", "Transfer output tile")
 
-        ingressDmaWaitStatements = [future.wait("WAIT INGRESS") for future in ingressFutures]
-        egressDmaWaitStatements = [future.wait("WAIT EGRESS") for future in egressFutures]
+        ingressDmaWaitStatements = [future.wait("Wait for input tile") for future in ingressFutures]
+        egressDmaWaitStatements = [future.wait("Wait for output tile") for future in egressFutures]
 
-        setupStatements = self.dma.setup()
-        setupStatements += [f.init("INIT DMA") for f in ingressFutures | egressFutures]
-
-        teardownStatements = self.dma.teardown()
-        teardownStatements.extend(f.deinit("DEINIT DMA") for f in ingressFutures | egressFutures)
+        setupStatements = [f.init("Initialize DMA future") for f in ingressFutures | egressFutures]
+        teardownStatements = [f.deinit("Deinitialzie DMA future") for f in ingressFutures | egressFutures]
 
         openLoopStatements = [CodeSnippet(self._openTileLoopTemplate, {**operatorRepresentation})]
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
