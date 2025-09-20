@@ -4,7 +4,7 @@
 
 import math
 from abc import ABC, abstractmethod
-from typing import Dict, List, Literal, Set, Tuple, Type
+from typing import Dict, List, Literal, Optional, Set, Tuple, Type
 
 from Deeploy.DeeployTypes import CodeSnippet, NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer, \
     _ReferenceBuffer
@@ -17,6 +17,7 @@ class Future:
 
     _initTemplate: NodeTemplate
     _deinitTemplate: NodeTemplate
+    _allocTemplate: NodeTemplate
     _waitTemplate: NodeTemplate
 
     def __init__(self, name: str):
@@ -30,6 +31,9 @@ class Future:
 
     def deinit(self) -> CodeSnippet:
         return CodeSnippet(self._deinitTemplate, self._operatorRepresentation())
+
+    def alloc(self) -> CodeSnippet:
+        return CodeSnippet(self._allocTemplate, self._operatorRepresentation())
 
     def wait(self) -> CodeSnippet:
         return CodeSnippet(self._waitTemplate, self._operatorRepresentation())
@@ -69,8 +73,11 @@ class AsyncDma(ABC):
     def __init__(self, transferTemplates: Dict[int, NodeTemplate]) -> None:
         self._transferTemplates = transferTemplates
 
-    def getFuture(self, tensorName: str) -> Future:
-        return self._waitingStrategy.getFuture(tensorName)
+    def getFuture(self, tensorName: str, copyIdx: Optional[int] = None) -> Future:
+        name = tensorName
+        if copyIdx is not None:
+            name += f"_{copyIdx}"
+        return self._waitingStrategy.getFuture(name)
 
     def supportedTransferRanks(self) -> Set[int]:
         return set(self._transferTemplates.keys())

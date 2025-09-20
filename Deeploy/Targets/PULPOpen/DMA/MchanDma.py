@@ -11,8 +11,9 @@ from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, Ten
 
 class MchanChannelFuture(Future):
 
-    _initTemplate = NodeTemplate("uint32_t ${name} = mchan_channel_alloc();")
+    _initTemplate = NodeTemplate("uint32_t ${name};")
     _deinitTemplate = NodeTemplate("mchan_channel_free(${name});")
+    _allocTemplate = NodeTemplate("${name} = mchan_channel_alloc();")
     _waitTemplate = NodeTemplate("mchan_channel_wait(${name});")
 
 
