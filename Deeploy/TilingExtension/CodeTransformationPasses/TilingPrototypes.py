@@ -238,18 +238,20 @@ class SingleBufferingTilingMixIn(PrototypeTilingMixIn, TilingCodeGenMixin):
                           variableUpdates: _CodeSegmentType) -> ExecutionBlock:
 
         # Structure:
-        # Update DMA Structs
-        # Transfer in tiles (async)
+
         # Update tile variables
-        # Wait for tiles
+
+        # Update input DMA Structs
+        # Transfer current input tile (async)
+        # Wait for current input tiles
 
         # Kernel execution
 
-        # Update DMA Structs
-        # Transfer out tiles (async)
-        # Wait for out transfers
+        # Update output DMA Structs
+        # Transfer current out tiles (async)
+        # Wait for previous output tiles
 
-        for transaction in reversed(ingressDMAUpdates + ingressDMATransferCalls + variableUpdates +
+        for transaction in reversed(variableUpdates + ingressDMAUpdates + ingressDMATransferCalls +
                                     ingressDMAWaitStatements):
             executionBlock.addLeft(transaction.template, transaction.operatorRepresentation)
 
@@ -331,22 +333,23 @@ class DoubleBufferingTilingMixIn(PrototypeTilingMixIn, TilingCodeGenMixin):
 
         # Structure:
 
-        # Update input DMA Structs
         # Update tile variables
+
+        # Update input DMA Structs
         # Wait for current input tiles
-        # Transfer in next input tiles (async)
-        # Update output DMA Structs
-        # Wait for current output tiles
+        # Transfer next input tiles (async)
 
         # Kernel execution
 
-        # Transfer out tiles (async)
+        # Update output DMA Structs
+        # Wait for previous output tiles
+        # Transfer current out tiles (async)
 
-        for transaction in reversed(ingressDMAWaitStatements + ingressDMAUpdates + ingressDMATransferCalls +
-                                    variableUpdates + egressDMAWaitStatements + egressDMAUpdates):
+        for transaction in reversed(variableUpdates + ingressDMAUpdates + ingressDMAWaitStatements +
+                                    ingressDMATransferCalls):
             executionBlock.addLeft(transaction.template, transaction.operatorRepresentation)
 
-        for transaction in egressDMATransferCalls:
+        for transaction in (egressDMAUpdates + egressDMAWaitStatements + egressDMATransferCalls):
             executionBlock.addRight(transaction.template, transaction.operatorRepresentation)
 
         return executionBlock
