@@ -131,6 +131,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                              initialFuture,
                                                              math.prod(externalBufferShape),
                                                              comment = "DMA INITIAL")
+            initialDmaTransferCalls = [item for tup in initialDmaTransferCalls for item in tup]
             setupStatements.extend(initialDmaTransferCalls)
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I+1",

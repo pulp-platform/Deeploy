@@ -21,6 +21,8 @@ class L3DmaFuture(Future):
 
     _deinitTemplate = NodeTemplate("")
 
+    _allocTemplate = NodeTemplate("")
+
     _waitTemplate = NodeTemplate("""
     % if comment:
     // ${comment}

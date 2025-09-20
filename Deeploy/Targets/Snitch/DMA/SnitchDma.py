@@ -11,6 +11,7 @@ from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, Per
 class SnitchBarrierFuture(Future):
     _initTemplate = NodeTemplate("")
     _deinitTemplate = NodeTemplate("")
+    _allocTemplate = NodeTemplate("")
     _waitTemplate = NodeTemplate("""
     % if comment:
     // ${comment}
@@ -29,6 +30,8 @@ class SnitchFuture(Future):
     """)
 
     _deinitTemplate = NodeTemplate("")
+
+    _allocTemplate = NodeTemplate("")
 
     _waitTemplate = NodeTemplate("""
     % if comment:

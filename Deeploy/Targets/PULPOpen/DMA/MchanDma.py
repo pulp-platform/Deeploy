@@ -20,6 +20,13 @@ class MchanChannelFuture(Future):
 
     _deinitTemplate = NodeTemplate("")
 
+    _allocTemplate = NodeTemplate("""
+     % if comment:
+    // ${comment}
+    % endif
+    ${name} = mchan_channel_alloc();
+    """)
+
     _waitTemplate = NodeTemplate("""
     % if comment:
     // ${comment}
@@ -37,7 +44,6 @@ class MchanDma(AsyncDma):
         % if comment:
         // ${comment}
         % endif
-        ${future} = mchan_channel_alloc();
         mchan_transfer_1d(${cmd}, ${loc}, ${ext});
         """),
         2:
@@ -45,7 +51,6 @@ class MchanDma(AsyncDma):
         % if comment:
         // ${comment}
         % endif
-        ${future} = mchan_channel_alloc();
         mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});
         """),
     }

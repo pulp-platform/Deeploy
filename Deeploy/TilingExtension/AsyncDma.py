@@ -16,6 +16,7 @@ DmaDirection = Literal["ExternalToLocal", "LocalToExternal"]
 class Future:
 
     _initTemplate: NodeTemplate
+    _allocTemplate: NodeTemplate
     _deinitTemplate: NodeTemplate
     _waitTemplate: NodeTemplate
 
@@ -27,6 +28,9 @@ class Future:
 
     def init(self, comment: str = "") -> CodeSnippet:
         return CodeSnippet(self._initTemplate, self._operatorRepresentation(comment))
+
+    def alloc(self, comment: str = "") -> CodeSnippet:
+        return CodeSnippet(self._allocTemplate, self._operatorRepresentation(comment))
 
     def deinit(self, comment: str = "") -> CodeSnippet:
         return CodeSnippet(self._deinitTemplate, self._operatorRepresentation(comment))
@@ -105,12 +109,12 @@ class AsyncDma(ABC):
                  strideLoc: Tuple[int, ...],
                  direction: DmaDirection,
                  future: Future,
-                 comment: str = "") -> List[CodeSnippet]:
+                 comment: str = "") -> Tuple[List[CodeSnippet], List[CodeSnippet], List[CodeSnippet]]:
         self.checkTransfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction)
         opRepr = self.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future,
                                      comment)
         template = self._transferTemplates[len(shape)]
-        return [CodeSnippet(template, opRepr)]
+        return [future.alloc(comment)], [CodeSnippet(template, opRepr)], []
 
     def setup(self) -> List[CodeSnippet]:
         return []
@@ -122,6 +126,7 @@ class AsyncDma(ABC):
 class EmptyFuture(Future):
 
     _initTemplate = NodeTemplate("")
+    _allocTemplate = NodeTemplate("")
     _deinitTemplate = NodeTemplate("")
     _waitTemplate = NodeTemplate("")
 
@@ -158,23 +163,25 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
                  strideLoc: Tuple[int, ...],
                  direction: DmaDirection,
                  future: Future,
-                 comment: str = "") -> List[CodeSnippet]:
+                 comment: str = "") -> Tuple[List[CodeSnippet], List[CodeSnippet], List[CodeSnippet]]:
         tmpFuture = self.dma.getFuture(future.name.removesuffix("_future"))
         callStack = []
-        callStack.append(tmpFuture.init())
-        callStack.extend(
-            self.dma.transfer(ctxt,
-                              externalBuffer,
-                              localBuffer,
-                              shape,
-                              strideExt,
-                              strideLoc,
-                              direction,
-                              tmpFuture,
-                              comment = comment))
-        callStack.append(tmpFuture.wait())
-        callStack.append(tmpFuture.deinit())
-        return callStack
+        callStack.append(tmpFuture.init(comment))
+        callStack.append(tmpFuture.alloc(comment))
+        _, dma_code, _ = self.dma.transfer(ctxt,
+                                           externalBuffer,
+                                           localBuffer,
+                                           shape,
+                                           strideExt,
+                                           strideLoc,
+                                           direction,
+                                           tmpFuture,
+                                           comment = comment)
+        callStack.extend(dma_code)
+        callStack.append(tmpFuture.wait(comment))
+        callStack.append(tmpFuture.deinit(comment))
+
+        return [], callStack, []
 
     def setup(self) -> List[CodeSnippet]:
         return self.dma.setup()
@@ -239,7 +246,7 @@ class AnydimAsyncDmaTransferAdapter:
                  direction: DmaDirection,
                  future: Future,
                  strideExtPad: int = 0,
-                 comment: str = "") -> List[CodeSnippet]:
+                 comment: str = "") -> Tuple[List[CodeSnippet], List[CodeSnippet], List[CodeSnippet]]:
         transferRank = len(shape)
         kernelRank = self.nearestSupportedTransferRank(transferRank)
 
@@ -275,18 +282,19 @@ class AnydimAsyncDmaTransferAdapter:
                     "offset": "ext_offset"
                 }))
 
-            callStack.extend(
-                self.dma.transfer(ctxt,
-                                  externalBufferOffseted,
-                                  localBufferOffseted,
-                                  shape[-kernelRank:],
-                                  strideExt[-kernelRank:],
-                                  strideLoc[-kernelRank:],
-                                  direction,
-                                  future,
-                                  comment = comment))
+            alloc_code, dma_code, deinit_code = self.dma.transfer(ctxt,
+                                                                  externalBufferOffseted,
+                                                                  localBufferOffseted,
+                                                                  shape[-kernelRank:],
+                                                                  strideExt[-kernelRank:],
+                                                                  strideLoc[-kernelRank:],
+                                                                  direction,
+                                                                  future,
+                                                                  comment = comment)
+
+            callStack.extend(dma_code)
             callStack.append(CodeSnippet(self.NestedForLoopCloseTemplate(nestedLoopDepth), {}))
-            return callStack
+            return alloc_code, callStack, deinit_code
         elif kernelRank == transferRank:
             return self.dma.transfer(ctxt,
                                      externalBuffer,

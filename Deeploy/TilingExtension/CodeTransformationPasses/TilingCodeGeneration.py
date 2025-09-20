@@ -117,6 +117,8 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
                                               math.prod(externalBuffer.shape,),
                                               comment = comment)
 
+        initSnippets = [item for tup in initSnippets for item in tup]
+
         templates = [snippet.template for snippet in initSnippets]
         opReprUpdates = [[] for _ in range(len(initSnippets))]
 
@@ -131,6 +133,8 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
                                               future,
                                               math.prod(externalBuffer.shape),
                                               comment = comment)
+
+            snippets = [item for tup in snippets for item in tup]
             for i, snippet in enumerate(snippets):
                 opReprUpdates[i].append(snippet.operatorRepresentation)
 
