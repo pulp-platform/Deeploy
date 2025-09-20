@@ -20,8 +20,29 @@ class Future:
     _allocTemplate: NodeTemplate
     _waitTemplate: NodeTemplate
 
-    def __init__(self, name: str):
-        self.name = name
+    _registry: Dict[str, "Future"] = {}
+
+    @classmethod
+    def _buildName(cls, name: str, copyIdx: Optional[int] = None) -> str:
+        name += "_future"
+        if copyIdx is not None:
+            name += f"_{copyIdx}"
+        return name
+
+    def __new__(cls, name: str, copyIdx: Optional[int] = None) -> "Future":
+        futureName = cls._buildName(name, copyIdx)
+        if futureName in cls._registry:
+            return cls._registry[futureName]
+        else:
+            inst = super().__new__(cls)
+            cls._registry[futureName] = inst
+            return inst
+
+    def __init__(self, name: str, copyIdx: Optional[int] = None):
+        # LMACAN: __init__ is always called after __new__.
+        #         This guards against reinitialization in case the future already exists in the registry.
+        if not hasattr(self, "name"):
+            self.name = self._buildName(name, copyIdx)
 
     def _operatorRepresentation(self) -> OperatorRepresentation:
         return {"name": self.name}
@@ -37,6 +58,9 @@ class Future:
 
     def wait(self) -> CodeSnippet:
         return CodeSnippet(self._waitTemplate, self._operatorRepresentation())
+
+    def __hash__(self) -> int:
+        return hash(self.name)
 
 
 class AsyncDmaWaitingStrategy(ABC):
