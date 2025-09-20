@@ -19,10 +19,9 @@ from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule
 
 class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
-    _moveTileInCheckOpenStatement = NodeTemplate("""
-    // DOUBLE BUFFERING CHECK TILE LOAD
-    if ((${tileIdxVar}) < ${numTiles}[*${tileIdxPtr}+1]) {
-    """)
+    _lineComment = NodeTemplate("\n// ${comment}")
+
+    _moveTileInCheckOpenStatement = NodeTemplate("if ((${tileIdxVar}) < ${numTiles}[*${tileIdxPtr}+1]) {")
 
     # LMACAN: The brackets around ${tileIdxVar} are important to ensure correct order
     #         of the modulo operation. Breaking case without the brackets is when we
@@ -136,7 +135,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             buffers = self._hoistMultibufferReferences(ctxt, localBuffer, tensorMemoryConstraint)
             multibufferMap[name] = buffers
 
-        openLoopStatements: List[CodeSnippet] = [CodeSnippet(self._openTileLoopTemplate, operatorRepresentation)]
+        openLoopStatements: List[CodeSnippet] = []
+        openLoopStatements += [CodeSnippet(self._openTileLoopTemplate, operatorRepresentation)]
 
         bufferGroupChoices = [[] for _ in range(self.bufferCount)]
         for name in itertools.chain(tilingSchedule.inputLoadSchedule[0].keys(),
@@ -151,6 +151,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                 })
                 bufferGroupChoices[i].append(snippet)
 
+        openLoopStatements.append(CodeSnippet(self._lineComment, {"comment": "CURRENT BUFFER CHOICE"}))
         openLoopStatements += self._switch(bufferGroupChoices, "TILING_I")
 
         ingressCalls, ingressFutures = self._ioCalls(ctxt, operatorRepresentation, tilingSchedule.inputLoadSchedule,
@@ -158,13 +159,16 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                      "ExternalToLocal", "TILING_I+1", multibufferMap)
 
         ingressDmaTransferCalls: List[CodeSnippet] = [
+            CodeSnippet(self._lineComment, {"comment": "INPUT LOADING"}),
             CodeSnippet(self._moveTileInCheckOpenStatement, {
                 **operatorRepresentation, "tileIdxVar": "TILING_I+1"
             })
         ] + ingressCalls + [CodeSnippet(self._blockClose, {})]
-        ingressDmaWaitStatements = [f.wait() for f in ingressFutures]
 
-        firstIngressCalls = []
+        ingressDmaWaitStatements = [CodeSnippet(self._lineComment, {"comment": "INPUT WAITING"})]
+        ingressDmaWaitStatements += [f.wait() for f in ingressFutures]
+
+        firstIngressCalls = [CodeSnippet(self._lineComment, {"comment": "INITIAL INPUT LOADING"})]
         for snippet in ingressCalls:
             tmpl, opRepr = snippet.template, snippet.operatorRepresentation
             firstIngressCalls.append(CodeSnippet(tmpl, {**opRepr, "tileIdxVar": 0}))
@@ -173,8 +177,11 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                    nodeMemoryConstraint.outputTensorMemoryConstraints,
                                                    "LocalToExternal", "TILING_I", multibufferMap)
 
-        egressDmaTransferCalls: List[CodeSnippet] = egressCalls
-        egressDmaWaitStatements = [f.wait() for f in egressFutures]
+        egressDmaTransferCalls: List[CodeSnippet] = [CodeSnippet(self._lineComment, {"comment": "OUTPUT STORING"})]
+        egressDmaTransferCalls += egressCalls
+
+        egressDmaWaitStatements = [CodeSnippet(self._lineComment, {"comment": "OUTPUT WAITING"})]
+        egressDmaWaitStatements += [f.wait() for f in egressFutures]
 
         setupStatements: List[CodeSnippet] = []
         setupStatements += [f.init() for f in ingressFutures | egressFutures] + setupStatements
