@@ -50,7 +50,7 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                      shape = externalBufferShape,
                                                      override_type = VoidType)
 
-            future = self.dma.getFuture(tensorName)
+            future = self.dma.getFuture(tensorName, direction)
             futures.add(future)
 
             callStack.extend(

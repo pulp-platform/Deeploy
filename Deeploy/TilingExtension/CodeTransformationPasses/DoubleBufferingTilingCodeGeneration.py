@@ -101,7 +101,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             openLoopStatements.append(self._generateBufferChoice(localBuffer, l1BuffersReferences, "TILING_I"))
 
-            future = self.dma.getFuture(tensorName)
+            future = self.dma.getFuture(tensorName, "ExternalToLocal")
             ingressFutures.add(future)
 
             ingressDmaTransferCalls.append(
@@ -119,7 +119,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
-            initialFuture = self.dma.getFuture(tensorName)
+            initialFuture = self.dma.getFuture(tensorName, "ExternalToLocal", initial = True)
             initialFutures.add(initialFuture)
             initialDmaTransferCalls = anydimAdapter.transfer(ctxt,
                                                              externalBufferRef,
@@ -144,6 +144,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                          "tileIdxVar": 0,
                                                      })
                 setupStatements.append(initialReferenceUpdate)
+
+        setupStatements.extend([f.wait("WAIT INITIAL") for f in initialFutures])
 
         ingressDmaTransferCalls.append(CodeSnippet(self._moveTileInCheckCloseStatement, {}))
         ingressDmaWaitStatements = [f.wait("WAIT INGRESS") for f in ingressFutures]
@@ -176,7 +178,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             openLoopStatements.append(self._generateBufferChoice(localBuffer, l1BuffersReferences, "TILING_I"))
 
-            future = self.dma.getFuture(tensorName)
+            future = self.dma.getFuture(tensorName, "LocalToExternal")
             egressFutures.add(future)
 
             dmaTransferCalls = self._generateDmaTransferCalls(ctxt,

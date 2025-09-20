@@ -21,6 +21,7 @@ class Future:
     _waitTemplate: NodeTemplate
 
     def __init__(self, name: str):
+        self._allocated = False
         self.name = name
 
     def _operatorRepresentation(self, comment: str = "") -> OperatorRepresentation:
@@ -30,6 +31,9 @@ class Future:
         return CodeSnippet(self._initTemplate, self._operatorRepresentation(comment))
 
     def alloc(self, comment: str = "") -> CodeSnippet:
+        if self._allocated:
+            return CodeSnippet(NodeTemplate(""), self._operatorRepresentation(comment))
+        self._allocated = True
         return CodeSnippet(self._allocTemplate, self._operatorRepresentation(comment))
 
     def deinit(self, comment: str = "") -> CodeSnippet:
@@ -45,13 +49,14 @@ class AsyncDmaWaitingStrategy(ABC):
         self.FutureCls = FutureCls
 
     @abstractmethod
-    def getFuture(self, tensorName: str) -> Future:
+    def getFuture(self, tensorName: str, direction: DmaDirection, initial = False) -> Future:
         pass
 
 
 class PerTensorWaitingStrategy(AsyncDmaWaitingStrategy):
 
-    def getFuture(self, tensorName: str) -> Future:
+    def getFuture(self, tensorName: str, direction: DmaDirection, initial = False) -> Future:
+        _ = direction
         return self.FutureCls(tensorName + "_future")
 
 
@@ -59,11 +64,18 @@ class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
 
     def __init__(self, FutureCls: Type[Future], asyncGroupName: str) -> None:
         super().__init__(FutureCls)
-        self.asyncGroupFuture = FutureCls(f"{asyncGroupName}_future")
+        self.asyncGroupName = asyncGroupName
 
-    def getFuture(self, tensorName: str) -> Future:
+        self.asyncGroupFutures = {
+            direction: [
+                FutureCls(f"{self.asyncGroupName}_{direction}_future"),
+                FutureCls(f"{self.asyncGroupName}_{direction}_future")
+            ] for direction in ["ExternalToLocal", "LocalToExternal"]
+        }
+
+    def getFuture(self, tensorName: str, direction: DmaDirection, initial = False) -> Future:
         _ = tensorName
-        return self.asyncGroupFuture
+        return self.asyncGroupFutures[direction][initial]
 
 
 class AsyncDma(ABC):
@@ -73,8 +85,8 @@ class AsyncDma(ABC):
     def __init__(self, transferTemplates: Dict[int, NodeTemplate]) -> None:
         self._transferTemplates = transferTemplates
 
-    def getFuture(self, tensorName: str) -> Future:
-        return self._waitingStrategy.getFuture(tensorName)
+    def getFuture(self, tensorName: str, direction: DmaDirection, initial = False) -> Future:
+        return self._waitingStrategy.getFuture(tensorName, direction, initial)
 
     def supportedTransferRanks(self) -> Set[int]:
         return set(self._transferTemplates.keys())
@@ -164,7 +176,7 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
                  direction: DmaDirection,
                  future: Future,
                  comment: str = "") -> Tuple[List[CodeSnippet], List[CodeSnippet], List[CodeSnippet]]:
-        tmpFuture = self.dma.getFuture(future.name.removesuffix("_future"))
+        tmpFuture = self.dma.getFuture(future.name.removesuffix("_future"), direction)
         callStack = []
         callStack.append(tmpFuture.init(comment))
         callStack.append(tmpFuture.alloc(comment))
