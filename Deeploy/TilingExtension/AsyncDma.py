@@ -52,12 +52,19 @@ class AsyncDmaWaitingStrategy(ABC):
     def getFuture(self, tensorName: str, direction: DmaDirection, initial = False) -> Future:
         pass
 
+    @abstractmethod
+    def resetState(self):
+        pass
+
 
 class PerTensorWaitingStrategy(AsyncDmaWaitingStrategy):
 
     def getFuture(self, tensorName: str, direction: DmaDirection, initial = False) -> Future:
         _ = direction
         return self.FutureCls(tensorName + "_future")
+
+    def resetState(self):
+        return
 
 
 class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
@@ -76,6 +83,11 @@ class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
     def getFuture(self, tensorName: str, direction: DmaDirection, initial = False) -> Future:
         _ = tensorName
         return self.asyncGroupFutures[direction][initial]
+
+    def resetState(self):
+        for futures in self.asyncGroupFutures.values():
+            for future in futures:
+                future._allocated = False
 
 
 class AsyncDma(ABC):
@@ -127,6 +139,9 @@ class AsyncDma(ABC):
                                      comment)
         template = self._transferTemplates[len(shape)]
         return [future.alloc(comment)], [CodeSnippet(template, opRepr)], []
+
+    def resetState(self):
+        self._waitingStrategy.resetState()
 
 
 class EmptyFuture(Future):

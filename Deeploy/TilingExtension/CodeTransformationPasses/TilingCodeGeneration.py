@@ -272,6 +272,8 @@ Old minOuterShape produced by outerDims: {outerShape} and rects:
 
         operatorRepresentation.update(newOpRepr)
 
+        self.dma.resetState()
+
         ctxt, executionBlock, applicable = self.generateTilingLoop(ctxt, executionBlock, nodeMemoryConstraint,
                                                                    tilingSchedules, minimalVariableReplacement,
                                                                    operatorRepresentation)
