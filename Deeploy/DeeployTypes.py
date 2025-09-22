@@ -322,9 +322,48 @@ class VariableBuffer():
 
     @classmethod
     def fromNode(cls, node: gs.Node):
-        return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
+        return (cls(
+            name=node.name,
+            shape=node.shape if not isinstance(node, gs.Constant) else node.values.shape,
+            alias_of = [],
+            ))
 
-    def has_live_aliases(self, ctxt: NetworkContext) -> bool:
+    def add_aliases(self, aliases_to_add: List[str]):
+        """
+        Adds list of aliases to the alias_of attribute.
+        Parameters
+        ----------
+        alias_to_add : List[str]
+            List of names of aliases to add to the alias_of attribute.
+        Returns
+        -------
+        None
+        """
+
+        if not hasattr(self, "alias_of"):
+            return None
+
+        for alias in aliases_to_add:
+            if alias not in self.alias_of:
+                self.alias_of.append(alias)
+
+        return None
+
+    def get_aliases_of(self):
+        """
+        Getter function for the alias_of attribute.
+        Returns
+        -------
+        List[str]
+            List of names o all aliases of this VariableBuffer.
+        """
+
+        if hasattr(self, "alias_of"):
+            return self.alias_of
+        else:
+            return list()
+
+    def has_live_ancestors(self, ctxt: NetworkContext) -> bool:
         """Checks whether this VariableBuffer has any live ancestors, i.e. buffers that are still live and are aliased by this buffer.
         Parameters
         ----------
@@ -395,8 +434,8 @@ class ConstantBuffer(VariableBuffer):
 
     """
 
-    def __init__(self, name: str = '', shape = [1], values = [0]):
-        super().__init__(name, shape)
+    def __init__(self, name: str = '', shape = [1], values = [0], alias_of: Optional[List[str]] = []):
+        super().__init__(name, shape, alias_of)
         values = np.asarray(values)
         # intArray = values.astype(int)
         # assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
@@ -428,6 +467,17 @@ class ConstantBuffer(VariableBuffer):
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._type, "name": self.name, "size": int(np.prod(self.shape)), "values": self._valueString()}
+
+    @classmethod
+    def fromVariableBuffer(cls, buffer: VariableBuffer, values):
+        ret = cls(
+            name=buffer.name,
+            shape=buffer.shape,
+            values=values,
+            alias_of=buffer.alias_of,
+        )
+
+        return ret
 
 
 class StructBuffer(VariableBuffer):
@@ -1130,7 +1180,11 @@ class NodeParser():
 
         for node, name in zip(outputNodes, outputNames):
             if not ctxt.is_global(name):
-                nb = ctxt.VariableBuffer(name = name, shape = node.shape)
+                nb = ctxt.VariableBuffer(
+                    name=name,
+                    shape=node.shape,
+                    alias_of = [],
+                )
                 ctxt.add(nb, 'local')
             else:
                 nb = ctxt.lookup(name)
