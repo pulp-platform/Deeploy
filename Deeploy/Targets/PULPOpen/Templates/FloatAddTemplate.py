@@ -6,14 +6,14 @@ from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
 // Add Parallel with 1x6 unrolling (Name: ${nodeName}, Op: ${nodeOp})
-int8_t ${nodeName}_core_id = pi_core_id();
-int8_t ${nodeName}_log2Core = log2(NUM_CORES);
+int8_t ${nodeName}_core_id = (int8_t) pi_core_id();
+int8_t ${nodeName}_log2Core = (int8_t) log2(NUM_CORES);
 int16_t ${nodeName}_chunk = (${size} >> ${nodeName}_log2Core) + ((${size} & (NUM_CORES-1))!=0);
-int16_t ${nodeName}_chunk_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${size});
-int16_t ${nodeName}_chunk_stop = MIN(${nodeName}_chunk_start + ${nodeName}_chunk, ${size});
+int16_t ${nodeName}_chunk_start = (int16_t) MIN(${nodeName}_chunk*${nodeName}_core_id, ${size});
+int16_t ${nodeName}_chunk_stop = (int16_t) MIN(${nodeName}_chunk_start + ${nodeName}_chunk, ${size});
 
-uint32_t i = ${nodeName}_chunk_start;
-for (; i+5 < ${nodeName}_chunk_stop; i+=6) {
+int32_t i = ${nodeName}_chunk_start;
+for (; i + 5 < ${nodeName}_chunk_stop; i += 6) {
     ${data_out}[i] = ${data_in_1}[i] + ${data_in_2}[i];
     ${data_out}[i+1] = ${data_in_1}[i+1] + ${data_in_2}[i+1];
     ${data_out}[i+2] = ${data_in_1}[i+2] + ${data_in_2}[i+2];
