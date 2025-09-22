@@ -22,6 +22,7 @@ class Future:
 
     def __init__(self, name: str):
         self._allocated = False
+        self._waited = False
         self.name = name
 
     def _operatorRepresentation(self, comment: str = "") -> OperatorRepresentation:
@@ -40,6 +41,9 @@ class Future:
         return CodeSnippet(self._deinitTemplate, self._operatorRepresentation(comment))
 
     def wait(self, comment: str = "") -> CodeSnippet:
+        if self._waited:
+            return CodeSnippet(NodeTemplate(""), self._operatorRepresentation(comment))
+        self._waited = True
         return CodeSnippet(self._waitTemplate, self._operatorRepresentation(comment))
 
 
@@ -88,6 +92,7 @@ class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
         for futures in self.asyncGroupFutures.values():
             for future in futures:
                 future._allocated = False
+                future._waited = False
 
 
 class AsyncDma(ABC):
