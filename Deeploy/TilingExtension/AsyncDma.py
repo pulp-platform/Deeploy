@@ -164,6 +164,9 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
     def __init__(self, dma: AsyncDma) -> None:
         self.dma = dma
 
+    def getFuture(self, tensorName: str, direction: DmaDirection, copyIdx: Optional[int] = None) -> Future:
+        return self.dma.getFuture(tensorName, direction, copyIdx)
+
     @property
     def _transferTemplates(self) -> Dict[int, NodeTemplate]:
         return self.dma._transferTemplates
@@ -176,13 +179,10 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
     def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
                  shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
                  direction: DmaDirection, future: Future) -> List[CodeSnippet]:
-        tmpFuture = self.dma.getFuture(future.name.removesuffix("_future"), direction)
         callStack = []
-        callStack.append(tmpFuture.init())
         callStack.extend(
-            self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, tmpFuture))
-        callStack.append(tmpFuture.wait())
-        callStack.append(tmpFuture.deinit())
+            self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future))
+        callStack.append(future.wait())
         return callStack
 
     def setup(self) -> List[CodeSnippet]:

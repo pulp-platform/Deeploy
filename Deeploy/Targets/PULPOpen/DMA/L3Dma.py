@@ -14,6 +14,7 @@ class L3DmaFuture(Future):
 
     _initTemplate = NodeTemplate("pi_cl_ram_req_t ${name};")
     _deinitTemplate = NodeTemplate("")
+    _allocTemplate = NodeTemplate("")
     _waitTemplate = NodeTemplate("pi_cl_ram_copy_wait(&${name});")
 
 
