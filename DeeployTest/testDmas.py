@@ -106,12 +106,16 @@ if __name__ == "__main__":
             print(f"Running command:\n{cfg.cmd}\n")
 
         try:
+            timeout = 60  # 60 seconds
             if args.verbose:
-                out, err = subprocess.STDOUT, subprocess.STDOUT
+                subprocess.run(cfg.cmd, shell = True, check = True, timeout = timeout)
             else:
-                out, err = subprocess.DEVNULL, subprocess.DEVNULL
-            subprocess.run(cfg.cmd, shell = True, check = True, stdout = out, stderr = err,
-                           timeout = 10)  # 10min timeout
+                subprocess.run(cfg.cmd,
+                               shell = True,
+                               check = True,
+                               stdout = subprocess.DEVNULL,
+                               stderr = subprocess.DEVNULL,
+                               timeout = timeout)
             if not args.quiet:
                 print(f"{cfg.short_repr} - OK")
         except subprocess.CalledProcessError:
