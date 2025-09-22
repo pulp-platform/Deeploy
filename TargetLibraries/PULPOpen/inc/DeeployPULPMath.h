@@ -25,6 +25,7 @@
 
 #include "kernel/Conv.h"
 #include "kernel/GELU.h"
+#include "kernel/gemm.h"
 #include "kernel/Layernorm.h"
 #include "kernel/Matmul.h"
 #include "kernel/MaxPool.h"
