@@ -22,6 +22,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
     _lineComment = NodeTemplate("\n// ${comment}")
 
     _moveTileInCheckOpenStatement = NodeTemplate("if ((${tileIdxVar}) < ${numTiles}[*${tileIdxPtr}+1]) {")
+    _waitTileOutCheckOpenStatment = NodeTemplate("if ((${tileIdxVar}) >= ${bufferCount}) {")
 
     # LMACAN: The brackets around ${tileIdxVar} are important to ensure correct order
     #         of the modulo operation. Breaking case without the brackets is when we
@@ -91,23 +92,39 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                      externalBufferShape,
                                                      override_type = VoidType)
 
+            bufferFutures = [self.dma.getFuture(tensorName, direction, copyIdx = i) for i in range(self.bufferCount)]
+
             # TODO: The generate dma transfer calls cannot be called multiple times in the loop because it hoists
             #       but it has to accept a future so now I'm stuck. I'm thinking hoisting shouldn't polute the
             #       function that creates the call... or I do it in a hacky way where I overwrite the *future*
             #       keyword in the opRepr in the second call...
-            transferCalls = self._generateDmaTransferCalls(ctxt, tensorName, rectangles, tileIdxVar, buff,
-                                                           externalBufferRef, direction, future)
+            # UPDATE: Inside CodeSnippets don't have the same name for local/external buffers and I don't want to change that.
+            #         ... so back to the seperation of codegen and hoisting.
+            # UPDATA: Or! We search all the opReprs for the initial value and swap them
+            firstTransferCalls = self._generateDmaTransferCalls(ctxt, tensorName, rectangles, tileIdxVar,
+                                                                multibufferMap[tensorName][0], externalBufferRef,
+                                                                direction, bufferFutures[0])
 
-            caseBlocks = []
-            for i, buff in enumerate(multibufferMap[tensorName]):
-                future = self.dma.getFuture(tensorName, direction, copyIdx = i)
-                futures[i].add(future)
-
-                block = [future.alloc()]
-                #block.extend() TODO: add transferCalls
-                caseBlocks.append(block)
+            caseBlocks = [[bufferFutures[0].alloc()] + firstTransferCalls]
+            for future, buff in zip(bufferFutures[1:], multibufferMap[tensorName][1:]):
+                transferCalls = []
+                for call in firstTransferCalls:
+                    # LMACAN: Fixup the operatorRepresentation
+                    opRepr = {}
+                    for key, value in call.operatorRepresentation.items():
+                        if value == bufferFutures[0].name:
+                            opRepr[key] = future.name
+                        elif value == multibufferMap[tensorName][0].name:
+                            opRepr[key] = buff.name
+                        else:
+                            opRepr[key] = value
+                    transferCalls.append(CodeSnippet(call.template, opRepr))
+                caseBlocks.append([future.alloc()] + transferCalls)
 
             calls.extend(self._switch(caseBlocks, tileIdxVar))
+
+            for futureSet, future in zip(futures, bufferFutures):
+                futureSet.add(future)
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, tileIdxVar,
                                                                     externalBufferRef)
@@ -190,8 +207,14 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         egressDmaTransferCalls += egressCalls
 
         egressDmaWaitStatements = [CodeSnippet(self._lineComment, {"comment": "OUTPUT WAITING"})]
+        egressDmaWaitStatements.append(
+            CodeSnippet(self._waitTileOutCheckOpenStatment, {
+                "tileIdxVar": "TILING_I",
+                "bufferCount": self.bufferCount
+            }))
         egressDmaWaitStatements += self._switch([[f.wait() for f in futureSet] for futureSet in egressFutures],
                                                 "TILING_I")
+        egressDmaWaitStatements.append(CodeSnippet(self._blockClose, {}))
 
         allFutures = set()
         for futureSet in ingressFutures + egressFutures:
@@ -202,7 +225,9 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         setupStatements.extend(firstIngressCalls)
 
         teardownStatements: List[CodeSnippet] = []
-        teardownStatements.extend([f.wait() for futureSet in egressFutures for f in futureSet])
+        totalNumTiles = len(tilingSchedule.inputLoadSchedule)  # TODO: Is this the best way to do this?
+        remainingEgressFutures = egressFutures[:min(totalNumTiles, len(egressFutures))]
+        teardownStatements.extend([f.wait() for futureSet in remainingEgressFutures for f in futureSet])
         teardownStatements.extend(f.deinit() for f in allFutures)
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
