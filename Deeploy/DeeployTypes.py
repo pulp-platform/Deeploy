@@ -322,7 +322,11 @@ class VariableBuffer():
 
     @classmethod
     def fromNode(cls, node: gs.Node):
-        return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
+        return (cls(
+            name=node.name,
+            shape=node.shape if not isinstance(node, gs.Constant) else node.values.shape,
+            alias_of = [],
+            ))
 
     def has_live_aliases(self, ctxt: NetworkContext) -> bool:
         """Checks whether this VariableBuffer has any live aliases, i.e. buffers that are still live and are aliased by this buffer.
@@ -395,8 +399,8 @@ class ConstantBuffer(VariableBuffer):
 
     """
 
-    def __init__(self, name: str = '', shape = [1], values = [0]):
-        super().__init__(name, shape)
+    def __init__(self, name: str = '', shape = [1], values = [0], alias_of: Optional[List[str]] = []):
+        super().__init__(name, shape, alias_of)
         values = np.asarray(values)
         # intArray = values.astype(int)
         # assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
@@ -428,6 +432,17 @@ class ConstantBuffer(VariableBuffer):
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._type, "name": self.name, "size": int(np.prod(self.shape)), "values": self._valueString()}
+
+    @classmethod
+    def fromVariableBuffer(cls, buffer: VariableBuffer, values):
+        ret = cls(
+            name=buffer.name,
+            shape=buffer.shape,
+            values=values,
+            alias_of=buffer.alias_of,
+        )
+
+        return ret
 
 
 class StructBuffer(VariableBuffer):
@@ -1130,7 +1145,11 @@ class NodeParser():
 
         for node, name in zip(outputNodes, outputNames):
             if not ctxt.is_global(name):
-                nb = ctxt.VariableBuffer(name = name, shape = node.shape)
+                nb = ctxt.VariableBuffer(
+                    name=name,
+                    shape=node.shape,
+                    alias_of = [],
+                )
                 ctxt.add(nb, 'local')
             else:
                 nb = ctxt.lookup(name)
