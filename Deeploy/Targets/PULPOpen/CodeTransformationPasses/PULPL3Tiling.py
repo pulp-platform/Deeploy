@@ -7,14 +7,12 @@ from typing import Tuple
 from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, _NoVerbosity
 from Deeploy.TilingExtension.AsyncDma import AsyncDma
 from Deeploy.TilingExtension.CodeTransformationPasses.DoubleBufferingTilingCodeGeneration import \
-    DoubleBufferingTilingCodeGeneration
+    DoubleBufferingTilingCodeGeneration, ProfilingDoubleBufferingTilingMixIn
 from Deeploy.TilingExtension.CodeTransformationPasses.SingleBufferingTilingCodeGeneration import \
-    SingleBufferingTilingCodeGeneration
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import DoubleBufferingTilingMixIn, \
-    ProfilingDoubleBufferingTilingMixIn, ProfilingSingleBufferingTilingMixIn, SingleBufferingTilingMixIn
+    ProfilingSingleBufferingTilingMixIn, SingleBufferingTilingCodeGeneration
 
 
-class PULPL3TilingGenerationSB(SingleBufferingTilingCodeGeneration, SingleBufferingTilingMixIn):
+class PULPL3TilingGenerationSB(SingleBufferingTilingCodeGeneration):
     pass
 
 
@@ -22,7 +20,7 @@ class ProfilingPULPL3TilingGenerationSB(SingleBufferingTilingCodeGeneration, Pro
     pass
 
 
-class PULPL3TilingGenerationDB(DoubleBufferingTilingCodeGeneration, DoubleBufferingTilingMixIn):
+class PULPL3TilingGenerationDB(DoubleBufferingTilingCodeGeneration):
     pass
 
 
