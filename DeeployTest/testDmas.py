@@ -37,9 +37,9 @@ class Config:
 
     @property
     def cmd(self) -> str:
-        assert dma in testRunnerMap, f"{self.dma} missing its own testRunner mapping"
+        assert dma in testRunnerMap, f"{self.dma} DMA missing its own testRunner mapping"
         testRunner = testRunnerMap[self.dma]
-        cmd = [f"python {testRunner}", f"-t test{self.dma}", "-DNUM_CORES=8"]
+        cmd = [f"python {testRunner}", f"-t test{self.dma}Dma", "-DNUM_CORES=8"]
         cmd.append(f"--input-shape {' '.join(str(x) for x in self.inputShape)}")
         cmd.append(f"--tile-shape {' '.join(str(x) for x in self.tileShape)}")
         cmd.append(f"--node-count {self.nodeCount}")
@@ -50,7 +50,7 @@ class Config:
 
     @property
     def short_repr(self) -> str:
-        return f"{self.dma} - in:{self.inputShape}, " \
+        return f"{self.dma} DMA - in:{self.inputShape}, " \
             f"tile:{self.tileShape}, " \
             f"n:{self.nodeCount}, " \
             f"ty:{self.dataType}" + \
