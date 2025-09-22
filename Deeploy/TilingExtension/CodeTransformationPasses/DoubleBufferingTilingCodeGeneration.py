@@ -206,6 +206,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
         # 4.4) Output Data Transfers
         # -----------------------------------
+        finalFutures: Set[Future] = set()
         for tensorName, rectangles in dictOfArrays(tilingSchedule.outputLoadSchedule).items():
             localBuffer = ctxt.lookup(operatorRepresentation[tensorName])
             assert localBuffer._memoryLevel == self.localMemory
@@ -233,6 +234,9 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             openLoopStatements.append(self._generateBufferChoice(localBuffer, l1BuffersReferences, "TILING_I"))
 
             future = self.dma.getFuture(tensorName, "LocalToExternal")
+            finalFuture = self.dma.getFuture(tensorName, "LocalToExternal", initial = True)
+
+            finalFutures.add(finalFuture)
             egressFutures.add(future)
 
             # 4.4.1) Wait for previous output tile
@@ -260,7 +264,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         setupStatements = [f.init("Initialize DMA future") for f in ingressFutures | egressFutures] + setupStatements
 
         # 4. Wait for final output tile to be ready
-        teardownStatements.extend([f.wait("Wait for final output tile") for f in egressFutures])
+
+        teardownStatements.extend([f.wait("Wait for final output tile") for f in finalFutures])
 
         # 5. Deinitialize all futures
         teardownStatements.extend(f.deinit("Deinitialize DMA future") for f in ingressFutures | egressFutures)
