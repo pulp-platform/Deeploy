@@ -29,7 +29,7 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPat
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass, MatMulAddMergePass
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
-    PULPDMASliceBindings, PULPDWConv1DBinding, PULPFloatDWConv2DBindings, PULPReduceMeanBindings
+    PULPDMASliceBindings, PULPSliceBindings, PULPDWConv1DBinding, PULPFloatDWConv2DBindings, PULPReduceMeanBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPDWConv2DParser, PULPFPConv2DParser, PULPGEMMParser, PULPMatrixVecParser, PULPTallGEMMParser
@@ -88,7 +88,9 @@ Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), PULPSoftmaxTilingReadyBinding
 
 ConcatMapper = NodeMapper(ConcatParser(), PULPConcatTilingReadyBindings)
 
-SliceMapper = NodeMapper(SliceParser(), PULPDMASliceBindings)
+DMASliceMapper = NodeMapper(SliceParser(), PULPDMASliceBindings)
+
+SliceMapper = NodeMapper(SliceParser(), PULPSliceBindings)
 
 iRMSNormMapper = NodeMapper(iRMSNormParser(), PULPiRMSNormTilingReadyBindings)
 
@@ -128,7 +130,7 @@ PULPMapping = {
     'Squeeze': ReshapeLayer([UnsqueezeMapper]),
     'Transpose': TransposeLayer([TransposeMapper]),
     'Unsqueeze': ReshapeLayer([UnsqueezeMapper]),
-    'Slice': SliceLayer([SliceMapper]),
+    'Slice': SliceLayer([SliceMapper, DMASliceMapper]),
     'RequantizedAdd': AddLayer([RQAddMapper]),
     'Concat': ConcatLayer([ConcatMapper]),
     'iRMSNorm': iRMSNormLayer([iRMSNormMapper]),

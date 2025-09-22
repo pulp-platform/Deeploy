@@ -14,8 +14,8 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
-    GatherTemplate, QuantTemplate, RQSiGELUTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, FloatReduceSumTemplate, \
+    GatherTemplate, QuantTemplate, RQSiGELUTemplate, iHardswishTemplate, SliceTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
     QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
@@ -31,7 +31,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatAddTemplate, F
     FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, \
     FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, \
     ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
-    SliceTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
+    DMASliceTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
@@ -148,16 +148,20 @@ PULPDMASliceBindings = [
             PointerClass(uint8_t),
             PointerClass(uint8_t),
             PointerClass(uint8_t)
-        ], [PULPDMAFuture(underlyingType = type)]), SliceTemplate.referenceTemplate, MemoryAwareForkTransformer)
+        ], [PULPDMAFuture(underlyingType = type)]), DMASliceTemplate.referenceTemplate, MemoryAwareForkTransformer)
     for type in IntegerDataTypes
 ]
 
-PULPReshapeBindings = [
-    NodeBinding(ReshapeChecker([PointerClass(type), PointerClass(int32_t)], [PointerClass(type)]),
-                ReshapeTemplate.referenceTemplate, SkipTransformer) for type in IntegerDataTypes
-] + [
-    NodeBinding(ReshapeChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
-                ReshapeTemplate.referenceTemplate, SkipTransformer) for type in IntegerDataTypes
+PULPSliceBindings = [
+    NodeBinding(
+        SliceChecker([
+            PointerClass(type),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t)
+        ], [PointerClass(type)]), SliceTemplate.referenceTemplate, ForkTransformer)
+    for type in FloatDataTypes
 ]
 
 PULPRQAddBindings = [
@@ -283,6 +287,11 @@ PULPMatMulBindings = [
 PULPReduceMeanBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
                 ClusterTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ReduceMeanChecker([PointerClass(float_type), PointerClass(integer_type)], [PointerClass(float_type)]),
+                FloatReduceMeanTemplate.referenceTemplate, ClusterTransformer)
+    for integer_type in SignedIntegerDataTypes
+    for float_type in FloatDataTypes
 ]
 
 PULPReduceSumBindings = [
