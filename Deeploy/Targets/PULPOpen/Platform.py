@@ -27,7 +27,7 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantPars
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
-    SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+    SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass, MatMulAddMergePass
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
     PULPDMASliceBindings, PULPDWConv1DBinding, PULPFloatDWConv2DBindings, PULPReduceMeanBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
@@ -232,6 +232,7 @@ PULPOptimizer = TopologyOptimizer([
     PULPGEMMRequantMergePass(),
     PULPMatMulRequantMergePass(),
     PULPAddRequantMergePass(),
+    MatMulAddMergePass(),
     RemoveEmptyConvBiasPass(),
 ],
                                   name = "PULPOptimizer")
