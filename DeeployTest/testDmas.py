@@ -11,9 +11,9 @@ from typing import Tuple
 
 
 class Dma(Enum):
-    Mchan = "MchanDma"
-    L3 = "L3Dma"
-    Snitch = "SnitchDma"
+    Mchan = "Mchan"
+    L3 = "L3"
+    Snitch = "Snitch"
 
     def __str__(self) -> str:
         return self.value
@@ -71,6 +71,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--verbose", action = "store_true", default = False)
     parser.add_argument("--quiet", action = "store_true", default = False)
+    parser.add_argument("--dma", action = 'append', type = Dma, choices = list(Dma), default = [])
     args = parser.parse_args()
 
     # input shape, tile shape, node count, data type
@@ -87,7 +88,11 @@ if __name__ == "__main__":
         ((10, 10, 10, 10, 10), (2, 3, 5, 7, 4), 1, "uint8_t"),
     ]
     is_doublebuffers = [True, False]
-    dmas = [Dma.Mchan]
+
+    if len(args.dma) > 0:
+        dmas = args.dma
+    else:
+        dmas = list(Dma)
 
     failures = []
     timeouts = []
@@ -97,7 +102,7 @@ if __name__ == "__main__":
         cfg = Config(dma, inputShape, tileShape, nodeCount, dataType, doublebuffer)
 
         if args.verbose:
-            print(f"Testing {cfg.dma} with followig configuration:" + repr(cfg))
+            print(f"Testing {cfg.dma} DMA with followig configuration:" + repr(cfg))
             print(f"Running command:\n{cfg.cmd}\n")
 
         try:
@@ -121,10 +126,10 @@ if __name__ == "__main__":
                 print(f"{cfg.short_repr} - TIMEOUT")
 
     if not args.quiet and len(failures) > 0:
-        print(f"\nError: {len(failures)} tests failed.\nRerun with these commands:" +
+        print(f"\nError: {len(failures)} tests failed.\nRerun with these commands:\n" +
               "\n".join(cfg.cmd for cfg in failures))
     if not args.quiet and len(timeouts) > 0:
-        print(f"\nError: {len(timeouts)} tests timed out.\nRerun with these commands:" +
+        print(f"\nError: {len(timeouts)} tests timed out.\nRerun with these commands:\n" +
               "\n".join(cfg.cmd for cfg in timeouts))
 
     if len(failures) > 0 or len(timeouts) > 0:
