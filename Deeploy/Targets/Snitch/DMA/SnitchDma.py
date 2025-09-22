@@ -5,12 +5,13 @@
 from typing import Dict, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DirectionWaitingStrategy, DmaDirection, Future
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, BarrierWaitingStrategy, DmaDirection, Future
 
 
 class SnitchBarrierFuture(Future):
     _initTemplate = NodeTemplate("")
     _deinitTemplate = NodeTemplate("")
+    _allocTemplate = NodeTemplate("")
     _waitTemplate = NodeTemplate("if (snrt_is_dm_core()) snrt_dma_wait_all();")
 
 
@@ -18,6 +19,7 @@ class SnitchBarrierFuture(Future):
 class SnitchFuture(Future):
     _initTemplate = NodeTemplate("uint16_t ${name};")
     _deinitTemplate = NodeTemplate("")
+    _allocTemplate = NodeTemplate("")
     _waitTemplate = NodeTemplate("if (snrt_is_dm_core()) snrt_dma_wait(${name});")
 
 
@@ -29,7 +31,7 @@ class SnitchDma(AsyncDma):
                 "if (snrt_is_dm_core()) snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});"
             ),
     }
-    _waitingStrategy = DirectionWaitingStrategy(SnitchBarrierFuture, "")
+    _waitingStrategy = BarrierWaitingStrategy(SnitchBarrierFuture, "")
 
     def __init__(self, transferTemplates: Dict[int, NodeTemplate] = _transferTemplates) -> None:
         super().__init__(transferTemplates)

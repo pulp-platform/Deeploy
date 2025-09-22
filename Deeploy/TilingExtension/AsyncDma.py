@@ -96,6 +96,17 @@ class DirectionWaitingStrategy(AsyncDmaWaitingStrategy):
         return self.FutureCls(name, copyIdx)
 
 
+class BarrierWaitingStrategy(AsyncDmaWaitingStrategy):
+
+    def __init__(self, FutureCls: Type[Future], barrierName: str) -> None:
+        super().__init__(FutureCls)
+        self.barrier = FutureCls(barrierName)
+
+    def getFuture(self, tensorName: str, direction: DmaDirection, copyIdx: Optional[int] = None) -> Future:
+        _ = tensorName, direction, copyIdx
+        return self.barrier
+
+
 class AsyncDma(ABC):
 
     _waitingStrategy: AsyncDmaWaitingStrategy
