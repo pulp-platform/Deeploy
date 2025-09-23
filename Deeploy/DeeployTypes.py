@@ -325,7 +325,7 @@ class VariableBuffer():
         return (cls(
             name=node.name,
             shape=node.shape if not isinstance(node, gs.Constant) else node.values.shape,
-            alias_of = [],
+            alias_of=[],
             ))
 
     def has_live_aliases(self, ctxt: NetworkContext) -> bool:
@@ -1148,7 +1148,7 @@ class NodeParser():
                 nb = ctxt.VariableBuffer(
                     name=name,
                     shape=node.shape,
-                    alias_of = [],
+                    alias_of=[],
                 )
                 ctxt.add(nb, 'local')
             else:
