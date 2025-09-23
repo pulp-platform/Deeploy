@@ -446,7 +446,7 @@ class TestRunner():
         fileHandle.close()
 
         if "Errors: 0 out of " not in result:
-            prRed(f"✗ Found errors in {self._dir_test}")
+            prRed(f"✘ Found errors in {self._dir_test}")
             raise RuntimeError(f"Found an error in {self._dir_test}")
         else:
-            prGreen(f"✓ No errors found in in {self._dir_test}")
+            prGreen(f"✔ No errors found in in {self._dir_test}")

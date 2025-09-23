@@ -23,6 +23,7 @@ from onnx.external_data_helper import convert_model_to_external_data
 from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.Logging import FAILURE_MARK, SUCCESS_MARK
 
 from .AbstractDataTypes import BaseType, FloatImmediate, IntegerImmediate, Pointer, PointerClass, Struct, VoidType
 
@@ -1643,10 +1644,10 @@ class NodeBinding():
 
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
         if ret:
-            log.debug(f" ✓ Type check passed for {self}")
+            log.debug(f" {SUCCESS_MARK} Type check passed for {self}")
             return newCtxt, True
         else:
-            log.debug(f" ✗ Type check failed for {self}")
+            log.debug(f" {FAILURE_MARK} Type check failed for {self}")
 
         return ctxt, False
 
@@ -1736,10 +1737,10 @@ class NodeMapper():
 
         newCtxt, ret = self.parser.parse(ctxt.copy(), node, default_channels_first, ioParse)
         if ret:
-            log.debug(f" ✓ Parser {self.parser.__class__.__name__} succeeded")
+            log.debug(f" {SUCCESS_MARK} Parser {self.parser.__class__.__name__} succeeded")
             return newCtxt, True
         else:
-            log.debug(f" ✗ Parser {self.parser.__class__.__name__} failed")
+            log.debug(f" {FAILURE_MARK} Parser {self.parser.__class__.__name__} failed")
 
         return ctxt, False
 
@@ -1750,9 +1751,9 @@ class NodeMapper():
 
         newCtxt, ret = self.parser.parseNodeCtxt(ctxt.copy(), node, default_channels_first)
         if ret:
-            log.debug(f" ✓ Context parsing succeeded with {self.parser.__class__.__name__}")
+            log.debug(f" {SUCCESS_MARK} Context parsing succeeded with {self.parser.__class__.__name__}")
         else:
-            log.debug(f" ✗ Context parsing failed with {self.parser.__class__.__name__}")
+            log.debug(f" {FAILURE_MARK} Context parsing failed with {self.parser.__class__.__name__}")
         return (newCtxt, ret)
 
     def bindingsExhausted(self) -> bool:
@@ -2055,7 +2056,7 @@ class ONNXLayer():
             newCtxt, ret = mapper._parseCtxt(newCtxt, self.node, default_channels_first)
 
             if not ret:
-                log.debug(f" ✗ Context parsing failed for {mapper.parser.__class__.__name__}")
+                log.debug(f" {FAILURE_MARK} Context parsing failed for {mapper.parser.__class__.__name__}")
                 self.discardedMappers.add(mapper)
                 continue
 
@@ -2104,7 +2105,7 @@ class ONNXLayer():
 
         """
         if not hasattr(self, 'mapper') or self.mapper is None:
-            log.debug(f" ✗ ONNXLayer.typeCheck() - No mapper selected for '{self.node.name}'")
+            log.debug(f" {FAILURE_MARK} ONNXLayer.typeCheck() - No mapper selected for '{self.node.name}'")
             return ctxt, False
 
         newCtxt = ctxt.copy()
@@ -2636,7 +2637,7 @@ class NetworkContainer():
         for node in flatSchedule:
             layer = self._mapNode(node)
             if isinstance(layer, ONNXLayer):
-                log.debug(f"   ✓ Bind {node.name} to layer {layer.__class__.__name__}")
+                log.debug(f"   {SUCCESS_MARK} Bind {node.name} to layer {layer.__class__.__name__}")
                 self.layerBinding[layer.node.name] = layer
 
     def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
@@ -2768,7 +2769,8 @@ class NetworkContainer():
                     iteration_tot += 1
                     log.debug(31 * "-" + f" SUB ITERATION {iteration_main}.{iteration_sub:<2} " + 31 * "-")
 
-        log.info(f" ✓ Parsed network with {len(self.layerBinding)} layers after {iteration_tot} iterations")
+        log.info(
+            f" {SUCCESS_MARK} Parsed network with {len(self.layerBinding)} layers after {iteration_tot} iterations")
         self.ctxt = ctxt
         self.parsed = True
         return True
@@ -2804,7 +2806,7 @@ class NetworkContainer():
             if not NetworkBindSuccess:
                 raise RuntimeError(f'Could not find a valid binding for the graph')
 
-            log.debug(f" ✓ Mapped {layer.node.name} to {layer.mapper.binder}")
+            log.debug(f" {SUCCESS_MARK} Mapped {layer.node.name} to {layer.mapper.binder}")
 
         self.bound = True
         self.ctxt = newCtxt

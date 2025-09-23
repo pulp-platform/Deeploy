@@ -24,6 +24,7 @@ from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import Net
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeBinding, NodeTemplate, ONNXLayer, Schedule, \
     SubGraph, TransientBuffer
 from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.Logging import SUCCESS_MARK
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
@@ -324,7 +325,7 @@ class Tiler():
                             memoryMap[memoryLevel][idx] = self.minimalloc(
                                 memMap, ctxt, tilingSolution[idx].nodeConstraints[0],
                                 self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset, memoryLevel)
-            log.info(" ✓ Memory allocation successful!")
+            log.info(f" {SUCCESS_MARK} Memory allocation successful!")
 
         return memoryMap
 
