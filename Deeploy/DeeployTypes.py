@@ -323,10 +323,10 @@ class VariableBuffer():
     @classmethod
     def fromNode(cls, node: gs.Node):
         return (cls(
-            name=node.name,
-            shape=node.shape if not isinstance(node, gs.Constant) else node.values.shape,
-            alias_of=[],
-            ))
+            name = node.name,
+            shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape,
+            alias_of = [],
+        ))
 
     def has_live_aliases(self, ctxt: NetworkContext) -> bool:
         """Checks whether this VariableBuffer has any live aliases, i.e. buffers that are still live and are aliased by this buffer.
@@ -436,10 +436,10 @@ class ConstantBuffer(VariableBuffer):
     @classmethod
     def fromVariableBuffer(cls, buffer: VariableBuffer, values):
         ret = cls(
-            name=buffer.name,
-            shape=buffer.shape,
-            values=values,
-            alias_of=buffer.alias_of,
+            name = buffer.name,
+            shape = buffer.shape,
+            values = values,
+            alias_of = buffer.alias_of,
         )
 
         return ret
@@ -1146,9 +1146,9 @@ class NodeParser():
         for node, name in zip(outputNodes, outputNames):
             if not ctxt.is_global(name):
                 nb = ctxt.VariableBuffer(
-                    name=name,
-                    shape=node.shape,
-                    alias_of=[],
+                    name = name,
+                    shape = node.shape,
+                    alias_of = [],
                 )
                 ctxt.add(nb, 'local')
             else:
