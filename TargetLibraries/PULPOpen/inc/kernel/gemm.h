@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 
+#ifndef __DEEPLOY_MATH_GEMM_KERNEL_HEADER_
+#define __DEEPLOY_MATH_GEMM_KERNEL_HEADER_
+
 #include "DeeployPULPMath.h"
 
 void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
