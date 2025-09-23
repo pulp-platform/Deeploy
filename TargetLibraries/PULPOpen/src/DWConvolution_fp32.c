@@ -1,6 +1,7 @@
 /* =====================================================================
  * Title:        DWConvolution_fp32.c
- * Description:  Float32 version of Depthwise Conv2D with NCHW format (pre-padded input)
+ * Description:  Float32 version of Depthwise Conv2D with NCHW format
+ * (pre-padded input)
  *
  * Date:         01.08.2025
  *
@@ -29,15 +30,14 @@
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
 
-
 void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,
-    const float32_t *__restrict__ pSrcB,
-    uint32_t F_total, uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
+    const float32_t *__restrict__ pSrcB, uint32_t F_total, uint32_t P,
+    uint32_t Q, uint32_t SP, uint32_t SQ,
     const float32_t *__restrict__ pSrcBias, const bool has_bias,
-    float32_t *__restrict__ pDstC,
-    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left,
-    uint32_t pad_right, float32_t *__restrict__ pContextBuffer) {
+    float32_t *__restrict__ pDstC, uint32_t pad_top, uint32_t pad_bottom,
+    uint32_t pad_left, uint32_t pad_right,
+    float32_t *__restrict__ pContextBuffer) {
 
   // Compute core information
   int8_t core_id = pi_core_id();
@@ -83,47 +83,61 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
 
         // Initialize the padded part of the im2col buffer with 0
         // Work on the TOP padding
-        for (int32_t h_in = (int32_t) h_in_start; h_in < MIN(0, (int32_t) (h_in_start + P)); h_in++) {
-          for (int32_t w_in = (int32_t) w_in_start; w_in < (int32_t) (w_in_start + Q); w_in++) {
+        for (int32_t h_in = (int32_t)h_in_start;
+             h_in < MIN(0, (int32_t)(h_in_start + P)); h_in++) {
+          for (int32_t w_in = (int32_t)w_in_start;
+               w_in < (int32_t)(w_in_start + Q); w_in++) {
             im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
           }
         }
 
         // Work on the BOTTOM padding
-        for (uint32_t h_in = MAX(H, h_in_start); h_in < h_in_start + P; h_in++) {
-          for (int32_t w_in = (int32_t) w_in_start; w_in < (int32_t) (w_in_start + Q); w_in++) {
+        for (uint32_t h_in = MAX(H, h_in_start); h_in < h_in_start + P;
+             h_in++) {
+          for (int32_t w_in = (int32_t)w_in_start;
+               w_in < (int32_t)(w_in_start + Q); w_in++) {
             im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
           }
         }
 
         // Work on the remaining LEFT padding
-        for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P); h_in++) {
-          for (int32_t w_in = (int32_t) w_in_start; w_in < MIN(0, (int32_t) (w_in_start + Q)); w_in++) {
-              im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
+        for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P);
+             h_in++) {
+          for (int32_t w_in = (int32_t)w_in_start;
+               w_in < MIN(0, (int32_t)(w_in_start + Q)); w_in++) {
+            im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
           }
         }
 
         // Work on the remaining RIGHT padding
-        for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P); h_in++) {
-          for (uint32_t w_in = MAX(W, w_in_start); w_in < w_in_start + Q; w_in++) {
-              im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
+        for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P);
+             h_in++) {
+          for (uint32_t w_in = MAX(W, w_in_start); w_in < w_in_start + Q;
+               w_in++) {
+            im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
           }
         }
 
         // Copy input data to im2col buffer
         // Input channels depend on the output channels assigned to the core
         // (each input channel is associated with F_total / C output channels,
-        // number which corresponds to the "group" parameter in the Conv ONNX operator)
-        for (uint32_t c = ch_out_start / (F_total / C); c < (ch_out_stop + 1) / (F_total / C); c++) {
+        // number which corresponds to the "group" parameter in the Conv ONNX
+        // operator)
+        for (uint32_t c = ch_out_start / (F_total / C);
+             c < (ch_out_stop + 1) / (F_total / C); c++) {
           // Copy the valid input data to the im2col buffer
-          for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P); h_in++) {
-            for (uint32_t w_in = MAX(0, w_in_start); w_in < MIN(W, w_in_start + Q); w_in++) {
+          for (uint32_t h_in = MAX(0, h_in_start);
+               h_in < MIN(H, h_in_start + P); h_in++) {
+            for (uint32_t w_in = MAX(0, w_in_start);
+                 w_in < MIN(W, w_in_start + Q); w_in++) {
               uint32_t in_idx = (h_in * W + w_in) * C + c;
-              im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = pSrcA[in_idx];
+              im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] =
+                  pSrcA[in_idx];
             }
           }
 
-          // Compute output channels of interest, based on current input channel and core
+          // Compute output channels of interest, based on current input channel
+          // and core
           uint32_t lower_f, upper_f;
 
           if (c * (F_total / C) < ch_out_start) {
@@ -142,9 +156,11 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
           for (uint32_t f = lower_f; f < upper_f; f++) {
             float32_t sum = 0.0f;
             uint32_t out_idx = (h_out * W_out + w_out) * F_total + f;
-  
+
             for (uint32_t im2col_idx = 0; im2col_idx < P * Q; im2col_idx++) {
-              sum += im2col_buffer[im2col_idx] * weight_ptr[(f - ch_out_start) * P * Q + im2col_idx % (P * Q)];
+              sum +=
+                  im2col_buffer[im2col_idx] *
+                  weight_ptr[(f - ch_out_start) * P * Q + im2col_idx % (P * Q)];
             }
 
             // Copy the result to the output tensor
@@ -153,8 +169,7 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
         }
       }
     }
-  }
-  else {
+  } else {
     // Work on individual output elements
     // (each element depends on a column from the im2col buffer
     // and one convolutional filter, stored in memory continuously)
@@ -167,47 +182,61 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
 
         // Initialize the padded part of the im2col buffer with 0
         // Work on the TOP padding
-        for (int32_t h_in = (int32_t) h_in_start; h_in < MIN(0, (int32_t) (h_in_start + P)); h_in++) {
-          for (int32_t w_in = (int32_t) w_in_start; w_in < (int32_t) (w_in_start + Q); w_in++) {
+        for (int32_t h_in = (int32_t)h_in_start;
+             h_in < MIN(0, (int32_t)(h_in_start + P)); h_in++) {
+          for (int32_t w_in = (int32_t)w_in_start;
+               w_in < (int32_t)(w_in_start + Q); w_in++) {
             im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
           }
         }
 
         // Work on the BOTTOM padding
-        for (uint32_t h_in = MAX(H, h_in_start); h_in < h_in_start + P; h_in++) {
-          for (int32_t w_in = (int32_t) w_in_start; w_in < (int32_t) (w_in_start + Q); w_in++) {
+        for (uint32_t h_in = MAX(H, h_in_start); h_in < h_in_start + P;
+             h_in++) {
+          for (int32_t w_in = (int32_t)w_in_start;
+               w_in < (int32_t)(w_in_start + Q); w_in++) {
             im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
           }
         }
 
         // Work on the remaining LEFT padding
-        for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P); h_in++) {
-          for (int32_t w_in = (int32_t) w_in_start; w_in < MIN(0, (int32_t) (w_in_start + Q)); w_in++) {
-              im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
+        for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P);
+             h_in++) {
+          for (int32_t w_in = (int32_t)w_in_start;
+               w_in < MIN(0, (int32_t)(w_in_start + Q)); w_in++) {
+            im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
           }
         }
 
         // Work on the remaining RIGHT padding
-        for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P); h_in++) {
-          for (uint32_t w_in = MAX(W, w_in_start); w_in < w_in_start + Q; w_in++) {
-              im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
+        for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P);
+             h_in++) {
+          for (uint32_t w_in = MAX(W, w_in_start); w_in < w_in_start + Q;
+               w_in++) {
+            im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = 0.0f;
           }
         }
 
         // Copy input data to im2col buffer
         // Input channels depend on the output channels assigned to the core
         // (each input channel is associated with F_total / C output channels,
-        // number which corresponds to the "group" parameter in the Conv ONNX operator)
-        for (uint32_t c = ch_out_start / (F_total / C); c < (ch_out_stop + 1) / (F_total / C); c++) {
+        // number which corresponds to the "group" parameter in the Conv ONNX
+        // operator)
+        for (uint32_t c = ch_out_start / (F_total / C);
+             c < (ch_out_stop + 1) / (F_total / C); c++) {
           // Copy the valid input data to the im2col buffer
-          for (uint32_t h_in = MAX(0, h_in_start); h_in < MIN(H, h_in_start + P); h_in++) {
-            for (uint32_t w_in = MAX(0, w_in_start); w_in < MIN(W, w_in_start + Q); w_in++) {
+          for (uint32_t h_in = MAX(0, h_in_start);
+               h_in < MIN(H, h_in_start + P); h_in++) {
+            for (uint32_t w_in = MAX(0, w_in_start);
+                 w_in < MIN(W, w_in_start + Q); w_in++) {
               uint32_t in_idx = (h_in * W + w_in) * C + c;
-              im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] = pSrcA[in_idx];
+              im2col_buffer[(h_in - h_in_start) * Q + (w_in - w_in_start)] =
+                  pSrcA[in_idx];
             }
           }
 
-          // Compute output channels of interest, based on current input channel and core
+          // Compute output channels of interest, based on current input channel
+          // and core
           uint32_t lower_f, upper_f;
 
           if (c * (F_total / C) < ch_out_start) {
@@ -226,9 +255,11 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
           for (uint32_t f = lower_f; f < upper_f; f++) {
             float32_t sum = 0.0f;
             uint32_t out_idx = (h_out * W_out + w_out) * F_total + f;
-  
+
             for (uint32_t im2col_idx = 0; im2col_idx < P * Q; im2col_idx++) {
-              sum += im2col_buffer[im2col_idx] * weight_ptr[(f - ch_out_start) * P * Q + im2col_idx % (P * Q)];
+              sum +=
+                  im2col_buffer[im2col_idx] *
+                  weight_ptr[(f - ch_out_start) * P * Q + im2col_idx % (P * Q)];
             }
 
             // Copy the result to the output tensor

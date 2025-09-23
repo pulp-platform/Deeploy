@@ -120,6 +120,7 @@ class PULPFPConv2DParser(Conv2DParser):
 
 
 class PULPFPDWConv2DParser(Conv2DParser):
+
     def __init__(self, noBiasHoisting = True):
         super().__init__(noBiasHoisting)
 

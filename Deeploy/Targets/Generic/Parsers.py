@@ -1088,11 +1088,13 @@ class ReshapeParser(NodeParser):
 
         # Add new aliases to output node
         output_node.add_aliases(aliases_to_add = new_output_node_aliases)
-        
+
         # Add output node as alias to its aliases (alias relationship is reflexive)
         for alias in new_output_node_aliases:
             alias_node = ctxt.lookup(alias)
-            alias_node.add_aliases(aliases_to_add = [output_node.name,])
+            alias_node.add_aliases(aliases_to_add = [
+                output_node.name,
+            ])
 
         # Compute data size
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)

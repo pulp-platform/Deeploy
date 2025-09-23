@@ -329,16 +329,16 @@ class NCHWtoNHWCDwConvPass(ReplaceSequentialPatternPass):
         name = "_NCHW_TO_NHWC_DW_CONV_PASS"
 
         # Initialize Pass
-        super().__init__(
-            pattern=graph,
-            replacement_fn=partial(_PULPDWNCHWtoNHWC_fun, default_channels_first = default_channels_first),
-            name=name
-            )
+        super().__init__(pattern = graph,
+                         replacement_fn = partial(_PULPDWNCHWtoNHWC_fun,
+                                                  default_channels_first = default_channels_first),
+                         name = name)
 
 
 # Float DW Conv
 @contextagnostic
 class PULPFPDWConvPass(ReplaceSequentialPatternPass):
+
     def __init__(self, default_channels_first: bool = True):
         # Define pattern graph
         graph = gs.Graph()
@@ -353,11 +353,10 @@ class PULPFPDWConvPass(ReplaceSequentialPatternPass):
         name = "_NCHW_TO_NHWC_FP_DW_CONV_PASS"
 
         # Initialize Pass
-        super().__init__(
-            pattern=graph,
-            replacement_fn=partial(_PULPDWNCHWtoNHWC_fun, default_channels_first = default_channels_first),
-            name=name
-        )
+        super().__init__(pattern = graph,
+                         replacement_fn = partial(_PULPDWNCHWtoNHWC_fun,
+                                                  default_channels_first = default_channels_first),
+                         name = name)
 
 
 def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):

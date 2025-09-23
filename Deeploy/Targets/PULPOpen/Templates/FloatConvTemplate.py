@@ -32,7 +32,7 @@ class PULP2DFloatConvIm2ColTemplate(NodeTemplate):
         operatorRepresentation['ctxtBuffer'] = im2col_name
         operatorRepresentation['ctxtBufferSize'] = im2col_dim
         return ctxt, operatorRepresentation, [im2col_name]
-    
+
 
 class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
 
@@ -43,11 +43,12 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-        
+
         # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
         # WARNING: This works because value is only used as string, in the allocate template.
         # TODO: This should work as NUM_CORES * P * Q, but it raises an error if double the memory is not allocated.
-        im2col_dim = "2 * NUM_CORES * " + str(operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y'])
+        im2col_dim = "2 * NUM_CORES * " + str(
+            operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y'])
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
         return [(im2col_name, im2col_dim)]
 

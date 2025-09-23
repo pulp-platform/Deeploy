@@ -323,10 +323,10 @@ class VariableBuffer():
     @classmethod
     def fromNode(cls, node: gs.Node):
         return (cls(
-            name=node.name,
-            shape=node.shape if not isinstance(node, gs.Constant) else node.values.shape,
-            alias_of=[],
-            ))
+            name = node.name,
+            shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape,
+            alias_of = [],
+        ))
 
     def add_aliases(self, aliases_to_add: List[str]):
         """
@@ -471,10 +471,10 @@ class ConstantBuffer(VariableBuffer):
     @classmethod
     def fromVariableBuffer(cls, buffer: VariableBuffer, values):
         ret = cls(
-            name=buffer.name,
-            shape=buffer.shape,
-            values=values,
-            alias_of=buffer.alias_of,
+            name = buffer.name,
+            shape = buffer.shape,
+            values = values,
+            alias_of = buffer.alias_of,
         )
 
         return ret
@@ -1181,9 +1181,9 @@ class NodeParser():
         for node, name in zip(outputNodes, outputNames):
             if not ctxt.is_global(name):
                 nb = ctxt.VariableBuffer(
-                    name=name,
-                    shape=node.shape,
-                    alias_of=[],
+                    name = name,
+                    shape = node.shape,
+                    alias_of = [],
                 )
                 ctxt.add(nb, 'local')
             else:

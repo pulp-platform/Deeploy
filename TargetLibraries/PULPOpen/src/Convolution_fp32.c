@@ -7,16 +7,13 @@
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
 
-void PULP_Conv2d_fp32_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
-                                    uint32_t H, uint32_t W, uint32_t C,
-                                    const float32_t *__restrict__ pSrcB,
-                                    uint32_t F_total, uint32_t P, uint32_t Q,
-                                    uint32_t SP, uint32_t SQ,
-                                    const float32_t *__restrict__ pSrcBias,
-                                    const bool has_bias,
-                                    float32_t *__restrict__ pDstC,
-                                    uint32_t pad_top, uint32_t pad_bottom,
-                                    uint32_t pad_left, uint32_t pad_right) {
+void PULP_Conv2d_fp32_fp32_fp32_HWC(
+    const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,
+    const float32_t *__restrict__ pSrcB, uint32_t F_total, uint32_t P,
+    uint32_t Q, uint32_t SP, uint32_t SQ,
+    const float32_t *__restrict__ pSrcBias, const bool has_bias,
+    float32_t *__restrict__ pDstC, uint32_t pad_top, uint32_t pad_bottom,
+    uint32_t pad_left, uint32_t pad_right) {
 
   // Compute core
   int8_t core_id = pi_core_id();
@@ -71,8 +68,7 @@ void PULP_Conv2d_fp32_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
         }
       }
     }
-  }
-  else {
+  } else {
     for (uint32_t h = 0; h < H_out; ++h) {
       for (uint32_t w = 0; w < W_out; ++w) {
         for (uint32_t f = 0; f < ch_out_count; ++f) {
@@ -107,12 +103,12 @@ void PULP_Conv2d_fp32_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
 
 void PULP_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,
-    const float32_t *__restrict__ pSrcB,
-    uint32_t F_total, uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
+    const float32_t *__restrict__ pSrcB, uint32_t F_total, uint32_t P,
+    uint32_t Q, uint32_t SP, uint32_t SQ,
     const float32_t *__restrict__ pSrcBias, const bool has_bias,
-    float32_t *__restrict__ pDstC,
-    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left,
-    uint32_t pad_right, float32_t *__restrict__ pContextBuffer) {
+    float32_t *__restrict__ pDstC, uint32_t pad_top, uint32_t pad_bottom,
+    uint32_t pad_left, uint32_t pad_right,
+    float32_t *__restrict__ pContextBuffer) {
 
   // Compute core
   int8_t core_id = pi_core_id();
@@ -167,21 +163,20 @@ void PULP_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
 
         for (uint32_t f = ch_out_start; f < ch_out_stop; f++) {
           float32_t sum = 0.0f;
-          const float32_t *local_weight_ptr = weight_ptr + (f - ch_out_start) * kernel_size;
+          const float32_t *local_weight_ptr =
+              weight_ptr + (f - ch_out_start) * kernel_size;
 
           for (uint32_t k = 0; k < kernel_size; k++) {
             sum += im2col_buffer[k] * local_weight_ptr[k];
           }
 
-          uint32_t out_idx =
-              (h_out * W_out + w_out) * F_total + f;
+          uint32_t out_idx = (h_out * W_out + w_out) * F_total + f;
 
           pDstC[out_idx] = sum + pSrcBias[f];
         }
       }
     }
-  }
-  else {
+  } else {
     for (uint32_t h_out = 0; h_out < H_out; h_out++) {
       for (uint32_t w_out = 0; w_out < W_out; w_out++) {
         int32_t h_in_start = h_out * SP - pad_top;
@@ -207,14 +202,14 @@ void PULP_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
 
         for (uint32_t f = ch_out_start; f < ch_out_stop; f++) {
           float32_t sum = 0.0f;
-          const float32_t *local_weight_ptr = weight_ptr + (f - ch_out_start) * kernel_size;
+          const float32_t *local_weight_ptr =
+              weight_ptr + (f - ch_out_start) * kernel_size;
 
           for (uint32_t k = 0; k < kernel_size; k++) {
             sum += im2col_buffer[k] * local_weight_ptr[k];
           }
 
-          uint32_t out_idx =
-              (h_out * W_out + w_out) * F_total + f;
+          uint32_t out_idx = (h_out * W_out + w_out) * F_total + f;
 
           pDstC[out_idx] = sum;
         }
