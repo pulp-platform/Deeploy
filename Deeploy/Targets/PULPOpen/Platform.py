@@ -231,7 +231,6 @@ PULPOptimizer = TopologyOptimizer([
     PULPGEMMRequantMergePass(),
     PULPMatMulRequantMergePass(),
     PULPAddRequantMergePass(),
-    MatMulAddMergePass(),
     RemoveEmptyConvBiasPass(),
 ])
 

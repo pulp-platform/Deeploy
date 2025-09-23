@@ -8,8 +8,18 @@ referenceTemplate = NodeTemplate("""
 // Matmul with row parallelism (Name: ${nodeName}, Op: ${nodeOp})
 
 for(uint32_t b=0; b<${batch}; b++) {
+    % if A_batched:
     ${A_type.typeName} batch_A = ${A} + b * ${M} * ${N};
+    % else:
+    ${A_type.typeName} batch_A = ${A};
+    % endif
+
+    % if B_batched:                  
     ${B_type.typeName} batch_B = ${B} + b * ${N} * ${O};
+    % else:
+    ${B_type.typeName} batch_B = ${B};
+    % endif
+
     ${data_out_type.typeName} batch_out = ${data_out} + b * ${M} * ${O};
 
     PULP_MatMul_fp32_fp32_fp32_unroll1x7(
