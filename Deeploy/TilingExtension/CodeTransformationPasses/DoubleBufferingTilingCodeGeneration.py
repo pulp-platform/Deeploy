@@ -40,32 +40,38 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
     }
     """)
 
-    # LMACAN: The brackets around ${tileIdxVar} are important to ensure correct order
-    #         of the modulo operation. Breaking case without the brackets is when we
-    #         put "TILING_I + 1" for tileIdxVar.
-    _chooseBufferTemplate = NodeTemplate("""
-    // DOUBLE BUFFERING CHOOSE BUFFER
-    switch((${tileIdxVar}) % 2) {
-        case 0: ${reference} = (${type})${buffer_0}; break;
-        case 1: ${reference} = (${type})${buffer_1}; break;
+    _switchOpen = NodeTemplate("switch((${tileIdxVar}) % ${bufferCount}) {")
+    _caseOpen = NodeTemplate("case ${case}:")
+    _caseClose = NodeTemplate("break;")
+
+    _blockClose = NodeTemplate("""
     }
     """)
+
+    _referenceUpdate = NodeTemplate("${reference} = (${type})${update};")
 
     def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
         super().__init__(externalMemory, localMemory, dma, 2)
 
-    def _generateBufferChoice(self, reference: VariableBuffer, buffers: List[_ReferenceBuffer],
-                              tileIdxVar: str) -> CodeSnippet:
-        assert len(buffers) == 2, f"Only double buffering supported. Received {len(buffers)} buffers."
-        operatorRepresentation = {
-            "tileIdxVar": tileIdxVar,
-            "reference": reference.name,
-            "type": reference._type.typeName,
-            "buffer_0": buffers[0].name,
-            "buffer_1": buffers[1].name,
-        }
-        template = self._chooseBufferTemplate
-        return CodeSnippet(template, operatorRepresentation)
+    def _switch(self, caseBlocks: List[List[CodeSnippet]], tileIdxVar: str) -> List[CodeSnippet]:
+        assert len(caseBlocks) == self.bufferCount, f"Expected {self.bufferCount} cases, got {len(caseBlocks)}`"
+        callStack = [CodeSnippet(self._switchOpen, {"tileIdxVar": tileIdxVar, "bufferCount": self.bufferCount})]
+        for i, block in enumerate(caseBlocks):
+            callStack.append(CodeSnippet(self._caseOpen, {"case": i}))
+            callStack.extend(block)
+            callStack.append(CodeSnippet(self._caseClose, {}))
+        callStack.append(CodeSnippet(self._blockClose, {}))
+        return callStack
+
+    def _generateBufferChoice(self, reference: VariableBuffer,
+                              buffers: List[_ReferenceBuffer]) -> List[List[CodeSnippet]]:
+        return [[
+            CodeSnippet(self._referenceUpdate, {
+                "reference": reference.name,
+                "type": reference._type.typeName,
+                "update": buff.name
+            })
+        ] for buff in buffers]
 
     def _tilingLoop(self, ctxt: NetworkContext, executionBlock: ExecutionBlock,
                     nodeMemoryConstraint: NodeMemoryConstraint, tilingSchedule: TilingSchedule,
@@ -115,6 +121,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
         # 4.2) Input Data Transfers
         # -----------------------------------
+
+        buffer_choices: List[List[CodeSnippet]] = [[], []]
         for tensorName, rectangles in dictOfArrays(tilingSchedule.inputLoadSchedule).items():
             localBuffer = ctxt.lookup(operatorRepresentation[tensorName])
             assert localBuffer._memoryLevel == self.localMemory
@@ -140,10 +148,10 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             nextLocalBufferReference = self._hoistReference(ctxt, f"{tensorName}_next", l1BuffersReferences[1])
 
+            futures = [self.dma.getFuture(tensorName, "ExternalToLocal", copyIdx = i) for i in range(self.bufferCount)]
+
             # 2) Load initial input tiles
             anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
-
-            initialFuture = self.dma.getFuture(tensorName, "ExternalToLocal", initial = True)
             initialDmaTransferCalls = anydimAdapter.transfer(ctxt,
                                                              externalBufferRef,
                                                              localBuffer,
@@ -151,7 +159,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                              stridesFromShape(externalBufferShape),
                                                              stridesFromShape(rectangles[0].dims),
                                                              "ExternalToLocal",
-                                                             initialFuture,
+                                                             futures[0],
                                                              math.prod(externalBufferShape),
                                                              comment = "Transfer initial input tile")
 
@@ -159,12 +167,13 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             setupStatements.extend(initialDmaTransferCalls)
 
             # 4.1) Choose buffers for current tile (inputs and outputs)
-            openLoopStatements.append(self._generateBufferChoice(localBuffer, l1BuffersReferences, "TILING_I"))
+            _buffer_choice = self._generateBufferChoice(localBuffer, l1BuffersReferences)
+            for i in range(len(buffer_choices)):
+                buffer_choices[i].extend(_buffer_choice[i])
 
             # 4.2.1) Wait for current input tile
-            future = self.dma.getFuture(tensorName, "ExternalToLocal")
-            ingressFutures.add(future)
-            ingressDMAStatements.append(future.wait("Wait for current input tile"))
+            ingressFutures.add(futures[1])
+            ingressDMAStatements.append(futures[1].wait("Wait for current input tile"))
 
             # 4.2.2) if there is a next tile:
             ingressDMAStatements.append(
@@ -173,8 +182,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                 }))
 
             # 4.2.3) Choose buffers for next tile
-            ingressDMAStatements.append(
-                self._generateBufferChoice(nextLocalBufferReference, l1BuffersReferences, "TILING_I+1"))
+            ingressDMAStatements += self._switch(
+                self._generateBufferChoice(nextLocalBufferReference, l1BuffersReferences), "TILING_I+1")
 
             # 4.2.4) Start transfer for next input tile
             ingressDMAStatements.extend(
@@ -185,7 +194,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                nextLocalBufferReference,
                                                externalBufferRef,
                                                "ExternalToLocal",
-                                               future,
+                                               futures[1],
                                                comment = "Transfer next input tile"))
             # 4.2.5) Update external reference for next tile
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I+1",
@@ -230,17 +239,18 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             tensorMemoryConstraint = nodeMemoryConstraint.outputTensorMemoryConstraints[externalBuffer.name]
             l1BuffersReferences = self._hoistMultibufferReferences(ctxt, localBuffer, tensorMemoryConstraint)
 
+            futures = [self.dma.getFuture(tensorName, "LocalToExternal", copyIdx = i) for i in range(self.bufferCount)]
+
             # 4.1) Choose buffers for current tile (inputs and outputs)
-            openLoopStatements.append(self._generateBufferChoice(localBuffer, l1BuffersReferences, "TILING_I"))
+            _buffer_choice = self._generateBufferChoice(localBuffer, l1BuffersReferences)
+            for i in range(len(buffer_choices)):
+                buffer_choices[i].extend(_buffer_choice[i])
 
-            future = self.dma.getFuture(tensorName, "LocalToExternal")
-            finalFuture = self.dma.getFuture(tensorName, "LocalToExternal", initial = True)
-
-            finalFutures.add(finalFuture)
-            egressFutures.add(future)
+            egressFutures.add(futures[0])
+            finalFutures.add(futures[1])
 
             # 4.4.1) Wait for previous output tile
-            egressDMAStatements.append(future.wait("Wait for previous output tile"))
+            egressDMAStatements.append(futures[0].wait("Wait for previous output tile"))
 
             # 4.4.2) Start transfer for current output tile
             dmaTransferCalls = self._generateDmaTransferCalls(ctxt,
@@ -250,7 +260,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                               localBuffer,
                                                               externalBufferRef,
                                                               "LocalToExternal",
-                                                              future,
+                                                              futures[0],
                                                               comment = "Transfer current output tile")
             egressDMAStatements.extend(dmaTransferCalls)
 
@@ -260,14 +270,16 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             if referenceUpdate is not None:
                 egressDMAStatements.append(referenceUpdate)
 
+        # 4.2.
+        openLoopStatements += self._switch(buffer_choices, "TILING_I")
+
         # 1. Initialize all futures
         setupStatements = [f.init("Initialize DMA future") for f in ingressFutures | egressFutures] + setupStatements
 
-        # 4. Wait for final output tile to be ready
-
+        # 5. Wait for final output tile to be ready
         teardownStatements.extend([f.wait("Wait for final output tile") for f in finalFutures])
 
-        # 5. Deinitialize all futures
+        # 6. Deinitialize all futures
         teardownStatements.extend(f.deinit("Deinitialize DMA future") for f in ingressFutures | egressFutures)
 
         metaInfo = TilingMetaInfo(
