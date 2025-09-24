@@ -16,7 +16,8 @@ class L3DmaFuture(Future):
     % if comment:
     // ${comment}
     % endif
-    pi_cl_ram_req_t ${name};
+    pi_cl_ram_req_t ${name} = {0};
+
     """)
 
     _deinitTemplate = NodeTemplate("")
@@ -27,7 +28,9 @@ class L3DmaFuture(Future):
     % if comment:
     // ${comment}
     % endif
-    pi_cl_ram_copy_wait(&${name});
+    if (${name}.size != 0) {
+        pi_cl_ram_copy_wait(&${name});
+    }
     """)
 
 

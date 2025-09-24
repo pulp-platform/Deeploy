@@ -178,9 +178,19 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
                  future: Future,
                  comment: str = "") -> Tuple[List[CodeSnippet], List[CodeSnippet], List[CodeSnippet]]:
         callStack = []
-        callStack.extend(
-            self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future))
+        alloc_code, dma_code, deinit_code = self.dma.transfer(ctxt,
+                                                              externalBuffer,
+                                                              localBuffer,
+                                                              shape,
+                                                              strideExt,
+                                                              strideLoc,
+                                                              direction,
+                                                              future,
+                                                              comment = comment)
+        callStack.extend(alloc_code)
+        callStack.extend(dma_code)
         callStack.append(future.wait())
+        callStack.extend(deinit_code)
 
         return [], callStack, []
 

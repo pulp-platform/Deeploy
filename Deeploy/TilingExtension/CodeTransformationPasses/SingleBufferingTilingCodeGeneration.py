@@ -7,7 +7,7 @@ from typing import Dict, List, Set, Tuple
 from Deeploy.AbstractDataTypes import VoidType
 from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, NodeTemplate, OperatorRepresentation, \
     VariableBuffer, _ReferenceBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, EmptyFuture, Future
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration import TilingCodeGeneration
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import dictOfArrays
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import ProfilingPrototypeMixIn, \
@@ -66,6 +66,8 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                      override_type = VoidType)
 
             future = self.dma.getFuture(tensorName, direction)
+            _future = set([future]) - futures
+            _future = _future.pop() if len(_future) > 0 else EmptyFuture("")
             futures.add(future)
 
             callStack.extend(
@@ -76,7 +78,7 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                localBuffer,
                                                externalBufferRef,
                                                direction,
-                                               future,
+                                               _future,
                                                comment = comment))
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, tileIdxVar,
