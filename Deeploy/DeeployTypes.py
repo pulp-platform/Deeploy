@@ -1063,6 +1063,9 @@ class AttrDesc:
             return value.values.tolist()
         elif isinstance(value, np.ndarray):
             return value.tolist()
+        # LMACAN: hacky way to detect a 0-dim numpy array
+        elif hasattr(value, "ndim") and value.ndim == 0 and hasattr(value, "item"):
+            return value.item()
         else:
             return value
 
@@ -1099,12 +1102,12 @@ class OperatorDescriptor:
 
         if not self.inputDescriptor.checkTensors(node.inputs):
             # TODO: Change to logging
-            print(f"[ERROR OP {node.op}] Invalid input tensors: {node.inputs}")
+            print(f"[ERROR OP {node.op}] Invalid input tensors: {[t.name for t in node.inputs]}")
             valid = False
 
         if not self.outputDescriptor.checkTensors(node.outputs):
             # TODO: Change to logging
-            print(f"[ERROR OP {node.op}] Invalid output tensors: {node.outputs}")
+            print(f"[ERROR OP {node.op}] Invalid output tensors: {[t.name for t in node.outputs]}")
             valid = False
 
         for attrDesc in self.attrDescriptors:
@@ -1124,7 +1127,7 @@ class OperatorDescriptor:
                 value = node.attrs.get(desc.name, desc.getDefault(node))
             try:
                 node.attrs[desc.name] = desc.unpack(value)
-            except ValueError as e:
+            except Exception as e:
                 raise ValueError(f"[ERROR OP {node.op}] Error unpacking the attribute {desc.name}. {e}") from e
         return True
 
