@@ -8,7 +8,7 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
 from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
-    int8_t, int32_t, uint8_t
+    int8_t, int32_t, int64_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
@@ -195,13 +195,11 @@ BasicPad2DBindings = [
 ]
 
 BasicReduceMeanBindings = [
-    NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
-                BasicTransformer) for type in SignedIntegerDataTypes
+    NodeBinding(ReduceMeanChecker([PointerClass(ty), PointerClass(int64_t)], [PointerClass(ty)]),
+                ReduceMeanTemplate.referenceTemplate, BasicTransformer) for ty in SignedIntegerDataTypes
 ] + [
-    NodeBinding(ReduceMeanChecker([PointerClass(float_type), PointerClass(integer_type)], [PointerClass(float_type)]),
-                FloatReduceMeanTemplate.referenceTemplate, BasicTransformer)
-    for integer_type in SignedIntegerDataTypes
-    for float_type in FloatDataTypes
+    NodeBinding(ReduceMeanChecker([PointerClass(ty), PointerClass(int64_t)], [PointerClass(ty)]),
+                FloatReduceMeanTemplate.referenceTemplate, BasicTransformer) for ty in FloatDataTypes
 ]
 
 BasicReduceSumBindings = [
