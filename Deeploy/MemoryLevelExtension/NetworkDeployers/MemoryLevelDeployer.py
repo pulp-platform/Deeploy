@@ -11,8 +11,8 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, DeploymentEngine, DeploymentPlatform, \
-    NetworkContext, NetworkDeployer, NetworkOptimizationPass, NetworkOptimizer, Schedule, StructBuffer, \
-    TopologyOptimizer, TransientBuffer, VariableBuffer, _NoVerbosity
+    NetworkContext, NetworkDeployer, NetworkOptimizationPass, NetworkOptimizer, OperatorDescriptor, Schedule, \
+    StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer, _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel
@@ -112,12 +112,13 @@ class MemoryLevelAwareDeployer(NetworkDeployer, MemorySummaryMixin):
                  deploymentPlatform: Union[MemoryPlatform, MemoryPlatformWrapper],
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = True,
                  deeployStateDir: str = "DeeployState",
                  memoryLevelAnnotationPasses: List[NetworkOptimizationPass] = []):
-        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
+        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, operatorDescriptors, scheduler, name,
                          default_channels_first, deeployStateDir)
         if len(memoryLevelAnnotationPasses) == 0:
             memoryLevelAnnotationPasses.append(AnnotateDefaultMemoryLevel(self.Platform.memoryHierarchy))
@@ -155,13 +156,14 @@ class MemoryLevelAwareSignPropDeployer(SignPropDeployer, MemorySummaryMixin):
                  deploymentPlatform: Union[MemoryPlatform, MemoryPlatformWrapper],
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable = lambda x: x,
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = True,
                  deeployStateDir: str = "DeeployState",
                  inputOffsets: Dict[str, int] = {},
                  memoryLevelAnnotationPasses: List[NetworkOptimizationPass] = []):
-        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
+        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, operatorDescriptors, scheduler, name,
                          default_channels_first, deeployStateDir, inputOffsets)
         if len(memoryLevelAnnotationPasses) == 0:
             memoryLevelAnnotationPasses.append(AnnotateDefaultMemoryLevel(self.Platform.memoryHierarchy))

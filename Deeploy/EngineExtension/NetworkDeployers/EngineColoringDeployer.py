@@ -8,7 +8,8 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
-from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, ONNXLayer, Schedule, TopologyOptimizer
+from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, ONNXLayer, OperatorDescriptor, Schedule, \
+    TopologyOptimizer
 from Deeploy.EngineExtension.OptimizationPasses.TopologyOptimizationPasses.EngineColoringPasses import \
     EngineColoringPass, EngineMapper
 
@@ -20,12 +21,13 @@ class EngineColoringDeployer(NetworkDeployer):
                  deploymentPlatform: DeploymentPlatform,
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = True,
                  deeployStateDir: str = "DeeployState",
                  engineMapperCls: Type[EngineMapper] = EngineMapper):
-        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
+        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, operatorDescriptors, scheduler, name,
                          default_channels_first, deeployStateDir)
         self._initEngineColoringDeployer(engineMapperCls)
 

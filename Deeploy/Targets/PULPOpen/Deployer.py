@@ -12,7 +12,8 @@ from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropD
 from Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.AutoTranspose import AutoTransposeMergePass
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     PULPNCHWtoNHWCPass, RemoveGlobalOutputReshapePass, TransposeMatmulInputsPass
-from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, OperatorDescriptor, \
+    TopologyOptimizer, VariableBuffer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, TransposeConstOptPass, \
     TransposeMergePass, TransposeNoPermOptPass, TransposeSplitPass
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import RQAddTransposeSquashPass
@@ -33,6 +34,7 @@ class PULPDeployer(SignPropDeployer):
                  deploymentPlatform: DeploymentPlatform,
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable = lambda x: x,
                  name: str = 'DeeployNetwork',
                  default_channels_first = False,
@@ -42,6 +44,7 @@ class PULPDeployer(SignPropDeployer):
                          deploymentPlatform,
                          inputTypes,
                          loweringOptimizer,
+                         operatorDescriptors,
                          scheduler,
                          name,
                          default_channels_first = default_channels_first,

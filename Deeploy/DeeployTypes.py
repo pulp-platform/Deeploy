@@ -3339,6 +3339,7 @@ class NetworkDeployer(NetworkContainer):
                  deploymentPlatform: DeploymentPlatform,
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = True,
@@ -3371,7 +3372,13 @@ class NetworkDeployer(NetworkContainer):
 
 
         """
-        super().__init__(graph, deploymentPlatform, inputTypes, scheduler, name, deeployStateDir = deeployStateDir)
+        super().__init__(graph,
+                         deploymentPlatform,
+                         inputTypes,
+                         operatorDescriptors,
+                         scheduler,
+                         name,
+                         deeployStateDir = deeployStateDir)
 
         self.loweringOptimizer = loweringOptimizer
         self.default_channels_first = default_channels_first

@@ -10,7 +10,7 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     NCHWtoNHWCPass, RemoveGlobalOutputReshapePass, TransposeMatmulInputsPass
-from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
+from Deeploy.DeeployTypes import DeploymentPlatform, OperatorDescriptor, TopologyOptimizer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, TransposeConstOptPass, \
     TransposeMergePass, TransposeSplitPass
 
@@ -22,6 +22,7 @@ class SnitchDeployer(SignPropDeployer):
                  deploymentPlatform: DeploymentPlatform,
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable = lambda x: x,
                  name: str = 'DeeployNetwork',
                  default_channels_first = False,
@@ -31,6 +32,7 @@ class SnitchDeployer(SignPropDeployer):
                          deploymentPlatform,
                          inputTypes,
                          loweringOptimizer,
+                         operatorDescriptors,
                          scheduler,
                          name,
                          default_channels_first = default_channels_first,

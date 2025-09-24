@@ -17,6 +17,7 @@ from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import Me
     MemoryPlatformWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel
+from Deeploy.OperatorDescriptor import defaultOperatorDescriptors
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, PULPOptimizer
 from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
@@ -299,6 +300,7 @@ def setup_pulp_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph, 
                             platform,
                             inputTypes,
                             PULPOptimizer,
+                            defaultOperatorDescriptors,
                             defaultScheduler,
                             default_channels_first = True,
                             deeployStateDir = deeployStateDir)
@@ -340,6 +342,7 @@ def setup_snitch_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph
                               platform,
                               inputTypes,
                               SnitchOptimizer,
+                              defaultOperatorDescriptors,
                               defaultScheduler,
                               deeployStateDir = deeployStateDir)
     memoryLevelAnnotationPasses = [AnnotateIOMemoryLevel(defaultMemory), AnnotateDefaultMemoryLevel(memoryHierarchy)]
