@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- TinyViT on non-tiled Siracusa [#117](https://github.com/pulp-platform/Deeploy/pull/117)
 - Support Fully Asynchronous DMAs [#114](https://github.com/pulp-platform/Deeploy/pull/114)
 - Disallow shape inference [#128](https://github.com/pulp-platform/Deeploy/pull/128)
 - Remove memory-aware node bindings [#123](https://github.com/pulp-platform/Deeploy/pull/123)
@@ -24,6 +25,13 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix bias hoisting in generic GEMM with no bias [#126](https://github.com/pulp-platform/Deeploy/pull/126)
 
 ### Added
+- PULP 2D FP DW conv Im2Col template and kernel, with bias support.
+- Bias support for PULP 2D FP regular conv Im2Col in template & kernel.
+- PULP FP DW conv 2D parser.
+- FP conv 2D (simple & DW), reshape & skip connection, and TinyViT demo tests to the non-tiled Siracusa CI pipeline.
+- FP bindings and mappings for PULP slice, DW conv 2D, and reduce mean operations.
+- FP PULP DW conv lowering optimization pass similar to the existent one for integer version.
+- RemoveEmptyConvBiasPass to the PULP optimizer.
 - Add manual type inference feature (CLI: `--input-type-map`/`--input-offset-map`) to resolve ambiguities when test inputs are not representative enough
 - Added a `testTypeInferenceDifferentTypes` test case to validate type inference for different input types
 - Added `_mangleNodeNames` function to avoid duplicate node mappings
@@ -60,6 +68,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added new waiting-strategy logic with fine-grained `PerTensorWaitingStrategy`
 
 ### Changed
+- Reduced size of reshape & skip connection test, for non-tiled Siracusa memory compatibility.
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
 - mchan HAL is now reduced to bare-bones
 - refactor of the IntrospectiveCodeTransformation to work on the Mako template
@@ -97,6 +106,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Refactored DMA code generation (`SnitchDma`, `Mchan`) to correctly overlap transfers and compute in double-buffering mode
 
 ### Fixed
+- Fixed bug in alias_of node parameter handling, that takes care of the lifetime of buffers in skip connection situations.
+- Fixed bug for non-batched elements in the PULPOpen FP GEMM and matmul templates.
+- Added underscore to the beginning of closure names to avoid naming issues when they start with unsupported first characters (like numbers).
+- Data types in the PULPOpen FP add and mul templates.
 - Prevent node duplication for graphs generated via GraphSurgeon
 - Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
 - Fix license CI check and prevent potential issues with `jq` installation
