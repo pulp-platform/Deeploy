@@ -40,9 +40,8 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
         super().__init__(templateStr)
 
     @staticmethod
-    def computeTransientBuffersSize(
-            ctxt: NetworkContext,
-            operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, str]]:
+    def computeTransientBuffersSize(ctxt: NetworkContext,
+                                    operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, str]]:
 
         # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
         # WARNING: This works because value is only used as string, in the allocate template.
@@ -58,7 +57,8 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
         ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
 
         # Manually set the type of the im2col buffer to match the input type, since it defaults to void for transient buffers
-        ctxt.lookup(im2col_name)._type.referencedType = ctxt.lookup(operatorRepresentation['data_in'])._type.referencedType
+        ctxt.lookup(im2col_name)._type.referencedType = ctxt.lookup(
+            operatorRepresentation['data_in'])._type.referencedType
 
         operatorRepresentation['ctxtBuffer'] = im2col_name
         operatorRepresentation['ctxtBufferSize'] = im2col_dim
