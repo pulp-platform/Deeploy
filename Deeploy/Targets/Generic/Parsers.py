@@ -669,11 +669,11 @@ class iSoftmaxParser(SoftmaxParser):
             ])
 
         if wellFormed:
-            self.operatorRepresentation['coeffA'] = int(node.attrs['coeffA'].values)
-            self.operatorRepresentation['coeffB'] = int(node.attrs['coeffB'].values)
-            self.operatorRepresentation['coeffC'] = int(node.attrs['coeffC'].values)
-            self.operatorRepresentation['log2'] = int(node.attrs['log2'].values)
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
+            self.operatorRepresentation['coeffA'] = node.attrs['coeffA']
+            self.operatorRepresentation['coeffB'] = node.attrs['coeffB']
+            self.operatorRepresentation['coeffC'] = node.attrs['coeffC']
+            self.operatorRepresentation['log2'] = node.attrs['log2']
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
 
         return wellFormed
 
