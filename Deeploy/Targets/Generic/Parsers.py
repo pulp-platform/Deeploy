@@ -52,7 +52,7 @@ class iRMSNormParser(NodeParser):
 
         if ret:
 
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'])
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
             self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['D']))
 
         return ret
@@ -848,8 +848,8 @@ class iNoNormParser(NodeParser):
 
         if ret:
             self.operatorRepresentation['D'] = node.attrs['D']
-            self.operatorRepresentation['log2D'] = int(np.log2(node.attrs['D'].values).tolist()[0])
-            self.operatorRepresentation['mul'] = int(node.attrs['mul'].values.tolist()[0])
+            self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['D']))
+            self.operatorRepresentation['mul'] = node.attrs['mul']
             self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
 
         return ret
