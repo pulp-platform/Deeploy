@@ -289,7 +289,7 @@ def _fuse_mhsa_fun(graph: gs.Graph, match: Match, name: str, batchedMatMul = Fal
                     name = name + "_sum",
                     attrs = {
                         'axes': [1],
-                        "keepdims": "0"
+                        "keepdims": 0
                     })
 
         mhsa_out[0].shape = [_output.shape[0]] + [int(H)] + _output.shape[1:]
