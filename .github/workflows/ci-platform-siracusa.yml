@@ -53,7 +53,15 @@ jobs:
         testBacktracking
         testFloatAdder
         testFloatGEMM
+
         testFloat2DConvolution
+        testFloat2DConvolutionBias
+        testFloat2DConvolutionZeroBias
+
+        testFloat2DDWConvolution
+        testFloat2DDWConvolutionBias
+        testFloat2DDWConvolutionZeroBias
+
         testFloatLayerNorm
         testFloatRelu
         testFloatMaxPool
@@ -64,6 +72,7 @@ jobs:
         Quant
         Dequant
         testFloatReduceSum
+        testFloatReshapeWithSkipConnection
         testFloatSoftmaxGrad
         testFloatSoftmaxCrossEntropy
         testFloatSoftmaxCrossEntropyGrad
@@ -87,4 +96,5 @@ jobs:
         CCT/CCT_1_16_16_8
         CCT/CCT_2_32_32_128_Opset20
         testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8
+        testFloatDemoTinyViT
       num-cores: 8
