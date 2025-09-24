@@ -382,7 +382,7 @@ class TransientBuffer(VariableBuffer):
         return ret
 
     def _bufferRepresentation(self) -> Dict:
-        return {"type": self._type, "name": self.name, "size": int(self.size)}
+        return {"type": self._type, "name": self.name, "size": self.size}
 
     def __str__(self) -> str:
         return f'TransientBuffer: name: {self.name}, size: {self.size}'
@@ -399,8 +399,10 @@ class ConstantBuffer(VariableBuffer):
 
     """
 
-    def __init__(self, name: str = '', shape = [1], values = [0], alias_of: Optional[List[str]] = []):
-        super().__init__(name, shape, alias_of)
+    def __init__(self, name: str = '', shape = [1], values = [0], alias_of: Optional[List[str]] = None):
+        # Pass a copy of alias_of to avoid shared references
+        super().__init__(name, shape, list(alias_of) if alias_of is not None else None)
+
         values = np.asarray(values)
         # intArray = values.astype(int)
         # assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
@@ -822,7 +824,7 @@ class NetworkContext():
         obj = self.lookup(value)
         return isinstance(obj, VariableBuffer)
 
-    def hoistTransientBuffer(self, name: str, size: int) -> str:
+    def hoistTransientBuffer(self, name: str, size: Union[int, str]) -> str:
         """Registers a new TransientBuffer in the local context
 
         Parameters

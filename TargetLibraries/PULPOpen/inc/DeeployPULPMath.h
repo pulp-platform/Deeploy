@@ -32,7 +32,6 @@
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
 #include "kernel/UniformRequantShift.h"
-#include "kernel/gemm.h"
 #include "kernel/gemv.h"
 #include "kernel/iRMSnorm.h"
 
