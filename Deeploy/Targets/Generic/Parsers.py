@@ -1089,7 +1089,7 @@ class ReshapeParser(NodeParser):
         # Add new aliases to output node
         output_node.add_aliases(aliases_to_add = new_output_node_aliases)
 
-        # Add output node as alias to its aliases (alias relationship is reflexive)
+        # Add output node as alias to its aliases (alias relationship is symmetric)
         for alias in new_output_node_aliases:
             alias_node = ctxt.lookup(alias)
             alias_node.add_aliases(aliases_to_add = [
