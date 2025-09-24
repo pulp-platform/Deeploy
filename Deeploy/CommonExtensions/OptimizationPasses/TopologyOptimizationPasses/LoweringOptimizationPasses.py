@@ -280,6 +280,26 @@ class NCHWtoNHWCPadPass(ReplaceSequentialPatternPass):
         super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
 
 
+@contextagnostic
+class NCHWtoNHWCPass(SequentialPass):
+
+    def __init__(self, default_channels_first: bool = True):
+        passes = [
+            NCHWtoNHWCPadPass(default_channels_first),
+            NCHWtoNHWCMaxPoolPass(default_channels_first),
+            NCHWtoNHWCConvPass(default_channels_first),
+            NCHWtoNHWCRequantizedConvPass(default_channels_first),
+        ]
+        super().__init__(*passes)
+
+
+def _PULPDWNCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):
+
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    opNode = matched_nodes[0]
+    node_op = opNode.op
+
+    if 'group' in opNode.attrs and opNode.attrs['group'] == 1:
 def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool) -> gs.Graph:
     node = next(iter((match.nodes_map.values())))
 
