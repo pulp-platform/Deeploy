@@ -46,12 +46,11 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
     @staticmethod
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
-            operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
+            operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, str]]:
 
         # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
         # WARNING: This works because value is only used as string, in the allocate template.
-        # TODO: This should work as NUM_CORES * P * Q, but it raises an error if double the memory is not allocated.
-        im2col_dim = "2 * NUM_CORES * " + str(
+        im2col_dim = "NUM_CORES * " + str(
             operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y'])
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
         return [(im2col_name, im2col_dim)]
@@ -61,6 +60,9 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
         im2col_name, im2col_dim = PULP2DFloatDWConvIm2ColTemplate.computeTransientBuffersSize(
             ctxt, operatorRepresentation)[0]
         ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
+
+        # Manually set the type of the im2col buffer to match the input type, since it defaults to void for transient buffers
+        ctxt.lookup(im2col_name)._type.referencedType = ctxt.lookup(operatorRepresentation['data_in'])._type.referencedType
 
         operatorRepresentation['ctxtBuffer'] = im2col_name
         operatorRepresentation['ctxtBufferSize'] = im2col_dim
@@ -176,11 +178,11 @@ for (uint32_t n=0; n<${batch}; ++n) {
         ${stride_y},
         ${bias}, ${has_bias},
         ref_${data_out}_${data_out},
-        ${padding_y_top},                    
-        ${padding_y_bottom},                  
-        ${padding_x_left},                    
-        ${padding_x_right},                   
-        ${ctxtBuffer}             
+        ${padding_y_top},
+        ${padding_y_bottom},
+        ${padding_x_left},
+        ${padding_x_right},
+        ${ctxtBuffer}
     );
 
     ref_${data_out}_${data_in} += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};

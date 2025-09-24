@@ -9,9 +9,6 @@
 
 #define BEGIN_SINGLE_CORE if (pi_core_id() == 0) {
 #define END_SINGLE_CORE }
-#endif
-
-#ifndef SINGLE_CORE
 #define SINGLE_CORE if (pi_core_id() == 0)
 
 #endif //__DEEPLOY_MATH_PULPCORE_HEADER_
