@@ -698,7 +698,7 @@ class ITAMaxParser(SoftmaxParser):
         ret = all(['n_levels' in node.attrs])
 
         if ret and wellFormed:
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
             return True
 
         return False
@@ -725,8 +725,8 @@ class ITAPartialMaxParser(SoftmaxParser):
         ret = all(['group_width' in node.attrs, 'n_levels' in node.attrs])
 
         if ret and wellFormed:
-            self.operatorRepresentation['group_width'] = int(node.attrs['group_width'])
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
+            self.operatorRepresentation['group_width'] = node.attrs['group_width']
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
             return True
 
         return False
