@@ -8,7 +8,7 @@ from typing import List, Set, Tuple
 from Deeploy.AbstractDataTypes import VoidType
 from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, NodeTemplate, OperatorRepresentation, \
     VariableBuffer, _ReferenceBuffer
-from Deeploy.TilingExtension.AsyncDma import AnydimAsyncDmaTransferAdapter, AsyncDma, Future
+from Deeploy.TilingExtension.AsyncDma import AnydimAsyncDmaTransferAdapter, AsyncDma, EmptyFuture, Future
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration import TilingCodeGeneration
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import dictOfArrays
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import ProfilingPrototypeMixIn, \
@@ -148,7 +148,11 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             nextLocalBufferReference = self._hoistReference(ctxt, f"{tensorName}_next", l1BuffersReferences[1])
 
-            futures = [self.dma.getFuture(tensorName, "ExternalToLocal", copyIdx = i) for i in range(self.bufferCount)]
+            future = self.dma.getFuture(tensorName, "ExternalToLocal")
+            # Extract the future that is not already in the set of ingress futures
+            _future = set([future]) - ingressFutures
+            _future = _future.pop() if len(_future) > 0 else EmptyFuture("")
+            ingressFutures.add(future)
 
             # 2) Load initial input tiles
             anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
@@ -159,7 +163,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                              stridesFromShape(externalBufferShape),
                                                              stridesFromShape(rectangles[0].dims),
                                                              "ExternalToLocal",
-                                                             futures[0],
+                                                             _future,
                                                              math.prod(externalBufferShape),
                                                              comment = "Transfer initial input tile")
 
@@ -172,8 +176,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                 buffer_choices[i].extend(_buffer_choice[i])
 
             # 4.2.1) Wait for current input tile
-            ingressFutures.add(futures[1])
-            ingressDMAStatements.append(futures[1].wait("Wait for current input tile"))
+            ingressDMAStatements.append(_future.wait("Wait for current input tile"))
 
             # 4.2.2) if there is a next tile:
             ingressDMAStatements.append(
@@ -194,7 +197,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                nextLocalBufferReference,
                                                externalBufferRef,
                                                "ExternalToLocal",
-                                               futures[1],
+                                               _future,
                                                comment = "Transfer next input tile"))
             # 4.2.5) Update external reference for next tile
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I+1",
@@ -215,7 +218,6 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
         # 4.4) Output Data Transfers
         # -----------------------------------
-        finalFutures: Set[Future] = set()
         for tensorName, rectangles in dictOfArrays(tilingSchedule.outputLoadSchedule).items():
             localBuffer = ctxt.lookup(operatorRepresentation[tensorName])
             assert localBuffer._memoryLevel == self.localMemory
@@ -239,18 +241,19 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             tensorMemoryConstraint = nodeMemoryConstraint.outputTensorMemoryConstraints[externalBuffer.name]
             l1BuffersReferences = self._hoistMultibufferReferences(ctxt, localBuffer, tensorMemoryConstraint)
 
-            futures = [self.dma.getFuture(tensorName, "LocalToExternal", copyIdx = i) for i in range(self.bufferCount)]
-
             # 4.1) Choose buffers for current tile (inputs and outputs)
             _buffer_choice = self._generateBufferChoice(localBuffer, l1BuffersReferences)
             for i in range(len(buffer_choices)):
                 buffer_choices[i].extend(_buffer_choice[i])
 
-            egressFutures.add(futures[0])
-            finalFutures.add(futures[1])
-
             # 4.4.1) Wait for previous output tile
-            egressDMAStatements.append(futures[0].wait("Wait for previous output tile"))
+            future = self.dma.getFuture(tensorName, "LocalToExternal")
+            # Extract the future that is not already in the set of ingress futures
+            _future = set([future]) - egressFutures
+            _future = _future.pop() if len(_future) > 0 else EmptyFuture("")
+            egressFutures.add(future)
+
+            egressDMAStatements.append(_future.wait("Wait for previous output tile"))
 
             # 4.4.2) Start transfer for current output tile
             dmaTransferCalls = self._generateDmaTransferCalls(ctxt,
@@ -260,7 +263,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                               localBuffer,
                                                               externalBufferRef,
                                                               "LocalToExternal",
-                                                              futures[0],
+                                                              _future,
                                                               comment = "Transfer current output tile")
             egressDMAStatements.extend(dmaTransferCalls)
 
@@ -277,7 +280,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         setupStatements = [f.init("Initialize DMA future") for f in ingressFutures | egressFutures] + setupStatements
 
         # 5. Wait for final output tile to be ready
-        teardownStatements.extend([f.wait("Wait for final output tile") for f in finalFutures])
+        teardownStatements.extend([f.wait("Wait for final output tile") for f in egressFutures])
 
         # 6. Deinitialize all futures
         teardownStatements.extend(f.deinit("Deinitialize DMA future") for f in ingressFutures | egressFutures)
