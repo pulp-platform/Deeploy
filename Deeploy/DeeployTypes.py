@@ -105,6 +105,27 @@ class NodeTemplate():
                                                                   Tuple[NetworkContext, OperatorRepresentation]]]] = {}
         self.subTemplateGenerators = {}
 
+    def alignShapes(self, node: gs.Node) -> Tuple[List[Sequence[int]], List[Sequence[int]]]:
+        return [t.shape for t in node.inputs], [t.shape for t in node.outputs]
+
+    def _alignShapes(self, node: gs.Node) -> Tuple[List[Sequence[int]], List[Sequence[int]]]:
+        _in, out = self.alignShapes(node)
+        for tensor, shape in zip(node.inputs + node.outputs, _in + out):
+            assert shape is not None, f"Aligned shape for tensor {tensor.name} is None"
+        return _in, out
+
+    def _tensorShapesBroadcastable(self, node: gs.Node) -> bool:
+        minShapesIn, minShapesOut = self._alignShapes(node)
+        for tensor, minShape in zip(node.inputs, minShapesIn, strict = True):
+            try:
+                np.broadcast_shapes(tensor.shape, minShape)
+            except ValueError:
+                return False
+        for tensor, minShape in zip(node.outputs, minShapesOut, strict = True):
+            if not all(dim == other for dim, other in zip(tensor.shape, minShape)):
+                return False
+        return True
+
     def internalSize(self) -> int:
         """Return the byte size of internal memory buffers used by this template
 
@@ -2651,6 +2672,30 @@ class NetworkContainer():
 
         return ctxt
 
+    def hoistGraphTensors(self, typeMap: Dict[str, Type[Pointer]]):
+        for name, tensor in self.graph.tensors().items():
+            if isinstance(tensor, gs.Constant):
+                buffer = self.ctxt.ConstantBuffer(name, tensor.shape, tensor.values)
+                self.ctxt.add(buffer, "global")
+            else:
+                buffer = self.ctxt.VariableBuffer(name, tensor.shape)
+                if tensor in self.graph.inputs:
+                    buffer.is_input = True
+                    self.ctxt.add(buffer, "global")
+                elif tensor in self.graph.outputs:
+                    buffer.is_output = True
+                    self.ctxt.add(buffer, "global")
+                else:
+                    self.ctxt.add(buffer, "local")
+            self.ctxt.annotateType(name, typeMap[name])
+
+        # Users have to be annotated in order of the schedule
+        for layer in self.layerBinding.values():
+            for tensor in layer.node.inputs:
+                buffer = self.ctxt.lookup(tensor.name)
+                isinstance(buffer, VariableBuffer)
+                buffer._users.append(layer.node.name)
+
     def inputs(self) -> List[VariableBuffer]:
         """Return a list of all VariableBuffers that are also global inputs of the network
 
@@ -2765,6 +2810,114 @@ class NetworkContainer():
 
         return newCtxt, True
 
+    def typeCheckInputs(self, types: Sequence[Optional[Type[Pointer]]], supportedTypes: Sequence[Type[Pointer]],
+                        tensors: Sequence[gs.Tensor]) -> bool:
+        assert len(types) == len(tensors)
+
+        valid = True
+        for ty, tensor, suppTy in zip(types, tensors, supportedTypes):
+            if isinstance(tensor, gs.Constant):
+                if not suppTy.referencedType.checkValue(tensor.values):
+                    # TODO: Log
+                    valid = False
+            elif isinstance(tensor, gs.Variable):
+                if ty is None:
+                    # TODO: Log
+                    valid = False
+                    continue
+                if tensor in self.graph.inputs:
+                    # TODO: Why do we do this for graph inputs??
+                    refTy = ty.referencedType
+                    suppRefTy = suppTy.referencedType
+                    if not suppRefTy.partialOrderUpcast(refTy):
+                        # TODO: Log
+                        valid = False
+                else:
+                    if ty != suppTy:
+                        # TODO: Log
+                        valid = False
+            else:
+                raise ValueError(f"Unsupported tensor type {type(tensor)}")
+
+        return valid
+
+    def selectTemplate(
+            self, schedule: Sequence[ONNXLayer],
+            candidates: Dict[str, List[NodeBinding]]) -> Tuple[Dict[str, NodeBinding], Dict[str, Type[Pointer]]]:
+        selection: Dict[str, Optional[NodeBinding]] = dict.fromkeys(candidates.keys())
+        discard: Dict[str, List[NodeBinding]] = {k: [] for k in candidates.keys()}
+        typeMap: Dict[str, Optional[Type[Pointer]]] = dict.fromkeys(self.graph.tensors().keys())
+
+        typeMap.update(self.inputTypes)
+
+        idx: int = 0
+        deepestIdx = 0
+
+        while (idx < len(schedule)):
+            layer = schedule[idx]
+            node = layer.node
+            deepestIdx = max(idx, deepestIdx)
+
+            log.debug(31 * "-" + f" TRYING NODE {node.name} OP {node.op} AT IDX {idx} " + 31 * "-")
+
+            inputTypes = [typeMap[t.name] for t in node.inputs]
+
+            viable = []
+            for binding in candidates[node.name]:
+                if binding in discard[node.name]:
+                    # TODO: Log
+                    continue
+                if not self.typeCheckInputs(inputTypes, binding.typeChecker.input_types, node.inputs):
+                    # TODO: Log
+                    continue
+                viable.append(binding)
+
+            if len(viable) > 0:
+                selectedBinding = viable[0]
+                # Update inputs types because we might have casted constant tensors
+                typeMap.update(zip([t.name for t in node.inputs], selectedBinding.typeChecker.input_types))
+                # Update output types
+                typeMap.update(zip([t.name for t in node.outputs], selectedBinding.typeChecker.output_types))
+                selection[node.name] = selectedBinding
+                idx += 1
+            elif idx == 0:
+                # SCHEREMO: If we can't find a mapping for the root, we must exit
+                layer = schedule[deepestIdx]
+                node = layer.node
+                log.debug("-" * 80)
+                log.error("💥 PARSING FAILED - Backtracking exhausted at root!")
+                log.error("=" * 80)
+                log.error(f"🔍 Diagnosis:")
+                log.error(f"   - Deepest successful exploration: Layer {deepestIdx} '{node.name}'")
+                log.error(f"   - Candidates: {[type(binding).__name__ for binding in candidates[node.name]]}")
+                log.error("=" * 80)
+                raise RuntimeError(
+                    f'Did not find adequate mapping for graph! Explored until layer {layer} of node {node.name} '
+                    f'Candidates: {[type(binding).__name__ for binding in candidates[node.name]]}. Exhausted backtracking.'
+                )
+            else:
+                # SCHEREMO: Rollback one step
+                prev = schedule[idx - 1]
+                node = prev.node
+                prevSelection = selection[node.name]
+                assert prevSelection is not None, f"Previous node doesn't have a selection"
+                discard[node.name].append(prevSelection)
+                selection[node.name] = None
+                idx = idx - 1
+                log.debug(31 * "-" + f" ROLLBACK TO IDX {idx} " + 31 * "-")
+
+        finalSelection: Dict[str, NodeBinding] = {}
+        for name, binding in selection.items():
+            assert binding is not None
+            finalSelection[name] = binding
+
+        finalTypeMap: Dict[str, Type[Pointer]] = {}
+        for name, ty in typeMap.items():
+            assert ty is not None
+            finalTypeMap[name] = ty
+
+        return finalSelection, finalTypeMap
+
     # Don't override this
     def parse(self, default_channels_first: bool = True) -> bool:
         """Parses the full network by iteratively exploring mapping and binding options with backtracking
@@ -2792,97 +2945,141 @@ class NetworkContainer():
                                    constantBuffer = self.Platform.ConstantBuffer,
                                    structBuffer = self.Platform.StructBuffer,
                                    transientBuffer = self.Platform.TransientBuffer)
+        # Create schedule, binding, then parse resulting program for correctness
+        schedule = self.scheduler(self.graph)
+        flatSchedule = []
 
-        log.debug(" - Create IO Bindings")
-        self.ctxt = self._createIOBindings(self.ctxt, self.graph)
-
-        log.debug(" - Bind Nodes to Layers")
-        self._bindLayers()
-
-        ctxt = self.ctxt.copy()
-
-        ctxtStack = deque()
-        scheduledLayerList = list(self.layerBinding.values())
-        idx: int = 0
-
-        deepestIdx = 0
-
-        log.debug(" - Parse and Type Check Network")
-        start_time = time.perf_counter()
-
-        iteration_main = 0
-        iteration_sub = 0
-        iteration_tot = 0
-        while (idx < len(scheduledLayerList)):
-            currentLayer = scheduledLayerList[idx]
-
-            # Log current exploration state
-            if idx == 0:
-                iteration_main += 1
-                iteration_tot += 1
-                iteration_sub = 0
-                log.debug(31 * "-" + f" MAIN ITERATION {iteration_main:<2} " + 31 * "-")
-
-            log.debug(f"[Layer {idx}] Trying '{currentLayer.node.name}' (op: {currentLayer.node.op})")
-
-            stCtxt = copy.deepcopy(ctxt)
-
-            newCtxt, parseSuccess = self._parseNode(currentLayer, ctxt, default_channels_first)
-
-            typeCheckSuccess = False
-            if parseSuccess:
-                newCtxt, typeCheckSuccess = self._typeCheckNode(currentLayer, newCtxt)
-
-            if parseSuccess and typeCheckSuccess:
-                # SCHEREMO: Continue depth-first exploration
-                ctxtStack.append(stCtxt)
-                ctxt = newCtxt
-                idx = idx + 1
-                if idx > deepestIdx:
-                    deepestIdx = max(idx, deepestIdx)
-                    deepestCtxt = stCtxt
-
+        for subGraph in schedule:
+            if isinstance(subGraph, gs.Node):
+                flatSchedule.append(subGraph)
             else:
-                # SCHEREMO: If we can't find a mapping for the root, we must exit
-                if idx == 0:
-                    deepestLayer = scheduledLayerList[deepestIdx]
-                    deepestNodeName = deepestLayer.node.name
-                    log.debug("-" * 80)
-                    log.error("💥 PARSING FAILED - Backtracking exhausted at root!")
-                    log.error("=" * 80)
-                    log.error(f"🔍 Diagnosis:")
-                    log.error(f"   - Deepest successful exploration: Layer {deepestIdx} '{deepestNodeName}'")
-                    log.error(
-                        f"   - Deepest layer available mappers: {[type(x.parser).__name__ for x in deepestLayer.maps]}")
-                    log.error("=" * 80)
-                    raise RuntimeError(
-                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer.__class__.__name__} of node {deepestNodeName}'
-                        f'Candidates: {[type(x.parser).__name__ for x in deepestLayer.maps]}. Exhausted backtracking.')
+                flatSchedule += subGraph
 
-                previousLayer = scheduledLayerList[idx - 1]
-                ctxt = ctxtStack.pop()
+        self.layerBinding: 'OrderedDict[str, ONNXLayer]' = OrderedDict()
+        templateCandidates: Dict[str, List[NodeBinding]] = {}
+        for node in flatSchedule:
+            assert node.op in self.operatorDescriptors, \
+            f"[ERROR] Error parsing node {node.name}. There is no descriptor for operator {node.op}."
+            desc = self.operatorDescriptors[node.op]
+            desc.canonicalize(node, self.graph.opset)
+            assert desc.check(node), \
+            f"[ERROR] Node {node.name} is not a valid instance of {node.op} operator"
 
-                # Keep options of current layer open - the upstream mapping will change, so we don't know which options are feasible here
-                currentLayer.resetDiscardedMappers()
+            layer = self._mapNode(node)
+            if isinstance(layer, ONNXLayer):
+                self.layerBinding[node.name] = layer
 
-                # Update the previous layer, by discarding the current mapper or binder
-                if previousLayer.mapper.bindingsExhausted():
-                    previousLayer.discardCurrentMapper()
-                else:
-                    previousLayer.mapper.discardCurrentBinder()
+                candidates = []
+                discardedMaps = []
+                discardedBindings = []
+                for map in layer.maps:
+                    if not map.parser.parseNode(node):
+                        discardedMaps.append(map)
+                        continue
 
-                # SCHEREMO: Rollback one step
-                idx = idx - 1
-                if idx != 0:
-                    iteration_sub += 1
-                    iteration_tot += 1
-                    log.debug(31 * "-" + f" SUB ITERATION {iteration_main}.{iteration_sub:<2} " + 31 * "-")
+                    # NOTE: We count a map to be _true_ SignProp if all the integer bindings support only signed output
+                    outRefTys = [binding.typeChecker.output_types[0].referencedType for binding in map.bindings]
+                    intRefTys = [ty for ty in outRefTys if issubclass(ty, IntegerImmediate)]
+                    trueSignProp = all(ty.signed for ty in intRefTys)
 
+                    for binding in map.bindings:
+                        if not binding.template._tensorShapesBroadcastable(node):
+                            discardedBindings.append((binding, "Shapes are not broadcastable"))
+                            continue
+                        # NOTE: will this even be needed once I can infer the outtype from a template
+                        #       immediately and not by looking at a bunch of bindings? This only makes sense here now
+                        #       because we have to sift through the bindings, but if we can deduce the out type straight
+                        #       from the input types + node attrs, we don't need that.
+                        if not trueSignProp and "signed" in node.attrs or "rqsOut_signed" in node.attrs:
+                            signed = node.attrs["signed"] if "signed" in node.attrs else node.attrs["rqsOut_signed"]
+                            assert len(binding.typeChecker.output_types) == 1, f"Assume 1 output"
+                            refTy = binding.typeChecker.output_types[0].referencedType
+                            if issubclass(refTy, IntegerImmediate) and signed != refTy.signed:
+                                discardedBindings.append(
+                                    (binding, f"Out type is not {'signed' if signed else 'unsigned'}"))
+                                continue
+                        candidates.append(binding)
+                assert len(candidates) > 0, (
+                    f"Node {node.name} of op {node.op} has no template candidate.\n" \
+                    f"Tried these maps: {discardedMaps}\n" \
+                    f"Tried these bindings:\n" +
+                        "\n".join(f" - Binding {binding}: {msg}" for binding, msg in discardedBindings)
+                )
+                templateCandidates[node.name] = candidates
+
+        log.debug(" - Template selection")
+        start_time = time.perf_counter()
+        selection, typeMap = self.selectTemplate(list(self.layerBinding.values()), templateCandidates)
         end_time = time.perf_counter()
         log.info(
-            f" {SUCCESS_MARK} Parsed network with {len(self.layerBinding)} layers after {iteration_tot} iterations in {(end_time-start_time)*1E3:.3f} ms"
+            f" {SUCCESS_MARK} Template selection succeded with {len(self.layerBinding)} layers in {(end_time-start_time)*1E3:.3f} ms"
         )
-        self.ctxt = ctxt
+
+        # TODO: Remove after refactor
+        # Fixup the choice to old way
+        for layer in self.layerBinding.values():
+            binding = selection[layer.node.name]
+
+            # Find map
+            selectedMap = None
+            for map in layer.maps:
+                if binding in map.bindings:
+                    selectedMap = map
+                    break
+            assert selectedMap is not None, f"Cannot find binding {binding} in any map"
+
+            selectedMap.binder = binding
+            selectedMap.bound = True
+            layer.mapper = selectedMap
+
+        # Align shapes
+        for layer in self.layerBinding.values():
+            node = layer.node
+            newInputShapes, _ = layer.mapper.binder.template._alignShapes(node)
+            for tensor, shape in zip(node.inputs, newInputShapes):
+                # TODO: This needs to be investigated because it assumes that if the shape is
+                #       broadcastable, it is also executable, but that might not be the case.
+                #       E.g., just because a kernel can implement a requant shift with per-channel
+                #       rqs params, doesn't mean it can do it for per-layer params.
+                #       There needs to be a mechanism for the kernel (template) to say which
+                #       shapes it can execute, and which shapes it can execute if they get broadcasted.
+                #       Current vision is 2 functions `checkShapes` and `negotiateBroadcasts`, but
+                #       it's a wip.
+                shape = np.broadcast_shapes(tensor.shape, shape)
+                if isinstance(tensor, gs.Variable):
+                    if tensor in self.graph.inputs:
+                        tensor.shape = shape
+                    elif any(dim != other for dim, other in zip(tensor.shape, shape)):
+                        raise RuntimeError(
+                            "Non-graph-input shape change is forbidden for now until someone adds automatic Expand node insertion."
+                            f"Node {node.name}'s alignShape tried to change tensor {tensor.name}'s shape {tensor.shape} to {shape}"
+                        )
+                elif isinstance(tensor, gs.Constant):
+                    if math.prod(tensor.shape) == math.prod(shape):
+                        tensor.values = tensor.values.reshape(shape)
+                    else:
+                        tensor.values = np.broadcast_to(tensor.values, shape)
+
+        self.hoistGraphTensors(typeMap)
+
+        for layer in self.layerBinding.values():
+            node = layer.node
+            parser = layer.mapper.parser
+
+            parser.parseNode(node)
+            parser.parseNodeCtxt(self.ctxt, node, default_channels_first)
+
+            opRepr = parser.operatorRepresentation
+            opRepr["nodeName"] = node.name
+            opRepr["nodeOp"] = node.op
+            opRepr["channels_first"] = node.attrs.get("channels_first", default_channels_first)
+
+            for tensor in node.inputs + node.outputs:
+                for key, value in opRepr.items():
+                    if isinstance(value, str) and value == tensor.name:
+                        opRepr[f"{key}_type"] = typeMap[value]
+                        break
+
         self.parsed = True
         return True
 
@@ -3485,8 +3682,10 @@ class NetworkDeployer(NetworkContainer):
         graph.cleanup().toposort()
 
     def _foldConstants(self, graph: gs.Graph):
+        graph.toposort()  # fold_constants requires the graph to be topologically sorted
         graph.fold_constants()
-        graph.cleanup().toposort()
+        graph.cleanup()  # fold_constants doesn't remove dangling Constant nodes so we need a cleanup
+        graph.toposort()  # toposort for good measure
 
     def _sanitizeGraphNames(self, graph: gs.Graph):
 
@@ -3545,6 +3744,10 @@ class NetworkDeployer(NetworkContainer):
         assert len(missingShapes) == 0, \
             f"Shape inference is not supported.\nFound tensors with missing shape annotation: {missingShapes}"
 
+    def _annotateChannelsFirst(self, graph: gs.Graph, default: bool) -> None:
+        for node in graph.nodes:
+            node.attrs["channels_first"] = node.attrs.get("channels_first", default)
+
     def frontEnd(self):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
 
@@ -3594,6 +3797,9 @@ class NetworkDeployer(NetworkContainer):
 
         log.info(" - Assert all tensors have a shape annotation")
         self._assertTensorsHaveShape()
+
+        log.info("- Annotate node's with channel layout info")
+        self._annotateChannelsFirst(self.graph, self.default_channels_first)
 
         log.info("- Perform Graph Parsing")
         try:
