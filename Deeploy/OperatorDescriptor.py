@@ -342,9 +342,44 @@ convDesc = OperatorDescriptor(
     ],
 )
 
+
+class RequantizedConvDescriptor(OperatorDescriptor):
+
+    def canonicalize(self, node: gs.Node, opset: int) -> bool:
+        if "n_levels_out" in node.attrs and "n_levels" in node.attrs:
+            # TODO: Change to log
+            print("[WARNING] RequantizedConv cannot have n_levels_out and n_levels in it's attributes")
+            return False
+
+        if "n_levels_out" in node.attrs:
+            node.attrs["n_levels"] = node.attrs["n_levels_out"]
+            node.attrs.pop("n_levels_out")
+
+        return super().canonicalize(node, opset)
+
+
+requantizedConvDesc = RequantizedConvDescriptor(
+    inputDescriptor = IoDesc(["data_in", "weight", "mul", "add"], optional = ["shift"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        # Conv attrs
+        AttrDesc("auto_pad", AutoPad, default = AutoPad.NOTSET),
+        AttrDesc("dilations", IntTupleUnpack, default = _dilationsDefault),
+        AttrDesc("group", IntUnpack, default = 1),
+        AttrDesc("kernel_shape", IntTupleUnpack, default = _kernelShapeDefault),
+        AttrDesc("pads", IntTupleUnpack, default = _padsDefault),
+        AttrDesc("strides", IntTupleUnpack, default = _stridesDefault),
+        # RequantizedShift attrs
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("signed", BoolUnpack),
+        AttrDesc("div", IntUnpack),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Concat": concatDesc,
     "Conv": convDesc,
+    "RequantizedConv": requantizedConvDesc,
     "iRMSNorm": iRMSNormDesc,
     "Slice": sliceDesc,
     "Transpose": transposeDesc,
