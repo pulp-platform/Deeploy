@@ -74,7 +74,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fixed multiple typos in variable and method names, such as changing `includeGobalReferences` to `includeGlobalReferences` and `dicardedMappers` to `discardedMappers`
 - Corrected method usage in `importDeeployState` to call `NetworkContext.importNetworkContext` instead of the incorrect method name
 - Correctly return `signProp` from `setupDeployer` instead of hardcoding the value to `False` in `testMVP.py`
-- Fixed `Squeeze` Op. when using ONNX opset 13 or higher (from attribute to input)
+- Fixed `Unsqueeze` Op. when using ONNX opset 13 or higher (from attribute to input)
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
