@@ -940,10 +940,17 @@ class UnsqueezeParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
 
-        ret = all(['axes' in node.attrs, len(node.inputs) == 1, len(node.outputs) == 1])
+        # ONNX v11: 'axes' is a node attribute
+        if 'axes' in node.attrs:
+            ret = all(['axes' in node.attrs, len(node.inputs) == 1, len(node.outputs) == 1])
+        # ONNX v13+: 'axes' becomes an input together with the data (source: https://onnx.ai/onnx/operators/onnx__Squeeze.html)
+        else:
+            ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
 
-        if ret:
+        if ret and 'axes' in node.attrs:
             self.operatorRepresentation['axes'] = node.attrs['axes']
+        elif ret:
+            self.operatorRepresentation['axes'] = node.inputs[1]
 
         return ret
 
@@ -952,7 +959,10 @@ class UnsqueezeParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['data_in']
+        if len(node.inputs) == 1:
+            inputs = ['data_in']
+        else:
+            inputs = ['data_in','axes']
         outputs = ['data_out']
 
         for idx, inputNode in enumerate(node.inputs):
