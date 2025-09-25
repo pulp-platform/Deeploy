@@ -943,14 +943,16 @@ class UnsqueezeParser(NodeParser):
         # ONNX v11: 'axes' is a node attribute
         if 'axes' in node.attrs:
             ret = all(['axes' in node.attrs, len(node.inputs) == 1, len(node.outputs) == 1])
-        # ONNX v13+: 'axes' becomes an input together with the data (source: https://onnx.ai/onnx/operators/onnx__Squeeze.html)
+        # ONNX v13+: 'axes' becomes an input with the data
+        # Source: https://onnx.ai/onnx/operators/onnx__Unsqueeze.html
         else:
             ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
 
         if ret and 'axes' in node.attrs:
-            self.operatorRepresentation['axes'] = node.attrs['axes']
-        elif ret:
-            self.operatorRepresentation['axes'] = node.inputs[1]
+            axes_attr = node.attrs['axes']
+            self.operatorRepresentation['axes'] = [int(axes_attr)] if isinstance(axes_attr, int) \
+                else [int(a) for a in axes_attr]
+        # For opset 13+, axes will be extracted from the second input in parseNodeCtxt
 
         return ret
 
@@ -959,16 +961,26 @@ class UnsqueezeParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
+        outputs = ['data_out']
         if len(node.inputs) == 1:
             inputs = ['data_in']
+            for idx, inputNode in enumerate(node.inputs):
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+            for idx, outputNode in enumerate(node.outputs):
+                self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
         else:
-            inputs = ['data_in','axes']
-        outputs = ['data_out']
-
-        for idx, inputNode in enumerate(node.inputs):
-            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-        for idx, outputNode in enumerate(node.outputs):
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+            data_in = ctxt.lookup(node.inputs[0].name)
+            data_out = ctxt.lookup(node.outputs[0].name)
+            self.operatorRepresentation['data_in'] = data_in.name
+            self.operatorRepresentation['data_out'] = data_out.name
+            # axes must be a constant; extract values
+            axes_buf = ctxt.lookup(node.inputs[1].name)
+            assert hasattr(axes_buf, 'values'), "Unsqueeze: expected constant 'axes' input for opset 13+"
+            axes_vals = np.array(axes_buf.values).astype(int).flatten().tolist()
+            self.operatorRepresentation['axes'] = axes_vals
+            # Do not deploy the axes tensor
+            axes_buf._live = False
+            axes_buf._deploy = False
 
         return ctxt, True
 
