@@ -49,7 +49,7 @@ class AutoFutureBinding(FutureBinding):
                         stateElementCandidates.append(reference)
 
             if len(stateElementCandidates) == 1:
-                log.warninging(f"Automagically assigning state Element of {self}")
+                log.warning(f"Automagically assigning state Element of {self}")
                 for key, value in operatorRepresentation.items():
                     if type(value) == str and (ctxt.is_local(value) or ctxt.is_global(value)):
                         reference = ctxt.lookup(value)

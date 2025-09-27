@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import logging
 from dataclasses import dataclass
 from pprint import pformat
 from typing import Dict, List, Literal, Optional, Tuple, Union
@@ -387,11 +388,13 @@ class TilerModel():
 
         timeLimit = self._model.TimeLimit(_SOLVERTIMEOUT)
 
-        searchLog = self._model.SearchLog(1000000)
-
         log.debug(" - Solve Constraint Model")
 
-        _ = self._model.Solve(decisionBuilder, [objective, collector, None, timeLimit])
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            searchLog = self._model.SearchLog(1000000)
+            _ = self._model.Solve(decisionBuilder, [objective, collector, searchLog, timeLimit])
+        else:
+            _ = self._model.Solve(decisionBuilder, [objective, collector, None, timeLimit])
 
         assert collector.SolutionCount() > 0, "Error in Tiler: No solution found"
 

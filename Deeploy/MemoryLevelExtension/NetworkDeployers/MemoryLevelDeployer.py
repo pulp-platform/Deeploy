@@ -5,7 +5,6 @@
 from types import MappingProxyType
 from typing import Any, Callable, Dict, List, Tuple, Type, Union
 
-import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
@@ -88,15 +87,23 @@ class MemorySummaryMixin:
             staticSize = 0
             for _buffer in self.ctxt.globalObjects.values():
                 # We do not count structs for now, since they are not properly modeled
-                if isinstance(_buffer, ConstantBuffer) and _buffer._deploy and _buffer._memoryLevel == level:
-                    staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
+                if isinstance(_buffer, ConstantBuffer) and getattr(_buffer, "_deploy", False):
+                    if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level in ("None", None):
+                        staticSize += _buffer.sizeInBytes()
 
-            capacity = self.Platform.memoryHierarchy.memoryLevels[level].size
             total = staticSize + dynamicSize
-
-            log.info(f"  {level:<20} {capacity:10,} {total:10,d} "
-                     f"({staticSize:10,d} + {dynamicSize:10,d}) "
-                     f"({total / capacity * 100:5.1f}%)")
+            memLevels = self.Platform.memoryHierarchy.memoryLevels
+            memLevel = memLevels.get(level) if hasattr(memLevels,
+                                                       "get") else (memLevels[level] if level in memLevels else None)
+            if memLevel is None or getattr(memLevel, "size", None) is None:
+                log.info(f"  {str(level):<20} {'N/A':>10} {total:10,d} "
+                         f"({staticSize:10,d} + {dynamicSize:10,d}) "
+                         f"({'N/A':>5})")
+            else:
+                capacity = memLevel.size
+                log.info(f"  {str(level):<20} {capacity:10,} {total:10,d} "
+                         f"({staticSize:10,d} + {dynamicSize:10,d}) "
+                         f"({total / capacity * 100:5.1f}%)")
 
 
 class MemoryLevelAwareDeployer(NetworkDeployer, MemorySummaryMixin):
