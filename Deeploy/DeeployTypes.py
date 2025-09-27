@@ -9,6 +9,7 @@ import math
 import os
 import pickle
 import re
+import time
 from abc import abstractmethod
 from collections import OrderedDict, deque
 from dataclasses import dataclass
@@ -2251,9 +2252,11 @@ class TopologyOptimizer():
 
         """
         for _pass in self.passes:
-            log.debug(f" - Apply {_pass.__class__.__name__}")
+            start_time = time.perf_counter()
             graph = _pass.apply(graph)
             graph.cleanup().toposort()
+            end_time = time.perf_counter()
+            log.debug(f" - Applied {_pass.__class__.__name__} ({(end_time - start_time)*1E3:.3f} ms)")
         return graph
 
 
@@ -2700,6 +2703,7 @@ class NetworkContainer():
         deepestIdx = 0
 
         log.debug(" - Parse and Type Check Network")
+        start_time = time.perf_counter()
 
         iteration_main = 0
         iteration_sub = 0
@@ -2769,8 +2773,10 @@ class NetworkContainer():
                     iteration_tot += 1
                     log.debug(31 * "-" + f" SUB ITERATION {iteration_main}.{iteration_sub:<2} " + 31 * "-")
 
+        end_time = time.perf_counter()
         log.info(
-            f" {SUCCESS_MARK} Parsed network with {len(self.layerBinding)} layers after {iteration_tot} iterations")
+            f" {SUCCESS_MARK} Parsed network with {len(self.layerBinding)} layers after {iteration_tot} iterations in {(end_time-start_time)*1E3:.3f} ms"
+        )
         self.ctxt = ctxt
         self.parsed = True
         return True
