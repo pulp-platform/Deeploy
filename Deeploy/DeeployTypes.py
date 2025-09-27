@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import copy
+import math
 import os
 import pickle
 import re
@@ -386,7 +387,7 @@ class VariableBuffer():
             Size of this VariableBuffer in bytes
 
         """
-        return int(np.prod(self.shape) * (self._type.referencedType.typeWidth // 8))
+        return (math.prod(self.shape) * (self._type.referencedType.typeWidth)) // 8
 
 
 class TransientBuffer(VariableBuffer):
@@ -1802,7 +1803,6 @@ class NodeMapper():
         for idx, binder in enumerate(self.bindings):
 
             if binder in self.discardedBindings:
-                # log.debug(f" ↷ Skipping previously discarded {binder}")
                 continue
 
             newCtxt, ret = binder.typeCheck(ctxt.copy(), node, self.parser.operatorRepresentation)

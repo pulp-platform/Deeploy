@@ -220,7 +220,7 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
         return True
 
     @classmethod
-    def checkNumLevels(cls, nLevels: int, signed: bool) -> bool:
+    def fitsNumLevels(cls, nLevels: int) -> bool:
         return nLevels <= (cls.typeMax - cls.typeMin + 1)
 
 
@@ -343,8 +343,8 @@ class Pointer(BaseType[Optional[str], _PointerType]):
         return cls.checkValue(value, ctxt)
 
     @classmethod
-    def checkNumLevels(cls, nLevels: int, signed: bool) -> bool:
-        return cls.referencedType.checkNumLevels(nLevels, signed)
+    def fitsNumLevels(cls, nLevels: int) -> bool:
+        return cls.referencedType.fitsNumLevels(nLevels)
 
     def __init__(self, _value: Union[Optional[str], Pointer], ctxt: Optional[_NetworkContext] = None):
         """Initializes a pointer to a registered object in the NetworkContext

@@ -12,25 +12,15 @@ from typing import Literal, Tuple
 
 import coloredlogs
 
-from Deeploy.Logging import DEFAULT_FMT, DEFAULT_LOGGER, DETAILED_FILE_LOG_FORMAT
+from Deeploy.Logging import DEFAULT_FMT
+from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.Logging import DETAILED_FILE_LOG_FORMAT, FAILURE_MARK, SUCCESS_MARK
 
 
 # Source: https://stackoverflow.com/a/38662876
 def escapeAnsi(line):
     ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
     return ansi_escape.sub('', line)
-
-
-def prRed(skk):
-    print("\033[91m{}\033[00m".format(skk))
-
-
-def prGreen(skk):
-    print("\033[92m{}\033[00m".format(skk))
-
-
-def prBlue(skk):
-    print("\033[94m{}\033[00m".format(skk))
 
 
 def getPaths(path_test: str, gendir_name: str) -> Tuple[str, str]:
@@ -106,16 +96,14 @@ class TestGeneratorArgumentParser(argparse.ArgumentParser):
         self.args = super().parse_args(args, namespace)
 
         # Install logger based on verbosity level
-        log = DEFAULT_LOGGER
-
         if self.args.verbose > 2:
-            coloredlogs.install(level = 'DEBUG', logger = DEFAULT_LOGGER, fmt = DETAILED_FILE_LOG_FORMAT)
+            coloredlogs.install(level = 'DEBUG', logger = log, fmt = DETAILED_FILE_LOG_FORMAT)
         elif self.args.verbose > 1:
-            coloredlogs.install(level = 'DEBUG', logger = DEFAULT_LOGGER, fmt = DEFAULT_FMT)
+            coloredlogs.install(level = 'DEBUG', logger = log, fmt = DEFAULT_FMT)
         elif self.args.verbose > 0:
-            coloredlogs.install(level = 'INFO', logger = DEFAULT_LOGGER, fmt = DEFAULT_FMT)
+            coloredlogs.install(level = 'INFO', logger = log, fmt = DEFAULT_FMT)
         else:
-            coloredlogs.install(level = 'WARNING', logger = DEFAULT_LOGGER, fmt = DEFAULT_FMT)
+            coloredlogs.install(level = 'WARNING', logger = log, fmt = DEFAULT_FMT)
         return self.args
 
 
@@ -324,7 +312,7 @@ class TestRunner():
 
         if "CMAKE" not in os.environ:
             if self._args.verbose >= 1:
-                prRed(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
+                log.error(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
             assert shutil.which(
                 "cmake"
             ) is not None, "CMake not found. Please check that CMake is installed and available in your system’s PATH, or set the CMAKE environment variable to the full path of your preferred CMake executable."
@@ -335,7 +323,7 @@ class TestRunner():
         print("Test Name           : ", self._name_test)
 
     def run(self,):
-        prRed(f"################## Testing {self._dir_test} on {self._platform} Platform ##################")
+        log.info(f"################## Testing {self._dir_test} on {self._platform} Platform ##################")
 
         if self._args.skipgen is False:
             self.generate_test()
@@ -356,8 +344,7 @@ class TestRunner():
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform} {self.gen_args}"
         command += self._argument_parser.generate_cmd_args()
 
-        if self._args.verbose >= 2:
-            prBlue(f"[TestRunner] Generation Command: {command}")
+        log.debug(f"[TestRunner] Generation Command: {command}")
 
         err = os.system(command)
         if err != 0:
@@ -380,8 +367,8 @@ class TestRunner():
 
         if self._args.verbose >= 3:
             command = "VERBOSE=1 " + command
-        if self._args.verbose >= 2:
-            prBlue(f"[TestRunner] Cmake Command: {command}")
+
+        log.debug(f"[TestRunner] Cmake Command: {command}")
 
         err = os.system(command)
         if err != 0:
@@ -392,8 +379,8 @@ class TestRunner():
 
         if self._args.verbose >= 3:
             command = "VERBOSE=1 " + command
-        if self._args.verbose >= 2:
-            prBlue(f"[TestRunner] Building Command: {command}")
+
+        log.debug(f"[TestRunner] Building Command: {command}")
 
         err = os.system(command)
         if err != 0:
@@ -419,8 +406,7 @@ class TestRunner():
             if self._args.verbose >= 3:
                 command = "BANSHEE_LOG=debug " + command
 
-        if self._args.verbose >= 2:
-            prBlue(f"[TestRunner] Simulation Command: {command}")
+        log.debug(f"[TestRunner] Simulation Command: {command}")
 
         process = subprocess.Popen([command],
                                    stdout = subprocess.PIPE,
@@ -446,7 +432,7 @@ class TestRunner():
         fileHandle.close()
 
         if "Errors: 0 out of " not in result:
-            prRed(f"✘ Found errors in {self._dir_test}")
+            log.error(f"{FAILURE_MARK} Found errors in {self._dir_test}")
             raise RuntimeError(f"Found an error in {self._dir_test}")
         else:
-            prGreen(f"✔ No errors found in in {self._dir_test}")
+            log.info(f"{SUCCESS_MARK} No errors found in in {self._dir_test}")

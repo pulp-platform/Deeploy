@@ -54,8 +54,7 @@ class SignPropTypeChecker(NodeTypeChecker):
                 obj.nLevels = nLevel
                 obj._signed = sign
 
-                if issubclass(obj._type.referencedType,
-                              IntegerImmediate) and not obj._type.checkNumLevels(nLevel, sign):
+                if issubclass(obj._type.referencedType, IntegerImmediate) and not obj._type.fitsNumLevels(nLevel):
                     log.warning(
                         f"{obj.name} has {nLevel} levels, but {obj._type.referencedType.typeName} only supports {obj._type.referencedType.nLevels} levels."
                     )
