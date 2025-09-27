@@ -4,7 +4,8 @@
 
 from typing import Tuple
 
-from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, _NoVerbosity
+from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, \
+    NodeTemplate, _NoVerbosity
 from Deeploy.TilingExtension.AsyncDma import AsyncDma
 from Deeploy.TilingExtension.CodeTransformationPasses.DoubleBufferingTilingCodeGeneration import \
     DoubleBufferingTilingCodeGeneration, ProfilingDoubleBufferingTilingMixIn
@@ -21,11 +22,17 @@ class SnitchClusterTilingDB(DoubleBufferingTilingCodeGeneration):
 
 
 class ProfilingSnitchClusterTilingSB(SingleBufferingTilingCodeGeneration, ProfilingSingleBufferingTilingMixIn):
-    pass
+    _printCycleDifference = NodeTemplate(r"""
+    printf("%s%u][Core %d] %s%u%s", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), "${flavorStr}", \
+    ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
+    """)
 
 
 class ProfilingSnitchClusterTilingDB(DoubleBufferingTilingCodeGeneration, ProfilingDoubleBufferingTilingMixIn):
-    pass
+    _printCycleDifference = NodeTemplate(r"""
+    printf("%s%u][Core %d] %s%u%s", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), "${flavorStr}", \
+    ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
+    """)
 
 
 class SnitchClusterTiling(CodeTransformationPass):

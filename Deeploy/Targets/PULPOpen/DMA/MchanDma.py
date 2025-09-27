@@ -11,28 +11,13 @@ from Deeploy.TilingExtension.AsyncDma import AsyncDma, DirectionWaitingStrategy,
 
 class MchanChannelFuture(Future):
 
-    _initTemplate = NodeTemplate("""
-    % if comment:
-    // ${comment}
-    % endif
-    uint32_t ${name} = (uint32_t) -1;
-    """)
+    _initTemplate = NodeTemplate("uint32_t ${name} = (uint32_t) -1;")
 
     _deinitTemplate = NodeTemplate("")
 
-    _allocTemplate = NodeTemplate("""
-     % if comment:
-    // ${comment}
-    % endif
-    ${name} = mchan_channel_alloc();""")
+    _allocTemplate = NodeTemplate("${name} = mchan_channel_alloc();")
 
-    _waitTemplate = NodeTemplate("""
-    % if comment:
-    // ${comment}
-    % endif
-    mchan_channel_wait(${name});
-    mchan_channel_free(${name});
-    """)
+    _waitTemplate = NodeTemplate("mchan_channel_wait(${name});\nmchan_channel_free(${name});")
 
 
 class MchanDma(AsyncDma):
@@ -60,17 +45,11 @@ class MchanDma(AsyncDma):
             assert strideLoc[0] == shape[1] and strideLoc[
                 1] == 1, "Mchan supports only contigous transfers for local memory"
 
-    def transferOpRepr(self,
-                       externalBuffer: VariableBuffer,
-                       localBuffer: VariableBuffer,
-                       shape: Tuple[int, ...],
-                       strideExt: Tuple[int, ...],
-                       strideLoc: Tuple[int, ...],
-                       direction: DmaDirection,
-                       future: Future,
-                       comment: str = "") -> OperatorRepresentation:
+    def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
+                       strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
+                       future: Future) -> OperatorRepresentation:
         operatorRepresentation = super().transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc,
-                                                        direction, future, comment)
+                                                        direction, future)
 
         transferRank = len(shape)
 

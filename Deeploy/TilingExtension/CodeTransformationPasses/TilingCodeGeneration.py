@@ -40,6 +40,8 @@ def transposeListOfLists(listOfLists: List[List[T]]) -> List[List[T]]:
 class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformationMixIn, PrototypeTilingMixIn,
                            TilingHoistingMixIn):
 
+    _lineComment = NodeTemplate("\n// ${comment}")
+
     _relativeOffsetReferenceUpdateTemplate = NodeTemplate("""
     // UPDATE VARIABLE ${reference}
     ${reference} += ${relativeOffset};
@@ -110,16 +112,9 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
             return True
         return self.localMemory in memoryOrder[:2]
 
-    def _generateDmaTransferCalls(self,
-                                  ctxt: NetworkContext,
-                                  tensorName: str,
-                                  transfers: List[HyperRectangle],
-                                  tileIdxVar: str,
-                                  localBuffer: VariableBuffer,
-                                  externalBuffer: VariableBuffer,
-                                  direction: DmaDirection,
-                                  future: Future,
-                                  comment: str = "") -> List[CodeSnippet]:
+    def _generateDmaTransferCalls(self, ctxt: NetworkContext, tensorName: str, transfers: List[HyperRectangle],
+                                  tileIdxVar: str, localBuffer: VariableBuffer, externalBuffer: VariableBuffer,
+                                  direction: DmaDirection, future: Future) -> List[CodeSnippet]:
         assert all(len(transfers[0].dims) == len(rect.dims) for rect in transfers), \
             "Currently supporting only rectangles of same rank"
 
@@ -130,16 +125,10 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
 
         anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
-        initSnippets = anydimAdapter.transfer(ctxt,
-                                              externalBuffer,
-                                              localBuffer,
-                                              transfers[0].dims,
+        initSnippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, transfers[0].dims,
                                               stridesFromShape(externalBuffer.shape),
-                                              stridesFromShape(transfers[0].dims),
-                                              direction,
-                                              future,
-                                              math.prod(externalBuffer.shape,),
-                                              comment = comment)
+                                              stridesFromShape(transfers[0].dims), direction, future,
+                                              math.prod(externalBuffer.shape,))
 
         initSnippets = [item for tup in initSnippets for item in tup]
 
@@ -147,16 +136,9 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
         opReprUpdates = [[] for _ in range(len(initSnippets))]
 
         for rect in transfers:
-            snippets = anydimAdapter.transfer(ctxt,
-                                              externalBuffer,
-                                              localBuffer,
-                                              rect.dims,
-                                              stridesFromShape(externalBuffer.shape),
-                                              stridesFromShape(rect.dims),
-                                              direction,
-                                              future,
-                                              math.prod(externalBuffer.shape),
-                                              comment = comment)
+            snippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, rect.dims,
+                                              stridesFromShape(externalBuffer.shape), stridesFromShape(rect.dims),
+                                              direction, future, math.prod(externalBuffer.shape))
 
             snippets = [item for tup in snippets for item in tup]
             for i, snippet in enumerate(snippets):

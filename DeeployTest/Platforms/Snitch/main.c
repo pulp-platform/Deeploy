@@ -79,6 +79,7 @@ int main(void) {
 
   ResetTimer();
   StartTimer();
+  snrt_cluster_hw_barrier();
   RunNetwork(compute_core_id, num_compute_cores);
 
   uint32_t runtimeCycles = 0;

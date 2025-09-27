@@ -12,33 +12,19 @@ class SnitchBarrierFuture(Future):
     _initTemplate = NodeTemplate("")
     _deinitTemplate = NodeTemplate("")
     _allocTemplate = NodeTemplate("")
-    _waitTemplate = NodeTemplate("""
-    % if comment:
-    // ${comment}
-    % endif
-    if (snrt_is_dm_core()) snrt_dma_wait_all();
-    """)
+    _waitTemplate = NodeTemplate("if (snrt_is_dm_core()) snrt_dma_wait_all();")
 
 
 # LMACAN: TODO: Add single transfer waiting
 class SnitchFuture(Future):
-    _initTemplate = NodeTemplate("""
-    % if comment:
-    // ${comment}
-    % endif
-    snrt_dma_txid_t ${name} = (snrt_dma_txid_t) -1;
-    """)
+    _initTemplate = NodeTemplate("snrt_dma_txid_t ${name} = (snrt_dma_txid_t) -1;")
 
     _deinitTemplate = NodeTemplate("")
 
     _allocTemplate = NodeTemplate("")
 
-    _waitTemplate = NodeTemplate("""
-    % if comment:
-    // ${comment}
-    % endif
-    if ( (${name} != ( (snrt_dma_txid_t) -1) ) && snrt_is_dm_core() ) snrt_dma_wait(${name});
-    """)
+    _waitTemplate = NodeTemplate(
+        "if ( (${name} != ( (snrt_dma_txid_t) -1) ) && snrt_is_dm_core() ) snrt_dma_wait(${name});")
 
 
 class SnitchDma(AsyncDma):
@@ -46,9 +32,6 @@ class SnitchDma(AsyncDma):
     _transferTemplates = {
         2:
             NodeTemplate("""
-            % if comment:
-            // ${comment}
-            % endif
             if (snrt_is_dm_core()) {
                 ${future} = snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});
                 // WIESEP: Hack as otherwise the last commited DMA transaction ID can never be resolved.
@@ -67,15 +50,9 @@ class SnitchDma(AsyncDma):
         super().checkTransfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction)
         assert strideLoc[1] == 1 and strideExt[1] == 1, f"Supports only contigous transfers in the innermost dimension"
 
-    def transferOpRepr(self,
-                       externalBuffer: VariableBuffer,
-                       localBuffer: VariableBuffer,
-                       shape: Tuple[int, ...],
-                       strideExt: Tuple[int, ...],
-                       strideLoc: Tuple[int, ...],
-                       direction: DmaDirection,
-                       future: Future,
-                       comment: str = "") -> OperatorRepresentation:
+    def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
+                       strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
+                       future: Future) -> OperatorRepresentation:
         operatorRepresentation: OperatorRepresentation = {
             "dest": localBuffer.name if direction == "ExternalToLocal" else externalBuffer.name,
             "src": externalBuffer.name if direction == "ExternalToLocal" else localBuffer.name,
@@ -83,7 +60,6 @@ class SnitchDma(AsyncDma):
             "size": shape[1],
             "stride_dest": strideLoc[0] if direction == "ExternalToLocal" else strideExt[0],
             "stride_src": strideExt[0] if direction == "ExternalToLocal" else strideLoc[0],
-            "comment": comment,
             "future": future.name
         }
         return operatorRepresentation

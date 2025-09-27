@@ -16,18 +16,6 @@ from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import Pr
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TilingCodegen import TilingSchedule, VariableReplacementScheme, stridesFromShape
 
-_measureConditionSetup = NodeTemplate("""
-if(${cond}){
-""")
-
-_measureConditionEnd = NodeTemplate("""
-}
-""")
-
-_measureCycles = NodeTemplate("""
-${measurements}[${tileIdxVar}] = getCycles();
-""")
-
 
 class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
@@ -156,18 +144,13 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             # 2) Load initial input tiles
             anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
-            initialDmaTransferCalls = anydimAdapter.transfer(ctxt,
-                                                             externalBufferRef,
-                                                             localBuffer,
-                                                             rectangles[0].dims,
+            initialDmaTransferCalls = anydimAdapter.transfer(ctxt, externalBufferRef, localBuffer, rectangles[0].dims,
                                                              stridesFromShape(externalBufferShape),
-                                                             stridesFromShape(rectangles[0].dims),
-                                                             "ExternalToLocal",
-                                                             _future,
-                                                             math.prod(externalBufferShape),
-                                                             comment = "Transfer initial input tile")
+                                                             stridesFromShape(rectangles[0].dims), "ExternalToLocal",
+                                                             _future, math.prod(externalBufferShape))
 
             initialDmaTransferCalls = [item for tup in initialDmaTransferCalls for item in tup]
+            setupStatements.append(CodeSnippet(self._lineComment, {"comment": "Transfer initial input tile"}))
             setupStatements.extend(initialDmaTransferCalls)
 
             # 4.1) Choose buffers for current tile (inputs and outputs)
@@ -176,7 +159,8 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                 buffer_choices[i].extend(_buffer_choice[i])
 
             # 4.2.1) Wait for current input tile
-            ingressDMAStatements.append(_future.wait("Wait for current input tile"))
+            ingressDMAStatements.append(CodeSnippet(self._lineComment, {"comment": "Wait for current input tile"}))
+            ingressDMAStatements.append(_future.wait())
 
             # 4.2.2) if there is a next tile:
             ingressDMAStatements.append(
@@ -189,16 +173,10 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                 self._generateBufferChoice(nextLocalBufferReference, l1BuffersReferences), "TILING_I+1")
 
             # 4.2.4) Start transfer for next input tile
+            ingressDMAStatements.append(CodeSnippet(self._lineComment, {"comment": "Transfer next input tile"}))
             ingressDMAStatements.extend(
-                self._generateDmaTransferCalls(ctxt,
-                                               tensorName,
-                                               rectangles,
-                                               "TILING_I+1",
-                                               nextLocalBufferReference,
-                                               externalBufferRef,
-                                               "ExternalToLocal",
-                                               _future,
-                                               comment = "Transfer next input tile"))
+                self._generateDmaTransferCalls(ctxt, tensorName, rectangles, "TILING_I+1", nextLocalBufferReference,
+                                               externalBufferRef, "ExternalToLocal", _future))
             # 4.2.5) Update external reference for next tile
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I+1",
                                                                     externalBufferRef)
@@ -253,18 +231,14 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             _future = _future.pop() if len(_future) > 0 else EmptyFuture("")
             egressFutures.add(future)
 
-            egressDMAStatements.append(_future.wait("Wait for previous output tile"))
+            egressDMAStatements.append(CodeSnippet(self._lineComment, {"comment": "Wait for previous output tile"}))
+            egressDMAStatements.append(_future.wait())
 
             # 4.4.2) Start transfer for current output tile
-            dmaTransferCalls = self._generateDmaTransferCalls(ctxt,
-                                                              tensorName,
-                                                              rectangles,
-                                                              "TILING_I",
-                                                              localBuffer,
-                                                              externalBufferRef,
-                                                              "LocalToExternal",
-                                                              _future,
-                                                              comment = "Transfer current output tile")
+            dmaTransferCalls = self._generateDmaTransferCalls(ctxt, tensorName, rectangles, "TILING_I", localBuffer,
+                                                              externalBufferRef, "LocalToExternal", _future)
+
+            egressDMAStatements.append(CodeSnippet(self._lineComment, {"comment": "Transfer current output tile"}))
             egressDMAStatements.extend(dmaTransferCalls)
 
             # 4.4.3) Update outut reference for next tile
@@ -277,13 +251,17 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         openLoopStatements += self._switch(buffer_choices, "TILING_I")
 
         # 1. Initialize all futures
-        setupStatements = [f.init("Initialize DMA future") for f in ingressFutures | egressFutures] + setupStatements
+        setupStatements = [f.init() for f in ingressFutures | egressFutures] + setupStatements
+        setupStatements = [CodeSnippet(self._lineComment, {"comment": "Initialize DMA future"})] + setupStatements
 
         # 5. Wait for final output tile to be ready
-        teardownStatements.extend([f.wait("Wait for final output tile") for f in egressFutures])
+        teardownStatements.append(CodeSnippet(self._lineComment, {"comment": "Wait for final output tile"}))
+        teardownStatements.extend([f.wait() for f in egressFutures])
 
         # 6. Deinitialize all futures
-        teardownStatements.extend(f.deinit("Deinitialize DMA future") for f in ingressFutures | egressFutures)
+
+        teardownStatements.append(CodeSnippet(self._lineComment, {"comment": "Deinitialize DMA future"}))
+        teardownStatements.extend(f.deinit() for f in ingressFutures | egressFutures)
 
         metaInfo = TilingMetaInfo(
             nodeName = operatorRepresentation['nodeName'] + f"_{self.externalMemory}",
@@ -314,7 +292,7 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
         nodeName = metaInfo.nodeName
         totalNumTiles = metaInfo.totalNumTiles
 
-        executionBlock.addLeft(_measureCycles, {
+        executionBlock.addLeft(cls._measureCycles, {
             "measurements": f"{nodeName}_ingress_dma_wait_start_measurements",
             "tileIdxVar": 0
         })
@@ -323,7 +301,7 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
 
         executionBlock = super().generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements,
                                                               teardownStatements)
-        executionBlock.addRight(_measureCycles, {
+        executionBlock.addRight(cls._measureCycles, {
             "measurements": f"{nodeName}_egress_dma_wait_end_measurements",
             "tileIdxVar": totalNumTiles - 1
         })
@@ -342,19 +320,19 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
         tileIdxVar = metaInfo.tileIdxVar
 
         _openLoopStatements = [openLoopStatements[0]]
-        _openLoopStatements.append(CodeSnippet(_measureConditionSetup, {"cond": f"{tileIdxVar} > 0"}))
+        _openLoopStatements.append(CodeSnippet(cls._measureConditionSetup, {"cond": f"{tileIdxVar} > 0"}))
         _openLoopStatements.append(
-            CodeSnippet(_measureCycles, {
+            CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_ingress_dma_wait_start_measurements",
                 "tileIdxVar": tileIdxVar
             }))
-        _openLoopStatements.append(CodeSnippet(_measureConditionEnd, {}))
+        _openLoopStatements.append(CodeSnippet(cls._measureConditionEnd, {}))
         _openLoopStatements += openLoopStatements[1:]
 
         _ingressDMAStatements = []
         _ingressDMAStatements += ingressDMAStatements
         _ingressDMAStatements.append(
-            CodeSnippet(_measureCycles, {
+            CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_ingress_dma_wait_end_measurements",
                 "tileIdxVar": tileIdxVar
             }))
@@ -363,13 +341,13 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
 
         _egressDMAStatements = []
         _egressDMAStatements.append(
-            CodeSnippet(_measureCycles, {
+            CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_egress_dma_wait_start_measurements",
                 "tileIdxVar": f"{tileIdxVar}"
             }))
         _egressDMAStatements += egressDMAStatements
         _egressDMAStatements.append(
-            CodeSnippet(_measureCycles, {
+            CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_egress_dma_wait_end_measurements",
                 "tileIdxVar": f"{tileIdxVar}"
             }))

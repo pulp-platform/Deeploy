@@ -20,36 +20,6 @@ class TilingMetaInfo:
     kernelLevelTiling: bool
 
 
-_measureCycles = NodeTemplate("""
-${measurements}[${tileIdxVar}] = getCycles();
-""")
-
-_measurementArrayDeclaration = NodeTemplate("""
-uint32_t ${measurements}[${totalNumTiles}];
-""")
-
-_stringDeclaration = NodeTemplate("""
-const static char ${name}[] = "${string}";
-""")
-
-_printLoopSetup = NodeTemplate("""
-StopTimer();
-for (int ${profileIdxVar} = ((*${tileIdxPtr} > 0) ? ${numTiles}[(*${tileIdxPtr} - 1)] : 0);
-    ${profileIdxVar} < ${numTiles}[*${tileIdxPtr}];
-    ${profileIdxVar}++){
-""")
-
-_printCycleDifference = NodeTemplate(r"""
-printf("%s%u] %s%u%s", ${prefixStr}, ${profileIdxVar}, "${flavorStr}", \
-${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
-""")
-
-_printLoopTeardown = NodeTemplate("""
-}
-StartTimer();
-""")
-
-
 class PrototypeTilingMixIn(ABC):
 
     @classmethod
@@ -95,6 +65,46 @@ class PrototypeTilingMixIn(ABC):
 
 
 class ProfilingPrototypeMixIn(ABC):
+    _measureCycles = NodeTemplate("""
+    ${measurements}[${tileIdxVar}] = getCycles();
+    """)
+
+    _measurementArrayDeclaration = NodeTemplate("""
+    uint32_t ${measurements}[${totalNumTiles}];
+    """)
+
+    _stringDeclaration = NodeTemplate("""
+    const static char ${name}[] = "${string}";
+    """)
+
+    _printLoopSetup = NodeTemplate("""
+    StopTimer();
+    for (int ${profileIdxVar} = ((*${tileIdxPtr} > 0) ? ${numTiles}[(*${tileIdxPtr} - 1)] : 0);
+        ${profileIdxVar} < ${numTiles}[*${tileIdxPtr}];
+        ${profileIdxVar}++){
+    """)
+
+    _printCycleDifference = NodeTemplate(r"""
+    printf("%s%u] %s%u%s", ${prefixStr}, ${profileIdxVar}, "${flavorStr}", \
+    ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
+    """)
+
+    _printLoopTeardown = NodeTemplate("""
+    }
+    StartTimer();
+    """)
+
+    _measureConditionSetup = NodeTemplate("""
+    if(${cond}){
+    """)
+
+    _measureConditionEnd = NodeTemplate("""
+    }
+    """)
+
+    _measureCycles = NodeTemplate("""
+    ${measurements}[${tileIdxVar}] = getCycles();
+    """)
 
     @classmethod
     def measurementArrayDeclaration(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
@@ -113,17 +123,17 @@ class ProfilingPrototypeMixIn(ABC):
             measurementsList = ["kernel_start", "kernel_end"] + measurementsList
 
         for measurements in measurementsList:
-            executionBlock.addLeft(_measurementArrayDeclaration, {
+            executionBlock.addLeft(cls._measurementArrayDeclaration, {
                 "measurements": f"{nodeName}_{measurements}_measurements",
                 "totalNumTiles": totalNumTiles
             })
 
-        executionBlock.addLeft(_stringDeclaration, {
+        executionBlock.addLeft(cls._stringDeclaration, {
             "name": f"{nodeName}_prefix",
             "string": f"[{nodeName}][{bufferingStr}][{nodeOps} ops][Tile ",
         })
 
-        executionBlock.addLeft(_stringDeclaration, {
+        executionBlock.addLeft(cls._stringDeclaration, {
             "name": f"{nodeName}_suffix",
             "string": " cycles \\n",
         })
@@ -138,7 +148,7 @@ class ProfilingPrototypeMixIn(ABC):
         tileIdxPtr = metaInfo.tileIdxPtr
         profileIdxVar = "PROFILING_I"
 
-        executionBlock.addRight(_printLoopSetup, {
+        executionBlock.addRight(cls._printLoopSetup, {
             "numTiles": numTiles,
             "nodeName": nodeName,
             "profileIdxVar": profileIdxVar,
@@ -146,7 +156,7 @@ class ProfilingPrototypeMixIn(ABC):
         })
 
         executionBlock.addRight(
-            _printCycleDifference, {
+            cls._printCycleDifference, {
                 "prefixStr": f"{nodeName}_prefix",
                 "suffixStr": f"{nodeName}_suffix",
                 "flavorStr": "Input DMA took ",
@@ -157,7 +167,7 @@ class ProfilingPrototypeMixIn(ABC):
 
         if metaInfo.kernelLevelTiling:
             executionBlock.addRight(
-                _printCycleDifference, {
+                cls._printCycleDifference, {
                     "prefixStr": f"{nodeName}_prefix",
                     "suffixStr": f"{nodeName}_suffix",
                     "flavorStr": "Kernel took ",
@@ -167,7 +177,7 @@ class ProfilingPrototypeMixIn(ABC):
                 })
 
         executionBlock.addRight(
-            _printCycleDifference, {
+            cls._printCycleDifference, {
                 "prefixStr": f"{nodeName}_prefix",
                 "suffixStr": f"{nodeName}_suffix",
                 "flavorStr": "Output DMA took ",
@@ -176,7 +186,7 @@ class ProfilingPrototypeMixIn(ABC):
                 "profileIdxVar": profileIdxVar,
             })
 
-        executionBlock.addRight(_printLoopTeardown, {})
+        executionBlock.addRight(cls._printLoopTeardown, {})
 
         return executionBlock
 
@@ -186,11 +196,11 @@ class ProfilingPrototypeMixIn(ABC):
         tileIdxVar = metaInfo.tileIdxVar
 
         if metaInfo.kernelLevelTiling:
-            executionBlock.addLeft(_measureCycles, {
+            executionBlock.addLeft(cls._measureCycles, {
                 "measurements": f"{nodeName}_kernel_start_measurements",
                 "tileIdxVar": tileIdxVar
             })
-            executionBlock.addRight(_measureCycles, {
+            executionBlock.addRight(cls._measureCycles, {
                 "measurements": f"{nodeName}_kernel_end_measurements",
                 "tileIdxVar": tileIdxVar
             })
