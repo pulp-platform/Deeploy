@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from enum import Enum, IntEnum
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -49,6 +49,13 @@ def FloatTupleUnpack(value: Any) -> Tuple[float, ...]:
         return tuple(FloatUnpack(item) for item in value)
     except TypeError:
         return (FloatUnpack(value),)
+
+
+def IntTupleIfNotSingleItemUnpack(value: Any) -> Union[int, Tuple[int, ...]]:
+    try:
+        return IntUnpack(value)
+    except:
+        return IntTupleUnpack(value)
 
 
 def attrToTensor(node: gs.Node, attr: str) -> None:
@@ -581,6 +588,32 @@ clcaDesc = OperatorDescriptor(
     ],
 )
 
+mhsaDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(
+        ["q", "k", "v", "wq_weight", "wq_bias", "wk_weight", "wk_bias", "wv_weight", "wv_bias", "wo_weight",
+         "wo_bias"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("preattn_requant_mul", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("preattn_requant_div", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("postattn_requant_mul", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("postattn_requant_div", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("wo_requant_mul", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("wo_requant_div", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("wq_requant_mul", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("wq_requant_div", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("wk_requant_mul", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("wk_requant_div", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("wv_requant_mul", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("wv_requant_div", IntTupleIfNotSingleItemUnpack),
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("dim", IntUnpack),
+        AttrDesc("dim_head", IntUnpack),
+        AttrDesc("heads", IntUnpack),
+        AttrDesc("signed", BoolUnpack),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "CLCA": clcaDesc,
@@ -599,6 +632,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "IntegerMean": reduceMeanDesc,
     "LayerNormalization": layerNormalizationDesc,
     "LinearAttention": linearAttentionDesc,
+    "MHSA": mhsaDesc,
     "MatMul": matMulDesc,
     "MatMulInteger": matMulDesc,
     "MaxPool": maxPoolDesc,

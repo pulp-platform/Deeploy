@@ -1408,23 +1408,7 @@ class MHSAParser(NodeParser):
         ])
 
         if ret:
-            self.operatorRepresentation['preattn_requant_mul'] = node.attrs['preattn_requant_mul']
-            self.operatorRepresentation['preattn_requant_div'] = node.attrs['preattn_requant_div']
-            self.operatorRepresentation['postattn_requant_mul'] = node.attrs['postattn_requant_mul']
-            self.operatorRepresentation['postattn_requant_div'] = node.attrs['postattn_requant_div']
-            self.operatorRepresentation['wo_requant_mul'] = node.attrs['wo_requant_mul']
-            self.operatorRepresentation['wo_requant_div'] = node.attrs['wo_requant_div']
-            self.operatorRepresentation['wq_requant_mul'] = node.attrs['wq_requant_mul']
-            self.operatorRepresentation['wq_requant_div'] = node.attrs['wq_requant_div']
-            self.operatorRepresentation['wk_requant_mul'] = node.attrs['wk_requant_mul']
-            self.operatorRepresentation['wk_requant_div'] = node.attrs['wk_requant_div']
-            self.operatorRepresentation['wv_requant_mul'] = node.attrs['wv_requant_mul']
-            self.operatorRepresentation['wv_requant_div'] = node.attrs['wv_requant_div']
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'])
-            self.operatorRepresentation['dim'] = int(node.attrs['dim'])  # Sequence Length
-            self.operatorRepresentation['dim_head'] = int(node.attrs['dim_head'])  # Projection Size
-            self.operatorRepresentation['heads'] = int(node.attrs['heads'])
-            self.operatorRepresentation['signed'] = int(node.attrs['signed'])
+            self.operatorRepresentation.update(node.attrs)
 
         return ret
 
