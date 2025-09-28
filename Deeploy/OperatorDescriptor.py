@@ -596,6 +596,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "ITAMax": itaMaxDesc,
     "ITAPartialMax": itaPartialMaxDesc,
     "IntegerDiv": integerDivDescriptor,
+    "IntegerMean": reduceMeanDesc,
     "LayerNormalization": layerNormalizationDesc,
     "LinearAttention": linearAttentionDesc,
     "MatMul": matMulDesc,
