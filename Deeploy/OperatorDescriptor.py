@@ -435,6 +435,18 @@ iLayerNormDesc = OperatorDescriptor(
     attrDescriptors = [AttrDesc("D", IntUnpack), AttrDesc("n_levels", IntUnpack)],
 )
 
+flattenDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("data_in"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [AttrDesc("axis", IntUnpack, default = 1)],
+)
+
+gatherDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["data_in", "indices"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [AttrDesc("axis", IntUnpack, default = 0)],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
@@ -442,6 +454,8 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "DebugPrint": debugPrintDesc,
     "Dequant": dequantDesc,
     "Div": divDesc,
+    "Flatten": flattenDesc,
+    "Gather": gatherDesc,
     "Gelu": geluDesc,
     "ITAMax": itaMaxDesc,
     "ITAPartialMax": itaPartialMaxDesc,
