@@ -509,6 +509,20 @@ rqGemmDesc = RequantizedOperatorDescriptor(
         AttrDesc("div", IntUnpack),
     ])
 
+requantizedGemmDesc = RequantizedOperatorDescriptor(
+    inputDescriptor = IoDesc(["A", "B", "add", "mul"]),  # Important diff to RQGemm
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("alpha", FloatUnpack, default = 1.0),
+        AttrDesc("beta", FloatUnpack, default = 1.0),
+        AttrDesc("transA", BoolUnpack, default = False),
+        AttrDesc("transB", BoolUnpack, default = False),
+        # RequantizedShift attrs
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("signed", BoolUnpack),
+        AttrDesc("div", IntUnpack),
+    ])
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
@@ -536,6 +550,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "ReduceMean": reduceMeanDesc,
     "ReduceSum": reduceSumDesc,
     "RequantizedConv": requantizedConvDesc,
+    "RequantizedGemm": requantizedGemmDesc,
     "RequantizediGELU": requantizedIGeluDesc,
     "Slice": sliceDesc,
     "Softmax": softmaxDesc,
