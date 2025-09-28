@@ -10,14 +10,13 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import BaseType, Pointer, PointerClass
 from Deeploy.CommonExtensions.DataTypes import minimalIntegerType
-from Deeploy.DeeployTypes import NetworkContext, NetworkDeployer, NodeParser, NodeTemplate, NodeTypeChecker, \
-    ONNXLayer, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import IoDesc, NetworkContext, NetworkDeployer, NodeParser, NodeTemplate, NodeTypeChecker, \
+    ONNXLayer, OperatorDescriptor, OperatorRepresentation, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryPlatformWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel
-from Deeploy.OperatorDescriptor import defaultOperatorDescriptors
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, PULPOptimizer
 from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
@@ -280,6 +279,17 @@ def defaultScheduler(graph: gs.Graph) -> List[List[gs.Node]]:
     return [[node] for node in graph.nodes]
 
 
+memcpyDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("src"),
+    outputDescriptor = IoDesc("dest"),
+    attrDescriptors = [],
+)
+
+dmaTestOperatorDescriptors = {
+    "Memcpy": memcpyDesc,
+}
+
+
 def setup_pulp_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph, inputTypes: Dict[str, Type[Pointer]],
                         doublebuffer: bool, deeployStateDir: str) -> NetworkDeployer:
     L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64000000)
@@ -300,7 +310,7 @@ def setup_pulp_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph, 
                             platform,
                             inputTypes,
                             PULPOptimizer,
-                            defaultOperatorDescriptors,
+                            dmaTestOperatorDescriptors,
                             defaultScheduler,
                             default_channels_first = True,
                             deeployStateDir = deeployStateDir)
@@ -342,7 +352,7 @@ def setup_snitch_deployer(defaultMemory: str, targetMemory: str, graph: gs.Graph
                               platform,
                               inputTypes,
                               SnitchOptimizer,
-                              defaultOperatorDescriptors,
+                              dmaTestOperatorDescriptors,
                               defaultScheduler,
                               deeployStateDir = deeployStateDir)
     memoryLevelAnnotationPasses = [AnnotateIOMemoryLevel(defaultMemory), AnnotateDefaultMemoryLevel(memoryHierarchy)]
