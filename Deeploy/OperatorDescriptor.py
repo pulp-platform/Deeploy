@@ -461,6 +461,12 @@ squeezeDesc = OperatorDescriptor(
     attrDescriptors = [AttrDesc("axes", IntTupleUnpack)],
 )
 
+mulDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["A", "B"]),
+    outputDescriptor = IoDesc("C"),
+    attrDescriptors = [],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
@@ -476,6 +482,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "IntegerDiv": integerDivDescriptor,
     "LayerNormalization": layerNormalizationDesc,
     "MaxPool": maxPoolDesc,
+    "Mul": mulDesc,
     "Pad": padDescOld,
     "Quant": quantDesc,
     "RQIntegerDiv": requantizedIntegerDivDescriptor,
