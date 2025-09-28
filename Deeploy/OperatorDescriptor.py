@@ -376,10 +376,22 @@ requantizedConvDesc = RequantizedConvDescriptor(
     ],
 )
 
+dequantDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("data_in"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("scale", FloatUnpack),
+        AttrDesc("zero_point", FloatUnpack),
+        AttrDesc("bit_width", IntUnpack),
+        AttrDesc("signed", BoolUnpack),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
     "Conv": convDesc,
+    "Dequant": dequantDesc,
     "Gelu": geluDesc,
     "ITAMax": itaMaxDesc,
     "ITAPartialMax": itaPartialMaxDesc,

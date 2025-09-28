@@ -2488,12 +2488,10 @@ class DequantParser(NodeParser):
         ])
 
         if ret:
-            self.operatorRepresentation['scale'] = float(node.attrs['scale'])
-            self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
-            self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
-
-            self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
-
+            self.operatorRepresentation['scale'] = node.attrs['scale']
+            self.operatorRepresentation['zero_point'] = node.attrs['zero_point']
+            self.operatorRepresentation['bit_width'] = node.attrs['bit_width']
+            self.operatorRepresentation['signed'] = node.attrs['signed']
         return ret
 
     def parseNodeCtxt(self,
