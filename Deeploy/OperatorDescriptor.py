@@ -484,6 +484,31 @@ rqMatMulDesc = RequantizedOperatorDescriptor(
     ],
 )
 
+gemmDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["A", "B"], optional = ["C"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("alpha", FloatUnpack, default = 1.0),
+        AttrDesc("beta", FloatUnpack, default = 1.0),
+        AttrDesc("transA", BoolUnpack, default = False),
+        AttrDesc("transB", BoolUnpack, default = False),
+    ],
+)
+
+rqGemmDesc = RequantizedOperatorDescriptor(
+    inputDescriptor = IoDesc(["A", "B", "C", "add", "mul"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("alpha", FloatUnpack, default = 1.0),
+        AttrDesc("beta", FloatUnpack, default = 1.0),
+        AttrDesc("transA", BoolUnpack, default = False),
+        AttrDesc("transB", BoolUnpack, default = False),
+        # RequantizedShift attrs
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("signed", BoolUnpack),
+        AttrDesc("div", IntUnpack),
+    ])
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
@@ -494,6 +519,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Flatten": flattenDesc,
     "Gather": gatherDesc,
     "Gelu": geluDesc,
+    "Gemm": gemmDesc,
     "ITAMax": itaMaxDesc,
     "ITAPartialMax": itaPartialMaxDesc,
     "IntegerDiv": integerDivDescriptor,
@@ -504,6 +530,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Mul": mulDesc,
     "Pad": padDescOld,
     "Quant": quantDesc,
+    "RQGemm": rqGemmDesc,
     "RQIntegerDiv": requantizedIntegerDivDescriptor,
     "RQMatMul": rqMatMulDesc,
     "ReduceMean": reduceMeanDesc,
