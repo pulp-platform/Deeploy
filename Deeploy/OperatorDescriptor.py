@@ -387,12 +387,44 @@ dequantDesc = OperatorDescriptor(
     ],
 )
 
+divDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["input1", "input2"]),
+    outputDescriptor = IoDesc("output"),
+    attrDescriptors = [],
+)
+
+integerDivDescriptor = OperatorDescriptor(
+    inputDescriptor = IoDesc(["A", "B"]),
+    outputDescriptor = IoDesc("C"),
+    attrDescriptors = [
+        AttrDesc("Delta", IntUnpack),
+        AttrDesc("eps", IntUnpack),
+        AttrDesc("eta", IntUnpack),
+    ],
+)
+
+requantizedIntegerDivDescriptor = OperatorDescriptor(
+    inputDescriptor = IoDesc(["A", "B", "requant_mul", "requant_add", "requant_div"]),
+    outputDescriptor = IoDesc("C"),
+    attrDescriptors = [
+        # IntegerDiv attrs
+        AttrDesc("Delta", IntUnpack),
+        AttrDesc("eps", IntUnpack),
+        AttrDesc("eta", IntUnpack),
+        # RequantizedShift attrs
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("signed", BoolUnpack),
+        AttrDesc("div", IntUnpack),
+    ])
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
     "Conv": convDesc,
     "Dequant": dequantDesc,
+    "Div": divDesc,
     "Gelu": geluDesc,
+    "IntegerDiv": integerDivDescriptor,
     "ITAMax": itaMaxDesc,
     "ITAPartialMax": itaPartialMaxDesc,
     "MaxPool": maxPoolDesc,
@@ -402,6 +434,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "ReduceSum": reduceSumDesc,
     "RequantizedConv": requantizedConvDesc,
     "RequantizediGELU": rqsIGeluDesc,
+    "RQIntegerDiv": requantizedIntegerDivDescriptor,
     "Slice": sliceDesc,
     "Softmax": softmaxDesc,
     "SoftmaxGrad": softmaxGradDesc,
