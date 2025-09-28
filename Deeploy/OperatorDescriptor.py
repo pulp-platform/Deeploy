@@ -277,6 +277,17 @@ iHardswishDesc = OperatorDescriptor(inputDescriptor = IoDesc("data_in"),
                                         AttrDesc("three", IntUnpack),
                                     ])
 
+requantizedIHardswishDesc = OperatorDescriptor(inputDescriptor = IoDesc("data_in"),
+                                               outputDescriptor = IoDesc("data_out"),
+                                               attrDescriptors = [
+                                                   AttrDesc("one_over_six", IntUnpack),
+                                                   AttrDesc("six", IntUnpack),
+                                                   AttrDesc("three", IntUnpack),
+                                                   AttrDesc("mul", IntUnpack),
+                                                   AttrDesc("add", IntUnpack),
+                                                   AttrDesc("shift", IntUnpack),
+                                               ])
+
 iNoNormDesc = OperatorDescriptor(inputDescriptor = IoDesc(["data_in", "weights", "bias"]),
                                  outputDescriptor = IoDesc("data_out"),
                                  attrDescriptors = [
@@ -715,6 +726,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "RequantizedConv": requantizedConvDesc,
     "RequantizedGemm": requantizedGemmDesc,
     "RequantizediGELU": requantizedIGeluDesc,
+    "RequantizediHardswish": requantizedIHardswishDesc,
     "RequantShift": requantShiftDesc,
     "Reshape": reshapeDesc,
     "Slice": sliceDesc,
