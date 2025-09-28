@@ -206,12 +206,9 @@ class PULPDWConv2DParser(RQSConv2DParser):
                 self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
                 self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
 
-                if 'n_levels' in node.attrs:
-                    self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-                else:
-                    self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels_out'].values)
-                self.operatorRepresentation['signed'] = int(node.attrs['signed'].values)
-                self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div'].values))
+                self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
+                self.operatorRepresentation['signed'] = node.attrs['signed']
+                self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
 
             return ret
         return False
