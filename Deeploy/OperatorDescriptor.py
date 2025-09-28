@@ -467,6 +467,23 @@ mulDesc = OperatorDescriptor(
     attrDescriptors = [],
 )
 
+matMulDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["A", "B"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [],
+)
+
+rqMatMulDesc = RequantizedOperatorDescriptor(
+    inputDescriptor = IoDesc(["A", "B", "add", "mul"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        # RequantizedShift attrs
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("signed", BoolUnpack),
+        AttrDesc("div", IntUnpack),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
@@ -481,11 +498,14 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "ITAPartialMax": itaPartialMaxDesc,
     "IntegerDiv": integerDivDescriptor,
     "LayerNormalization": layerNormalizationDesc,
+    "MatMul": matMulDesc,
+    "MatMulInteger": matMulDesc,
     "MaxPool": maxPoolDesc,
     "Mul": mulDesc,
     "Pad": padDescOld,
     "Quant": quantDesc,
     "RQIntegerDiv": requantizedIntegerDivDescriptor,
+    "RQMatMul": rqMatMulDesc,
     "ReduceMean": reduceMeanDesc,
     "ReduceSum": reduceSumDesc,
     "RequantizedConv": requantizedConvDesc,
