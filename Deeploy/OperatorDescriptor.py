@@ -256,11 +256,22 @@ class GeluApprox(str, Enum):
     none = "none"
 
 
-geluDesc = OperatorDescriptor(inputDescriptor = IoDesc("data_in"),
-                              outputDescriptor = IoDesc("data_out"),
-                              attrDescriptors = [
-                                  AttrDesc("approximate", GeluApprox, default = GeluApprox.none),
-                              ])
+geluDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("data_in"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("approximate", GeluApprox, default = GeluApprox.none),
+    ],
+)
+
+iGeluDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("data_in"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("b", IntUnpack),
+        AttrDesc("one", IntUnpack),
+    ],
+)
 
 requantizedIGeluDesc = OperatorDescriptor(inputDescriptor = IoDesc(["data_in", "mul", "add", "shift"]),
                                           outputDescriptor = IoDesc("data_out"),
@@ -691,6 +702,12 @@ requantizedAddDesc = RequantizedAddDescriptor(
     ],
 )
 
+sgdDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["weight", "grad"]),
+    outputDescriptor = IoDesc("weight_updated"),
+    attrDescriptors = [AttrDesc("lr", FloatUnpack)],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "CLCA": clcaDesc,
@@ -729,12 +746,14 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "RequantizediHardswish": requantizedIHardswishDesc,
     "RequantShift": requantShiftDesc,
     "Reshape": reshapeDesc,
+    "SGD": sgdDesc,
     "Slice": sliceDesc,
     "Softmax": softmaxDesc,
     "SoftmaxGrad": softmaxGradDesc,
     "Squeeze": squeezeDesc,
     "Transpose": transposeDesc,
     "Unsqueeze": unsqueezeDesc,
+    "iGELU": iGeluDesc,
     "iHardswish": iHardswishDesc,
     "iLayerNorm": iLayerNormDesc,
     "iNoNorm": iNoNormDesc,
