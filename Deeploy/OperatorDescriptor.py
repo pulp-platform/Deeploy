@@ -523,6 +523,42 @@ requantizedGemmDesc = RequantizedOperatorDescriptor(
         AttrDesc("div", IntUnpack),
     ])
 
+linearAttentionDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(
+        ["q", "k", "v", "wq_weight", "wq_bias", "wk_weight", "wk_bias", "wv_weight", "wv_bias", "wo_weight",
+         "wo_bias"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("preattn_requant_mul", IntTupleUnpack),
+        AttrDesc("preattn_requant_div", IntTupleUnpack),
+        AttrDesc("normalizer_requant_mul", IntTupleUnpack),
+        AttrDesc("normalizer_requant_shift", IntTupleUnpack),
+        AttrDesc("normalizer_requant_div", IntTupleUnpack),
+        AttrDesc("postattn_requant_mul", IntTupleUnpack),
+        AttrDesc("postattn_requant_shift", IntTupleUnpack),
+        AttrDesc("postattn_requant_div", IntTupleUnpack),
+        AttrDesc("wo_requant_mul", IntTupleUnpack),
+        AttrDesc("wo_requant_shift", IntTupleUnpack),
+        AttrDesc("wo_requant_div", IntTupleUnpack),
+        AttrDesc("wq_requant_mul", IntTupleUnpack),
+        AttrDesc("wq_requant_shift", IntTupleUnpack),
+        AttrDesc("wq_requant_div", IntTupleUnpack),
+        AttrDesc("wk_requant_mul", IntTupleUnpack),
+        AttrDesc("wk_requant_shift", IntTupleUnpack),
+        AttrDesc("wk_requant_div", IntTupleUnpack),
+        AttrDesc("wv_requant_mul", IntTupleUnpack),
+        AttrDesc("wv_requant_shift", IntTupleUnpack),
+        AttrDesc("wv_requant_div", IntTupleUnpack),
+        AttrDesc("Delta", IntUnpack),
+        AttrDesc("eps", IntUnpack),
+        AttrDesc("act_type", IntUnpack),
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("dim", IntUnpack),
+        AttrDesc("dim_head", IntUnpack),
+        AttrDesc("heads", IntUnpack),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
@@ -538,6 +574,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "ITAPartialMax": itaPartialMaxDesc,
     "IntegerDiv": integerDivDescriptor,
     "LayerNormalization": layerNormalizationDesc,
+    "LinearAttention": linearAttentionDesc,
     "MatMul": matMulDesc,
     "MatMulInteger": matMulDesc,
     "MaxPool": maxPoolDesc,

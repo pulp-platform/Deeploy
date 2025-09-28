@@ -1472,37 +1472,26 @@ class LinearAttentionParser(NodeParser):
         ])
 
         if ret:
-            self.operatorRepresentation['preattn_requant_mul'] = int(node.attrs['preattn_requant_mul'].values)
-            self.operatorRepresentation['preattn_requant_shift'] = int(node.attrs['preattn_requant_shift'].values)
-            self.operatorRepresentation['preattn_requant_div'] = int(
-                math.log2(int(node.attrs['preattn_requant_div'].values)))
-            self.operatorRepresentation['normalizer_requant_mul'] = int(node.attrs['normalizer_requant_mul'].values)
-            self.operatorRepresentation['normalizer_requant_shift'] = int(node.attrs['normalizer_requant_shift'].values)
-            self.operatorRepresentation['normalizer_requant_div'] = int(
-                math.log2(int(node.attrs['normalizer_requant_div'].values)))
-            self.operatorRepresentation['postattn_requant_mul'] = int(node.attrs['postattn_requant_mul'].values)
-            self.operatorRepresentation['postattn_requant_shift'] = int(node.attrs['postattn_requant_shift'].values)
-            self.operatorRepresentation['postattn_requant_div'] = int(
-                math.log2(int(node.attrs['postattn_requant_div'].values)))
-            self.operatorRepresentation['wo_requant_mul'] = int(node.attrs['wo_requant_mul'].values)
-            self.operatorRepresentation['wo_requant_shift'] = int(node.attrs['wo_requant_shift'].values)
-            self.operatorRepresentation['wo_requant_div'] = int(math.log2(int(node.attrs['wo_requant_div'].values)))
-            self.operatorRepresentation['wq_requant_mul'] = int(node.attrs['wq_requant_mul'].values)
-            self.operatorRepresentation['wq_requant_shift'] = int(node.attrs['wq_requant_shift'].values)
-            self.operatorRepresentation['wq_requant_div'] = int(math.log2(int(node.attrs['wq_requant_div'].values)))
-            self.operatorRepresentation['wk_requant_mul'] = int(node.attrs['wk_requant_mul'].values)
-            self.operatorRepresentation['wk_requant_shift'] = int(node.attrs['wk_requant_shift'].values)
-            self.operatorRepresentation['wk_requant_div'] = int(math.log2(int(node.attrs['wk_requant_div'].values)))
-            self.operatorRepresentation['wv_requant_mul'] = int(node.attrs['wv_requant_mul'].values)
-            self.operatorRepresentation['wv_requant_shift'] = int(node.attrs['wv_requant_shift'].values)
-            self.operatorRepresentation['wv_requant_div'] = int(math.log2(int(node.attrs['wv_requant_div'].values)))
-            self.operatorRepresentation['Delta'] = int(node.attrs['Delta'])
-            self.operatorRepresentation['eps'] = int(node.attrs['eps'])
-            self.operatorRepresentation['act_type'] = int(node.attrs['act_type'])
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-            self.operatorRepresentation['dim'] = int(node.attrs['dim'].values)
-            self.operatorRepresentation['dim_head'] = int(node.attrs['dim_head'].values)
-            self.operatorRepresentation['heads'] = int(node.attrs['heads'].values)
+            self.operatorRepresentation.update(node.attrs)
+
+            # All *_div attrs are log2d-ified
+            log2Attrs = [
+                "preattn_requant_div",
+                "preattn_requant_div",
+                "normalizer_requant_div",
+                "normalizer_requant_div",
+                "postattn_requant_div",
+                "postattn_requant_div",
+                "wo_requant_div",
+                "wq_requant_div",
+                "wk_requant_div",
+                "wv_requant_div",
+            ]
+
+            for attr in log2Attrs:
+                value = self.operatorRepresentation[attr]
+                assert isinstance(value, int)
+                self.operatorRepresentation[attr] = int(math.log2(value))
 
         return ret
 
