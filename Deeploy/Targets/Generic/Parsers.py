@@ -2373,32 +2373,12 @@ class RQAddParser(AddParser):
         ])
 
         if ret:
-            if 'rqs1_n_levels' in node.attrs:
-                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels_out'].values)
-            self.operatorRepresentation['rqs1_mul'] = int(node.attrs['rqs1_mul'])
-            self.operatorRepresentation['rqs1_add'] = int(node.attrs['rqs1_add'])
-            self.operatorRepresentation['rqs1_signed'] = int(node.attrs['rqs1_signed'].values)
-            self.operatorRepresentation['rqs1_log2D'] = int(math.log2(node.attrs['rqs1_div'].values))
+            self.operatorRepresentation.update(node.attrs)
 
-            if 'rqs2_n_levels' in node.attrs:
-                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels_out'].values)
-            self.operatorRepresentation['rqs2_mul'] = int(node.attrs['rqs2_mul'])
-            self.operatorRepresentation['rqs2_add'] = int(node.attrs['rqs2_add'])
-            self.operatorRepresentation['rqs2_signed'] = int(node.attrs['rqs2_signed'].values)
-            self.operatorRepresentation['rqs2_log2D'] = int(math.log2(node.attrs['rqs2_div'].values))
-
-            if 'rqsOut_n_levels' in node.attrs:
-                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels_out'].values)
-            self.operatorRepresentation['rqsOut_mul'] = int(node.attrs['rqsOut_mul'])
-            self.operatorRepresentation['rqsOut_add'] = int(node.attrs['rqsOut_add'])
-            self.operatorRepresentation['rqsOut_signed'] = int(node.attrs['rqsOut_signed'].values)
-            self.operatorRepresentation['rqsOut_log2D'] = int(math.log2(node.attrs['rqsOut_div'].values))
+            for tensor in ["rqs1", "rqs2", "rqsOut"]:
+                value = self.operatorRepresentation[f"{tensor}_div"]
+                assert isinstance(value, int)
+                self.operatorRepresentation[f"{tensor}_log2D"] = int(math.log2(value))
 
         return ret
 

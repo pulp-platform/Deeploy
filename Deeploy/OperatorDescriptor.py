@@ -355,7 +355,7 @@ class RequantizedOperatorDescriptor(OperatorDescriptor):
     def canonicalize(self, node: gs.Node, opset: int) -> bool:
         if "n_levels_out" in node.attrs and "n_levels" in node.attrs:
             # TODO: Change to log
-            print("[WARNING] RequantizedConv cannot have n_levels_out and n_levels in it's attributes")
+            print("[WARNING] Requantized operator cannot have n_levels_out and n_levels in its attributes")
             return False
 
         if "n_levels_out" in node.attrs:
@@ -636,6 +636,50 @@ requantShiftDesc = RequantizedOperatorDescriptor(
     ],
 )
 
+
+class RequantizedAddDescriptor(OperatorDescriptor):
+
+    def canonicalize(self, node: gs.Node, opset: int) -> bool:
+        for tensor in ["rqs1", "rqs2", "rqsOut"]:
+            n_levels = f"{tensor}_n_levels"
+            n_levels_out = f"{tensor}_n_levels_out"
+            if n_levels_out in node.attrs and n_levels in node.attrs:
+                # TODO: Change to log
+                print(
+                    f"[WARNING] RequantizedAdd tensor {tensor} cannot have {n_levels_out} and {n_levels} in its attributes"
+                )
+                return False
+
+            if n_levels_out in node.attrs:
+                node.attrs[n_levels] = node.attrs[n_levels_out]
+                node.attrs.pop(n_levels_out)
+
+        return super().canonicalize(node, opset)
+
+
+requantizedAddDesc = RequantizedAddDescriptor(
+    inputDescriptor = IoDesc(["data_in_0", "data_in_1"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("rqs1_n_levels", IntUnpack),
+        AttrDesc("rqs1_mul", IntUnpack),
+        AttrDesc("rqs1_add", IntUnpack),
+        AttrDesc("rqs1_div", IntUnpack),
+        AttrDesc("rqs1_signed", BoolUnpack),
+        AttrDesc("rqs1_n_levels", IntUnpack),
+        AttrDesc("rqs2_mul", IntUnpack),
+        AttrDesc("rqs2_add", IntUnpack),
+        AttrDesc("rqs2_div", IntUnpack),
+        AttrDesc("rqs2_signed", BoolUnpack),
+        AttrDesc("rqs2_n_levels", IntUnpack),
+        AttrDesc("rqsOut_mul", IntUnpack),
+        AttrDesc("rqsOut_add", IntUnpack),
+        AttrDesc("rqsOut_div", IntUnpack),
+        AttrDesc("rqsOut_signed", BoolUnpack),
+        AttrDesc("rqsOut_n_levels", IntUnpack),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "CLCA": clcaDesc,
@@ -667,6 +711,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "ReduceMean": reduceMeanDesc,
     "ReduceSum": reduceSumDesc,
     "Relu": reluDesc,
+    "RequantizedAdd": requantizedAddDesc,
     "RequantizedConv": requantizedConvDesc,
     "RequantizedGemm": requantizedGemmDesc,
     "RequantizediGELU": requantizedIGeluDesc,
