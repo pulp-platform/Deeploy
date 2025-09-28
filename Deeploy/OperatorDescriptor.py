@@ -255,12 +255,12 @@ geluDesc = OperatorDescriptor(inputDescriptor = IoDesc("data_in"),
                                   AttrDesc("approximate", GeluApprox, default = GeluApprox.none),
                               ])
 
-rqsIGeluDesc = OperatorDescriptor(inputDescriptor = IoDesc(["data_in", "mul", "add", "shift"]),
-                                  outputDescriptor = IoDesc("data_out"),
-                                  attrDescriptors = [
-                                      AttrDesc("b", IntUnpack),
-                                      AttrDesc("one", IntUnpack),
-                                  ])
+requantizedIGeluDesc = OperatorDescriptor(inputDescriptor = IoDesc(["data_in", "mul", "add", "shift"]),
+                                          outputDescriptor = IoDesc("data_out"),
+                                          attrDescriptors = [
+                                              AttrDesc("b", IntUnpack),
+                                              AttrDesc("one", IntUnpack),
+                                          ])
 
 iHardswishDesc = OperatorDescriptor(inputDescriptor = IoDesc("data_in"),
                                     outputDescriptor = IoDesc("data_out"),
@@ -343,7 +343,7 @@ convDesc = OperatorDescriptor(
 )
 
 
-class RequantizedConvDescriptor(OperatorDescriptor):
+class RequantizedOperatorDescriptor(OperatorDescriptor):
 
     def canonicalize(self, node: gs.Node, opset: int) -> bool:
         if "n_levels_out" in node.attrs and "n_levels" in node.attrs:
@@ -358,7 +358,7 @@ class RequantizedConvDescriptor(OperatorDescriptor):
         return super().canonicalize(node, opset)
 
 
-requantizedConvDesc = RequantizedConvDescriptor(
+requantizedConvDesc = RequantizedOperatorDescriptor(
     inputDescriptor = IoDesc(["data_in", "weight", "mul", "add"], optional = ["shift"]),
     outputDescriptor = IoDesc("data_out"),
     attrDescriptors = [
@@ -403,7 +403,7 @@ integerDivDescriptor = OperatorDescriptor(
     ],
 )
 
-requantizedIntegerDivDescriptor = OperatorDescriptor(
+requantizedIntegerDivDescriptor = RequantizedOperatorDescriptor(
     inputDescriptor = IoDesc(["A", "B", "requant_mul", "requant_add", "requant_div"]),
     outputDescriptor = IoDesc("C"),
     attrDescriptors = [
@@ -454,7 +454,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "ReduceMean": reduceMeanDesc,
     "ReduceSum": reduceSumDesc,
     "RequantizedConv": requantizedConvDesc,
-    "RequantizediGELU": rqsIGeluDesc,
+    "RequantizediGELU": requantizedIGeluDesc,
     "Slice": sliceDesc,
     "Softmax": softmaxDesc,
     "SoftmaxGrad": softmaxGradDesc,
