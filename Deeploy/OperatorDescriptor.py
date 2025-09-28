@@ -614,6 +614,28 @@ mhsaDesc = OperatorDescriptor(
     ],
 )
 
+reluDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("data_in"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [],
+)
+
+reshapeDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["data_in", "shape"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [],
+)
+
+requantShiftDesc = RequantizedOperatorDescriptor(
+    inputDescriptor = IoDesc(["data_in", "mul", "add"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("signed", BoolUnpack),
+        AttrDesc("div", IntUnpack),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "CLCA": clcaDesc,
@@ -644,9 +666,12 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "RQMatMul": rqMatMulDesc,
     "ReduceMean": reduceMeanDesc,
     "ReduceSum": reduceSumDesc,
+    "Relu": reluDesc,
     "RequantizedConv": requantizedConvDesc,
     "RequantizedGemm": requantizedGemmDesc,
     "RequantizediGELU": requantizedIGeluDesc,
+    "RequantShift": requantShiftDesc,
+    "Reshape": reshapeDesc,
     "Slice": sliceDesc,
     "Softmax": softmaxDesc,
     "SoftmaxGrad": softmaxGradDesc,
