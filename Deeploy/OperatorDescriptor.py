@@ -447,6 +447,20 @@ gatherDesc = OperatorDescriptor(
     attrDescriptors = [AttrDesc("axis", IntUnpack, default = 0)],
 )
 
+# Opset <= 11
+unsqueezeDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("data_in"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [AttrDesc("axes", IntTupleUnpack)],
+)
+
+# Opset <= 11
+squeezeDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("data_in"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [AttrDesc("axes", IntTupleUnpack)],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
@@ -472,7 +486,9 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Slice": sliceDesc,
     "Softmax": softmaxDesc,
     "SoftmaxGrad": softmaxGradDesc,
+    "Squeeze": squeezeDesc,
     "Transpose": transposeDesc,
+    "Unsqueeze": unsqueezeDesc,
     "iHardswish": iHardswishDesc,
     "iLayerNorm": iLayerNormDesc,
     "iNoNorm": iNoNormDesc,
