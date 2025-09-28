@@ -559,8 +559,31 @@ linearAttentionDesc = OperatorDescriptor(
     ],
 )
 
+clcaDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc([
+        "q", "k", "wq_weight", "wq_bias", "wk_weight", "wk_bias", "wo_weight", "wo_bias", "wq_requant_mul",
+        "wq_requant_add", "wq_requant_div", "wk_requant_mul", "wk_requant_add", "wk_requant_div", "wv_requant_mul",
+        "wv_requant_add", "wv_requant_div", "kdiv_requant_mul", "kdiv_requant_add", "kdiv_requant_div",
+        "preattn_requant_mul", "preattn_requant_add", "preattn_requant_div", "postattn_requant_mul",
+        "postattn_requant_add", "postattn_requant_div", "wo_requant_mul", "wo_requant_add", "wo_requant_div"
+    ]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("Delta", IntUnpack),
+        AttrDesc("eps", IntUnpack),
+        AttrDesc("eta", IntUnpack),
+        AttrDesc("act_type", IntUnpack),
+        AttrDesc("n_levels", IntUnpack),
+        AttrDesc("dim", IntUnpack),
+        AttrDesc("dim_head", IntUnpack),
+        AttrDesc("out_dim", IntUnpack),
+        AttrDesc("heads", IntUnpack),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
+    "CLCA": clcaDesc,
     "Concat": concatDesc,
     "Conv": convDesc,
     "DebugPrint": debugPrintDesc,

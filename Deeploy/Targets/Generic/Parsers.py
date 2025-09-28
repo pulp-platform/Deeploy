@@ -1533,15 +1533,7 @@ class CLCAParser(NodeParser):
         ])
 
         if ret:
-            self.operatorRepresentation['Delta'] = int(node.attrs['Delta'])
-            self.operatorRepresentation['eps'] = int(node.attrs['eps'])
-            self.operatorRepresentation['eta'] = int(node.attrs['eta'])
-            self.operatorRepresentation['act_type'] = int(node.attrs['act_type'])
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-            self.operatorRepresentation['dim'] = int(node.attrs['dim'].values)
-            self.operatorRepresentation['dim_head'] = int(node.attrs['dim_head'].values)
-            self.operatorRepresentation['out_dim'] = int(node.attrs['out_dim'].values)
-            self.operatorRepresentation['heads'] = int(node.attrs['heads'].values)
+            self.operatorRepresentation.update(node.attrs)
 
         return ret
 
