@@ -417,29 +417,50 @@ requantizedIntegerDivDescriptor = OperatorDescriptor(
         AttrDesc("div", IntUnpack),
     ])
 
+debugPrintDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc("data_in"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [],
+)
+
+layerNormalizationDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["data_in", "weight", "bias"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [AttrDesc("epsilon", FloatUnpack)],
+)
+
+iLayerNormDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["data_in", "weight", "bias"]),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [AttrDesc("D", IntUnpack), AttrDesc("n_levels", IntUnpack)],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "Concat": concatDesc,
     "Conv": convDesc,
+    "DebugPrint": debugPrintDesc,
     "Dequant": dequantDesc,
     "Div": divDesc,
     "Gelu": geluDesc,
-    "IntegerDiv": integerDivDescriptor,
     "ITAMax": itaMaxDesc,
     "ITAPartialMax": itaPartialMaxDesc,
+    "IntegerDiv": integerDivDescriptor,
+    "LayerNormalization": layerNormalizationDesc,
     "MaxPool": maxPoolDesc,
     "Pad": padDescOld,
     "Quant": quantDesc,
+    "RQIntegerDiv": requantizedIntegerDivDescriptor,
     "ReduceMean": reduceMeanDesc,
     "ReduceSum": reduceSumDesc,
     "RequantizedConv": requantizedConvDesc,
     "RequantizediGELU": rqsIGeluDesc,
-    "RQIntegerDiv": requantizedIntegerDivDescriptor,
     "Slice": sliceDesc,
     "Softmax": softmaxDesc,
     "SoftmaxGrad": softmaxGradDesc,
     "Transpose": transposeDesc,
     "iHardswish": iHardswishDesc,
+    "iLayerNorm": iLayerNormDesc,
     "iNoNorm": iNoNormDesc,
     "iRMSNorm": iRMSNormDesc,
     "iSoftmax": iSoftmaxDesc,
