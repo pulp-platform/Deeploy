@@ -708,6 +708,18 @@ sgdDesc = OperatorDescriptor(
     attrDescriptors = [AttrDesc("lr", FloatUnpack)],
 )
 
+softmaxCrossEntropyLossDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["logits", "labels"]),
+    outputDescriptor = IoDesc("log_prob"),
+    attrDescriptors = [],
+)
+
+softmaxCrossEntropyLossGradDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["log_prob", "labels"]),
+    outputDescriptor = IoDesc("grad"),
+    attrDescriptors = [],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
     "CLCA": clcaDesc,
@@ -749,6 +761,8 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "SGD": sgdDesc,
     "Slice": sliceDesc,
     "Softmax": softmaxDesc,
+    "SoftmaxCrossEntropyLoss": softmaxCrossEntropyLossDesc,
+    "SoftmaxCrossEntropyLossGrad": softmaxCrossEntropyLossGradDesc,
     "SoftmaxGrad": softmaxGradDesc,
     "Squeeze": squeezeDesc,
     "Transpose": transposeDesc,
