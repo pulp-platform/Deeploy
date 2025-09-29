@@ -1690,27 +1690,40 @@ class MatMulParser(NodeParser):
             node.inputs.append(zeroTensor)
             self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
 
+        buffA = ctxt.lookup(node.inputs[0].name)
+        assert isinstance(buffA, VariableBuffer)
+        buffB = ctxt.lookup(node.inputs[1].name)
+        assert isinstance(buffB, VariableBuffer)
+        buffOut = ctxt.lookup(node.outputs[0].name)
+        assert isinstance(buffOut, VariableBuffer)
+
         # Store the input and output shapes in the operator representation
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['A_shape'] = ctxt.lookup(node.inputs[0].name).shape
-        self.operatorRepresentation['B_shape'] = ctxt.lookup(node.inputs[1].name).shape
-        self.operatorRepresentation['data_out_shape'] = ctxt.lookup(node.outputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(buffA.shape)
+        self.operatorRepresentation['A_shape'] = buffA.shape
+        self.operatorRepresentation['B_shape'] = buffB.shape
+        self.operatorRepresentation['data_out_shape'] = buffOut.shape
+
+        if self.operatorRepresentation['transA']:
+            N_A, M = buffA.shape[-2:]
+        else:
+            M, N_A = buffA.shape[-2:]
+
+        if self.operatorRepresentation['transB']:
+            O, N_B = buffB.shape[-2:]
+        else:
+            N_B, O = buffB.shape[-2:]
 
         # Store the matrix dimensions in the operator representation
-        self.operatorRepresentation['M'] = ctxt.lookup(
-            node.inputs[0].name).shape[(-2 + self.operatorRepresentation['transA'])]
-        self.operatorRepresentation['N'] = ctxt.lookup(
-            node.inputs[0].name).shape[(-1 - self.operatorRepresentation['transA'])]
-        self.operatorRepresentation['O'] = ctxt.lookup(
-            node.inputs[1].name).shape[(-1 - self.operatorRepresentation['transB'])]
+        self.operatorRepresentation['M'] = M
+        self.operatorRepresentation['N'] = N_A
+        self.operatorRepresentation['O'] = O
 
         # SCHEREMO: Assert that reduction dimension is the same on both matrices
-        ret = ret and (self.operatorRepresentation['N'] == ctxt.lookup(
-            node.inputs[1].name).shape[-2 + self.operatorRepresentation['transB']])
+        ret = ret and N_A == N_B
 
         # Check if the batch dimensions are compatible
-        self.operatorRepresentation['batch_A'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[:-2])
-        self.operatorRepresentation['batch_B'] = np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2])
+        self.operatorRepresentation['batch_A'] = np.prod(buffA.shape[:-2])
+        self.operatorRepresentation['batch_B'] = np.prod(buffB.shape[:-2])
 
         self.operatorRepresentation['batch'] = max(self.operatorRepresentation['batch_A'],
                                                    self.operatorRepresentation['batch_B'])
@@ -1722,10 +1735,10 @@ class MatMulParser(NodeParser):
         ), "Incompatible dimensions for input matrices. Broadcasting not yet supported for dimensions larger than 1 on one of the inputs, or equal dimensions between the 2."
 
         # Create flags for same dimension between each input matrix and the final batch dimension
-        self.operatorRepresentation['A_batched'] = (self.operatorRepresentation['batch'] == np.prod(
-            ctxt.lookup(node.inputs[0].name).shape[:-2]))
+        self.operatorRepresentation['A_batched'] = (
+            self.operatorRepresentation['batch'] == self.operatorRepresentation['batch_A'])
         self.operatorRepresentation['W_batched'] = self.operatorRepresentation['B_batched'] = (
-            self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2]))
+            self.operatorRepresentation['batch'] == self.operatorRepresentation['batch_B'])
 
         return ctxt, ret
 

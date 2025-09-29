@@ -32,13 +32,13 @@ class MatMulTileConstraint(TileConstraint):
         tensorsShapeLen = len(bufferA.shape)
 
         AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transA'])
+                                                  dimIdx = (tensorsShapeLen - 2) + int(parseDict['transA']))
         ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transA'])
+                                                   dimIdx = (tensorsShapeLen - 1) - int(parseDict['transA']))
         BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transB'])
+                                                  dimIdx = (tensorsShapeLen - 2) + int(parseDict['transB']))
         BSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transB'])
+                                                   dimIdx = (tensorsShapeLen - 1) - int(parseDict['transB']))
         outputFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = (tensorsShapeLen - 2))
         outputSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = (tensorsShapeLen - 1))
 

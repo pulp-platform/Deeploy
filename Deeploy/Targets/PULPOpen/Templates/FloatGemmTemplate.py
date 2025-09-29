@@ -20,8 +20,8 @@ for(uint32_t i=0; i<${batch}; i++){
         ${M},
         ${N},
         ${O},
-        ${transA},
-        ${transB}
+        ${int(transA)},
+        ${int(transB)}
     );
 
     ref_${data_out}_${A} += ${M} * ${N};

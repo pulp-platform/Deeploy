@@ -185,10 +185,8 @@ class GEMMChecker(SignPropTypeChecker):
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [
-            2**((self.input_types[0].referencedType.typeWidth) * 2) *
-            inputs[0].shape[-1 - operatorRepresentation['transA']]
-        ]
+        O = inputs[0].shape[-1] if not operatorRepresentation['transA'] else inputs[0].shape[-2]
+        return [2**((self.input_types[0].referencedType.typeWidth) * 2) * O]
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:

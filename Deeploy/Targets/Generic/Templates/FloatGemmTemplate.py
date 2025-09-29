@@ -21,8 +21,8 @@ BEGIN_SINGLE_CORE
             ${M},
             ${N},
             ${O},
-            ${transA},
-            ${transB}
+            ${int(transA)},
+            ${int(transB)}
         );
 
         % if A_batched:
