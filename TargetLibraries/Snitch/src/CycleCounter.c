@@ -41,7 +41,7 @@ void StopTimer() {
   }
   uint32_t const core_id = snrt_global_core_idx();
   timer_end[core_id] = read_csr(mcycle);
-  timer_end[core_id] = read_csr(minstret);
+  instr_end[core_id] = read_csr(minstret);
   running[core_id] = 0;
 }
 
@@ -55,7 +55,6 @@ uint32_t getCycles() {
 }
 
 uint32_t getInstr(void) {
-  // return read_csr(minstret);
   uint32_t const core_id = snrt_global_core_idx();
 
   if (running[core_id]) {
