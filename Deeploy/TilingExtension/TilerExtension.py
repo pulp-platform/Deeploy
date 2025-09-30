@@ -435,7 +435,7 @@ class Tiler():
 
             if not isinstance(ctxt.lookup(tensorName), TransientBuffer):
 
-                tensorShapeLen = len(ctxt.lookup(tensorName).shape)
+                tensorShapeLen = 1 if isinstance(ctxt.lookup(tensorName).shape, int) else len(ctxt.lookup(tensorName).shape)
                 newShape: List[int] = []
 
                 if isinstance(memoryConstraint.size, int):
@@ -446,7 +446,7 @@ class Tiler():
                         newShape.append(
                             self.tilerModel._resolveVariable(tilerModel.getTensorDimVar(tensorName, i, copyIdx)))
 
-                newMemoryConstraint.shape = tuple(newShape)
+                newMemoryConstraint.shape = (newShape,) if isinstance(newShape, int) else tuple(newShape)
 
             solvedTensorConstraint.addMemoryConstraint(newMemoryConstraint)
 

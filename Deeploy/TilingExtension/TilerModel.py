@@ -147,7 +147,7 @@ class TilerModel():
         '''
         tensor = ctxt.lookup(tensorName)
 
-        for idx, dim in enumerate(tensor.shape):
+        for idx, dim in enumerate([tensor.shape,] if isinstance(tensor.shape, int) else tensor.shape):
 
             varName = f"{tensor.name}_dim_{idx}" + self._getSuffix(copyIdx)
 
@@ -170,7 +170,7 @@ class TilerModel():
 
         tensorDimProductExpr = 1
 
-        for idx, _ in enumerate(tensor.shape):
+        for idx, _ in enumerate([tensor.shape,] if isinstance(tensor.shape, int) else tensor.shape):
 
             varNameIdx = f"{tensor.name}_dim_{idx}" + self._getSuffix(copyIdx)
             tensorDimProductExpr *= self._variables[varNameIdx]

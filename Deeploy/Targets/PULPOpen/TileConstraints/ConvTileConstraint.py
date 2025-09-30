@@ -230,6 +230,7 @@ class Conv2DTileConstraint(TileConstraint):
         # Get to-be-tiled tensor's buffers
         inputBufferName = parseDict['data_in']
         weightBufferName = parseDict['weight']
+        biasBufferName = parseDict['bias']
         outputBufferName = parseDict['data_out']
 
         strides = parseDict["strides"]
@@ -237,27 +238,38 @@ class Conv2DTileConstraint(TileConstraint):
         dilation = parseDict["dilations"]
 
         # Add I/O dimensions to the model as variables
-        for bufferName in [inputBufferName, weightBufferName, outputBufferName]:
-            tilerModel.addTensorDimToModel(ctxt, bufferName)
+        for bufferName in [inputBufferName, weightBufferName, biasBufferName, outputBufferName]:
+            if bufferName != "NULL":
+                tilerModel.addTensorDimToModel(ctxt, bufferName)
 
+        # Handle input dimensions
         inputBatchVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 0)
         inputHeightVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 1)
         inputWidthVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 2)
         inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 3)
 
+        # Handle weight dimensions
         weightOutChannelVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 0)
         weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 1)
         weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 2)
         weightInChannelVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 3)
 
+        # Handle bias dimensions
+        if biasBufferName != "NULL":
+            biasChannelVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = 0)
+
+        # Handle output dimensions
         outputBatchVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 0)
         outputHeightVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 1)
         outputWidthVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 2)
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 3)
 
+        # Add constraints to the optimization problem of the tiler model
         # Map output dims to inputs dims
         tilerModel.addConstraint(outputBatchVar == inputBatchVar)  # Batch
         tilerModel.addConstraint(outputChannelVar == weightOutChannelVar)  # Output Channel
+        if biasBufferName != "NULL":
+            tilerModel.addConstraint(outputChannelVar == biasChannelVar)  # Bias
 
         inputBuffer = ctxt.lookup(inputBufferName)
 
@@ -338,8 +350,8 @@ class Conv2DTileConstraint(TileConstraint):
         inputHOffset = max(outputHOffset * strideH - padTop, 0)
         inputWOffset = max(outputWOffset * strideW - padLeft, 0)
 
-        inputHSize = outputHSize * strideH + (kernelShape[0] - 1) - (tilePadTop + tilePadBottom)
-        inputWSize = outputWSize * strideW + (kernelShape[1] - 1) - (tilePadLeft + tilePadRight)
+        inputHSize = (outputHSize - 1) * strideH + kernelShape[0] - (tilePadTop + tilePadBottom)
+        inputWSize = (outputWSize - 1) * strideW + kernelShape[1] - (tilePadLeft + tilePadRight)
 
         InCube = HyperRectangle((outputBatchOffset, inputHOffset, inputWOffset, 0),
                                 (outputBatchSize, inputHSize, inputWSize, inputCSize))
