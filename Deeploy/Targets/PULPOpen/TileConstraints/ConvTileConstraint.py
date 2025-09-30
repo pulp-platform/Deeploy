@@ -141,6 +141,7 @@ class RQConv2DTileConstraint(TileConstraint):
                                                                   operatorRepresentation, addrNames)
 
         varWeight = operatorRepresentation['weight']
+        varIn = operatorRepresentation["data_in"]
         varOut = operatorRepresentation['data_out']
 
         inputInCubes = []
@@ -182,9 +183,14 @@ class RQConv2DTileConstraint(TileConstraint):
             (BatchOffset, HOffset, WOffset, COffset) = cube.offset
             (BatchSize, HSize, WSize, CSize) = cube.dims
 
-            InCube, padding_tuple = Conv2DTileConstraint.computeInputCube((weightH, weightW), pads, strides, weightC,
-                                                                          cube,
-                                                                          ctxt.lookup(varOut).shape)
+            InCube, padding_tuple = Conv2DTileConstraint.computeInputCube(kernelShape = (weightH, weightW),
+                                                                          pads = pads,
+                                                                          strides = strides,
+                                                                          inputCSize = weightC,
+                                                                          outputCube = cube,
+                                                                          inputDims = ctxt.lookup(varIn).shape,
+                                                                          outputDims = ctxt.lookup(varOut).shape)
+
             padding_left, padding_right, padding_top, padding_bottom = padding_tuple
 
             replacements['dim_im_in_x'].append(InCube.dims[1])
@@ -330,7 +336,7 @@ class Conv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def computeInputCube(kernelShape: Tuple[int, int], pads: Tuple[int, int, int, int], strides: Tuple[int, int],
-                         inputCSize: int, outputCube: HyperRectangle,
+                         inputCSize: int, outputCube: HyperRectangle, inputDims: Tuple[int, int, int],
                          outputDims: Tuple[int, int, int]) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
 
         (outputBatchOffset, outputHOffset, outputWOffset, outputCOffset) = outputCube.offset
@@ -350,8 +356,14 @@ class Conv2DTileConstraint(TileConstraint):
         inputHOffset = max(outputHOffset * strideH - padTop, 0)
         inputWOffset = max(outputWOffset * strideW - padLeft, 0)
 
-        inputHSize = (outputHSize - 1) * strideH + kernelShape[0] - (tilePadTop + tilePadBottom)
-        inputWSize = (outputWSize - 1) * strideW + kernelShape[1] - (tilePadLeft + tilePadRight)
+        # Compute input dimensions according to procedure described in PyTorch's Conv2D documentation
+        # Assuming worst case (cutting of (stride - 1) elements at the end of each dimension)
+        inputHSize = outputHSize * strideH + kernelShape[0] - (tilePadTop + tilePadBottom) - 1
+        inputWSize = outputWSize * strideW + kernelShape[1] - (tilePadLeft + tilePadRight) - 1
+
+        # Mitigating all situations other than the worst case assumed earlier
+        inputHSize = min(inputHSize, inputDims[1])
+        inputWSize = min(inputWSize, inputDims[2])
 
         InCube = HyperRectangle((outputBatchOffset, inputHOffset, inputWOffset, 0),
                                 (outputBatchSize, inputHSize, inputWSize, inputCSize))
@@ -370,6 +382,7 @@ class Conv2DTileConstraint(TileConstraint):
                                                                   operatorRepresentation, addrNames)
 
         varWeight = operatorRepresentation['weight']
+        varIn = operatorRepresentation["data_in"]
         varOut = operatorRepresentation['data_out']
 
         inputInCubes = []
@@ -411,6 +424,7 @@ class Conv2DTileConstraint(TileConstraint):
 
             InCube, padding_tuple = Conv2DTileConstraint.computeInputCube((weightH, weightW), pads, strides, weightC,
                                                                           cube,
+                                                                          ctxt.lookup(varIn).shape,
                                                                           ctxt.lookup(varOut).shape)
 
             padding_left, padding_right, padding_top, padding_bottom = padding_tuple

@@ -435,7 +435,8 @@ class Tiler():
 
             if not isinstance(ctxt.lookup(tensorName), TransientBuffer):
 
-                tensorShapeLen = 1 if isinstance(ctxt.lookup(tensorName).shape, int) else len(ctxt.lookup(tensorName).shape)
+                tensorShapeLen = 1 if isinstance(ctxt.lookup(tensorName).shape, int) else len(
+                    ctxt.lookup(tensorName).shape)
                 newShape: List[int] = []
 
                 if isinstance(memoryConstraint.size, int):
