@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+import math
 from collections import OrderedDict
 
 import numpy as np
@@ -164,23 +165,35 @@ class PULPAddRequantMergePass(ReplaceSequentialPatternPass):
 
 
 def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
-    matched_nodes = [m for k, m in match.nodes_map.items()]
-    conv = matched_nodes[0]
-    rqs = matched_nodes[1]
+    conv, rqs = list(match.nodes_map.values())
 
-    totalShift = int(np.log2(rqs.attrs['div'].values))
+    mul, add = rqs.inputs[1:]
 
-    # Artifically add half the shift division value to implement rounding
-    rounding = 2**(totalShift - 1) if totalShift > 0 else 0
+    div_attr = rqs.attrs['div']
+    if isinstance(div_attr, gs.Constant):
+        assert div_attr.values.size == 1
+        div = div_attr.values.item()
+    elif isinstance(div_attr, int):
+        div = div_attr
+    elif isinstance(div_attr, float) and div_attr.is_integer():
+        div = int(div_attr)
+    else:
+        raise ValueError(f"Cannot convert div to integer. Received {div_attr}")
+    shift = int(math.log2(div))
+    # Artifically add half the division value as rounding
+    if shift > 0:
+        add.values += 2**(shift - 1)
 
-    rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + rounding
-
-    _inputs = list(conv.inputs) + list(rqs.inputs[1:])
-
-    _outputs = rqs.outputs
-
-    rqsConv = gs.Node(op = 'RequantizedConv', name = name, attrs = {**conv.attrs, **rqs.attrs, "shift": totalShift})
-    graph.replaceInsertNode(_inputs, _outputs, rqsConv)
+    rqsConv = gs.Node(
+        op = 'RequantizedConv',
+        name = name,
+        attrs = {
+            **conv.attrs,
+            **rqs.attrs,
+            "shift": shift,
+        },
+    )
+    graph.replaceInsertNode(list(conv.inputs) + [mul, add], rqs.outputs, rqsConv)
 
     return graph
 
