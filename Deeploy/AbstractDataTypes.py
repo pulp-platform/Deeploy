@@ -221,7 +221,7 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
 
     @classmethod
     def fitsNumLevels(cls, nLevels: int) -> bool:
-        return nLevels <= (cls.typeMax - cls.typeMin + 1)
+        return nLevels <= cls.nLevels
 
 
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
