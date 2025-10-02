@@ -93,8 +93,7 @@ class MemorySummaryMixin:
 
             total = staticSize + dynamicSize
             memLevels = self.Platform.memoryHierarchy.memoryLevels
-            memLevel = memLevels.get(level) if hasattr(memLevels,
-                                                       "get") else (memLevels[level] if level in memLevels else None)
+            memLevel = memLevels.get(level, None)
             if memLevel is None or getattr(memLevel, "size", None) is None:
                 log.info(f"  {str(level):<20} {'N/A':>10} {total:10,d} "
                          f"({staticSize:10,d} + {dynamicSize:10,d}) "
