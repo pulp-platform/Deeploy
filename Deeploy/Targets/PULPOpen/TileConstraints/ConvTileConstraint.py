@@ -375,18 +375,34 @@ class Conv2DTileConstraint(TileConstraint):
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+
+        # Extract rectangle information (offsets and dimensions) from output cubes
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        addrNames = ['data_in', 'weight', 'data_out']
-        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
-                                                                  operatorRepresentation, addrNames)
-
+        # Extract required component information from operator representation
         varWeight = operatorRepresentation['weight']
+        varBias = operatorRepresentation['bias']
         varIn = operatorRepresentation["data_in"]
         varOut = operatorRepresentation['data_out']
 
+        # Prepare address names, also handling bias
+        if varBias != "NULL":
+            addrNames = ['data_in', 'weight', 'bias', 'data_out']
+        else:
+            addrNames = ['data_in', 'weight', 'data_out']
+
+        # Extract memory base addresses for each of the required components,
+        # based on the computed memory configuration
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
+                                                                  operatorRepresentation, addrNames)
+
+        # Prepare cube lists for components
         inputInCubes = []
         inputWeightCubes = []
+        inputBiasCubes = []
+
+        # Prepare replacement lists for the elements inside the operator representation,
+        # for the cubes to be computed further down in this function
         replacements: Dict[str, List[int]] = {
             "dim_im_in_x": [],
             "dim_im_in_y": [],
@@ -411,24 +427,31 @@ class Conv2DTileConstraint(TileConstraint):
             "padding_x_right": PointerClass(uint8_t)
         }
 
+        # Obtain weight dimensions
         weightH = ctxt.lookup(varWeight).shape[1]
         weightW = ctxt.lookup(varWeight).shape[2]
         weightC = ctxt.lookup(varWeight).shape[3]
 
+        # Obtain padding and striding information
         pads = operatorRepresentation['pads']
         strides = operatorRepresentation['strides']
 
+        # Iterate throught the cubes in which the output will be split for tiling
         for cube in outputCubes:
+            # Obtain current cube offsets and dimensions
             (BatchOffset, HOffset, WOffset, COffset) = cube.offset
             (BatchSize, HSize, WSize, CSize) = cube.dims
 
+            # Compute input cube
             InCube, padding_tuple = Conv2DTileConstraint.computeInputCube((weightH, weightW), pads, strides, weightC,
                                                                           cube,
                                                                           ctxt.lookup(varIn).shape,
                                                                           ctxt.lookup(varOut).shape)
 
+            # Extract individual padding
             padding_left, padding_right, padding_top, padding_bottom = padding_tuple
 
+            # Add element information for the operator representation
             replacements['dim_im_in_x'].append(InCube.dims[1])
             replacements['dim_im_in_y'].append(InCube.dims[2])
             replacements['dim_im_out_x'].append(HSize)
@@ -440,21 +463,37 @@ class Conv2DTileConstraint(TileConstraint):
             replacements['padding_x_left'].append(padding_left)
             replacements['padding_x_right'].append(padding_right)
 
+            # Add input cube with tiling information to the corresponding list
             inputInCubes.append(InCube)
 
+            # Obtain and add weight cube with tiling information to the corresponding list
             WeightCube = HyperRectangle((COffset, 0, 0, 0), (CSize, weightH, weightW, weightC))
-
             inputWeightCubes.append(WeightCube)
 
+            # Obtain and add bias cube with tiling information to the corresponding list,
+            # if bias exists
+            if varBias != "NULL":
+                BiasCube = HyperRectangle((COffset,), (CSize,))
+                inputBiasCubes.append(BiasCube)
+
+        # Prepare loading schedule lists
         inputLoadSchedule = []
         outputLoadSchedule = []
 
-        for a, b in zip(inputInCubes, inputWeightCubes):
-            inputLoadSchedule.append({"data_in": a, "weight": b})
+        # Create input schedule lists, with bias handling
+        if varBias == "NULL":
+            for a, b in zip(inputInCubes, inputWeightCubes):
+                inputLoadSchedule.append({"data_in": a, "weight": b})
+        else:
+            for a, b, c in zip(inputInCubes, inputWeightCubes, inputBiasCubes):
+                inputLoadSchedule.append({"data_in": a, "weight": b, "bias": c})
 
+        # Create output schedule list
         for out in outputCubes:
             outputLoadSchedule.append({"data_out": out})
 
+        # Prepare containing objects with information computed in this function regarding tiling schedule
+        # and variable replacement inside operator representation
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
 
