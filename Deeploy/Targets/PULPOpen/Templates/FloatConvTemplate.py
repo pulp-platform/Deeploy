@@ -48,7 +48,7 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, str]]:
 
-        # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
+        # Memory allocation for the im2col buffer is dynamic, based on the number of cores.
         # WARNING: This works because value is only used as string, in the allocate template.
         im2col_dim = (operatorRepresentation["weight_type"].typeWidth // 8
                      ) * ctxt.n_cores * operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']
