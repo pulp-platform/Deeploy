@@ -134,7 +134,7 @@ class MemoryLevelAwareDeployer(NetworkDeployer, MemorySummaryMixin):
         newCtxt, parsePass = super()._parseNode(node, ctxt, default_channels_first)
 
         if not parsePass:
-            return newCtxt, False
+            return ctxt, False
 
         newCtxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(newCtxt, self.graph)
 
