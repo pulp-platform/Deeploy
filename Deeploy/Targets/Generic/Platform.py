@@ -142,17 +142,19 @@ class GenericStructBuffer(StructBuffer):
     deallocTemplate = NodeTemplate("")
 
 
-GenericOptimizer = TopologyOptimizer([
-    QuantPatternPass(),
-    DequantPatternPass(),
-    iGELURequantMergePass(),
-    MatMulAddMergePass(),
-    MergeConstAddAndRequantPass(),
-    ExtractPaddingFromConvPass(),
-    ExtractPaddingFromPoolPass(),
-    RemoveEmptyConvBiasPass(),
-    # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
-])
+GenericOptimizer = TopologyOptimizer(
+    [
+        QuantPatternPass(),
+        DequantPatternPass(),
+        iGELURequantMergePass(),
+        MatMulAddMergePass(),
+        MergeConstAddAndRequantPass(),
+        ExtractPaddingFromConvPass(),
+        ExtractPaddingFromPoolPass(),
+        RemoveEmptyConvBiasPass(),
+        # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
+    ],
+    name = "GenericOptimizer")
 
 includeList = ["DeeployBasicMath.h"]
 

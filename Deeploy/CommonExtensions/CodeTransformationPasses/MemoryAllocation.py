@@ -122,13 +122,31 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
         for buffer in reversed(self.topologicallySortBuffers(outputs + transients)):
             assert buffer._live == False, f"Tried to allocate already live buffer {buffer.name}"
             buffer._live = True
+
+            memoryLevel = "None" if not hasattr(buffer, "_memoryLevel") else buffer._memoryLevel
+            if memoryLevel not in ctxt._dynamicSize:
+                ctxt._dynamicSize[memoryLevel] = int(buffer.sizeInBytes())
+            else:
+                ctxt._dynamicSize[memoryLevel] += int(buffer.sizeInBytes())
+
             executionBlock.addLeft(buffer.allocTemplate, buffer._bufferRepresentation())
+
+        for levels in ctxt._dynamicSize.keys():
+            if levels not in ctxt._maxDynamicSize:
+                ctxt._maxDynamicSize[levels] = max(0, ctxt._dynamicSize[levels])
+            else:
+                ctxt._maxDynamicSize[levels] = max(ctxt._maxDynamicSize.get(levels, 0), ctxt._dynamicSize[levels])
 
         for buffer in inputs + transients:
             assert buffer._live == True, f"Tried to deallocate already dead buffer {buffer.name}"
             buffer._live = False
             # Don't deallocate if it's an alias of a live buffer
             if not buffer.has_live_ancestors(ctxt = ctxt):
+                memoryLevel = "None" if not hasattr(buffer, "_memoryLevel") else buffer._memoryLevel
+                if memoryLevel not in ctxt._dynamicSize:
+                    ctxt._dynamicSize[memoryLevel] = 0
+                else:
+                    ctxt._dynamicSize[memoryLevel] -= int(buffer.sizeInBytes())
                 executionBlock.addRight(buffer.deallocTemplate, buffer._bufferRepresentation())
 
         return ctxt, executionBlock
@@ -157,10 +175,30 @@ class MemoryPassthroughGeneration(MemoryManagementGeneration):
 
         for buffer in outputs + transients:
             assert buffer._live == False, f"Tried to allocate already live buffer {buffer.name}"
+
+            memoryLevel = "None" if not hasattr(buffer, "_memoryLevel") else buffer._memoryLevel
+            if memoryLevel not in ctxt._dynamicSize:
+                ctxt._dynamicSize[memoryLevel] = int(buffer.sizeInBytes())
+            else:
+                ctxt._dynamicSize[memoryLevel] += int(buffer.sizeInBytes())
+
             buffer._live = True
+
+        for levels in ctxt._dynamicSize.keys():
+            if levels not in ctxt._maxDynamicSize:
+                ctxt._maxDynamicSize[levels] = max(0, ctxt._dynamicSize[levels])
+            else:
+                ctxt._maxDynamicSize[levels] = max(ctxt._maxDynamicSize.get(levels, 0), ctxt._dynamicSize[levels])
 
         for buffer in inputs + transients:
             assert buffer._live == True, f"Tried to deallocate already dead buffer {buffer.name}"
+
+            memoryLevel = "None" if not hasattr(buffer, "_memoryLevel") else buffer._memoryLevel
+            if memoryLevel not in ctxt._dynamicSize:
+                ctxt._dynamicSize[memoryLevel] = 0
+            else:
+                ctxt._dynamicSize[memoryLevel] -= int(buffer.sizeInBytes())
+
             buffer._live = False
 
         return ctxt, executionBlock

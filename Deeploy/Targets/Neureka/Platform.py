@@ -18,7 +18,7 @@ from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlat
 NeurekaOptimizer = TopologyOptimizer([
     *PULPOptimizer.passes,
     RequantizedGemmToPwPass(),
-])
+], name = "NeurekaOptimizer")
 
 
 class NeurekaConstantBuffer(ConstantBuffer):

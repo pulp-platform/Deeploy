@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Refactor Logging for Improved Debugging [#115](https://github.com/pulp-platform/Deeploy/pull/115)
 - Add reuse-tool as an SPDX license header linter [#113](https://github.com/pulp-platform/Deeploy/pull/113)
 - Bug fixes, API Cleanup and Reduce Compiler Warning on PULP [#112](https://github.com/pulp-platform/Deeploy/pull/112)
 - Fix PULP GEMM `batch` serialization [#109](https://github.com/pulp-platform/Deeploy/pull/109)
@@ -39,6 +40,11 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Reshape operator support for PULP (`ReshapeTemplate` in bindings)
 - Missing class attributes in `Closure.py`
 - reuse_skip_wrapper.py to manually skip files
+- Centralized logging with `DEFAULT_LOGGER`, replacing `print` statements
+- Debug logs for type checking/parsing; `__repr__` for core classes
+- Buffer utilities: `checkNumLevels` validation and `sizeInBytes` method
+- Per–memory-level usage tracking and worst-case reporting in `NetworkContext`
+- Memory/I/O summaries and input/output logging in deployers
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -65,6 +71,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed unnecessary includes from the PULP platform header list, such as `DeeployBasicMath.h`, for cleaner code generation
 - Changed types and added correct casts to fix many compiler warnings in the PULP target library
 - Use [reuse-tool](https://github.com/fsfe/reuse-tool) in pre-commit, CI, and Makefile for SPDX license header linting
+- Deployer workflow now uses `prepare(...)` instead of `generateFunction(...)`.
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon

@@ -29,6 +29,7 @@ dependencies = [
 'pytest',
 'ortools',
 'plotly',
+'coloredlogs'
 ]
 
 [project.urls]

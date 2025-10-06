@@ -123,18 +123,20 @@ class CMSISStructBuffer(StructBuffer):
 
 
 # ExtractPaddingFromConvPass(),ExtractPaddingFromPoolPass(),
-CMSISOptimizer = TopologyOptimizer([
-    IntegerDivRequantMergePass(),
-    iGELURequantMergePass(),
-    LinearAttentionAlignmentPass(),
-    MHSAAlignmentPass(),
-    MergeConstAddAndRequantPass(),
-    ConvRequantMergePass(),
-    GEMMRequantMergePass(),
-    MatMulRequantMergePass(),
-    # DebugPass("Conv", position='before'),
-    # DebugPass("Pad", position='after'),
-])
+CMSISOptimizer = TopologyOptimizer(
+    [
+        IntegerDivRequantMergePass(),
+        iGELURequantMergePass(),
+        LinearAttentionAlignmentPass(),
+        MHSAAlignmentPass(),
+        MergeConstAddAndRequantPass(),
+        ConvRequantMergePass(),
+        GEMMRequantMergePass(),
+        MatMulRequantMergePass(),
+        # DebugPass("Conv", position='before'),
+        # DebugPass("Pad", position='after'),
+    ],
+    name = "CMSISOptimizer")
 
 includeList = ["arm_nnfunctions.h", "DeeployMath.h"]
 

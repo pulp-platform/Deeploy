@@ -163,22 +163,24 @@ class MemPoolStructBuffer(StructBuffer):
     deallocTemplate = NodeTemplate("")
 
 
-MemPoolOptimizer = TopologyOptimizer([
-    MemPoolFuseMHSAPass(H = 8, bias = False, preSoftMaxRQ = True, integerDiv = False),
-    MemPoolFuseMHSAPass(H = 1, bias = False, preSoftMaxRQ = True, integerDiv = False),
-    MemPoolFuseMHSAPass(H = -1, bias = False, preSoftMaxRQ = True, integerDiv = False),
-    MemPoolFuseMHSAPass(H = -1, bias = True, preSoftMaxRQ = True, integerDiv = False),
-    MemPoolSplitMHSAPass(),
-    iGELURequantMergePass(),
-    MatMulAddMergePass(),
-    SplitAddPass(),
-    MergeConstAddAndRequantPass(),
-    MemPoolMatMulRequantMergePass(),
-    MemPoolGEMMRequantMergePass(),
-    ExtractPaddingFromConvPass(),
-    ExtractPaddingFromPoolPass(),
-    # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
-])
+MemPoolOptimizer = TopologyOptimizer(
+    [
+        MemPoolFuseMHSAPass(H = 8, bias = False, preSoftMaxRQ = True, integerDiv = False),
+        MemPoolFuseMHSAPass(H = 1, bias = False, preSoftMaxRQ = True, integerDiv = False),
+        MemPoolFuseMHSAPass(H = -1, bias = False, preSoftMaxRQ = True, integerDiv = False),
+        MemPoolFuseMHSAPass(H = -1, bias = True, preSoftMaxRQ = True, integerDiv = False),
+        MemPoolSplitMHSAPass(),
+        iGELURequantMergePass(),
+        MatMulAddMergePass(),
+        SplitAddPass(),
+        MergeConstAddAndRequantPass(),
+        MemPoolMatMulRequantMergePass(),
+        MemPoolGEMMRequantMergePass(),
+        ExtractPaddingFromConvPass(),
+        ExtractPaddingFromPoolPass(),
+        # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
+    ],
+    name = "MemPoolOptimizer")
 
 includeList = ["DeeployMath.h", "runtime.h", "synchronization.h"]
 

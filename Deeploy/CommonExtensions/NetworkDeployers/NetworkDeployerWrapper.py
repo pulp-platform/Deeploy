@@ -75,3 +75,9 @@ class NetworkDeployerWrapper(NetworkDeployer):
     # MultiEngineDeployer augment
     def _mapNode(self, node: gs.Node) -> Union[ONNXLayer, Any]:
         return self._innerObject._mapNode(node)
+
+    def _printMemorySummary(self):
+        return self._innerObject._printMemorySummary()
+
+    def _printInputOutputSummary(self):
+        return self._innerObject._printInputOutputSummary()

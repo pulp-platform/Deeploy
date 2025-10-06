@@ -91,7 +91,7 @@ class SoftHierStructBuffer(StructBuffer):
     deallocTemplate = NodeTemplate("")
 
 
-SoftHierOptimizer = TopologyOptimizer([])
+SoftHierOptimizer = TopologyOptimizer([], name = "SoftHierOptimizer")
 includeList = ["DeeployBasicMath.h", "flex_alloc_api.h"]
 
 

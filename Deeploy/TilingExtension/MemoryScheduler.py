@@ -553,7 +553,7 @@ class MemoryScheduler():
                     if memoryLevel.name == infoDict['memoryLevel']:
                         sumExpr += infoDict['sizeVar'] * infoDict['typeWidthFactor'] * infoDict['multiBufferCoeff']
                 if sumExpr != 0:
-                    tilerModel.addConstraint(sumExpr + constantTensorOffset <= memoryLevel.size)
+                    tilerModel.addConstraint(sumExpr + constantTensorOffset, memoryLevel = memoryLevel)
 
     def getSymbolicCostName(self, patternIdx: int, memoryLevel: str) -> str:
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"

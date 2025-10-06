@@ -8,6 +8,7 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
+from Deeploy.Logging import DEFAULT_LOGGER as log
 
 
 class SignPropDeployer(NetworkDeployer):
@@ -41,3 +42,16 @@ class SignPropDeployer(NetworkDeployer):
             nb.nLevels = (2**data_type.referencedType.typeWidth)
 
         return ctxt
+
+    def _printInputOutputSummary(self):
+        log.info('Input:')
+        for buf in self.inputs():
+            log.info(
+                f" - '{buf.name}': Type: {buf._type.referencedType.typeName}, nLevels: {buf.nLevels}, Signed: {buf._signed}, Offset: {self.inputOffsets[buf.name]}"
+            )
+
+        log.info('Output:')
+        for buf in self.outputs():
+            log.info(
+                f" - '{buf.name}': Type: {buf._type.referencedType.typeName}, nLevels: {buf.nLevels}, Signed: {buf._signed}"
+            )

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import logging
 from dataclasses import dataclass
 from pprint import pformat
 from typing import Dict, List, Literal, Optional, Tuple, Union
@@ -10,6 +11,7 @@ import numpy as np
 from ortools.constraint_solver.pywrapcp import IntExpr, IntVar, SolutionCollector, Solver
 
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
+from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryLevel
 
 _COPYIDXSUFFIX = "_copyIdx_"
@@ -102,6 +104,10 @@ class TilerModel():
                       constraintExpression: IntExpr,
                       memoryLevel: Optional[MemoryLevel] = None,
                       strategy: Optional[AddConstraintStrategy] = None):
+        # Skip TrueConstraints
+        if constraintExpression.DebugString() == "TrueConstraint()":
+            return
+
         if isinstance(strategy, PerformanceHint):
             if memoryLevel is None:
                 self._performanceConstraints.append((strategy.priority, constraintExpression))
@@ -382,9 +388,13 @@ class TilerModel():
 
         timeLimit = self._model.TimeLimit(_SOLVERTIMEOUT)
 
-        log = self._model.SearchLog(1000000)
+        log.debug(" - Solve Constraint Model")
 
-        _ = self._model.Solve(decisionBuilder, [objective, collector, log, timeLimit])
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            searchLog = self._model.SearchLog(1000000)
+            _ = self._model.Solve(decisionBuilder, [objective, collector, searchLog, timeLimit])
+        else:
+            _ = self._model.Solve(decisionBuilder, [objective, collector, None, timeLimit])
 
         assert collector.SolutionCount() > 0, "Error in Tiler: No solution found"
 

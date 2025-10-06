@@ -21,6 +21,8 @@ _StructType = TypeVar("Struct", bound = "Struct")
 _DeeployType = TypeVar("_DeeployType", _PointerType, _ImmediateType, _StructType)
 _PythonType = TypeVar("_PythonType", str, int, float, Dict[str, "_PythonType"], Iterable["_PythonType"])
 
+from Deeploy.Logging import DEFAULT_LOGGER as log
+
 
 class _ClassPropertyDescriptor(object):
 
@@ -188,6 +190,10 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
         else:
             return 0
 
+    @_classproperty
+    def nLevels(cls) -> int:
+        return cls.typeMax - cls.typeMin + 1
+
     @classmethod
     def partialOrderUpcast(cls, otherCls: Type[Immediate]) -> bool:
         if issubclass(otherCls, IntegerImmediate):
@@ -212,6 +218,10 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
         if _min < cls.typeMin:
             return False
         return True
+
+    @classmethod
+    def fitsNumLevels(cls, nLevels: int) -> bool:
+        return nLevels <= cls.nLevels
 
 
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
@@ -308,7 +318,7 @@ class Pointer(BaseType[Optional[str], _PointerType]):
             return False
 
         if value is None or value == "NULL":
-            print("WARNING: Setting pointer value to NULL - Referenced data is invalid!")
+            log.warning("Setting pointer value to NULL - Referenced data is invalid!")
             return True
 
         reference = ctxt.lookup(value)
@@ -331,6 +341,10 @@ class Pointer(BaseType[Optional[str], _PointerType]):
         else:
             value = _value
         return cls.checkValue(value, ctxt)
+
+    @classmethod
+    def fitsNumLevels(cls, nLevels: int) -> bool:
+        return cls.referencedType.fitsNumLevels(nLevels)
 
     def __init__(self, _value: Union[Optional[str], Pointer], ctxt: Optional[_NetworkContext] = None):
         """Initializes a pointer to a registered object in the NetworkContext
