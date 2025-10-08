@@ -443,10 +443,13 @@ class Conv2DTileConstraint(TileConstraint):
             (BatchSize, HSize, WSize, CSize) = cube.dims
 
             # Compute input cube
-            InCube, padding_tuple = Conv2DTileConstraint.computeInputCube((weightH, weightW), pads, strides, weightC,
-                                                                          cube,
-                                                                          ctxt.lookup(varIn).shape,
-                                                                          ctxt.lookup(varOut).shape)
+            InCube, padding_tuple = Conv2DTileConstraint.computeInputCube(kernelShape = (weightH, weightW),
+                                                                          pads = pads,
+                                                                          strides = strides,
+                                                                          inputCSize = weightC,
+                                                                          outputCube = cube,
+                                                                          inputDims = ctxt.lookup(varIn).shape,
+                                                                          outputDims = ctxt.lookup(varOut).shape)
 
             # Extract individual padding
             padding_left, padding_right, padding_top, padding_bottom = padding_tuple
