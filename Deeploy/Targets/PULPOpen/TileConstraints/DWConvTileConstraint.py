@@ -9,7 +9,7 @@ from ortools.constraint_solver.pywrapcp import IntVar
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import uint8_t, uint16_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
-from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
@@ -246,6 +246,7 @@ class DWConv2DTileConstraint(TileConstraint):
         # Get to-be-tiled tensor's buffers
         inputBufferName = parseDict['data_in']
         weightBufferName = parseDict['weight']
+        biasBufferName = parseDict['bias']
         outputBufferName = parseDict['data_out']
 
         strides = parseDict["strides"]
@@ -253,20 +254,27 @@ class DWConv2DTileConstraint(TileConstraint):
         group = parseDict["group"]
 
         # Add I/O dimensions to the model as variables
-        for bufferName in [inputBufferName, weightBufferName, outputBufferName]:
-            tilerModel.addTensorDimToModel(ctxt, bufferName)
+        for bufferName in [inputBufferName, weightBufferName, biasBufferName, outputBufferName]:
+            if bufferName != "NULL":
+                tilerModel.addTensorDimToModel(ctxt, bufferName)
 
+        # Input
         # NHWC layout
         inputBatchVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 0)
         inputHeightVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 1)
         inputWidthVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 2)
         inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 3)
 
+        # Weight
         # C_out - C_in - H - W layout (depthwise convolution weights,
         # with c_in used for grouping different than number of channels)
         weightOutChannelVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 0)
         weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 2)
         weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 3)
+
+        # Bias
+        if biasBufferName != "NULL":
+            biasDimVar = tilerModel.getTensorDimVar(tensorName=biasBufferName, dimIdx=0)
 
         # NHWC layout
         outputBatchVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 0)
@@ -278,6 +286,9 @@ class DWConv2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(outputBatchVar == inputBatchVar)  # Batch
         tilerModel.addConstraint(outputChannelVar == weightOutChannelVar)  # Output Channel
         tilerModel.addConstraint(outputChannelVar == (inputChannelVar * group))  # Input Channel
+
+        if biasBufferName != "NULL":
+            tilerModel.addConstraint(biasDimVar == weightOutChannelVar)
 
         # Check output height and width sizes
         inputBuffer = ctxt.lookup(inputBufferName)
@@ -292,10 +303,15 @@ class DWConv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        biasBufferName = parseDict['bias']
+
         # Get to-be-tiled tensor's buffers and variables
         inputBuffer = ctxt.lookup(name = parseDict['data_in'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
         weightBuffer = ctxt.lookup(name = parseDict['weight'])
+        
+        if biasBufferName != "NULL":
+            biasBuffer = ctxt.lookup(name = parseDict['bias'])
 
         # NHWC layout
         outputHeightVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = 1)
@@ -313,6 +329,10 @@ class DWConv2DTileConstraint(TileConstraint):
         weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 2)
         weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 3)
 
+        # Bias
+        if biasBufferName != "NULL":
+            biasDim = tilerModel.getTensorDimVar(tensorName=biasBuffer.name, dimIdx=0)
+
         # Workaround tiling issue with non-wordaligned accesses
         if "L3" in ctxt.lookup(parseDict['data_in'])._memoryLevel:
             tilerModel.addTileSizeDivisibleConstraint(parseDict, 'ch_im_in', inputChannelVar, 4)
@@ -327,6 +347,10 @@ class DWConv2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(weightWidthVar == parseDict['dim_kernel_y'])
         tilerModel.addConstraint(weightInChannel * group == parseDict['ch_im_in'])
         tilerModel.addConstraint(weightOutChannel == parseDict['ch_im_out'])
+
+        # Check bias dimension
+        if biasBufferName != "NULL":
+            tilerModel.addConstraint(biasDim == parseDict["ch_im_out"])
 
         # Constraint the minimum tile size such that we can apply at least one kernel on it
         # Account for padding
@@ -349,9 +373,9 @@ class DWConv2DTileConstraint(TileConstraint):
         weightBuffer = ctxt.lookup(name = parseDict['weight'])
 
         symbolicParseDict = parseDict.copy()
-        symbolicParseDict['ch_im_in'] = tilerModel.getTensorDimVar(inputBuffer.name, 1)
-        symbolicParseDict['dim_kernel_x'] = tilerModel.getTensorDimVar(weightBuffer.name, 1)
-        symbolicParseDict['dim_kernel_y'] = tilerModel.getTensorDimVar(weightBuffer.name, 2)
+        symbolicParseDict['ch_im_in'] = tilerModel.getTensorDimVar(inputBuffer.name, 3)
+        symbolicParseDict['dim_kernel_x'] = tilerModel.getTensorDimVar(weightBuffer.name, 2)
+        symbolicParseDict['dim_kernel_y'] = tilerModel.getTensorDimVar(weightBuffer.name, 3)
 
         return symbolicParseDict
 
@@ -365,12 +389,16 @@ class DWConv2DTileConstraint(TileConstraint):
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         # Extract required component information from operator representation
-        varWeight = operatorRepresentation['weight']
         varIn = operatorRepresentation['data_in']
+        varWeight = operatorRepresentation['weight']
+        varBias = operatorRepresentation['bias']
         varOut = operatorRepresentation['data_out']
 
         # Prepare address names, also handling bias
-        addrNames = ['data_in', 'weight', 'data_out']
+        if varBias != "NULL":
+            addrNames = ['data_in', 'weight', 'bias', 'data_out']
+        else:
+            addrNames = ['data_in', 'weight', 'data_out']
 
         # Extract memory base addresses for each of the required components,
         # based on the computed memory configuration
@@ -380,6 +408,7 @@ class DWConv2DTileConstraint(TileConstraint):
         # Prepare cube lists for components
         inputInCubes = []
         inputWeightCubes = []
+        inputBiasCubes = []
 
         # Prepare replacement lists for the elements inside the operator representation,
         # for the cubes to be computed further down in this function
@@ -463,13 +492,23 @@ class DWConv2DTileConstraint(TileConstraint):
             inputInCubes.append(InCube)
             inputWeightCubes.append(WeightCube)
 
+            # Obtain and add bias cube with tiling information to the corresponding list,
+            # if bias exists
+            if varBias != "NULL":
+                BiasCube = HyperRectangle((COffset,), (CSize,))
+                inputBiasCubes.append(BiasCube)
+
         # Prepare loading schedule lists
         inputLoadSchedule = []
         outputLoadSchedule = []
 
         # Create input schedule lists, with bias handling
-        for a, b in zip(inputInCubes, inputWeightCubes):
-            inputLoadSchedule.append({"data_in": a, "weight": b})
+        if varBias == "NULL":
+            for a, b in zip(inputInCubes, inputWeightCubes):
+                inputLoadSchedule.append({"data_in": a, "weight": b})
+        else:
+            for a, b, c in zip(inputInCubes, inputWeightCubes, inputBiasCubes):
+                inputLoadSchedule.append({"data_in": a, "weight": b, "bias": c})
 
         # Create output schedule list
         for out in outputCubes:

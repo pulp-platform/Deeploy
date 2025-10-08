@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Optional
 
 from ortools.constraint_solver.pywrapcp import IntVar
 
@@ -336,8 +336,8 @@ class Conv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def computeInputCube(kernelShape: Tuple[int, int], pads: Tuple[int, int, int, int], strides: Tuple[int, int],
-                         inputCSize: int, outputCube: HyperRectangle, inputDims: Tuple[int, int, int],
-                         outputDims: Tuple[int, int, int]) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
+                         inputCSize: int, outputCube: HyperRectangle,
+                         outputDims: Tuple[int, int, int], inputDims: Optional[Tuple[int, int, int]] = None) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
 
         (outputBatchOffset, outputHOffset, outputWOffset, outputCOffset) = outputCube.offset
         (outputBatchSize, outputHSize, outputWSize, outputCSize) = outputCube.dims
@@ -356,14 +356,19 @@ class Conv2DTileConstraint(TileConstraint):
         inputHOffset = max(outputHOffset * strideH - padTop, 0)
         inputWOffset = max(outputWOffset * strideW - padLeft, 0)
 
-        # Compute input dimensions according to procedure described in PyTorch's Conv2D documentation
-        # Assuming worst case (cutting of (stride - 1) elements at the end of each dimension)
-        inputHSize = outputHSize * strideH + kernelShape[0] - (tilePadTop + tilePadBottom) - 1
-        inputWSize = outputWSize * strideW + kernelShape[1] - (tilePadLeft + tilePadRight) - 1
+        if inputDims is not None:
+            # Compute input dimensions according to procedure described in PyTorch's Conv2D documentation
+            # Assuming worst case (cutting of (stride - 1) elements at the end of each dimension)
+            inputHSize = outputHSize * strideH + kernelShape[0] - (tilePadTop + tilePadBottom) - 1
+            inputWSize = outputWSize * strideW + kernelShape[1] - (tilePadLeft + tilePadRight) - 1
 
-        # Mitigating all situations other than the worst case assumed earlier
-        inputHSize = min(inputHSize, inputDims[1])
-        inputWSize = min(inputWSize, inputDims[2])
+            # Mitigating all situations other than the worst case assumed earlier
+            inputHSize = min(inputHSize, inputDims[1])
+            inputWSize = min(inputWSize, inputDims[2])
+        else:
+            # Use previous version, compatible with RQ layers
+            inputHSize = outputHSize * strideH + (kernelShape[0] - 1) - (tilePadTop + tilePadBottom)
+            inputWSize = outputWSize * strideW + (kernelShape[1] - 1) - (tilePadLeft + tilePadRight)
 
         InCube = HyperRectangle((outputBatchOffset, inputHOffset, inputWOffset, 0),
                                 (outputBatchSize, inputHSize, inputWSize, inputCSize))
