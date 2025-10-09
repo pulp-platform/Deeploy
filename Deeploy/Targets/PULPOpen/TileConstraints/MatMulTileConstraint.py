@@ -20,41 +20,57 @@ class MatMulTileConstraint(TileConstraint):
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
-        # Get to-be-tiled tensor's buffers
+        # Get to-be-tiled tensor's buffers and other necessary information
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
 
+        tensorsShapeLenA = len(bufferA.shape)
+        tensorsShapeLenB = len(bufferB.shape)
+        tensorsShapeLenOutput = len(outputBuffer.shape)
+
         # Add I/O dimensions to the model as variables
+        # Checks on wether dimesnions are reversed via the transA and transB flags
         for _buffer in [bufferA, bufferB, outputBuffer]:
             tilerModel.addTensorDimToModel(ctxt, _buffer.name)
 
-        tensorsShapeLen = len(bufferA.shape)
-
+        #   A dims
         AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transA'])
+                                                  dimIdx = (tensorsShapeLenA - 2) + parseDict['transA'])
         ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transA'])
+                                                   dimIdx = (tensorsShapeLenA - 1) - parseDict['transA'])
+
+        #   B dims
         BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transB'])
+                                                  dimIdx = (tensorsShapeLenB - 2) + parseDict['transB'])
         BSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transB'])
-        outputFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = (tensorsShapeLen - 2))
-        outputSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = (tensorsShapeLen - 1))
+                                                   dimIdx = (tensorsShapeLenB - 1) - parseDict['transB'])
 
-        # Map output dims to inputs dims
-        for idx in range(tensorsShapeLen - 2):
-            tilerModel.addConstraint(
-                tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = idx) == tilerModel.getTensorDimVar(
-                    tensorName = bufferA.name, dimIdx = idx))
-            tilerModel.addConstraint(
-                tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = idx) == tilerModel.getTensorDimVar(
-                    tensorName = bufferB.name, dimIdx = idx))
+        #   Output dims
+        outputFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
+                                                       dimIdx = (tensorsShapeLenOutput - 2))
+        outputSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
+                                                        dimIdx = (tensorsShapeLenOutput - 1))
 
+        # Add broadcasting geometrical constraints
+        for idx in range(tensorsShapeLenA - 2):
+            tilerModel.addConstraint(
+                (tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = (tensorsShapeLenA - idx - 3))
+                 == tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
+                                               dimIdx = (tensorsShapeLenOutput - idx - 3)))
+                or (tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = (tensorsShapeLenA - idx - 3)) == 1))
+
+        for idx in range(tensorsShapeLenB - 2):
+            tilerModel.addConstraint(
+                (tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = (tensorsShapeLenB - idx - 3))
+                 == tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
+                                               dimIdx = (tensorsShapeLenOutput - idx - 3)))
+                or (tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = (tensorsShapeLenB - idx - 3)) == 1))
+
+        # Add GEMM geometrical constraints
         tilerModel.addConstraint(outputFirstDimVar == AFirstDimVar)
         tilerModel.addConstraint(outputSecondDimVar == BSecondDimVar)
 
-        # Add GEMM Geometrical constraints
         tilerModel.addConstraint(ASecondDimVar == BFirstDimVar)
 
         return tilerModel
@@ -62,17 +78,17 @@ class MatMulTileConstraint(TileConstraint):
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
+        # Get input buffers and other required information
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
 
         tensorsShapeLen = len(bufferA.shape)
 
+        # Get dimensions of interest from the 2 inputs
         ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
                                                    dimIdx = (tensorsShapeLen - 1) - parseDict['transA'])
         BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
                                                   dimIdx = (tensorsShapeLen - 2) + parseDict['transB'])
-        BSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transB'])
 
         # VIC: We don't want to deal with intermediate results between kernel calls
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])
@@ -85,28 +101,39 @@ class MatMulTileConstraint(TileConstraint):
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+        # Get output cubes
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
+        # Get names, optimizer variables, buffers, and other information for elements of interest
         addrNames = ['A', 'B', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
         buffA = ctxt.lookup(operatorRepresentation['A'])
         buffB = ctxt.lookup(operatorRepresentation['B'])
+        buffOut = ctxt.lookup(operatorRepresentation['data_out'])
+
+        tensorsShapeLenA = len(buffA.shape)
+        tensorsShapeLenB = len(buffB.shape)
+        tensorsShapeOutput = len(buffOut.shape)
 
         NSize = buffA.shape[-1]
         NOffset = 0
 
+        # Prepare input cubes lists
         inputACubes = []
         inputBCubes = []
 
+        # Prepare replacements lists
         replacements = {"M": [], "O": [], "batch": []}
 
         # Every output is constructed by a pair of inputs. Reconstruct this pair.
         for cube in outputCubes:
+            # Get output dimensions
             MOffset, OOffset = cube.offset[-2:]
             MSize, OSize = cube.dims[-2:]
 
+            # Check that batch tiling is set up properly
             if len(cube.offset) > 2:
                 BatchSize = math.prod(cube.dims[:-2])
 
@@ -117,35 +144,60 @@ class MatMulTileConstraint(TileConstraint):
             else:
                 BatchSize = 1
 
+            # Prepare cube dimensions replacements
             replacements["M"].append(MSize)
             replacements["O"].append(OSize)
             replacements["batch"].append(BatchSize)
 
+            # Compute A cube information
+            #   Matrix offsets and shape
             AMatrixOffsets = (MOffset, NOffset)
             AMatrixShape = (MSize, NSize)
 
-            if len(buffA.shape) > 2:
-                batchDimCount = len(buffA.shape) - 2
-                AMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + AMatrixOffsets
-                AMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + AMatrixShape
+            #   Batch offset and shape (with broadcasting handling)
+            ABatchOffsets = list()
+            ABatchShape = list()
 
-            ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
+            for idx in range(tensorsShapeLenA - 2):
+                if buffA.shape[tensorsShapeLenA - 3 - idx] == buffOut.shape[tensorsShapeOutput - 3 - idx]:
+                    ABatchOffsets.append(cube.offset[len(cube.offset) - 3 - idx])
+                    ABatchShape.append(cube.dims[len(cube.dims) - 3 - idx])
+                else:
+                    ABatchOffsets.append(0)
+                    ABatchShape.append(1)
+
+            ACube = HyperRectangle(
+                tuple(reversed(ABatchOffsets)) + tuple(AMatrixOffsets),
+                tuple(reversed(ABatchShape)) + tuple(AMatrixShape))
             inputACubes.append(ACube)
 
+            # Compute B cube information
+            #   Matrix offsets and shape
             BMatrixOffsets = (NOffset, OOffset)
             BMatrixShape = (NSize, OSize)
 
-            if len(buffB.shape) > 2:
-                batchDimCount = len(buffB.shape) - 2
-                BMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + BMatrixOffsets
-                BMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + BMatrixShape
+            #   Batch offset and shape (with broadcasting handling)
+            BBatchOffsets = list()
+            BBatchShape = list()
 
-            BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
+            for idx in range(tensorsShapeLenB - 2):
+                if buffB.shape[tensorsShapeLenB - 3 - idx] == buffOut.shape[tensorsShapeOutput - 3 - idx]:
+                    BBatchOffsets.append(cube.offset[len(cube.offset) - 3 - idx])
+                    BBatchShape.append(cube.dims[len(cube.dims) - 3 - idx])
+                else:
+                    BBatchOffsets.append(0)
+                    BBatchShape.append(1)
+
+            BCube = HyperRectangle(
+                tuple(reversed(BBatchOffsets)) + tuple(BMatrixOffsets),
+                tuple(reversed(BBatchShape)) + tuple(BMatrixShape))
             inputBCubes.append(BCube)
 
+        # Prepare load schedule lists for computed cubes
         inputLoadSchedule = []
         outputLoadSchedule = []
 
+        # Prepare replacements
         replacements["N"] = [NSize] * len(outputCubes)
 
         replacementTypes = {
@@ -155,12 +207,14 @@ class MatMulTileConstraint(TileConstraint):
             "batch": PointerClass(int8_t)
         }
 
+        # Update load schedule lists
         for a, b in zip(inputACubes, inputBCubes):
             inputLoadSchedule.append({"A": a, "B": b})
 
         for out in outputCubes:
             outputLoadSchedule.append({"data_out": out})
 
+        # Prepare tiling schedule object
         schedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
 
         return VariableReplacementScheme(replacements, replacementTypes), schedule

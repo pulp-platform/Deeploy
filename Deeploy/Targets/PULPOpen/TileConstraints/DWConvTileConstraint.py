@@ -9,7 +9,7 @@ from ortools.constraint_solver.pywrapcp import IntVar
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import uint8_t, uint16_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
-from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
@@ -274,7 +274,7 @@ class DWConv2DTileConstraint(TileConstraint):
 
         # Bias
         if biasBufferName != "NULL":
-            biasDimVar = tilerModel.getTensorDimVar(tensorName=biasBufferName, dimIdx=0)
+            biasDimVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = 0)
 
         # NHWC layout
         outputBatchVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 0)
@@ -309,7 +309,7 @@ class DWConv2DTileConstraint(TileConstraint):
         inputBuffer = ctxt.lookup(name = parseDict['data_in'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
         weightBuffer = ctxt.lookup(name = parseDict['weight'])
-        
+
         if biasBufferName != "NULL":
             biasBuffer = ctxt.lookup(name = parseDict['bias'])
 
@@ -331,7 +331,7 @@ class DWConv2DTileConstraint(TileConstraint):
 
         # Bias
         if biasBufferName != "NULL":
-            biasDim = tilerModel.getTensorDimVar(tensorName=biasBuffer.name, dimIdx=0)
+            biasDim = tilerModel.getTensorDimVar(tensorName = biasBuffer.name, dimIdx = 0)
 
         # Workaround tiling issue with non-wordaligned accesses
         if "L3" in ctxt.lookup(parseDict['data_in'])._memoryLevel:

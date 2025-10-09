@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Dict, List, Tuple, Union, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 from ortools.constraint_solver.pywrapcp import IntVar
 
@@ -335,9 +335,14 @@ class Conv2DTileConstraint(TileConstraint):
         return symbolicParseDict
 
     @staticmethod
-    def computeInputCube(kernelShape: Tuple[int, int], pads: Tuple[int, int, int, int], strides: Tuple[int, int],
-                         inputCSize: int, outputCube: HyperRectangle,
-                         outputDims: Tuple[int, int, int], inputDims: Optional[Tuple[int, int, int]] = None) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
+    def computeInputCube(
+            kernelShape: Tuple[int, int],
+            pads: Tuple[int, int, int, int],
+            strides: Tuple[int, int],
+            inputCSize: int,
+            outputCube: HyperRectangle,
+            outputDims: Tuple[int, int, int],
+            inputDims: Optional[Tuple[int, int, int]] = None) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
 
         (outputBatchOffset, outputHOffset, outputWOffset, outputCOffset) = outputCube.offset
         (outputBatchSize, outputHSize, outputWSize, outputCSize) = outputCube.dims
