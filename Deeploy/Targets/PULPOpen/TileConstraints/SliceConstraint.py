@@ -4,6 +4,7 @@
 
 from typing import Dict, List, Tuple, Union
 
+import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -123,6 +124,7 @@ class SliceTileConstraint(TileConstraint):
                 0,
             ] * len(operatorRepresentation['axes'])] * len(outputCubes),
             "ends": [],
+            "data_in_size": [],
         }
 
         replacementTypes = {
@@ -138,8 +140,9 @@ class SliceTileConstraint(TileConstraint):
                 PointerClass(uint16_t),
                 PointerClass(uint16_t)
             ],
-            "starts": [PointerClass(uint16_t)],
-            "ends": [PointerClass(uint16_t)],
+            "starts": PointerClass(uint16_t),
+            "ends": PointerClass(uint16_t),
+            "data_in_size": PointerClass(uint16_t),
         }
 
         # Prepare loading schedule lists
@@ -159,6 +162,7 @@ class SliceTileConstraint(TileConstraint):
             replacements["data_in_shape"].append(list(in_cube.dims).copy())
             replacements["data_out_shape"].append(list(out_cube.dims).copy())
             replacements["ends"].append(new_ends)
+            replacements["data_in_size"].append(int(np.prod(in_cube.dims)))
 
             # Append new cubes
             inputLoadSchedule.append({"data_in": in_cube})
