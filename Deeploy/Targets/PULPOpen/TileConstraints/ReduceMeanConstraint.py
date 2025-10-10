@@ -21,7 +21,7 @@ class ReduceMeanTileConstraint(TileConstraint):
         #   Get I/O buffer names
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
-        
+
         # Add I/O dimensions to the model as variables
         for bufferName in [inputBufferName, outputBufferName]:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
