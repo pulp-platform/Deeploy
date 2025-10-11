@@ -243,61 +243,88 @@ class DWConv2DTileConstraint(TileConstraint):
         This function adds geometrical constraints for a PULP Im2Col Convolution Tilling.
         '''
 
+        # ===== GET NECESSARY INFORMATION =====
         # Get to-be-tiled tensor's buffers
-        inputBufferName = parseDict['data_in']
-        weightBufferName = parseDict['weight']
-        biasBufferName = parseDict['bias']
+        inputBufferName = parseDict['data_in']        
         outputBufferName = parseDict['data_out']
 
-        strides = parseDict["strides"]
-        padding = parseDict["pads"]
-        group = parseDict["group"]
+        weightBufferName = parseDict['weight']
+        biasBufferName = parseDict['bias']
 
-        # Add I/O dimensions to the model as variables
-        for bufferName in [inputBufferName, weightBufferName, biasBufferName, outputBufferName]:
-            if bufferName != "NULL":
-                tilerModel.addTensorDimToModel(ctxt, bufferName)
+        im2colBufferName = parseDict['ctxtBuffer']
 
-        # Input
-        # NHWC layout
+        # Get other information
+        has_bias = False if parseDict['has_bias'] == "false" else True
+
+        pads = parseDict['pads']
+        strides = parseDict['strides']
+        dilations = parseDict['dilations']
+        group = parseDict['group']
+
+        n_cores = ctxt.n_cores
+        im2col_buffer_size = ctxt.lookup(im2colBufferName).size
+        weight_type_width = ctxt.lookup(weightBufferName)._type.typeWidth // 8
+
+        # ===== ADD I/O DIMS TO MODEL AS VARS =====
+        buffersOfInterest = [inputBufferName, outputBufferName, weightBufferName]
+        if has_bias:
+            buffersOfInterest.append(biasBufferName)
+
+        for bufferName in buffersOfInterest:
+            tilerModel.addTensorDimToModel(ctxt, bufferName)
+
+        # ===== EXTRACT TENSOR DIMS AS VARS =====
+        #   Input
+        #   NHWC layout
         inputBatchVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 0)
         inputHeightVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 1)
         inputWidthVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 2)
         inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 3)
 
-        # Weight
-        # C_out - C_in - H - W layout (depthwise convolution weights,
-        # with c_in used for grouping different than number of channels)
-        weightOutChannelVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 0)
-        weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 2)
-        weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 3)
-
-        # Bias
-        if biasBufferName != "NULL":
-            biasDimVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = 0)
-
-        # NHWC layout
+        #   Output
+        #   NHWC layout
         outputBatchVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 0)
         outputHeightVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 1)
         outputWidthVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 2)
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 3)
 
-        # Check output and inputs batch and channel sizes
-        tilerModel.addConstraint(outputBatchVar == inputBatchVar)  # Batch
-        tilerModel.addConstraint(outputChannelVar == weightOutChannelVar)  # Output Channel
-        tilerModel.addConstraint(outputChannelVar == (inputChannelVar * group))  # Input Channel
+        #   Weight
+        #   C_out - C_in - H - W layout (depthwise convolution weights,
+        #   with c_in used for grouping different than number of channels)
+        weightOutChannelVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 0)
+        weightInChannelVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 1)
+        weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 2)
+        weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 3)
 
-        if biasBufferName != "NULL":
-            tilerModel.addConstraint(biasDimVar == weightOutChannelVar)
+        #   Bias (C_out)
+        if has_bias:
+            biasDimVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = 0)
 
-        # Check output height and width sizes
-        inputBuffer = ctxt.lookup(inputBufferName)
+        # ===== ADD CONSTRAINTS =====
+        #   Add constraint for batch size match between input and output
+        tilerModel.addConstraint(inputBatchVar == outputBatchVar)
 
-        effectiveHeight = inputHeightVar + ((padding[0] + padding[2]) * (inputHeightVar == inputBuffer.shape[1]))
-        effectiveWidth = inputWidthVar + ((padding[1] + padding[3]) * (inputWidthVar == inputBuffer.shape[2]))
+        #   Add constraint for input width and height sizes match
+        #   (Depends on output height and width, kernel size, padding, dilations, and strides.
+        #   For more information on the connections, see ONNX and/or Torch Conv2D documentation).
+        tilerModel.addConstraint(outputHeightVar == (((inputHeightVar + pads[0] + pads[2] - dilations[0] * (weightHeightVar - 1) -1) // strides[0]) + 1))
+        tilerModel.addConstraint(outputWidthVar == (((inputWidthVar + pads[1] + pads[3] - dilations[1] * (weightWidthVar - 1) -1) // strides[1]) + 1))
 
-        tilerModel.addConstraint((outputHeightVar == ((effectiveHeight - weightHeightVar) // strides[0]) + 1))
-        tilerModel.addConstraint((outputWidthVar == ((effectiveWidth - weightWidthVar) // strides[1]) + 1))
+        #   Add constraint for input channel size match
+        #   (Depends on weight output channel and conv grouping)
+        tilerModel.addConstraint(inputChannelVar == (weightInChannelVar * group))
+
+        #   Add constraint for weight output channels to match
+        #   output number of channels
+        tilerModel.addConstraint(weightOutChannelVar == outputChannelVar)
+
+        #   Add constraint for bias size to match number of output channels
+        if has_bias:
+            tilerModel.addConstraint(biasDimVar == outputChannelVar)
+
+        #   Add constraint for size of im2col buffer to be equal to
+        #   number of cores * width of weight data type * size of a single convolutional filter
+        tilerModel.addConstraint(im2col_buffer_size == (n_cores * weight_type_width * weightHeightVar * weightWidthVar))
 
         return tilerModel
 
