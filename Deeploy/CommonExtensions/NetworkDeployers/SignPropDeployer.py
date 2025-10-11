@@ -25,16 +25,16 @@ class SignPropDeployer(NetworkDeployer):
                  inputOffsets: Dict[str, int] = {},
                  n_cores: int = 8):
         super().__init__(
-            graph=graph,
-            deploymentPlatform=deploymentPlatform,
-            inputTypes=inputTypes,
-            loweringOptimizer=loweringOptimizer,
-            scheduler=scheduler,
-            name=name,
-            default_channels_first=default_channels_first,
-            deeployStateDir=deeployStateDir,
-            n_cores=n_cores,
-            )
+            graph = graph,
+            deploymentPlatform = deploymentPlatform,
+            inputTypes = inputTypes,
+            loweringOptimizer = loweringOptimizer,
+            scheduler = scheduler,
+            name = name,
+            default_channels_first = default_channels_first,
+            deeployStateDir = deeployStateDir,
+            n_cores = n_cores,
+        )
 
         if inputOffsets == {}:
             for key in inputTypes.keys():

@@ -47,7 +47,6 @@ class MatMulTileConstraint(TileConstraint):
                                                          dimIdx = (tensorsShapeLenB - 1) - parseDict['transB'])
 
         #   Output dims
-        outBatchDimsVars = [tilerModel.getTensorDimVar(tensorName=outputBuffer.name, dimIdx=idx) for idx in range(tensorsShapeLenOutput - 2)]
         outputMatrixFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
                                                              dimIdx = (tensorsShapeLenOutput - 2))
         outputMatrixSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,

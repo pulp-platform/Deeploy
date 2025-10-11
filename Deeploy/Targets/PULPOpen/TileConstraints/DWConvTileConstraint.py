@@ -245,7 +245,7 @@ class DWConv2DTileConstraint(TileConstraint):
 
         # ===== GET NECESSARY INFORMATION =====
         # Get to-be-tiled tensor's buffers
-        inputBufferName = parseDict['data_in']        
+        inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
 
         weightBufferName = parseDict['weight']
@@ -307,8 +307,10 @@ class DWConv2DTileConstraint(TileConstraint):
         #   Add constraint for input width and height sizes match
         #   (Depends on output height and width, kernel size, padding, dilations, and strides.
         #   For more information on the connections, see ONNX and/or Torch Conv2D documentation).
-        tilerModel.addConstraint(outputHeightVar == (((inputHeightVar + pads[0] + pads[2] - dilations[0] * (weightHeightVar - 1) -1) // strides[0]) + 1))
-        tilerModel.addConstraint(outputWidthVar == (((inputWidthVar + pads[1] + pads[3] - dilations[1] * (weightWidthVar - 1) -1) // strides[1]) + 1))
+        tilerModel.addConstraint(outputHeightVar == (((inputHeightVar + pads[0] + pads[2] - dilations[0] *
+                                                       (weightHeightVar - 1) - 1) // strides[0]) + 1))
+        tilerModel.addConstraint(outputWidthVar == (((inputWidthVar + pads[1] + pads[3] - dilations[1] *
+                                                      (weightWidthVar - 1) - 1) // strides[1]) + 1))
 
         #   Add constraint for input channel size match
         #   (Depends on weight output channel and conv grouping)
@@ -335,7 +337,7 @@ class DWConv2DTileConstraint(TileConstraint):
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
         # ===== GET NECESSARY INFORMATION =====
         # Get to-be-tiled tensor's buffers
-        inputBufferName = parseDict['data_in']        
+        inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
 
         weightBufferName = parseDict['weight']
