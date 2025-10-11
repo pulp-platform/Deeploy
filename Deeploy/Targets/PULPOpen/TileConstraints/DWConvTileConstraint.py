@@ -240,7 +240,7 @@ class DWConv2DTileConstraint(TileConstraint):
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
         '''
-        This function adds geometrical constraints for a PULP Im2Col Convolution Tilling.
+        This function adds geometrical constraints for a PULP Im2Col 2D DW Convolution Tilling.
         '''
 
         # ===== GET NECESSARY INFORMATION =====
@@ -326,66 +326,79 @@ class DWConv2DTileConstraint(TileConstraint):
         #   number of cores * width of weight data type * size of a single convolutional filter
         tilerModel.addConstraint(im2col_buffer_size == (n_cores * weight_type_width * weightHeightVar * weightWidthVar))
 
+        #   Add constraint for relationship between in and out number of channels
+        tilerModel.addConstraint((outputChannelVar % inputChannelVar) == 0)
+
         return tilerModel
 
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        # ===== GET NECESSARY INFORMATION =====
+        # Get to-be-tiled tensor's buffers
+        inputBufferName = parseDict['data_in']        
+        outputBufferName = parseDict['data_out']
+
+        weightBufferName = parseDict['weight']
         biasBufferName = parseDict['bias']
 
-        # Get to-be-tiled tensor's buffers and variables
-        inputBuffer = ctxt.lookup(name = parseDict['data_in'])
-        outputBuffer = ctxt.lookup(name = parseDict['data_out'])
-        weightBuffer = ctxt.lookup(name = parseDict['weight'])
+        # Get other information
+        has_bias = False if parseDict['has_bias'] == "false" else True
 
-        if biasBufferName != "NULL":
-            biasBuffer = ctxt.lookup(name = parseDict['bias'])
+        pads = parseDict['pads']
+        strides = parseDict['strides']
 
-        # NHWC layout
-        outputHeightVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = 1)
-        outputWidthVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = 2)
+        # ===== ADD I/O DIMS TO MODEL AS VARS =====
+        buffersOfInterest = [inputBufferName, outputBufferName, weightBufferName]
+        if has_bias:
+            buffersOfInterest.append(biasBufferName)
 
-        # NHWC layout
-        inputHeightVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 1)
-        inputWidthVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 2)
-        inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 3)
+        for bufferName in buffersOfInterest:
+            tilerModel.addTensorDimToModel(ctxt, bufferName)
 
-        # C_out - C_in - H - W layout (depthwise convolution weights,
-        # with c_in used for grouping different than number of channels)
-        weightOutChannel = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 0)
-        weightInChannel = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 1)
-        weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 2)
-        weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 3)
+        # ===== EXTRACT TENSOR DIMS AS VARS =====
+        #   Input
+        #   NHWC layout
+        inputHeightVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 1)
+        inputWidthVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 2)
+        inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 3)
 
-        # Bias
-        if biasBufferName != "NULL":
-            biasDim = tilerModel.getTensorDimVar(tensorName = biasBuffer.name, dimIdx = 0)
+        #   Output
+        #   NHWC layout
+        outputHeightVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 1)
+        outputWidthVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 2)
 
+        #   Weight
+        #   C_out - C_in - H - W layout (depthwise convolution weights,
+        #   with c_in used for grouping different than number of channels)
+        weightOutChannelVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 0)
+        weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 2)
+        weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 3)
+
+        #   Bias (C_out)
+        if has_bias:
+            biasDimVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = 0)
+
+        # ===== ADD CONSTRAINTS =====
         # Workaround tiling issue with non-wordaligned accesses
         if "L3" in ctxt.lookup(parseDict['data_in'])._memoryLevel:
             tilerModel.addTileSizeDivisibleConstraint(parseDict, 'ch_im_in', inputChannelVar, 4)
 
-        # Get striding and padding information
-        strides = parseDict["strides"]
-        pads = parseDict["pads"]
-        group = parseDict["group"]
-
         # Check that height and width of weights match the parsed values
         tilerModel.addConstraint(weightHeightVar == parseDict['dim_kernel_x'])
         tilerModel.addConstraint(weightWidthVar == parseDict['dim_kernel_y'])
-        tilerModel.addConstraint(weightInChannel * group == parseDict['ch_im_in'])
-        tilerModel.addConstraint(weightOutChannel == parseDict['ch_im_out'])
+        tilerModel.addConstraint(weightOutChannelVar == parseDict['ch_im_out'])
 
         # Check bias dimension
         if biasBufferName != "NULL":
-            tilerModel.addConstraint(biasDim == parseDict["ch_im_out"])
+            tilerModel.addConstraint(biasDimVar == parseDict["ch_im_out"])
 
-        # Constraint the minimum tile size such that we can apply at least one kernel on it
+        # Constraint the minimum tile size such that at least one kernel can be applied
         # Account for padding
         tilerModel.addConstraint(outputHeightVar >= 1 + max([pads[0], pads[2]]))
         tilerModel.addConstraint(outputWidthVar >= 1 + max([pads[1], pads[3]]))
 
         tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'] + pads[0], strategy = PerformanceHint(1))
-        tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_y'] + pads[1], strategy = PerformanceHint(1))
+        tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'] + pads[1], strategy = PerformanceHint(1))
 
         tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
         tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)

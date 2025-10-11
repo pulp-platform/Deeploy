@@ -19,8 +19,7 @@ class MatMulTileConstraint(TileConstraint):
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-
-        # Get to-be-tiled tensor's buffers and other necessary information
+        # ===== GET NECESSARY INFORMATION =====
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
@@ -29,49 +28,37 @@ class MatMulTileConstraint(TileConstraint):
         tensorsShapeLenB = len(bufferB.shape)
         tensorsShapeLenOutput = len(outputBuffer.shape)
 
-        # Add I/O dimensions to the model as variables
-        # Checks on wether dimesnions are reversed via the transA and transB flags
+        # ===== ADD I/O DIMS TO MODEL AS VARS =====
         for _buffer in [bufferA, bufferB, outputBuffer]:
             tilerModel.addTensorDimToModel(ctxt, _buffer.name)
 
+        # ===== EXTRACT TENSOR DIMS AS VARS =====
+        # *Checks on wether dimesnions are reversed via the transA and transB flags
         #   A dims
-        AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                  dimIdx = (tensorsShapeLenA - 2) + parseDict['transA'])
-        ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                   dimIdx = (tensorsShapeLenA - 1) - parseDict['transA'])
+        AMatrixFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
+                                                        dimIdx = (tensorsShapeLenA - 2) + parseDict['transA'])
+        AMatrixSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
+                                                         dimIdx = (tensorsShapeLenA - 1) - parseDict['transA'])
 
         #   B dims
-        BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                  dimIdx = (tensorsShapeLenB - 2) + parseDict['transB'])
-        BSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                   dimIdx = (tensorsShapeLenB - 1) - parseDict['transB'])
+        BMatrixFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
+                                                        dimIdx = (tensorsShapeLenB - 2) + parseDict['transB'])
+        BMatrixSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
+                                                         dimIdx = (tensorsShapeLenB - 1) - parseDict['transB'])
 
         #   Output dims
-        outputFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
-                                                       dimIdx = (tensorsShapeLenOutput - 2))
-        outputSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
-                                                        dimIdx = (tensorsShapeLenOutput - 1))
+        outBatchDimsVars = [tilerModel.getTensorDimVar(tensorName=outputBuffer.name, dimIdx=idx) for idx in range(tensorsShapeLenOutput - 2)]
+        outputMatrixFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
+                                                             dimIdx = (tensorsShapeLenOutput - 2))
+        outputMatrixSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
+                                                              dimIdx = (tensorsShapeLenOutput - 1))
 
-        # Add broadcasting geometrical constraints
-        for idx in range(tensorsShapeLenA - 2):
-            tilerModel.addConstraint(
-                (tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = (tensorsShapeLenA - idx - 3))
-                 == tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
-                                               dimIdx = (tensorsShapeLenOutput - idx - 3)))
-                or (tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = (tensorsShapeLenA - idx - 3)) == 1))
+        # ===== ADD CONSTRAINTS =====
+        #   Add GEMM geometrical constraints
+        tilerModel.addConstraint(outputMatrixFirstDimVar == AMatrixFirstDimVar)
+        tilerModel.addConstraint(outputMatrixSecondDimVar == BMatrixSecondDimVar)
 
-        for idx in range(tensorsShapeLenB - 2):
-            tilerModel.addConstraint(
-                (tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = (tensorsShapeLenB - idx - 3))
-                 == tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
-                                               dimIdx = (tensorsShapeLenOutput - idx - 3)))
-                or (tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = (tensorsShapeLenB - idx - 3)) == 1))
-
-        # Add GEMM geometrical constraints
-        tilerModel.addConstraint(outputFirstDimVar == AFirstDimVar)
-        tilerModel.addConstraint(outputSecondDimVar == BSecondDimVar)
-
-        tilerModel.addConstraint(ASecondDimVar == BFirstDimVar)
+        tilerModel.addConstraint(AMatrixSecondDimVar == BMatrixFirstDimVar)
 
         return tilerModel
 
