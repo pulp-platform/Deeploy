@@ -21,10 +21,6 @@ void PULP_GELU_fp32_fp32(float32_t *data_in, float32_t *data_out,
   int16_t chunk_start = MIN(chunk * core_id, dataSize);
   int16_t chunk_stop = MIN(chunk_start + chunk, dataSize);
 
-  // Set constants
-  const float32_t sqrt_2_over_pi = 0.7978845608f; // sqrt(2/π)
-  const float32_t coeff = 0.044715f;
-
   // Compute GELU on the assigned chunk
   for (uint32_t i = chunk_start; i < chunk_stop; i++) {
     float32_t x = data_in[i];
