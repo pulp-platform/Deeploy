@@ -62,13 +62,11 @@ class ReduceMeanTileConstraint(TileConstraint):
 
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        # TODO
         return tilerModel
 
     @staticmethod
     def constructSymbolicNodeRep(tilerModel: TilerModel, parseDict: Dict,
                                  ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
-        # TODO
         symbolicParseDict = parseDict.copy()
 
         return symbolicParseDict

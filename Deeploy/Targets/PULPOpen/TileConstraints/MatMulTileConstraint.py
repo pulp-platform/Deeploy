@@ -53,6 +53,18 @@ class MatMulTileConstraint(TileConstraint):
                                                               dimIdx = (tensorsShapeLenOutput - 1))
 
         # ===== ADD CONSTRAINTS =====
+        #   Add batch constraints
+        if (bufferA.shape[:-2] == bufferB.shape[:-2]):
+            for idx in range(tensorsShapeLenA - 2):
+                tilerModel.addConstraint(
+                    tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = tensorsShapeLenOutput - 3 - idx)
+                    == tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = tensorsShapeLenA - 3 - idx))
+
+            for idx in range(tensorsShapeLenB - 2):
+                tilerModel.addConstraint(
+                    tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = tensorsShapeLenOutput - 3 - idx)
+                    == tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = tensorsShapeLenB - 3 - idx))
+
         #   Add GEMM geometrical constraints
         tilerModel.addConstraint(outputMatrixFirstDimVar == AMatrixFirstDimVar)
         tilerModel.addConstraint(outputMatrixSecondDimVar == BMatrixSecondDimVar)
