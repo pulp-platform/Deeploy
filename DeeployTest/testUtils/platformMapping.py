@@ -89,15 +89,18 @@ def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHie
         return MemoryPlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel)
 
 
-def mapDeployer(platform: DeploymentPlatform,
-                graph: gs.Graph,
-                inputTypes: Dict[str, Type[Pointer]],
-                loweringOptimizer: Optional[TopologyOptimizer] = None,
-                scheduler: Optional[Callable] = None,
-                name: Optional[str] = None,
-                default_channels_first: Optional[bool] = None,
-                deeployStateDir: Optional[str] = None,
-                inputOffsets: Optional[Dict[str, int]] = None) -> NetworkDeployer:
+def mapDeployer(
+    platform: DeploymentPlatform,
+    graph: gs.Graph,
+    inputTypes: Dict[str, Type[Pointer]],
+    loweringOptimizer: Optional[TopologyOptimizer] = None,
+    scheduler: Optional[Callable] = None,
+    name: Optional[str] = None,
+    default_channels_first: Optional[bool] = None,
+    deeployStateDir: Optional[str] = None,
+    inputOffsets: Optional[Dict[str, int]] = None,
+    n_cores: Optional[int] = 8,
+) -> NetworkDeployer:
 
     if scheduler is None:
         scheduler = defaultScheduler
@@ -208,14 +211,17 @@ def mapDeployer(platform: DeploymentPlatform,
         if default_channels_first is None:
             default_channels_first = False
 
-        deployer = PULPDeployer(graph,
-                                platform,
-                                inputTypes,
-                                loweringOptimizer,
-                                scheduler,
-                                name = name,
-                                default_channels_first = default_channels_first,
-                                deeployStateDir = deeployStateDir)
+        deployer = PULPDeployer(
+            graph,
+            platform,
+            inputTypes,
+            loweringOptimizer,
+            scheduler,
+            name = name,
+            default_channels_first = default_channels_first,
+            deeployStateDir = deeployStateDir,
+            n_cores = n_cores,
+        )
 
     elif isinstance(platform, (SnitchPlatform)):
         if loweringOptimizer is None:

@@ -278,13 +278,16 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
 
 class TestRunner():
 
-    def __init__(self,
-                 platform: str,
-                 simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none'],
-                 tiling: bool,
-                 argument_parser: TestRunnerArgumentParser,
-                 gen_args: str = "",
-                 cmake_args: str = ""):
+    def __init__(
+        self,
+        platform: str,
+        simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none'],
+        tiling: bool,
+        argument_parser: TestRunnerArgumentParser,
+        gen_args: str = "",
+        cmake_args: str = "",
+        cores: int = 8,
+    ):
 
         if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none']:
             raise ValueError(
@@ -303,6 +306,8 @@ class TestRunner():
 
         self.cmake_args = cmake_args
         self.gen_args = gen_args
+
+        self.n_cores = cores
 
         self._dir_gen_root = f'TEST_{platform.upper()}'
         assert self._args.toolchain_install_dir is not None, f"Environment variable LLVM_INSTALL_DIR is not set"
@@ -342,6 +347,13 @@ class TestRunner():
             generation_script = "generateNetwork.py"
 
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform} {self.gen_args}"
+
+        command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform}"
+
+        if self._tiling is True:
+            command += f" -n_cores {self._cores}"
+
+        command += f" {self.gen_args}"
         command += self._argument_parser.generate_cmd_args()
 
         log.debug(f"[TestRunner] Generation Command: {command}")

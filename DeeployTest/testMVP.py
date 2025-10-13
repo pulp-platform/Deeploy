@@ -55,8 +55,8 @@ def _filterSchedule(schedule: List[List[gs.Node]], layerBinding: 'OrderedDict[st
 
 
 def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTargetMemoryLevel: MemoryLevel,
-                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity,
-                  args: argparse.Namespace) -> Tuple[NetworkDeployer, bool]:
+                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity, args: argparse.Namespace,
+                  n_cores: int) -> Tuple[NetworkDeployer, bool]:
 
     inputTypes = {}
     inputOffsets = {}
@@ -81,12 +81,15 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 
-    deployer = mapDeployer(platform,
-                           graph,
-                           inputTypes,
-                           deeployStateDir = _DEEPLOYSTATEDIR,
-                           inputOffsets = inputOffsets,
-                           scheduler = _mockScheduler)
+    deployer = mapDeployer(
+        platform,
+        graph,
+        inputTypes,
+        deeployStateDir = _DEEPLOYSTATEDIR,
+        inputOffsets = inputOffsets,
+        scheduler = _mockScheduler,
+        n_cores = n_cores,
+    )
 
     # Make the deployer engine-color-aware
     if args.platform == "Siracusa_w_neureka":
@@ -195,6 +198,11 @@ if __name__ == '__main__':
     parser.add_argument('--plotMemAlloc',
                         action = 'store_true',
                         help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
+    parser.add_argument(
+        "-n_cores",
+        type = int,
+        default = 8,
+        help = "Number of cores to target in the tiling. Currently, required for im2col buffer sizing. Default: 8")
 
     parser.set_defaults(shouldFail = False)
     args = parser.parse_args()
@@ -250,7 +258,8 @@ if __name__ == '__main__':
                                        defaultTargetMemoryLevel = L1,
                                        defaultIoMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel],
                                        verbose = verbosityCfg,
-                                       args = args)
+                                       args = args,
+                                       n_cores = args.n_cores)
 
     platform = deployer.Platform
 
