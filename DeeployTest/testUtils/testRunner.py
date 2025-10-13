@@ -278,13 +278,16 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
 
 class TestRunner():
 
-    def __init__(self,
-                 platform: str,
-                 simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none'],
-                 tiling: bool,
-                 argument_parser: TestRunnerArgumentParser,
-                 gen_args: str = "",
-                 cmake_args: str = ""):
+    def __init__(
+        self,
+        platform: str,
+        simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none'],
+        tiling: bool,
+        argument_parser: TestRunnerArgumentParser,
+        gen_args: str = "",
+        cmake_args: str = "",
+        cores: int = 8,
+    ):
 
         if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none']:
             raise ValueError(
@@ -303,6 +306,8 @@ class TestRunner():
 
         self.cmake_args = cmake_args
         self.gen_args = gen_args
+
+        self.n_cores = cores
 
         self._dir_gen_root = f'TEST_{platform.upper()}'
         assert self._args.toolchain_install_dir is not None, f"Environment variable LLVM_INSTALL_DIR is not set"

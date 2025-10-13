@@ -17,7 +17,13 @@ if __name__ == "__main__":
                         help = 'Set number of cluster cores')
     args = parser.parse_args()
 
-    testRunner = TestRunner(platform = "Siracusa", simulator = "gvsoc", tiling = True, argument_parser = parser)
+    testRunner = TestRunner(
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        tiling = True,
+        argument_parser = parser,
+        cores = args.cores,
+    )
 
     testRunner.cmake_args += f" -D NUM_CORES={args.cores}"
 
