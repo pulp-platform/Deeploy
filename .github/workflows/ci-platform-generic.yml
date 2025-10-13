@@ -94,4 +94,5 @@ jobs:
         miniMobileNet
         miniMobileNetv2
         CCT/CCT_1_16_16_8
+        CCT/CCT_2_32_32_128_Opset20
         testFloatDemoTinyViT

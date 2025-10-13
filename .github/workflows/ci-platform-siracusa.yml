@@ -85,5 +85,6 @@ jobs:
         MLPerf/ImageClassification
         MLPerf/AnomalyDetection
         CCT/CCT_1_16_16_8
+        CCT/CCT_2_32_32_128_Opset20
         testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8
       num-cores: 8
