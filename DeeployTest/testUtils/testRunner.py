@@ -351,7 +351,7 @@ class TestRunner():
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform}"
 
         if self._tiling is True:
-            command += f" -n_cores {self._cores}"
+            command += f" -n_cores {self.n_cores}"
 
         command += f" {self.gen_args}"
         command += self._argument_parser.generate_cmd_args()
