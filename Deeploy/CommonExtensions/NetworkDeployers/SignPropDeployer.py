@@ -22,7 +22,8 @@ class SignPropDeployer(NetworkDeployer):
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = True,
                  deeployStateDir: str = "DeeployState",
-                 inputOffsets: Dict[str, int] = {}):
+                 inputOffsets: Dict[str, int] = {},
+                 n_cores: int = 8):
         super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
                          default_channels_first, deeployStateDir)
 
@@ -31,6 +32,7 @@ class SignPropDeployer(NetworkDeployer):
                 inputOffsets[key] = 0
 
         self.inputOffsets = inputOffsets
+        self.n_cores = n_cores
 
     def _createIOBindings(self, ctxt, graph):
         ctxt = super()._createIOBindings(ctxt, graph)
