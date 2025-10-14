@@ -165,7 +165,7 @@ def _transformLayoutConst(const: gs.Constant, spatialDims: int, targetChannelsFi
 
 
 def _transformLayoutDwWeightConst(const: gs.Constant, targetChannelsFirst: bool) -> None:
-    assert not targetChannelsFirst, f"Target layout should be channels_last!"
+    assert not targetChannelsFirst, "Target layout should be channels_last!"
     assert isinstance(const, gs.Constant)
     dims = len(const.shape)
     perm = [*range(1, dims), 0]
