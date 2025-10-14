@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Fix missing const's layout transformation and refactor NCHWtoNHWC passes [#122](https://github.com/pulp-platform/Deeploy/pull/122)
 - Fix aliasing [#125](https://github.com/pulp-platform/Deeploy/pull/125)
 - Support for 1D Autoencoder [#98](https://github.com/pulp-platform/Deeploy/pull/98)
 - Refactor Logging for Improved Debugging [#115](https://github.com/pulp-platform/Deeploy/pull/115)
@@ -78,6 +79,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed `fromVariableBuffer`
 - Refactored `hoistConstant`
 - Refactored TransientBuffer's `__init__`
+- Refactor of the NCHWtoNHWC passes
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
@@ -89,6 +91,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Correctly return `signProp` from `setupDeployer` instead of hardcoding the value to `False` in `testMVP.py`
 - Fixed `Unsqueeze` Op. when using ONNX opset 13 or higher (from attribute to input)
 - Fixed aliasing
+- Missing layout transformation of the const's (bias, mul, add, shift in Conv/RequantizedConv)
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
