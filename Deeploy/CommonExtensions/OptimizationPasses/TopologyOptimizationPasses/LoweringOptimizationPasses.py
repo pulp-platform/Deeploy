@@ -273,7 +273,8 @@ def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channel
     node = next(iter((match.nodes_map.values())))
     assert node.op in ["RequantizedConv", "Conv"]
 
-    if node.attrs["group"] == 1:
+    # Skip non-dw nodes
+    if node.attrs.get("group", 1) == 1:
         return graph
 
     channels_first = node.attrs.get("channels_first", True)
@@ -315,7 +316,7 @@ def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_ch
     node = next(iter((match.nodes_map.values())))
 
     # Skip non-dw nodes
-    if node.attrs["group"] == 1:
+    if node.attrs.get("group", 1) == 1:
         return graph
 
     channels_first = node.attrs.get("channels_first", True)
