@@ -314,6 +314,7 @@ class NCHWtoNHWCDwConvPass(ReplaceSequentialPatternPass):
 def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):
     node = next(iter((match.nodes_map.values())))
 
+    # Skip non-dw nodes
     if node.attrs["group"] == 1:
         return graph
 
@@ -321,14 +322,7 @@ def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_ch
     if (channels_first != default_channels_first):
         tensorOut = node.outputs[0]
 
-        if node.op in ["RequantizedConv", "Conv"]:
-            spatialDims = len(node.inputs[1].shape) - 2
-        elif node.op == "MaxPool":
-            spatialDims = len(node.attrs["kernel_shape"])
-        elif node.op == "Pad":
-            spatialDims = 2  # Hack based on current status
-        else:
-            raise ValueError(f"Cannot determine spatialDims for node {node.name} with operator {node.op}")
+        spatialDims = len(node.inputs[1].shape) - 2
 
         # LMACAN: PULP DW doesn't transpose the input
 
