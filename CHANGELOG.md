@@ -14,6 +14,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Node Mangling to avoid duplication [#93](https://github.com/pulp-platform/Deeploy/pull/93)
 - Prepare Post v0.2.0 Release [#104](https://github.com/pulp-platform/Deeploy/pull/104)
 - Use Docker digests instead of arch-specific tags [#106](https://github.com/pulp-platform/Deeploy/pull/106)
+- Fix `Unsqueeze` Op. when using ONNX opset 13 or higher (from attribute to input) [#119](https://github.com/pulp-platform/Deeploy/pull/119)
 
 ### Added
 - Add manual type inference feature (CLI: `--input-type-map`/`--input-offset-map`) to resolve ambiguities when test inputs are not representative enough
@@ -81,6 +82,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fixed multiple typos in variable and method names, such as changing `includeGobalReferences` to `includeGlobalReferences` and `dicardedMappers` to `discardedMappers`
 - Corrected method usage in `importDeeployState` to call `NetworkContext.importNetworkContext` instead of the incorrect method name
 - Correctly return `signProp` from `setupDeployer` instead of hardcoding the value to `False` in `testMVP.py`
+- Fixed `Unsqueeze` Op. when using ONNX opset 13 or higher (from attribute to input)
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
