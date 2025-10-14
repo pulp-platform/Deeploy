@@ -94,22 +94,22 @@ def _prependSqueezeDims(tensor: gs.Tensor, name: str, axis: Union[int, Sequence[
 
 
 # Permute (0,1,2,3,...,N-2,N-1) -> (0,1,2,3,...,N-1,N-2)
-def _permutationLastTwoDims(N: int) -> List[int]:
+def _swapLastTwoDimsPermutation(N: int) -> List[int]:
     assert N >= 2, "N needs to be larger then 2"
-    return list(range(N - 2)) + [N - 1, N - 2]
+    return [*range(N - 2), N - 1, N - 2]
 
 
+# Permute channels first <-> channels last:
+#   (*<batch dims>, ch, *<spatial dims>) <-> (*<batch dims>, *<spatial dims>, ch)
 def _transformLayoutPermutation(dims: int, spatialDims: int, targetChannelsFirst: bool) -> List[int]:
     batchDims = dims - spatialDims - 1
     if targetChannelsFirst:
         ch = dims - 1
-        nonBatchPerm = [
-            ch,
-        ] + list(range(batchDims, ch))
+        nonBatchPerm = [ch, *range(batchDims, ch)]
     else:
         ch = batchDims
-        nonBatchPerm = list(range(ch + 1, dims)) + [ch]
-    return list(range(dims - spatialDims - 1)) + nonBatchPerm
+        nonBatchPerm = [*range(ch + 1, dims), ch]
+    return list(range(batchDims)) + nonBatchPerm
 
 
 # Calculate permutation q = p^(-1) s.t. q(p(i)) = i
@@ -168,7 +168,7 @@ def _transformLayoutDwWeightConst(const: gs.Constant, targetChannelsFirst: bool)
     assert not targetChannelsFirst, f"Target layout should be channels_last!"
     assert isinstance(const, gs.Constant)
     dims = len(const.shape)
-    perm = list(range(1, dims)) + [0]
+    perm = [*range(1, dims), 0]
     const.values = const.values.transpose(perm)
 
 
@@ -183,14 +183,14 @@ def _transposeMatMulInputs_fun(graph: gs.Graph, match: Match, name: str):
     # Prepend transpose on A if it's transposed
     if node.attrs['transA'] == 1:
         tensorA = node.inputs[0]
-        perm = _permutationLastTwoDims(len(tensorA.shape))
+        perm = _swapLastTwoDimsPermutation(len(tensorA.shape))
         graph.nodes.append(_appendTranspose(tensorA, node, perm))
         node.attrs['transA'] = False
 
     # Prepend transpose on B if it's not transposed
     if node.attrs['transB'] == 0:
         tensorB = node.inputs[1]
-        perm = _permutationLastTwoDims(len(tensorB.shape))
+        perm = _swapLastTwoDimsPermutation(len(tensorB.shape))
         graph.nodes.append(_appendTranspose(tensorB, node, perm))
         node.attrs['transB'] = True
 
@@ -407,13 +407,13 @@ def _requantized_gemm_to_pw_fun(graph: gs.Graph, match: Match, name: str):
 
     # If transA is set then the matrix is of shape [B x K x M] and it needs to be transposed, otherwise its shape is  [B x M x K]
     if node.attrs['transA'] == 1:
-        perm = _permutationLastTwoDims(len(matrixA.shape))
+        perm = _swapLastTwoDimsPermutation(len(matrixA.shape))
         graph.nodes.append(_appendTranspose(matrixA, node, perm))
         matrixA = node.inputs[0]
 
     # If transB is set then the matrix is of shape [N x K] and it doesn't need to be transposed, otherwise its shape is [K x N] and it has to be transposed
     if node.attrs['transB'] == 0:
-        perm = _permutationLastTwoDims(len(matrixB.shape))
+        perm = _swapLastTwoDimsPermutation(len(matrixB.shape))
         matrixB.values = matrixB.values.transpose(perm)
 
     # Align dimensions for convolution
