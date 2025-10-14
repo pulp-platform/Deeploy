@@ -173,7 +173,7 @@ def _transformLayoutDwWeightConst(const: gs.Constant, targetChannelsFirst: bool)
 
 
 def _transposeMatMulInputs_fun(graph: gs.Graph, match: Match, name: str):
-    node = list(match.nodes_map.values())[0]
+    node = next(iter((match.nodes_map.values())))
 
     node.attrs['transA'] = node.attrs.get('transA', 0)
     node.attrs['transB'] = node.attrs.get('transB', 0)
@@ -209,7 +209,7 @@ class TransposeMatmulInputsPass(ReplaceSequentialPatternPass):
 
 
 def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):
-    node = list(match.nodes_map.values())[0]
+    node = next(iter((match.nodes_map.values())))
 
     channels_first = node.attrs.get("channels_first", True)
     if (channels_first != default_channels_first):
@@ -270,7 +270,7 @@ class NCHWtoNHWCPadPass(ReplaceSequentialPatternPass):
 
 
 def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool) -> gs.Graph:
-    node = list(match.nodes_map.values())[0]
+    node = next(iter((match.nodes_map.values())))
     assert node.op in ["RequantizedConv", "Conv"]
 
     if node.attrs["group"] == 1:
@@ -312,7 +312,7 @@ class NCHWtoNHWCDwConvPass(ReplaceSequentialPatternPass):
 
 
 def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):
-    node = list(match.nodes_map.values())[0]
+    node = next(iter((match.nodes_map.values())))
 
     if node.attrs["group"] == 1:
         return graph
@@ -380,7 +380,7 @@ class PULPNCHWtoNHWCPass(SequentialPass):
 
 
 def _requantized_gemm_to_pw_fun(graph: gs.Graph, match: Match, name: str):
-    node = list(match.nodes_map.values())[0]
+    node = next(iter((match.nodes_map.values())))
 
     matrixA: gs.Variable = node.inputs[0]
     matrixB: gs.Constant = node.inputs[1]
@@ -482,13 +482,11 @@ class RequantizedGemmToPwPass(ReplaceSequentialPatternPass):
 
 
 def _remove_global_output_reshape_fun(graph: gs.Graph, match: Match, name: str):
-    matched_nodes = list(match.nodes_map.values())
-    reshape = matched_nodes[0]
+    node = next(iter((match.nodes_map.values())))
 
-    isGlobalOutput = len(reshape.outputs[0].outputs) == 0
-
+    isGlobalOutput = len(node.outputs[0].outputs) == 0
     if isGlobalOutput:
-        graph.deleteNode(reshape)
+        graph.deleteNode(node)
 
     return graph
 
@@ -502,17 +500,14 @@ class RemoveGlobalOutputReshapePass(ReplaceSequentialPatternPass):
 
 
 def _remove_empty_conv_bias_fun(graph: gs.Graph, match: Match, name: str):
-    # Extract matched convolution
-    node = list(match.nodes_map.values())[0]
+    node = next(iter((match.nodes_map.values())))
 
-    # Check if the Conv node has a bias input
-    # If it does, check if the bias only contains zeros
+    # Check if the node has an all-zero bias and remove it
     if len(node.inputs) == 3:
         bias = node.inputs[2]
         if isinstance(bias, gs.Constant) and np.all(bias.values == 0):
             del node.inputs[2]
 
-    # Return updated graph
     return graph
 
 
