@@ -22,6 +22,17 @@ def _singleNodePattern(op: str) -> gs.Graph:
     return graph
 
 
+def _isDepthwise(node: gs.Node) -> bool:
+    if node.op not in ["Conv", "RequantizedConv"]:
+        return False
+
+    channels_first = node.attrs.get("channels_first", True)
+    spatialDims = len(node.inputs[1].shape) - 2
+    shapeIn = node.inputs[0].shape
+    chIn = shapeIn[-spatialDims - 1] if channels_first else shapeIn[-1]
+    return node.attrs.get("group", 1) == chIn
+
+
 def _createReshape(tensorIn: gs.Tensor,
                    name: str,
                    newShape: Sequence[Union[int, str]],
@@ -271,10 +282,8 @@ class NCHWtoNHWCPadPass(ReplaceSequentialPatternPass):
 
 def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool) -> gs.Graph:
     node = next(iter((match.nodes_map.values())))
-    assert node.op in ["RequantizedConv", "Conv"]
 
-    # Skip non-dw nodes
-    if node.attrs.get("group", 1) == 1:
+    if not _isDepthwise(node):
         return graph
 
     channels_first = node.attrs.get("channels_first", True)
@@ -315,8 +324,7 @@ class NCHWtoNHWCDwConvPass(ReplaceSequentialPatternPass):
 def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):
     node = next(iter((match.nodes_map.values())))
 
-    # Skip non-dw nodes
-    if node.attrs.get("group", 1) == 1:
+    if not _isDepthwise(node):
         return graph
 
     channels_first = node.attrs.get("channels_first", True)
