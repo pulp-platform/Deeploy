@@ -30,7 +30,7 @@ def _isDepthwise(node: gs.Node) -> bool:
     spatialDims = len(node.inputs[1].shape) - 2
     shapeIn = node.inputs[0].shape
     chIn = shapeIn[-spatialDims - 1] if channels_first else shapeIn[-1]
-    return node.attrs.get("group", 1) == chIn
+    return chIn != 1 and node.attrs.get("group", 1) == chIn
 
 
 def _createReshape(tensorIn: gs.Tensor,
