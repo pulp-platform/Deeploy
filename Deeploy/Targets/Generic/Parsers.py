@@ -1059,44 +1059,18 @@ class ReluParser(NodeParser):
 
 class ReshapeParser(NodeParser):
 
-    def __init__(self):
-        super().__init__()
-
     def parseNode(self, node: gs.Node) -> (bool):
-
         ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
-
         return ret
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        # Define names of node inputs and outputs, according to the ONNX standard
-        inputs = ['data_in', 'shape']
-        outputs = ['data_out']
-
-        # Map inputs and outputs to their corresponding names in the operator representation
-        for idx, inputNode in enumerate(node.inputs):
-            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-        for idx, outputNode in enumerate(node.outputs):
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
-
-        # Update alias_of parameter for the output node
-        output_node = ctxt.lookup(node.outputs[outputs.index("data_out")].name)
-        input_node = ctxt.lookup(node.inputs[inputs.index("data_in")].name)
-
-        # Prepare new aliases
-        new_output_node_aliases = input_node.get_aliases_of()
-        new_output_node_aliases.append(input_node.name)
-
-        # Add new aliases
-        output_node.add_aliases(aliases_to_add = new_output_node_aliases)
-
-        # Compute data size
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-
+        for tensor, symName in zip(node.inputs, ['data_in', 'shape']):
+            self.operatorRepresentation[symName] = ctxt.lookup(tensor.name).name
+        for tensor, symName in zip(node.outputs, ['data_out']):
+            self.operatorRepresentation[symName] = ctxt.lookup(tensor.name).name
         return ctxt, True
 
 
