@@ -968,12 +968,15 @@ class NetworkContext():
         ref._instance = ref._type(name, ctxt = self)
         return ref
 
-    def hoistConstant(self, node: gs.Node, name: str = '', _type: Optional[Type[Pointer]] = None) -> str:
-        """Register a ConstantBuffer extracted directly from a graphsurgeon Node
+    def hoistConstant(self,
+                      constant: gs.Constant,
+                      name: Optional[str] = None,
+                      _type: Optional[Type[Pointer]] = None) -> str:
+        """Register a ConstantBuffer extracted directly from a graphsurgeon Constant
 
         Parameters
         ----------
-        node : gs.Node
+        constant : gs.Constant
             graphsurgeon.Node containing a single constant output
         name : str
             Name of the ConstantBuffer to be registered
@@ -986,21 +989,18 @@ class NetworkContext():
             Returns the name of the newly registed ConstantBuffer
 
         """
+        assert len(constant.outputs) <= 1, f"Constant {constant.name} has more than one output"
 
-        assert len(node.outputs) <= 1, f"Constant {node.name} has more than one output"
+        name = name if name is not None else constant.name
 
-        if name == "":
-            name = node.name
+        # LMACAN: The shape needs to be copied into a tuple for pickling to work. Don't ask me why..
+        buffer = self.ConstantBuffer(name, tuple(constant.shape), constant.values)
+        self.add(buffer, 'global')
 
-        # SCHEREMO: This is currently heuristic, but should be annotated in ONNX
-        localBuffer = self.VariableBuffer.fromNode(node = node)
-        globalBuffer = self.ConstantBuffer.fromVariableBuffer(localBuffer, values = node.values)
-        globalBuffer.name = name
-        globalBuffer._type = _type
+        if _type is not None:
+            self.annotateType(name, _type)
 
-        self.add(globalBuffer, 'global')
-
-        return globalBuffer.name
+        return name
 
     def addUser(self, name: str, node: gs.Node):
         """Adds an operator's name to the _user list of a VariableBuffer in the context
