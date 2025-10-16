@@ -2759,10 +2759,17 @@ class NetworkContainer():
         self.transformed = True
 
     def _mapNode(self, node: gs.Node) -> Union[ONNXLayer, Any]:
-        for engine in self.Platform.engines:
-            if node.op in engine.Mapping:
-                return engine.Mapping[node.op](node)
-        raise RuntimeError(f"No mapping found for node {node.name} with op type {node.op}")
+        engine = None
+        if "engine" in node.attrs:
+            engineName = node.attrs["engine"]
+            engine = [engine for engine in self.Platform.engines if engine.name == engineName][0]
+        else:
+            for candidateEngine in self.Platform.engines:
+                if node.op in candidateEngine.Mapping:
+                    engine = candidateEngine
+                    break
+        assert engine is not None, f"No mapping found for node {node.name} with op type {node.op}"
+        return engine.Mapping[node.op](node)
 
     def _bindLayers(self):
         # Create schedule, binding, then parse resulting program for correctness
