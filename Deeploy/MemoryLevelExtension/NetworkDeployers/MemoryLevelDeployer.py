@@ -11,7 +11,7 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, DeploymentEngine, DeploymentPlatform, \
-    NetworkContext, NetworkDeployer, NetworkOptimizationPass, NetworkOptimizer, ONNXLayer, Schedule, StructBuffer, \
+    NetworkContext, NetworkDeployer, NetworkOptimizationPass, NetworkOptimizer, Schedule, StructBuffer, \
     TopologyOptimizer, TransientBuffer, VariableBuffer, _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
@@ -128,18 +128,6 @@ class MemoryLevelAwareDeployer(NetworkDeployer, MemorySummaryMixin):
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
 
-    def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
-                   default_channels_first: bool) -> Tuple[NetworkContext, bool]:
-
-        newCtxt, parsePass = super()._parseNode(node, ctxt, default_channels_first)
-
-        if not parsePass:
-            return ctxt, False
-
-        newCtxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(newCtxt, self.graph)
-
-        return newCtxt, parsePass
-
     def bind(self):
 
         ret = super().bind()
@@ -181,22 +169,6 @@ class MemoryLevelAwareSignPropDeployer(SignPropDeployer, MemorySummaryMixin):
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
 
-    def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
-                   default_channels_first: bool) -> Tuple[NetworkContext, bool]:
-
-        newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
-
-        if not parsePass:
-            return ctxt, False
-
-        newCtxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(newCtxt, self.graph)
-        newCtxt, LayerBindSuccess = node.typeCheck(newCtxt)
-
-        if not LayerBindSuccess:
-            return ctxt, False
-
-        return newCtxt, True
-
     def bind(self):
 
         ret = super().bind()
@@ -228,22 +200,6 @@ class MemoryDeployerWrapper(NetworkDeployerWrapper, MemorySummaryMixin):
         assert isinstance(self.Platform, (MemoryPlatform, MemoryPlatformWrapper)), \
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
-
-    def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
-                   default_channels_first: bool) -> Tuple[NetworkContext, bool]:
-
-        newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
-
-        if not parsePass:
-            return ctxt, False
-
-        newCtxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(newCtxt, self.graph)
-        newCtxt, LayerBindSuccess = node.typeCheck(newCtxt)
-
-        if not LayerBindSuccess:
-            return ctxt, False
-
-        return newCtxt, True
 
     def bind(self):
 
