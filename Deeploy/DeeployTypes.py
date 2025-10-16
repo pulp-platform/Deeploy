@@ -367,28 +367,13 @@ class TransientBuffer(VariableBuffer):
     """
 
     def __init__(self, name: str = '', size = 0):
-        self.name = name
-        self.size = size  #: int: Total BYTE size of this TransientBuffer
-
-        # Do not override - Should be written in the parsing passes
-        self._users = []
+        super().__init__(name, shape = (size,))
 
         # Do not override - Should be written in the parsing passes
         self._type: Type[Pointer] = PointerClass(VoidType)
-
-        # Do not override - Should be written in the deployment passes
-        self._live = False
-
-        # Do not override - Set in Templates depending on platform
-        self._deploy = True
-
-        self.is_input: bool = False
-        self.is_output: bool = False
-
-        self.alias_of: List[str] = []
+        self.size = size
 
     def __eq__(self, other):
-
         ret = all([self.name == other.name, self.size == other.size])
         return ret
 
