@@ -386,10 +386,6 @@ class TransientBuffer(VariableBuffer):
     def __repr__(self) -> str:
         return f'TransientBuffer: name: {self.name}, size: {self.size}'
 
-    @classmethod
-    def fromVariableBuffer(cls, buffer: VariableBuffer):
-        ret = cls(name = buffer.name, size = np.prod(buffer.shape) * buffer._type.typeWidth // 8)
-
     def sizeInBytes(self) -> int:
         return int(self.size)
 
@@ -432,12 +428,6 @@ class ConstantBuffer(VariableBuffer):
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._type, "name": self.name, "size": int(np.prod(self.shape)), "values": self._valueString()}
-
-    @classmethod
-    def fromVariableBuffer(cls, buffer: VariableBuffer, values):
-        ret = cls(name = buffer.name, shape = buffer.shape, values = values)
-
-        return ret
 
 
 class StructBuffer(VariableBuffer):
