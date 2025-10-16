@@ -129,12 +129,15 @@ class MemoryLevelAwareDeployer(NetworkDeployer, MemorySummaryMixin):
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
 
     def bind(self):
+        log.info("- Perform Memory Level Annotation")
+        # LMACAN: Annotate before bind because during binding (specifically alignToContext) templates
+        #         may expect the memoryLevel annotation already.
+        self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
         ret = super().bind()
         if not ret:
             return False
 
-        log.info("- Perform Memory Level Annotation")
         # SCHEREMO: There might be hoisting; reassign memoryLevel preferences
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
@@ -170,12 +173,15 @@ class MemoryLevelAwareSignPropDeployer(SignPropDeployer, MemorySummaryMixin):
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
 
     def bind(self):
+        log.info("- Perform Memory Level Annotation")
+        # LMACAN: Annotate before bind because during binding (specifically alignToContext) templates
+        #         may expect the memoryLevel annotation already.
+        self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
         ret = super().bind()
         if not ret:
             return False
 
-        log.info("- Perform Memory Level Annotation")
         # SCHEREMO: There might be hoisting; reassign memoryLevel preferences
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
@@ -202,12 +208,15 @@ class MemoryDeployerWrapper(NetworkDeployerWrapper, MemorySummaryMixin):
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
 
     def bind(self):
+        log.info("- Perform Memory Level Annotation")
+        # LMACAN: Annotate before bind because during binding (specifically alignToContext) templates
+        #         may expect the memoryLevel annotation already.
+        self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
         ret = super().bind()
         if not ret:
             return False
 
-        log.info("- Perform Memory Level Annotation")
         # SCHEREMO: There might be hoisting; reassign memoryLevel preferences
         self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
