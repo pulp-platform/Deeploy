@@ -10,8 +10,8 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import BaseType, Pointer, PointerClass
 from Deeploy.CommonExtensions.DataTypes import minimalIntegerType
-from Deeploy.DeeployTypes import IoDesc, NetworkContext, NetworkDeployer, NodeParser, NodeTemplate, NodeTypeChecker, \
-    ONNXLayer, OperatorDescriptor, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import IoDesc, NetworkContext, NetworkDeployer, NodeParser, NodeTemplate, ONNXLayer, \
+    OperatorDescriptor, OperatorRepresentation, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryPlatformWrapper
@@ -33,28 +33,6 @@ from .tilingUtils import DBOnlyL3Tiler, DBTiler, SBTiler
 memcpyTemplate = NodeTemplate("""
 memcpy((void *)${dest}, (void *)${src}, ${size});
 """)
-
-
-# Same interface as NodeTypeChecker but allow any input type and the
-# output type matches the input type.
-class MemcpyTypeChecker(NodeTypeChecker):
-
-    def __init__(self):
-        super().__init__([], [])
-
-    def typeInferOutput(self, ctxt: NetworkContext, node: gs.Node,
-                        operatorRepresentation: OperatorRepresentation) -> NetworkContext:
-        assert len(node.inputs) == 1 and len(node.outputs) == 1
-        buffer_in = ctxt.lookup(node.inputs[0].name)
-        ctxt.annotateType(node.outputs[0].name, buffer_in._type)
-        return ctxt
-
-    def typeCheckNodeInputs(self, ctxt: NetworkContext, node: gs.Node) -> bool:
-        return True
-
-    def typeInferGlobalCtxt(self, ctxt: NetworkContext, node: gs.Node) -> NetworkContext:
-        # Whatever it has already annotated, it's good
-        return ctxt
 
 
 class MemcpyTileConstraint(TileConstraint):
