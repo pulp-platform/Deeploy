@@ -2748,7 +2748,6 @@ class ConvTransposeParser(NodeParser):
 
 class ConvTranspose1DParser(ConvTransposeParser):
 
-
     def __init__(self):
         super().__init__()
 

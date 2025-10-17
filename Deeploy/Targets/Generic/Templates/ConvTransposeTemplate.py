@@ -53,6 +53,7 @@ class _ConvTranspose1D_Template(NodeTemplate):
 
         return ctxt, operatorRepresentation, []
 
+
 referenceTemplate = _ConvTranspose1D_Template("""
 <%
 batchOffsetIn = ch_im_in * dim_im_in_y
