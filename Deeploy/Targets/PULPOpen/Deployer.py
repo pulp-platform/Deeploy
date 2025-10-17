@@ -67,7 +67,6 @@ class PULPDeployer(SignPropDeployer):
         ]
 
         self.extNameCount = 0
-        self.n_cores = n_cores
 
     def annotateNCores(self) -> None:
         for layer in self.layerBinding.values():

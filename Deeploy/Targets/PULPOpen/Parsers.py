@@ -294,12 +294,12 @@ class PULPFPDWConv2DParser(Conv2DParser):
             inputs = ['data_in', 'weight']
 
             # Handle bias, if present
-            if len(node.inputs) > 2:
-                inputs.append("bias")
-                self.operatorRepresentation["has_bias"] = "true"
-            else:
+            if len(node.inputs) == 2:
                 self.operatorRepresentation["has_bias"] = "false"
                 self.operatorRepresentation["bias"] = "NULL"
+            else:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
 
             # Map input nodes to operator representation
             for idx, inputNode in enumerate(node.inputs):
