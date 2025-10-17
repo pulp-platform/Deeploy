@@ -33,10 +33,11 @@ def _shapeBroadcast(ctxt, value, name):
 
 
 def generateArray(name: str, buffer: VariableBuffer, values: np.ndarray) -> str:
-    assert math.prod(buffer.shape) == math.prod(
-        values.shape
-    ), f"Buffer size ({math.prod(buffer.shape)}) and values size ({math.prod(values.shape)}) are not equal."
+    assert math.prod(buffer.shape) == math.prod(values.shape), \
+        f"Buffer size ({math.prod(buffer.shape)}) and values size ({math.prod(values.shape)}) are not equal."
     refTy = buffer._type.referencedType
+
+    values = values.flatten()
 
     if issubclass(refTy, FloatImmediate):
         if refTy.typeWidth == 32:
@@ -53,7 +54,7 @@ def generateArray(name: str, buffer: VariableBuffer, values: np.ndarray) -> str:
             else:
                 return str(x) + suffix
 
-        list_str = ",".join(formatFloat(x) for x in values.flatten())
+        list_str = ",".join(formatFloat(x) for x in values)
     elif issubclass(refTy, IntegerImmediate):
         suffix = "u" if refTy.typeMin >= 0 else ""
         suffix += "l" if refTy.typeWidth >= 64 else ""
