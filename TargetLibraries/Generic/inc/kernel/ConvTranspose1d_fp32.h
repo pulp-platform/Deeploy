@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef CONV_TRANSPOSE1D_FP32_H
 #define CONV_TRANSPOSE1D_FP32_H
 

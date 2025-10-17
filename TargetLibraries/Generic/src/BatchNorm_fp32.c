@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include "DeeployBasicMath.h"
 
 void BatchNorm_fp32(const float32_t *input, const float32_t *gamma,
