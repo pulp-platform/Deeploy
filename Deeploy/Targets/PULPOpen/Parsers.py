@@ -77,6 +77,7 @@ class PULPFPConv2DParser(Conv2DParser):
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+                len(node.inputs) in [2, 3],
             ])
 
             self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
@@ -104,12 +105,12 @@ class PULPFPConv2DParser(Conv2DParser):
             inputs = ['data_in', 'weight']
 
             # Handle bias, if present
-            if len(node.inputs) > 2:
-                inputs.append("bias")
-                self.operatorRepresentation["has_bias"] = "true"
-            else:
+            if len(node.inputs) == 2:
                 self.operatorRepresentation["has_bias"] = "false"
                 self.operatorRepresentation["bias"] = "NULL"
+            else:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
 
             for idx, inputNode in enumerate(node.inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
@@ -170,12 +171,12 @@ class PULPFPDWConv2DParser(Conv2DParser):
             inputs = ['data_in', 'weight']
 
             # Handle bias, if present
-            if len(node.inputs) > 2:
-                inputs.append("bias")
-                self.operatorRepresentation["has_bias"] = "true"
-            else:
+            if len(node.inputs) == 2:
                 self.operatorRepresentation["has_bias"] = "false"
                 self.operatorRepresentation["bias"] = "NULL"
+            else:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
 
             # Map input nodes to operator representation
             for idx, inputNode in enumerate(node.inputs):

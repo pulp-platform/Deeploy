@@ -439,9 +439,9 @@ class ConstantBuffer(VariableBuffer):
 
     """
 
-    def __init__(self, name: str = '', shape = [1], values = [0], alias_of: Optional[List[str]] = None):
+    def __init__(self, name: str = '', shape = [1], values = [0]):
         # Pass a copy of alias_of to avoid shared references
-        super().__init__(name, shape, list(alias_of) if alias_of is not None else None)
+        super().__init__(name, shape)
 
         values = np.asarray(values)
         # intArray = values.astype(int)
@@ -481,7 +481,6 @@ class ConstantBuffer(VariableBuffer):
             name = buffer.name,
             shape = buffer.shape,
             values = values,
-            alias_of = buffer.alias_of,
         )
 
         return ret
@@ -581,7 +580,6 @@ class NetworkContext():
         self.ConstantBuffer = constantBuffer
         self.StructBuffer = structBuffer
         self.TransientBuffer = transientBuffer
-        self.n_cores = n_cores
         self.name = name
         self.n_cores = n_cores
 

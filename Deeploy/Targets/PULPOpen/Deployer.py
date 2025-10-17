@@ -66,7 +66,6 @@ class PULPDeployer(SignPropDeployer):
         ]
 
         self.extNameCount = 0
-        self.n_cores = n_cores
 
     def bind(self):
         # SCHEREMO: THIS IS A STOP GAP SOLUTION. DONT REUSE. I MEAN IT. I WILL FIND YOU.
