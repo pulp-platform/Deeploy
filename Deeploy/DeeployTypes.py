@@ -3372,6 +3372,10 @@ class NetworkDeployer(NetworkContainer):
         for node in filter(lambda x: x.op == "Identity", self.graph.nodes):
             self.graph.deleteNode(node)
 
+    def _assertTensorsHaveShape(self) -> None:
+        for tensor in self.graph.tensors().values():
+            assert tensor.shape is not None, f"Tensors are expected to have shape. Shape inference not supported."
+
     def frontEnd(self):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
 
@@ -3418,6 +3422,9 @@ class NetworkDeployer(NetworkContainer):
 
         log.info(f"> Export State {_middlewarePostLoweringFilename}[.onnx|.pkl]")
         self.exportDeeployState(self.deeployStateDir, _middlewarePostLoweringFilename)
+
+        log.info(" - Assert all tensors have a shape annotation")
+        self._assertTensorsHaveShape()
 
         log.info("- Perform Graph Parsing")
         try:
