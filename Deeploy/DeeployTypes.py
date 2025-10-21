@@ -1643,6 +1643,7 @@ class NodeBinding():
             matches the node
 
         """
+
         newCtxt, ret = self.typeChecker.typeCheck(ctxt.copy(), node, operatorRepresentation)
         if ret:
             log.debug(f" {SUCCESS_MARK} Type check passed for {self}")

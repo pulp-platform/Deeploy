@@ -340,11 +340,12 @@ class PadParser(NodeParser):
 
         if ret:
             self.operatorRepresentation['mode'] = node.attrs['mode']
+
             try:
                 self.operatorRepresentation['pads'] = [int(p) for p in node.attrs['pads']]
             except Exception as e:
                 self.operatorRepresentation['pads'] = node.attrs['pads']
-            # self.operatorRepresentation['pads'] = node.attrs['pads']
+
             self.operatorRepresentation['value'] = node.attrs['value']
 
         return ret
@@ -372,12 +373,9 @@ class Pad2DParser(PadParser):
     def parseNode(self, node: gs.Node) -> bool:
 
         ret = super().parseNode(node)
-
         wellFormed = False
         if ret:
             pads = self.operatorRepresentation['pads']
-
-
             if len(pads) == 8 and pads[0] == 0 and pads[4] == 0 \
             and pads[1] == 0 and pads[5] == 0:
                 wellFormed = True
@@ -424,11 +422,9 @@ class Pad1DParser(PadParser):
     def parseNode(self, node: gs.Node) -> bool:
 
         ret = super().parseNode(node)
-
         wellFormed = False
         if ret:
             pads = self.operatorRepresentation['pads']
-
             if len(pads) == 6 and pads[0] == 0 and pads[3] == 0 \
             and pads[1] == 0 and pads[4] == 0:
                 wellFormed = True
@@ -443,7 +439,6 @@ class Pad1DParser(PadParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-
         wellFormed = False
         if ret:
             data_in = newCtxt.lookup(node.inputs[0].name)
@@ -1377,8 +1372,9 @@ class Conv1DParser(ConvParser):
 
             self.operatorRepresentation['batch'] = data_in.shape[0]
             self.operatorRepresentation['dim_im_in_x'] = 1
-            self.operatorRepresentation[
-                'dim_im_out_x'] = 1  # necessary since we use the same Convlayer for all convolutions
+
+            # Necessary, since we use the same Convlayer for all convolutions
+            self.operatorRepresentation['dim_im_out_x'] = 1
 
             if channels_first:
                 self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
@@ -1391,10 +1387,6 @@ class Conv1DParser(ConvParser):
                 self.operatorRepresentation['ch_im_out'] = data_out.shape[2]
                 self.operatorRepresentation['dim_im_out_y'] = data_out.shape[1]
 
-            self.operatorRepresentation[
-                'batchOffsetIn'] = self.operatorRepresentation['ch_im_in'] * self.operatorRepresentation['dim_im_in_y']
-            self.operatorRepresentation['batchOffsetOut'] = self.operatorRepresentation[
-                'ch_im_out'] * self.operatorRepresentation['dim_im_out_y']
             self.operatorRepresentation[
                 'batchOffsetIn'] = self.operatorRepresentation['ch_im_in'] * self.operatorRepresentation['dim_im_in_y']
             self.operatorRepresentation['batchOffsetOut'] = self.operatorRepresentation[
@@ -2198,6 +2190,7 @@ class GenericConv1DParser(Conv1DParser):
 
         if ret:
             inputs = ['data_in', 'weight']
+
             # Handle bias, if present
             if len(node.inputs) > 2:
                 inputs.append("bias")
@@ -2205,10 +2198,12 @@ class GenericConv1DParser(Conv1DParser):
             else:
                 self.operatorRepresentation["has_bias"] = 0
                 self.operatorRepresentation["bias"] = "NULL"
+
             for idx, inputNode in enumerate(node.inputs):
                 if idx >= len(inputs):
                     raise IndexError(
                         f"Index {idx} out of range for inputs of length {len(inputs)} in node {inputNode.name}")
+
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
             return newCtxt, True
