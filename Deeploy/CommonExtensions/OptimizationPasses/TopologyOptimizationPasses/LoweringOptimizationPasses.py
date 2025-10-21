@@ -304,6 +304,7 @@ def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channel
     node = next(iter((match.nodes_map.values())))
 
     if not _isDepthwise(node):
+    if opNode.attrs.get('group', 1) == 1:
         return graph
 
     channels_first = node.attrs.get("channels_first", True)
