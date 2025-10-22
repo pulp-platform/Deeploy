@@ -11,13 +11,6 @@ import numpy as np
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.MemoryConstraints import MemoryConstraint
-
-
-@dataclass
-class MemoryTransfer():
-    source: MemoryConstraint
-    destination: MemoryConstraint
 
 
 @dataclass
