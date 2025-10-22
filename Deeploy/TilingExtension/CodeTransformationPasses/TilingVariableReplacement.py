@@ -15,6 +15,7 @@ from Deeploy.DeeployTypes import CodeGenVerbosity, CodeSnippet, CodeTransformati
     _ReferenceBuffer
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import TilingHoistingMixIn
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
+from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerExtension import Tiler
 from Deeploy.TilingExtension.TilingCodegen import TilingSchedule, VariableReplacementScheme, minimizeVariableReplacement
 
@@ -133,8 +134,13 @@ class TilingVariableReplacement(CodeTransformationPass, IntrospectiveCodeTransfo
             for key, value in operatorRepresentation.items()
         }
 
-        variableReplacement, tilingSchedules = template.tileConstraint.wrapTilingSolution(
-            nodeMemoryConstraint, self.targetMemLevel, ctxt, unraveledOpRepr)
+        tileConstr: TileConstraint = template.tileConstraint
+        transfers = {
+            tensorName: memTransfers[self.targetMemLevel]
+            for tensorName, memTransfers in baseExecutionBlock.transfers.items()
+        }
+        variableReplacement, tilingSchedules = tileConstr.wrapTilingSolution(nodeMemoryConstraint, self.targetMemLevel,
+                                                                             ctxt, unraveledOpRepr, transfers)
 
         minimalVariableReplacement, newOpRepr = minimizeVariableReplacement(variableReplacement, operatorRepresentation)
         operatorRepresentation.update(newOpRepr)
@@ -233,8 +239,13 @@ class TilingVariableReplacementUpdate(CodeTransformationPass, IntrospectiveCodeT
             for key, value in operatorRepresentation.items()
         }
 
-        variableReplacement, _ = template.tileConstraint.wrapTilingSolution(nodeMemoryConstraint, self.targetMemLevel,
-                                                                            ctxt, unraveledOpRepr)
+        tileConstr: TileConstraint = template.tileConstraint
+        transfers = {
+            tensorName: memTransfers[self.targetMemLevel]
+            for tensorName, memTransfers in baseExecutionBlock.transfers.items()
+        }
+        variableReplacement, _ = tileConstr.wrapTilingSolution(nodeMemoryConstraint, self.targetMemLevel, ctxt,
+                                                               unraveledOpRepr, transfers)
 
         minimalVariableReplacement, newOpRepr = minimizeVariableReplacement(variableReplacement, operatorRepresentation)
         operatorRepresentation.update(newOpRepr)

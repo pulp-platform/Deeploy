@@ -2,18 +2,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import copy
 from abc import abstractmethod
 from typing import Dict, List, Optional, Tuple, Union
 
-import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
-from Deeploy.TilingExtension.MemoryConstraints import MemoryConstraint, NodeMemoryConstraint, TensorMemoryConstraint
+from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, MemoryTransfer, \
-    TilingSchedule, VariableReplacementScheme, computeTileHyperRectangles
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
 
 
 class TileConstraint():
@@ -91,81 +88,17 @@ class TileConstraint():
 
     @classmethod
     def wrapTilingSolution(
-            cls, tilingSolution: NodeMemoryConstraint, targetMemLevel: str, ctxt: NetworkContext,
-            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, List[TilingSchedule]]:
-
-        def getMemoryTransfer(tensorConstraint: TensorMemoryConstraint, sourceCube: HyperRectangle,
-                              sourceMemoryLevel: str, targetMemoryLevel: str) -> MemoryTransfer:
-
-            size = np.prod(sourceCube.dims)
-            sourceConstraint = MemoryConstraint(sourceMemoryLevel, size)
-            sourceConstraint.shape = sourceCube.dims
-
-            destConstraint = copy.copy(tensorConstraint.memoryConstraints[targetMemoryLevel])
-
-            if any(dim1 > dim2 for dim1, dim2 in zip(destConstraint.shape, sourceConstraint.shape)):
-                destConstraint.shape = sourceConstraint.shape
-
-            return MemoryTransfer(sourceConstraint, destConstraint)
-
-        def _offsetAdd(offsetA: Tuple[int, ...], offsetB: Tuple[int, ...]) -> Tuple[int, ...]:
-            return tuple(dimA + dimB for dimA, dimB in zip(offsetA, offsetB))
-
-        def getCubeTransfers(tensorConstraint: TensorMemoryConstraint, sourceCubes: List[AbsoluteHyperRectangle],
-                             sourceMemoryLevel: str,
-                             targetMemoryLevel: str) -> Tuple[List[AbsoluteHyperRectangle], List[int]]:
-            solution = []
-            solutionLengths = []
-
-            for sourceCube in sourceCubes:
-                memTransfer = getMemoryTransfer(tensorConstraint, sourceCube.rectangle, sourceMemoryLevel,
-                                                targetMemoryLevel)
-                solutionCubes = computeTileHyperRectangles(memTransfer)
-                solutionAbsoluteCubes = [
-                    AbsoluteHyperRectangle(rectangle = cube,
-                                           absoluteOffset = _offsetAdd(sourceCube.absoluteOffset, cube.offset))
-                    for cube in solutionCubes
-                ]
-                solution += solutionAbsoluteCubes
-                solutionLengths.append(len(solutionAbsoluteCubes))
-
-            return solution, solutionLengths
-
+        cls, tilingSolution: NodeMemoryConstraint, targetMemLevel: str, ctxt: NetworkContext,
+        operatorRepresentation: OperatorRepresentation,
+        transfers: Dict[str,
+                        List[List[AbsoluteHyperRectangle]]]) -> Tuple[VariableReplacementScheme, List[TilingSchedule]]:
         assert len(tilingSolution.outputTensorMemoryConstraints) == 1, "Expected node to have only one output!"
-
-        outVar, outTensorConstraint = next(iter(tilingSolution.outputTensorMemoryConstraints.items()))
-        memoryPath = list(outTensorConstraint.memoryConstraints.keys())
-
-        assert targetMemLevel in memoryPath, \
-            f"Target memory level {targetMemLevel} does not exist in the memory path {memoryPath}"
-
-        targetIdx = memoryPath.index(targetMemLevel)
-
-        if targetIdx == 0:
-            # SCHEREMO: Watch out - this happens if inputs are in L(N+1) but outputs only in L(N)
-            targetIdx = 1
-
-        fullShape = ctxt.lookup(outVar).shape
-        initialOffset = (0,) * len(fullShape)
-        outputCubes = [
-            AbsoluteHyperRectangle(rectangle = HyperRectangle(offset = initialOffset, dims = tuple(fullShape)),
-                                   absoluteOffset = initialOffset)
-        ]
-
-        for source, target in zip(memoryPath[:targetIdx], memoryPath[1:targetIdx + 1]):
-            outputCubes, solutionLengths = getCubeTransfers(outTensorConstraint, outputCubes, source, target)
-
-        arrayOfCubes = []
-        _idx = 0
-        for idxLen in solutionLengths:
-            arrayOfCubes += [outputCubes[_idx:_idx + idxLen]]
-            _idx += idxLen
+        outVar, _ = next(iter(tilingSolution.outputTensorMemoryConstraints.items()))
 
         varReplacements = []
         tilingSchedules = []
 
-        for _outputCubes in arrayOfCubes:
-
+        for _outputCubes in transfers[outVar]:
             varReplacement, tilingSchedule = cls.serializeTilingSolution(tilingSolution, _outputCubes, targetMemLevel,
                                                                          ctxt, operatorRepresentation)
             sanitizedTilingSchedule = cls.sanitizeTilingSchedule(tilingSchedule)

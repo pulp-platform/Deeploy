@@ -19,6 +19,7 @@ from Deeploy.TilingExtension.AsyncDma import AnydimAsyncDmaTransferAdapter, Asyn
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import TilingHoistingMixIn
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import PrototypeTilingMixIn
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint, TensorMemoryConstraint
+from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule, VariableReplacementScheme, \
     calculateFlatOffset, minimizeRectangle, minimizeVariableReplacement, padOffset, padShape, stridesFromShape
 
@@ -241,8 +242,13 @@ Old minOuterShape produced by outerDims: {outerShape} and rects:
                 assert isinstance(buffer, VariableBuffer)
                 unraveledOpRepr[key] = ctxt.unravelReference(buffer).name
 
-        variableReplacement, tilingSchedules = template.tileConstraint.wrapTilingSolution(
-            nodeMemoryConstraint, self.localMemory, ctxt, unraveledOpRepr)
+        tileConstraint: TileConstraint = template.tileConstraint
+        transfers = {
+            tensorName: memTransfers[self.localMemory]
+            for tensorName, memTransfers in baseExecutionBlock.transfers.items()
+        }
+        variableReplacement, tilingSchedules = tileConstraint.wrapTilingSolution(nodeMemoryConstraint, self.localMemory,
+                                                                                 ctxt, unraveledOpRepr, transfers)
 
         minimalVariableReplacement, newOpRepr = minimizeVariableReplacement(variableReplacement, operatorRepresentation)
 

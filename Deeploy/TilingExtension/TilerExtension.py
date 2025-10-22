@@ -36,6 +36,7 @@ from Deeploy.TilingExtension.MemoryConstraints import MemoryConstraint, NodeMemo
 from Deeploy.TilingExtension.MemoryScheduler import MemoryBlock, MemoryScheduler
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, computeTileHyperRectangles
 
 TilingSolution = List[PatternMemoryConstraints]
 MemoryMap = Dict[str, List[List[MemoryBlock]]]
@@ -940,6 +941,34 @@ class Tiler():
                 assert stepIdx in range(lifetime[0], lifetime[-1] +
                                         1), f"Invalid memory map! Buffer {tensor.name} is not alive at step {stepIdx}!"
 
+    def getTransfers(self, tensorMc: TensorMemoryConstraint) -> Dict[str, List[List[AbsoluteHyperRectangle]]]:
+        transfers: Dict[str, List[List[AbsoluteHyperRectangle]]] = {}
+        mcs = list(tensorMc.memoryConstraints.items())
+        for (externalMemory, externalMc), (localMemory, localMc) in zip(mcs[:-1], mcs[1:]):
+            # TODO: Should we also use externalMemory as a key in the transfers?
+            if externalMemory not in transfers:
+                assert externalMc.shape is not None
+                shape = externalMc.shape
+                zeroOffset = (0,) * len(shape)
+                externalAbsoluteRectangles = [AbsoluteHyperRectangle(HyperRectangle(zeroOffset, shape), zeroOffset)]
+            else:
+                # Flatten
+                externalAbsoluteRectangles = [rect for _list in transfers[externalMemory] for rect in _list]
+
+            transfers[localMemory] = [[
+                AbsoluteHyperRectangle(rect, tuple(a + b
+                                                   for a, b in zip(extAbsRect.absoluteOffset, rect.offset)))
+                for rect in computeTileHyperRectangles(extAbsRect.rectangle.dims, localMc.shape)
+            ]
+                                      for extAbsRect in externalAbsoluteRectangles]
+        return transfers
+
+    def getIoTransfers(self,
+                       patternMc: PatternMemoryConstraints) -> Dict[str, Dict[str, List[List[AbsoluteHyperRectangle]]]]:
+        assert len(patternMc.nodeConstraints) == 1, "Only layerwise supported for now!"
+        tMcs = patternMc.nodeConstraints[0].tensorMemoryConstraints
+        return {name: self.getTransfers(mc) for name, mc in tMcs.items()}
+
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
 
@@ -996,6 +1025,7 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         # SCHEREMO: Annotate execution block with solution
         for layer, pattern in zip(self.layerBinding.values(), tilingSolution):
             layer.mapper.binder.executionBlock.patternMemoryConstraint = pattern
+            layer.mapper.binder.executionBlock.transfers = self.tiler.getIoTransfers(pattern)
 
         # SCHEREMO: Code generation STUB
 

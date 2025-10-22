@@ -1458,6 +1458,7 @@ class ExecutionBlock():
             )  #: Sequence[CodeSnippet]: ordered list of code snippets that need to be generated to implemented the associated operator
 
         self.patternMemoryConstraint: Optional = None  #: Optional[PatternMemoryConstraint]: Tiling information of the operator which is annotated in the midend
+        self.transfers: Optional = None  #: Optional[Dict[str, Dict[str, List[List[AbsoluteHyperRectangle]]]]]: Tiling transfers
 
     def addLeft(self, template: NodeTemplate, operatorRepresentation: OperatorRepresentation):
         """Adds a code snippet that is generated BEFORE any of the other code snippets in this ExecutionBlock
