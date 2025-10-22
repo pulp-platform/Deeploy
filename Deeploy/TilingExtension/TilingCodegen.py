@@ -165,7 +165,16 @@ def minimizeVariableReplacement(
     newRepTypes = {}
 
     for key, value in scheme.perTileReplacements.items():
-        if len(value) > 1:
+        more_than_one_unique_item = False
+        items_checked = list()
+        for item in value:
+            if item not in items_checked:
+                items_checked.append(item)
+            if len(items_checked) > 1:
+                more_than_one_unique_item = True
+                break
+        
+        if more_than_one_unique_item:
             newPerTileRep[key] = scheme.perTileReplacements[key]
             newRepTypes[key] = scheme.replacementTypes[key]
         else:
