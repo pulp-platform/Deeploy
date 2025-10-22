@@ -22,7 +22,7 @@ class L3Dma(AsyncDma):
     _transferTemplates = {
         2:
             NodeTemplate(
-                "pi_cl_ram_copy_2d(get_ram_ptr(), ${ext}, ${loc}, ${transfer_size}, ${stride}, ${length}, ${ext2loc}, &${future});"
+                "pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)${ext}, ${loc}, ${transfer_size}, ${stride}, ${length}, ${ext2loc}, &${future});"
             )
     }
     _waitingStrategy = PerTensorWaitingStrategy(L3DmaFuture)
