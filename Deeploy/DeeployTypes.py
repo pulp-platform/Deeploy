@@ -2893,7 +2893,7 @@ class NetworkContainer():
         callStack = ''
         for node in self.ctxt.localObjects.values():
             # WIESEP: We don't want to initialize the struct buffers as this should be handled by the ArgumentStructGeneration
-            if isinstance(node, StructBuffer):
+            if isinstance(node, (StructBuffer, TransientBuffer)):
                 continue
 
             name = node.name
