@@ -4,7 +4,7 @@
 
 import copy
 import itertools
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from Deeploy.AbstractDataTypes import Struct
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureExecutionBlock
@@ -15,8 +15,10 @@ from Deeploy.DeeployTypes import CodeGenVerbosity, CodeSnippet, CodeTransformati
     _ReferenceBuffer
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import TilingHoistingMixIn
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
+from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerExtension import Tiler
-from Deeploy.TilingExtension.TilingCodegen import TilingSchedule, VariableReplacementScheme, minimizeVariableReplacement
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme, \
+    minimizeVariableReplacement
 
 
 class TilingVariableReplacement(CodeTransformationPass, IntrospectiveCodeTransformationMixIn, TilingHoistingMixIn):
@@ -133,8 +135,18 @@ class TilingVariableReplacement(CodeTransformationPass, IntrospectiveCodeTransfo
             for key, value in operatorRepresentation.items()
         }
 
-        variableReplacement, tilingSchedules = template.tileConstraint.wrapTilingSolution(
-            nodeMemoryConstraint, self.targetMemLevel, ctxt, unraveledOpRepr)
+        tileConstr: TileConstraint = template.tileConstraint
+        transfers: Dict[str, Dict[str, List[List[AbsoluteHyperRectangle]]]] = baseExecutionBlock.transfers
+        targetMemoryTransfers = {
+            tensorName: memTransfers.get(self.targetMemLevel, None) for tensorName, memTransfers in transfers.items()
+        }
+
+        if any(v is None for v in targetMemoryTransfers.values()):
+            return ctxt, executionBlock
+
+        variableReplacement, tilingSchedules = tileConstr.wrapTilingSolution(nodeMemoryConstraint, self.targetMemLevel,
+                                                                             ctxt, unraveledOpRepr,
+                                                                             targetMemoryTransfers)
 
         minimalVariableReplacement, newOpRepr = minimizeVariableReplacement(variableReplacement, operatorRepresentation)
         operatorRepresentation.update(newOpRepr)
@@ -233,8 +245,17 @@ class TilingVariableReplacementUpdate(CodeTransformationPass, IntrospectiveCodeT
             for key, value in operatorRepresentation.items()
         }
 
-        variableReplacement, _ = template.tileConstraint.wrapTilingSolution(nodeMemoryConstraint, self.targetMemLevel,
-                                                                            ctxt, unraveledOpRepr)
+        tileConstr: TileConstraint = template.tileConstraint
+        transfers: Dict[str, Dict[str, List[List[AbsoluteHyperRectangle]]]] = baseExecutionBlock.transfers
+        targetMemoryTransfers = {
+            tensorName: memTransfers.get(self.targetMemLevel, None) for tensorName, memTransfers in transfers.items()
+        }
+
+        if any(v is None for v in targetMemoryTransfers.values()):
+            return ctxt, executionBlock
+
+        variableReplacement, _ = tileConstr.wrapTilingSolution(nodeMemoryConstraint, self.targetMemLevel, ctxt,
+                                                               unraveledOpRepr, targetMemoryTransfers)
 
         minimalVariableReplacement, newOpRepr = minimizeVariableReplacement(variableReplacement, operatorRepresentation)
         operatorRepresentation.update(newOpRepr)

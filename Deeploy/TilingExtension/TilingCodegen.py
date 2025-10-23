@@ -11,13 +11,6 @@ import numpy as np
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.MemoryConstraints import MemoryConstraint
-
-
-@dataclass
-class MemoryTransfer():
-    source: MemoryConstraint
-    destination: MemoryConstraint
 
 
 @dataclass
@@ -242,18 +235,12 @@ def calculateFlatOffsetInBytes(tile: HyperRectangle, referenceBuffer: VariableBu
         (referenceBuffer._type.referencedType.typeWidth // 8))
 
 
-def computeTileHyperRectangles(memoryTransfer: MemoryTransfer) -> List[HyperRectangle]:
-    assert memoryTransfer.source.shape is not None, "Source transfer shape cannot be undefined!"
-    assert memoryTransfer.destination.shape is not None, "Destination transfer shape cannot be undefined!"
+def computeTileHyperRectangles(externalShape: Tuple[int, ...], localShape: Tuple[int, ...]) -> List[HyperRectangle]:
+    assert len(externalShape) == len(localShape), \
+    f"External and local memory shapes don't have the same number of dimensions! External {externalShape} vs. Local {localShape}"
 
-    assert len(memoryTransfer.source.shape) == len(memoryTransfer.destination.shape), \
-    f"Source and target of memory transfer {memoryTransfer} don't have the same number of dimensions!"
-
-    largeShape = memoryTransfer.source.shape
-    smallShape = memoryTransfer.destination.shape
-
-    for dimIdx, (dimSizeSmall, dimSizeLarge) in enumerate(zip(smallShape, largeShape)):
-        assert dimSizeSmall <= dimSizeLarge, f"smallShape[{dimIdx}] should not be bigger then largeShape[{dimIdx}]. ({dimSizeSmall} > {dimSizeLarge})"
+    # LMACAN: The local shape dimensions are of the local buffer so if the external tile is smaller, that's fine
+    localShape = tuple(min(ext, loc) for ext, loc in zip(externalShape, localShape))
 
     def nextTileIndex(tileIndexEnd: List[int]) -> Generator[List[int]]:
         tileCount = np.prod(tileIndexEnd)
@@ -270,18 +257,18 @@ def computeTileHyperRectangles(memoryTransfer: MemoryTransfer) -> List[HyperRect
     tileHyperRectangles = []
 
     tileIndexEnd = [
-        int(np.ceil(dimSizeLarge / dimSizeSmall)) for dimSizeLarge, dimSizeSmall in zip(largeShape, smallShape)
+        int(np.ceil(dimSizeLarge / dimSizeSmall)) for dimSizeLarge, dimSizeSmall in zip(externalShape, localShape)
     ]
     for tileIndex in nextTileIndex(tileIndexEnd):
-        tileOffset = tuple(dimIdx * dimSizeSmall for dimIdx, dimSizeSmall in zip(tileIndex, smallShape))
-        for dimIdx, (dimOffset, dimSizeLarge) in enumerate(zip(tileOffset, largeShape)):
+        tileOffset = tuple(dimIdx * dimSizeSmall for dimIdx, dimSizeSmall in zip(tileIndex, localShape))
+        for dimIdx, (dimOffset, dimSizeLarge) in enumerate(zip(tileOffset, externalShape)):
             assert dimOffset >= 0, f"tileOffset[{dimIdx}] shoud not be smaller then zero ({dimOffset} < 0)"
             assert dimOffset < dimSizeLarge, f"tileOffset[{dimIdx}] should not be bigger or equal then largeShape[{dimIdx}] ({dimOffset} >= {dimSizeLarge})"
 
         tileSize = tuple(
             min(dimSizeSmall, dimSizeLarge - dimOffset)
-            for dimSizeSmall, dimSizeLarge, dimOffset in zip(smallShape, largeShape, tileOffset))
-        for dimIdx, (dimSize, dimSizeSmall) in enumerate(zip(tileSize, smallShape)):
+            for dimSizeSmall, dimSizeLarge, dimOffset in zip(localShape, externalShape, tileOffset))
+        for dimIdx, (dimSize, dimSizeSmall) in enumerate(zip(tileSize, localShape)):
             assert dimSize > 0, f"tileOffset[{dimIdx}] shoud not be smaller or equal then zero ({dimSize} <= 0)"
             assert dimSize <= dimSizeSmall, f"tileSize[{dimIdx}] should not be bigger then smallShape[{dimIdx}] ({dimSize} > {dimSizeSmall})"
 

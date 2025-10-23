@@ -5,7 +5,7 @@
 import copy
 import math
 from abc import abstractmethod
-from typing import List, Optional, Tuple, TypeVar
+from typing import Dict, List, Optional, Tuple, TypeVar
 
 import numpy as np
 
@@ -19,8 +19,10 @@ from Deeploy.TilingExtension.AsyncDma import AnydimAsyncDmaTransferAdapter, Asyn
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import TilingHoistingMixIn
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import PrototypeTilingMixIn
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint, TensorMemoryConstraint
-from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule, VariableReplacementScheme, \
-    calculateFlatOffset, minimizeRectangle, minimizeVariableReplacement, padOffset, padShape, stridesFromShape
+from Deeploy.TilingExtension.TileConstraint import TileConstraint
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme, calculateFlatOffset, minimizeRectangle, minimizeVariableReplacement, padOffset, \
+    padShape, stridesFromShape
 
 T = TypeVar('T')
 
@@ -241,8 +243,18 @@ Old minOuterShape produced by outerDims: {outerShape} and rects:
                 assert isinstance(buffer, VariableBuffer)
                 unraveledOpRepr[key] = ctxt.unravelReference(buffer).name
 
-        variableReplacement, tilingSchedules = template.tileConstraint.wrapTilingSolution(
-            nodeMemoryConstraint, self.localMemory, ctxt, unraveledOpRepr)
+        tileConstr: TileConstraint = template.tileConstraint
+        transfers: Dict[str, Dict[str, List[List[AbsoluteHyperRectangle]]]] = baseExecutionBlock.transfers
+        targetMemoryTransfers = {
+            tensorName: memTransfers.get(self.localMemory, None) for tensorName, memTransfers in transfers.items()
+        }
+
+        if any(v is None for v in targetMemoryTransfers.values()):
+            return ctxt, executionBlock
+
+        variableReplacement, tilingSchedules = tileConstr.wrapTilingSolution(nodeMemoryConstraint, self.localMemory,
+                                                                             ctxt, unraveledOpRepr,
+                                                                             targetMemoryTransfers)
 
         minimalVariableReplacement, newOpRepr = minimizeVariableReplacement(variableReplacement, operatorRepresentation)
 

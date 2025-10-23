@@ -130,6 +130,8 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
                 ctxt._dynamicSize[memoryLevel] += int(buffer.sizeInBytes())
 
             executionBlock.addLeft(buffer.allocTemplate, buffer._bufferRepresentation())
+            if isinstance(buffer, TransientBuffer):
+                executionBlock.addLeft(buffer.initTemplate, buffer._bufferRepresentation())
 
         for levels in ctxt._dynamicSize.keys():
             if levels not in ctxt._maxDynamicSize:
