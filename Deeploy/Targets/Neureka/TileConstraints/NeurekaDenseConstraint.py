@@ -53,7 +53,7 @@ class NeurekaDenseConv2DTileConstraint(TileConstraint):
 
         weightBuffer = ctxt.lookup(weightBufferName)
         if hasattr(weightBuffer, "_memoryLevel") and weightBuffer._memoryLevel == "WeightMemory_SRAM":
-            pass
+            tilerModel.addConstraint(weightOutChannelVar == weightOutChannelVar.Max())
         else:
             tilerModel.addConstraint(weightOutChannelVar == outputChannelVar)
 
