@@ -3373,8 +3373,9 @@ class NetworkDeployer(NetworkContainer):
             self.graph.deleteNode(node)
 
     def _assertTensorsHaveShape(self) -> None:
-        for tensor in self.graph.tensors().values():
-            assert tensor.shape is not None, f"Tensors are expected to have shape. Shape inference not supported."
+        missingShapes = [name for name, tensor in self.graph.tensors().items() if tensor.shape is None]
+        assert len(missingShapes) == 0, \
+            f"Shape inference is not supported.\nFound tensors with missing shape annotation: {missingShapes}"
 
     def frontEnd(self):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
