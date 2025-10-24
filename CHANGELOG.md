@@ -86,7 +86,6 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed _parseNode from MemoryNetworkDeployer since we don't need the annotations before typeChecking anymore
 - Removed Wmem variants of bindings and tile constraints from Neureka
 
-
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
 - Resolved issue with missing `id` in the `Build Cache for Docker` step, used in the `Inject build-cache` step.
