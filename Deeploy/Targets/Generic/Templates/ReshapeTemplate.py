@@ -4,7 +4,7 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
 
 
 class _ReshapeTemplate(NodeTemplate):
@@ -25,9 +25,14 @@ class _ReshapeTemplate(NodeTemplate):
             ctxt.globalObjects[operatorRepresentation["shape"]]._deploy = False
             ctxt.globalObjects[operatorRepresentation["shape"]]._live = False
 
-        inBuffer = ctxt.lookup(operatorRepresentation['data_in'])
-        outBuffer = ctxt.lookup(operatorRepresentation['data_out'])
-        outBuffer._alias = inBuffer.name
+        bufferIn = ctxt.lookup(operatorRepresentation['data_in'])
+        assert isinstance(bufferIn, VariableBuffer)
+        bufferOut = ctxt.lookup(operatorRepresentation['data_out'])
+        assert isinstance(bufferOut, VariableBuffer)
+
+        # Link aliases to each buffer
+        bufferIn.aliases.add(bufferOut.name)
+        bufferOut.aliases.add(bufferIn.name)
 
         return ctxt, operatorRepresentation, []
 

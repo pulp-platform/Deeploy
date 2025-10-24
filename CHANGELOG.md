@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Fix aliasing [#125](https://github.com/pulp-platform/Deeploy/pull/125)
 - Support for 1D Autoencoder [#98](https://github.com/pulp-platform/Deeploy/pull/98)
 - Refactor Logging for Improved Debugging [#115](https://github.com/pulp-platform/Deeploy/pull/115)
 - Add reuse-tool as an SPDX license header linter [#113](https://github.com/pulp-platform/Deeploy/pull/113)
@@ -74,6 +75,9 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Changed types and added correct casts to fix many compiler warnings in the PULP target library
 - Use [reuse-tool](https://github.com/fsfe/reuse-tool) in pre-commit, CI, and Makefile for SPDX license header linting
 - Deployer workflow now uses `prepare(...)` instead of `generateFunction(...)`.
+- Removed `fromVariableBuffer`
+- Refactored `hoistConstant`
+- Refactored TransientBuffer's `__init__`
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
@@ -84,6 +88,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Corrected method usage in `importDeeployState` to call `NetworkContext.importNetworkContext` instead of the incorrect method name
 - Correctly return `signProp` from `setupDeployer` instead of hardcoding the value to `False` in `testMVP.py`
 - Fixed `Unsqueeze` Op. when using ONNX opset 13 or higher (from attribute to input)
+- Fixed aliasing
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file

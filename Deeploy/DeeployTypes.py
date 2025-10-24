@@ -238,7 +238,7 @@ class VariableBuffer():
     allocTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's allocation code
     deallocTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's deallocation code
 
-    def __init__(self, name: str = '', shape = [1], alias_of: Optional[List[str]] = []):
+    def __init__(self, name: str = '', shape = [1], aliases: Optional[List[str]] = None):
         self.name: str = name  #: str: Canonical name that this buffer is registered as in the NetworkContext
         self.shape: Sequence[
             int] = shape  #: Sequence[int]: Represents the dimensions of the underlying tensor as a sequence of dimension sizes
@@ -257,7 +257,7 @@ class VariableBuffer():
         self.is_input: bool = False
         self.is_output: bool = False
 
-        self.alias_of: List[str] = alias_of if alias_of is not None else []
+        self.aliases: Set[str] = set(aliases) if aliases is not None else set()
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._instance, "name": self.name, "size": int(np.prod(self.shape))}
@@ -324,42 +324,7 @@ class VariableBuffer():
     def fromNode(cls, node: gs.Node):
         return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
 
-    def add_aliases(self, aliases_to_add: List[str]):
-        """
-        Adds list of aliases to the alias_of attribute.
-        Parameters
-        ----------
-        alias_to_add : List[str]
-            List of names of aliases to add to the alias_of attribute.
-        Returns
-        -------
-        None
-        """
-
-        if not hasattr(self, "alias_of"):
-            return None
-
-        for alias in aliases_to_add:
-            if alias not in self.alias_of:
-                self.alias_of.append(alias)
-
-        return None
-
-    def get_aliases_of(self):
-        """
-        Getter function for the alias_of attribute.
-        Returns
-        -------
-        List[str]
-            List of names o all aliases of this VariableBuffer.
-        """
-
-        if hasattr(self, "alias_of"):
-            return self.alias_of
-        else:
-            return list()
-
-    def has_live_ancestors(self, ctxt: NetworkContext) -> bool:
+    def has_live_aliases(self, ctxt: NetworkContext) -> bool:
         """Checks whether this VariableBuffer has any live ancestors, i.e. buffers that are still live and are aliased by this buffer.
         Parameters
         ----------
@@ -370,14 +335,18 @@ class VariableBuffer():
         bool
             True if this VariableBuffer has any live ancestors, False otherwise
         """
-        if not hasattr(self, "alias_of"):
-            return False
-
-        for alias in self.alias_of:
-            if ctxt.lookup(alias)._live:
-                return True
-
-        return False
+        # Do a breadth-first search across the aliasing double-linked list
+        live = self._live
+        queue = set(self.aliases)
+        visited = set(self.name)
+        while len(queue) > 0:
+            next = queue.pop()
+            buffNext = ctxt.lookup(next)
+            assert isinstance(buffNext, VariableBuffer)
+            live |= buffNext._live
+            visited.add(next)
+            queue |= buffNext.aliases - visited
+        return live
 
     def sizeInBytes(self) -> int:
         """Returns the size of this VariableBuffer in bytes
@@ -398,28 +367,13 @@ class TransientBuffer(VariableBuffer):
     """
 
     def __init__(self, name: str = '', size = 0):
-        self.name = name
-        self.size = size  #: int: Total BYTE size of this TransientBuffer
-
-        # Do not override - Should be written in the parsing passes
-        self._users = []
+        super().__init__(name, shape = (size,))
 
         # Do not override - Should be written in the parsing passes
         self._type: Type[Pointer] = PointerClass(VoidType)
-
-        # Do not override - Should be written in the deployment passes
-        self._live = False
-
-        # Do not override - Set in Templates depending on platform
-        self._deploy = True
-
-        self.is_input: bool = False
-        self.is_output: bool = False
-
-        self.alias_of: List[str] = []
+        self.size = size
 
     def __eq__(self, other):
-
         ret = all([self.name == other.name, self.size == other.size])
         return ret
 
@@ -431,10 +385,6 @@ class TransientBuffer(VariableBuffer):
 
     def __repr__(self) -> str:
         return f'TransientBuffer: name: {self.name}, size: {self.size}'
-
-    @classmethod
-    def fromVariableBuffer(cls, buffer: VariableBuffer):
-        ret = cls(name = buffer.name, size = np.prod(buffer.shape) * buffer._type.typeWidth // 8)
 
     def sizeInBytes(self) -> int:
         return int(self.size)
@@ -478,12 +428,6 @@ class ConstantBuffer(VariableBuffer):
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._type, "name": self.name, "size": int(np.prod(self.shape)), "values": self._valueString()}
-
-    @classmethod
-    def fromVariableBuffer(cls, buffer: VariableBuffer, values):
-        ret = cls(name = buffer.name, shape = buffer.shape, values = values)
-
-        return ret
 
 
 class StructBuffer(VariableBuffer):
@@ -999,12 +943,15 @@ class NetworkContext():
         ref._instance = ref._type(name, ctxt = self)
         return ref
 
-    def hoistConstant(self, node: gs.Node, name: str = '', _type: Optional[Type[Pointer]] = None) -> str:
-        """Register a ConstantBuffer extracted directly from a graphsurgeon Node
+    def hoistConstant(self,
+                      constant: gs.Constant,
+                      name: Optional[str] = None,
+                      _type: Optional[Type[Pointer]] = None) -> str:
+        """Register a ConstantBuffer extracted directly from a graphsurgeon Constant
 
         Parameters
         ----------
-        node : gs.Node
+        constant : gs.Constant
             graphsurgeon.Node containing a single constant output
         name : str
             Name of the ConstantBuffer to be registered
@@ -1017,21 +964,18 @@ class NetworkContext():
             Returns the name of the newly registed ConstantBuffer
 
         """
+        assert len(constant.outputs) <= 1, f"Constant {constant.name} has more than one output"
 
-        assert len(node.outputs) <= 1, f"Constant {node.name} has more than one output"
+        name = name if name is not None else constant.name
 
-        if name == "":
-            name = node.name
+        # LMACAN: The shape needs to be copied into a tuple for pickling to work. Don't ask me why..
+        buffer = self.ConstantBuffer(name, tuple(constant.shape), constant.values)
+        self.add(buffer, 'global')
 
-        # SCHEREMO: This is currently heuristic, but should be annotated in ONNX
-        localBuffer = self.VariableBuffer.fromNode(node = node)
-        globalBuffer = self.ConstantBuffer.fromVariableBuffer(localBuffer, values = node.values)
-        globalBuffer.name = name
-        globalBuffer._type = _type
+        if _type is not None:
+            self.annotateType(name, _type)
 
-        self.add(globalBuffer, 'global')
-
-        return globalBuffer.name
+        return name
 
     def addUser(self, name: str, node: gs.Node):
         """Adds an operator's name to the _user list of a VariableBuffer in the context
