@@ -652,15 +652,12 @@ class ConvTransposeLayer(ONNXLayer):
         weight_shape = inputShapes[1]
 
         if newOutputShapes and len(newOutputShapes[0]) >= 2:
+            # For 1D: weight_shape = [C_in, C_out // group, kW]
+            # For 2D: weight_shape = [C_in, C_out // group, kH, kW]
+            ch_out = weight_shape[1] * group
             if channels_first:
-                # For 1D: weight_shape = [C_in, C_out // group, kW]
-                # For 2D: weight_shape = [C_in, C_out // group, kH, kW]
-                ch_out = weight_shape[1] * group
                 newOutputShapes[0][1] = ch_out
             else:
-                # For 1D: weight_shape = [C_in, C_out // group, kW]
-                # For 2D: weight_shape = [C_in, C_out // group, kH, kW]
-                ch_out = weight_shape[-2] * group
                 newOutputShapes[0][-1] = ch_out
 
         return newInputShapes, newOutputShapes

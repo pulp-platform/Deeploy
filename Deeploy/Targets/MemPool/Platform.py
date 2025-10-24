@@ -37,7 +37,7 @@ from Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes import MemPoolFus
 
 # Fallback bindings from the generic platform
 # (they support a wider range of attribute values)
-GenericConv1D_Mapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBindings])
+GenericConv1D_Mapper = NodeMapper(GenericConv1DParser(), BasicConv1DBindings)
 GenericDWConv1D_Mapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
 GenericConv2D_Mapper = NodeMapper(GenericConv2DParser(), BasicConv2DBindings)
 GenericDWConv2D_Mapper = NodeMapper(GenericDWConv2DParser(), BasicDWConv2DBindings)

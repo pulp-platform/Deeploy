@@ -65,7 +65,9 @@ batchOffsetOut = dim_im_out_ch * dim_im_out_y
 
 // 1D Float Pad (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
-    memset(${data_out}, 0, ${data_out_size}*sizeof(${data_out_type.referencedType.typeName}));
+    for (uint32_t i = 0; i < ${data_out_size}; i++) {
+        ${data_out}[i] = ${value};
+    }
     uint32_t xoffset_${data_out}_${data_in};
     uint32_t offset_in_${data_out}_${data_in} = 0;
 

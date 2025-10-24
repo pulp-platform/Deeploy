@@ -2765,7 +2765,7 @@ class ConvTranspose1DParser(ConvTransposeParser):
             self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][0])
 
-        return wellFormed
+        return ret
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -2787,4 +2787,5 @@ class ConvTranspose1DParser(ConvTransposeParser):
                 "batchOffsetIn"] = self.operatorRepresentation["ch_im_in"] * self.operatorRepresentation["dim_im_in_y"]
             self.operatorRepresentation["batchOffsetOut"] = self.operatorRepresentation[
                 "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
-        return ctxt, True
+            return newCtxt, True
+        return ctxt, False

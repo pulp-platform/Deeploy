@@ -77,7 +77,9 @@ BEGIN_SINGLE_CORE
             ${bias}, ${has_bias},
             ref_${data_out}_${data_out}, ${dim_im_out_y}
         );
-        
+
+        ref_${data_out}_${data_in} += ${batchOffsetIn};
+        ref_${data_out}_${data_out} += ${batchOffsetOut};
     }
 END_SINGLE_CORE
 """)
