@@ -2696,9 +2696,9 @@ class ConvTransposeParser(NodeParser):
         self.operatorRepresentation['data_out'] = node.outputs[0].name
         if len(node.inputs) == 3:
             self.operatorRepresentation['bias'] = node.inputs[2].name
-            self.operatorRepresentation['has_bias'] = True
+            self.operatorRepresentation['has_bias'] = "true"
         else:
-            self.operatorRepresentation['has_bias'] = False
+            self.operatorRepresentation['has_bias'] = "false"
         # Get output shape from context
         data_out = ctxt.lookup(node.outputs[0].name)
         out_shape = data_out.shape
@@ -2779,6 +2779,7 @@ class ConvTranspose1DParser(ConvTransposeParser):
             data_out = newCtxt.lookup(node.outputs[0].name)
             in_shape = data_in.shape
             out_shape = data_out.shape
+            self.operatorRepresentation['batch'] = in_shape[0]
             self.operatorRepresentation['ch_im_in'] = in_shape[1]
             self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
             self.operatorRepresentation['ch_im_out'] = out_shape[1]
