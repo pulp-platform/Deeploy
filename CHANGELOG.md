@@ -88,6 +88,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed _parseNode from MemoryNetworkDeployer since we don't need the annotations before typeChecking anymore
 - Removed Wmem variants of bindings and tile constraints from Neureka
 - Disabled ICCT_ITA_8 MemPool test because it was using a lowering that created shapeless tensors
+- Added missing shape annotation to the testTypeInferenceDifferentTypes
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
