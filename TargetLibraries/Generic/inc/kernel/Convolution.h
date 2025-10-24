@@ -43,4 +43,13 @@ void Conv2d_fp32_fp32_fp32_NCHW(const float *__restrict__ pSrcA, uint32_t C,
                                 uint32_t SQ, const float *__restrict__ pSrcBias,
                                 const bool has_bias, float *__restrict__ pDstC);
 
+void Conv1d_fp32_fp32_fp32(
+    const float32_t *__restrict__ pSrcA, // Input: [C_in, W_in]
+    uint32_t C_in, uint32_t W_in,
+    const float32_t *__restrict__ pSrcB, // Weights: [C_out, C_in, K]
+    uint32_t C_out, uint32_t K, uint32_t stride,
+    const float32_t *__restrict__ pSrcBias, const bool has_bias,
+    float32_t *__restrict__ pDstC, // Output: [C_out, W_out]
+    uint32_t W_out);
+
 #endif //__DEEPLOY_BASIC_MATH_CONVOLUTION_KERNEL_HEADER_

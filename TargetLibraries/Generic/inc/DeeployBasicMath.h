@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include <inttypes.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -31,6 +32,8 @@
 #include "types.h"
 #include "utils.h"
 
+#include "kernel/BatchNorm.h"
+#include "kernel/ConvTranspose1d_fp32.h"
 #include "kernel/Convolution.h"
 #include "kernel/DWConvolution.h"
 #include "kernel/Div.h"
@@ -40,10 +43,12 @@
 #include "kernel/Layernorm.h"
 #include "kernel/MatMul.h"
 #include "kernel/MaxPool.h"
+#include "kernel/MaxPool1d.h"
 #include "kernel/RMSNorm.h"
 #include "kernel/RQDiv.h"
 #include "kernel/RQGELU.h"
 #include "kernel/RQHardswish.h"
+#include "kernel/Relu.h"
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
 

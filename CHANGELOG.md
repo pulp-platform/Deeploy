@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Support for 1D Autoencoder [#98](https://github.com/pulp-platform/Deeploy/pull/98)
 - Refactor Logging for Improved Debugging [#115](https://github.com/pulp-platform/Deeploy/pull/115)
 - Add reuse-tool as an SPDX license header linter [#113](https://github.com/pulp-platform/Deeploy/pull/113)
 - Bug fixes, API Cleanup and Reduce Compiler Warning on PULP [#112](https://github.com/pulp-platform/Deeploy/pull/112)
@@ -158,6 +159,13 @@ This release containing major architectural changes, new platform support, enhan
 
 
 ### Added
+- BatchNorm kernel 
+- ConvTranspose kernel 
+- MaxPool1D kernel 
+- Template for 1D Convolution
+- Support for float32 data type in the previous kernels
+- Float binding for Pad1D kernel
+- Test for Autoencoder1D in the CI pipeline
 - ChimeraDeployer, currently mainly a placeholder
 - Allocate templates for Chimera
 - ChimeraPlatform, using appropriate allocation templates and using the generic Parser + Binding for the Add node
@@ -291,6 +299,8 @@ This release containing major architectural changes, new platform support, enhan
 - `dev-requirements.txt` tracking the dependencies of the build system, linting, documentation, and QOL.
 
 ### Changed
+- FloatConvTemplate file
+- Platform.py file  
 - Bump the CMake version to 3.24 as required for the chimera-sdk
 - Bump GVSoC's version and add chimera simulation target
 - Rename the generic source util to utils to avoid name collision with chimera-sdk
