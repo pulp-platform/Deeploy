@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Disallow shape inference [#128](https://github.com/pulp-platform/Deeploy/pull/128)
 - Remove memory-aware node bindings [#123](https://github.com/pulp-platform/Deeploy/pull/123)
 - Fix missing const's layout transformation and refactor NCHWtoNHWC passes [#122](https://github.com/pulp-platform/Deeploy/pull/122)
 - Fix aliasing [#125](https://github.com/pulp-platform/Deeploy/pull/125)
@@ -51,6 +52,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Per–memory-level usage tracking and worst-case reporting in `NetworkContext`
 - Memory/I/O summaries and input/output logging in deployers
 - RequantHelpers.py for Neureka's TileConstraints
+- Added assertion that all the graph tensors after lowering have a shape annotated
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -85,6 +87,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed NodeMemoryLevelChecker, MemoryAwareNodeBinding
 - Removed _parseNode from MemoryNetworkDeployer since we don't need the annotations before typeChecking anymore
 - Removed Wmem variants of bindings and tile constraints from Neureka
+- Disabled ICCT_ITA_8 MemPool test because it was using a lowering that created shapeless tensors
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
