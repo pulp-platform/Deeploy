@@ -102,10 +102,6 @@ class ProfilingPrototypeMixIn(ABC):
     }
     """)
 
-    _measureCycles = NodeTemplate("""
-    ${measurements}[${tileIdxVar}] = getCycles();
-    """)
-
     @classmethod
     def measurementArrayDeclaration(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
                                     bufferingStr: Literal["SB", "DB"]) -> ExecutionBlock:
