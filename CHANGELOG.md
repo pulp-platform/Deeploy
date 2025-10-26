@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Remove memory-aware node bindings [#123](https://github.com/pulp-platform/Deeploy/pull/123)
 - Fix missing const's layout transformation and refactor NCHWtoNHWC passes [#122](https://github.com/pulp-platform/Deeploy/pull/122)
 - Fix aliasing [#125](https://github.com/pulp-platform/Deeploy/pull/125)
 - Support for 1D Autoencoder [#98](https://github.com/pulp-platform/Deeploy/pull/98)
@@ -49,6 +50,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Buffer utilities: `checkNumLevels` validation and `sizeInBytes` method
 - Per–memory-level usage tracking and worst-case reporting in `NetworkContext`
 - Memory/I/O summaries and input/output logging in deployers
+- RequantHelpers.py for Neureka's TileConstraints
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -80,6 +82,9 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Refactored `hoistConstant`
 - Refactored TransientBuffer's `__init__`
 - Refactor of the NCHWtoNHWC passes
+- Removed NodeMemoryLevelChecker, MemoryAwareNodeBinding
+- Removed _parseNode from MemoryNetworkDeployer since we don't need the annotations before typeChecking anymore
+- Removed Wmem variants of bindings and tile constraints from Neureka
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
@@ -92,6 +97,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fixed `Unsqueeze` Op. when using ONNX opset 13 or higher (from attribute to input)
 - Fixed aliasing
 - Missing layout transformation of the const's (bias, mul, add, shift in Conv/RequantizedConv)
+- Keep mul/add rank of requantized Neureka tile constraints
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
