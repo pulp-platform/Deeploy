@@ -130,8 +130,8 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
                                               stridesFromShape(transfers[0].dims), direction, future,
                                               math.prod(externalBuffer.shape,))
 
-        initSnippets = [item for tup in initSnippets for item in tup]
-
+        # Add allocation snippets
+        initSnippets = [future.alloc()] + initSnippets
         templates = [snippet.template for snippet in initSnippets]
         opReprUpdates = [[] for _ in range(len(initSnippets))]
 
@@ -139,8 +139,7 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
             snippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, rect.dims,
                                               stridesFromShape(externalBuffer.shape), stridesFromShape(rect.dims),
                                               direction, future, math.prod(externalBuffer.shape))
-
-            snippets = [item for tup in snippets for item in tup]
+            snippets = [future.alloc()] + snippets
             for i, snippet in enumerate(snippets):
                 opReprUpdates[i].append(snippet.operatorRepresentation)
 

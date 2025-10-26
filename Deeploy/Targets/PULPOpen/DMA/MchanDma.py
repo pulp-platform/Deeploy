@@ -17,7 +17,12 @@ class MchanChannelFuture(Future):
 
     _allocTemplate = NodeTemplate("${name} = mchan_channel_alloc();")
 
-    _waitTemplate = NodeTemplate("mchan_channel_wait(${name});\nmchan_channel_free(${name});")
+    _waitTemplate = NodeTemplate("""
+if (${name} <= MCHAN_TRANSFER_ID_MAX) {
+    mchan_channel_wait(${name});
+    mchan_channel_free(${name});
+}
+""")
 
 
 class MchanDma(AsyncDma):

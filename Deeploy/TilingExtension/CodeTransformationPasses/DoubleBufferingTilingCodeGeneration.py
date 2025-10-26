@@ -28,6 +28,9 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
     }
     """)
 
+    # LMACAN: The brackets around ${tileIdxVar} are important to ensure correct order
+    #         of the modulo operation. Breaking case without the brackets is when we
+    #         put "TILING_I + 1" for tileIdxVar.
     _switchOpen = NodeTemplate("switch((${tileIdxVar}) % ${bufferCount}) {")
     _caseOpen = NodeTemplate("case ${case}:")
     _caseClose = NodeTemplate("break;")
@@ -148,9 +151,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                              stridesFromShape(externalBufferShape),
                                                              stridesFromShape(rectangles[0].dims), "ExternalToLocal",
                                                              _future, math.prod(externalBufferShape))
-
-            initialDmaTransferCalls = [item for tup in initialDmaTransferCalls for item in tup]
-            setupStatements.append(CodeSnippet(self._lineComment, {"comment": "Transfer initial input tile"}))
+            setupStatements.append(_future.alloc())
             setupStatements.extend(initialDmaTransferCalls)
 
             # 4.1) Choose buffers for current tile (inputs and outputs)

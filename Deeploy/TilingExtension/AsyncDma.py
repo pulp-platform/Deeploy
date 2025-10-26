@@ -111,13 +111,12 @@ class AsyncDma(ABC):
         return {"loc": localBuffer.name, "ext": externalBuffer.name, "future": future.name}
 
     def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
-                 shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int,
-                                                                                      ...], direction: DmaDirection,
-                 future: Future) -> Tuple[List[CodeSnippet], List[CodeSnippet], List[CodeSnippet]]:
+                 shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
+                 direction: DmaDirection, future: Future) -> List[CodeSnippet]:
         self.checkTransfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction)
         opRepr = self.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
         template = self._transferTemplates[len(shape)]
-        return [future.alloc()], [CodeSnippet(template, opRepr)], []
+        return [CodeSnippet(template, opRepr)]
 
 
 class EmptyFuture(Future):
@@ -148,18 +147,14 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
         return self.dma.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
 
     def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
-                 shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int,
-                                                                                      ...], direction: DmaDirection,
-                 future: Future) -> Tuple[List[CodeSnippet], List[CodeSnippet], List[CodeSnippet]]:
+                 shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
+                 direction: DmaDirection, future: Future) -> List[CodeSnippet]:
         callStack = []
-        alloc_code, dma_code, deinit_code = self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt,
-                                                              strideLoc, direction, future)
-        callStack.extend(alloc_code)
+        dma_code = self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
+        callStack.append(future.alloc())
         callStack.extend(dma_code)
         callStack.append(future.wait())
-        callStack.extend(deinit_code)
-
-        return [], callStack, []
+        return callStack
 
 
 class AnydimAsyncDmaTransferAdapter:
@@ -220,7 +215,7 @@ class AnydimAsyncDmaTransferAdapter:
                  strideLoc: Tuple[int, ...],
                  direction: DmaDirection,
                  future: Future,
-                 strideExtPad: int = 0) -> Tuple[List[CodeSnippet], List[CodeSnippet], List[CodeSnippet]]:
+                 strideExtPad: int = 0) -> List[CodeSnippet]:
         transferRank = len(shape)
         kernelRank = self.nearestSupportedTransferRank(transferRank)
 
@@ -256,13 +251,12 @@ class AnydimAsyncDmaTransferAdapter:
                     "offset": "ext_offset"
                 }))
 
-            alloc_code, dma_code, deinit_code = self.dma.transfer(ctxt, externalBufferOffseted, localBufferOffseted,
-                                                                  shape[-kernelRank:], strideExt[-kernelRank:],
-                                                                  strideLoc[-kernelRank:], direction, future)
+            dma_code = self.dma.transfer(ctxt, externalBufferOffseted, localBufferOffseted, shape[-kernelRank:],
+                                         strideExt[-kernelRank:], strideLoc[-kernelRank:], direction, future)
 
             callStack.extend(dma_code)
             callStack.append(CodeSnippet(self.NestedForLoopCloseTemplate(nestedLoopDepth), {}))
-            return alloc_code, callStack, deinit_code
+            return callStack
         elif kernelRank == transferRank:
             return self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
         else:
