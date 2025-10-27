@@ -87,11 +87,11 @@ class float64_t(FloatImmediate):
 
 SignedIntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (int8_t, int16_t, int32_t, int64_t)
 UnsignedIntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (uint8_t, uint16_t, uint32_t, uint64_t)
-IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (sorted((
-    *SignedIntegerDataTypes,
-    *UnsignedIntegerDataTypes,
-),
-                                                               key = lambda _type: _type.typeWidth))
+IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = tuple(
+    sorted((
+        *SignedIntegerDataTypes,
+        *UnsignedIntegerDataTypes,
+    ), key = lambda _type: _type.typeWidth))
 FloatDataTypes: Tuple[Type[FloatImmediate], ...] = (bfloat16_t, float16_t, float32_t, float64_t)
 
 
