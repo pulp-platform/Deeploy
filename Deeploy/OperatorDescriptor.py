@@ -9,6 +9,7 @@ import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import AttrDesc, IoDesc, OperatorDescriptor, VariadicIoDesc
+from Deeploy.Logging import DEFAULT_LOGGER as log
 
 
 def IntUnpack(value: Any) -> int:
@@ -499,13 +500,24 @@ gatherDesc = OperatorDescriptor(
 class SqueezeDescriptor(OperatorDescriptor):
 
     def canonicalize(self, node: gs.Node, opset: int) -> bool:
-        if opset >= 13:
-            assert len(node.inputs) == 2, f"Expected 2 inputs but received {len(node.inputs)}"
+        if len(node.inputs) == 2:
             axes = node.inputs[1]
-            assert isinstance(axes,
-                              gs.Constant), f"Expected axes to be a constant but received axes of type {type(axes)}"
+            assert isinstance(axes, gs.Constant), \
+                f"Expected axes to be a constant but received axes of type {type(axes)}"
             node.attrs["axes"] = axes.values
             axes.outputs.clear()
+
+        if opset >= 13 and len(node.inputs) != 2:
+            log.warning(
+                "Squeeze operation expects 2 inputs for opset >= 13. "
+                f"Received node {node.name} with {len(node.inputs)} input{'s' if len(node.inputs) > 1 else ''} and opset {opset}"
+            )
+        elif opset < 13 and len(node.inputs) != 1:
+            log.warning(
+                "Squeeze operation expects 1 input for opset < 13. "
+                f"Received node {node.name} with {len(node.inputs)} input{'s' if len(node.inputs) > 1 else ''} and opset {opset}"
+            )
+
         return super().canonicalize(node, opset)
 
 
