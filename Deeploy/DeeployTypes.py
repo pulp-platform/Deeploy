@@ -841,7 +841,7 @@ class NetworkContext():
         obj = self.lookup(value)
         return isinstance(obj, VariableBuffer)
 
-    def hoistTransientBuffer(self, name: str, size: Union[int, str]) -> str:
+    def hoistTransientBuffer(self, name: str, size: int) -> str:
         """Registers a new TransientBuffer in the local context
 
         Parameters

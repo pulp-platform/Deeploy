@@ -280,31 +280,10 @@ class NCHWtoNHWCPadPass(ReplaceSequentialPatternPass):
         super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
 
 
-@contextagnostic
-class NCHWtoNHWCPass(SequentialPass):
-
-    def __init__(self, default_channels_first: bool = True):
-        passes = [
-            NCHWtoNHWCPadPass(default_channels_first),
-            NCHWtoNHWCMaxPoolPass(default_channels_first),
-            NCHWtoNHWCConvPass(default_channels_first),
-            NCHWtoNHWCRequantizedConvPass(default_channels_first),
-        ]
-        super().__init__(*passes)
-
-
-def _PULPDWNCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):
-
-    matched_nodes = [m for k, m in match.nodes_map.items()]
-    opNode = matched_nodes[0]
-    node_op = opNode.op
-
-    if 'group' in opNode.attrs and opNode.attrs['group'] == 1:
 def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool) -> gs.Graph:
     node = next(iter((match.nodes_map.values())))
 
     if not _isDepthwise(node):
-    if opNode.attrs.get('group', 1) == 1:
         return graph
 
     channels_first = node.attrs.get("channels_first", True)
@@ -337,47 +316,10 @@ def _NCWHtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channel
 class NCHWtoNHWCDwConvPass(ReplaceSequentialPatternPass):
 
     def __init__(self, default_channels_first: bool = True):
-        # Define pattern graph
-        graph = gs.Graph()
-
-        _input = gs.Variable(name = 'input_1')
-        output = graph.layer(inputs = [_input], outputs = ['convOut'], op = 'RequantizedConv', name = 'requantizedConv')
-
-        graph.outputs.append(output)
-        graph.inputs.append(_input)
-
-        # Define name
+        graph = _singleNodePattern(op = "Conv|RequantizedConv")
         name = "_NCHW_TO_NHWC_DW_CONV_PASS"
-
-        # Initialize Pass
-        super().__init__(pattern = graph,
-                         replacement_fn = partial(_PULPDWNCHWtoNHWC_fun,
-                                                  default_channels_first = default_channels_first),
-                         name = name)
-
-
-# Float DW Conv
-@contextagnostic
-class PULPFPDWConvPass(ReplaceSequentialPatternPass):
-
-    def __init__(self, default_channels_first: bool = True):
-        # Define pattern graph
-        graph = gs.Graph()
-
-        _input = gs.Variable(name = 'input_1')
-        output = graph.layer(inputs = [_input], outputs = ['convOut'], op = 'Conv', name = 'conv')
-
-        graph.outputs.append(output)
-        graph.inputs.append(_input)
-
-        # Define name
-        name = "_NCHW_TO_NHWC_FP_DW_CONV_PASS"
-
-        # Initialize Pass
-        super().__init__(pattern = graph,
-                         replacement_fn = partial(_PULPDWNCHWtoNHWC_fun,
-                                                  default_channels_first = default_channels_first),
-                         name = name)
+        super().__init__(graph, partial(_NCWHtoNHWC_dw_fun, default_channels_first = default_channels_first), name,
+                         NonBranchingMatcher(regex_op = True))
 
 
 def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool = True):
@@ -422,10 +364,8 @@ class NCHWtoNHWCPass(SequentialPass):
         passes = [
             NCHWtoNHWCPadPass(default_channels_first),
             NCHWtoNHWCMaxPoolPass(default_channels_first),
-            PULPDWConvPass(default_channels_first),
-            PULPFPDWConvPass(default_channels_first),
-            PULPNCHWtoNHWCDenseConvPass(default_channels_first),
-            PULPNCHWtoNHWCDenseRequantizedConvPass(default_channels_first),
+            NCHWtoNHWCDwConvPass(default_channels_first),
+            NCHWtoNHWCConvPass(default_channels_first),
         ]
         super().__init__(*passes)
 
