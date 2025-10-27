@@ -508,11 +508,7 @@ class SqueezeDescriptor(OperatorDescriptor):
 
     def canonicalize(self, node: gs.Node, opset: int) -> bool:
         if len(node.inputs) == 2:
-            axes = node.inputs[1]
-            assert isinstance(axes, gs.Constant), \
-                f"Expected axes to be a constant but received axes of type {type(axes)}"
-            node.attrs["axes"] = axes.values
-            axes.outputs.clear()
+            inputTensorToAttr(node, tensorIdx = 1, attr = "axes")
 
         if opset >= 13 and len(node.inputs) != 2:
             log.warning(
