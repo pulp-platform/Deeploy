@@ -325,41 +325,41 @@ class VariableBuffer():
         return (cls(
             name = node.name,
             shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape,
-            alias_of = [],
+            aliases = [],
         ))
 
     def add_aliases(self, aliases_to_add: List[str]):
         """
-        Adds list of aliases to the alias_of attribute.
+        Adds list of aliases to the aliases attribute.
         Parameters
         ----------
         alias_to_add : List[str]
-            List of names of aliases to add to the alias_of attribute.
+            List of names of aliases to add to the aliases attribute.
         Returns
         -------
         None
         """
 
-        if not hasattr(self, "alias_of"):
+        if not hasattr(self, "aliases"):
             return None
 
         for alias in aliases_to_add:
-            if alias not in self.alias_of:
-                self.alias_of.append(alias)
+            if alias not in self.aliases:
+                self.aliases.append(alias)
 
         return None
 
     def get_aliases_of(self):
         """
-        Getter function for the alias_of attribute.
+        Getter function for the aliases attribute.
         Returns
         -------
         List[str]
             List of names o all aliases of this VariableBuffer.
         """
 
-        if hasattr(self, "alias_of"):
-            return list(self.alias_of)
+        if hasattr(self, "aliases"):
+            return list(self.aliases)
         else:
             return list()
 
@@ -1174,7 +1174,7 @@ class NodeParser():
                 nb = ctxt.VariableBuffer(
                     name = name,
                     shape = node.shape,
-                    alias_of = [],
+                    aliases = [],
                 )
                 ctxt.add(nb, 'local')
             else:

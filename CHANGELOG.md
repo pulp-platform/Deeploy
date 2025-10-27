@@ -106,7 +106,6 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Refactored DMA code generation (`SnitchDma`, `Mchan`) to correctly overlap transfers and compute in double-buffering mode
 
 ### Fixed
-- Fixed bug in alias_of node parameter handling, that takes care of the lifetime of buffers in skip connection situations.
 - Fixed bug for non-batched elements in the PULPOpen FP GEMM and matmul templates.
 - Added underscore to the beginning of closure names to avoid naming issues when they start with unsupported first characters (like numbers).
 - Data types in the PULPOpen FP add and mul templates.
