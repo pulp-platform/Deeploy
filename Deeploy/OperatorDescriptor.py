@@ -734,8 +734,19 @@ softmaxCrossEntropyLossGradDesc = OperatorDescriptor(
     attrDescriptors = [],
 )
 
+batchNormalizationDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["data_in", "scale", "bias", "mean", "variance"]),
+    outputDescriptor = IoDesc(["data_out"], optional = ["running_mean", "running_var"]),
+    attrDescriptors = [
+        AttrDesc("epsilon", FloatUnpack, default = 1e-5),
+        AttrDesc("momentum", FloatUnpack, default = 0.9),
+        AttrDesc("training_mode", BoolUnpack, default = False),
+    ],
+)
+
 defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "Add": addDesc,
+    "BatchNormalization": batchNormalizationDesc,
     "CLCA": clcaDesc,
     "Concat": concatDesc,
     "Conv": convDesc,
