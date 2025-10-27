@@ -55,7 +55,7 @@ def FloatTupleUnpack(value: Any) -> Tuple[float, ...]:
 def IntTupleIfNotSingleItemUnpack(value: Any) -> Union[int, Tuple[int, ...]]:
     try:
         return IntUnpack(value)
-    except:
+    except ValueError:
         return IntTupleUnpack(value)
 
 
