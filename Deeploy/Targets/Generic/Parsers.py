@@ -1067,12 +1067,10 @@ class ReshapeParser(NodeParser):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
         for tensor, symName in zip(node.inputs, ['data_in', 'shape']):
             self.operatorRepresentation[symName] = ctxt.lookup(tensor.name).name
         for tensor, symName in zip(node.outputs, ['data_out']):
             self.operatorRepresentation[symName] = ctxt.lookup(tensor.name).name
-
         return ctxt, True
 
 
