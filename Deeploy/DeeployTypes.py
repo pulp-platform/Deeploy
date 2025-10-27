@@ -363,8 +363,8 @@ class VariableBuffer():
         else:
             return list()
 
-    def has_live_ancestors(self, ctxt: NetworkContext) -> bool:
-        """Checks whether this VariableBuffer has any live ancestors, i.e. buffers that are still live and are aliased by this buffer.
+    def has_live_aliases(self, ctxt: NetworkContext) -> bool:
+        """Checks whether this VariableBuffer has any live aliases, i.e. buffers that are still live and are aliased by this buffer.
         Parameters
         ----------
         ctxt : NetworkContext
@@ -372,7 +372,7 @@ class VariableBuffer():
         Returns
         -------
         bool
-            True if this VariableBuffer has any live ancestors, False otherwise
+            True if this VariableBuffer has any live aliases, False otherwise
         """
         # Do a breadth-first search across the aliasing double-linked list
         live = self._live
