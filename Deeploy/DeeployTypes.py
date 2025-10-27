@@ -1023,10 +1023,11 @@ class NetworkContext():
 
 class IoDesc:
 
-    def __init__(self, required: Union[str, List[str]], optional: Union[str, List[str]] = []) -> None:
+    def __init__(self, required: Union[str, List[str]], optional: Optional[Union[str, List[str]]] = None) -> None:
         if isinstance(required, str):
             required = [required]
         self.required = required
+        optional = optional if optional is not None else []
         if isinstance(optional, str):
             optional = [optional]
         self.optional = optional
