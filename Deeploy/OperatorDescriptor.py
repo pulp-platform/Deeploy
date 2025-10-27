@@ -729,7 +729,6 @@ requantizedAddDesc = RequantizedAddDescriptor(
     inputDescriptor = IoDesc(["data_in_0", "data_in_1"]),
     outputDescriptor = IoDesc("data_out"),
     attrDescriptors = [
-        AttrDesc("rqs1_n_levels", IntUnpack),
         AttrDesc("rqs1_mul", IntUnpack),
         AttrDesc("rqs1_add", IntUnpack),
         AttrDesc("rqs1_div", IntUnpack),
