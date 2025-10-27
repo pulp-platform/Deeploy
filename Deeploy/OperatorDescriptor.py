@@ -396,8 +396,7 @@ class RequantizedOperatorDescriptor(OperatorDescriptor):
 
     def canonicalize(self, node: gs.Node, opset: int) -> bool:
         if "n_levels_out" in node.attrs and "n_levels" in node.attrs:
-            # TODO: Change to log
-            print("[WARNING] Requantized operator cannot have n_levels_out and n_levels in its attributes")
+            log.warning("Requantized operator cannot have n_levels_out and n_levels in its attributes")
             return False
 
         if "n_levels_out" in node.attrs:
@@ -711,10 +710,8 @@ class RequantizedAddDescriptor(OperatorDescriptor):
             n_levels = f"{tensor}_n_levels"
             n_levels_out = f"{tensor}_n_levels_out"
             if n_levels_out in node.attrs and n_levels in node.attrs:
-                # TODO: Change to log
-                print(
-                    f"[WARNING] RequantizedAdd tensor {tensor} cannot have {n_levels_out} and {n_levels} in its attributes"
-                )
+                log.warning(
+                    f"RequantizedAdd tensor {tensor} cannot have {n_levels_out} and {n_levels} in its attributes")
                 return False
 
             if n_levels_out in node.attrs:

@@ -1101,19 +1101,16 @@ class OperatorDescriptor:
         valid = True
 
         if not self.inputDescriptor.checkTensors(node.inputs):
-            # TODO: Change to logging
-            print(f"[ERROR OP {node.op}] Invalid input tensors: {[t.name for t in node.inputs]}")
+            log.error(f"[OP {node.op}] Invalid input tensors: {[t.name for t in node.inputs]}")
             valid = False
 
         if not self.outputDescriptor.checkTensors(node.outputs):
-            # TODO: Change to logging
-            print(f"[ERROR OP {node.op}] Invalid output tensors: {[t.name for t in node.outputs]}")
+            log.error(f"[OP {node.op}] Invalid output tensors: {[t.name for t in node.outputs]}")
             valid = False
 
         for attrDesc in self.attrDescriptors:
             if attrDesc.default is None and not attrDesc.name in node.attrs:
-                # TODO: Change to logging
-                print(f"[ERROR OP {node.op}] Missing attribute {attrDesc.name}")
+                log.error(f"[OP {node.op}] Missing attribute {attrDesc.name}")
                 valid = False
 
         return valid
@@ -1128,7 +1125,7 @@ class OperatorDescriptor:
             try:
                 node.attrs[desc.name] = desc.unpack(value)
             except Exception as e:
-                raise ValueError(f"[ERROR OP {node.op}] Error unpacking the attribute {desc.name}. {e}") from e
+                raise ValueError(f"[OP {node.op}] Error unpacking the attribute {desc.name}. {e}") from e
         return True
 
     def parseTensors(self, ctxt: NetworkContext, tensors: Sequence[gs.Tensor],
@@ -1158,7 +1155,7 @@ class OperatorDescriptor:
             firstKeySet = set(firstOpRepr.keys())
             secondKeySet = set(secondOpRepr.keys())
             assert firstKeySet.isdisjoint(secondKeySet), \
-                f"[PARSE ERROR] (Node: {node.name}, Op: {node.op}) " \
+                f"[OP {node.op}] Encourntered error while parsing node {node.name}. " \
                 f"Keys from parsing {firstName} clash with the keys from parsing {secondName}. "\
                 f"Overlapping keys: {firstKeySet ^ secondKeySet}"
 
