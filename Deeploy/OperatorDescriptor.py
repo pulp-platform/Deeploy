@@ -59,7 +59,7 @@ def IntTupleIfNotSingleItemUnpack(value: Any) -> Union[int, Tuple[int, ...]]:
         return IntTupleUnpack(value)
 
 
-def attrToTensor(node: gs.Node, attr: str) -> None:
+def attrToInputTensor(node: gs.Node, attr: str) -> None:
     values = node.attrs[attr]
     if isinstance(values, (int, float)):
         values = np.array([values])
@@ -69,6 +69,14 @@ def attrToTensor(node: gs.Node, attr: str) -> None:
     tensor = gs.Constant(f"{node.name}_{attr}", values)
     node.inputs.append(tensor)
     node.attrs.pop(attr)
+
+
+def inputTensorToAttr(node: gs.Node, tensorIdx: int, attr: str) -> None:
+    tensor = node.inputs[tensorIdx]
+    assert isinstance(tensor, gs.Constant), \
+        f"Can convert only constant tensors to attributes. Received tensor of type {tensor}"
+    node.attrs[attr] = tensor.values
+    tensor.outputs.clear()
 
 
 concatDesc = OperatorDescriptor(
@@ -91,10 +99,10 @@ class SliceDescriptor(OperatorDescriptor):
 
     def canonicalize(self, node: gs.Node, opset: int) -> bool:
         if opset < 10:
-            attrToTensor(node, "starts")
-            attrToTensor(node, "ends")
+            attrToInputTensor(node, "starts")
+            attrToInputTensor(node, "ends")
             if "axes" in node.attrs:
-                attrToTensor(node, "axes")
+                attrToInputTensor(node, "axes")
 
         return super().canonicalize(node, opset)
 
@@ -184,7 +192,7 @@ class ReduceMeanDescriptor(OperatorDescriptor):
     def canonicalize(self, node: gs.Node, opset: int) -> bool:
         if opset < 18:
             if "axes" in node.attrs:
-                attrToTensor(node, "axes")
+                attrToInputTensor(node, "axes")
         return super().canonicalize(node, opset)
 
 
