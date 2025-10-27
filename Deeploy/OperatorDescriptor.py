@@ -371,6 +371,25 @@ convDesc = OperatorDescriptor(
     ],
 )
 
+convTransposeDesc = OperatorDescriptor(
+    inputDescriptor = IoDesc(["data_in", "weight"], optional = "bias"),
+    outputDescriptor = IoDesc("data_out"),
+    attrDescriptors = [
+        AttrDesc("auto_pad", AutoPad, default = AutoPad.NOTSET),
+        AttrDesc("dilations", IntTupleUnpack, default = _dilationsDefault),
+        AttrDesc("group", IntUnpack, default = 1),
+        AttrDesc("kernel_shape", IntTupleUnpack, default = _kernelShapeDefault),
+        # TODO: Add output_shape and output_padding default functions.
+        #       Docs:
+        #          - ONNX: https://onnx.ai/onnx/operators/onnx__ConvTranspose.html
+        #          - PyTorch: https://docs.pytorch.org/docs/stable/generated/torch.nn.ConvTranspose2d.html
+        # AttrDesc("output_shape", IntTupleUnpack, default = _outputShapeDefault),
+        # AttrDesc("output_padding", IntTupleUnpack, default = _outputPaddingDefault),
+        AttrDesc("pads", IntTupleUnpack, default = _padsDefault),
+        AttrDesc("strides", IntTupleUnpack, default = _stridesDefault),
+    ],
+)
+
 
 class RequantizedOperatorDescriptor(OperatorDescriptor):
 
@@ -750,6 +769,7 @@ defaultOperatorDescriptors: Dict[str, OperatorDescriptor] = {
     "CLCA": clcaDesc,
     "Concat": concatDesc,
     "Conv": convDesc,
+    "ConvTranspose": convTransposeDesc,
     "DebugPrint": debugPrintDesc,
     "Dequant": dequantDesc,
     "Div": divDesc,
