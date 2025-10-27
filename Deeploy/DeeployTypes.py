@@ -3372,6 +3372,11 @@ class NetworkDeployer(NetworkContainer):
         for node in filter(lambda x: x.op == "Identity", self.graph.nodes):
             self.graph.deleteNode(node)
 
+    def _assertTensorsHaveShape(self) -> None:
+        missingShapes = [name for name, tensor in self.graph.tensors().items() if tensor.shape is None]
+        assert len(missingShapes) == 0, \
+            f"Shape inference is not supported.\nFound tensors with missing shape annotation: {missingShapes}"
+
     def frontEnd(self):
         """API hook to prepare the graph to be deployed and build the initial NetworkContext
 
@@ -3418,6 +3423,9 @@ class NetworkDeployer(NetworkContainer):
 
         log.info(f"> Export State {_middlewarePostLoweringFilename}[.onnx|.pkl]")
         self.exportDeeployState(self.deeployStateDir, _middlewarePostLoweringFilename)
+
+        log.info(" - Assert all tensors have a shape annotation")
+        self._assertTensorsHaveShape()
 
         log.info("- Perform Graph Parsing")
         try:

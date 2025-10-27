@@ -69,6 +69,5 @@ jobs:
         ICCT
         ICCT_ITA
         ICCT_8
-        ICCT_ITA_8
         miniMobileNet
         miniMobileNetv2
