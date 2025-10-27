@@ -1436,10 +1436,7 @@ class LinearAttentionParser(NodeParser):
             # All *_div attrs are log2d-ified
             log2Attrs = [
                 "preattn_requant_div",
-                "preattn_requant_div",
                 "normalizer_requant_div",
-                "normalizer_requant_div",
-                "postattn_requant_div",
                 "postattn_requant_div",
                 "wo_requant_div",
                 "wq_requant_div",
@@ -1449,7 +1446,8 @@ class LinearAttentionParser(NodeParser):
 
             for attr in log2Attrs:
                 value = self.operatorRepresentation[attr]
-                assert isinstance(value, int)
+                assert isinstance(
+                    value, int) and value > 0, f"Attribute {attr} must be a positive integer. Received value {value}"
                 self.operatorRepresentation[attr] = int(math.log2(value))
 
         return ret
