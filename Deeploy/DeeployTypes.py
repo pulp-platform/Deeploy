@@ -372,11 +372,6 @@ class TransientBuffer(VariableBuffer):
 
     def __init__(self, name: str = '', size = 0):
         super().__init__(name, shape = (size,))
-        self.name = name
-        self.size = size  # int: Total BYTE size
-
-        # Do not override - Should be written in the parsing passes
-        self._users = []
 
         # Do not override - Should be written in the parsing passes
         self._type: Type[Pointer] = PointerClass(VoidType)
@@ -405,9 +400,7 @@ class ConstantBuffer(VariableBuffer):
     """
 
     def __init__(self, name: str = '', shape = [1], values = [0]):
-        # Pass a copy of alias_of to avoid shared references
         super().__init__(name, shape)
-
         values = np.asarray(values)
         # intArray = values.astype(int)
         # assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
@@ -439,16 +432,6 @@ class ConstantBuffer(VariableBuffer):
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._type, "name": self.name, "size": int(np.prod(self.shape)), "values": self._valueString()}
-
-    @classmethod
-    def fromVariableBuffer(cls, buffer: VariableBuffer, values):
-        ret = cls(
-            name = buffer.name,
-            shape = buffer.shape,
-            values = values,
-        )
-
-        return ret
 
 
 class StructBuffer(VariableBuffer):
