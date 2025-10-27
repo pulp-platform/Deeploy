@@ -1149,7 +1149,7 @@ class OperatorDescriptor:
     def parse(self, ctxt: NetworkContext, node: gs.Node) -> OperatorRepresentation:
         opReprs = {
             "input tensors": self.parseTensors(ctxt, node.inputs, self.inputDescriptor),
-            "output tesnors": self.parseTensors(ctxt, node.outputs, self.outputDescriptor),
+            "output tensors": self.parseTensors(ctxt, node.outputs, self.outputDescriptor),
             "attributes": self.parseAttrs(node),
         }
 
