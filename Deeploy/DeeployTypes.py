@@ -328,27 +328,6 @@ class VariableBuffer():
             aliases = [],
         ))
 
-    def add_aliases(self, aliases_to_add: List[str]):
-        """
-        Adds list of aliases to the aliases attribute.
-        Parameters
-        ----------
-        alias_to_add : List[str]
-            List of names of aliases to add to the aliases attribute.
-        Returns
-        -------
-        None
-        """
-
-        if not hasattr(self, "aliases"):
-            return None
-
-        for alias in aliases_to_add:
-            if alias not in self.aliases:
-                self.aliases.append(alias)
-
-        return None
-
     def get_aliases_of(self):
         """
         Getter function for the aliases attribute.
