@@ -476,15 +476,29 @@ gatherDesc = OperatorDescriptor(
     attrDescriptors = [AttrDesc("axis", IntUnpack, default = 0)],
 )
 
+
+class SqueezeDescriptor(OperatorDescriptor):
+
+    def canonicalize(self, node: gs.Node, opset: int) -> bool:
+        if opset >= 13:
+            assert len(node.inputs) == 2, f"Expected 2 inputs but received {len(node.inputs)}"
+            axes = node.inputs[1]
+            assert isinstance(axes,
+                              gs.Constant), f"Expected axes to be a constant but received axes of type {type(axes)}"
+            node.attrs["axes"] = axes.values
+            axes.outputs.clear()
+        return super().canonicalize(node, opset)
+
+
 # Opset <= 11
-unsqueezeDesc = OperatorDescriptor(
+unsqueezeDesc = SqueezeDescriptor(
     inputDescriptor = IoDesc("data_in"),
     outputDescriptor = IoDesc("data_out"),
     attrDescriptors = [AttrDesc("axes", IntTupleUnpack)],
 )
 
 # Opset <= 11
-squeezeDesc = OperatorDescriptor(
+squeezeDesc = SqueezeDescriptor(
     inputDescriptor = IoDesc("data_in"),
     outputDescriptor = IoDesc("data_out"),
     attrDescriptors = [AttrDesc("axes", IntTupleUnpack)],
