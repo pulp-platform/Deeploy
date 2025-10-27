@@ -77,6 +77,7 @@ class PULPFPConv2DParser(Conv2DParser):
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+                # 2 inputs if no bias, 3 if layer has bias
                 len(node.inputs) in [2, 3],
             ])
 

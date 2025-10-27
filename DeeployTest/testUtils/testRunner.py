@@ -346,8 +346,6 @@ class TestRunner():
         else:
             generation_script = "generateNetwork.py"
 
-        command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform} {self.gen_args}"
-
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform}"
 
         if self._tiling is True:

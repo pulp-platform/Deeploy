@@ -155,7 +155,7 @@ class ClosureGeneration(CodeTransformationPass, IntrospectiveCodeTransformationM
               executionBlock: ExecutionBlock,
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
-        # Add underscore to avoid name issues when beginning with problematic characters (like numbers)
+        # Prepend underscore to avoid name issues when beginning with problematic characters (like numbers)
         self.closureName = "_" + name + self.closureSuffix
         self.functionCall = executionBlock.generate(ctxt)
         self._generateClosureStruct(ctxt, executionBlock)
