@@ -18,7 +18,7 @@ class NeurekaConv2DBaseParser(Conv2DParser):
 
         if not all([
                 # No dilation support
-                self.operatorRepresentation['dilations'] == [1, 1],
+                self.operatorRepresentation['dilations'] == (1, 1),
                 # Channels have to be last
                 'channels_first' in self.operatorRepresentation and not self.operatorRepresentation['channels_first'],
                 # Expect "weight_offset" attribute in the node
@@ -129,7 +129,7 @@ class NeurekaPWConv2DParser(NeurekaConv2DBaseParser):
             return False
 
         if not all([
-                self.operatorRepresentation['kernel_shape'] == [1, 1],
+                self.operatorRepresentation['kernel_shape'] == (1, 1),
                 self.operatorRepresentation['group'] == 1,
         ]):
             return False

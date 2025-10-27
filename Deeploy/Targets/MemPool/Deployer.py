@@ -11,7 +11,7 @@ from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropD
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import DebugPrintMergePass
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     NCHWtoNHWCPass, TransposeMatmulInputsPass
-from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
+from Deeploy.DeeployTypes import DeploymentPlatform, OperatorDescriptor, TopologyOptimizer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeConstOptPass, TransposeMergePass
 
 
@@ -22,12 +22,13 @@ class MemPoolDeployer(SignPropDeployer):
                  deploymentPlatform: DeploymentPlatform,
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable = lambda x: x,
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = True,
                  deeployStateDir: str = "DeeployState",
                  inputOffsets: Dict[str, int] = {}):
-        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
+        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, operatorDescriptors, scheduler, name,
                          default_channels_first, deeployStateDir)
 
         self.inputOffsets = inputOffsets

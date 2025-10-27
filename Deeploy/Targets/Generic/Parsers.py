@@ -52,7 +52,7 @@ class iRMSNormParser(NodeParser):
 
         if ret:
 
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'])
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
             self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['D']))
 
         return ret
@@ -669,11 +669,11 @@ class iSoftmaxParser(SoftmaxParser):
             ])
 
         if wellFormed:
-            self.operatorRepresentation['coeffA'] = int(node.attrs['coeffA'].values)
-            self.operatorRepresentation['coeffB'] = int(node.attrs['coeffB'].values)
-            self.operatorRepresentation['coeffC'] = int(node.attrs['coeffC'].values)
-            self.operatorRepresentation['log2'] = int(node.attrs['log2'].values)
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
+            self.operatorRepresentation['coeffA'] = node.attrs['coeffA']
+            self.operatorRepresentation['coeffB'] = node.attrs['coeffB']
+            self.operatorRepresentation['coeffC'] = node.attrs['coeffC']
+            self.operatorRepresentation['log2'] = node.attrs['log2']
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
 
         return wellFormed
 
@@ -698,7 +698,7 @@ class ITAMaxParser(SoftmaxParser):
         ret = all(['n_levels' in node.attrs])
 
         if ret and wellFormed:
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
             return True
 
         return False
@@ -725,8 +725,8 @@ class ITAPartialMaxParser(SoftmaxParser):
         ret = all(['group_width' in node.attrs, 'n_levels' in node.attrs])
 
         if ret and wellFormed:
-            self.operatorRepresentation['group_width'] = int(node.attrs['group_width'])
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
+            self.operatorRepresentation['group_width'] = node.attrs['group_width']
+            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
             return True
 
         return False
@@ -848,8 +848,8 @@ class iNoNormParser(NodeParser):
 
         if ret:
             self.operatorRepresentation['D'] = node.attrs['D']
-            self.operatorRepresentation['log2D'] = int(np.log2(node.attrs['D'].values).tolist()[0])
-            self.operatorRepresentation['mul'] = int(node.attrs['mul'].values.tolist()[0])
+            self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['D']))
+            self.operatorRepresentation['mul'] = node.attrs['mul']
             self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
 
         return ret
@@ -986,48 +986,23 @@ class UnsqueezeParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> (bool):
+        if not all(['axes' in node.attrs, len(node.inputs) == 1, len(node.outputs) == 1]):
+            return False
 
-        # ONNX v11: 'axes' is a node attribute
-        if 'axes' in node.attrs:
-            ret = all(['axes' in node.attrs, len(node.inputs) == 1, len(node.outputs) == 1])
-        # ONNX v13+: 'axes' becomes an input with the data
-        # Source: https://onnx.ai/onnx/operators/onnx__Unsqueeze.html
-        else:
-            ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
-
-        if ret and 'axes' in node.attrs:
-            axes_attr = node.attrs['axes']
-            self.operatorRepresentation['axes'] = [int(axes_attr)] if isinstance(axes_attr, int) \
-                else [int(a) for a in axes_attr]
-        # For opset 13+, axes will be extracted from the second input in parseNodeCtxt
-
-        return ret
+        self.operatorRepresentation['axes'] = node.attrs['axes']
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        inputs = ['data_in']
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
 
         outputs = ['data_out']
-        if len(node.inputs) == 1:
-            inputs = ['data_in']
-            for idx, inputNode in enumerate(node.inputs):
-                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-            for idx, outputNode in enumerate(node.outputs):
-                self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
-        else:
-            data_in = ctxt.lookup(node.inputs[0].name)
-            data_out = ctxt.lookup(node.outputs[0].name)
-            self.operatorRepresentation['data_in'] = data_in.name
-            self.operatorRepresentation['data_out'] = data_out.name
-            # axes must be a constant; extract values
-            axes_buf = ctxt.lookup(node.inputs[1].name)
-            assert hasattr(axes_buf, 'values'), "Unsqueeze: expected constant 'axes' input for opset 13+"
-            axes_vals = np.array(axes_buf.values).astype(int).flatten().tolist()
-            self.operatorRepresentation['axes'] = axes_vals
-            # Do not deploy the axes tensor
-            axes_buf._live = False
-            axes_buf._deploy = False
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
         return ctxt, True
 
@@ -1408,23 +1383,7 @@ class MHSAParser(NodeParser):
         ])
 
         if ret:
-            self.operatorRepresentation['preattn_requant_mul'] = node.attrs['preattn_requant_mul']
-            self.operatorRepresentation['preattn_requant_div'] = node.attrs['preattn_requant_div']
-            self.operatorRepresentation['postattn_requant_mul'] = node.attrs['postattn_requant_mul']
-            self.operatorRepresentation['postattn_requant_div'] = node.attrs['postattn_requant_div']
-            self.operatorRepresentation['wo_requant_mul'] = node.attrs['wo_requant_mul']
-            self.operatorRepresentation['wo_requant_div'] = node.attrs['wo_requant_div']
-            self.operatorRepresentation['wq_requant_mul'] = node.attrs['wq_requant_mul']
-            self.operatorRepresentation['wq_requant_div'] = node.attrs['wq_requant_div']
-            self.operatorRepresentation['wk_requant_mul'] = node.attrs['wk_requant_mul']
-            self.operatorRepresentation['wk_requant_div'] = node.attrs['wk_requant_div']
-            self.operatorRepresentation['wv_requant_mul'] = node.attrs['wv_requant_mul']
-            self.operatorRepresentation['wv_requant_div'] = node.attrs['wv_requant_div']
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'])
-            self.operatorRepresentation['dim'] = int(node.attrs['dim'])  # Sequence Length
-            self.operatorRepresentation['dim_head'] = int(node.attrs['dim_head'])  # Projection Size
-            self.operatorRepresentation['heads'] = int(node.attrs['heads'])
-            self.operatorRepresentation['signed'] = int(node.attrs['signed'])
+            self.operatorRepresentation.update(node.attrs)
 
         return ret
 
@@ -1472,37 +1431,24 @@ class LinearAttentionParser(NodeParser):
         ])
 
         if ret:
-            self.operatorRepresentation['preattn_requant_mul'] = int(node.attrs['preattn_requant_mul'].values)
-            self.operatorRepresentation['preattn_requant_shift'] = int(node.attrs['preattn_requant_shift'].values)
-            self.operatorRepresentation['preattn_requant_div'] = int(
-                math.log2(int(node.attrs['preattn_requant_div'].values)))
-            self.operatorRepresentation['normalizer_requant_mul'] = int(node.attrs['normalizer_requant_mul'].values)
-            self.operatorRepresentation['normalizer_requant_shift'] = int(node.attrs['normalizer_requant_shift'].values)
-            self.operatorRepresentation['normalizer_requant_div'] = int(
-                math.log2(int(node.attrs['normalizer_requant_div'].values)))
-            self.operatorRepresentation['postattn_requant_mul'] = int(node.attrs['postattn_requant_mul'].values)
-            self.operatorRepresentation['postattn_requant_shift'] = int(node.attrs['postattn_requant_shift'].values)
-            self.operatorRepresentation['postattn_requant_div'] = int(
-                math.log2(int(node.attrs['postattn_requant_div'].values)))
-            self.operatorRepresentation['wo_requant_mul'] = int(node.attrs['wo_requant_mul'].values)
-            self.operatorRepresentation['wo_requant_shift'] = int(node.attrs['wo_requant_shift'].values)
-            self.operatorRepresentation['wo_requant_div'] = int(math.log2(int(node.attrs['wo_requant_div'].values)))
-            self.operatorRepresentation['wq_requant_mul'] = int(node.attrs['wq_requant_mul'].values)
-            self.operatorRepresentation['wq_requant_shift'] = int(node.attrs['wq_requant_shift'].values)
-            self.operatorRepresentation['wq_requant_div'] = int(math.log2(int(node.attrs['wq_requant_div'].values)))
-            self.operatorRepresentation['wk_requant_mul'] = int(node.attrs['wk_requant_mul'].values)
-            self.operatorRepresentation['wk_requant_shift'] = int(node.attrs['wk_requant_shift'].values)
-            self.operatorRepresentation['wk_requant_div'] = int(math.log2(int(node.attrs['wk_requant_div'].values)))
-            self.operatorRepresentation['wv_requant_mul'] = int(node.attrs['wv_requant_mul'].values)
-            self.operatorRepresentation['wv_requant_shift'] = int(node.attrs['wv_requant_shift'].values)
-            self.operatorRepresentation['wv_requant_div'] = int(math.log2(int(node.attrs['wv_requant_div'].values)))
-            self.operatorRepresentation['Delta'] = int(node.attrs['Delta'])
-            self.operatorRepresentation['eps'] = int(node.attrs['eps'])
-            self.operatorRepresentation['act_type'] = int(node.attrs['act_type'])
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-            self.operatorRepresentation['dim'] = int(node.attrs['dim'].values)
-            self.operatorRepresentation['dim_head'] = int(node.attrs['dim_head'].values)
-            self.operatorRepresentation['heads'] = int(node.attrs['heads'].values)
+            self.operatorRepresentation.update(node.attrs)
+
+            # All *_div attrs are log2d-ified
+            log2Attrs = [
+                "preattn_requant_div",
+                "normalizer_requant_div",
+                "postattn_requant_div",
+                "wo_requant_div",
+                "wq_requant_div",
+                "wk_requant_div",
+                "wv_requant_div",
+            ]
+
+            for attr in log2Attrs:
+                value = self.operatorRepresentation[attr]
+                assert isinstance(
+                    value, int) and value > 0, f"Attribute {attr} must be a positive integer. Received value {value}"
+                self.operatorRepresentation[attr] = int(math.log2(value))
 
         return ret
 
@@ -1544,15 +1490,7 @@ class CLCAParser(NodeParser):
         ])
 
         if ret:
-            self.operatorRepresentation['Delta'] = int(node.attrs['Delta'])
-            self.operatorRepresentation['eps'] = int(node.attrs['eps'])
-            self.operatorRepresentation['eta'] = int(node.attrs['eta'])
-            self.operatorRepresentation['act_type'] = int(node.attrs['act_type'])
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-            self.operatorRepresentation['dim'] = int(node.attrs['dim'].values)
-            self.operatorRepresentation['dim_head'] = int(node.attrs['dim_head'].values)
-            self.operatorRepresentation['out_dim'] = int(node.attrs['out_dim'].values)
-            self.operatorRepresentation['heads'] = int(node.attrs['heads'].values)
+            self.operatorRepresentation.update(node.attrs)
 
         return ret
 
@@ -1690,27 +1628,40 @@ class MatMulParser(NodeParser):
             node.inputs.append(zeroTensor)
             self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
 
+        buffA = ctxt.lookup(node.inputs[0].name)
+        assert isinstance(buffA, VariableBuffer)
+        buffB = ctxt.lookup(node.inputs[1].name)
+        assert isinstance(buffB, VariableBuffer)
+        buffOut = ctxt.lookup(node.outputs[0].name)
+        assert isinstance(buffOut, VariableBuffer)
+
         # Store the input and output shapes in the operator representation
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['A_shape'] = ctxt.lookup(node.inputs[0].name).shape
-        self.operatorRepresentation['B_shape'] = ctxt.lookup(node.inputs[1].name).shape
-        self.operatorRepresentation['data_out_shape'] = ctxt.lookup(node.outputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(buffA.shape)
+        self.operatorRepresentation['A_shape'] = buffA.shape
+        self.operatorRepresentation['B_shape'] = buffB.shape
+        self.operatorRepresentation['data_out_shape'] = buffOut.shape
+
+        if self.operatorRepresentation['transA']:
+            N_A, M = buffA.shape[-2:]
+        else:
+            M, N_A = buffA.shape[-2:]
+
+        if self.operatorRepresentation['transB']:
+            O, N_B = buffB.shape[-2:]
+        else:
+            N_B, O = buffB.shape[-2:]
 
         # Store the matrix dimensions in the operator representation
-        self.operatorRepresentation['M'] = ctxt.lookup(
-            node.inputs[0].name).shape[(-2 + self.operatorRepresentation['transA'])]
-        self.operatorRepresentation['N'] = ctxt.lookup(
-            node.inputs[0].name).shape[(-1 - self.operatorRepresentation['transA'])]
-        self.operatorRepresentation['O'] = ctxt.lookup(
-            node.inputs[1].name).shape[(-1 - self.operatorRepresentation['transB'])]
+        self.operatorRepresentation['M'] = M
+        self.operatorRepresentation['N'] = N_A
+        self.operatorRepresentation['O'] = O
 
         # SCHEREMO: Assert that reduction dimension is the same on both matrices
-        ret = ret and (self.operatorRepresentation['N'] == ctxt.lookup(
-            node.inputs[1].name).shape[-2 + self.operatorRepresentation['transB']])
+        ret = ret and N_A == N_B
 
         # Check if the batch dimensions are compatible
-        self.operatorRepresentation['batch_A'] = np.prod(ctxt.lookup(node.inputs[0].name).shape[:-2])
-        self.operatorRepresentation['batch_B'] = np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2])
+        self.operatorRepresentation['batch_A'] = np.prod(buffA.shape[:-2])
+        self.operatorRepresentation['batch_B'] = np.prod(buffB.shape[:-2])
 
         self.operatorRepresentation['batch'] = max(self.operatorRepresentation['batch_A'],
                                                    self.operatorRepresentation['batch_B'])
@@ -1722,10 +1673,10 @@ class MatMulParser(NodeParser):
         ), "Incompatible dimensions for input matrices. Broadcasting not yet supported for dimensions larger than 1 on one of the inputs, or equal dimensions between the 2."
 
         # Create flags for same dimension between each input matrix and the final batch dimension
-        self.operatorRepresentation['A_batched'] = (self.operatorRepresentation['batch'] == np.prod(
-            ctxt.lookup(node.inputs[0].name).shape[:-2]))
+        self.operatorRepresentation['A_batched'] = (
+            self.operatorRepresentation['batch'] == self.operatorRepresentation['batch_A'])
         self.operatorRepresentation['W_batched'] = self.operatorRepresentation['B_batched'] = (
-            self.operatorRepresentation['batch'] == np.prod(ctxt.lookup(node.inputs[1].name).shape[:-2]))
+            self.operatorRepresentation['batch'] == self.operatorRepresentation['batch_B'])
 
         return ctxt, ret
 
@@ -2395,32 +2346,12 @@ class RQAddParser(AddParser):
         ])
 
         if ret:
-            if 'rqs1_n_levels' in node.attrs:
-                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels_out'].values)
-            self.operatorRepresentation['rqs1_mul'] = int(node.attrs['rqs1_mul'])
-            self.operatorRepresentation['rqs1_add'] = int(node.attrs['rqs1_add'])
-            self.operatorRepresentation['rqs1_signed'] = int(node.attrs['rqs1_signed'].values)
-            self.operatorRepresentation['rqs1_log2D'] = int(math.log2(node.attrs['rqs1_div'].values))
+            self.operatorRepresentation.update(node.attrs)
 
-            if 'rqs2_n_levels' in node.attrs:
-                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels_out'].values)
-            self.operatorRepresentation['rqs2_mul'] = int(node.attrs['rqs2_mul'])
-            self.operatorRepresentation['rqs2_add'] = int(node.attrs['rqs2_add'])
-            self.operatorRepresentation['rqs2_signed'] = int(node.attrs['rqs2_signed'].values)
-            self.operatorRepresentation['rqs2_log2D'] = int(math.log2(node.attrs['rqs2_div'].values))
-
-            if 'rqsOut_n_levels' in node.attrs:
-                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels'].values)
-            else:
-                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels_out'].values)
-            self.operatorRepresentation['rqsOut_mul'] = int(node.attrs['rqsOut_mul'])
-            self.operatorRepresentation['rqsOut_add'] = int(node.attrs['rqsOut_add'])
-            self.operatorRepresentation['rqsOut_signed'] = int(node.attrs['rqsOut_signed'].values)
-            self.operatorRepresentation['rqsOut_log2D'] = int(math.log2(node.attrs['rqsOut_div'].values))
+            for tensor in ["rqs1", "rqs2", "rqsOut"]:
+                value = self.operatorRepresentation[f"{tensor}_div"]
+                assert isinstance(value, int)
+                self.operatorRepresentation[f"{tensor}_log2D"] = int(math.log2(value))
 
         return ret
 
@@ -2488,12 +2419,10 @@ class DequantParser(NodeParser):
         ])
 
         if ret:
-            self.operatorRepresentation['scale'] = float(node.attrs['scale'])
-            self.operatorRepresentation['zero_point'] = float(node.attrs['zero_point'])
-            self.operatorRepresentation['bit_width'] = int(node.attrs['bit_width'])
-
-            self.operatorRepresentation['signed'] = bool(node.attrs['signed'])
-
+            self.operatorRepresentation['scale'] = node.attrs['scale']
+            self.operatorRepresentation['zero_point'] = node.attrs['zero_point']
+            self.operatorRepresentation['bit_width'] = node.attrs['bit_width']
+            self.operatorRepresentation['signed'] = node.attrs['signed']
         return ret
 
     def parseNodeCtxt(self,

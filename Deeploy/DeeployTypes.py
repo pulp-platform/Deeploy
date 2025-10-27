@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import copy
+import itertools
 import math
 import os
 import pickle
@@ -1020,6 +1021,153 @@ class NetworkContext():
         return copy.copy(self)
 
 
+class IoDesc:
+
+    def __init__(self, required: Union[str, List[str]], optional: Optional[Union[str, List[str]]] = None) -> None:
+        if isinstance(required, str):
+            required = [required]
+        self.required = required
+        optional = optional if optional is not None else []
+        if isinstance(optional, str):
+            optional = [optional]
+        self.optional = optional
+
+    def symbolicName(self, idx: int) -> str:
+        return (self.required + self.optional)[idx]
+
+    def checkTensors(self, tensors: Sequence[gs.Tensor]) -> bool:
+        return len(tensors) >= len(self.required) and \
+               len(tensors) <= len(self.required) + len(self.optional)
+
+
+class VariadicIoDesc(IoDesc):
+
+    def __init__(self, baseName: str, minNumTensors: int = 0) -> None:
+        self.baseName = baseName
+        self.minNumTensors = minNumTensors
+
+    def symbolicName(self, idx: int) -> str:
+        return f"{self.baseName}_{idx}"
+
+    def checkTensors(self, tensors: Sequence[gs.Tensor]) -> bool:
+        return len(tensors) >= self.minNumTensors
+
+
+@dataclass
+class AttrDesc:
+    name: str
+    unpacker: Callable[[Any], Any]
+    default: Optional[Union[Any, Callable[[gs.Node], Any]]] = None
+
+    @staticmethod
+    def _constUnpack(value: Any) -> Any:
+        if isinstance(value, gs.Constant):
+            return value.values.tolist()
+        elif isinstance(value, np.ndarray):
+            return value.tolist()
+        # LMACAN: hacky way to detect a 0-dim numpy array
+        elif hasattr(value, "ndim") and value.ndim == 0 and hasattr(value, "item"):
+            return value.item()
+        else:
+            return value
+
+    def unpack(self, value: Any) -> Union[int, float, List[int], List[float]]:
+        return self.unpacker(self._constUnpack(value))
+
+    def getDefault(self, node: gs.Node) -> Any:
+        if callable(self.default):
+            return self.default(node)
+        else:
+            return self.default
+
+
+@dataclass
+class OperatorDescriptor:
+    inputDescriptor: IoDesc
+    outputDescriptor: IoDesc
+    attrDescriptors: List[AttrDesc]
+
+    def check(self, node: gs.Node) -> bool:
+        """This method checks whether the node is valid.
+
+        Parameters
+        ----------
+        node : gs.Node
+            Graphsurgeon node to be validated
+
+        Returns
+        -------
+        bool : node validity
+
+        """
+        valid = True
+
+        if not self.inputDescriptor.checkTensors(node.inputs):
+            log.error(f"[OP {node.op}] Invalid input tensors: {[t.name for t in node.inputs]}")
+            valid = False
+
+        if not self.outputDescriptor.checkTensors(node.outputs):
+            log.error(f"[OP {node.op}] Invalid output tensors: {[t.name for t in node.outputs]}")
+            valid = False
+
+        for attrDesc in self.attrDescriptors:
+            if attrDesc.default is None and not attrDesc.name in node.attrs:
+                log.error(f"[OP {node.op}] Missing attribute {attrDesc.name}")
+                valid = False
+
+        return valid
+
+    def canonicalize(self, node: gs.Node, opset: int) -> bool:
+        _ = opset
+        for desc in self.attrDescriptors:
+            if desc.default is None:
+                value = node.attrs[desc.name]
+            else:
+                value = node.attrs.get(desc.name, desc.getDefault(node))
+            try:
+                node.attrs[desc.name] = desc.unpack(value)
+            except Exception as e:
+                raise ValueError(f"[OP {node.op}] Error unpacking the attribute {desc.name}. {e}") from e
+        return True
+
+    def parseTensors(self, ctxt: NetworkContext, tensors: Sequence[gs.Tensor],
+                     ioDesc: IoDesc) -> OperatorRepresentation:
+        opRepr = {}
+        for i, tensor in enumerate(tensors):
+            symName = ioDesc.symbolicName(i)
+            buffer = ctxt.lookup(tensor.name)
+            assert isinstance(buffer, VariableBuffer)
+            opRepr[symName] = buffer.name
+            opRepr[f"{symName}_shape"] = buffer.shape
+            opRepr[f"{symName}_size"] = math.prod(buffer.shape)
+            opRepr[f"{symName}_type"] = buffer._type
+        return opRepr
+
+    def parseAttrs(self, node: gs.Node) -> OperatorRepresentation:
+        return node.attrs.copy()
+
+    def parse(self, ctxt: NetworkContext, node: gs.Node) -> OperatorRepresentation:
+        opReprs = {
+            "input tensors": self.parseTensors(ctxt, node.inputs, self.inputDescriptor),
+            "output tensors": self.parseTensors(ctxt, node.outputs, self.outputDescriptor),
+            "attributes": self.parseAttrs(node),
+        }
+
+        for (firstName, firstOpRepr), (secondName, secondOpRepr) in itertools.combinations(opReprs.items(), 2):
+            firstKeySet = set(firstOpRepr.keys())
+            secondKeySet = set(secondOpRepr.keys())
+            assert firstKeySet.isdisjoint(secondKeySet), \
+                f"[OP {node.op}] Encourntered error while parsing node {node.name}. " \
+                f"Keys from parsing {firstName} clash with the keys from parsing {secondName}. "\
+                f"Overlapping keys: {firstKeySet ^ secondKeySet}"
+
+        resultOpRepr = {}
+        for opRepr in opReprs.values():
+            resultOpRepr.update(opRepr)
+
+        return resultOpRepr
+
+
 class NodeParser():
     """Deeploy's core Parser class. Analyzes network nodes and evaluates whether they can be mapped by it.
 
@@ -1143,7 +1291,9 @@ class NodeParser():
         The attributes can either be a numpy scalar value or a Constant tensor.
         This expects the numpy value to be of size 1.
         """
-        if isinstance(attr, gs.Constant):
+        if isinstance(attr, (int, float, bool, str)):
+            return attr
+        elif isinstance(attr, gs.Constant):
             value = attr.values
         elif isinstance(attr, np.ndarray):
             value = attr
@@ -2429,6 +2579,7 @@ class NetworkContainer():
                  graph: gs.Graph,
                  platform: DeploymentPlatform,
                  inputTypes: Dict[str, Type[Pointer]],
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
                  name: str = 'DeeployNetwork',
                  deeployStateDir: str = "DeeployState"):
@@ -2453,6 +2604,7 @@ class NetworkContainer():
 
         """
         self.graph = graph
+        self.operatorDescriptors = operatorDescriptors
         self.scheduler = scheduler
         self.layerBinding: 'OrderedDict[str, ONNXLayer]' = OrderedDict()
         self.parsed = False
@@ -2582,6 +2734,16 @@ class NetworkContainer():
                 flatSchedule += subGraph
 
         for node in flatSchedule:
+            assert node.op in self.operatorDescriptors, \
+                f"[ERROR] Error parsing node {node.name}. There is no descriptor for operator {node.op}."
+            desc = self.operatorDescriptors[node.op]
+            try:
+                desc.canonicalize(node, self.graph.opset)
+            except BaseException as e:
+                raise ValueError(f"[ERROR] Node {node.name} of op {node.op} could not be canonicalized.") from e
+            assert desc.check(node), \
+                f"[ERROR] Node {node.name} is not a valid instance of {node.op} operator"
+
             layer = self._mapNode(node)
             if isinstance(layer, ONNXLayer):
                 log.debug(f"   {SUCCESS_MARK} Bind {node.name} to layer {layer.__class__.__name__}")
@@ -3181,6 +3343,7 @@ class NetworkDeployer(NetworkContainer):
                  deploymentPlatform: DeploymentPlatform,
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = True,
@@ -3213,7 +3376,13 @@ class NetworkDeployer(NetworkContainer):
 
 
         """
-        super().__init__(graph, deploymentPlatform, inputTypes, scheduler, name, deeployStateDir = deeployStateDir)
+        super().__init__(graph,
+                         deploymentPlatform,
+                         inputTypes,
+                         operatorDescriptors,
+                         scheduler,
+                         name,
+                         deeployStateDir = deeployStateDir)
 
         self.loweringOptimizer = loweringOptimizer
         self.default_channels_first = default_channels_first

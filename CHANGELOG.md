@@ -177,9 +177,9 @@ This release containing major architectural changes, new platform support, enhan
 
 
 ### Added
-- BatchNorm kernel 
-- ConvTranspose kernel 
-- MaxPool1D kernel 
+- BatchNorm kernel
+- ConvTranspose kernel
+- MaxPool1D kernel
 - Template for 1D Convolution
 - Support for float32 data type in the previous kernels
 - Float binding for Pad1D kernel
@@ -318,7 +318,7 @@ This release containing major architectural changes, new platform support, enhan
 
 ### Changed
 - FloatConvTemplate file
-- Platform.py file  
+- Platform.py file
 - Bump the CMake version to 3.24 as required for the chimera-sdk
 - Bump GVSoC's version and add chimera simulation target
 - Rename the generic source util to utils to avoid name collision with chimera-sdk

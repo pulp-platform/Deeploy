@@ -18,6 +18,7 @@ from Deeploy.DeeployTypes import StructBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareSignPropDeployer
+from Deeploy.OperatorDescriptor import defaultOperatorDescriptors
 from Deeploy.Targets.CortexM.Platform import CMSISEngine, CMSISMapping, CMSISOptimizer, CMSISPlatform
 from Deeploy.Targets.Generic.Platform import GenericEngine, GenericMapping, GenericOptimizer, GenericPlatform
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeConstOptPass, TransposeMergePass
@@ -83,6 +84,7 @@ if __name__ == '__main__':
                                                         MockPlatform,
                                                         inputTypes,
                                                         CMSISOptimizer,
+                                                        defaultOperatorDescriptors,
                                                         defaultScheduler,
                                                         name = "DeeployNetwork",
                                                         deeployStateDir = _DEEPLOYSTATEDIR,
@@ -106,6 +108,7 @@ if __name__ == '__main__':
                                                         MockPlatform,
                                                         inputTypes,
                                                         MemPoolOptimizer,
+                                                        defaultOperatorDescriptors,
                                                         defaultScheduler,
                                                         name = "DeeployNetwork",
                                                         deeployStateDir = _DEEPLOYSTATEDIR,
@@ -121,6 +124,7 @@ if __name__ == '__main__':
                                                         MockPlatform,
                                                         inputTypes,
                                                         GenericOptimizer,
+                                                        defaultOperatorDescriptors,
                                                         defaultScheduler,
                                                         name = "DeeployNetworkMock",
                                                         deeployStateDir = _DEEPLOYSTATEDIRMOCK,
@@ -136,6 +140,7 @@ if __name__ == '__main__':
                                                         MockPlatform,
                                                         inputTypes,
                                                         PULPOptimizer,
+                                                        defaultOperatorDescriptors,
                                                         defaultScheduler,
                                                         name = "DeeployNetworkMock",
                                                         deeployStateDir = _DEEPLOYSTATEDIRMOCK,

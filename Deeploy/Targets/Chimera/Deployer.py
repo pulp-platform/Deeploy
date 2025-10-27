@@ -8,7 +8,7 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
-from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
+from Deeploy.DeeployTypes import DeploymentPlatform, OperatorDescriptor, TopologyOptimizer
 
 
 class ChimeraDeployer(SignPropDeployer):
@@ -18,6 +18,7 @@ class ChimeraDeployer(SignPropDeployer):
                  deploymentPlatform: DeploymentPlatform,
                  inputTypes: Dict[str, Type[Pointer]],
                  loweringOptimizer: TopologyOptimizer,
+                 operatorDescriptors: Dict[str, OperatorDescriptor],
                  scheduler: Callable = lambda x: x,
                  name: str = 'DeeployNetwork',
                  default_channels_first = False,
@@ -27,6 +28,7 @@ class ChimeraDeployer(SignPropDeployer):
                          deploymentPlatform,
                          inputTypes,
                          loweringOptimizer,
+                         operatorDescriptors,
                          scheduler,
                          name,
                          default_channels_first = default_channels_first,

@@ -18,9 +18,7 @@ class SnitchGEMMParser(GEMMParser):
         if not ret:
             return False
 
-        if not all([
-                self.operatorRepresentation['transA'] == 0,
-        ]):
+        if self.operatorRepresentation['transA']:
             return False
 
         return True
@@ -50,9 +48,7 @@ class SnitchRQGEMMParser(RQGEMMParser):
         if not ret:
             return False
 
-        if not all([
-                self.operatorRepresentation['transA'] == 0,
-        ]):
+        if self.operatorRepresentation['transA']:
             return False
 
         return True

@@ -7,9 +7,10 @@ from typing import Callable, Dict, Optional, Tuple, Type, Union
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
-from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
+from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, OperatorDescriptor, TopologyOptimizer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
+from Deeploy.OperatorDescriptor import defaultOperatorDescriptors
 from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
 from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
@@ -93,6 +94,7 @@ def mapDeployer(platform: DeploymentPlatform,
                 graph: gs.Graph,
                 inputTypes: Dict[str, Type[Pointer]],
                 loweringOptimizer: Optional[TopologyOptimizer] = None,
+                operatorDescriptors: Optional[Dict[str, OperatorDescriptor]] = None,
                 scheduler: Optional[Callable] = None,
                 name: Optional[str] = None,
                 default_channels_first: Optional[bool] = None,
@@ -108,6 +110,9 @@ def mapDeployer(platform: DeploymentPlatform,
     if name is None:
         name = "DeeployNetwork"
 
+    if operatorDescriptors is None:
+        operatorDescriptors = defaultOperatorDescriptors
+
     if isinstance(platform, CMSISPlatform):
 
         if loweringOptimizer is None:
@@ -120,6 +125,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                  platform,
                                  inputTypes,
                                  loweringOptimizer,
+                                 operatorDescriptors,
                                  scheduler,
                                  name = name,
                                  default_channels_first = default_channels_first,
@@ -138,6 +144,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                    platform,
                                    inputTypes,
                                    loweringOptimizer,
+                                   operatorDescriptors,
                                    scheduler,
                                    name = name,
                                    default_channels_first = default_channels_first,
@@ -156,6 +163,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                     platform,
                                     inputTypes,
                                     loweringOptimizer,
+                                    operatorDescriptors,
                                     scheduler,
                                     name = name,
                                     default_channels_first = default_channels_first,
@@ -177,6 +185,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                    platform,
                                    inputTypes,
                                    loweringOptimizer,
+                                   operatorDescriptors,
                                    scheduler,
                                    name = name,
                                    default_channels_first = default_channels_first,
@@ -195,6 +204,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                    platform,
                                    inputTypes,
                                    loweringOptimizer,
+                                   operatorDescriptors,
                                    scheduler,
                                    name = name,
                                    default_channels_first = default_channels_first,
@@ -212,6 +222,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                 platform,
                                 inputTypes,
                                 loweringOptimizer,
+                                operatorDescriptors,
                                 scheduler,
                                 name = name,
                                 default_channels_first = default_channels_first,
@@ -228,6 +239,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                   platform,
                                   inputTypes,
                                   loweringOptimizer,
+                                  operatorDescriptors,
                                   scheduler,
                                   name = name,
                                   default_channels_first = default_channels_first,
@@ -244,6 +256,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                    platform,
                                    inputTypes,
                                    loweringOptimizer,
+                                   operatorDescriptors,
                                    scheduler,
                                    name = name,
                                    default_channels_first = default_channels_first,
