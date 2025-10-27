@@ -2738,7 +2738,10 @@ class NetworkContainer():
             assert node.op in self.operatorDescriptors, \
                 f"[ERROR] Error parsing node {node.name}. There is no descriptor for operator {node.op}."
             desc = self.operatorDescriptors[node.op]
-            desc.canonicalize(node, self.graph.opset)
+            try:
+                desc.canonicalize(node, self.graph.opset)
+            except BaseException as e:
+                raise ValueError(f"[ERROR] Node {node.name} of op {node.op} could not be canonicalized.") from e
             assert desc.check(node), \
                 f"[ERROR] Node {node.name} is not a valid instance of {node.op} operator"
 
