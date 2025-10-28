@@ -206,12 +206,20 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
 
         if isinstance(value, int):
             _max, _min = (value, value)
+        elif isinstance(value, np.number):
+            value = value.item()
+            if isinstance(value, float):
+                assert value.is_integer(), f"Floating-point value {value} is not an integer."
+                value = int(value)
+            _max, _min = (value, value)
         elif isinstance(value, np.ndarray):
             _max = value.max()
             _min = value.min()
         elif isinstance(value, Iterable):
             _max = max(value)
             _min = min(value)
+        else:
+            raise ValueError(f"Unsupported value of type {type(value)} with value {value}")
 
         if _max > cls.typeMax:
             return False
