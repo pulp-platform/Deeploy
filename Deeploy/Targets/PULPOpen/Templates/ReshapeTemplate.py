@@ -56,6 +56,8 @@ class _ReshapeTemplate(NodeTemplate):
         # Link aliases to each buffer
         bufferIn.aliases.add(bufferOut.name)
         bufferOut.aliases.add(bufferIn.name)
+
+        # Linking required for tiling
         bufferOut._alias = bufferIn.name
 
         return ctxt, operatorRepresentation, []
