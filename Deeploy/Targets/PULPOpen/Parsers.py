@@ -72,25 +72,24 @@ class PULPFPConv2DParser(Conv2DParser):
         wellFormed = super().parseNode(node)
         if wellFormed:
             ret = all([
-                # Make sure padding is square
+                # Current PULP kernel only supports grouping of 1
                 self.operatorRepresentation['group'] == 1,
+
+                # Make sure padding is square
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+
+                # Check number of inputs
                 # 2 inputs if no bias, 3 if layer has bias
                 len(node.inputs) in [2, 3],
             ])
 
-            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
-            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
-            self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
-            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][1])
+            # Extract additional attributes
             self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
             self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
             self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
-            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
-            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
 
             return ret
         return False
@@ -139,23 +138,15 @@ class PULPFPDWConv2DParser(Conv2DParser):
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
 
                 # Check number of inputs
+                # 2 inputs if no bias, 3 if layer has bias
                 len(node.inputs) in [2, 3],
             ])
 
             # Extract additional attributes
-            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
-            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
-
-            self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
-            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][1])
-
             self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
             self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
             self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
-
-            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
-            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
 
             return ret
         return False
