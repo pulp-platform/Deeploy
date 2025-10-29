@@ -60,8 +60,10 @@ class DWConv2DTileConstraint(TileConstraint):
         outputWidthVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 2)
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 3)
 
-        addChannelVar = tilerModel.getTensorDimVar(tensorName = addBufferName, dimIdx = 0)
-        mulChannelVar = tilerModel.getTensorDimVar(tensorName = mulBufferName, dimIdx = 0)
+        addBuffer = ctxt.lookup(addBufferName)
+        addChannelVar = tilerModel.getTensorDimVar(tensorName = addBufferName, dimIdx = len(addBuffer.shape) - 1)
+        mulBuffer = ctxt.lookup(mulBufferName)
+        mulChannelVar = tilerModel.getTensorDimVar(tensorName = mulBufferName, dimIdx = len(mulBuffer.shape) - 1)
 
         # map output dims to inputs dims
         tilerModel.addConstraint(outputBatchVar == inputBatchVar)  # Batch
@@ -183,6 +185,8 @@ class DWConv2DTileConstraint(TileConstraint):
 
         weightH = ctxt.lookup(varWeight).shape[1]
         weightW = ctxt.lookup(varWeight).shape[2]
+        shapeMul = ctxt.lookup(operatorRepresentation["mul"]).shape
+        shapeAdd = ctxt.lookup(operatorRepresentation["add"]).shape
 
         pads = operatorRepresentation['pads']
         strides = operatorRepresentation['strides']
@@ -200,7 +204,8 @@ class DWConv2DTileConstraint(TileConstraint):
             NCHWInCube = HyperRectangle((NHWCInCube.offset[0], COffset, NHWCInCube.offset[1], NHWCInCube.offset[2]),
                                         (NHWCInCube.dims[0], CSize, NHWCInCube.dims[1], NHWCInCube.dims[2]))
 
-            RequantCube = HyperRectangle((COffset,), (CSize,))
+            MulCube = HyperRectangle((0,) * (len(shapeMul) - 1) + (COffset,), (1,) * (len(shapeMul) - 1) + (CSize,))
+            AddCube = HyperRectangle((0,) * (len(shapeAdd) - 1) + (COffset,), (1,) * (len(shapeAdd) - 1) + (CSize,))
             WeightCube = HyperRectangle((COffset, 0, 0, 0), (CSize, weightH, weightW, 1))
 
             replacements['dim_im_in_x'].append(NCHWInCube.dims[2])
@@ -216,8 +221,8 @@ class DWConv2DTileConstraint(TileConstraint):
             replacements['padding_x_right'].append(padding_right)
 
             inputInCubes.append(NCHWInCube)
-            inputAddCubes.append(RequantCube)
-            inputMulCubes.append(RequantCube)
+            inputMulCubes.append(MulCube)
+            inputAddCubes.append(AddCube)
             inputWeightCubes.append(WeightCube)
 
         inputLoadSchedule = []
