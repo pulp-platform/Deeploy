@@ -25,10 +25,11 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation, VariableBuffer
+from Deeploy.Targets.Generic.Templates.ReshapeTemplate import _ReshapeTemplate as _GenericReshapeTemplate
 
 
-class _ReshapeTemplate(NodeTemplate):
+class _ReshapeTemplate(_GenericReshapeTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
@@ -36,15 +37,7 @@ class _ReshapeTemplate(NodeTemplate):
     def alignToContext(self, ctxt: NetworkContext,
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
 
-        # SCHEREMO: Selectively mark 'indices' dead, since we don't need them
-        if 'indices' in operatorRepresentation.keys():
-            ctxt.globalObjects[operatorRepresentation['indices']]._deploy = False
-            ctxt.globalObjects[operatorRepresentation['indices']]._live = False
-
-        # Same for "shape"
-        if "shape" in operatorRepresentation.keys():
-            ctxt.globalObjects[operatorRepresentation["shape"]]._deploy = False
-            ctxt.globalObjects[operatorRepresentation["shape"]]._live = False
+        ctxt, operatorRepresentation, _ = super().alignToContext(ctxt, operatorRepresentation)
 
         # Get buffers
         bufferIn = ctxt.lookup(operatorRepresentation['data_in'])
@@ -53,11 +46,8 @@ class _ReshapeTemplate(NodeTemplate):
         bufferOut = ctxt.lookup(operatorRepresentation['data_out'])
         assert isinstance(bufferOut, VariableBuffer)
 
-        # Link aliases to each buffer
-        bufferIn.aliases.add(bufferOut.name)
-        bufferOut.aliases.add(bufferIn.name)
-
-        # Linking required for tiling
+        # HACK: Tiling wasn't updated in the Fix aliasing PR so we have to still
+        #       set the _alias argument
         bufferOut._alias = bufferIn.name
 
         return ctxt, operatorRepresentation, []
