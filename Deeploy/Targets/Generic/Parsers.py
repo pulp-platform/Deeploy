@@ -837,41 +837,6 @@ class iHardswishParser(NodeParser):
         return ctxt, True
 
 
-class iNoNormParser(NodeParser):
-
-    def __init__(self):
-        super().__init__()
-
-    def parseNode(self, node: gs.Node) -> bool:
-
-        ret = all(['D' in node.attrs, 'mul' in node.attrs, 'n_levels' in node.attrs])
-
-        if ret:
-            self.operatorRepresentation['D'] = node.attrs['D']
-            self.operatorRepresentation['log2D'] = int(np.log2(node.attrs['D'].values).tolist()[0])
-            self.operatorRepresentation['mul'] = int(node.attrs['mul'].values.tolist()[0])
-            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
-
-        return ret
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        weights = ctxt.lookup(node.inputs[1].name)
-        bias = ctxt.lookup(node.inputs[2].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['weights'] = weights.name
-        self.operatorRepresentation['bias'] = bias.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = np.prod(data_in.shape)
-
-        return ctxt, True
-
-
 class RQSiHardswishParser(iHardswishParser):
 
     def __init__(self):
