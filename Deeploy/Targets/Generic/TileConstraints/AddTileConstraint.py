@@ -6,4 +6,6 @@ from .BOPTileConstraint import BOPTileConstraint
 
 
 class AddTileConstraint(BOPTileConstraint):
-    pass
+    dataIn1Name = "data_in_1"
+    dataIn2Name = "data_in_2"
+    dataOutName = "data_out"

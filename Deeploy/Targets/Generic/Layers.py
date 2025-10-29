@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+import math
 from typing import List, Tuple
 
 import numpy as np
@@ -295,15 +296,12 @@ class MulLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-
         if inputShapes[1] == () or inputShapes[1] == []:
             inputShapes[1] = (1,)
-
-        if len(inputShapes[0]) > len(inputShapes[1]):
-            inputShapes[1] = inputShapes[0]
+        if math.prod(inputShapes[1]) == 1:
+            return inputShapes, outputShapes
         else:
-            inputShapes[0] = inputShapes[1]
-        return (inputShapes, outputShapes)
+            return [np.broadcast_shapes(*inputShapes)] * len(inputShapes), outputShapes
 
     def computeOps(self):
         return self.mapper.parser.operatorRepresentation['size']

@@ -1114,35 +1114,28 @@ class UniformRequantShiftParser(RequantShiftParser):
 
 class MulParser(NodeParser):
 
-    def __init__(self):
-        super().__init__()
-
-    def parseNode(self, node: gs.Node) -> (bool):
-
-        wellFormed = all([
-            len(node.inputs) == 2,
-            len(node.outputs) == 1,
-        ])
-
-        return wellFormed
+    def parseNode(self, node: gs.Node) -> bool:
+        return len(node.inputs) == 2 and len(node.outputs) == 1
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        inBuffers = [ctxt.lookup(t.name) for t in node.inputs]
+        outBuffers = [ctxt.lookup(t.name) for t in node.outputs]
 
-        inputs = ['A', 'B']
-        outputs = ['C']
+        self.operatorRepresentation.update(dict(zip(['A', 'B'], [b.name for b in inBuffers])))
+        self.operatorRepresentation.update(dict(zip(['C'], [b.name for b in outBuffers])))
 
-        for idx, inputNode in enumerate(node.inputs):
-            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-        for idx, outputNode in enumerate(node.outputs):
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
-
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['sizeB'] = np.prod(ctxt.lookup(node.inputs[1].name).shape)
-
+        self.operatorRepresentation['size'] = math.prod(inBuffers[0].shape)
+        self.operatorRepresentation['sizeB'] = math.prod(inBuffers[1].shape)
         return ctxt, True
+
+
+class MulScalarParser(MulParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and math.prod(node.inputs[1].shape) == 1
 
 
 class ConvParser(NodeParser):

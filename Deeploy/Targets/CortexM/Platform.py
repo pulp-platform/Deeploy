@@ -14,17 +14,17 @@ from Deeploy.Targets.CortexM.TopologyOptimizationPasses.Passes import ConvRequan
     LinearAttentionAlignmentPass, MatMulRequantMergePass, MHSAAlignmentPass
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicDebugPrintBindings, BasicDivBindings, \
     BasicGatherBindings, BasicGELUBindings, BasicLayerNormBindings, BasicMatMulBindings, BasicMulBindings, \
-    BasicPad1DBindings, BasicPad2DBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, \
-    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, \
-    BasicTransposeBindings, DummyBinding
+    BasicMulScalarBindings, BasicPad1DBindings, BasicPad2DBindings, BasicReduceMeanBindings, BasicReduceSumBindings, \
+    BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, \
+    BasicSoftmaxBindings, BasicTransposeBindings, DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, CLCALayer, DebugPrintLayer, DivLayer, GatherLayer, GELULayer, \
     LayerNormLayer, LinearAttentionLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, ReduceMeanLayer, \
     ReduceSumLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SliceLayer, SoftmaxLayer, \
     TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DummyParser, FlattenParser, GatherParser, \
-    GELUParser, IntegerDivParser, MatMulParser, MulParser, Pad1DParser, Pad2DParser, ReduceMeanParser, \
-    ReduceSumParser, RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, \
-    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
+    GELUParser, IntegerDivParser, MatMulParser, MulParser, MulScalarParser, Pad1DParser, Pad2DParser, \
+    ReduceMeanParser, ReduceSumParser, RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, \
+    SliceParser, TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, iGELURequantMergePass
@@ -46,6 +46,7 @@ LinearAttention_int16_Mapper = NodeMapper(CMSISLinearAttentionParser(), [CMSISLi
 MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 MaxPool2DMapper = NodeMapper(CMSISMaxPool2DParser(), [CMSISMaxPool2DBinding])
 MulMapper = NodeMapper(MulParser(), BasicMulBindings)
+MulScalarMapper = NodeMapper(MulScalarParser(), BasicMulScalarBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
 ReduceMeanMapper = NodeMapper(ReduceMeanParser(), BasicReduceMeanBindings)
@@ -78,7 +79,7 @@ CMSISMapping = {
     'LinearAttention': LinearAttentionLayer([LinearAttention_int16_Mapper]),
     'MatMul': MatMulLayer([MatMulMapper]),
     'MaxPool': MaxPoolLayer([MaxPool2DMapper]),
-    'Mul': MulLayer([MulMapper]),
+    'Mul': MulLayer([MulMapper, MulScalarMapper]),
     'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
     'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
     'ReduceSum': ReduceSumLayer([ReduceSumMapper]),

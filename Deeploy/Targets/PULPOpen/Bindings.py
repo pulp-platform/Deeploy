@@ -373,7 +373,9 @@ PULPMulBindings = [
     NodeBinding(MulChecker([PointerClass(typeA), PointerClass(typeB)], [PointerClass(int32_t)]),
                 MulTemplate.referenceTemplate, ForkTransformer)
     for typeA, typeB in itertools.product(SignedIntegerDataTypes, SignedIntegerDataTypes)
-] + [
+]
+
+PULPMulScalarBindings = [
     NodeBinding(MulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMulTemplate.referenceTemplate, ForkTransformer)
 ]
