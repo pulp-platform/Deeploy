@@ -2,19 +2,21 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
+
+import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeTemplate, OperatorRepresentation
 
 
-class _RQGemmTemplate(NodeTemplate, OperatorRepresentation):
+class _RQGemmTemplate(NodeTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
 
-    def alignToContext(self, ctxt: NetworkContext,
-                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict]:
-
+    def alignToContext(
+            self, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, OperatorRepresentation, List[str]]:
         A = ctxt.lookup(operatorRepresentation['A'])
         B = ctxt.lookup(operatorRepresentation['B'])
         C = ctxt.lookup(operatorRepresentation['C'])
@@ -78,6 +80,16 @@ class _RQGemmTemplate(NodeTemplate, OperatorRepresentation):
             operatorRepresentation['ctxtBuffer_C'] = operatorRepresentation['C']
 
         return ctxt, operatorRepresentation, names
+
+    def alignShapes(self, node: gs.Node) -> Tuple[List[Sequence[int]], List[Sequence[int]]]:
+        inShapes, outShapes = [t.shape for t in node.inputs], [t.shape for t in node.outputs]
+        # rqs bias
+        inShapes[2] = outShapes[0][-2:]
+        # rqs add
+        inShapes[3] = (1,)
+        # rqs mul
+        inShapes[4] = (1,)
+        return inShapes, outShapes
 
 
 MemPoolParallelTemplate = _RQGemmTemplate("""

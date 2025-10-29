@@ -6,12 +6,13 @@ from typing import Dict, List, Tuple, Union
 
 from ortools.constraint_solver.pywrapcp import IntVar
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.CommonExtensions.NodeTemplate import RequantizedConvTemplate
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.Targets.CortexM.DataTypes import cmsis_nn_context, cmsis_nn_conv_params, cmsis_nn_dims, \
     cmsis_nn_per_channel_quant_params
 
 
-class _Conv2D_8_Template(NodeTemplate):
+class _Conv2D_8_Template(RequantizedConvTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
@@ -128,7 +129,7 @@ arm_convolve_wrapper_s8(&${ctxt}, &${conv_params}, &${quant_params}, &${input_di
 ")
 
 
-class _Conv1D_16_Template(NodeTemplate):
+class _Conv1D_16_Template(RequantizedConvTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)

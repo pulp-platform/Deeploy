@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.CommonExtensions.NodeTemplate import GemmTemplate
 
-referenceTemplate = NodeTemplate("""
+referenceTemplate = GemmTemplate("""
 // GEMM (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
     ${A_type.typeName} ref_${nodeName}_${A} = ${A};

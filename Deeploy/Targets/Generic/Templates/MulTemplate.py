@@ -4,10 +4,11 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.CommonExtensions.NodeTemplate import ElementwiseTemplate
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 
 
-class _MulTemplate(NodeTemplate):
+class _MulTemplate(ElementwiseTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)

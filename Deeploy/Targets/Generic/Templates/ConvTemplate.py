@@ -4,10 +4,11 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.CommonExtensions.NodeTemplate import ConvTemplate
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 
 
-class _Conv2D_Template(NodeTemplate):
+class _Conv2D_Template(ConvTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
