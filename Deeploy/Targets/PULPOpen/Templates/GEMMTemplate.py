@@ -41,7 +41,7 @@ if weight_signed:
 else:
     signatureString += '_u8'
 %>
-// PULP NN GEMM
+// PULP NN GEMM (Name: ${nodeName}, Op: ${nodeOp})
 int8_t* ref_${data_out}_${A} = ${A};
 int8_t* ref_${data_out}_${B} = ${B};
 int8_t* ref_${data_out}_${data_out} = ${data_out};
