@@ -82,11 +82,11 @@ class _MatMulTemplate(NodeTemplate):
         operatorRepresentation['B_offset'] = 0
         operatorRepresentation['C_offset'] = 0
 
-        if hasattr(A, "nLevels"):
+        if A.nLevels is not None:
             operatorRepresentation['A_offset'] = (A._type.referencedType.typeMin == 0) * int(A.nLevels / 2)
-        if hasattr(B, "nLevels"):
+        if B.nLevels is not None:
             operatorRepresentation['B_offset'] = (B._type.referencedType.typeMin == 0) * int(B.nLevels / 2)
-        if hasattr(C, "nLevels"):
+        if C.nLevels is not None:
             operatorRepresentation['C_offset'] = -(C._type.referencedType.typeMin == 0) * int(C.nLevels / 2)
 
         return ctxt, operatorRepresentation, []

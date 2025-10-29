@@ -18,10 +18,10 @@ class _FloatReduceMeanTemplate(NodeTemplate):
         data_in = ctxt.lookup(operatorRepresentation['data_in'])
         data_out = ctxt.lookup(operatorRepresentation['data_out'])
         operatorRepresentation['input_offset'] = 0
-        if hasattr(data_in, "_signed") and hasattr(data_in, "nLevels"):
+        if data_in._signed is not None and data_in.nLevels is not None:
             operatorRepresentation['input_offset'] = (data_in._signed == 0) * int(data_in.nLevels / 2)
         operatorRepresentation['output_offset'] = 0
-        if hasattr(data_out, "_signed") and hasattr(data_out, "nLevels"):
+        if data_out._signed is not None and data_out.nLevels is not None:
             operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_in.nLevels / 2)
 
         return ctxt, operatorRepresentation, []
