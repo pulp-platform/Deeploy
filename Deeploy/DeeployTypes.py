@@ -2694,7 +2694,7 @@ class NetworkContainer():
                         f"   - Deepest layer available mappers: {[type(x.parser).__name__ for x in deepestLayer.maps]}")
                     log.error("=" * 80)
                     raise RuntimeError(
-                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer.__class__.__name__} of node {deepestNodeName}'
+                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer.__class__.__name__} of node {deepestNodeName}\n'
                         f'Candidates: {[type(x.parser).__name__ for x in deepestLayer.maps]}. Exhausted backtracking.')
 
                 previousLayer = scheduledLayerList[idx - 1]
