@@ -42,9 +42,9 @@ else:
     signatureString += '_u8'
 %>
 // PULP NN GEMM (Name: ${nodeName}, Op: ${nodeOp})
-int8_t* ref_${data_out}_${A} = ${A};
-int8_t* ref_${data_out}_${B} = ${B};
-int8_t* ref_${data_out}_${data_out} = ${data_out};
+int8_t* ref_${nodeName}_${A} = ${A};
+int8_t* ref_${nodeName}_${B} = ${B};
+int8_t* ref_${nodeName}_${data_out} = ${data_out};
 for(int i=0;i<${batch};i++){
 for(int j=0;j<${M};j++){
 // LMACAN: In some edge cases sporadic errors happen if this loop is not added.
@@ -55,12 +55,12 @@ for(int j=0;j<${M};j++){
 for(int k=0;k<3;k++){
   asm volatile("nop" ::);
 }
-pulp_nn_linear${signatureString}(ref_${data_out}_${A}, NULL, ref_${data_out}_${data_out}, ref_${data_out}_${B}, ${mul}, ${C}, 1, ${log2D}, ${N}, ${O}, 1, 1);
-ref_${data_out}_${A} += ${N};
-ref_${data_out}_${data_out} += ${O};
+pulp_nn_linear${signatureString}(ref_${nodeName}_${A}, NULL, ref_${nodeName}_${data_out}, ref_${nodeName}_${B}, ${mul}, ${C}, 1, ${log2D}, ${N}, ${O}, 1, 1);
+ref_${nodeName}_${A} += ${N};
+ref_${nodeName}_${data_out} += ${O};
 }
 % if W_batched:
-ref_${data_out}_${B} += ${N} * ${O};
+ref_${nodeName}_${B} += ${N} * ${O};
 % endif
 }
 """)
@@ -95,24 +95,24 @@ class _MatMulTemplate(NodeTemplate):
 PULPMM_8_Template = _MatMulTemplate("""
 // MatMul (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
-    ${A_type.typeName} ref_${data_out}_${A} = ${A};
-    ${B_type.typeName} ref_${data_out}_${B} = ${B};
-    ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
+    ${A_type.typeName} ref_${nodeName}_${A} = ${A};
+    ${B_type.typeName} ref_${nodeName}_${B} = ${B};
+    ${data_out_type.typeName} ref_${nodeName}_${data_out} = ${data_out};
 
     for(uint32_t i=0;i<${batch};i++){
         MatMul_s${A_type.referencedType.typeWidth}_s${B_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}(
-            ref_${data_out}_${A},
-            ref_${data_out}_${B},
-            ref_${data_out}_${data_out},
+            ref_${nodeName}_${A},
+            ref_${nodeName}_${B},
+            ref_${nodeName}_${data_out},
             ${M},
             ${N},
             ${O},
             0, 0, ${C_offset}
         );
 
-        ref_${data_out}_${A} += ${M} * ${N};
-        ref_${data_out}_${B} += ${N} * ${O};
-        ref_${data_out}_${data_out} += ${M} * ${O};
+        ref_${nodeName}_${A} += ${M} * ${N};
+        ref_${nodeName}_${B} += ${N} * ${O};
+        ref_${nodeName}_${data_out} += ${M} * ${O};
     }
 END_SINGLE_CORE
 """)

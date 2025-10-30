@@ -31,14 +31,14 @@ class _GEMM_8_Template(NodeTemplate):
 
 Linear_8_Template = _GEMM_8_Template("""
 // GEMM
-int8_t* ref_${data_out}_${A} = ${A};
-int8_t* ref_${data_out}_${B} = ${B};
-int8_t* ref_${data_out}_${data_out} = ${data_out};
+int8_t* ref_${nodeName}_${A} = ${A};
+int8_t* ref_${nodeName}_${B} = ${B};
+int8_t* ref_${nodeName}_${data_out} = ${data_out};
 for(int i=0;i<${batch};i++){
-    arm_fully_connected_s8(&${ctxt}, &${fc_params}, &${quant_params}, &${input_dims}, ref_${data_out}_${A}, &${filter_dims}, ref_${data_out}_${B}, &${bias_dims}, ${C}, &${output_dims}, ref_${data_out}_${data_out});
-    ref_${data_out}_${A} += ${M} * ${N};
-    ref_${data_out}_${B} += ${N} * ${O};
-    ref_${data_out}_${data_out} += ${M} * ${O};
+    arm_fully_connected_s8(&${ctxt}, &${fc_params}, &${quant_params}, &${input_dims}, ref_${nodeName}_${A}, &${filter_dims}, ref_${nodeName}_${B}, &${bias_dims}, ${C}, &${output_dims}, ref_${nodeName}_${data_out});
+    ref_${nodeName}_${A} += ${M} * ${N};
+    ref_${nodeName}_${B} += ${N} * ${O};
+    ref_${nodeName}_${data_out} += ${M} * ${O};
 }
 """)
 
