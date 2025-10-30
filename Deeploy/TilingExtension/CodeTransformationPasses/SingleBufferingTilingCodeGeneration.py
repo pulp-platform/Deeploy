@@ -7,7 +7,7 @@ from typing import Dict, List, Set, Tuple
 from Deeploy.AbstractDataTypes import VoidType
 from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, OperatorRepresentation, VariableBuffer, \
     _ReferenceBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, EmptyFuture, Future
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration import TilingCodeGeneration
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import dictOfArrays
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import ProfilingPrototypeMixIn, \
@@ -50,18 +50,21 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                      override_type = VoidType)
 
             future = self.dma.getFuture(tensorName, direction)
-            _future = set([future]) - futures
-            _future = _future.pop() if len(_future) > 0 else EmptyFuture("")
-            futures.add(future)
+
+            # Allocate a future for this transfer
+            if future not in futures:
+                callStack.append(future.alloc())
 
             callStack.extend(
                 self._generateDmaTransferCalls(ctxt, tensorName, rectangles, tileIdxVar, localBuffer, externalBufferRef,
-                                               direction, _future))
+                                               direction, future))
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, tileIdxVar,
                                                                     externalBufferRef)
             if referenceUpdate is not None:
                 callStack.append(referenceUpdate)
+
+            futures.add(future)
 
         return ctxt, callStack, futures
 

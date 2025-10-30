@@ -8,7 +8,7 @@ from typing import List, Set, Tuple
 from Deeploy.AbstractDataTypes import VoidType
 from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, NodeTemplate, OperatorRepresentation, \
     VariableBuffer, _ReferenceBuffer
-from Deeploy.TilingExtension.AsyncDma import AnydimAsyncDmaTransferAdapter, AsyncDma, EmptyFuture, Future
+from Deeploy.TilingExtension.AsyncDma import AnydimAsyncDmaTransferAdapter, AsyncDma, Future
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration import TilingCodeGeneration
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import dictOfArrays
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import ProfilingPrototypeMixIn, \
@@ -140,18 +140,15 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
             nextLocalBufferReference = self._hoistReference(ctxt, f"{tensorName}_next", l1BuffersReferences[1])
 
             future = self.dma.getFuture(tensorName, "ExternalToLocal")
-            # Extract the future that is not already in the set of ingress futures
-            _future = set([future]) - ingressFutures
-            _future = _future.pop() if len(_future) > 0 else EmptyFuture("")
-            ingressFutures.add(future)
 
             # 2) Load initial input tiles
             anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
             initialDmaTransferCalls = anydimAdapter.transfer(ctxt, externalBufferRef, localBuffer, rectangles[0].dims,
                                                              stridesFromShape(externalBufferShape),
                                                              stridesFromShape(rectangles[0].dims), "ExternalToLocal",
-                                                             _future, math.prod(externalBufferShape))
-            setupStatements.append(_future.alloc())
+                                                             future, math.prod(externalBufferShape))
+            if future not in ingressFutures:
+                setupStatements.append(future.alloc())
             setupStatements.extend(initialDmaTransferCalls)
 
             # 4.1) Choose buffers for current tile (inputs and outputs)
@@ -161,7 +158,9 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             # 4.2.1) Wait for current input tile
             ingressDMAStatements.append(CodeSnippet(self._lineComment, {"comment": "Wait for current input tile"}))
-            ingressDMAStatements.append(_future.wait())
+
+            if future not in ingressFutures:
+                ingressDMAStatements.append(future.wait())
 
             # 4.2.2) if there is a next tile:
             ingressDMAStatements.append(
@@ -175,10 +174,15 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             # 4.2.4) Start transfer for next input tile
             ingressDMAStatements.append(CodeSnippet(self._lineComment, {"comment": "Transfer next input tile"}))
+
+            # Allocate the future for the next transfer
+            if future not in ingressFutures:
+                ingressDMAStatements.append(future.alloc())
+
             ingressDMAStatements.extend(
                 self._generateDmaTransferCalls(ctxt, tensorName, rectangles, "TILING_I+1", nextLocalBufferReference,
-                                               externalBufferRef, "ExternalToLocal", _future))
-            # 4.2.5) Update external reference for next tile
+                                               externalBufferRef, "ExternalToLocal", future))
+            # 4.2.5) Update external reference for next til
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, "TILING_I+1",
                                                                     externalBufferRef)
             if referenceUpdate is not None:
@@ -194,6 +198,9 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             # Close the "if there is a next tile" block
             ingressDMAStatements.append(CodeSnippet(self._moveTileInCheckCloseStatement, {}))
+
+            # Add future to the set to prevent double wait/allocation
+            ingressFutures.add(future)
 
         # 4.4) Output Data Transfers
         # -----------------------------------
@@ -227,19 +234,21 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             # 4.4.1) Wait for previous output tile
             future = self.dma.getFuture(tensorName, "LocalToExternal")
-            # Extract the future that is not already in the set of ingress futures
-            _future = set([future]) - egressFutures
-            _future = _future.pop() if len(_future) > 0 else EmptyFuture("")
-            egressFutures.add(future)
 
             egressDMAStatements.append(CodeSnippet(self._lineComment, {"comment": "Wait for previous output tile"}))
-            egressDMAStatements.append(_future.wait())
+
+            if future not in egressFutures:
+                egressDMAStatements.append(future.wait())
 
             # 4.4.2) Start transfer for current output tile
             dmaTransferCalls = self._generateDmaTransferCalls(ctxt, tensorName, rectangles, "TILING_I", localBuffer,
-                                                              externalBufferRef, "LocalToExternal", _future)
+                                                              externalBufferRef, "LocalToExternal", future)
 
             egressDMAStatements.append(CodeSnippet(self._lineComment, {"comment": "Transfer current output tile"}))
+            # Allocate the future for the next transfer
+            if future not in egressFutures:
+                egressDMAStatements.append(future.alloc())
+
             egressDMAStatements.extend(dmaTransferCalls)
 
             # 4.4.3) Update outut reference for next tile
@@ -247,6 +256,9 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                                     externalBufferRef)
             if referenceUpdate is not None:
                 egressDMAStatements.append(referenceUpdate)
+
+            # Add future to the set to prevent double wait/allocation
+            egressFutures.add(future)
 
         # 4.2.
         openLoopStatements += self._switch(buffer_choices, "TILING_I")

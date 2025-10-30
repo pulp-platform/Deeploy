@@ -51,9 +51,20 @@ class AsyncDmaWaitingStrategy(ABC):
 
 class PerTensorWaitingStrategy(AsyncDmaWaitingStrategy):
 
+    def __init__(self, FutureCls: Type[Future]) -> None:
+        super().__init__(FutureCls)
+        # map (tensorName, direction) -> Future instance so the same Future
+        # object is returned for repeated requests for the same tensor/direction
+        self._futures: Dict[Tuple[str, DmaDirection], Future] = {}
+
     def getFuture(self, tensorName: str, direction: DmaDirection) -> Future:
-        _ = direction
-        return self.FutureCls(tensorName)
+        key = (tensorName, direction)
+        if key not in self._futures:
+            # include direction in the future name to avoid accidental name
+            # collisions between directions for the same tensor
+            future_name = f"{tensorName}_{direction}"
+            self._futures[key] = self.FutureCls(future_name)
+        return self._futures[key]
 
 
 class DirectionWaitingStrategy(AsyncDmaWaitingStrategy):
