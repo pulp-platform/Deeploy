@@ -38,8 +38,7 @@ class PULPDeployer(SignPropDeployer):
                  name: str = 'DeeployNetwork',
                  default_channels_first = False,
                  deeployStateDir: str = "DeeployStateDir",
-                 inputOffsets = {},
-                 n_cores: int = 8):
+                 inputOffsets = {}):
         super().__init__(
             graph = graph,
             deploymentPlatform = deploymentPlatform,
@@ -50,7 +49,6 @@ class PULPDeployer(SignPropDeployer):
             default_channels_first = default_channels_first,
             deeployStateDir = deeployStateDir,
             inputOffsets = inputOffsets,
-            n_cores = n_cores,
         )
 
         self.loweringOptimizer.passes += [

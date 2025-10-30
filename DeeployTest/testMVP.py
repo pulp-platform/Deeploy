@@ -86,15 +86,12 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 
-    deployer = mapDeployer(
-        platform,
-        graph,
-        inputTypes,
-        deeployStateDir = _DEEPLOYSTATEDIR,
-        inputOffsets = inputOffsets,
-        scheduler = _mockScheduler,
-        n_cores = n_cores,
-    )
+    deployer = mapDeployer(platform,
+                           graph,
+                           inputTypes,
+                           deeployStateDir = _DEEPLOYSTATEDIR,
+                           inputOffsets = inputOffsets,
+                           scheduler = _mockScheduler)
 
     # Make the deployer engine-color-aware
     if args.platform == "Siracusa_w_neureka":
@@ -130,6 +127,9 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
     deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
+
+    if isinstance(platform, PULPPlatform):
+        deployer.ctxt.n_cores = n_cores
 
     return deployer, signProp
 

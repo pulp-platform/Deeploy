@@ -516,8 +516,7 @@ class NetworkContext():
                  transientBuffer: Type[TransientBuffer],
                  globalObjects = {},
                  localObjects = {},
-                 name: str = 'DeeployNetwork',
-                 n_cores: int = 8):
+                 name: str = 'DeeployNetwork'):
         self.globalObjects = OrderedDict()
         self.localObjects = OrderedDict()
         self.VariableBuffer = variableBuffer
@@ -525,7 +524,6 @@ class NetworkContext():
         self.StructBuffer = structBuffer
         self.TransientBuffer = transientBuffer
         self.name = name
-        self.n_cores = n_cores
 
         self._maxDynamicSize = {}  #: int: Maximum dynamic memory size occupied by live buffers at any point in time
         self._dynamicSize = {}  #: int: Current dynamic memory size occupied by live buffers
@@ -2433,8 +2431,7 @@ class NetworkContainer():
                  inputTypes: Dict[str, Type[Pointer]],
                  scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
                  name: str = 'DeeployNetwork',
-                 deeployStateDir: str = "DeeployState",
-                 n_cores: int = 8):
+                 deeployStateDir: str = "DeeployState"):
         """Initializes a new NetworkContainer and its NetworkContext
 
         Parameters
@@ -2452,8 +2449,6 @@ class NetworkContainer():
             Prefix to use in deployment to uniquify tensor names
         deeployStateDir : str
             Path to a directory to dump intermediate outputs
-        n_cores : int
-            The number of cores on which the network will be run
 
 
         """
@@ -2472,8 +2467,7 @@ class NetworkContainer():
         self.ctxt = NetworkContext(variableBuffer = self.Platform.VariableBuffer,
                                    constantBuffer = self.Platform.ConstantBuffer,
                                    structBuffer = self.Platform.StructBuffer,
-                                   transientBuffer = self.Platform.TransientBuffer,
-                                   n_cores = n_cores)
+                                   transientBuffer = self.Platform.TransientBuffer)
 
         self.deeployStateDir = deeployStateDir
 
@@ -2634,13 +2628,19 @@ class NetworkContainer():
 
         """
 
-        self.ctxt = NetworkContext(
-            variableBuffer = self.Platform.VariableBuffer,
-            constantBuffer = self.Platform.ConstantBuffer,
-            structBuffer = self.Platform.StructBuffer,
-            transientBuffer = self.Platform.TransientBuffer,
-            n_cores = self.ctxt.n_cores,
-        )
+        # Required, because the old context is completely overwritten
+        if hasattr(self.ctxt, "n_cores"):
+            n_cores = self.ctxt.n_cores
+        else:
+            n_cores = None
+
+        self.ctxt = NetworkContext(variableBuffer = self.Platform.VariableBuffer,
+                                   constantBuffer = self.Platform.ConstantBuffer,
+                                   structBuffer = self.Platform.StructBuffer,
+                                   transientBuffer = self.Platform.TransientBuffer)
+
+        if n_cores is not None:
+            self.ctxt.n_cores = n_cores
 
         log.debug(" - Create IO Bindings")
         self.ctxt = self._createIOBindings(self.ctxt, self.graph)
@@ -3186,18 +3186,15 @@ class NetworkDeployer(NetworkContainer):
     """Deeploy abstraction to contain an entire network and all necessary information to deploy it
     """
 
-    def __init__(
-        self,
-        graph: gs.Graph,
-        deploymentPlatform: DeploymentPlatform,
-        inputTypes: Dict[str, Type[Pointer]],
-        loweringOptimizer: TopologyOptimizer,
-        scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
-        name: str = 'DeeployNetwork',
-        default_channels_first: bool = True,
-        deeployStateDir: str = "DeeployState",
-        n_cores: int = 8,
-    ):
+    def __init__(self,
+                 graph: gs.Graph,
+                 deploymentPlatform: DeploymentPlatform,
+                 inputTypes: Dict[str, Type[Pointer]],
+                 loweringOptimizer: TopologyOptimizer,
+                 scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
+                 name: str = 'DeeployNetwork',
+                 default_channels_first: bool = True,
+                 deeployStateDir: str = "DeeployState"):
         """Initialize a new NetworkDeployer
 
         Parameters
@@ -3226,21 +3223,17 @@ class NetworkDeployer(NetworkContainer):
 
 
         """
-        super().__init__(
-            graph = graph,
-            platform = deploymentPlatform,
-            inputTypes = inputTypes,
-            scheduler = scheduler,
-            name = name,
-            deeployStateDir = deeployStateDir,
-            n_cores = n_cores,
-        )
+        super().__init__(graph = graph,
+                         platform = deploymentPlatform,
+                         inputTypes = inputTypes,
+                         scheduler = scheduler,
+                         name = name,
+                         deeployStateDir = deeployStateDir)
 
         self.loweringOptimizer = loweringOptimizer
         self.default_channels_first = default_channels_first
 
         self.prepared = False
-        self.n_cores = n_cores
 
     def __repr__(self):
         return super().__repr__(

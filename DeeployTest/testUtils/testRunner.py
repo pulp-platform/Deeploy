@@ -286,7 +286,7 @@ class TestRunner():
         argument_parser: TestRunnerArgumentParser,
         gen_args: str = "",
         cmake_args: str = "",
-        cores: int = 8,
+        cores: int = 1,
     ):
 
         if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none']:
