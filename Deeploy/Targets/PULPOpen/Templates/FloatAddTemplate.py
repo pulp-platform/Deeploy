@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.CommonExtensions.NodeTemplate import ElementwiseTemplate
 
-referenceTemplate = NodeTemplate("""
+referenceTemplate = ElementwiseTemplate("""
 // Add Parallel with 1x6 unrolling (Name: ${nodeName}, Op: ${nodeOp})
 int8_t ${nodeName}_core_id = pi_core_id();
 int8_t ${nodeName}_log2Core = log2(NUM_CORES);

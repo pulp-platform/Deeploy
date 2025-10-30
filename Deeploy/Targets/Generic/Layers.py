@@ -3,11 +3,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+import math
 from typing import List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, OperatorRepresentation, Shape
+from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, Shape
 
 
 class ConcatLayer(ONNXLayer):
@@ -62,23 +63,6 @@ class iHardswishLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
-
-
-class iNoNormLayer(ONNXLayer):
-
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size'] * 4  # 2 mul, 1 add, 1 right shift
-
-    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation: OperatorRepresentation,
-                      channels_first: bool) -> Tuple[Shape]:
-
-        # JUNGVI: Broadcast the weights and bias to have as many dimensions as the inputs
-        inputShapes[1] = [1] * (len(inputShapes[0]) - len(inputShapes[1])) + list(inputShapes[1])
-        inputShapes[2] = inputShapes[1]
-        return (inputShapes, outputShapes)
 
 
 class RQSiGELULayer(GELULayer):
@@ -312,15 +296,12 @@ class MulLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-
         if inputShapes[1] == () or inputShapes[1] == []:
             inputShapes[1] = (1,)
-
-        if len(inputShapes[0]) > len(inputShapes[1]):
-            inputShapes[1] = inputShapes[0]
+        if math.prod(inputShapes[1]) == 1:
+            return inputShapes, outputShapes
         else:
-            inputShapes[0] = inputShapes[1]
-        return (inputShapes, outputShapes)
+            return [np.broadcast_shapes(*inputShapes)] * len(inputShapes), outputShapes
 
     def computeOps(self):
         return self.mapper.parser.operatorRepresentation['size']

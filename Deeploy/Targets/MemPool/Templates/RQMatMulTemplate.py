@@ -2,19 +2,21 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
+
+import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeTemplate, OperatorRepresentation
 
 
-class _RQMatMulTemplate(NodeTemplate, OperatorRepresentation):
+class _RQMatMulTemplate(NodeTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
 
-    def alignToContext(self, ctxt: NetworkContext,
-                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict]:
-
+    def alignToContext(
+            self, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, OperatorRepresentation, List[str]]:
         A = ctxt.lookup(operatorRepresentation['A'])
         B = ctxt.lookup(operatorRepresentation['B'])
         data_out = ctxt.lookup(operatorRepresentation['data_out'])
@@ -73,6 +75,14 @@ class _RQMatMulTemplate(NodeTemplate, OperatorRepresentation):
             operatorRepresentation['ctxtBuffer_B'] = operatorRepresentation['B']
 
         return ctxt, operatorRepresentation, names
+
+    def alignShapes(self, node: gs.Node) -> Tuple[List[Sequence[int]], List[Sequence[int]]]:
+        inShapes, outShapes = [t.shape for t in node.inputs], [t.shape for t in node.outputs]
+        # rqs mul
+        inShapes[2] = (1,)
+        # rqs add
+        inShapes[3] = (1,)
+        return inShapes, outShapes
 
 
 MemPoolParallelTemplate = _RQMatMulTemplate("""

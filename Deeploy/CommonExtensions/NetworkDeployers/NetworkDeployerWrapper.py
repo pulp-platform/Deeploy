@@ -6,7 +6,7 @@ from typing import Any, Union
 
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import CodeGenVerbosity, NetworkContext, NetworkDeployer, ONNXLayer, _NoVerbosity
+from Deeploy.DeeployTypes import CodeGenVerbosity, NetworkDeployer, ONNXLayer, _NoVerbosity
 
 
 class NetworkDeployerWrapper(NetworkDeployer):
@@ -48,8 +48,8 @@ class NetworkDeployerWrapper(NetworkDeployer):
     """
 
     # SignPropDeployer augment
-    def _createIOBindings(self, ctxt: NetworkContext, graph: gs.Graph):
-        return self._innerObject._createIOBindings(ctxt, graph)
+    def parse(self, default_channels_first: bool = True) -> bool:
+        return self._innerObject.parse(default_channels_first)
 
     # MemoryAwareDeployer, TilerAwareDeployer, and PULPDeployer augments
     def bind(self) -> bool:

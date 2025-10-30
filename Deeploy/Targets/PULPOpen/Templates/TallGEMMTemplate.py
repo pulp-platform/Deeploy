@@ -4,10 +4,11 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.CommonExtensions.NodeTemplate import RequantizedGemmTemplate
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 
 
-class _PULPTallGEMMTemplate(NodeTemplate):
+class _PULPTallGEMMTemplate(RequantizedGemmTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)

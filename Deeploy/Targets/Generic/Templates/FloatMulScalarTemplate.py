@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.CommonExtensions.NodeTemplate import ElementwiseScalarTemplate
 
-referenceTemplate = NodeTemplate("""
+referenceTemplate = ElementwiseScalarTemplate("""
 // Float Mul (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
     for (uint32_t i=0;i<${size};i++){

@@ -353,44 +353,49 @@ class SplitAddPass(ReplaceSequentialPatternPass):
         super().__init__(graph, _split_add_fun, name)
 
 
-def _extract_padding_fun_conv(graph: gs.Graph, match: Match, name: str, value = 0):
+def _extract_padding_fun_conv(graph: gs.Graph, match: Match, name: str, value = 0) -> gs.Graph:
+    conv = list(match.nodes_map.values())[0]
 
-    matched_nodes = [m for k, m in match.nodes_map.items()]
-    conv = matched_nodes[0]
-    if 'pads' in conv.attrs and np.sum(conv.attrs['pads']) > 1:
-        pads = copy.deepcopy(conv.attrs['pads'])
-        shape = copy.deepcopy(conv.inputs[0].shape)
-        newPads = np.zeros(2 * len(shape))
-        assert len(shape) - 2 == len(pads) / 2, "Conv padding dims do not match!"
-        newShape = shape
+    if 'pads' not in conv.attrs:
+        return graph
 
-        beginPads = pads[0:len(pads) // 2]
-        endPads = pads[len(pads) // 2:]
-        for idx, i in enumerate(beginPads):
-            newShape[2 + idx] = newShape[2 + idx] + i
-            newPads[2 + idx] = i
+    convPads = conv.attrs['pads']
 
-        for idx, i in enumerate(endPads):
-            newShape[2 + idx] = newShape[2 + idx] + i
-            newPads[len(newPads) // 2 + 2 + idx] = i
+    if all(p == 0 for p in convPads):
+        return graph
 
-        newConvInput = gs.Variable(name + '_padded_input', dtype = np.float32, shape = newShape)
-        #valConst = gs.Constant('value', np.array(0))
-        conv.attrs['pads'] = [0 for pad in conv.attrs['pads']]
-        newPad = gs.Node(op = 'Pad',
-                         name = name + '_pad',
-                         attrs = {
-                             'pads': newPads,
-                             'mode': 'constant',
-                             'value': value
-                         },
-                         inputs = [conv.inputs[0]],
-                         outputs = [newConvInput])
+    inTensor = conv.inputs[0]
+    assert isinstance(inTensor, gs.Variable)
+    convShape = inTensor.shape
 
-        conv.inputs[0] = newConvInput
-        graph.nodes.append(newPad)
-        graph.cleanup().toposort()
+    beginConvPads = convPads[0:len(convPads) // 2]
+    endConvPads = convPads[len(convPads) // 2:]
 
+    nonSpatialDimCount = len(convShape) - (len(convPads) // 2)
+    pads = [0] * nonSpatialDimCount + beginConvPads + [0] * nonSpatialDimCount + endConvPads
+
+    shape = []
+    for dim, begin, end in zip(convShape, pads[:len(pads) // 2], pads[len(pads) // 2:]):
+        shape.append(begin + dim + end)
+
+    paddedInput = gs.Variable(f"{name}_{inTensor.name}", dtype = np.float32, shape = shape)
+
+    newPad = gs.Node(op = 'Pad',
+                     name = name + '_pad',
+                     attrs = {
+                         'pads': pads,
+                         'mode': 'constant',
+                         'value': value
+                     },
+                     inputs = [conv.inputs[0]],
+                     outputs = [paddedInput])
+
+    graph.nodes.append(newPad)
+
+    conv.attrs['pads'] = [0] * len(convPads)
+    conv.inputs[0] = paddedInput
+
+    graph.cleanup().toposort()
     return graph
 
 

@@ -2,14 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from Deeploy.DeeployTypes import NodeTemplate, OperatorRepresentation
+from Deeploy.CommonExtensions.NodeTemplate import ElementwiseTemplate
 
-
-class _MulTemplate(NodeTemplate, OperatorRepresentation):
-    pass
-
-
-referenceTemplate = _MulTemplate("""
+referenceTemplate = ElementwiseTemplate("""
 // Mul (Name: ${nodeName}, Op: ${nodeOp})
 
 int8_t ${nodeName}_core_id = pi_core_id();

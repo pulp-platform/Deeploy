@@ -8,13 +8,13 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
 from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
-    int8_t, int32_t, uint8_t
+    int8_t, int32_t, int64_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
     FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, \
+    FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulScalarTemplate, FloatPadTemplate, \
     FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, \
     IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, \
     PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, \
@@ -171,9 +171,11 @@ BasicMulBindings = [
     NodeBinding(MulChecker([PointerClass(typeA), PointerClass(typeB)], [PointerClass(int32_t)]),
                 MulTemplate.referenceTemplate, BasicTransformer)
     for typeA, typeB in itertools.product(SignedIntegerDataTypes, SignedIntegerDataTypes)
-] + [
+]
+
+BasicMulScalarBindings = [
     NodeBinding(MulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatMulTemplate.referenceTemplate, BasicTransformer)
+                FloatMulScalarTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicPad1DBindings = [
@@ -195,13 +197,11 @@ BasicPad2DBindings = [
 ]
 
 BasicReduceMeanBindings = [
-    NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
-                BasicTransformer) for type in SignedIntegerDataTypes
+    NodeBinding(ReduceMeanChecker([PointerClass(ty), PointerClass(int64_t)], [PointerClass(ty)]),
+                ReduceMeanTemplate.referenceTemplate, BasicTransformer) for ty in SignedIntegerDataTypes
 ] + [
-    NodeBinding(ReduceMeanChecker([PointerClass(float_type), PointerClass(integer_type)], [PointerClass(float_type)]),
-                FloatReduceMeanTemplate.referenceTemplate, BasicTransformer)
-    for integer_type in SignedIntegerDataTypes
-    for float_type in FloatDataTypes
+    NodeBinding(ReduceMeanChecker([PointerClass(ty), PointerClass(int64_t)], [PointerClass(ty)]),
+                FloatReduceMeanTemplate.referenceTemplate, BasicTransformer) for ty in FloatDataTypes
 ]
 
 BasicReduceSumBindings = [

@@ -6,10 +6,11 @@ from typing import Dict, List, Tuple, Union
 
 from ortools.constraint_solver.pywrapcp import IntVar
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.CommonExtensions.NodeTemplate import RequantizedConvTemplate
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 
 
-class PULP2DConvTemplate(NodeTemplate):
+class PULP2DConvTemplate(RequantizedConvTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
@@ -63,7 +64,7 @@ class PULP2DDWConvTemplate(PULP2DConvTemplate):
         return ctxt, operatorRepresentation, []
 
 
-class PULP1DConvTemplate(NodeTemplate):
+class PULP1DConvTemplate(RequantizedConvTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)

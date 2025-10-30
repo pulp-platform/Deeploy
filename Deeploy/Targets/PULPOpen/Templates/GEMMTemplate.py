@@ -4,10 +4,11 @@
 
 from typing import Dict, List, Tuple
 
+from Deeploy.CommonExtensions.NodeTemplate import RequantizedGemmTemplate
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
-class PULPGEMMTemplate(NodeTemplate):
+class PULPGEMMTemplate(RequantizedGemmTemplate):
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
@@ -41,7 +42,7 @@ if weight_signed:
 else:
     signatureString += '_u8'
 %>
-// PULP NN GEMM
+// PULP NN GEMM (Name: ${nodeName}, Op: ${nodeOp})
 int8_t* ref_${data_out}_${A} = ${A};
 int8_t* ref_${data_out}_${B} = ${B};
 int8_t* ref_${data_out}_${data_out} = ${data_out};
@@ -82,11 +83,11 @@ class _MatMulTemplate(NodeTemplate):
         operatorRepresentation['B_offset'] = 0
         operatorRepresentation['C_offset'] = 0
 
-        if hasattr(A, "nLevels"):
+        if A.nLevels is not None:
             operatorRepresentation['A_offset'] = (A._type.referencedType.typeMin == 0) * int(A.nLevels / 2)
-        if hasattr(B, "nLevels"):
+        if B.nLevels is not None:
             operatorRepresentation['B_offset'] = (B._type.referencedType.typeMin == 0) * int(B.nLevels / 2)
-        if hasattr(C, "nLevels"):
+        if C.nLevels is not None:
             operatorRepresentation['C_offset'] = -(C._type.referencedType.typeMin == 0) * int(C.nLevels / 2)
 
         return ctxt, operatorRepresentation, []

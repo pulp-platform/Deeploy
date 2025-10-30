@@ -2,11 +2,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import math
 import os
 from typing import List, Tuple
 
 import numpy as np
 
+from Deeploy.AbstractDataTypes import FloatImmediate, IntegerImmediate
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
@@ -30,6 +32,46 @@ def _shapeBroadcast(ctxt, value, name):
     return broadcastNum
 
 
+def generateArray(name: str, buffer: VariableBuffer, values: np.ndarray) -> str:
+    assert math.prod(buffer.shape) == math.prod(values.shape), \
+        f"Buffer size ({math.prod(buffer.shape)}) and values size ({math.prod(values.shape)}) are not equal."
+    refTy = buffer._type.referencedType
+
+    values = values.flatten()
+
+    if issubclass(refTy, FloatImmediate):
+        if refTy.typeWidth == 32:
+            suffix = "f"
+        elif refTy.typeWidth == 64:
+            suffix = ""
+        else:
+            raise RuntimeError(
+                f"Unimplemented floating-poing literal suffix for type {refTy.typeName} of typeWidth {refTy.typeWidth}")
+
+        def formatFloat(x: float, suffix: str = "") -> str:
+            if np.isinf(x) or np.isnan(x):
+                return str(x)
+            else:
+                return str(x) + suffix
+
+        list_str = ",".join(formatFloat(x) for x in values)
+    elif issubclass(refTy, IntegerImmediate):
+        suffix = "u" if refTy.typeMin >= 0 else ""
+        suffix += "l" if refTy.typeWidth >= 64 else ""
+        list_str = ",".join(str(int(x)) + suffix for x in values)
+    else:
+        list_str = ",".join(str(x) for x in values)
+
+    # WIESEP: Arrays have to be 4 byte aligned (at least in banshee)
+    total_bytes = (values.size * refTy.typeWidth) // 8
+    pad_bytes = (-total_bytes) % 4
+    if pad_bytes:
+        paddingElements = (pad_bytes * 8 + refTy.typeWidth - 1) // refTy.typeWidth
+        list_str += ", " + (", ").join("0" for _ in range(paddingElements))
+
+    return f"{refTy.typeName} {name}[] = {{ {list_str} }};\n"
+
+
 def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> str:
     vectors = []
     retStr = ""
@@ -44,69 +86,44 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
         if not deployer.ctxt.is_buffer(bufferName):
             continue
 
-        values = _shapeBroadcast(deployer.ctxt, values, bufferName)
-
         buffer = deployer.ctxt.lookup(bufferName)
-        typeName = buffer._type.referencedType.typeName
-        typeWidth = buffer._type.referencedType.typeWidth
+        assert isinstance(buffer, VariableBuffer)
+
+        bufferSize = math.prod(buffer.shape)
+        valuesSize = math.prod(values.shape)
+        assert bufferSize % valuesSize == 0, \
+        f"Values shape {values.shape} of size {valuesSize} cannot be repeated into buffer of shape {buffer.shape} and size {bufferSize}."
+        repeat = bufferSize // valuesSize
+        values = np.tile(values, repeat)
 
         vectorName = f"testInputVector{index}"
+        retStr += generateArray(vectorName, buffer, values)
         vectors.append(vectorName)
 
-        retStr += f"{typeName} {vectorName}[] ="
-        retStr += "{"
-        if typeName == 'float32_t':
-            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in values])
-        else:
-            list_str = (", ").join([str(x) for x in values])
-
-        # WIESEP: Arrays have to be 4 byte aligned (at least in banshee)
-        total_bytes = (values.size * typeWidth) // 8
-        pad_bytes = (-total_bytes) % 4
-        if pad_bytes:
-            paddingElements = (pad_bytes * 8 + typeWidth - 1) // typeWidth
-            list_str += ", " + (", ").join("0" for _ in range(paddingElements))
-
-        retStr += list_str
-        retStr += "};\n"
-
     retStr += f"void* testInputVector[{len(vectors)}] = {{"
-    retStr += ", ".join(vectors)
+    retStr += ",".join(vectors)
     retStr += "};\n"
 
     return retStr
 
 
 def generateTestOutputsHeader(deployer: NetworkDeployer, test_outputs: List[np.ndarray]) -> str:
+    vectors = []
     retStr = ""
     for index, values in enumerate(test_outputs):
-        typeName = deployer.ctxt.lookup(f'output_{index}')._type.referencedType.typeName
-        typeWidth = deployer.ctxt.lookup(f'output_{index}')._type.referencedType.typeWidth
+        buffer = deployer.ctxt.lookup(f"output_{index}")
+        assert isinstance(buffer, VariableBuffer)
+        refTy = buffer._type.referencedType
 
-        retStr += f"#define OUTPUTTYPE {typeName}\n"
-        retStr += f"#define ISOUTPUTFLOAT {int(typeName == 'float32_t')}\n"
-        retStr += f"{typeName} testOutputVector{index}[] ="
-        retStr += "{"
+        retStr += f"#define OUTPUTTYPE {refTy.typeName}\n"
+        retStr += f"#define ISOUTPUTFLOAT {int(refTy.typeName == 'float32_t')}\n"
 
-        values = values.flatten()
+        vectorName = f"testOutputVector{index}"
+        retStr += generateArray(vectorName, buffer, values)
+        vectors.append(vectorName)
 
-        if typeName == "float32_t":
-            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in values])
-        else:
-            list_str = (", ").join([str(x) for x in values])
-
-        # WIESEP: Arrays have to be 4 byte aligned (at least in banshee)
-        total_bytes = (len(values) * typeWidth) // 8
-        pad_bytes = (-total_bytes) % 4
-        if pad_bytes:
-            paddingElements = (pad_bytes * 8 + typeWidth - 1) // typeWidth
-            list_str += ", " + (", ").join("0" for _ in range(paddingElements))
-
-        retStr += list_str
-        retStr += "};\n"
-
-    retStr += f"void* testOutputVector[{len(test_outputs)}] = " + "{"
-    retStr += ", ".join([f"testOutputVector{idx}" for idx, _ in enumerate(test_outputs)])
+    retStr += f"void* testOutputVector[{len(vectors)}] = {{"
+    retStr += ",".join(vectors)
     retStr += "};\n"
 
     return retStr

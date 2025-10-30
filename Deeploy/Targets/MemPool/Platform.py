@@ -10,18 +10,19 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBindings, BasicConv2DBindings, \
     BasicDebugPrintBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicGatherBindings, \
-    BasicGELUBindings, BasicLayerNormBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
-    BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, \
-    BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, BasicTransposeBindings, DummyBinding
+    BasicGELUBindings, BasicLayerNormBindings, BasicMulBindings, BasicMulScalarBindings, BasicPad1DBindings, \
+    BasicPad2DBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, \
+    BasicRQIntegerDivBinding, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, BasicTransposeBindings, \
+    DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConvLayer, DebugPrintLayer, DivLayer, GatherLayer, GELULayer, \
     GEMMLayer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MHSALayer, MulLayer, PadLayer, ReduceMeanLayer, \
     ReduceSumLayer, RequantShiftLayer, ReshapeLayer, RQGEMMLayer, RQIntegerDivLayer, RQMatMulLayer, RQSiGELULayer, \
     SliceLayer, SoftmaxLayer, TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DummyParser, FlattenParser, GatherParser, \
     GELUParser, GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, \
-    GenericGEMMParser, GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, MatMulParser, MulParser, Pad1DParser, \
-    Pad2DParser, ReduceMeanParser, ReduceSumParser, RequantShiftParser, ReshapeParser, RQGEMMParser, \
-    RQIntegerDivParser, RQMatMulParser, RQSiGELUParser, SliceParser, TransposeParser, UnsqueezeParser, \
+    GenericGEMMParser, GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, MatMulParser, MulParser, \
+    MulScalarParser, Pad1DParser, Pad2DParser, ReduceMeanParser, ReduceSumParser, RequantShiftParser, ReshapeParser, \
+    RQGEMMParser, RQIntegerDivParser, RQMatMulParser, RQSiGELUParser, SliceParser, TransposeParser, UnsqueezeParser, \
     iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, SplitAddPass, iGELURequantMergePass
@@ -54,6 +55,7 @@ iLayerNorm_Mapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
 IntegerDiv_Mapper = NodeMapper(IntegerDivParser(), BasicDivBindings)
 ITAMaxMapper = NodeMapper(ITAMaxParser(), [MemPoolITASoftmaxBinding_8_8])
 Mul_Mapper = NodeMapper(MulParser(), BasicMulBindings)
+MulScalar_Mapper = NodeMapper(MulScalarParser(), BasicMulScalarBindings)
 Pad1D_Mapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2D_Mapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
 ReduceMean_Mapper = NodeMapper(ReduceMeanParser(), BasicReduceMeanBindings)
@@ -108,7 +110,7 @@ MemPoolMapping = {
     'MatMulInteger': MatMulLayer([MatMul_Mapper]),
     'MaxPool': MaxPoolLayer([MaxPool_Mapper]),
     'MHSA': MHSALayer(MHSA_Mappers),
-    'Mul': MulLayer([Mul_Mapper]),
+    'Mul': MulLayer([MulScalar_Mapper, Mul_Mapper]),
     'Pad': PadLayer([Pad1D_Mapper, Pad2D_Mapper]),
     'ReduceMean': ReduceMeanLayer([ReduceMean_Mapper]),
     'ReduceSum': ReduceSumLayer([ReduceSum_Mapper]),

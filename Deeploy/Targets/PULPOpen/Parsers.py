@@ -133,13 +133,9 @@ class PULPDWConv1DParser(RQSConv1DParser):
                 self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][1])
                 self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][0])
 
-                if 'n_levels' in node.attrs:
-                    self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-                else:
-                    self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels_out'].values)
-
-                self.operatorRepresentation['signed'] = int(node.attrs['signed'].values)
-                self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div'].values))
+                self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
+                self.operatorRepresentation['signed'] = node.attrs['signed']
+                self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
             return ret
 
     def parseNodeCtxt(self,
@@ -206,12 +202,9 @@ class PULPDWConv2DParser(RQSConv2DParser):
                 self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
                 self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
 
-                if 'n_levels' in node.attrs:
-                    self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
-                else:
-                    self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels_out'].values)
-                self.operatorRepresentation['signed'] = int(node.attrs['signed'].values)
-                self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div'].values))
+                self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
+                self.operatorRepresentation['signed'] = node.attrs['signed']
+                self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
 
             return ret
         return False
@@ -349,41 +342,16 @@ class PULPGEMMParser(GEMMParser, RQSParserInterface):
 
 class PULPMatrixVecParser(PULPGEMMParser):
 
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-
-        if not ret:
-            return ctxt, False
-
-        if not (self.operatorRepresentation['M'] == 1 and self.operatorRepresentation['batch'] >= 8):
-            return ctxt, False
-
-        return newCtxt, True
+    def parseNode(self, node: gs.Node) -> bool:
+        M = node.inputs[0].shape[-1 if node.attrs["transA"] else -2]
+        batch = math.prod(node.inputs[0].shape[:-2])
+        return super().parseNode(node) and M == 1 and batch >= 8
 
 
 class PULPTallGEMMParser(PULPGEMMParser):
 
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-
-        if not ret:
-            return ctxt, False
-
-        ret = all([
-            self.operatorRepresentation['batch'] < 8,
-            self.operatorRepresentation['M'] >= 8,
-            self.operatorRepresentation['M'] % 8 < self.operatorRepresentation['O'] % 8,
-        ])
-
-        if not ret:
-            return ctxt, False
-
-        return newCtxt, True
+    def parseNode(self, node: gs.Node) -> bool:
+        M = node.inputs[0].shape[-1 if node.attrs["transA"] else -2]
+        N = node.inputs[1].shape[-2 if node.attrs["transB"] else -1]
+        batch = math.prod(node.inputs[0].shape[:-2])
+        return super().parseNode(node) and M >= 8 and (M % 8) < (N % 8) and batch < 8

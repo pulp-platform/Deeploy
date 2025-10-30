@@ -7,7 +7,8 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.CommonExtensions.NodeTemplate import RequantizedConvTemplate
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, OperatorRepresentation
 
 
 def _getNumTiles(fullDim: int, tileDim: int) -> int:
@@ -47,7 +48,7 @@ def getInputAddrOffset(width_in: int, width_in_stride: int, padding_top: int, pa
     return (padding_top * width_in + padding_left) * width_in_stride
 
 
-class NeurekaConvTemplate(NodeTemplate):
+class NeurekaConvTemplate(RequantizedConvTemplate):
 
     def __init__(self, templateStr: str):
         super().__init__(templateStr)

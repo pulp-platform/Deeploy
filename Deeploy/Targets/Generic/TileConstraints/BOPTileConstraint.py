@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import math
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -12,16 +13,17 @@ from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
 
 
 class BOPTileConstraint(TileConstraint):
     """Tile constraint class for binary operators, i.e. operators that use two input tensors of equal dimensions
     """
 
-    dataIn1Name = 'data_in_1'  #: str: Name of the first input tensor as defined by the operator's parser
-    dataIn2Name = 'data_in_2'  #: str: Name of the second input tensor as defined by the operator's parser
-    dataOutName = 'data_out'  #: str: Name of the output tensor as defined by the operator's parser
+    dataIn1Name: str  # Name of the first input tensor as defined by the operator's descripter
+    dataIn2Name: str  # Name of the second input tensor as defined by the operator's descripter
+    dataOutName: str  # Name of the output tensor as defined by the operator's descripter
 
     @classmethod
     def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -34,6 +36,15 @@ class BOPTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         input1Shape = ctxt.lookup(inputBuffer1Name).shape
+        input2Shape = ctxt.lookup(inputBuffer2Name).shape
+        outputShape = ctxt.lookup(outputBufferName).shape
+
+        assert len(input1Shape) == len(
+            input2Shape
+        ), f"[{cls.__name__}] Input shape ranks differ. Shape input1: {input1Shape} vs. input2: {input2Shape}"
+        assert len(input1Shape) == len(
+            outputShape
+        ), f"[{cls.__name__}] Input and output shape ranks differ. Shape input: {input1Shape} vs. output: {outputShape}"
 
         for dim in range(len(input1Shape)):
             inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
@@ -69,6 +80,71 @@ class BOPTileConstraint(TileConstraint):
 
         for cube in outputCubes:
             inputLoadSchedule.append({cls.dataIn1Name: cube, cls.dataIn2Name: cube})
+
+        for out in outputCubes:
+            outputLoadSchedule.append({cls.dataOutName: out})
+
+        tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
+        variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
+
+        return variableReplacementSchedule, tilingSchedule
+
+
+class BOPScalarTileConstraint(TileConstraint):
+    """Tile constraint class for binary operators, i.e. operators that use two input tensors of equal dimensions
+    """
+
+    dataIn1Name: str  # Name of the first input tensor as defined by the operator's descripter
+    dataIn2Name: str  # Name of the second input tensor as defined by the operator's descripter
+    dataOutName: str  # Name of the output tensor as defined by the operator's descripter
+
+    @classmethod
+    def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+
+        inputBuffer1Name = parseDict[cls.dataIn1Name]
+        inputBuffer2Name = parseDict[cls.dataIn2Name]
+        outputBufferName = parseDict[cls.dataOutName]
+
+        for bufferName in [inputBuffer1Name, inputBuffer2Name, outputBufferName]:
+            tilerModel.addTensorDimToModel(ctxt, bufferName)
+
+        input1Shape = ctxt.lookup(inputBuffer1Name).shape
+        input2Shape = ctxt.lookup(inputBuffer2Name).shape
+        assert math.prod(input2Shape) == 1, f"Expecting the second operand to be a scalar"
+
+        for dim in range(len(input1Shape)):
+            inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
+            outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
+            tilerModel.addConstraint(inputDim1Var == outputDimVar)
+
+        return tilerModel
+
+    @classmethod
+    def serializeTilingSolution(
+            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
+            targetMemLevel: str, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+
+        addrNames = [cls.dataIn1Name, cls.dataIn2Name, cls.dataOutName]
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
+                                                                  operatorRepresentation, addrNames)
+
+        replacements = {"size": []}
+
+        replacementTypes = {"size": PointerClass(uint16_t)}
+
+        for cube in outputCubes:
+            newSize = np.prod(cube.dims)
+            replacements["size"].append(newSize)
+
+        inputLoadSchedule = []
+        outputLoadSchedule = []
+
+        # TODO: Optimize to not fetch dataIn2
+        scalarCube = HyperRectangle((0,), (1,))
+        for cube in outputCubes:
+            inputLoadSchedule.append({cls.dataIn1Name: cube, cls.dataIn2Name: scalarCube})
 
         for out in outputCubes:
             outputLoadSchedule.append({cls.dataOutName: out})

@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.CommonExtensions.NodeTemplate import ElementwiseScalarTemplate
 
-referenceTemplate = NodeTemplate("""
+referenceTemplate = ElementwiseScalarTemplate("""
 // Float Mul with parallelism and 6x unrolling (Name: ${nodeName}, Op: ${nodeOp})
 
 int8_t ${nodeName}_core_id = pi_core_id();
