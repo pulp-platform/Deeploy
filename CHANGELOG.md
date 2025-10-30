@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Refactors and fixes [#131](https://github.com/pulp-platform/Deeploy/pull/131)
 - Disallow shape inference [#128](https://github.com/pulp-platform/Deeploy/pull/128)
 - Remove memory-aware node bindings [#123](https://github.com/pulp-platform/Deeploy/pull/123)
 - Fix missing const's layout transformation and refactor NCHWtoNHWC passes [#122](https://github.com/pulp-platform/Deeploy/pull/122)
@@ -91,6 +92,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed Wmem variants of bindings and tile constraints from Neureka
 - Disabled ICCT_ITA_8 MemPool test because it was using a lowering that created shapeless tensors
 - Added missing shape annotation to the testTypeInferenceDifferentTypes
+- ref naming scheme in Gemm and FloatGemm templates from ${data_out}_${<tensor>} to ${nodeName}_${<tensor>}
+- move iNoNorm from Generic to Snitch since it uses a Snitch kernel
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
@@ -105,6 +108,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Missing layout transformation of the const's (bias, mul, add, shift in Conv/RequantizedConv)
 - Keep mul/add rank of requantized Neureka tile constraints
 - Fix bias hoisting in generic GEMM with no bias
+- formatting of test_input/output integer values
+- pulp rqs tile constraints now properly target the last dimension of rqs params
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
@@ -180,9 +185,9 @@ This release containing major architectural changes, new platform support, enhan
 
 
 ### Added
-- BatchNorm kernel 
-- ConvTranspose kernel 
-- MaxPool1D kernel 
+- BatchNorm kernel
+- ConvTranspose kernel
+- MaxPool1D kernel
 - Template for 1D Convolution
 - Support for float32 data type in the previous kernels
 - Float binding for Pad1D kernel
@@ -321,7 +326,7 @@ This release containing major architectural changes, new platform support, enhan
 
 ### Changed
 - FloatConvTemplate file
-- Platform.py file  
+- Platform.py file
 - Bump the CMake version to 3.24 as required for the chimera-sdk
 - Bump GVSoC's version and add chimera simulation target
 - Rename the generic source util to utils to avoid name collision with chimera-sdk
