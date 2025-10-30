@@ -137,6 +137,7 @@ def generateNetwork(args):
     verbosityCfg = _NoVerbosity
     if isinstance(platform, PULPPlatform):
         verbosityCfg.untiledProfiling = args.profileUntiled
+        deployer.ctxt.n_cores = args.n_cores
 
     # Parse graph and infer output levels and signedness
     _ = deployer.prepare(verbosityCfg)
@@ -183,6 +184,13 @@ if __name__ == '__main__':
                         'If not specified, offsets are set to 0. '
                         'Example: --input-offset-map input_0=0 input_1=128 ...')
     parser.add_argument('--shouldFail', action = 'store_true')
+    parser.add_argument(
+        "--n_cores",
+        type = int,
+        default = 1,
+        help =
+        "Number of cores on which the network is run. Currently, required for im2col buffer sizing on Siracusa. Default: 1.",
+    )
     parser.set_defaults(shouldFail = False)
 
     args = parser.parse_args()

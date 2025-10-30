@@ -286,7 +286,7 @@ class TestRunner():
         argument_parser: TestRunnerArgumentParser,
         gen_args: str = "",
         cmake_args: str = "",
-        cores: int = 8,
+        cores: int = 1,
     ):
 
         if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none']:
@@ -348,8 +348,8 @@ class TestRunner():
 
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform}"
 
-        if self._tiling is True:
-            command += f" -n_cores {self.n_cores}"
+        if self._platform == "Siracusa":
+            command += f" --n_cores {self.n_cores}"
 
         command += f" {self.gen_args}"
         command += self._argument_parser.generate_cmd_args()

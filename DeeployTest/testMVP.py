@@ -26,6 +26,7 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel, AnnotateNeurekaWeightMemoryLevel
+from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 
 
@@ -81,15 +82,12 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 
-    deployer = mapDeployer(
-        platform,
-        graph,
-        inputTypes,
-        deeployStateDir = _DEEPLOYSTATEDIR,
-        inputOffsets = inputOffsets,
-        scheduler = _mockScheduler,
-        n_cores = n_cores,
-    )
+    deployer = mapDeployer(platform,
+                           graph,
+                           inputTypes,
+                           deeployStateDir = _DEEPLOYSTATEDIR,
+                           inputOffsets = inputOffsets,
+                           scheduler = _mockScheduler)
 
     # Make the deployer engine-color-aware
     if args.platform == "Siracusa_w_neureka":
@@ -125,6 +123,9 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
     deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
+
+    if isinstance(platform, PULPPlatform):
+        deployer.ctxt.n_cores = n_cores
 
     return deployer, signProp
 
@@ -199,10 +200,12 @@ if __name__ == '__main__':
                         action = 'store_true',
                         help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
     parser.add_argument(
-        "-n_cores",
+        "--n_cores",
         type = int,
-        default = 8,
-        help = "Number of cores to target in the tiling. Currently, required for im2col buffer sizing. Default: 8")
+        default = 1,
+        help =
+        "Number of cores on which the network is run. Currently, required for im2col buffer sizing on Siracusa. Default: 1."
+    )
 
     parser.set_defaults(shouldFail = False)
     args = parser.parse_args()
