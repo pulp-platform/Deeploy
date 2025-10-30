@@ -18,10 +18,13 @@ class PULP2DFloatConvIm2ColTemplate(NodeTemplate):
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
+        # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
         im2col_dim = (operatorRepresentation["weight_type"].typeWidth //
                       8) * operatorRepresentation["n_cores"] * operatorRepresentation[
                           'ch_im_in'] * operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']
+
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
+
         return [(im2col_name, im2col_dim)]
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
@@ -41,14 +44,16 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
         super().__init__(templateStr)
 
     @staticmethod
-    def computeTransientBuffersSize(ctxt: NetworkContext,
-                                    operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, str]]:
+    def computeTransientBuffersSize(
+            ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
 
         # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
-        # WARNING: This works because value is only used as string, in the allocate template.
         im2col_dim = (operatorRepresentation["weight_type"].typeWidth // 8) * operatorRepresentation[
             "n_cores"] * operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']
+
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
+
         return [(im2col_name, im2col_dim)]
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
