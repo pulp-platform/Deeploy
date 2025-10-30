@@ -3364,6 +3364,11 @@ class NetworkDeployer(NetworkContainer):
                 idx = seen.get(orig, 0)
                 node.name = f"{orig}_{idx}"
                 seen[orig] = idx + 1
+            # Handle empty node name
+            elif orig == "":
+                idx = seen.get(orig, 0)
+                node.name = f"{node.op}_{idx}"
+                seen[orig] = idx + 1
             # else: unique name, leave it unchanged
 
     # Don't override this
