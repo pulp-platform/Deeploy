@@ -15,6 +15,7 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Lowe
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, TransposeConstOptPass, \
     TransposeMergePass, TransposeNoPermOptPass, TransposeSplitPass
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import RQAddTransposeSquashPass
 
 _L3AllocTemplate = NodeTemplate("""
@@ -65,7 +66,15 @@ class PULPDeployer(SignPropDeployer):
 
         self.extNameCount = 0
 
-    def bind(self):
+    def annotateNCores(self) -> None:
+        for layer in self.layerBinding.values():
+            node = layer.node
+            engine = self._selectEngine(node)
+            opRepr = layer.mapper.parser.operatorRepresentation
+            if isinstance(engine, PULPClusterEngine):
+                opRepr["n_cores"] = engine.n_cores
+
+    def bind(self) -> bool:
         # SCHEREMO: THIS IS A STOP GAP SOLUTION. DONT REUSE. I MEAN IT. I WILL FIND YOU.
         # SCHEREMO: The BindingOptimizationPass system is fairly fragile;
         # it was designed this way because implementing further topology optimizations after
@@ -73,11 +82,16 @@ class PULPDeployer(SignPropDeployer):
         # but if there is only very few cases, this solution is okay.
         autoTransposePass = AutoTransposeMergePass()
         #self.ctxt, self.layerBinding = autoTransposePass.apply(self.ctxt, self.graph, self.layerBinding)
+
+        # LMACAN: THIS IS A STOP GAP SOLUTION. DONT REUSE. I MEAN IT. I WILL FIND YOU.
+        self.annotateNCores()
+
         # SCHEREMO: THIS IS A STOP GAP SOLUTION. DONT REUSE. I MEAN IT. I WILL FIND YOU.
-        ret = super().bind()
-        if ret:
-            self.ctxt.hoistGlobalDefinition("cluster_dev", "extern struct pi_device cluster_dev;")
-        return ret
+        if not super().bind():
+            return False
+
+        self.ctxt.hoistGlobalDefinition("cluster_dev", "extern struct pi_device cluster_dev;")
+        return True
 
     def _l3ConstBuffer(self) -> List[VariableBuffer]:
         return [
