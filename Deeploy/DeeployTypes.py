@@ -3214,12 +3214,7 @@ class NetworkDeployer(NetworkContainer):
 
 
         """
-        super().__init__(graph = graph,
-                         platform = deploymentPlatform,
-                         inputTypes = inputTypes,
-                         scheduler = scheduler,
-                         name = name,
-                         deeployStateDir = deeployStateDir)
+        super().__init__(graph, deploymentPlatform, inputTypes, scheduler, name, deeployStateDir = deeployStateDir)
 
         self.loweringOptimizer = loweringOptimizer
         self.default_channels_first = default_channels_first
