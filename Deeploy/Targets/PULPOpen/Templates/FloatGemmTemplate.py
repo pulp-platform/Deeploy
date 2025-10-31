@@ -23,7 +23,7 @@ for(uint32_t i=0; i<${batch}; i++){
         ${transA},
         ${transB}
     );
-    
+
     % if A_batched:
     ref_${data_out}_${A} += ${M} * ${N};
     % endif
@@ -31,11 +31,11 @@ for(uint32_t i=0; i<${batch}; i++){
     % if B_batched:
     ref_${data_out}_${B} += ${N} * ${O};
     % endif
-                                 
+
     % if C_batched:
     ref_${data_out}_${C} += ${M} * ${O};
     % endif
-                                 
+
     ref_${data_out}_${data_out} += ${M} * ${O};
 }
 """)

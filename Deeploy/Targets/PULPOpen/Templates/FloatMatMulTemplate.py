@@ -14,7 +14,7 @@ for(uint32_t b=0; b<${batch}; b++) {
     ${A_type.typeName} batch_A = ${A};
     % endif
 
-    % if B_batched:                  
+    % if B_batched:
     ${B_type.typeName} batch_B = ${B} + b * ${N} * ${O};
     % else:
     ${B_type.typeName} batch_B = ${B};
