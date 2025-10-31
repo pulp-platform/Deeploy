@@ -1682,14 +1682,6 @@ class MatMulParser(NodeParser):
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        # Create fake C node for GEMM-compatibility and hoist it
-        if not self.noBiasHoisting:
-            values = np.zeros(ctxt.lookup(node.inputs[0].name).shape, dtype = inputNode.dtype)
-            zeroTensor = gs.Constant(f'{node.name}_C_Tensor', values = values)
-            ctxt.hoistConstant(zeroTensor, _type = ctxt.lookup(inputNode.name)._type)
-            node.inputs.append(zeroTensor)
-            self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
-
         # Store the input and output shapes in the operator representation
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['A_shape'] = ctxt.lookup(node.inputs[0].name).shape
@@ -1772,8 +1764,7 @@ class RQMatMulParser(MatMulParser, RQSParserInterface):
 class GEMMParser(MatMulParser):
 
     def __init__(self, noBiasHoisting = True):
-        self.noBiasHoisting = noBiasHoisting
-        super().__init__()
+        super().__init__(noBiasHoisting)
 
     def parseNode(self, node: gs.Node) -> (bool):
 
@@ -1804,6 +1795,10 @@ class GEMMParser(MatMulParser):
                 self.operatorRepresentation['transB'] = node.attrs['transB']
             else:
                 self.operatorRepresentation['transB'] = 0
+
+            if len(node.inputs) == 2 and not self.noBiasHoisting:
+                C = gs.Constant(f"{node.name}_C", np.zeros((1,)))
+                node.inputs.append(C)
 
             return True
         # This might be a matmul node -> Cast up
@@ -1836,18 +1831,6 @@ class GEMMParser(MatMulParser):
                 # Create flag for same dimension between bias matrix and the final batch dimension
                 self.operatorRepresentation['C_batched'] = (self.operatorRepresentation['batch'] == np.prod(
                     newCtxt.lookup(node.inputs[2].name).shape[:-2]))
-            elif not self.noBiasHoisting:
-                # Create mock bias matrix if not present in the inputs
-                values = np.zeros((1))
-                zeroTensor = gs.Constant(f'{node.name}_C_Tensor', values = values)
-                newCtxt.hoistConstant(zeroTensor)
-
-                # Store it in the operator representation
-                self.operatorRepresentation['C'] = f'{node.name}_C_Tensor'
-                self.operatorRepresentation['C_shape'] = (0,)
-
-                # Create flag for same dimension between bias matrix and the final batch dimension
-                self.operatorRepresentation['C_batched'] = False
 
             self.operatorRepresentation['size'] = np.prod(newCtxt.lookup(node.inputs[0].name).shape)
 
@@ -2324,7 +2307,7 @@ class GenericDWConv2DParser(Conv2DParser):
 
 class GenericGEMMParser(GEMMParser):
 
-    def __init__(self, noBiasHoisting = True):
+    def __init__(self, noBiasHoisting = False):
         super().__init__(noBiasHoisting)
 
     def parseNode(self, node: gs.Node) -> (bool):

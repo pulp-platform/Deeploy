@@ -20,6 +20,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Prepare Post v0.2.0 Release [#104](https://github.com/pulp-platform/Deeploy/pull/104)
 - Use Docker digests instead of arch-specific tags [#106](https://github.com/pulp-platform/Deeploy/pull/106)
 - Fix `Unsqueeze` Op. when using ONNX opset 13 or higher (from attribute to input) [#119](https://github.com/pulp-platform/Deeploy/pull/119)
+- Fix bias hoisting in generic GEMM with no bias [#126](https://github.com/pulp-platform/Deeploy/pull/126)
 
 ### Added
 - Add manual type inference feature (CLI: `--input-type-map`/`--input-offset-map`) to resolve ambiguities when test inputs are not representative enough
@@ -53,6 +54,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Memory/I/O summaries and input/output logging in deployers
 - RequantHelpers.py for Neureka's TileConstraints
 - Added assertion that all the graph tensors after lowering have a shape annotated
+- Added testFloatGEMMnobias
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -102,6 +104,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fixed aliasing
 - Missing layout transformation of the const's (bias, mul, add, shift in Conv/RequantizedConv)
 - Keep mul/add rank of requantized Neureka tile constraints
+- Fix bias hoisting in generic GEMM with no bias
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
