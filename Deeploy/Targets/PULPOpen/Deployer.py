@@ -39,17 +39,15 @@ class PULPDeployer(SignPropDeployer):
                  default_channels_first = False,
                  deeployStateDir: str = "DeeployStateDir",
                  inputOffsets = {}):
-        super().__init__(
-            graph = graph,
-            deploymentPlatform = deploymentPlatform,
-            inputTypes = inputTypes,
-            loweringOptimizer = loweringOptimizer,
-            scheduler = scheduler,
-            name = name,
-            default_channels_first = default_channels_first,
-            deeployStateDir = deeployStateDir,
-            inputOffsets = inputOffsets,
-        )
+        super().__init__(graph,
+                         deploymentPlatform,
+                         inputTypes,
+                         loweringOptimizer,
+                         scheduler,
+                         name,
+                         default_channels_first = default_channels_first,
+                         deeployStateDir = deeployStateDir,
+                         inputOffsets = inputOffsets)
 
         self.loweringOptimizer.passes += [
             TransposeMatmulInputsPass(),

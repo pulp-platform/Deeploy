@@ -233,7 +233,8 @@ PULPOptimizer = TopologyOptimizer([
     PULPMatMulRequantMergePass(),
     PULPAddRequantMergePass(),
     RemoveEmptyConvBiasPass(),
-])
+],
+                                  name = "PULPOptimizer")
 
 # SCHEREMO: stdint is included before pulp_nn_kernels.h because it is supposed to be included in there, but isn't...
 _includeList = [
