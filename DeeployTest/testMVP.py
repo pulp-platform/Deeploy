@@ -26,7 +26,7 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel, AnnotateNeurekaWeightMemoryLevel
-from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 
 
@@ -56,8 +56,8 @@ def _filterSchedule(schedule: List[List[gs.Node]], layerBinding: 'OrderedDict[st
 
 
 def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTargetMemoryLevel: MemoryLevel,
-                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity, args: argparse.Namespace,
-                  n_cores: int) -> Tuple[NetworkDeployer, bool]:
+                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity,
+                  args: argparse.Namespace) -> Tuple[NetworkDeployer, bool]:
 
     inputTypes = {}
     inputOffsets = {}
@@ -76,6 +76,10 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
         platform.engines[0].enable3x3 = True
     if args.enableStrides:
         platform.engines[0].enableStrides = True
+
+    clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
+    for cluster in clusters:
+        cluster.n_cores = args.cores
 
     for index, num in enumerate(test_inputs):
         _type, offset = inferTypeAndOffset(num, signProp)
@@ -123,9 +127,6 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
     deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
-
-    if isinstance(platform, PULPPlatform):
-        deployer.ctxt.n_cores = n_cores
 
     return deployer, signProp
 
@@ -200,7 +201,7 @@ if __name__ == '__main__':
                         action = 'store_true',
                         help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
     parser.add_argument(
-        "--n_cores",
+        "--cores",
         type = int,
         default = 1,
         help =
@@ -261,8 +262,7 @@ if __name__ == '__main__':
                                        defaultTargetMemoryLevel = L1,
                                        defaultIoMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel],
                                        verbose = verbosityCfg,
-                                       args = args,
-                                       n_cores = args.n_cores)
+                                       args = args)
 
     platform = deployer.Platform
 

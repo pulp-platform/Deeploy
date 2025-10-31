@@ -20,7 +20,7 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Debu
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
-from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPPlatform
 
 
 def generateNetwork(args):
@@ -84,6 +84,10 @@ def generateNetwork(args):
 
     platform, signProp = mapPlatform(args.platform)
 
+    clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
+    for cluster in clusters:
+        cluster.n_cores = args.cores
+
     inputTypes = {}
     inputOffsets = {}
 
@@ -137,7 +141,6 @@ def generateNetwork(args):
     verbosityCfg = _NoVerbosity
     if isinstance(platform, PULPPlatform):
         verbosityCfg.untiledProfiling = args.profileUntiled
-        deployer.ctxt.n_cores = args.n_cores
 
     # Parse graph and infer output levels and signedness
     _ = deployer.prepare(verbosityCfg)
@@ -185,7 +188,7 @@ if __name__ == '__main__':
                         'Example: --input-offset-map input_0=0 input_1=128 ...')
     parser.add_argument('--shouldFail', action = 'store_true')
     parser.add_argument(
-        "--n_cores",
+        "--cores",
         type = int,
         default = 1,
         help =

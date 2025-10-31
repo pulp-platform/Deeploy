@@ -307,7 +307,7 @@ class TestRunner():
         self.cmake_args = cmake_args
         self.gen_args = gen_args
 
-        self.n_cores = cores
+        self.cores = cores
 
         self._dir_gen_root = f'TEST_{platform.upper()}'
         assert self._args.toolchain_install_dir is not None, f"Environment variable LLVM_INSTALL_DIR is not set"
@@ -349,7 +349,7 @@ class TestRunner():
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform}"
 
         if self._platform == "Siracusa":
-            command += f" --n_cores {self.n_cores}"
+            command += f" --cores {self.cores}"
 
         command += f" {self.gen_args}"
         command += self._argument_parser.generate_cmd_args()
