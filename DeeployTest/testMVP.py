@@ -56,8 +56,8 @@ def _filterSchedule(schedule: List[List[gs.Node]], layerBinding: 'OrderedDict[st
 
 
 def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTargetMemoryLevel: MemoryLevel,
-                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity, args: argparse.Namespace,
-                  n_cores: int) -> Tuple[NetworkDeployer, bool]:
+                  defaultIoMemoryLevel: MemoryLevel, verbose: CodeGenVerbosity,
+                  args: argparse.Namespace) -> Tuple[NetworkDeployer, bool]:
 
     inputTypes = {}
     inputOffsets = {}
@@ -127,9 +127,6 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
     deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
-
-    if isinstance(platform, PULPPlatform):
-        deployer.ctxt.n_cores = n_cores
 
     return deployer, signProp
 
@@ -265,8 +262,7 @@ if __name__ == '__main__':
                                        defaultTargetMemoryLevel = L1,
                                        defaultIoMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel],
                                        verbose = verbosityCfg,
-                                       args = args,
-                                       n_cores = args.n_cores)
+                                       args = args)
 
     platform = deployer.Platform
 
