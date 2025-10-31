@@ -2628,19 +2628,10 @@ class NetworkContainer():
 
         """
 
-        # Required, because the old context is completely overwritten
-        if hasattr(self.ctxt, "n_cores"):
-            n_cores = self.ctxt.n_cores
-        else:
-            n_cores = None
-
         self.ctxt = NetworkContext(variableBuffer = self.Platform.VariableBuffer,
                                    constantBuffer = self.Platform.ConstantBuffer,
                                    structBuffer = self.Platform.StructBuffer,
                                    transientBuffer = self.Platform.TransientBuffer)
-
-        if n_cores is not None:
-            self.ctxt.n_cores = n_cores
 
         log.debug(" - Create IO Bindings")
         self.ctxt = self._createIOBindings(self.ctxt, self.graph)

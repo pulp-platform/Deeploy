@@ -102,9 +102,6 @@ class PULPFPConv2DParser(Conv2DParser):
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
         if ret:
-            # Extract number of cores
-            self.operatorRepresentation["n_cores"] = newCtxt.n_cores
-
             # Set inputs names
             inputs = ['data_in', 'weight']
 
@@ -163,9 +160,6 @@ class PULPFPDWConv2DParser(Conv2DParser):
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
         if ret:
-            # Extract number of cores
-            self.operatorRepresentation["n_cores"] = newCtxt.n_cores
-
             # Define input names
             inputs = ['data_in', 'weight']
 
