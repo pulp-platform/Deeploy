@@ -25,13 +25,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    testRunner = TestRunner(
-        platform = "Siracusa",
-        simulator = "gvsoc",
-        tiling = False,
-        argument_parser = parser,
-        cores = args.cores,
-    )
+    testRunner = TestRunner(platform = "Siracusa", simulator = "gvsoc", tiling = False, argument_parser = parser)
 
     testRunner.cmake_args += f" -D NUM_CORES={args.cores}"
     testRunner.run()
