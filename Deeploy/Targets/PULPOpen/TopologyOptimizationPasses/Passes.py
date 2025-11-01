@@ -170,15 +170,21 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
     mul, add = rqs.inputs[1:]
 
     div_attr = rqs.attrs['div']
+
     if isinstance(div_attr, gs.Constant):
         assert div_attr.values.size == 1
-        div = div_attr.values.item()
-    elif isinstance(div_attr, int):
+        div_attr = div_attr.values.item()
+
+    if isinstance(div_attr, int):
         div = div_attr
     elif isinstance(div_attr, float) and div_attr.is_integer():
         div = int(div_attr)
     else:
         raise ValueError(f"Cannot convert div to integer. Received {div_attr}")
+
+    assert div > 0, f"Shift calculation (log2(div)) requires div to be a positive number. Received non-positive div {div}"
+    assert div.bit_count() == 1, f"Div is expected to be a power of 2 number. Received div {div}"
+
     shift = int(math.log2(div))
     # Artifically add half the division value as rounding
     if shift > 0:
