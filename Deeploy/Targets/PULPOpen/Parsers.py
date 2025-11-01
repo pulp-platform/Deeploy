@@ -350,6 +350,9 @@ class PULPGEMMParser(GEMMParser, RQSParserInterface):
 class PULPMatrixVecParser(PULPGEMMParser):
 
     def parseNode(self, node: gs.Node) -> bool:
+        if not super().parseNode(node):
+            return False
+
         M = node.inputs[0].shape[-1 if node.attrs["transA"] else -2]
         batch = math.prod(node.inputs[0].shape[:-2])
         return super().parseNode(node) and M == 1 and batch >= 8
@@ -358,6 +361,9 @@ class PULPMatrixVecParser(PULPGEMMParser):
 class PULPTallGEMMParser(PULPGEMMParser):
 
     def parseNode(self, node: gs.Node) -> bool:
+        if not super().parseNode(node):
+            return False
+
         M = node.inputs[0].shape[-1 if node.attrs["transA"] else -2]
         N = node.inputs[1].shape[-2 if node.attrs["transB"] else -1]
         batch = math.prod(node.inputs[0].shape[:-2])
