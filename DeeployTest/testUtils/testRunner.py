@@ -344,7 +344,7 @@ class TestRunner():
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform} {self.gen_args}"
 
         if self._platform in ["Siracusa", "Siracusa_w_neureka"]:
-            command += f"--cores={self._args.cores}"
+            command += f" --cores={self._args.cores}"
 
         command += self._argument_parser.generate_cmd_args()
 
