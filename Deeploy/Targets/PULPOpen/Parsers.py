@@ -355,7 +355,7 @@ class PULPMatrixVecParser(PULPGEMMParser):
 
         M = node.inputs[0].shape[-1 if node.attrs["transA"] else -2]
         batch = math.prod(node.inputs[0].shape[:-2])
-        return super().parseNode(node) and M == 1 and batch >= 8
+        return M == 1 and batch >= 8
 
 
 class PULPTallGEMMParser(PULPGEMMParser):
@@ -367,4 +367,4 @@ class PULPTallGEMMParser(PULPGEMMParser):
         M = node.inputs[0].shape[-1 if node.attrs["transA"] else -2]
         N = node.inputs[1].shape[-2 if node.attrs["transB"] else -1]
         batch = math.prod(node.inputs[0].shape[:-2])
-        return super().parseNode(node) and M >= 8 and (M % 8) < (N % 8) and batch < 8
+        return M >= 8 and (M % 8) < (N % 8) and batch < 8

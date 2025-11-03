@@ -18,7 +18,7 @@ class iNoNormLayer(ONNXLayer):
         return self.mapper.parser.operatorRepresentation['size'] * 4  # 2 mul, 1 add, 1 right shift
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation: OperatorRepresentation,
-                      channels_first: bool) -> Tuple[Shape]:
+                      channels_first: bool) -> Tuple[Shape, Shape]:
         # JUNGVI: Broadcast the weights and bias to have as many dimensions as the inputs
         shape = np.broadcast_shapes(*inputShapes)
         return ([shape] * len(inputShapes), outputShapes)
