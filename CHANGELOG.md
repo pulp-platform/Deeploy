@@ -92,7 +92,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed Wmem variants of bindings and tile constraints from Neureka
 - Disabled ICCT_ITA_8 MemPool test because it was using a lowering that created shapeless tensors
 - Added missing shape annotation to the testTypeInferenceDifferentTypes
-- ref naming scheme in Gemm and FloatGemm templates from ${data_out}_${<tensor>} to ${nodeName}_${<tensor>}
+- ref naming scheme various templates from `${data_out}_${<tensor>}` to `${nodeName}_${<tensor>}`
 - move iNoNorm from Generic to Snitch since it uses a Snitch kernel
 
 ### Fixed
