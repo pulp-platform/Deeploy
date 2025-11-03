@@ -6,15 +6,16 @@ import os
 
 import numpy as np
 from testUtils.codeGenerate import generateTestNetwork
-from testUtils.dmaUtils import MemcpyLayer, MemcpyParser, MemcpyTileConstraint, MemcpyTypeChecker, generate_graph, \
-    memcpyTemplate, prepare_deployer_with_custom_tiling, setup_pulp_deployer
+from testUtils.dmaUtils import MemcpyLayer, MemcpyParser, MemcpyTileConstraint, generate_graph, memcpyTemplate, \
+    prepare_deployer_with_custom_tiling, setup_pulp_deployer
 from testUtils.testRunner import TestRunner, TestRunnerArgumentParser
 from testUtils.typeMapping import baseTypeFromName, dtypeFromDeeployType
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration
-from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeMapper, _NoVerbosity
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes
+from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeMapper, NodeTypeChecker, _NoVerbosity
 from Deeploy.Targets.PULPOpen.Bindings import L3MemoryAwareFunctionCallClosure, TilingCallClosure
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
@@ -74,8 +75,11 @@ transformer = CodeTransformation([
     MemoryManagementGeneration(),
 ])
 
-binding = NodeBinding(MemcpyTypeChecker(), memcpyTemplate, transformer)
-tilingReadyBindings = TilingReadyNodeBindings([binding], MemcpyTileConstraint())
+bindings = [
+    NodeBinding(NodeTypeChecker([PointerClass(ty)], [PointerClass(ty)]), memcpyTemplate, transformer)
+    for ty in IntegerDataTypes + FloatDataTypes
+]
+tilingReadyBindings = TilingReadyNodeBindings(bindings, MemcpyTileConstraint())
 memcpyMapper = NodeMapper(MemcpyParser(), tilingReadyBindings)
 memcpyMapping = {"Memcpy": MemcpyLayer([memcpyMapper])}
 deployer.Platform.engines[0].Mapping.update(memcpyMapping)

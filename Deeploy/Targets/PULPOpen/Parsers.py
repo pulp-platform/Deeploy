@@ -349,41 +349,22 @@ class PULPGEMMParser(GEMMParser, RQSParserInterface):
 
 class PULPMatrixVecParser(PULPGEMMParser):
 
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+    def parseNode(self, node: gs.Node) -> bool:
+        if not super().parseNode(node):
+            return False
 
-        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-
-        if not ret:
-            return ctxt, False
-
-        if not (self.operatorRepresentation['M'] == 1 and self.operatorRepresentation['batch'] >= 8):
-            return ctxt, False
-
-        return newCtxt, True
+        M = node.inputs[0].shape[-1 if node.attrs["transA"] else -2]
+        batch = math.prod(node.inputs[0].shape[:-2])
+        return M == 1 and batch >= 8
 
 
 class PULPTallGEMMParser(PULPGEMMParser):
 
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+    def parseNode(self, node: gs.Node) -> bool:
+        if not super().parseNode(node):
+            return False
 
-        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-
-        if not ret:
-            return ctxt, False
-
-        ret = all([
-            self.operatorRepresentation['batch'] < 8,
-            self.operatorRepresentation['M'] >= 8,
-            self.operatorRepresentation['M'] % 8 < self.operatorRepresentation['O'] % 8,
-        ])
-
-        if not ret:
-            return ctxt, False
-
-        return newCtxt, True
+        M = node.inputs[0].shape[-1 if node.attrs["transA"] else -2]
+        N = node.inputs[1].shape[-2 if node.attrs["transB"] else -1]
+        batch = math.prod(node.inputs[0].shape[:-2])
+        return M >= 8 and (M % 8) < (N % 8) and batch < 8

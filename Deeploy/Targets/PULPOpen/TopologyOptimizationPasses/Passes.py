@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+import math
 from collections import OrderedDict
 
 import numpy as np
@@ -164,23 +165,41 @@ class PULPAddRequantMergePass(ReplaceSequentialPatternPass):
 
 
 def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
-    matched_nodes = [m for k, m in match.nodes_map.items()]
-    conv = matched_nodes[0]
-    rqs = matched_nodes[1]
+    conv, rqs = list(match.nodes_map.values())
 
-    totalShift = int(np.log2(rqs.attrs['div'].values))
+    mul, add = rqs.inputs[1:]
 
-    # Artifically add half the shift division value to implement rounding
-    rounding = 2**(totalShift - 1) if totalShift > 0 else 0
+    div_attr = rqs.attrs['div']
 
-    rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + rounding
+    if isinstance(div_attr, gs.Constant):
+        assert div_attr.values.size == 1
+        div_attr = div_attr.values.item()
 
-    _inputs = list(conv.inputs) + list(rqs.inputs[1:])
+    if isinstance(div_attr, int):
+        div = div_attr
+    elif isinstance(div_attr, float) and div_attr.is_integer():
+        div = int(div_attr)
+    else:
+        raise ValueError(f"Cannot convert div to integer. Received {div_attr}")
 
-    _outputs = rqs.outputs
+    assert div > 0, f"Shift calculation (log2(div)) requires div to be a positive number. Received non-positive div {div}"
+    assert div.bit_count() == 1, f"Div is expected to be a power of 2 number. Received div {div}"
 
-    rqsConv = gs.Node(op = 'RequantizedConv', name = name, attrs = {**conv.attrs, **rqs.attrs, "shift": totalShift})
-    graph.replaceInsertNode(_inputs, _outputs, rqsConv)
+    shift = int(math.log2(div))
+    # Artifically add half the division value as rounding
+    if shift > 0:
+        add.values += 2**(shift - 1)
+
+    rqsConv = gs.Node(
+        op = 'RequantizedConv',
+        name = name,
+        attrs = {
+            **conv.attrs,
+            **rqs.attrs,
+            "shift": shift,
+        },
+    )
+    graph.replaceInsertNode(list(conv.inputs) + [mul, add], rqs.outputs, rqsConv)
 
     return graph
 

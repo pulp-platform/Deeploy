@@ -54,12 +54,15 @@ class RQConv2DTileConstraint(TileConstraint):
         outputWidthVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 2)
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 3)
 
-        addChannelVar = tilerModel.getTensorDimVar(tensorName = addBufferName, dimIdx = 0)
-        mulChannelVar = tilerModel.getTensorDimVar(tensorName = mulBufferName, dimIdx = 0)
+        addBuffer = ctxt.lookup(addBufferName)
+        addChannelVar = tilerModel.getTensorDimVar(tensorName = addBufferName, dimIdx = len(addBuffer.shape) - 1)
+        mulBuffer = ctxt.lookup(mulBufferName)
+        mulChannelVar = tilerModel.getTensorDimVar(tensorName = mulBufferName, dimIdx = len(mulBuffer.shape) - 1)
 
         # Map output dims to inputs dims
         tilerModel.addConstraint(outputBatchVar == inputBatchVar)  # Batch
         tilerModel.addConstraint(outputChannelVar == weightOutChannelVar)  # Output Channel
+        tilerModel.addConstraint(inputChannelVar == weightInChannelVar)  # Input channel
 
         tilerModel.addConstraint(outputChannelVar == addChannelVar)
         tilerModel.addConstraint(outputChannelVar == mulChannelVar)
@@ -88,10 +91,8 @@ class RQConv2DTileConstraint(TileConstraint):
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 0)
         weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 1)
         weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 2)
-        weightInChannelVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 3)
 
         strides = parseDict["strides"]
-        padding = parseDict["pads"]
 
         # VIC: Force at least one row of A and one col of B in the GEMM (since it's a im2col Conv) to avoid partial results
         tilerModel.addConstraint(inputChannelVar == parseDict['ch_im_in'])
@@ -101,7 +102,6 @@ class RQConv2DTileConstraint(TileConstraint):
 
         tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'])
         tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'])
-        tilerModel.addConstraint(weightInChannelVar == parseDict['ch_im_in'])
 
         # VIC: Constraint the minimum tile size such that we can apply at least one kernel on it
         tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'])
@@ -174,6 +174,8 @@ class RQConv2DTileConstraint(TileConstraint):
         weightH = ctxt.lookup(varWeight).shape[1]
         weightW = ctxt.lookup(varWeight).shape[2]
         weightC = ctxt.lookup(varWeight).shape[3]
+        shapeMul = ctxt.lookup(operatorRepresentation["mul"]).shape
+        shapeAdd = ctxt.lookup(operatorRepresentation["add"]).shape
 
         pads = operatorRepresentation['pads']
         strides = operatorRepresentation['strides']
@@ -200,12 +202,13 @@ class RQConv2DTileConstraint(TileConstraint):
 
             inputInCubes.append(InCube)
 
-            RequantCube = HyperRectangle((COffset,), (CSize,))
+            MulCube = HyperRectangle((0,) * (len(shapeMul) - 1) + (COffset,), (1,) * (len(shapeMul) - 1) + (CSize,))
+            AddCube = HyperRectangle((0,) * (len(shapeAdd) - 1) + (COffset,), (1,) * (len(shapeAdd) - 1) + (CSize,))
             WeightCube = HyperRectangle((COffset, 0, 0, 0), (CSize, weightH, weightW, weightC))
 
             inputWeightCubes.append(WeightCube)
-            inputAddCubes.append(RequantCube)
-            inputMulCubes.append(RequantCube)
+            inputMulCubes.append(MulCube)
+            inputAddCubes.append(AddCube)
 
         inputLoadSchedule = []
         outputLoadSchedule = []

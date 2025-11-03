@@ -227,20 +227,25 @@ class MaxPool1DParser(MaxPoolParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        ret = super().parseNode(node)
-        wellFormed = False
-        if ret:
-            pads = self.operatorRepresentation['pads']
-            kernel_shape = self.operatorRepresentation['kernel_shape']
-            strides = self.operatorRepresentation['strides']
-            # 1D: pads should be length 2, kernel_shape length 1, strides length 1
-            if len(pads) == 2 and len(kernel_shape) == 1 and len(strides) == 1:
-                wellFormed = True
-                self.operatorRepresentation['padding_y'] = int(pads[0])
-                self.operatorRepresentation['padding_y_right'] = int(pads[1])
-                self.operatorRepresentation['stride_y'] = int(strides[0])
-                self.operatorRepresentation['dim_kernel_y'] = int(kernel_shape[0])
-        return wellFormed
+        if not super().parseNode(node):
+            return False
+
+        pads = self.operatorRepresentation['pads']
+        kernel_shape = self.operatorRepresentation['kernel_shape']
+        strides = self.operatorRepresentation['strides']
+
+        if not all([
+                len(pads) == 2,
+                len(kernel_shape) == 1,
+                len(strides) == 1,
+        ]):
+            return False
+
+        self.operatorRepresentation['padding_y'] = pads[0]
+        self.operatorRepresentation['padding_y_right'] = pads[1]
+        self.operatorRepresentation['stride_y'] = strides[0]
+        self.operatorRepresentation['dim_kernel_y'] = kernel_shape[0]
+        return True
 
     def parseNodeCtxt(self, ctxt, node, channels_first = True):
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
@@ -269,28 +274,31 @@ class MaxPool2DParser(MaxPoolParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
+        if not super().parseNode(node):
+            return False
 
-        ret = super().parseNode(node)
-        wellFormed = False
-        if ret:
-            pads = self.operatorRepresentation['pads']
-            kernel_shape = self.operatorRepresentation['kernel_shape']
-            strides = self.operatorRepresentation['strides']
-            if len(pads) == 4 and len(kernel_shape) == 2 and len(strides) == 2:
-                wellFormed = True
+        pads = self.operatorRepresentation['pads']
+        kernel_shape = self.operatorRepresentation['kernel_shape']
+        strides = self.operatorRepresentation['strides']
 
-            self.operatorRepresentation['padding_x'] = int(self.operatorRepresentation['pads'][0])
-            self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][1])
-            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][0])
-            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][1])
-            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][2])
-            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][3])
-            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
-            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
-            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
-            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
+        if not all([
+                len(pads) == 4,
+                len(kernel_shape) == 2,
+                len(strides) == 2,
+        ]):
+            return False
 
-        return wellFormed
+        self.operatorRepresentation['padding_x'] = pads[0]
+        self.operatorRepresentation['padding_y'] = pads[1]
+        self.operatorRepresentation['padding_x_left'] = pads[0]
+        self.operatorRepresentation['padding_y_top'] = pads[1]
+        self.operatorRepresentation['padding_x_right'] = pads[2]
+        self.operatorRepresentation['padding_y_bottom'] = pads[3]
+        self.operatorRepresentation['stride_x'] = strides[0]
+        self.operatorRepresentation['stride_y'] = strides[1]
+        self.operatorRepresentation['dim_kernel_x'] = kernel_shape[0]
+        self.operatorRepresentation['dim_kernel_y'] = kernel_shape[1]
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -831,41 +839,6 @@ class iHardswishParser(NodeParser):
         data_in = ctxt.lookup(node.inputs[0].name)
         data_out = ctxt.lookup(node.outputs[0].name)
         self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = np.prod(data_in.shape)
-
-        return ctxt, True
-
-
-class iNoNormParser(NodeParser):
-
-    def __init__(self):
-        super().__init__()
-
-    def parseNode(self, node: gs.Node) -> bool:
-
-        ret = all(['D' in node.attrs, 'mul' in node.attrs, 'n_levels' in node.attrs])
-
-        if ret:
-            self.operatorRepresentation['D'] = node.attrs['D']
-            self.operatorRepresentation['log2D'] = int(np.log2(node.attrs['D'].values).tolist()[0])
-            self.operatorRepresentation['mul'] = int(node.attrs['mul'].values.tolist()[0])
-            self.operatorRepresentation['n_levels'] = node.attrs['n_levels']
-
-        return ret
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        weights = ctxt.lookup(node.inputs[1].name)
-        bias = ctxt.lookup(node.inputs[2].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['weights'] = weights.name
-        self.operatorRepresentation['bias'] = bias.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
 

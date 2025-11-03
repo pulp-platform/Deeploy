@@ -112,18 +112,18 @@ END_SINGLE_CORE
     mempool_barrier(numThreads);
 %endif
 
-${A_type.typeName} ref_${data_out}_${A} = ${ctxtBuffer_A};
-${B_type.typeName} ref_${data_out}_${B} = ${ctxtBuffer_B};
+${A_type.typeName} ref_${nodeName}_${A} = ${ctxtBuffer_A};
+${B_type.typeName} ref_${nodeName}_${B} = ${ctxtBuffer_B};
 ${mul_type.typeName} ref_${mul} = ${mul};
 ${add_type.typeName} ref_${add} = ${add};
-${data_out_type.typeName}  ref_${data_out}_${data_out} = ${data_out};
+${data_out_type.typeName}  ref_${nodeName}_${data_out} = ${data_out};
 
 for(uint32_t i=0;i<${batch};i++){
 %if A_offset==0 and B_offset==0 and offset_output==0 and M%4==0 and N%4==0 and O%4==0:
     RQMatMul_unrolled_2x2_parallel_s${A_type.referencedType.typeWidth}(
-        ref_${data_out}_${A},
-        ref_${data_out}_${B},
-        ref_${data_out}_${data_out},
+        ref_${nodeName}_${A},
+        ref_${nodeName}_${B},
+        ref_${nodeName}_${data_out},
         ${M},
         ${N},
         ${O},
@@ -137,9 +137,9 @@ for(uint32_t i=0;i<${batch};i++){
     );
 %elif M%4==0 and N%4==0 and O%4==0:
     RQMatMul_offset_unrolled_2x2_parallel_s${A_type.referencedType.typeWidth}(
-        ref_${data_out}_${A},
-        ref_${data_out}_${B},
-        ref_${data_out}_${data_out},
+        ref_${nodeName}_${A},
+        ref_${nodeName}_${B},
+        ref_${nodeName}_${data_out},
         ${M},
         ${N},
         ${O},
@@ -154,9 +154,9 @@ for(uint32_t i=0;i<${batch};i++){
     );
 %else:
     RQMatMul_parallel_s${A_type.referencedType.typeWidth}(
-        ref_${data_out}_${A},
-        ref_${data_out}_${B},
-        ref_${data_out}_${data_out},
+        ref_${nodeName}_${A},
+        ref_${nodeName}_${B},
+        ref_${nodeName}_${data_out},
         ${M},
         ${N},
         ${O},
@@ -173,9 +173,9 @@ for(uint32_t i=0;i<${batch};i++){
     );
 %endif
 
-    ref_${data_out}_${A} += ${M} * ${N};
-    ref_${data_out}_${B} += ${N} * ${O};
-    ref_${data_out}_${data_out} += ${M} * ${O};
+    ref_${nodeName}_${A} += ${M} * ${N};
+    ref_${nodeName}_${B} += ${N} * ${O};
+    ref_${nodeName}_${data_out} += ${M} * ${O};
 %if perChannelQuant:
     ++ref_${mul};
     ++ref_${add};

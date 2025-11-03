@@ -18,38 +18,48 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
 class MatMulTileConstraint(TileConstraint):
 
     @staticmethod
+    def _getIdxMapping(rank: int, isTrans: bool) -> Tuple[int, int]:
+        if isTrans:
+            idxSecondDim, idxFirstDim = rank - 2, rank - 1
+        else:
+            idxFirstDim, idxSecondDim = rank - 2, rank - 1
+        return idxFirstDim, idxSecondDim
+
+    @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
         # Get to-be-tiled tensor's buffers
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
-        outputBuffer = ctxt.lookup(name = parseDict['data_out'])
+        bufferOut = ctxt.lookup(name = parseDict['data_out'])
 
         # Add I/O dimensions to the model as variables
-        for _buffer in [bufferA, bufferB, outputBuffer]:
+        for _buffer in [bufferA, bufferB, bufferOut]:
             tilerModel.addTensorDimToModel(ctxt, _buffer.name)
 
-        tensorsShapeLen = len(bufferA.shape)
+        idxFirstDimA, idxSecondDimA = MatMulTileConstraint._getIdxMapping(len(bufferA.shape), parseDict['transA'])
+        AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = idxFirstDimA)
+        ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = idxSecondDimA)
 
-        AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transA'])
-        ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transA'])
-        BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transB'])
-        BSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transB'])
-        outputFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = (tensorsShapeLen - 2))
-        outputSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = (tensorsShapeLen - 1))
+        idxFirstDimB, idxSecondDimB = MatMulTileConstraint._getIdxMapping(len(bufferB.shape), parseDict['transB'])
+        BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = idxFirstDimB)
+        BSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = idxSecondDimB)
 
-        # Map output dims to inputs dims
-        for idx in range(tensorsShapeLen - 2):
-            tilerModel.addConstraint(
-                tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = idx) == tilerModel.getTensorDimVar(
-                    tensorName = bufferA.name, dimIdx = idx))
-            tilerModel.addConstraint(
-                tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = idx) == tilerModel.getTensorDimVar(
-                    tensorName = bufferB.name, dimIdx = idx))
+        rankOut = len(bufferOut.shape)
+        outputFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferOut.name, dimIdx = rankOut - 2)
+        outputSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferOut.name, dimIdx = rankOut - 1)
+
+        # Map input A's batch dims to output batch dims if present
+        for idx in range(len(bufferA.shape) - 2):
+            varA = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = idx)
+            varOut = tilerModel.getTensorDimVar(tensorName = bufferOut.name, dimIdx = idx)
+            tilerModel.addConstraint(varA == varOut)
+
+        # Map input B's batch dims to output batch dims if present
+        for idx in range(len(bufferB.shape) - 2):
+            varB = tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = idx)
+            varOut = tilerModel.getTensorDimVar(tensorName = bufferOut.name, dimIdx = idx)
+            tilerModel.addConstraint(varB == varOut)
 
         tilerModel.addConstraint(outputFirstDimVar == AFirstDimVar)
         tilerModel.addConstraint(outputSecondDimVar == BSecondDimVar)
@@ -61,18 +71,14 @@ class MatMulTileConstraint(TileConstraint):
 
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
 
-        tensorsShapeLen = len(bufferA.shape)
+        _, idxSecondDimA = MatMulTileConstraint._getIdxMapping(len(bufferA.shape), parseDict['transA'])
+        ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = idxSecondDimA)
 
-        ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transA'])
-        BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transB'])
-        BSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transB'])
+        idxFirstDimB, _ = MatMulTileConstraint._getIdxMapping(len(bufferB.shape), parseDict['transB'])
+        BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = idxFirstDimB)
 
         # VIC: We don't want to deal with intermediate results between kernel calls
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])

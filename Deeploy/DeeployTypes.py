@@ -251,8 +251,8 @@ class VariableBuffer():
         self._live: bool = False  #: bool: DO NOT OVERRIDE - this variable is true if a previous Memory allocation pass has allocated the buffer, and false if this buffer has been deallocated or has not been allocated yet.
         self._deploy: bool = True  #: bool: MAY OVERRIDE - this variable is a global switch to deactivate the buffer for all purposes without deleting it outright.
 
-        self._signed = None
-        self.nLevels = None
+        self._signed: bool = None
+        self.nLevels: int = None
 
         self.is_input: bool = False
         self.is_output: bool = False
@@ -1009,9 +1009,10 @@ class NetworkContext():
             VariableBuffer with
 
         """
-        obj = self.lookup(name)
-        obj._type = _type
-        obj._instance = _type(name, ctxt = self)
+        buffer = self.lookup(name)
+        assert isinstance(buffer, VariableBuffer)
+        buffer._type = _type
+        buffer._instance = _type(name, ctxt = self)
 
     def copy(self) -> NetworkContext:
         """Return a shallow copy of this NetworkContext
@@ -1312,14 +1313,12 @@ class NodeTypeChecker():
         return retCheck
 
     def typeInferGlobalCtxt(self, ctxt: NetworkContext, node: gs.Node) -> NetworkContext:
-        for inputNode, _type in zip(node.inputs, self.input_types):
-            if isinstance(ctxt.lookup(inputNode.name), ConstantBuffer):
-                reference = ctxt.lookup(inputNode.name)
-                if not _type.referencedType.checkPromotion(reference.values):
-                    raise Exception(f"Can't cast {reference} to {_type}!")
-
-                ctxt.annotateType(inputNode.name, _type)
-
+        for tensor, ty in zip(node.inputs, self.input_types):
+            buffer = ctxt.lookup(tensor.name)
+            if isinstance(buffer, ConstantBuffer):
+                if not ty.referencedType.checkPromotion(buffer.values):
+                    raise Exception(f"Can't cast {buffer} to {ty}!")
+                ctxt.annotateType(tensor.name, ty)
         return ctxt
 
     def annotateDict(self, ctxt: NetworkContext, node: gs.Node, operatorRepresentation: OperatorRepresentation):
@@ -2695,7 +2694,7 @@ class NetworkContainer():
                         f"   - Deepest layer available mappers: {[type(x.parser).__name__ for x in deepestLayer.maps]}")
                     log.error("=" * 80)
                     raise RuntimeError(
-                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer.__class__.__name__} of node {deepestNodeName}'
+                        f'Did not find adequate mapping for graph! Explored until layer {deepestLayer.__class__.__name__} of node {deepestNodeName}\n'
                         f'Candidates: {[type(x.parser).__name__ for x in deepestLayer.maps]}. Exhausted backtracking.')
 
                 previousLayer = scheduledLayerList[idx - 1]
@@ -3364,6 +3363,11 @@ class NetworkDeployer(NetworkContainer):
             if counts[orig] > 1:
                 idx = seen.get(orig, 0)
                 node.name = f"{orig}_{idx}"
+                seen[orig] = idx + 1
+            # Handle empty node name
+            elif orig == "":
+                idx = seen.get(orig, 0)
+                node.name = f"{node.op}_{idx}"
                 seen[orig] = idx + 1
             # else: unique name, leave it unchanged
 

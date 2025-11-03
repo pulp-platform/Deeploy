@@ -128,18 +128,18 @@ END_SINGLE_CORE
     mempool_barrier(numThreads);
 %endif
 
-${A_type.typeName} ref_${data_out}_${A} = ${ctxtBuffer_A};
-${B_type.typeName} ref_${data_out}_${B} = ${ctxtBuffer_B};
-${C_type.typeName} ref_${data_out}_${C} = ${ctxtBuffer_C};
-${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
+${A_type.typeName} ref_${nodeName}_${A} = ${ctxtBuffer_A};
+${B_type.typeName} ref_${nodeName}_${B} = ${ctxtBuffer_B};
+${C_type.typeName} ref_${nodeName}_${C} = ${ctxtBuffer_C};
+${data_out_type.typeName} ref_${nodeName}_${data_out} = ${data_out};
 
 for(uint32_t i=0;i<${batch};i++){
 %if M%4==0 and N%4==0 and O%4==0:
     RQGemm_offset_unrolled_2x2_parallel_s${A_type.referencedType.typeWidth}(
-        ref_${data_out}_${A},
-        ref_${data_out}_${B},
-        ref_${data_out}_${C},
-        ref_${data_out}_${data_out},
+        ref_${nodeName}_${A},
+        ref_${nodeName}_${B},
+        ref_${nodeName}_${C},
+        ref_${nodeName}_${data_out},
         ${M},
         ${N},
         ${O},
@@ -161,10 +161,10 @@ for(uint32_t i=0;i<${batch};i++){
     );
 %else:
     RQGemm_parallel_s${A_type.referencedType.typeWidth}(
-        ref_${data_out}_${A},
-        ref_${data_out}_${B},
-        ref_${data_out}_${C},
-        ref_${data_out}_${data_out},
+        ref_${nodeName}_${A},
+        ref_${nodeName}_${B},
+        ref_${nodeName}_${C},
+        ref_${nodeName}_${data_out},
         ${M},
         ${N},
         ${O},
@@ -188,9 +188,9 @@ for(uint32_t i=0;i<${batch};i++){
     );
 %endif
 
-    ref_${data_out}_${A} += ${M} * ${N};
-    ref_${data_out}_${B} += ${N} * ${O};
-    ref_${data_out}_${data_out} += ${M} * ${O};
+    ref_${nodeName}_${A} += ${M} * ${N};
+    ref_${nodeName}_${B} += ${N} * ${O};
+    ref_${nodeName}_${data_out} += ${M} * ${O};
 }
 mempool_barrier(numThreads);
 """)
