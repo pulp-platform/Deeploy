@@ -77,23 +77,20 @@ int main(void) {
 
   snrt_cluster_hw_barrier();
 
-#if !defined(BANSHEE_SIMULATION) && !defined(GVSOC_SIMULATION)
-  if (snrt_is_dm_core()) {
-    ResetTimer();
-    StartTimer();
-  }
-#endif // BANSHEE_SIMULATION and GVSOC_SIMULATION
-
+  ResetTimer();
+  StartTimer();
+  snrt_cluster_hw_barrier();
   RunNetwork(compute_core_id, num_compute_cores);
 
   uint32_t runtimeCycles = 0;
-#if !defined(BANSHEE_SIMULATION) && !defined(GVSOC_SIMULATION)
   if (snrt_is_dm_core()) {
     runtimeCycles = getCycles();
+#if !defined(BANSHEE_SIMULATION) && !defined(GVSOC_SIMULATION)
     DUMP(runtimeCycles);
-    StopTimer();
-  }
 #endif // BANSHEE_SIMULATION and GVSOC_SIMULATION
+  }
+
+  StopTimer();
 
   snrt_cluster_hw_barrier();
 

@@ -40,6 +40,8 @@ def transposeListOfLists(listOfLists: List[List[T]]) -> List[List[T]]:
 class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformationMixIn, PrototypeTilingMixIn,
                            TilingHoistingMixIn):
 
+    _lineComment = NodeTemplate("\n// ${comment}")
+
     _relativeOffsetReferenceUpdateTemplate = NodeTemplate("""
     // UPDATE VARIABLE ${reference}
     ${reference} += ${relativeOffset};
@@ -62,12 +64,36 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
     """)
 
     @abstractmethod
+    def _tilingLoop(self, ctxt: NetworkContext, executionBlock: ExecutionBlock,
+                    nodeMemoryConstraint: NodeMemoryConstraint, tilingSchedule: TilingSchedule,
+                    variableReplacement: VariableReplacementScheme,
+                    operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, ExecutionBlock, bool]:
+        pass
+
     def generateTilingLoop(
             self, ctxt: NetworkContext, executionBlock: ExecutionBlock, nodeMemoryConstraint: NodeMemoryConstraint,
             tilingSchedules: List[TilingSchedule], variableReplacement: VariableReplacementScheme,
             operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, ExecutionBlock, bool]:
 
-        return ctxt, executionBlock, False
+        flatTilingSchedule = copy.copy(tilingSchedules[0])
+        for tilingSchedule in tilingSchedules[1:]:
+            flatTilingSchedule += tilingSchedule
+
+        offsetLists = list({**flatTilingSchedule.inputBaseOffsets, **flatTilingSchedule.outputBaseOffsets}.values())
+
+        if len(offsetLists) == 0:
+            return ctxt, executionBlock, False
+
+        for offsetList in offsetLists:
+            if not len(offsetList) == self.bufferCount:
+                return ctxt, executionBlock, False
+
+        numTiles, tileIdxPtr = self._hoistTileNumAndIdxPtr(ctxt, tilingSchedules)
+        operatorRepresentation["numTiles"] = numTiles.name
+        operatorRepresentation["tileIdxPtr"] = tileIdxPtr.name
+
+        return self._tilingLoop(ctxt, executionBlock, nodeMemoryConstraint, flatTilingSchedule, variableReplacement,
+                                operatorRepresentation)
 
     def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma, bufferCount: int):
         self.externalMemory = externalMemory
@@ -102,8 +128,9 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
         initSnippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, transfers[0].dims,
                                               stridesFromShape(externalBuffer.shape),
                                               stridesFromShape(transfers[0].dims), direction, future,
-                                              math.prod(externalBuffer.shape))
+                                              math.prod(externalBuffer.shape,))
 
+        # Add allocation snippets
         templates = [snippet.template for snippet in initSnippets]
         opReprUpdates = [[] for _ in range(len(initSnippets))]
 

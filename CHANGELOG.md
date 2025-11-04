@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Support Fully Asynchronous DMAs [#114](https://github.com/pulp-platform/Deeploy/pull/114)
 - Disallow shape inference [#128](https://github.com/pulp-platform/Deeploy/pull/128)
 - Remove memory-aware node bindings [#123](https://github.com/pulp-platform/Deeploy/pull/123)
 - Fix missing const's layout transformation and refactor NCHWtoNHWC passes [#122](https://github.com/pulp-platform/Deeploy/pull/122)
@@ -55,6 +56,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - RequantHelpers.py for Neureka's TileConstraints
 - Added assertion that all the graph tensors after lowering have a shape annotated
 - Added testFloatGEMMnobias
+- Profiling support and optional comments in generated DMA code for better traceability
+- Added new waiting-strategy logic with fine-grained `PerTensorWaitingStrategy`
 
 ### Changed
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -91,6 +94,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Removed Wmem variants of bindings and tile constraints from Neureka
 - Disabled ICCT_ITA_8 MemPool test because it was using a lowering that created shapeless tensors
 - Added missing shape annotation to the testTypeInferenceDifferentTypes
+- Refactored DMA code generation (`SnitchDma`, `Mchan`) to correctly overlap transfers and compute in double-buffering mode
 
 ### Fixed
 - Prevent node duplication for graphs generated via GraphSurgeon
@@ -105,6 +109,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Missing layout transformation of the const's (bias, mul, add, shift in Conv/RequantizedConv)
 - Keep mul/add rank of requantized Neureka tile constraints
 - Fix bias hoisting in generic GEMM with no bias
+- DMA synchronization bug causing reduced DB performance on memory-bound kernels.
 
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file

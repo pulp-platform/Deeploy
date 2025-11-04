@@ -16,6 +16,7 @@ DmaDirection = Literal["ExternalToLocal", "LocalToExternal"]
 class Future:
 
     _initTemplate: NodeTemplate
+    _allocTemplate: NodeTemplate
     _deinitTemplate: NodeTemplate
     _waitTemplate: NodeTemplate
 
@@ -27,6 +28,9 @@ class Future:
 
     def init(self) -> CodeSnippet:
         return CodeSnippet(self._initTemplate, self._operatorRepresentation())
+
+    def alloc(self) -> CodeSnippet:
+        return CodeSnippet(self._allocTemplate, self._operatorRepresentation())
 
     def deinit(self) -> CodeSnippet:
         return CodeSnippet(self._deinitTemplate, self._operatorRepresentation())
@@ -41,25 +45,52 @@ class AsyncDmaWaitingStrategy(ABC):
         self.FutureCls = FutureCls
 
     @abstractmethod
-    def getFuture(self, tensorName: str) -> Future:
+    def getFuture(self, tensorName: str, direction: DmaDirection) -> Future:
         pass
 
 
 class PerTensorWaitingStrategy(AsyncDmaWaitingStrategy):
 
-    def getFuture(self, tensorName: str) -> Future:
-        return self.FutureCls(tensorName + "_future")
+    def __init__(self, FutureCls: Type[Future]) -> None:
+        super().__init__(FutureCls)
+        # map (tensorName, direction) -> Future instance so the same Future
+        # object is returned for repeated requests for the same tensor/direction
+        self._futures: Dict[Tuple[str, DmaDirection], Future] = {}
+
+    def getFuture(self, tensorName: str, direction: DmaDirection) -> Future:
+        key = (tensorName, direction)
+        if key not in self._futures:
+            # include direction in the future name to avoid accidental name
+            # collisions between directions for the same tensor
+            future_name = f"{tensorName}_{direction}"
+            self._futures[key] = self.FutureCls(future_name)
+        return self._futures[key]
 
 
-class TensorGroupWaitingStrategy(AsyncDmaWaitingStrategy):
+class DirectionWaitingStrategy(AsyncDmaWaitingStrategy):
 
     def __init__(self, FutureCls: Type[Future], asyncGroupName: str) -> None:
         super().__init__(FutureCls)
-        self.asyncGroupFuture = FutureCls(f"{asyncGroupName}_future")
+        self.asyncGroupName = asyncGroupName
+        self.asyncGroupFutures = {
+            "ExternalToLocal": FutureCls(asyncGroupName + "_input"),
+            "LocalToExternal": FutureCls(asyncGroupName + "_output")
+        }
 
-    def getFuture(self, tensorName: str) -> Future:
+    def getFuture(self, tensorName: str, direction: DmaDirection) -> Future:
         _ = tensorName
-        return self.asyncGroupFuture
+        return self.asyncGroupFutures[direction]
+
+
+class BarrierWaitingStrategy(AsyncDmaWaitingStrategy):
+
+    def __init__(self, FutureCls: Type[Future], barrierName: str) -> None:
+        super().__init__(FutureCls)
+        self.barrier = FutureCls(barrierName)
+
+    def getFuture(self, tensorName: str, direction: DmaDirection) -> Future:
+        _ = tensorName, direction
+        return self.barrier
 
 
 class AsyncDma(ABC):
@@ -69,8 +100,8 @@ class AsyncDma(ABC):
     def __init__(self, transferTemplates: Dict[int, NodeTemplate]) -> None:
         self._transferTemplates = transferTemplates
 
-    def getFuture(self, tensorName: str) -> Future:
-        return self._waitingStrategy.getFuture(tensorName)
+    def getFuture(self, tensorName: str, direction: DmaDirection) -> Future:
+        return self._waitingStrategy.getFuture(tensorName, direction)
 
     def supportedTransferRanks(self) -> Set[int]:
         return set(self._transferTemplates.keys())
@@ -98,16 +129,11 @@ class AsyncDma(ABC):
         template = self._transferTemplates[len(shape)]
         return [CodeSnippet(template, opRepr)]
 
-    def setup(self) -> List[CodeSnippet]:
-        return []
-
-    def teardown(self) -> List[CodeSnippet]:
-        return []
-
 
 class EmptyFuture(Future):
 
     _initTemplate = NodeTemplate("")
+    _allocTemplate = NodeTemplate("")
     _deinitTemplate = NodeTemplate("")
     _waitTemplate = NodeTemplate("")
 
@@ -123,6 +149,9 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
     def _transferTemplates(self) -> Dict[int, NodeTemplate]:
         return self.dma._transferTemplates
 
+    def getFuture(self, tensorName: str, direction: DmaDirection) -> Future:
+        return self.dma.getFuture(tensorName, direction)
+
     def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
                        strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
                        future: Future) -> OperatorRepresentation:
@@ -131,20 +160,12 @@ class BlockingDmaFromAsyncDmaAdapter(AsyncDma):
     def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
                  shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
                  direction: DmaDirection, future: Future) -> List[CodeSnippet]:
-        tmpFuture = self.dma.getFuture(future.name.removesuffix("_future"))
         callStack = []
-        callStack.append(tmpFuture.init())
-        callStack.extend(
-            self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, tmpFuture))
-        callStack.append(tmpFuture.wait())
-        callStack.append(tmpFuture.deinit())
+        dma_code = self.dma.transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
+        callStack.append(future.alloc())
+        callStack.extend(dma_code)
+        callStack.append(future.wait())
         return callStack
-
-    def setup(self) -> List[CodeSnippet]:
-        return self.dma.setup()
-
-    def teardown(self) -> List[CodeSnippet]:
-        return self.dma.teardown()
 
 
 class AnydimAsyncDmaTransferAdapter:
@@ -181,6 +202,9 @@ class AnydimAsyncDmaTransferAdapter:
 
     def __init__(self, dma: AsyncDma) -> None:
         self.dma = dma
+
+    def getFuture(self, tensorName: str, direction: DmaDirection) -> Future:
+        return self.dma.getFuture(tensorName, direction)
 
     def nearestSupportedTransferRank(self, transfer_rank: int) -> int:
         sortedRanks = sorted(self.dma.supportedTransferRanks())
@@ -238,9 +262,10 @@ class AnydimAsyncDmaTransferAdapter:
                     "offset": "ext_offset"
                 }))
 
-            callStack.extend(
-                self.dma.transfer(ctxt, externalBufferOffseted, localBufferOffseted, shape[-kernelRank:],
-                                  strideExt[-kernelRank:], strideLoc[-kernelRank:], direction, future))
+            dma_code = self.dma.transfer(ctxt, externalBufferOffseted, localBufferOffseted, shape[-kernelRank:],
+                                         strideExt[-kernelRank:], strideLoc[-kernelRank:], direction, future)
+
+            callStack.extend(dma_code)
             callStack.append(CodeSnippet(self.NestedForLoopCloseTemplate(nestedLoopDepth), {}))
             return callStack
         elif kernelRank == transferRank:

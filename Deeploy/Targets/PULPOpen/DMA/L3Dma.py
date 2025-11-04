@@ -12,9 +12,16 @@ from Deeploy.TilingExtension.AsyncDma import AsyncDma, BlockingDmaFromAsyncDmaAd
 
 class L3DmaFuture(Future):
 
-    _initTemplate = NodeTemplate("pi_cl_ram_req_t ${name};")
+    _initTemplate = NodeTemplate("pi_cl_ram_req_t ${name} = {0};")
+
     _deinitTemplate = NodeTemplate("")
-    _waitTemplate = NodeTemplate("pi_cl_ram_copy_wait(&${name});")
+
+    _allocTemplate = NodeTemplate("")
+
+    _waitTemplate = NodeTemplate("""
+    if (${name}.size != 0) {
+        pi_cl_ram_copy_wait(&${name});
+    }""")
 
 
 class L3Dma(AsyncDma):
