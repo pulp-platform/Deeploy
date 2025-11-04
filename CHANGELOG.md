@@ -66,6 +66,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added testFloatGEMMnobias
 - Profiling support and optional comments in generated DMA code for better traceability
 - Added new waiting-strategy logic with fine-grained `PerTensorWaitingStrategy`
+- PULPClusterEngine now accepts a `n_cores` parameter to set the number of cores used
+- annotateNCores method to PULPDeployer that adds an `n_cores` key to all PULPClusterEngine templates' operatorRepresentations
 
 ### Changed
 - Reduced size of reshape & skip connection test, for non-tiled Siracusa memory compatibility.
@@ -104,6 +106,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Disabled ICCT_ITA_8 MemPool test because it was using a lowering that created shapeless tensors
 - Added missing shape annotation to the testTypeInferenceDifferentTypes
 - Refactored DMA code generation (`SnitchDma`, `Mchan`) to correctly overlap transfers and compute in double-buffering mode
+- changed `_mapNode` to `_selectEngine` which reduces the responsibility of that function to, as the name states, just engine selection
 
 ### Fixed
 - Fixed bug for non-batched elements in the PULPOpen FP GEMM and matmul templates.
