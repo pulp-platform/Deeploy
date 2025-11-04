@@ -260,8 +260,8 @@ class DWConv2DTileConstraint(TileConstraint):
         strides = parseDict['strides']
         dilations = parseDict['dilations']
         group = parseDict['group']
+        n_cores = parseDict['n_cores']
 
-        n_cores = ctxt.n_cores
         im2col_buffer_size = ctxt.lookup(im2colBufferName).size
         weight_type_width = ctxt.lookup(weightBufferName)._type.typeWidth // 8
 
