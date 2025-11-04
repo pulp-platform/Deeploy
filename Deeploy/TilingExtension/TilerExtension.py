@@ -986,7 +986,6 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         self.tiler.annotateMemoryLevel(self.ctxt, tilingSolution, memoryMap)
 
         self.ctxt = self.tiler._convertCtxtToStaticSchedule(self.ctxt, memoryMap)
-        self.ctxt.n_cores = self.n_cores
 
         if self.tiler.visualizeMemoryAlloc:
             log.info(f" > Export Memory Allocation Visualization to {self.deeployStateDir}")

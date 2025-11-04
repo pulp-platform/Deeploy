@@ -322,11 +322,7 @@ class VariableBuffer():
 
     @classmethod
     def fromNode(cls, node: gs.Node):
-        return (cls(
-            name=node.name,
-            shape=node.shape if not isinstance(node, gs.Constant) else node.values.shape,
-            alias_of = [],
-            ))
+        return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
 
     def has_live_aliases(self, ctxt: NetworkContext) -> bool:
         """Checks whether this VariableBuffer has any live aliases, i.e. buffers that are still live and are aliased by this buffer.
@@ -399,10 +395,8 @@ class ConstantBuffer(VariableBuffer):
 
     """
 
-    def __init__(self, name: str = '', shape = [1], values = [0], alias_of: Optional[List[str]] = None):
-        # Pass a copy of alias_of to avoid shared references
-        super().__init__(name, shape, list(alias_of) if alias_of is not None else None)
-
+    def __init__(self, name: str = '', shape = [1], values = [0]):
+        super().__init__(name, shape)
         values = np.asarray(values)
         # intArray = values.astype(int)
         # assert (np.abs(values - intArray)).max() < 0.001, "Constant value {name} is NOT an integer!"
@@ -522,17 +516,14 @@ class NetworkContext():
                  transientBuffer: Type[TransientBuffer],
                  globalObjects = {},
                  localObjects = {},
-                 name: str = 'DeeployNetwork',
-                 n_cores: int = 8):
+                 name: str = 'DeeployNetwork'):
         self.globalObjects = OrderedDict()
         self.localObjects = OrderedDict()
         self.VariableBuffer = variableBuffer
         self.ConstantBuffer = constantBuffer
         self.StructBuffer = structBuffer
         self.TransientBuffer = transientBuffer
-        self.n_cores = n_cores
         self.name = name
-        self.n_cores = n_cores
 
         self._maxDynamicSize = {}  #: int: Maximum dynamic memory size occupied by live buffers at any point in time
         self._dynamicSize = {}  #: int: Current dynamic memory size occupied by live buffers
@@ -827,7 +818,7 @@ class NetworkContext():
         obj = self.lookup(value)
         return isinstance(obj, VariableBuffer)
 
-    def hoistTransientBuffer(self, name: str, size: Union[int, str]) -> str:
+    def hoistTransientBuffer(self, name: str, size: int) -> str:
         """Registers a new TransientBuffer in the local context
 
         Parameters
@@ -1139,11 +1130,7 @@ class NodeParser():
 
         for node, name in zip(outputNodes, outputNames):
             if not ctxt.is_global(name):
-                nb = ctxt.VariableBuffer(
-                    name=name,
-                    shape=node.shape,
-                    alias_of = [],
-                )
+                nb = ctxt.VariableBuffer(name = name, shape = node.shape)
                 ctxt.add(nb, 'local')
             else:
                 nb = ctxt.lookup(name)
@@ -2444,8 +2431,7 @@ class NetworkContainer():
                  inputTypes: Dict[str, Type[Pointer]],
                  scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
                  name: str = 'DeeployNetwork',
-                 deeployStateDir: str = "DeeployState",
-                 n_cores: int = 8):
+                 deeployStateDir: str = "DeeployState"):
         """Initializes a new NetworkContainer and its NetworkContext
 
         Parameters
@@ -2463,8 +2449,6 @@ class NetworkContainer():
             Prefix to use in deployment to uniquify tensor names
         deeployStateDir : str
             Path to a directory to dump intermediate outputs
-        n_cores : int
-            The number of cores on which the network will be run
 
 
         """
@@ -2483,8 +2467,7 @@ class NetworkContainer():
         self.ctxt = NetworkContext(variableBuffer = self.Platform.VariableBuffer,
                                    constantBuffer = self.Platform.ConstantBuffer,
                                    structBuffer = self.Platform.StructBuffer,
-                                   transientBuffer = self.Platform.TransientBuffer,
-                                   n_cores = n_cores)
+                                   transientBuffer = self.Platform.TransientBuffer)
 
         self.deeployStateDir = deeployStateDir
 
@@ -2645,13 +2628,10 @@ class NetworkContainer():
 
         """
 
-        self.ctxt = NetworkContext(
-            variableBuffer = self.Platform.VariableBuffer,
-            constantBuffer = self.Platform.ConstantBuffer,
-            structBuffer = self.Platform.StructBuffer,
-            transientBuffer = self.Platform.TransientBuffer,
-            n_cores = self.ctxt.n_cores,
-        )
+        self.ctxt = NetworkContext(variableBuffer = self.Platform.VariableBuffer,
+                                   constantBuffer = self.Platform.ConstantBuffer,
+                                   structBuffer = self.Platform.StructBuffer,
+                                   transientBuffer = self.Platform.TransientBuffer)
 
         log.debug(" - Create IO Bindings")
         self.ctxt = self._createIOBindings(self.ctxt, self.graph)
@@ -3197,18 +3177,15 @@ class NetworkDeployer(NetworkContainer):
     """Deeploy abstraction to contain an entire network and all necessary information to deploy it
     """
 
-    def __init__(
-        self,
-        graph: gs.Graph,
-        deploymentPlatform: DeploymentPlatform,
-        inputTypes: Dict[str, Type[Pointer]],
-        loweringOptimizer: TopologyOptimizer,
-        scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
-        name: str = 'DeeployNetwork',
-        default_channels_first: bool = True,
-        deeployStateDir: str = "DeeployState",
-        n_cores: int = 8,
-    ):
+    def __init__(self,
+                 graph: gs.Graph,
+                 deploymentPlatform: DeploymentPlatform,
+                 inputTypes: Dict[str, Type[Pointer]],
+                 loweringOptimizer: TopologyOptimizer,
+                 scheduler: Callable[[gs.Graph], Schedule] = lambda graph: list(graph.nodes),
+                 name: str = 'DeeployNetwork',
+                 default_channels_first: bool = True,
+                 deeployStateDir: str = "DeeployState"):
         """Initialize a new NetworkDeployer
 
         Parameters
@@ -3237,15 +3214,7 @@ class NetworkDeployer(NetworkContainer):
 
 
         """
-        super().__init__(
-            graph = graph,
-            platform = deploymentPlatform,
-            inputTypes = inputTypes,
-            scheduler = scheduler,
-            name = name,
-            deeployStateDir = deeployStateDir,
-            n_cores = n_cores,
-        )
+        super().__init__(graph, deploymentPlatform, inputTypes, scheduler, name, deeployStateDir = deeployStateDir)
 
         self.loweringOptimizer = loweringOptimizer
         self.default_channels_first = default_channels_first

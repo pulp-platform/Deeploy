@@ -38,20 +38,16 @@ class PULPDeployer(SignPropDeployer):
                  name: str = 'DeeployNetwork',
                  default_channels_first = False,
                  deeployStateDir: str = "DeeployStateDir",
-                 inputOffsets = {},
-                 n_cores: int = 8):
-        super().__init__(
-            graph = graph,
-            deploymentPlatform = deploymentPlatform,
-            inputTypes = inputTypes,
-            loweringOptimizer = loweringOptimizer,
-            scheduler = scheduler,
-            name = name,
-            default_channels_first = default_channels_first,
-            deeployStateDir = deeployStateDir,
-            inputOffsets = inputOffsets,
-            n_cores = n_cores,
-        )
+                 inputOffsets = {}):
+        super().__init__(graph,
+                         deploymentPlatform,
+                         inputTypes,
+                         loweringOptimizer,
+                         scheduler,
+                         name,
+                         default_channels_first = default_channels_first,
+                         deeployStateDir = deeployStateDir,
+                         inputOffsets = inputOffsets)
 
         self.loweringOptimizer.passes += [
             TransposeMatmulInputsPass(),
@@ -67,7 +63,6 @@ class PULPDeployer(SignPropDeployer):
         ]
 
         self.extNameCount = 0
-        self.n_cores = n_cores
 
     def annotateNCores(self) -> None:
         for layer in self.layerBinding.values():
