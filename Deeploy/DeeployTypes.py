@@ -3220,7 +3220,6 @@ class NetworkDeployer(NetworkContainer):
         self.default_channels_first = default_channels_first
 
         self.prepared = False
-        self.n_cores = n_cores
 
     def __repr__(self):
         return super().__repr__(
