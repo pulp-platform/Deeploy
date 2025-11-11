@@ -2,11 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Any, Union
-
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import CodeGenVerbosity, NetworkContext, NetworkDeployer, ONNXLayer, _NoVerbosity
+from Deeploy.DeeployTypes import CodeGenVerbosity, DeploymentEngine, NetworkContext, NetworkDeployer, _NoVerbosity
 
 
 class NetworkDeployerWrapper(NetworkDeployer):
@@ -68,8 +66,8 @@ class NetworkDeployerWrapper(NetworkDeployer):
         return self._innerObject.generateBufferAllocationCode()
 
     # MultiEngineDeployer augment
-    def _mapNode(self, node: gs.Node) -> Union[ONNXLayer, Any]:
-        return self._innerObject._mapNode(node)
+    def _selectEngine(self, node: gs.Node) -> DeploymentEngine:
+        return self._innerObject._selectEngine(node)
 
     def _printMemorySummary(self):
         return self._innerObject._printMemorySummary()

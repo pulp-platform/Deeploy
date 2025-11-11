@@ -26,6 +26,7 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel, AnnotateNeurekaWeightMemoryLevel
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 
 
@@ -75,6 +76,10 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
         platform.engines[0].enable3x3 = True
     if args.enableStrides:
         platform.engines[0].enableStrides = True
+
+    clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
+    for cluster in clusters:
+        cluster.n_cores = args.cores
 
     for index, num in enumerate(test_inputs):
         _type, offset = inferTypeAndOffset(num, signProp)
@@ -195,6 +200,13 @@ if __name__ == '__main__':
     parser.add_argument('--plotMemAlloc',
                         action = 'store_true',
                         help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
+    parser.add_argument(
+        "--cores",
+        type = int,
+        default = 1,
+        help =
+        "Number of cores on which the network is run. Currently, required for im2col buffer sizing on Siracusa. Default: 1."
+    )
 
     parser.set_defaults(shouldFail = False)
     args = parser.parse_args()

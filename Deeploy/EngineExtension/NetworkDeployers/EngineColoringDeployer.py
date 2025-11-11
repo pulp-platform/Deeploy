@@ -2,13 +2,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Any, Callable, Dict, Type, Union
+from typing import Callable, Dict, Type
 
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
-from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, ONNXLayer, Schedule, TopologyOptimizer
+from Deeploy.DeeployTypes import DeploymentEngine, DeploymentPlatform, NetworkDeployer, Schedule, TopologyOptimizer
 from Deeploy.EngineExtension.OptimizationPasses.TopologyOptimizationPasses.EngineColoringPasses import \
     EngineColoringPass, EngineMapper
 
@@ -48,14 +48,14 @@ class EngineColoringDeployer(NetworkDeployer):
         ) == 0, f"Missing engine color for nodes {[node.name for node in uncoloredNodes]} with operations {uncoloredOperations}"
         return graph
 
-    def _mapNode(self, node: gs.Node) -> Union[ONNXLayer, Any]:
+    def _selectEngine(self, node: gs.Node) -> DeploymentEngine:
         assert "engine" in node.attrs, f"Node {node.name} doesn't have an engine color."
         engineName = node.attrs["engine"]
         assert isinstance(engineName, str) and engineName in self.engineDict, \
             f"Node {node.name} has an invalid engine {engineName} assigned."
         engine = self.engineDict[engineName]
         assert node.op in engine.Mapping, f"No mapping found for {node.op} in engine {engine.name}"
-        return engine.Mapping[node.op](node)
+        return engine
 
 
 class EngineColoringDeployerWrapper(EngineColoringDeployer, NetworkDeployerWrapper):

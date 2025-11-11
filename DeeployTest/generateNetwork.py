@@ -20,7 +20,7 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Debu
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
-from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPPlatform
 
 
 def generateNetwork(args):
@@ -83,6 +83,10 @@ def generateNetwork(args):
             test_outputs = [test_outputs[-2]]
 
     platform, signProp = mapPlatform(args.platform)
+
+    clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
+    for cluster in clusters:
+        cluster.n_cores = args.cores
 
     inputTypes = {}
     inputOffsets = {}
@@ -183,6 +187,13 @@ if __name__ == '__main__':
                         'If not specified, offsets are set to 0. '
                         'Example: --input-offset-map input_0=0 input_1=128 ...')
     parser.add_argument('--shouldFail', action = 'store_true')
+    parser.add_argument(
+        "--cores",
+        type = int,
+        default = 1,
+        help =
+        "Number of cores on which the network is run. Currently, required for im2col buffer sizing on Siracusa. Default: 1.",
+    )
     parser.set_defaults(shouldFail = False)
 
     args = parser.parse_args()

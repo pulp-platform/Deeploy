@@ -7,11 +7,11 @@ from Deeploy.DeeployTypes import NodeTemplate
 referenceTemplate = NodeTemplate("""
 // Float Mul with parallelism and 6x unrolling (Name: ${nodeName}, Op: ${nodeOp})
 
-int8_t ${nodeName}_core_id = pi_core_id();
-int8_t ${nodeName}_log2Core = log2(NUM_CORES);
+uint32_t ${nodeName}_core_id = pi_core_id();
+uint32_t ${nodeName}_log2Core = (uint32_t) log2(NUM_CORES);
 uint32_t ${nodeName}_chunk = (${size} >> ${nodeName}_log2Core) + ((${size} & (NUM_CORES-1)) != 0);
-uint32_t ${nodeName}_start = MIN(${nodeName}_chunk * ${nodeName}_core_id, ${size});
-uint32_t ${nodeName}_end = MIN(${nodeName}_start + ${nodeName}_chunk, ${size});
+uint32_t ${nodeName}_start = MIN(${nodeName}_chunk * ${nodeName}_core_id, (uint32_t) ${size});
+uint32_t ${nodeName}_end = MIN(${nodeName}_start + ${nodeName}_chunk, (uint32_t) ${size});
 
 if (${nodeName}_start < ${nodeName}_end) {
     float32_t ${nodeName}_scalar = ${B}[0];
