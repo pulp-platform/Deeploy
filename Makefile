@@ -90,9 +90,11 @@ emulators: snitch_runtime pulp-sdk qemu banshee mempool
 
 ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/pulp-platform/llvm-project.git \
-	 -b main && \
-	cd ${TOOLCHAIN_DIR}/llvm-project && git checkout ${LLVM_COMMIT_HASH} && \
+	git init llvm-project && \
+	cd ${TOOLCHAIN_DIR}/llvm-project && \
+	git remote add origin https://github.com/pulp-platform/llvm-project.git && \
+	git fetch --depth=1 origin ${LLVM_COMMIT_HASH} && \
+	git checkout ${LLVM_COMMIT_HASH} && \
 	git submodule update --init --recursive
 
 ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
