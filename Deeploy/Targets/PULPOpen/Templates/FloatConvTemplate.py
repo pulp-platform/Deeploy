@@ -71,39 +71,6 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
         return ctxt, operatorRepresentation, [im2col_name]
 
 
-class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
-
-    def __init__(self, templateStr):
-        super().__init__(templateStr)
-
-    @staticmethod
-    def computeTransientBuffersSize(
-            ctxt: NetworkContext,
-            operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-
-        # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
-        im2col_dim = (operatorRepresentation["weight_type"].typeWidth // 8) * operatorRepresentation[
-            "n_cores"] * operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']
-
-        im2col_name = operatorRepresentation['nodeName'] + "_buffer"
-
-        return [(im2col_name, im2col_dim)]
-
-    def hoistTransientBuffers(self, ctxt: NetworkContext,
-                              operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        im2col_name, im2col_dim = PULP2DFloatDWConvIm2ColTemplate.computeTransientBuffersSize(
-            ctxt, operatorRepresentation)[0]
-        ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
-
-        # Manually set the type of the im2col buffer to match the input type, since it defaults to void for transient buffers
-        ctxt.lookup(im2col_name)._type.referencedType = ctxt.lookup(
-            operatorRepresentation['data_in'])._type.referencedType
-
-        operatorRepresentation['ctxtBuffer'] = im2col_name
-        operatorRepresentation['ctxtBufferSize'] = im2col_dim
-        return ctxt, operatorRepresentation, [im2col_name]
-
-
 reference2DTemplate = NodeTemplate("""
 // 2D FP Conv HWC with ChannelOut parallelism (Name: ${nodeName}, Op: ${nodeOp})
 

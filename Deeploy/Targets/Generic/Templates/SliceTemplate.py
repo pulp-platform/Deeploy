@@ -10,7 +10,6 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 
 
 class _SliceTemplate(NodeTemplate):
-    # WARNING: Currently only supports single axis slicing!
 
     def __init__(self, templateStr):
         super().__init__(templateStr)

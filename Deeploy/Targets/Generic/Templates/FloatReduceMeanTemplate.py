@@ -8,7 +8,6 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 
 
 class _FloatReduceMeanTemplate(NodeTemplate):
-    # WARNING: Currently only supports single axis reducing!
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
