@@ -251,7 +251,7 @@ class Conv2DTileConstraint(TileConstraint):
         # Get to-be-tiled tensor buffers
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
-        
+
         weightBufferName = parseDict['weight']
         biasBufferName = parseDict['bias']
 
@@ -311,8 +311,10 @@ class Conv2DTileConstraint(TileConstraint):
         effectiveHeight = inputHeightVar + ((pads[0] + pads[2]) * (inputHeightVar == inputBuffer.shape[1]))
         effectiveWidth = inputWidthVar + ((pads[1] + pads[3]) * (inputWidthVar == inputBuffer.shape[2]))
 
-        tilerModel.addConstraint((outputHeightVar == (effectiveHeight - dilations[0] * (weightHeightVar - 1) - 1) // strides[0] + 1))
-        tilerModel.addConstraint((outputWidthVar == (effectiveWidth - dilations[1] * (weightWidthVar - 1) - 1) // strides[1] + 1))
+        tilerModel.addConstraint(
+            (outputHeightVar == (effectiveHeight - dilations[0] * (weightHeightVar - 1) - 1) // strides[0] + 1))
+        tilerModel.addConstraint(
+            (outputWidthVar == (effectiveWidth - dilations[1] * (weightWidthVar - 1) - 1) // strides[1] + 1))
 
         #   Add constraint for input channel size match
         #   (Depends on weight output channel and conv grouping)
