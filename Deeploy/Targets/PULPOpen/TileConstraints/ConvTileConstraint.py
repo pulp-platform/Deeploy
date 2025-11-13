@@ -395,9 +395,10 @@ class Conv2DTileConstraint(TileConstraint):
             inputHSize = outputHSize * strideH + kernelShape[0] - (tilePadTop + tilePadBottom) - 1
             inputWSize = outputWSize * strideW + kernelShape[1] - (tilePadLeft + tilePadRight) - 1
 
-            # Mitigating all situations other than the worst case assumed earlier
-            inputHSize = min(inputHSize, inputDims[1])
-            inputWSize = min(inputWSize, inputDims[2])
+            # Clamp to remaining input size from the current offset
+            # This prevents reading beyond input boundaries for edge tiles
+            inputHSize = min(inputHSize, inputDims[1] - inputHOffset)
+            inputWSize = min(inputWSize, inputDims[2] - inputWOffset)
         else:
             # Use previous version, compatible with RQ layers
             inputHSize = outputHSize * strideH + (kernelShape[0] - 1) - (tilePadTop + tilePadBottom)
