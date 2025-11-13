@@ -234,6 +234,18 @@ class Conv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        """
+        Add geometrical constraints for Conv2D tiling.
+
+        For spatial tiling, input tiles require extra memory for overlap regions
+        at tile boundaries (kernel receptive field). This method accounts for worst-case
+        overlap on all sides.
+
+        Future optimization: Currently uses worst-case memory allocation (kernel_size - 1
+        on all sides). A more memory-efficient approach would compute exact
+        per-tile memory requirements during serializeTilingSolution based on actual tile
+        positions, but this requires more extensive framework changes.
+        """
 
         # Get to-be-tiled tensor's buffers
         inputBufferName = parseDict['data_in']
@@ -281,6 +293,7 @@ class Conv2DTileConstraint(TileConstraint):
 
         inputBuffer = ctxt.lookup(inputBufferName)
 
+        # Effective input size for output calculation (always includes full padding)
         effectiveHeight = inputHeightVar + ((padding[0] + padding[2]) * (inputHeightVar == inputBuffer.shape[1]))
         effectiveWidth = inputWidthVar + ((padding[1] + padding[3]) * (inputWidthVar == inputBuffer.shape[2]))
 
@@ -306,19 +319,25 @@ class Conv2DTileConstraint(TileConstraint):
         weightInChannelVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 3)
 
         strides = parseDict["strides"]
-        padding = parseDict["pads"]
 
-        # RW: Conv only tiled on outchannel
-        tilerModel.addConstraint(inputHeightVar == parseDict['dim_im_in_x'])
-        tilerModel.addConstraint(inputWidthVar == parseDict['dim_im_in_y'])
+        # Keep input entire channels (required for im2col algorithm)
         tilerModel.addConstraint(inputChannelVar == parseDict['ch_im_in'])
 
+        # Require minimum spatial dimensions to be at least kernel size
+        tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'])
+        tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'])
+
+        # Ensure input tiles are compatible with stride
+        tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
+        tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
+
+        # Keep entire weight dimensions
         tilerModel.addConstraint(weightHeightVar == parseDict['dim_kernel_x'])
         tilerModel.addConstraint(weightWidthVar == parseDict['dim_kernel_y'])
         tilerModel.addConstraint(weightInChannelVar == parseDict['ch_im_in'])
 
-        if (parseDict["ch_im_out"] >= 8):
-            tilerModel.addMinTileSizeConstraint(parseDict, 'ch_im_out', outputChannelVar, 8)
+        # Keep entire output channels
+        tilerModel.addConstraint(outputChannelVar == parseDict['ch_im_out'])
 
         return tilerModel
 
@@ -328,11 +347,18 @@ class Conv2DTileConstraint(TileConstraint):
 
         inputBuffer = ctxt.lookup(name = parseDict['data_in'])
         weightBuffer = ctxt.lookup(name = parseDict['weight'])
+        outputBuffer = ctxt.lookup(name = parseDict['data_out'])
 
         symbolicParseDict = parseDict.copy()
+
         symbolicParseDict['dim_im_in_x'] = tilerModel.getTensorDimVar(inputBuffer.name, 1)
+        symbolicParseDict['dim_im_in_y'] = tilerModel.getTensorDimVar(inputBuffer.name, 2)
+
         symbolicParseDict['dim_kernel_x'] = tilerModel.getTensorDimVar(weightBuffer.name, 1)
         symbolicParseDict['dim_kernel_y'] = tilerModel.getTensorDimVar(weightBuffer.name, 2)
+
+        symbolicParseDict['dim_im_out_x'] = tilerModel.getTensorDimVar(outputBuffer.name, 1)
+        symbolicParseDict['dim_im_out_y'] = tilerModel.getTensorDimVar(outputBuffer.name, 2)
 
         return symbolicParseDict
 
