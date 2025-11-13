@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+set(ProjectId ${TESTNAME})
+
+# set($ENV{KCONFIG_CONFIG} ${CMAKE_CURRENT_LIST_DIR}/sdk.config)
+# set(${SDKCONFIG_DIR} ${CMAKE_CURRENT_LIST_DIR})
+
+
+set(${SDKCONFIG_FILE} ${CMAKE_CURRENT_LIST_DIR}/sdk.config)
+
+file(GLOB_RECURSE SOURCES
+    src/CycleCounter.c
+    src/deeploytest.c
+)
+
+add_deeploy_executable(${ProjectId} EXCLUDE_FROM_ALL ${SOURCES})
+# add_executable(${ProjectId} ${SOURCES})
+target_include_directories(${ProjectId} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc)
+
+target_link_libraries(${ProjectId} PRIVATE network deeploylib)
+target_compile_options(${ProjectId} INTERFACE network)
+add_gvsoc_emulation(${ProjectId} "gap9.evk")
+
+link_compile_dump(${TESTNAME})

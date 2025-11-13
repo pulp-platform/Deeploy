@@ -73,19 +73,20 @@ endfunction()
 # binary on the gvsoc simulator. To give extra flags to the gvsoc command, set
 # the GVSOC_EXTRA_FLAGS variable.
 macro(add_gvsoc_emulation name target)
-	if(NOT DEFINED ENV{GVSOC_INSTALL_DIR})
+	if(NOT DEFINED GVSOC_INSTALL_DIR)
 		message(FATAL_ERROR "Environment variable GVSOC_INSTALL_DIR not set")
 	endif()
 	set(GVSOC_WORKDIR ${CMAKE_BINARY_DIR}/gvsoc_workdir)
 	make_directory(${GVSOC_WORKDIR})
-	set(GVSOC_EXECUTABLE "$ENV{GVSOC_INSTALL_DIR}/bin/gvsoc")
+	set(GVSOC_EXECUTABLE "${GVSOC_INSTALL_DIR}/bin/gvsoc")
 	set(GVSOC_BINARY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${name}")
 	add_custom_target(gvsoc_${name}
 		DEPENDS ${name}
+		WORKING_DIRECTORY ${GVSOC_WORKDIR}
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/*.bin ${GVSOC_WORKDIR}/ || true
 		COMMAND ${GVSOC_EXECUTABLE} --target=${target} --binary ${GVSOC_BINARY} --work-dir=${GVSOC_WORKDIR} ${GVSOC_EXTRA_FLAGS} image flash run
 		COMMENT "Simulating deeploytest ${name} with gvsoc for the target ${target}"
 		POST_BUILD
 		USES_TERMINAL
-		VERBATIM
 	)
 endmacro()

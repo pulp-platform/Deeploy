@@ -50,5 +50,20 @@ elseif(DEEPLOY_ARCH STREQUAL SNITCH)
   add_subdirectory(Platforms/Snitch)
 elseif(DEEPLOY_ARCH STREQUAL CHIMERA)
   add_subdirectory(Platforms/Chimera)
+elseif(platform STREQUAL GAP9)
 
+  file(GLOB_RECURSE HEXLIST
+    "${GENERATED_SOURCE}/hex/**"
+  )
+
+  list(APPEND GVSOC_EXTRA_FLAGS --target-property=boot.flash_device=mram --target-property=boot.mode=flash)
+
+  if (NOT HEXLIST)
+    target_compile_options(network PUBLIC -DNOFLASH)
+  else()
+    gvsoc_flags_add_files_to_hyperflash(GVSOC_HEX_HYPERFLASH_FLAGS HEXLIST)
+    list(APPEND GVSOC_EXTRA_FLAGS ${GVSOC_HEX_HYPERFLASH_FLAGS})
+  endif()
+
+  add_subdirectory(Platforms/GAP9)
 endif()
