@@ -65,6 +65,8 @@ python testRunner_softhier.py -t Tests/Adder --toolchain=GCC
 python testRunner_chimera.py -t Tests/Adder
 ```
 
+For the experimental support of GAP9, please refer to the [GAP9.md](GAP9.md) file.
+
 To restart and connect to the container, run:
 ```
 docker start -i deeploy_main
