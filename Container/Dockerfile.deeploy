@@ -16,6 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 ENV PATH="/root/.cargo/bin:/app/bender:${PATH}"
 ENV LLVM_INSTALL_DIR=/app/install/llvm
+ENV GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
 
 WORKDIR /app
 
@@ -24,9 +25,14 @@ COPY toolchain/*.patch toolchain/
 COPY Makefile ./
 COPY requirements-dev.txt ./
 
+# Install SSH keys to access private repositories
+RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan iis-git.ee.ethz.ch >> ~/.ssh/known_hosts
+
 # Compile emulators
 # WIESEP: We need to already clean up some space, otherwise the GitHub runners run out of disk space
 RUN --mount=type=cache,target=/ccache \
+    --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/root/.cargo/registry \
     ccache -z && \
     make pulp-sdk chimera-sdk qemu mempool banshee xtensor && \
     make gvsoc && \
@@ -52,10 +58,19 @@ elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     cp  /app/bender /bin; \
 fi
 
-# Compile Snitch Runtime
+# Compile Snitch Runtime and GAP9 SDK without ccache wrapping
 ENV CC="gcc"
 ENV CXX="g++"
+
+RUN --mount=type=ssh \
+    --mount=type=cache,target=/ccache \
+    --mount=type=cache,target=/root/.cache/pip \
+    ccache -z && \
+    make gap9-sdk && \
+    ccache -s
+
 RUN --mount=type=cache,target=/ccache \
+    --mount=type=cache,target=/root/.cache/pip \
     ccache -z && \
     make snitch_runtime && \
     ccache -s
@@ -68,11 +83,13 @@ FROM ubuntu:22.04 AS deeploy
 
 ARG TARGETPLATFORM
 ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_VERSION=3.31.1
 ENV TZ=Etc/UTC
 
 # Export symbols necessary for Deeploy's build flow
 ENV CMAKE=/usr/bin/cmake
 ENV PULP_SDK_HOME=/app/install/pulp-sdk
+ENV GAP_SDK_HOME=/app/install/gap9-sdk
 ENV SNITCH_HOME=/app/install/snitch_cluster
 ENV CHIMERA_SDK_HOME=/app/install/chimera-sdk
 ENV LLVM_INSTALL_DIR=/app/install/llvm
@@ -80,15 +97,23 @@ ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
 ENV SOFTHIER_INSTALL_DIR=/app/install/softhier
 ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
 ENV MEMPOOL_HOME=/app/install/mempool
+ENV GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
 ENV PATH=/root/.cargo/bin:/app/install/qemu/bin:/app/install/banshee:$PATH
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 WORKDIR /app
 
 COPY pyproject.toml ./
+COPY Container/amd64.list ./
 
 # Install dependencies
-RUN mkdir -p /root/.cargo/bin/ && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/root/.cache/pip \
+    mkdir -p /root/.cargo/bin/ && \
     apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y git-lfs \
     wget \
     ccache \
@@ -97,32 +122,62 @@ RUN mkdir -p /root/.cargo/bin/ && \
     libpixman-1-dev \
     libsdl2-dev \
     python-is-python3 \
+    python3 \
     python3.10-venv \
     python3.10-distutils \
-    gcc && \
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py && \
-    rm get-pip.py && \
+    python3-pip \
+    zsh \
+    nano \
+    sudo \
+    gdb-multiarch \
+    device-tree-compiler \
+    libsndfile1-dev && \
     pip install nvidia-pyindex && \
+    pip install --upgrade pip setuptools wheel && \
     pip install toml-to-requirements && \
     toml-to-req --toml-file pyproject.toml && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt && \
+    rm requirements.txt pyproject.toml
+
+# # Install Oh My ZSH
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \
+    sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="cypher"/' ~/.zshrc
+
+# Install AMD64 libraries on ARM64 for GCC GAP9 compiler support
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+<<CMD_EOF
+if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+cp amd64.list /etc/apt/sources.list.d/ && \
+apt-get update && \
+dpkg --add-architecture amd64 && \
+apt-get install -y --no-install-recommends \
+    libc6:amd64 libstdc++6:amd64 zlib1g:amd64 \
+    libmpc3:amd64 libmpfr6:amd64 libgmp10:amd64 && \
+ldconfig; \
+fi
+rm amd64.list
+CMD_EOF
 
 # Install CMake
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    wget https://github.com/Kitware/CMake/releases/download/v3.24.0/cmake-3.24.0-linux-x86_64.sh && \
-    chmod +x cmake-3.24.0-linux-x86_64.sh && \
-    ./cmake-3.24.0-linux-x86_64.sh --prefix=/usr --skip-license; \
+    wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
+    chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
+    ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --prefix=/usr --skip-license && \
+    rm cmake-${CMAKE_VERSION}-linux-x86_64.sh; \
 elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    wget https://github.com/Kitware/CMake/releases/download/v3.24.0/cmake-3.24.0-linux-aarch64.sh && \
-    chmod +x ./cmake-3.24.0-linux-aarch64.sh && \
-    ./cmake-3.24.0-linux-aarch64.sh --prefix=/usr --skip-license; \
+    wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-aarch64.sh && \
+    chmod +x ./cmake-${CMAKE_VERSION}-linux-aarch64.sh && \
+    ./cmake-${CMAKE_VERSION}-linux-aarch64.sh --prefix=/usr --skip-license && \
+    rm cmake-${CMAKE_VERSION}-linux-aarch64.sh; \
 fi
 
 COPY --from=toolchain /app/core-requirements.txt ./core-requirements.txt
 COPY --from=toolchain /app/gapy-requirements.txt ./gapy-requirements.txt
 COPY --from=toolchain /app/requirements-dev.txt ./
-RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-requirements.txt && \
+    rm core-requirements.txt gapy-requirements.txt requirements-dev.txt
 
 # Copy pre-built toolchains and emulators
 COPY --from=toolchain /app/install ./install

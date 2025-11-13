@@ -1,0 +1,260 @@
+diff --git a/.gitignore b/.gitignore
+index f88e015f5..282fb4a39 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -8,6 +8,7 @@ BUILD*
+ junit-reports/
+ reports/
+ gaptest_reports/
++.gap9-venv
+ 
+ 
+ # SDK generated folders
+diff --git a/configs/common.sh b/configs/common.sh
+index 67d0628b5..54bb2e200 100644
+--- a/configs/common.sh
++++ b/configs/common.sh
+@@ -80,7 +80,7 @@ export PULP_CONFIGS_PATH=$INSTALL_DIR/configs
+ export GVSOC_MODULES="${GAP_SDK_HOME}/gvsoc/gvsoc/models;${GAP_SDK_HOME}/gvsoc/gvsoc_gap"
+ export PYTHONPATH="${GAP_SDK_HOME}/gvsoc/gvsoc/models/:${GAP_SDK_HOME}/gvsoc/gvsoc_gap:$PYTHONPATH"
+ if [ -d "$GAP_SDK_HOME/gvsoc/gvsoc_libs" ]; then
+-    export CONFIG_GVSOC_SKIP_UDMA_BUILD=1
++    export CONFIG_GVSOC_SKIP_UDMA_BUILD=0
+ fi
+ 
+ # gaptest
+diff --git a/gvsoc/gvsoc_gap/gap/gap9/soc.py b/gvsoc/gvsoc_gap/gap/gap9/soc.py
+index 0498f93d2..165e6cece 100644
+--- a/gvsoc/gvsoc_gap/gap/gap9/soc.py
++++ b/gvsoc/gvsoc_gap/gap/gap9/soc.py
+@@ -438,22 +438,22 @@ class Soc(st.Component):
+         self.bind(udma, 'i2s1_ws_out', udma, 'sfu_ws_in_1')
+         self.bind(udma, 'i2s2_ws_out', udma, 'sfu_ws_in_2')
+ 
+-        self.bind(udma, 'sfu_stream_in_ready_0', udma, 'stream_in_ready_0')
+-        self.bind(udma, 'sfu_stream_in_ready_1', udma, 'stream_in_ready_1')
+-        self.bind(udma, 'sfu_stream_in_ready_2', udma, 'stream_in_ready_2')
+-        self.bind(udma, 'sfu_stream_in_ready_3', udma, 'stream_in_ready_3')
+-        self.bind(udma, 'sfu_stream_in_ready_4', udma, 'stream_in_ready_4')
+-        self.bind(udma, 'sfu_stream_in_ready_5', udma, 'stream_in_ready_5')
+-        self.bind(udma, 'sfu_stream_in_ready_6', udma, 'stream_in_ready_6')
+-        self.bind(udma, 'sfu_stream_in_ready_7', udma, 'stream_in_ready_7')
+-        self.bind(udma, 'sfu_stream_in_ready_8', udma, 'stream_in_ready_8')
+-        self.bind(udma, 'sfu_stream_in_ready_9', udma, 'stream_in_ready_9')
+-        self.bind(udma, 'sfu_stream_in_ready_10', udma, 'stream_in_ready_10')
+-        self.bind(udma, 'sfu_stream_in_ready_11', udma, 'stream_in_ready_11')
+-        self.bind(udma, 'sfu_stream_in_ready_12', udma, 'stream_in_ready_12')
+-        self.bind(udma, 'sfu_stream_in_ready_13', udma, 'stream_in_ready_13')
+-        self.bind(udma, 'sfu_stream_in_ready_14', udma, 'stream_in_ready_14')
+-        self.bind(udma, 'sfu_stream_in_ready_15', udma, 'stream_in_ready_15')
++        # self.bind(udma, 'sfu_stream_in_ready_0', udma, 'stream_in_ready_0')
++        # self.bind(udma, 'sfu_stream_in_ready_1', udma, 'stream_in_ready_1')
++        # self.bind(udma, 'sfu_stream_in_ready_2', udma, 'stream_in_ready_2')
++        # self.bind(udma, 'sfu_stream_in_ready_3', udma, 'stream_in_ready_3')
++        # self.bind(udma, 'sfu_stream_in_ready_4', udma, 'stream_in_ready_4')
++        # self.bind(udma, 'sfu_stream_in_ready_5', udma, 'stream_in_ready_5')
++        # self.bind(udma, 'sfu_stream_in_ready_6', udma, 'stream_in_ready_6')
++        # self.bind(udma, 'sfu_stream_in_ready_7', udma, 'stream_in_ready_7')
++        # self.bind(udma, 'sfu_stream_in_ready_8', udma, 'stream_in_ready_8')
++        # self.bind(udma, 'sfu_stream_in_ready_9', udma, 'stream_in_ready_9')
++        # self.bind(udma, 'sfu_stream_in_ready_10', udma, 'stream_in_ready_10')
++        # self.bind(udma, 'sfu_stream_in_ready_11', udma, 'stream_in_ready_11')
++        # self.bind(udma, 'sfu_stream_in_ready_12', udma, 'stream_in_ready_12')
++        # self.bind(udma, 'sfu_stream_in_ready_13', udma, 'stream_in_ready_13')
++        # self.bind(udma, 'sfu_stream_in_ready_14', udma, 'stream_in_ready_14')
++        # self.bind(udma, 'sfu_stream_in_ready_15', udma, 'stream_in_ready_15')
+ 
+         self.bind(udma, 'stream_in_data_0', udma, 'sfu_stream_in_data_0')
+         self.bind(udma, 'stream_in_data_1', udma, 'sfu_stream_in_data_1')
+@@ -489,22 +489,22 @@ class Soc(st.Component):
+         self.bind(udma, 'stream_out_ready_14', udma, 'sfu_stream_out_ready_14')
+         self.bind(udma, 'stream_out_ready_15', udma, 'sfu_stream_out_ready_15')
+ 
+-        self.bind(udma, 'sfu_stream_out_data_0', udma, 'stream_out_data_0')
+-        self.bind(udma, 'sfu_stream_out_data_1', udma, 'stream_out_data_1')
+-        self.bind(udma, 'sfu_stream_out_data_2', udma, 'stream_out_data_2')
+-        self.bind(udma, 'sfu_stream_out_data_3', udma, 'stream_out_data_3')
+-        self.bind(udma, 'sfu_stream_out_data_4', udma, 'stream_out_data_4')
+-        self.bind(udma, 'sfu_stream_out_data_5', udma, 'stream_out_data_5')
+-        self.bind(udma, 'sfu_stream_out_data_6', udma, 'stream_out_data_6')
+-        self.bind(udma, 'sfu_stream_out_data_7', udma, 'stream_out_data_7')
+-        self.bind(udma, 'sfu_stream_out_data_8', udma, 'stream_out_data_8')
+-        self.bind(udma, 'sfu_stream_out_data_9', udma, 'stream_out_data_9')
+-        self.bind(udma, 'sfu_stream_out_data_10', udma, 'stream_out_data_10')
+-        self.bind(udma, 'sfu_stream_out_data_11', udma, 'stream_out_data_11')
+-        self.bind(udma, 'sfu_stream_out_data_12', udma, 'stream_out_data_12')
+-        self.bind(udma, 'sfu_stream_out_data_13', udma, 'stream_out_data_13')
+-        self.bind(udma, 'sfu_stream_out_data_14', udma, 'stream_out_data_14')
+-        self.bind(udma, 'sfu_stream_out_data_15', udma, 'stream_out_data_15')
++        # self.bind(udma, 'sfu_stream_out_data_0', udma, 'stream_out_data_0')
++        # self.bind(udma, 'sfu_stream_out_data_1', udma, 'stream_out_data_1')
++        # self.bind(udma, 'sfu_stream_out_data_2', udma, 'stream_out_data_2')
++        # self.bind(udma, 'sfu_stream_out_data_3', udma, 'stream_out_data_3')
++        # self.bind(udma, 'sfu_stream_out_data_4', udma, 'stream_out_data_4')
++        # self.bind(udma, 'sfu_stream_out_data_5', udma, 'stream_out_data_5')
++        # self.bind(udma, 'sfu_stream_out_data_6', udma, 'stream_out_data_6')
++        # self.bind(udma, 'sfu_stream_out_data_7', udma, 'stream_out_data_7')
++        # self.bind(udma, 'sfu_stream_out_data_8', udma, 'stream_out_data_8')
++        # self.bind(udma, 'sfu_stream_out_data_9', udma, 'stream_out_data_9')
++        # self.bind(udma, 'sfu_stream_out_data_10', udma, 'stream_out_data_10')
++        # self.bind(udma, 'sfu_stream_out_data_11', udma, 'stream_out_data_11')
++        # self.bind(udma, 'sfu_stream_out_data_12', udma, 'stream_out_data_12')
++        # self.bind(udma, 'sfu_stream_out_data_13', udma, 'stream_out_data_13')
++        # self.bind(udma, 'sfu_stream_out_data_14', udma, 'stream_out_data_14')
++        # self.bind(udma, 'sfu_stream_out_data_15', udma, 'stream_out_data_15')
+ 
+         # Riscv bus watchpoint
+         if self.get_property('fc/riscv_fesvr_tohost_addr') is not None:
+diff --git a/gvsoc/gvsoc_gap/gap/udma/CMakeLists.txt b/gvsoc/gvsoc_gap/gap/udma/CMakeLists.txt
+index f24f248da..c070d4370 100644
+--- a/gvsoc/gvsoc_gap/gap/udma/CMakeLists.txt
++++ b/gvsoc/gvsoc_gap/gap/udma/CMakeLists.txt
+@@ -24,6 +24,7 @@ vp_model(NAME "gap.udma.udma_v4_gap9_v2_impl"
+     "i2c/v4/udma_i2c_ucode.cpp"
+     "hyper/udma_hyper_v3.cpp"
+     "mram/udma_mram_v2.cpp"
++    "sfu/udma_sfu_v1_empty.cpp"
+ )
+ 
+ vp_model_compile_definitions(NAME "gap.udma.udma_v4_gap9_v2_impl"
+@@ -38,6 +39,7 @@ vp_model_compile_definitions(NAME "gap.udma.udma_v4_gap9_v2_impl"
+     -DHAS_I2C
+     -DHAS_HYPER
+     -DHAS_MRAM
++    -DHAS_EMPTY_SFU
+ )
+ 
+ vp_model_include_directories(NAME "gap.udma.udma_v4_gap9_v2_impl"
+diff --git a/gvsoc/gvsoc_gap/gap/udma/sfu/udma_sfu_v1_empty.cpp b/gvsoc/gvsoc_gap/gap/udma/sfu/udma_sfu_v1_empty.cpp
+index 821fd25f8..39c7e1c7e 100644
+--- a/gvsoc/gvsoc_gap/gap/udma/sfu/udma_sfu_v1_empty.cpp
++++ b/gvsoc/gvsoc_gap/gap/udma/sfu/udma_sfu_v1_empty.cpp
+@@ -15,7 +15,7 @@
+  * limitations under the License.
+  */
+ 
+-/* 
++/*
+  * Authors: Vladimir Popovic, GreenWaves Technologies (vladimir.popovic@greenwaves-technologies.com)
+  */
+ 
+@@ -25,13 +25,104 @@
+ 
+ 
+ 
+-Sfu_periph_empty::Sfu_periph_empty(udma *top, int id, int itf_id) : Udma_periph(top, id)
++Sfu_periph_empty::Sfu_periph_empty(udma *top, int id, int itf_id) : Udma_periph(top, "sfu" + std::to_string(itf_id), id)
+ {
+     std::string itf_name = "sfu" + std::to_string(itf_id);
+     top->traces.new_trace(itf_name, &this->trace, vp::DEBUG);
++
+     top->new_master_port("sfu_irq", &this->irq);
++    top->new_master_port("sfu_pdm_out_0", &this->irq);
++    top->new_master_port("sfu_pdm_out_1", &this->irq);
++    top->new_master_port("sfu_pdm_out_2", &this->irq);
++    top->new_master_port("sfu_pdm_out_3", &this->irq);
++    top->new_master_port("sfu_pdm_out_4", &this->irq);
++    top->new_master_port("sfu_pdm_out_5", &this->irq);
++
++    top->new_master_port("sfu_pdm_in_0", &this->irq);
++    top->new_master_port("sfu_pdm_in_1", &this->irq);
++    top->new_master_port("sfu_pdm_in_2", &this->irq);
++    top->new_master_port("sfu_pdm_in_3", &this->irq);
++    top->new_master_port("sfu_pdm_in_4", &this->irq);
++    top->new_master_port("sfu_pdm_in_5", &this->irq);
++    top->new_master_port("sfu_pdm_in_6", &this->irq);
++    top->new_master_port("sfu_pdm_in_7", &this->irq);
++    top->new_master_port("sfu_pdm_in_8", &this->irq);
++    top->new_master_port("sfu_pdm_in_9", &this->irq);
++    top->new_master_port("sfu_pdm_in_10", &this->irq);
++    top->new_master_port("sfu_pdm_in_11", &this->irq);
++
++    top->new_master_port("sfu_ws_in_0", &this->irq);
++    top->new_master_port("sfu_ws_in_1", &this->irq);
++    top->new_master_port("sfu_ws_in_2", &this->irq);
++
++
++    // top->new_slave_port("sfu_stream_in_ready_0", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_1", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_2", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_3", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_4", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_5", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_6", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_7", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_8", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_9", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_10", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_11", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_12", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_13", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_14", &this->in);
++    // top->new_slave_port("sfu_stream_in_ready_15", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_0", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_1", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_2", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_3", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_4", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_5", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_6", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_7", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_8", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_9", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_10", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_11", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_12", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_13", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_14", &this->in);
++    // top->new_slave_port("sfu_stream_out_data_15", &this->in);
++
++    top->new_master_port("sfu_stream_in_data_0", &this->irq);
++    top->new_master_port("sfu_stream_in_data_1", &this->irq);
++    top->new_master_port("sfu_stream_in_data_2", &this->irq);
++    top->new_master_port("sfu_stream_in_data_3", &this->irq);
++    top->new_master_port("sfu_stream_in_data_4", &this->irq);
++    top->new_master_port("sfu_stream_in_data_5", &this->irq);
++    top->new_master_port("sfu_stream_in_data_6", &this->irq);
++    top->new_master_port("sfu_stream_in_data_7", &this->irq);
++    top->new_master_port("sfu_stream_in_data_8", &this->irq);
++    top->new_master_port("sfu_stream_in_data_9", &this->irq);
++    top->new_master_port("sfu_stream_in_data_10", &this->irq);
++    top->new_master_port("sfu_stream_in_data_11", &this->irq);
++    top->new_master_port("sfu_stream_in_data_12", &this->irq);
++    top->new_master_port("sfu_stream_in_data_13", &this->irq);
++    top->new_master_port("sfu_stream_in_data_14", &this->irq);
++    top->new_master_port("sfu_stream_in_data_15", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_0", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_1", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_2", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_3", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_4", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_5", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_6", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_7", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_8", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_9", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_10", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_11", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_12", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_13", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_14", &this->irq);
++    top->new_master_port("sfu_stream_out_ready_15", &this->irq);
+ }
+- 
++
+ 
+ vp::IoReqStatus Sfu_periph_empty::custom_req(vp::IoReq *req, uint64_t offset)
+ {
+diff --git a/install_python_deps.sh b/install_python_deps.sh
+index 89d9d66d5..3b55961c6 100755
+--- a/install_python_deps.sh
++++ b/install_python_deps.sh
+@@ -60,7 +60,7 @@ then
+         pip3 install -r tools/nntool/tests/requirements.txt
+     fi
+ 
+-    pip3 install -r tools/audio-framework/requirements.txt
++#     pip3 install -r tools/audio-framework/requirements.txt
+     pip3 install -r utils/gapy_v2/requirements.txt
+     pip3 install -r doc/requirements.txt
+ fi

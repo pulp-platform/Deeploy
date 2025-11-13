@@ -28,11 +28,17 @@ help:
 
 # Build only the toolchain image
 toolchain:
-	DOCKER_BUILDKIT=1 docker build -f Dockerfile.toolchain -t $(TOOLCHAIN_IMAGE) ..
+	DOCKER_BUILDKIT=1 docker build \
+	-f Dockerfile.toolchain \
+	-t $(TOOLCHAIN_IMAGE) ..
 
 # Build the final deploy image using the toolchain image
 deeploy:
-	DOCKER_BUILDKIT=1 docker build -f Dockerfile.deeploy --build-arg BASE_IMAGE=$(TOOLCHAIN_IMAGE) -t $(DEEPOY_IMAGE) ..
+	DOCKER_BUILDKIT=1 docker build \
+	--ssh default \
+	-f Dockerfile.deeploy \
+	--build-arg BASE_IMAGE=$(TOOLCHAIN_IMAGE) \
+	-t $(DEEPOY_IMAGE) ..
 
 # Build both
 all: toolchain deeploy
