@@ -378,7 +378,7 @@ class TestRunner():
         command = f"$CMAKE -D TOOLCHAIN={self._args.toolchain} -D GVSOC_INSTALL_DIR={self._dir_gvsoc} -D TOOLCHAIN_INSTALL_DIR={self._dir_toolchain} -D GENERATED_SOURCE={self._dir_gen} -D platform={self._platform} {self.cmake_args} -B {self._dir_build} -D TESTNAME={self._name_test} .."
 
         if self._args.verbose >= 3:
-            command = "VERBOSE=1 " + command
+            command = "VERBOSE=1 " + command + " --log-level debug"
 
         log.debug(f"[TestRunner] Cmake Command: {command}")
 
@@ -387,8 +387,7 @@ class TestRunner():
             raise RuntimeError(f"Configuring cMake project failed on {self._dir_test}")
 
     def build_binary(self):
-        command = f"$CMAKE --build {self._dir_build} --target {self._name_test}"
-
+        command = "$CMAKE"
         if self._args.verbose >= 3:
             command = "VERBOSE=1 " + command
 
