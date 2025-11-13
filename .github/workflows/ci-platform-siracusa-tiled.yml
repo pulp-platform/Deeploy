@@ -47,7 +47,11 @@ jobs:
           {"name":"Hardswish","L1":[750]},
           {"name":"RQHardswish","L1":[750]},
           {"name":"testFloatGEMM","L1":[8000]},
-          {"name":"testFloat2DConvolution","L1":[8000]},
+
+          {"name":"testFloat2DConvolution","L1":[3000]},
+          {"name":"testFloat2DConvolutionBias","L1":[8000]},
+          {"name":"testFloat2DConvolutionZeroBias","L1":[8000]},
+          
           {"name":"testFloatLayerNorm","L1":[2000]},
           {"name":"testFloatRelu","L1":[2000]},
           {"name":"testFloatMaxPool","L1":[2000]},
