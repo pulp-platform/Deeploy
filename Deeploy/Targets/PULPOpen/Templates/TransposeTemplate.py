@@ -93,10 +93,13 @@ class PULPTransposeTemplate(NodeTemplate):
 referenceTemplate = PULPTransposeTemplate("""
 // Transpose ${data_in_shape} -> ${data_out_shape} (Name: ${nodeName}, Op: ${nodeOp})
 ${tileHeader}
+// RW: GCC Segmentation fault
+${data_in_type.referencedType.typeName} (*src)${shapeStr} = (${data_in_type.referencedType.typeName} (*)${shapeStr})<%text>${data_in}</%text>;
+${data_in_type.referencedType.typeName} (*dst)${outShapeStr} = (${data_in_type.referencedType.typeName} (*)${outShapeStr})<%text>${data_out}</%text>;
 % for idx, i in enumerate(perm):
 ${forLoops[idx]}
 % endfor
-((${data_in_type.referencedType.typeName} (*)${outShapeStr})<%text>${data_out}</%text>)${outAccessStr} = ((${data_in_type.referencedType.typeName} (*)${shapeStr})<%text>${data_in}</%text>)${accessStr};
+dst${outAccessStr} = src${accessStr};
 % for idx, i in enumerate(perm):
 }
 % endfor
