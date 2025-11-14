@@ -13,7 +13,7 @@
 #include "testinputs.h"
 #include "testoutputs.h"
 
-#define MAINSTACKSIZE 8000
+// RW: Remove MAINSTACKSIZE because gap9-sdk does not use it
 #define SLAVESTACKSIZE 3800
 
 struct pi_device cluster_dev;
@@ -61,25 +61,14 @@ void CL_CompareFloat(void *arg) {
   pi_cl_team_fork(NUM_CORES, CompareFloatOnCluster, arg);
 }
 
-void PE_RunNetwork(void *arg) {
-#ifndef CI
-  uint32_t core_id = pi_core_id(), cluster_id = pi_cluster_id();
-  printf("[%d %d] Run Network!\n", cluster_id, core_id);
-#endif
-  RunNetwork(pi_core_id(), NUM_CORES);
+void InitNetworkWrapper(void *args) {
+  (void)args;
+  InitNetwork(pi_core_id(), pi_cl_cluster_nb_cores());
 }
 
-void CL_RunNetwork(void *arg) {
-  pi_cl_team_fork(NUM_CORES, PE_RunNetwork, NULL);
-}
-
-void PE_InitNetwork(void *arg) {
-#ifndef CI
-  uint32_t core_id = pi_core_id(), cluster_id = pi_cluster_id();
-  printf("[%d %d] Init Network!\n", cluster_id, core_id);
-#endif
-
-  InitNetwork(pi_core_id(), NUM_CORES);
+void RunNetworkWrapper(void *args) {
+  (void)args;
+  RunNetwork(pi_core_id(), pi_cl_cluster_nb_cores());
 }
 
 int main(void) {
@@ -104,7 +93,7 @@ int main(void) {
 
   struct pi_cluster_task cluster_task;
 
-  pi_cluster_task(&cluster_task, PE_InitNetwork, NULL);
+  pi_cluster_task(&cluster_task, InitNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
@@ -122,7 +111,7 @@ int main(void) {
   printf("Input copied\r\n");
 #endif
 
-  pi_cluster_task(&cluster_task, CL_RunNetwork, NULL);
+  pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   ResetTimer();
   StartTimer();

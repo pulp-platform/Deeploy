@@ -191,6 +191,9 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         }
 
         void InitNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
+        #ifndef CI
+            printf("[%d %d] Init Network!\\n", pi_cluster_id(), pi_core_id());
+        #endif
         """
     retStr += deployer.generateEngineInitializationCode()
     retStr += deployer.generateBufferAllocationCode()
