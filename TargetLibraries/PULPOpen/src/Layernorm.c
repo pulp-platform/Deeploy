@@ -8,6 +8,8 @@
 
 #include "DeeployPULPMath.h"
 
+#include <math.h>
+
 void PULP_Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
                               float32_t *scale, float32_t *bias,
                               float32_t epsilon, uint32_t size,
