@@ -28,3 +28,15 @@ target_compile_options(deeploygap9 PRIVATE
 )
 
 target_link_libraries(deeploygap9 PUBLIC pmsis)
+
+#RW: Link PULP-NN
+#RW: Set PULP-NN version and bitwidth for pulp-nn-mixed
+set(PULPNNVERSION XPULPV2)
+set(PULPNNBITWIDTH 32)
+add_compile_definitions(NUM_CORES=${NUM_CORES})
+add_subdirectory(third_party/pulp-nn-mixed)
+
+#RW: GCC not recognizing -Wno-typedef-redefinition
+target_compile_options(pulp-nn-mixed PRIVATE -Wno-error)
+target_link_libraries(deeploygap9 PUBLIC pulp-nn-mixed)
+

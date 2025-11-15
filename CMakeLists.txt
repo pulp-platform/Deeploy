@@ -235,13 +235,12 @@ if(platform STREQUAL GAP9)
   )
 
   add_subdirectory(TargetLibraries/Generic)
+  add_subdirectory(DeeployTest)
+  setupos(${TESTNAME})
   add_subdirectory(TargetLibraries/GAP9)
   target_include_directories(deeploygap9 PUBLIC TargetLibraries/Generic/inc)
 
-  add_subdirectory(DeeployTest)
   target_link_libraries(deeploylib INTERFACE deeploybasic deeploygap9)
-
-  setupos(${TESTNAME})
 
 endif()
 
