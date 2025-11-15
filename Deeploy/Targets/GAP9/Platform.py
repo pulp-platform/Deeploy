@@ -93,8 +93,9 @@ _includeList = [
 
 class GAP9ClusterEngine(DeploymentEngine):
 
-    def __init__(self, name: str, Mapping = PULPMapping, initCode = "", includeList = _includeList) -> None:
+    def __init__(self, name: str, Mapping = PULPMapping, initCode = "", includeList = _includeList, n_cores: int = 8) -> None:
         super().__init__(name, Mapping, initCode, includeList)
+        self.n_cores = n_cores
 
 
 class GAP9Platform(DeploymentPlatform):

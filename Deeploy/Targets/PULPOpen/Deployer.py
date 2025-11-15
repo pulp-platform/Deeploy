@@ -15,6 +15,7 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Lowe
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, TransposeConstOptPass, \
     TransposeMergePass, TransposeNoPermOptPass, TransposeSplitPass
+from Deeploy.Targets.GAP9.Platform import GAP9ClusterEngine
 from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import RQAddTransposeSquashPass
 
@@ -69,7 +70,7 @@ class PULPDeployer(SignPropDeployer):
             node = layer.node
             engine = self._selectEngine(node)
             opRepr = layer.mapper.parser.operatorRepresentation
-            if isinstance(engine, PULPClusterEngine):
+            if isinstance(engine, (PULPClusterEngine, GAP9ClusterEngine)):
                 opRepr["n_cores"] = engine.n_cores
 
     def bind(self) -> bool:
