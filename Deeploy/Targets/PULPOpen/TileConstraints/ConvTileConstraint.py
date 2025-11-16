@@ -366,9 +366,6 @@ class Conv2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(weightWidthVar == parseDict['dim_kernel_y'])
         tilerModel.addConstraint(weightInChannelVar == parseDict['ch_im_in'])
 
-        # Keep entire output channels
-        tilerModel.addConstraint(outputChannelVar == parseDict['ch_im_out'])
-
         return tilerModel
 
     @staticmethod
