@@ -405,7 +405,7 @@ class Conv2DTileConstraint(TileConstraint):
         (outputBatchOffset, outputHOffset, outputWOffset, outputCOffset) = outputCube.offset
         (outputBatchSize, outputHSize, outputWSize, outputCSize) = outputCube.dims
         (outputBatchAbsoluteOffset, outputHAbsoluteOffset, outputWAbsoluteOffset,
-         outputCAbsoluteOffset) = outputAbsoluteOffsets
+         outputCAbsoluteOffset) = outputAbsoluteOffsets if outputAbsoluteOffsets is not None else outputCube.offset
 
         padTop, padLeft, padBottom, padRight = pads
         strideH, strideW = strides
