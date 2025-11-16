@@ -84,6 +84,13 @@ class GELUGradLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 9  
+        gelu_grad_ops = size * ops_per_element
+        return gelu_grad_ops
+        
         
 class iHardswishLayer(ONNXLayer):
 
@@ -489,6 +496,11 @@ class SGDLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+
+    def computeOps(self):
+        
+        size = self.mapper.parser.operatorRepresentation['size']
+        return size*2
 
 
 class LinearAttentionLayer(ONNXLayer):
