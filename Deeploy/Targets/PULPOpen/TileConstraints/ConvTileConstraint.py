@@ -392,24 +392,28 @@ class Conv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def computeInputCube(
-            kernelShape: Tuple[int, int],
-            pads: Tuple[int, int, int, int],
-            strides: Tuple[int, int],
-            inputCSize: int,
-            outputCube: HyperRectangle,
-            outputDims: Tuple[int, int, int],
-            inputDims: Optional[Tuple[int, int, int]] = None) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
+        kernelShape: Tuple[int, int],
+        pads: Tuple[int, int, int, int],
+        strides: Tuple[int, int],
+        inputCSize: int,
+        outputCube: HyperRectangle,
+        outputDims: Tuple[int, int, int],
+        inputDims: Optional[Tuple[int, int, int]] = None,
+        outputAbsoluteOffsets: Optional[Tuple[int, int, int, int]] = None,
+    ) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
 
         (outputBatchOffset, outputHOffset, outputWOffset, outputCOffset) = outputCube.offset
         (outputBatchSize, outputHSize, outputWSize, outputCSize) = outputCube.dims
+        (outputBatchAbsoluteOffset, outputHAbsoluteOffset, outputWAbsoluteOffset,
+         outputCAbsoluteOffset) = outputAbsoluteOffsets
 
         padTop, padLeft, padBottom, padRight = pads
         strideH, strideW = strides
 
-        tilePadTop = padTop if (outputHOffset == 0) else 0
-        tilePadLeft = padLeft if (outputWOffset == 0) else 0
-        tilePadBottom = padBottom if (outputHOffset + outputHSize == outputDims[1]) else 0
-        tilePadRight = padRight if (outputWOffset + outputWSize == outputDims[2]) else 0
+        tilePadTop = padTop if (outputHAbsoluteOffset == 0) else 0
+        tilePadLeft = padLeft if (outputWAbsoluteOffset == 0) else 0
+        tilePadBottom = padBottom if (outputHAbsoluteOffset + outputHSize == outputDims[1]) else 0
+        tilePadRight = padRight if (outputWAbsoluteOffset + outputWSize == outputDims[2]) else 0
 
         # LMACAN: Calculating the per-dimension relative tile offset without padding
         #         The offset is relative to the upstream bigger tile, and represents the offset to
@@ -500,7 +504,7 @@ class Conv2DTileConstraint(TileConstraint):
         strides = operatorRepresentation['strides']
 
         # Iterate throught the cubes in which the output will be split for tiling
-        for cube in outputCubes:
+        for idx, cube in enumerate(outputCubes):
             # Obtain current cube offsets and dimensions
             (BatchOffset, HOffset, WOffset, COffset) = cube.offset
             (BatchSize, HSize, WSize, CSize) = cube.dims
@@ -514,7 +518,7 @@ class Conv2DTileConstraint(TileConstraint):
                 outputCube = cube,
                 inputDims = ctxt.lookup(varIn).shape,
                 outputDims = ctxt.lookup(varOut).shape,
-            )
+                outputAbsoluteOffsets = absoluteOutputCubes[idx].absoluteOffset)
 
             # Extract individual padding
             padding_left, padding_right, padding_top, padding_bottom = padding_tuple
