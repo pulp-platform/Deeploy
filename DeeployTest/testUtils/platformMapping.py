@@ -61,9 +61,6 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Siracusa_w_neureka":
         Platform = NeurekaPlatform()
-    
-    elif platformName == "Siracusa_w_redmule":
-        Platform = RedmulePlatform()
 
     elif platformName == "Snitch":
         Platform = SnitchPlatform()
