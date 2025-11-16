@@ -248,7 +248,7 @@ class Conv2DTileConstraint(TileConstraint):
         """
 
         # ===== GET NECESSARY INFORMATION =====
-        # Get to-be-tiled tensor buffers
+        #   Get to-be-tiled tensor buffers
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
 
@@ -257,7 +257,7 @@ class Conv2DTileConstraint(TileConstraint):
 
         inputBuffer = ctxt.lookup(inputBufferName)
 
-        # Get other information
+        #   Get other information
         has_bias = False if parseDict['has_bias'] == "false" else True
 
         pads = parseDict["pads"]
@@ -289,8 +289,8 @@ class Conv2DTileConstraint(TileConstraint):
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 3)
 
         #   Weight
-        #   C_out - H - W layout - C_in (depthwise convolution weights,
-        #   with c_in used for grouping different than number of channels)
+        #   C_out - H - W layout - C_in
+        #   (with c_in used for grouping different than number of channels)
         weightOutChannelVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 0)
         weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 1)
         weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBufferName, dimIdx = 2)
@@ -301,7 +301,7 @@ class Conv2DTileConstraint(TileConstraint):
             biasDimVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = 0)
 
         # ===== ADD CONSTRAINTS =====
-        # Add constraint for batch size match between input and output
+        #   Add constraint for batch size match between input and output
         tilerModel.addConstraint(outputBatchVar == inputBatchVar)
 
         #   Add constraint for input width and height sizes match
@@ -335,33 +335,41 @@ class Conv2DTileConstraint(TileConstraint):
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
-        # Get to-be-tiled tensor's buffers
+        # ===== GET NECESSARY INFORMATION =====
+        #   Get to-be-tiled tensor buffers
         inputBuffer = ctxt.lookup(name = parseDict['data_in'])
         weightBuffer = ctxt.lookup(name = parseDict['weight'])
 
+        #   Get other information
+        strides = parseDict["strides"]
+
+        # ===== EXTRACT TENSOR DIMS AS VARS =====
+        #   Input
+        #   NHWC layout
         inputHeightVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 1)
         inputWidthVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 2)
         inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 3)
 
-        outputChannelVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 0)
+        #   Weight
+        #   C_out - H - W layout - C_in
+        #   (with c_in used for grouping different than number of channels)
         weightHeightVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 1)
         weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 2)
         weightInChannelVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 3)
 
-        strides = parseDict["strides"]
-
-        # Keep input entire channels (required for im2col algorithm)
+        # ===== ADD CONSTRAINTS =====
+        #   Keep whole input channels (required for im2col algorithm)
         tilerModel.addConstraint(inputChannelVar == parseDict['ch_im_in'])
 
-        # Require minimum spatial dimensions to be at least kernel size
+        #   Require minimum input spatial dimensions to be at least kernel size for proper convolution application
         tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'])
         tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'])
 
-        # Ensure input tiles are compatible with stride
+        #   Ensure input tiles are compatible with stride
         tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
         tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
 
-        # Keep entire weight dimensions
+        #   Weight should not be tiled
         tilerModel.addConstraint(weightHeightVar == parseDict['dim_kernel_x'])
         tilerModel.addConstraint(weightWidthVar == parseDict['dim_kernel_y'])
         tilerModel.addConstraint(weightInChannelVar == parseDict['ch_im_in'])
@@ -401,14 +409,18 @@ class Conv2DTileConstraint(TileConstraint):
         outputAbsoluteOffsets: Optional[Tuple[int, int, int, int]] = None,
     ) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
 
-        (outputBatchOffset, outputHOffset, outputWOffset, outputCOffset) = outputCube.offset
-        (outputBatchSize, outputHSize, outputWSize, outputCSize) = outputCube.dims
-        (outputBatchAbsoluteOffset, outputHAbsoluteOffset, outputWAbsoluteOffset,
-         outputCAbsoluteOffset) = outputAbsoluteOffsets if outputAbsoluteOffsets is not None else outputCube.offset
+        # Obtain relative and absolute information about the output tile
+        (outputBatchOffset, outputHOffset, outputWOffset, _) = outputCube.offset
+        (outputBatchSize, outputHSize, outputWSize, _) = outputCube.dims
+        (_, outputHAbsoluteOffset, outputWAbsoluteOffset,
+         _) = outputAbsoluteOffsets if outputAbsoluteOffsets is not None else outputCube.offset
 
+        # Extract individual pads and strides
         padTop, padLeft, padBottom, padRight = pads
         strideH, strideW = strides
 
+        # Compute actuale tile padding, depending on tile position (keep padding only for margins situated at the edge).
+        # Required for the Im2Col kernel that handles 0-padding internally.
         tilePadTop = padTop if (outputHAbsoluteOffset == 0) else 0
         tilePadLeft = padLeft if (outputWAbsoluteOffset == 0) else 0
         tilePadBottom = padBottom if (outputHAbsoluteOffset + outputHSize == outputDims[1]) else 0
@@ -431,6 +443,7 @@ class Conv2DTileConstraint(TileConstraint):
             inputHSize = min(inputHSize, inputDims[1] - inputHOffset)
             inputWSize = min(inputWSize, inputDims[2] - inputWOffset)
 
+        # Generate input tile object
         InCube = HyperRectangle((outputBatchOffset, inputHOffset, inputWOffset, 0),
                                 (outputBatchSize, inputHSize, inputWSize, inputCSize))
 
@@ -505,8 +518,8 @@ class Conv2DTileConstraint(TileConstraint):
         # Iterate throught the cubes in which the output will be split for tiling
         for idx, cube in enumerate(outputCubes):
             # Obtain current cube offsets and dimensions
-            (BatchOffset, HOffset, WOffset, COffset) = cube.offset
-            (BatchSize, HSize, WSize, CSize) = cube.dims
+            COffset = cube.offset[3]
+            (_, HSize, WSize, CSize) = cube.dims
 
             # Compute input cube
             InCube, padding_tuple = Conv2DTileConstraint.computeInputCube(
