@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(ProjectId ${TESTNAME})
 
 file(GLOB_RECURSE SOURCES
@@ -10,6 +14,6 @@ target_include_directories(${ProjectId} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc)
 
 target_link_libraries(${ProjectId} PRIVATE network deeploylib)
 target_compile_options(${ProjectId} INTERFACE network)
-add_gvsoc_emulation(${ProjectId})
+add_gvsoc_emulation(${ProjectId} "siracusa")
 
 link_compile_dump(${TESTNAME})

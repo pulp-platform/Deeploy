@@ -1,29 +1,8 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: GEMMTileConstraint.py
-#
-# Last edited: 02.06.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-# - Moritz Scherer, scheremo@iis.ee.ethz.ch, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+import math
 from typing import Dict, List, Tuple
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -117,9 +96,13 @@ class GEMMTileConstraint(TileConstraint):
         addrNames = ['A', 'B', 'mul', 'C', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
-        varA = operatorRepresentation['A']
+        transA = operatorRepresentation['transA']
+        transB = operatorRepresentation['transB']
 
-        NSize = ctxt.lookup(varA).shape[-1]
+        buffA = ctxt.lookup(operatorRepresentation['A'])
+        buffB = ctxt.lookup(operatorRepresentation['B'])
+
+        NSize = buffA.shape[-1]
         NOffset = 0
 
         inputACubes = []
@@ -131,33 +114,54 @@ class GEMMTileConstraint(TileConstraint):
 
         # Every output is constructed by a pair of inputs. Reconstruct this pair.
         for cube in outputCubes:
+            MOffset, OOffset = cube.offset[-2:]
+            MSize, OSize = cube.dims[-2:]
 
-            BSize = 1
-            BOffset = 0
-            BatchSize = 1
-            BatchOffset = 0
+            if len(cube.offset) > 2:
+                BatchSize = math.prod(cube.dims[:-2])
 
-            if len(cube.offset) == 2:
-                (MOffset, OOffset) = cube.offset
-                (MSize, OSize) = cube.dims
-            elif len(cube.offset) == 3:
-                (BatchOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, MSize, OSize) = cube.dims
+                if len(cube.offset) > 3:
+                    assert all(off == 0 for off in cube.offset[:-3]), (
+                        f"Unsupported tiling across leading batch dims: offsets={cube.offset}. "
+                        "Only the last batch dim (besides M/O) may be tiled.")
             else:
-                (BatchOffset, BOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, BSize, MSize, OSize) = cube.dims
+                BatchSize = 1
 
             replacements["M"].append(MSize)
             replacements["O"].append(OSize)
-            replacements["batch"].append(BSize)
+            replacements["batch"].append(BatchSize)
 
-            ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
-            BCube = HyperRectangle((BatchOffset, BOffset, OOffset, NOffset), (BatchSize, BSize, OSize, NSize))
+            if transA == 0:
+                AMatrixOffsets = (MOffset, NOffset)
+                AMatrixShape = (MSize, NSize)
+            else:
+                AMatrixOffsets = (NOffset, MOffset)
+                AMatrixShape = (NSize, MSize)
+
+            if len(buffA.shape) > 2:
+                batchDimCount = len(buffA.shape) - 2
+                AMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + AMatrixOffsets
+                AMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + AMatrixShape
+
+            ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
+            inputACubes.append(ACube)
+
+            if transB == 0:
+                BMatrixOffsets = (NOffset, OOffset)
+                BMatrixShape = (NSize, OSize)
+            else:
+                BMatrixOffsets = (OOffset, NOffset)
+                BMatrixShape = (OSize, NSize)
+
+            if len(buffB.shape) > 2:
+                batchDimCount = len(buffB.shape) - 2
+                BMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + BMatrixOffsets
+                BMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + BMatrixShape
+
+            BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
+            inputBCubes.append(BCube)
 
             RequantCube = HyperRectangle((OOffset,), (OSize,))
-
-            inputACubes.append(ACube)
-            inputBCubes.append(BCube)
             inputMulCubes.append(RequantCube)
             inputAddCubes.append(RequantCube)
 
@@ -182,40 +186,6 @@ class GEMMTileConstraint(TileConstraint):
         schedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
 
         return VariableReplacementScheme(replacements, replacementTypes), schedule
-
-
-class MatrixVecTileConstraint(GEMMTileConstraint):
-
-    @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-
-        tm = GEMMTileConstraint.addGeometricalConstraint(tilerModel, parseDict, ctxt)
-
-        return tm
-
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-
-        tm = GEMMTileConstraint.addPolicyConstraint(tilerModel, parseDict, ctxt)
-
-        return tm
-
-
-class TallGEMMTileConstraint(GEMMTileConstraint):
-
-    @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-
-        tm = GEMMTileConstraint.addGeometricalConstraint(tilerModel, parseDict, ctxt)
-
-        return tm
-
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-
-        tm = GEMMTileConstraint.addPolicyConstraint(tilerModel, parseDict, ctxt)
-
-        return tm
 
 
 class FloatGEMMTileConstraint(TileConstraint):
@@ -319,13 +289,14 @@ class FloatGEMMTileConstraint(TileConstraint):
         transA = operatorRepresentation['transA']
         transB = operatorRepresentation['transB']
 
-        varA = operatorRepresentation['A']
-        varB = operatorRepresentation['B']
+        buffA = ctxt.lookup(operatorRepresentation['A'])
+        buffB = ctxt.lookup(operatorRepresentation['B'])
+        buffC = ctxt.lookup(operatorRepresentation['C'])
 
         if transA == 0:
-            NSize = ctxt.lookup(varA).shape[-1]
+            NSize = buffA.shape[-1]
         else:
-            NSize = ctxt.lookup(varA).shape[-2]
+            NSize = buffA.shape[-2]
 
         NOffset = 0
 
@@ -337,43 +308,63 @@ class FloatGEMMTileConstraint(TileConstraint):
 
         # Every output is constructed by a pair of inputs. Reconstruct this pair.
         for cube in outputCubes:
+            MOffset, OOffset = cube.offset[-2:]
+            MSize, OSize = cube.dims[-2:]
 
-            BSize = 1
-            BOffset = 0
-            BatchSize = 1
-            BatchOffset = 0
+            if len(cube.offset) > 2:
+                BatchSize = math.prod(cube.dims[:-2])
 
-            if len(cube.offset) == 2:
-                (MOffset, OOffset) = cube.offset
-                (MSize, OSize) = cube.dims
-            elif len(cube.offset) == 3:
-                (BatchOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, MSize, OSize) = cube.dims
+                if len(cube.offset) > 3:
+                    assert all(off == 0 for off in cube.offset[:-3]), (
+                        f"Unsupported tiling across leading batch dims: offsets={cube.offset}. "
+                        "Only the last batch dim (besides M/O) may be tiled.")
             else:
-                (BatchOffset, BOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, BSize, MSize, OSize) = cube.dims
+                BatchSize = 1
 
             replacements["M"].append(MSize)
             replacements["O"].append(OSize)
-            replacements["batch"].append(BSize)
+            replacements["batch"].append(BatchSize)
 
             if transA == 0:
-                ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
+                AMatrixOffsets = (MOffset, NOffset)
+                AMatrixShape = (MSize, NSize)
             else:
-                ACube = HyperRectangle((BatchOffset, BOffset, NOffset, MOffset), (BatchSize, BSize, NSize, MSize))
+                AMatrixOffsets = (NOffset, MOffset)
+                AMatrixShape = (NSize, MSize)
+
+            if len(buffA.shape) > 2:
+                batchDimCount = len(buffA.shape) - 2
+                AMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + AMatrixOffsets
+                AMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + AMatrixShape
+
+            ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
+            inputACubes.append(ACube)
 
             if transB == 0:
-                BCube = HyperRectangle((BatchOffset, BOffset, NOffset, OOffset), (BatchSize, BSize, NSize, OSize))
+                BMatrixOffsets = (NOffset, OOffset)
+                BMatrixShape = (NSize, OSize)
             else:
-                BCube = HyperRectangle((BatchOffset, BOffset, OOffset, NOffset), (BatchSize, BSize, OSize, NSize))
+                BMatrixOffsets = (OOffset, NOffset)
+                BMatrixShape = (OSize, NSize)
 
-            inputACubes.append(ACube)
+            if len(buffB.shape) > 2:
+                batchDimCount = len(buffB.shape) - 2
+                BMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + BMatrixOffsets
+                BMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + BMatrixShape
+
+            BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
             inputBCubes.append(BCube)
-            
-            # Only create C cubes if bias is present
-            if has_bias:
-                CCube = HyperRectangle(cube.offset, cube.dims)
-                inputAddCubes.append(CCube)
+
+            CMatrixOffsets = (MOffset, OOffset)
+            CMatrixShape = (MSize, OSize)
+
+            if len(buffC.shape) > 2:
+                batchDimCount = len(buffC.shape) - 2
+                CMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + CMatrixOffsets
+                CMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + CMatrixShape
+
+            CCube = HyperRectangle(CMatrixOffsets, CMatrixShape)
+            inputAddCubes.append(CCube)
 
         inputLoadSchedule = []
         outputLoadSchedule = []

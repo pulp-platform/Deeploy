@@ -1,28 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: testDebugPrinting.py
-#
-# Last edited: 14.05.2024.
-#
-# Copyright (C) 2024, ETH Zurich and University of Bologna.
-#
-# Author:
-#   - Philip Wiese, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import os
 
@@ -31,7 +9,7 @@ import onnx
 import onnx_graphsurgeon as gs
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser, getPaths
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import DebugPrintPass
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
@@ -71,10 +49,7 @@ if __name__ == "__main__":
     test_inputs = [inputs[x].reshape(-1).astype(np.float64) for x in inputs.files]
     test_outputs = [outputs[x].reshape(-1).astype(np.float64) for x in outputs.files]
     for index, num in enumerate(test_inputs):
-        # WIESP: Do not infer types and offset of empty arrays
-        if np.prod(num.shape) == 0:
-            continue
-        _type, offset = inferInputType(num, signProp)[0]
+        _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 

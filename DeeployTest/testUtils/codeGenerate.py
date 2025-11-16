@@ -1,36 +1,15 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: codeGenerate.py
-#
-# Last edited: 23.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import os
-from pprint import pprint
-from typing import Dict, List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NetworkDeployer, VariableBuffer
+from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
+from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
 
 _TEXT_ALIGN = 30
 
@@ -51,105 +30,77 @@ def _shapeBroadcast(ctxt, value, name):
     return broadcastNum
 
 
-def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List, inputTypes: Dict, inputOffsets: Dict) -> str:
+def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> str:
+    vectors = []
     retStr = ""
-    inputNames = [deployer.ctxt.lookup(buf.name) for buf in deployer.graph.inputs]
-    inputTypes = {buf.name: buf._type for buf in inputNames}
-
-    for index, num in enumerate(test_inputs):
-
-        if f"input_{index}" not in inputTypes.keys():
-            continue
-
+    for index, values in enumerate(test_inputs):
         # WIESEP: Correctly handle empty arrays
-        if np.prod(num.shape) == 0:
+        if np.prod(values.shape) == 0:
             continue
 
-        test_inputs[index] -= inputOffsets[f"input_{index}"]
+        bufferName = f"input_{index}"
 
-        broadcastNum = _shapeBroadcast(deployer.ctxt, num, f"input_{index}")
+        #LMACAN: We have some tests which have extra inputs and this is a hack to circumvent that
+        if not deployer.ctxt.is_buffer(bufferName):
+            continue
 
-        data_type = inputTypes[f"input_{index}"]
-        data_width = inputTypes[f"input_{index}"].referencedType.typeWidth
+        values = _shapeBroadcast(deployer.ctxt, values, bufferName)
 
-        retStr += f"{data_type.referencedType.typeName} testInputVector{index}[] ="
+        buffer = deployer.ctxt.lookup(bufferName)
+        typeName = buffer._type.referencedType.typeName
+        typeWidth = buffer._type.referencedType.typeWidth
+
+        vectorName = f"testInputVector{index}"
+        vectors.append(vectorName)
+
+        retStr += f"{typeName} {vectorName}[] ="
         retStr += "{"
-        if data_type.referencedType.typeName == 'float32_t':
-            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in broadcastNum])
+        if typeName == 'float32_t':
+            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in values])
         else:
-            list_str = (", ").join([str(x) for x in broadcastNum])
+            list_str = (", ").join([str(x) for x in values])
 
-        # WIESEP: Arrays have to be 4 byte alinged (at lest in banshee)
-        bytes = len(broadcastNum) * (data_width // 8)
-        if bytes % 4 != 0:
-            bytes = 4 * int((bytes / 4 + 1))
-            padding = (bytes * 8) // data_width - len(broadcastNum)
-            list_str += ", "
-            list_str += (", ").join([str(0) for x in range(padding)])
+        # WIESEP: Arrays have to be 4 byte aligned (at least in banshee)
+        total_bytes = (values.size * typeWidth) // 8
+        pad_bytes = (-total_bytes) % 4
+        if pad_bytes:
+            paddingElements = (pad_bytes * 8 + typeWidth - 1) // typeWidth
+            list_str += ", " + (", ").join("0" for _ in range(paddingElements))
 
         retStr += list_str
         retStr += "};\n"
 
-    retStr += f"void* testInputVector[{len(inputTypes)}] = " + "{"
-    retStr += ", ".join([
-        f"testInputVector{idx}" for idx, _ in enumerate(test_inputs)
-        if np.prod(test_inputs[idx].shape) != 0 and f"input_{idx}" in inputTypes.keys()
-    ])
+    retStr += f"void* testInputVector[{len(vectors)}] = {{"
+    retStr += ", ".join(vectors)
     retStr += "};\n"
 
     return retStr
 
 
-def generateTestOutputsHeader(deployer: NetworkDeployer,
-                              test_outputs: List,
-                              signProp: Optional[bool] = None,
-                              verbose: Optional[bool] = None) -> str:
-
-    output_signed = {}
-    output_n_levels = {}
-    output_data_type = {}
-
-    if signProp is None:
-        signProp = False
-
-    if verbose is None:
-        verbose = False
-
+def generateTestOutputsHeader(deployer: NetworkDeployer, test_outputs: List[np.ndarray]) -> str:
     retStr = ""
+    for index, values in enumerate(test_outputs):
+        typeName = deployer.ctxt.lookup(f'output_{index}')._type.referencedType.typeName
+        typeWidth = deployer.ctxt.lookup(f'output_{index}')._type.referencedType.typeWidth
 
-    for index, num in enumerate(test_outputs):
-        output_data_type[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._type
-
-        data_type = output_data_type[f"output_{index}"]
-        isdatafloat = (data_type.referencedType.typeName == "float32_t")
-
-        if signProp and not isdatafloat:
-            output_n_levels[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}').nLevels
-            output_signed[f"output_{index}"] = deployer.ctxt.lookup(f'output_{index}')._signed
-            test_outputs[index] -= int(
-                ((1 - output_signed[f"output_{index}"]) * (output_n_levels[f"output_{index}"] / 2)))
-
-        data_width = data_type.referencedType.typeWidth
-        retStr += f"#define OUTPUTTYPE {data_type.referencedType.typeName}\n"
-        if isdatafloat:
-            retStr += f"#define ISOUTPUTFLOAT 1\n"
-        else:
-            retStr += f"#define ISOUTPUTFLOAT 0\n"
-        retStr += f"{data_type.referencedType.typeName} testOutputVector{index}[] ="
+        retStr += f"#define OUTPUTTYPE {typeName}\n"
+        retStr += f"#define ISOUTPUTFLOAT {int(typeName == 'float32_t')}\n"
+        retStr += f"{typeName} testOutputVector{index}[] ="
         retStr += "{"
 
-        # WIESEP: Arrays have to be 4 byte alinged (at lest in banshee)
-        if data_type.referencedType.typeName == 'float32_t':
-            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in num])
-        else:
-            list_str = (", ").join([str(x) for x in num])
+        values = values.flatten()
 
-        bytes = len(num) * (data_width // 8)
-        if bytes % 4 != 0:
-            bytes = 4 * int((bytes / 4 + 1))
-            padding = (bytes * 8) // data_width - len(num)
-            list_str += ", "
-            list_str += (", ").join([str(0) for x in range(padding)])
+        if typeName == "float32_t":
+            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in values])
+        else:
+            list_str = (", ").join([str(x) for x in values])
+
+        # WIESEP: Arrays have to be 4 byte aligned (at least in banshee)
+        total_bytes = (len(values) * typeWidth) // 8
+        pad_bytes = (-total_bytes) % 4
+        if pad_bytes:
+            paddingElements = (pad_bytes * 8 + typeWidth - 1) // typeWidth
+            list_str += ", " + (", ").join("0" for _ in range(paddingElements))
 
         retStr += list_str
         retStr += "};\n"
@@ -158,35 +109,33 @@ def generateTestOutputsHeader(deployer: NetworkDeployer,
     retStr += ", ".join([f"testOutputVector{idx}" for idx, _ in enumerate(test_outputs)])
     retStr += "};\n"
 
-    if verbose:
-        if signProp:
-            print('Output N Levels:')
-            pprint(output_n_levels, indent = 2, width = 120)
-            print('Output Signed:')
-            pprint(output_signed, indent = 2, width = 120)
-        print('Output Data Type:')
-        pprint(output_data_type, indent = 2, width = 120)
-
     return retStr
 
 
-def generateTestNetworkHeader(deployer: NetworkDeployer, platform: DeploymentPlatform) -> str:
+def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
 
     retStr = ""
 
     retStr += """
-    #ifndef __DEEPLOY_HEADER_
-    #define __DEEPLOY_HEADER_
+    #ifndef __DEEPLOY_HEADER__
+    #define __DEEPLOY_HEADER__
     #include <stdio.h>
     #include <stdint.h>
     #include <stdlib.h>
     """
     retStr += deployer.generateIncludeString()
-    retStr += """
-    void RunNetwork(uint32_t core_id, uint32_t numThreads);
-    void InitNetwork(uint32_t core_id, uint32_t numThread);
+    if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
+        retStr += """
+        void RunNetwork();
+        void InitNetwork();
 
-    """
+        """
+    else:
+        retStr += """
+        void RunNetwork(uint32_t core_id, uint32_t numThreads);
+        void InitNetwork(uint32_t core_id, uint32_t numThread);
+
+        """
 
     retStr += deployer.generateIOBufferInitializationCode()
     retStr += """
@@ -196,13 +145,7 @@ def generateTestNetworkHeader(deployer: NetworkDeployer, platform: DeploymentPla
     return retStr
 
 
-def generateTestNetworkImplementation(deployer: NetworkDeployer,
-                                      platform: DeploymentPlatform,
-                                      verbose: Optional[bool] = None) -> str:
-
-    if verbose is None:
-        verbose = False
-
+def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: CodeGenVerbosity) -> str:
     retStr = ""
 
     retStr += """#include <stdio.h>
@@ -220,23 +163,35 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer,
     retStr += deployer.generateGlobalDefinitionCode()
 
     # WIESEP: Mempool assigns section attributes to intermediate buffers to allow .
-    if isinstance(platform, MemPoolPlatform):
+    if isinstance(deployer.Platform, MemPoolPlatform):
         retStr += deployer.generateInferenceInitializationCode()
         retStr += """
         void RunNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
         """
+    elif isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
+        retStr += """
+        void RunNetwork(){
+        """
+        retStr += deployer.generateInferenceInitializationCode()
     else:
         retStr += """
         void RunNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
         """
         retStr += deployer.generateInferenceInitializationCode()
 
-    retStr += deployer.generateFunction(verbose)
-    retStr += """
-    }
+    retStr += deployer.generateFunction(verbosityCfg)
+    if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
+        retStr += """
+        }
 
-    void InitNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
-    """
+        void InitNetwork(){
+        """
+    else:
+        retStr += """
+        }
+
+        void InitNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
+        """
     retStr += deployer.generateEngineInitializationCode()
     retStr += deployer.generateBufferAllocationCode()
     retStr += """
@@ -292,15 +247,42 @@ def generateL3HexDump(deployer: NetworkDeployer, path: str, test_inputs: List, t
 
         paddedArray.astype(typeStr).tofile(path)
 
-    # SCHEREMO: Dump all global const buffers as hex files
-    globalConstBuffers = [
-        buf for key, buf in deployer.ctxt.globalObjects.items() if isinstance(buf, VariableBuffer) and buf._deploy
-    ]
-    l3ConstBuffer = [buf for buf in globalConstBuffers if hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3"]
-
+    # LMACAN: Dump all global buffers with the "extName" attribute
     os.makedirs(path, exist_ok = True)
-
-    for idx, buf in enumerate(l3ConstBuffer):
+    for buf in deployer.ctxt.globalObjects.values():
         if hasattr(buf, "extName"):
             pathName = os.path.join(path, f"{buf.extName}.hex")
             dumpBuffer(buf, pathName)
+
+
+def generateTestNetwork(deployer: NetworkDeployer, test_inputs: List[np.ndarray], test_outputs: List[np.ndarray],
+                        dumpdir: str, verbosityCfg: CodeGenVerbosity) -> None:
+    assert deployer.prepared, "An unprepared deployer was given"
+
+    # Create input and output vectors
+    os.makedirs(dumpdir, exist_ok = True)
+
+    testInputStr = generateTestInputsHeader(deployer, test_inputs)
+    with open(f'{dumpdir}/testinputs.h', "w") as f:
+        f.write(testInputStr)
+
+    testOutputStr = generateTestOutputsHeader(deployer, test_outputs)
+    with open(f'{dumpdir}/testoutputs.h', "w") as f:
+        f.write(testOutputStr)
+
+    # Generate code for Network
+    testNetworkHeaderStr = generateTestNetworkHeader(deployer)
+    with open(f'{dumpdir}/Network.h', "w") as f:
+        f.write(testNetworkHeaderStr)
+
+    testNetworkImplementationStr = generateTestNetworkImplementation(deployer, verbosityCfg)
+    with open(f'{dumpdir}/Network.c', "w") as f:
+        f.write(testNetworkImplementationStr)
+
+    generateL3HexDump(deployer, os.path.join(f'{dumpdir}', 'hex'), test_inputs, test_outputs)
+
+    clang_format = "{BasedOnStyle: llvm, IndentWidth: 2, ColumnLimit: 160}"
+    os.system(f'clang-format -i --style="{clang_format}" {dumpdir}/Network.c')
+    os.system(f'clang-format -i --style="{clang_format}" {dumpdir}/Network.h')
+    os.system(f'clang-format -i --style="{clang_format}" {dumpdir}/testoutputs.h')
+    os.system(f'clang-format -i --style="{clang_format}" {dumpdir}/testinputs.h')

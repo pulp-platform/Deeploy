@@ -1,29 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: PULPBindings.py
-#
-# Last edited: 10.03.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Authors:
-# - Moritz Scherer, ETH Zurich
-# - Victor Jung, ETH Zurichs
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import itertools
 from functools import partial
@@ -31,32 +8,35 @@ from functools import partial
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
-    MemoryManagementGeneration
-from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t, \
-    uint8_t
+    MemoryManagementGeneration, MemoryPassthroughGeneration
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
+    int8_t, int32_t, int64_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
-    GatherTemplate, QuantTemplate, RQSiGELUTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, \
+    FloatReduceSumTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
-    QuantChecker, ReduceMeanChecker, ReluChecker, RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, \
-    SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
+    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
-from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatGELUTemplate, \
-    FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, \
-    FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, \
-    ReduceMeanTemplate, RequantShiftTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SliceTemplate, \
-    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
+from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
+from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
+from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
+    FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
+    FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, \
+    MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
+    SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
+    TilingVariableReplacementUpdate
 
 _clusterEntryClosureCallTemplate = NodeTemplate("""
 // ${closureName} CLOSURE CALL
@@ -72,6 +52,12 @@ pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 _clusterForkClosureCallTemplate = NodeTemplate("""
 pi_cl_team_fork(NUM_CORES, (void*)${closureName}, &${closureStructArgName});
 """)
+
+SkipTransformer = CodeTransformation(
+    [ArgumentStructGeneration(),
+     MemoryPassthroughGeneration("L.*"),
+     MemoryPassthroughGeneration(),
+     FutureGeneration()])
 
 FunctionCallClosure = partial(ClosureGeneration, closureSuffix = "_closure")
 ClusterClosure = partial(ClosureGeneration,
@@ -115,29 +101,31 @@ ForkTransformer = CodeTransformation([
     TilingCallClosure(writeback = False),
     PULPSynchCoresPass(),
     ForkClosure(writeback = False, generateStruct = True),
-    PULPClusterTiling("L1"),
+    TilingVariableReplacementUpdate("L1"),
+    PULPClusterTiling("L2", "L1", MchanDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
-    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacement("L2"),
-    PULPL3Tiling("L2"),
+    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
+    PULPL3Tiling("L3", "L2", l3DmaHack),
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
-    MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration("L2"),
+    MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
 ])
 
 ClusterTransformer = CodeTransformation([
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False, generateStruct = True),
-    PULPClusterTiling("L1"),
+    TilingVariableReplacementUpdate("L1"),
+    PULPClusterTiling("L2", "L1", MchanDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
-    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacement("L2"),
-    PULPL3Tiling("L2"),
+    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
+    PULPL3Tiling("L3", "L2", l3DmaHack),
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
@@ -160,8 +148,24 @@ PULPDMASliceBindings = [
             PointerClass(uint8_t),
             PointerClass(uint8_t),
             PointerClass(uint8_t)
-        ], [PULPDMAFuture(underlyingType = type)]), SliceTemplate.referenceTemplate, MemoryAwareForkTransformer)
+        ], [PULPDMAFuture(underlyingType = type)]), DMASliceTemplate.referenceTemplate, MemoryAwareForkTransformer)
     for type in IntegerDataTypes
+]
+
+PULPSliceBindings = [
+    NodeBinding(
+        SliceChecker([
+            PointerClass(type),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t),
+            PointerClass(uint8_t)
+        ], [PointerClass(type)]), SliceTemplate.referenceTemplate, ForkTransformer) for type in FloatDataTypes
+]
+
+PULPReshapeBindings = [
+    NodeBinding(ReshapeChecker([PointerClass(type), PointerClass(int64_t)], [PointerClass(type)]),
+                ReshapeTemplate.referenceTemplate, SkipTransformer) for type in IntegerDataTypes + FloatDataTypes
 ]
 
 PULPRQAddBindings = [
@@ -232,6 +236,14 @@ PULPFloatConv2DBindings = [
         ForkTransformer)
 ]
 
+PULPFloatDWConv2DBindings = [
+    NodeBinding(
+        ConvChecker(
+            [PointerClass(float_type), PointerClass(float_type),
+             PointerClass(float_type)], [PointerClass(float_type)]), FloatConvTemplate.referenceDW2DIm2ColTemplate,
+        ForkTransformer) for float_type in FloatDataTypes
+]
+
 PULPRQSMatrixVecBindings = [
     NodeBinding(
         PULPLinearChecker([PointerClass(type1),
@@ -283,6 +295,11 @@ PULPMatMulBindings = [
 PULPReduceMeanBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
                 ClusterTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ReduceMeanChecker([PointerClass(float_type), PointerClass(integer_type)], [PointerClass(float_type)]),
+                FloatReduceMeanTemplate.referenceTemplate, ClusterTransformer)
+    for integer_type in SignedIntegerDataTypes
+    for float_type in FloatDataTypes
 ]
 
 PULPReduceSumBindings = [

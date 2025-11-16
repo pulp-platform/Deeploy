@@ -1,29 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 ETH Zurich and University of Bologna
 #
-# File: CMSISPasses.py
-#
-# Last edited: 17.12.2022
-#
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Moritz Scherer, ETH Zurich
-# - Georg Rutishauser, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -53,15 +30,12 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
     rqs.inputs[1].values = rqs.inputs[1].values * 2**MultShift
     shiftNode = gs.Constant(f'{conv.name}_shift', np.array(remainingShift))
     # rqs.inputs[-1].values = np.round(rqs.inputs[-1].values / rqs.inputs[-2].values) # normalize add
-    # #import IPython; IPython.embed()
     # shiftNode = gs.Constant(f'{conv.name}_shift', np.array((31-np.log2(rqs.attrs['div'].values),)))
 
     shiftNode = gs.Constant(f'{conv.name}_shift', np.array(remainingShift))
     _inputs = list(conv.inputs) + list(rqs.inputs[1:]) + [shiftNode]
 
     _outputs = rqs.outputs
-
-    #import IPython; IPython.embed()
 
     rqsConv = gs.Node(op = 'RequantizedConv', name = name, attrs = {**conv.attrs, **rqs.attrs})
     graph.replaceInsertNode(_inputs, _outputs, rqsConv)
@@ -102,7 +76,6 @@ def _merge_gemm_rq_fun(graph: gs.Graph, match: Match, name: str):
     # shift mult:
     rqs.inputs[1].values = rqs.inputs[1].values * 2**MultShift
     # rqs.inputs[-1].values = np.round(rqs.inputs[-1].values / rqs.inputs[-2].values) # normalize add
-    # #import IPython; IPython.embed()
     # shiftNode = gs.Constant(f'{gemm.name}_shift', np.array((31-np.log2(rqs.attrs['div'].values),)))
 
     # GEMM has add

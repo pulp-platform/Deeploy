@@ -1,29 +1,8 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: MatMulTileConstraint.py
-#
-# Last edited: 04.07.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-# - Moritz Scherer, scheremo@iis.ee.ethz.ch, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+import math
 from typing import Dict, List, Tuple
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -112,9 +91,10 @@ class MatMulTileConstraint(TileConstraint):
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
-        varA = operatorRepresentation['A']
+        buffA = ctxt.lookup(operatorRepresentation['A'])
+        buffB = ctxt.lookup(operatorRepresentation['B'])
 
-        NSize = ctxt.lookup(varA).shape[-1]
+        NSize = buffA.shape[-1]
         NOffset = 0
 
         inputACubes = []
@@ -124,30 +104,43 @@ class MatMulTileConstraint(TileConstraint):
 
         # Every output is constructed by a pair of inputs. Reconstruct this pair.
         for cube in outputCubes:
+            MOffset, OOffset = cube.offset[-2:]
+            MSize, OSize = cube.dims[-2:]
 
-            BSize = 1
-            BOffset = 0
-            BatchSize = 1
-            BatchOffset = 0
+            if len(cube.offset) > 2:
+                BatchSize = math.prod(cube.dims[:-2])
 
-            if len(cube.offset) == 2:
-                (MOffset, OOffset) = cube.offset
-                (MSize, OSize) = cube.dims
-            elif len(cube.offset) == 3:
-                (BatchOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, MSize, OSize) = cube.dims
+                if len(cube.offset) > 3:
+                    assert all(off == 0 for off in cube.offset[:-3]), (
+                        f"Unsupported tiling across leading batch dims: offsets={cube.offset}. "
+                        "Only the last batch dim (besides M/O) may be tiled.")
             else:
-                (BatchOffset, BOffset, MOffset, OOffset) = cube.offset
-                (BatchSize, BSize, MSize, OSize) = cube.dims
+                BatchSize = 1
 
             replacements["M"].append(MSize)
             replacements["O"].append(OSize)
-            replacements["batch"].append(BSize)
+            replacements["batch"].append(BatchSize)
 
-            ACube = HyperRectangle((BatchOffset, BOffset, MOffset, NOffset), (BatchSize, BSize, MSize, NSize))
-            BCube = HyperRectangle((BatchOffset, BOffset, NOffset, OOffset), (BatchSize, BSize, NSize, OSize))
+            AMatrixOffsets = (MOffset, NOffset)
+            AMatrixShape = (MSize, NSize)
 
+            if len(buffA.shape) > 2:
+                batchDimCount = len(buffA.shape) - 2
+                AMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + AMatrixOffsets
+                AMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + AMatrixShape
+
+            ACube = HyperRectangle(AMatrixOffsets, AMatrixShape)
             inputACubes.append(ACube)
+
+            BMatrixOffsets = (NOffset, OOffset)
+            BMatrixShape = (NSize, OSize)
+
+            if len(buffB.shape) > 2:
+                batchDimCount = len(buffB.shape) - 2
+                BMatrixOffsets = tuple(cube.offset[:-2][-batchDimCount:]) + BMatrixOffsets
+                BMatrixShape = tuple(cube.dims[:-2][-batchDimCount:]) + BMatrixShape
+
+            BCube = HyperRectangle(BMatrixOffsets, BMatrixShape)
             inputBCubes.append(BCube)
 
         inputLoadSchedule = []

@@ -1,33 +1,14 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: SignPropChecker.py
-#
-# Last edited: 19.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import List, Optional
 
 import onnx_graphsurgeon as gs
 
+from Deeploy.AbstractDataTypes import IntegerImmediate
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeTypeChecker, OperatorRepresentation, VariableBuffer
+from Deeploy.Logging import DEFAULT_LOGGER as log
 
 
 class SignPropTypeChecker(NodeTypeChecker):
@@ -67,8 +48,15 @@ class SignPropTypeChecker(NodeTypeChecker):
             nLevels = self._inferNumLevels(inputs, operatorRepresentation)
             signedness = self._inferSignedness(inputs, operatorRepresentation)
 
-            for obj, nLevels, sign in zip(outputs, nLevels, signedness):
-                obj.nLevels = nLevels
+            if nLevels is None or signedness is None:
+                return ctxt
+            for obj, nLevel, sign in zip(outputs, nLevels, signedness):
+                obj.nLevels = nLevel
                 obj._signed = sign
+
+                if issubclass(obj._type.referencedType, IntegerImmediate) and not obj._type.fitsNumLevels(nLevel):
+                    log.warning(
+                        f"{obj.name} has {nLevel} levels, but {obj._type.referencedType.typeName} only supports {obj._type.referencedType.nLevels} levels."
+                    )
 
         return ctxt

@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: Engine.py
-#
-# Last edited: 26.07.2024
-#
-# Copyright (C) 2024, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import List
 
@@ -33,27 +12,17 @@ from Deeploy.Targets.Neureka.Parsers import NeurekaDenseConv2DParser, NeurekaDWC
     NeurekaRQSDenseConv2DParser, NeurekaRQSDWConv2DParser, NeurekaRQSPWConv2DParser
 from Deeploy.Targets.Neureka.Tiler import NeurekaDenseConv2DTilingReadyBindings, NeurekaDWConv2DTilingReadyBindings, \
     NeurekaPWConv2DTilingReadyBindings, NeurekaRQSDenseConv2DTilingReadyBindings, \
-    NeurekaRQSDWConv2DTilingReadyBindings, NeurekaRQSPWConv2DTilingReadyBindings, \
-    NeurekaWmemDenseConv2DTilingReadyBindings, NeurekaWmemDWConv2DTilingReadyBindings, \
-    NeurekaWmemPWConv2DTilingReadyBindings, NeurekaWmemRQSDenseConv2DTilingReadyBindings, \
-    NeurekaWmemRQSDWConv2DTilingReadyBindings, NeurekaWmemRQSPWConv2DTilingReadyBindings
+    NeurekaRQSDWConv2DTilingReadyBindings, NeurekaRQSPWConv2DTilingReadyBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer
 
-NeurekaRqntPWConv2DMapper = NodeMapper(
-    NeurekaRQSPWConv2DParser(), NeurekaWmemRQSPWConv2DTilingReadyBindings + NeurekaRQSPWConv2DTilingReadyBindings)
-NeurekaPWConv2DMapper = NodeMapper(NeurekaPWConv2DParser(),
-                                   NeurekaWmemPWConv2DTilingReadyBindings + NeurekaPWConv2DTilingReadyBindings)
+NeurekaRqntPWConv2DMapper = NodeMapper(NeurekaRQSPWConv2DParser(), NeurekaRQSPWConv2DTilingReadyBindings)
+NeurekaPWConv2DMapper = NodeMapper(NeurekaPWConv2DParser(), NeurekaPWConv2DTilingReadyBindings)
 
-NeurekaRqntDWConv2DMapper = NodeMapper(
-    NeurekaRQSDWConv2DParser(), NeurekaWmemRQSDWConv2DTilingReadyBindings + NeurekaRQSDWConv2DTilingReadyBindings)
-NeurekaDWConv2DMapper = NodeMapper(NeurekaDWConv2DParser(),
-                                   NeurekaWmemDWConv2DTilingReadyBindings + NeurekaDWConv2DTilingReadyBindings)
+NeurekaRqntDWConv2DMapper = NodeMapper(NeurekaRQSDWConv2DParser(), NeurekaRQSDWConv2DTilingReadyBindings)
+NeurekaDWConv2DMapper = NodeMapper(NeurekaDWConv2DParser(), NeurekaDWConv2DTilingReadyBindings)
 
-NeurekaRqntDenseConv2DMapper = NodeMapper(
-    NeurekaRQSDenseConv2DParser(),
-    NeurekaWmemRQSDenseConv2DTilingReadyBindings + NeurekaRQSDenseConv2DTilingReadyBindings)
-NeurekaDenseConv2DMapper = NodeMapper(NeurekaDenseConv2DParser(),
-                                      NeurekaWmemDenseConv2DTilingReadyBindings + NeurekaDenseConv2DTilingReadyBindings)
+NeurekaRqntDenseConv2DMapper = NodeMapper(NeurekaRQSDenseConv2DParser(), NeurekaRQSDenseConv2DTilingReadyBindings)
+NeurekaDenseConv2DMapper = NodeMapper(NeurekaDenseConv2DParser(), NeurekaDenseConv2DTilingReadyBindings)
 
 NeurekaMapping = {
     'RequantizedConv':

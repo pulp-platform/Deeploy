@@ -1,30 +1,7 @@
-/* =====================================================================
- * Title:        Convolution.h
- * Description:
- *
- * Date:         04.01.2023
- *
- * ===================================================================== */
-
 /*
- * Copyright (C) 2023 ETH Zurich and University of Bologna.
- *
- * Authors:
- * - Philip Wiese, ETH Zurich
+ * SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
  *
  * SPDX-License-Identifier: Apache-2.0
- *
- * Licensed under the Apache License, Version 2.0 (the License); you may
- * not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an AS IS BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 #ifndef __DEEPLOY_BASIC_MATH_CONVOLUTION_KERNEL_HEADER_
@@ -62,7 +39,17 @@ void Conv2d_s8_s8_s32_NCHW(int8_t const *__restrict__ pSrcA, uint32_t C,
 void Conv2d_fp32_fp32_fp32_NCHW(const float *__restrict__ pSrcA, uint32_t C,
                                 uint32_t H_padded, uint32_t W_padded,
                                 const float *__restrict__ pSrcB, uint32_t F,
-                                uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
-                                float *__restrict__ pDstC);
+                                uint32_t P, uint32_t Q, uint32_t SP,
+                                uint32_t SQ, const float *__restrict__ pSrcBias,
+                                const bool has_bias, float *__restrict__ pDstC);
+
+void Conv1d_fp32_fp32_fp32(
+    const float32_t *__restrict__ pSrcA, // Input: [C_in, W_in]
+    uint32_t C_in, uint32_t W_in,
+    const float32_t *__restrict__ pSrcB, // Weights: [C_out, C_in, K]
+    uint32_t C_out, uint32_t K, uint32_t stride,
+    const float32_t *__restrict__ pSrcBias, const bool has_bias,
+    float32_t *__restrict__ pDstC, // Output: [C_out, W_out]
+    uint32_t W_out);
 
 #endif //__DEEPLOY_BASIC_MATH_CONVOLUTION_KERNEL_HEADER_

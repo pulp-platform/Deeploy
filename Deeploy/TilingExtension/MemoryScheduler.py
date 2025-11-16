@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: MemoryScheduler.py
-#
-# Last edited: 06.10.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from __future__ import annotations
 
@@ -33,8 +12,7 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
-from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    _permuteList
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import _permute
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, TransientBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy
 from Deeploy.TilingExtension.MemoryConstraints import PatternMemoryConstraints, TensorMemoryConstraint
@@ -302,7 +280,6 @@ class MemoryScheduler():
                 # SCHEREMO: The original level is only considered by "home-level" schedulers
                 if level.memoryLevel == homeLevel and not self.tileScheduler:
 
-                    # SCHEREMO: ConstantBuffers are assigned and allocated at compile time, Global Var Buffers are assigned at init time
                     if isinstance(ctxt.lookup(tensorMemoryConstraint.tensorName), ConstantBuffer):
                         return False
                     return True
@@ -541,8 +518,9 @@ class MemoryScheduler():
     def constraintTileBuffersWithOverlappingLifetime(self, tilerModel: TilerModel, ctxt: NetworkContext,
                                                      patternMemoryConstraint: PatternMemoryConstraints,
                                                      memoryHierarchy: MemoryHierarchy):
-        """JUNGVI: This method adds the necessay constraints for tiling to be performed before the static memory allocation of the tile buffers.
+        """This method adds the necessary constraints for tiling to be performed before the static memory allocation of the tile buffers.
         To perform static memory allocation after tiling (i.e. decouple tiling and memory alloc), we need to do two assumptions
+
             1. All tile buffers for each node have overlapping lifetime, so we can find their memory footprint by just summing their sizes and hence we don't need to know the specific memory allocation. This assumption is true as soon as we don't do tile several nodes together (ask me if you don't know what I mean here).
             2. We don't allocate the tensors of the graph in the same memory level than the tiles (for instance we put all tensor in L2 and the tiles only live in L1).
         """
@@ -575,7 +553,7 @@ class MemoryScheduler():
                     if memoryLevel.name == infoDict['memoryLevel']:
                         sumExpr += infoDict['sizeVar'] * infoDict['typeWidthFactor'] * infoDict['multiBufferCoeff']
                 if sumExpr != 0:
-                    tilerModel.addConstraint(sumExpr + constantTensorOffset <= memoryLevel.size)
+                    tilerModel.addConstraint(sumExpr + constantTensorOffset, memoryLevel = memoryLevel)
 
     def getSymbolicCostName(self, patternIdx: int, memoryLevel: str) -> str:
         stringSuffix = self._stringSuffix + f"_{memoryLevel}"
@@ -659,7 +637,7 @@ class MemoryScheduler():
                 permList = permMatrix2permList(_permutationMatrix)
 
                 if pattern != [] and len(pattern) > 1:
-                    permPattern = _permuteList(pattern, permList)
+                    permPattern = _permute(pattern, permList)
                 else:
                     permPattern = pattern
 

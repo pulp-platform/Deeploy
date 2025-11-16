@@ -1,60 +1,43 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: GenericPlatform.py
-#
-# Last edited: 17.12.2022
-#
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Moritz Scherer, ETH Zurich
-# - Philip Wiese, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
+    RemoveEmptyConvBiasPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBinding, BasicConv2DBindings, \
-    BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBinding, \
-    BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, \
-    BasicLayerNormBindings, BasicMatMulBindings, BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, \
-    BasicPad2DBindings, BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, \
-    BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, \
-    BasicSoftmaxBindings, BasicTransposeBindings, DummyBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, ConvLayer, DebugPrintLayer, DequantLayer, DivLayer, GatherLayer, \
-    GELULayer, GEMMLayer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, \
-    ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
-    SliceLayer, SoftmaxLayer, TransposeLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, DebugParser, DequantParser, DivParser, DummyParser, \
-    FlattenParser, GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, \
-    GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, \
-    ITAPartialMaxParser, LayerNormParser, MatMulParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, \
-    ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQIntegerDivParser, \
-    RQSiGELUParser, SliceParser, SoftmaxParser, TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBindings, BasicConcatBindings, \
+    BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, BasicDebugPrintBindings, \
+    BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicGatherBindings, \
+    BasicGELUBindings, BasicGEMMBindings, BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, \
+    BasicLayerNormBindings, BasicMatMulBindings, BasicMaxPool1DBindings, BasicMaxPool2DBindings, BasicMulBindings, \
+    BasicPad1DBindings, BasicPad2DBindings, BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, \
+    BasicReluBinding, BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, \
+    BasicSliceBindings, BasicSoftmaxBindings, BasicTransposeBindings, DummyBinding
+from Deeploy.Targets.Generic.Layers import AddLayer, BatchNormalizationLayer, ConcatLayer, ConvLayer, \
+    ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, GatherLayer, GELULayer, GEMMLayer, ITAMaxLayer, \
+    LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
+    ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SliceLayer, SoftmaxLayer, \
+    TransposeLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, BatchNormParser, ConcatParser, ConvTranspose1DParser, \
+    DebugParser, DequantParser, DivParser, DummyParser, FlattenParser, GatherParser, GELUParser, GenericConv1DParser, \
+    GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, \
+    IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, MatMulParser, MaxPool1DParser, MulParser, \
+    Pad1DParser, Pad2DParser, QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, \
+    ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, SoftmaxParser, TransposeParser, UnsqueezeParser, \
+    iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
     iGELURequantMergePass
 
 AddMapper = NodeMapper(AddParser(), BasicAddBindings)
-Conv1DMapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBinding])
+Conv1DMapper = NodeMapper(GenericConv1DParser(), BasicConv1DBindings)
 Conv2DMapper = NodeMapper(GenericConv2DParser(), BasicConv2DBindings)
+ConcatMapper = NodeMapper(ConcatParser(), BasicConcatBindings)
 DebugMapper = NodeMapper(DebugParser(), BasicDebugPrintBindings)
 DWConv1DMapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
-DWConv2DMapper = NodeMapper(GenericDWConv2DParser(), [BasicDWConv2DBinding])
+DWConv2DMapper = NodeMapper(GenericDWConv2DParser(), BasicDWConv2DBindings)
 FlattenMapper = NodeMapper(FlattenParser(), BasicReshapeBindings)
 GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
 GELUMapper = NodeMapper(GELUParser(), BasicGELUBindings)
@@ -67,6 +50,7 @@ ITAMaxMapper = NodeMapper(ITAMaxParser(), [BasicITASoftmaxBinding])
 ITAPartialMaxMapper = NodeMapper(ITAPartialMaxParser(), [BasicITAPartialSoftmaxBinding])
 MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 MaxPoolMapper = NodeMapper(GenericMaxPool2DParser(), BasicMaxPool2DBindings)
+MaxPool1DMapper = NodeMapper(MaxPool1DParser(), BasicMaxPool1DBindings)
 MulMapper = NodeMapper(MulParser(), BasicMulBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
@@ -83,7 +67,8 @@ TransposeMapper = NodeMapper(TransposeParser(), BasicTransposeBindings)
 UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
 DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
-
+BatchNormalizationMapper = NodeMapper(BatchNormParser(), BasicBatchNormBindings)
+ConvTransposeMapper = NodeMapper(ConvTranspose1DParser(), BasicConvTransposeBindings)
 SliceMapper = NodeMapper(SliceParser(), BasicSliceBindings)
 
 # Dummy nodes are intended for development purposes only!
@@ -93,6 +78,7 @@ DummyMapper = NodeMapper(DummyParser(), [DummyBinding])
 GenericMapping = {
     'Add': AddLayer([AddMapper]),
     'Conv': ConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
+    'Concat': ConcatLayer([ConcatMapper]),
     'DebugPrint': DebugPrintLayer([DebugMapper]),
     'Div': DivLayer([DivMapper]),
     'Flatten': ReshapeLayer([FlattenMapper]),
@@ -110,7 +96,7 @@ GenericMapping = {
     'ITAPartialMax': ITAMaxLayer([ITAPartialMaxMapper]),
     'MatMul': GEMMLayer([MatMulMapper]),
     'MatMulInteger': MatMulLayer([MatMulMapper]),
-    'MaxPool': MaxPoolLayer([MaxPoolMapper]),
+    'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPoolMapper]),
     'Mul': MulLayer([MulMapper]),
     'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
     'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
@@ -125,7 +111,9 @@ GenericMapping = {
     'Unsqueeze': ReshapeLayer([UnsqueezeMapper]),
     'Slice': SliceLayer([SliceMapper]),
     'Quant': QuantLayer([QuantMapper]),
-    'Dequant': DequantLayer([DequantMapper])
+    'Dequant': DequantLayer([DequantMapper]),
+    'BatchNormalization': BatchNormalizationLayer([BatchNormalizationMapper]),
+    'ConvTranspose': ConvTransposeLayer([ConvTransposeMapper])
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel
@@ -161,16 +149,19 @@ class GenericStructBuffer(StructBuffer):
     deallocTemplate = NodeTemplate("")
 
 
-GenericOptimizer = TopologyOptimizer([
-    QuantPatternPass(),
-    DequantPatternPass(),
-    iGELURequantMergePass(),
-    MatMulAddMergePass(),
-    MergeConstAddAndRequantPass(),
-    ExtractPaddingFromConvPass(),
-    ExtractPaddingFromPoolPass(),
-    # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
-])
+GenericOptimizer = TopologyOptimizer(
+    [
+        QuantPatternPass(),
+        DequantPatternPass(),
+        iGELURequantMergePass(),
+        MatMulAddMergePass(),
+        MergeConstAddAndRequantPass(),
+        ExtractPaddingFromConvPass(),
+        ExtractPaddingFromPoolPass(),
+        RemoveEmptyConvBiasPass(),
+        # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
+    ],
+    name = "GenericOptimizer")
 
 includeList = ["DeeployBasicMath.h"]
 

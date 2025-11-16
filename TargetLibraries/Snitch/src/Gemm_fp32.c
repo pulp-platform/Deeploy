@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "DeeploySnitchMath.h"
 #include "Gemm.h"
 

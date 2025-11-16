@@ -1,28 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: TilerExtension.py
-#
-# Last edited: 09.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-# - Moritz Scherer, scheremo@iis.ee.ethz.ch, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 # Create Monad that take a Deployer and make it TilerAware
 # Define Tiler Obj centralize all tilling related functionalities for a given deployer.
@@ -45,6 +23,8 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeBinding, NodeTemplate, ONNXLayer, Schedule, \
     SubGraph, TransientBuffer
+from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.Logging import SUCCESS_MARK
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper, \
     MemoryLevelAwareDeployer, MemoryPlatform, MemoryPlatformWrapper, TargetMemoryLevelMapping
@@ -58,6 +38,7 @@ from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
 
 TilingSolution = List[PatternMemoryConstraints]
+MemoryMap = Dict[str, List[List[MemoryBlock]]]
 
 _deallocTemplate = NodeTemplate("")
 
@@ -126,6 +107,12 @@ class Tiler():
 
             for memoryMapStep in memoryMap[memoryLevel.name]:
                 for buffer in memoryMapStep:
+                    if not hasattr(buffer, "_addrSpace") or buffer._addrSpace is None:
+                        log.warning(
+                            f"Buffer {buffer.name} has no address space assigned, skipping it in the memory allocation plot."
+                        )
+                        continue
+
                     fig.add_trace(
                         go.Scatter(x = [
                             buffer._lifetime[0] - 0.5, buffer._lifetime[0] - 0.5, buffer._lifetime[1] + 0.5,
@@ -292,8 +279,8 @@ class Tiler():
                                           text = True)
 
         if minimallocOutput.returncode != 0:
-            print(
-                f"\033[91mError: Memory allocator failed with return code {minimallocOutput.returncode} at memory level {memoryLevel} with capacity of {capacity} bytes \033[0m"
+            log.error(
+                f"Memory allocator failed with return code {minimallocOutput.returncode} at memory level {memoryLevel} with capacity of {capacity} bytes!"
             )
             raise subprocess.CalledProcessError(minimallocOutput.returncode, " ".join(minimallocOutput.args))
 
@@ -307,23 +294,25 @@ class Tiler():
 
         return memoryMap
 
-    def computeTilingSchedule(self, ctxt: NetworkContext) -> Tuple[TilingSolution, Dict[str, List[List[MemoryBlock]]]]:
-
+    def computeTilingSchedule(self, ctxt: NetworkContext) -> TilingSolution:
         assert self.tilerModel is not None and self.symbolicMemoryConstraints is not None, "Set up the model before trying to compute a schedule!"
-
         collector = self.tilerModel.trySolveModel()
-        tilingSchedule = self._getTilingSolution(self.tilerModel, ctxt, collector, self.symbolicMemoryConstraints)
-
+        tilingSolution = self._getTilingSolution(self.tilerModel, ctxt, collector, self.symbolicMemoryConstraints)
         if not self.memoryAllocStrategy == "MiniMalloc":
+            assert self.tilerModel is not None
+            log.debug(" - Extract Memory Allocation")
             self.innerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
             self.outerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
+        return tilingSolution
 
+    def computeMemoryMap(self, ctxt: NetworkContext, tilingSolution: TilingSolution) -> MemoryMap:
         memoryMap = {}
 
         for key in self.innerMemoryScheduler.memoryMap.keys():
             memoryMap[key] = [*self.innerMemoryScheduler.memoryMap[key], *self.outerMemoryScheduler.memoryMap[key]]
 
         if self.memoryAllocStrategy == "MiniMalloc":
+            log.debug(" - Solve Memory Allocation with MiniMalloc")
             for memoryLevel in memoryMap.keys():
                 constantTensorOffset = self.outerMemoryScheduler.getConstantTensorOffset(ctxt, memoryLevel)
                 if memoryLevel == self.memoryHierarchy._defaultMemoryLevel.name:
@@ -334,11 +323,15 @@ class Tiler():
                     for idx, memMap in enumerate(memoryMap[memoryLevel]):
                         if len(memoryMap[memoryLevel][idx]) != 0:
                             memoryMap[memoryLevel][idx] = self.minimalloc(
-                                memMap, ctxt, tilingSchedule[idx].nodeConstraints[0],
+                                memMap, ctxt, tilingSolution[idx].nodeConstraints[0],
                                 self.memoryHierarchy.memoryLevels[memoryLevel].size - constantTensorOffset, memoryLevel)
-            print(f"\033[92mMemory allocation sucessful!\033[0m")
+            log.info(f" {SUCCESS_MARK} Memory allocation successful!")
 
-        for idx, pattern in enumerate(tilingSchedule):
+        return memoryMap
+
+    def annotateMemoryLevel(self, ctxt: NetworkContext, tilingSolution: TilingSolution,
+                            memoryMap: Dict) -> NetworkContext:
+        for idx, pattern in enumerate(tilingSolution):
             for nodeIdx, nodeConstraint in enumerate(pattern.nodeConstraints):
                 for tensorConstraint in nodeConstraint.tensorMemoryConstraints.values():
                     for memoryConstraint in tensorConstraint.memoryConstraints.values():
@@ -359,10 +352,7 @@ class Tiler():
 
                         block = _block[0]
                         memoryConstraint.addrSpace = block.addrSpace
-
-        self._convertCtxtToStaticSchedule(ctxt, memoryMap)
-
-        return tilingSchedule, memoryMap
+        return ctxt
 
     def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: 'OrderedDict[str, ONNXLayer]',
                    targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
@@ -911,6 +901,19 @@ class Tiler():
                 return False
         return True
 
+    def testTilingSolutionCorrectness(self, tilingSolution: TilingSolution) -> None:
+        # LMACAN: Assert buffer sizes are word aligned as per comment in MemoryScheduler.py:MemoryScheduler._buildCostVector()
+        byteAlignment = MemoryScheduler.byteAlignment
+        for patternMemoryConstraint in tilingSolution:
+            for nodeMemoryConstraint in patternMemoryConstraint.nodeConstraints:
+                for tensorMemoryConstraint in nodeMemoryConstraint.tensorMemoryConstraints.values():
+                    for memoryConstraint in tensorMemoryConstraint.memoryConstraints.values():
+                        if memoryConstraint.addrSpace is not None:
+                            assert isinstance(memoryConstraint.multiBufferCoefficient, int)
+                            bufferSize = (memoryConstraint.addrSpace[1] -
+                                          memoryConstraint.addrSpace[0]) // memoryConstraint.multiBufferCoefficient
+                            assert bufferSize % byteAlignment == 0, f"Buffer in {memoryConstraint} is not {byteAlignment} byte aligned"
+
     def testMemoryMapCorrectness(self, memoryMap: Dict[str, List[List[MemoryBlock]]], graph: gs.Graph,
                                  schedule: Schedule) -> None:
 
@@ -919,8 +922,8 @@ class Tiler():
         }
 
         # JUNGVI: Assert output buffers are alive until the end
-        for outputBuffer in graph.outputs:
-            assert memoryBlockMap[outputBuffer.name]._lifetime[-1] == len(
+        for tensor in graph.outputs:
+            assert memoryBlockMap[tensor.name]._lifetime[-1] == len(
                 schedule), "Invalid memory map! Output buffer is not alive at the last step!"
 
         # JUNGVI: Assert input buffers are alive at the beginning
@@ -948,18 +951,15 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
 
     @property
     def worstCaseBufferSize(self):
-        maxAddr: Dict[str, int] = self.tiler.worstCaseBufferSize
+        return self.tiler.worstCaseBufferSize
 
-        # WIESEP: Memory map form tiler does not include inputs and outputs
-        for node in (self.inputs() + self.outputs()):
-            maxAddr[node._memoryLevel] += np.prod(node.shape) * node._type.referencedType.typeWidth // 8
+    def tile(self, tilingSolution: Optional[TilingSolution] = None, memoryMap: Optional[MemoryMap] = None):
+        assert (tilingSolution is None and memoryMap is None) or (tilingSolution is not None and memoryMap is not None), \
+            "You need to provide both the manual tilingSolution and the memoryMap to override tiling."
 
-        return maxAddr
+        schedule = self.scheduler(self.graph)
 
-    def tile(self, tilingSolution: Optional[TilingSolution] = None):
-        if tilingSolution is None:
-            schedule = self.scheduler(self.graph)
-
+        if tilingSolution is None and memoryMap is None:
             # JUNGVI: Currently using MiniMalloc is only supported for layer-wise execution and all tensors in the default memory level.
             if self.tiler.memoryAllocStrategy == "MiniMalloc":
                 assert self.tiler.assertLayerWiseTiling(schedule), "Using MiniMalloc and DFT is not supported!"
@@ -967,15 +967,31 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
                     self.ctxt, self.Platform.memoryHierarchy._defaultMemoryLevel.name
                 ), "All tensors have to be in the default memory level when using MiniMalloc!"
 
+            log.debug(" - Setup Constraint Model")
             self.tiler.setupModel(ctxt = self.ctxt,
                                   schedule = schedule,
                                   layerBinding = self.layerBinding,
                                   targetMemoryLevelMapping = self.getTargetMemoryLevelMapping())
-            tilingSolution, memoryMap = self.tiler.computeTilingSchedule(self.ctxt)
-            if self.tiler.visualizeMemoryAlloc:
-                self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir, self.Platform.memoryHierarchy)
+            tilingSolution = self.tiler.computeTilingSchedule(self.ctxt)
 
-            self.tiler.testMemoryMapCorrectness(memoryMap, self.graph, schedule)
+            memoryMap = self.tiler.computeMemoryMap(self.ctxt, tilingSolution)
+
+        assert tilingSolution is not None and memoryMap is not None
+
+        log.debug(" - Test Tiling Solution Correctness")
+        self.tiler.testTilingSolutionCorrectness(tilingSolution)
+
+        log.debug(" - Annotate Memory Levels")
+        self.tiler.annotateMemoryLevel(self.ctxt, tilingSolution, memoryMap)
+
+        self.ctxt = self.tiler._convertCtxtToStaticSchedule(self.ctxt, memoryMap)
+
+        if self.tiler.visualizeMemoryAlloc:
+            log.info(f" > Export Memory Allocation Visualization to {self.deeployStateDir}")
+            self.tiler.plotMemoryAlloc(memoryMap, self.ctxt, self.deeployStateDir, self.Platform.memoryHierarchy)
+
+        log.debug(" - Test Memory Map Correctness")
+        self.tiler.testMemoryMapCorrectness(memoryMap, self.graph, schedule)
 
         # SCHEREMO: Annotate execution block with solution
         for layer, pattern in zip(self.layerBinding.values(), tilingSolution):
@@ -987,8 +1003,24 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         if not super().bind():
             return False
 
+        log.info("- Performing Tiling and Memory Allocation")
         self.tile()
         return True
+
+    def _printMemorySummary(self):
+        log.info("")
+        log.info("Memory Usage Report:")
+        log.info(f"  {'Level':<14} {'Capacity (bytes)':>10} {'Total':>10} (    Static + Dynamic   ) (Usage )")
+        log.info("  " + "-" * 78)
+
+        for level, dynamicSize in self.worstCaseBufferSize.items():
+            staticSize = self.tiler.outerMemoryScheduler.getConstantTensorOffset(self.ctxt, level)
+            capacity = self.tiler.memoryHierarchy.memoryLevels[level].size
+            total = staticSize + dynamicSize
+
+            log.info(f"  {level:<20} {capacity:10,} {total:10,d} "
+                     f"({staticSize:10,d} + {dynamicSize:10,d}) "
+                     f"({total / capacity * 100:5.1f}%)")
 
 
 def TilingReadyNodeBindings(nodeBindings: List[NodeBinding], tileConstraint: TileConstraint) -> List[NodeBinding]:

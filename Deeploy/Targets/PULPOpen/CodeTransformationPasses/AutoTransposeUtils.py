@@ -1,58 +1,28 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: AutoTransposeUtils.py
-#
-# Last edited: 11.12.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import copy
 from typing import Dict, List, Literal, Tuple
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    _invertPermutation, _permuteList
+    _invertPermutation, _permute, _permuteHyperRectangle
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.Targets.PULPOpen.DataTypes import PULPStructDataTypes
-from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, minimizeRectangleDims
+from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, minimizeRectangle
 
 
-def _transposedDMAStrides(ctxt: NetworkContext, rectangle: HyperRectangle, direction: Literal["ToL1", "FromL1"],
+def _transposedDMAStrides(ctxt: NetworkContext, rect: HyperRectangle, direction: Literal["ToL1", "FromL1"],
                           perm: List[int], L1Name: str, L2Name: str) -> Tuple[HyperRectangle, List[int], List[int]]:
     _invPerm = _invertPermutation(perm)
-    rectangle = HyperRectangle(_permuteList(rectangle.offset, _invPerm), _permuteList(rectangle.dims, _invPerm))
+    inRect = _permuteHyperRectangle(rect, _invPerm)
 
-    contiguousDims = [permIdx == rangeIdx for permIdx, rangeIdx in zip(perm, range(len(perm)))]
-    workList = []
-
-    for idx, dim in enumerate(contiguousDims):
-        if dim:
-            workList.append(rectangle.dims[idx])
-        else:
-            workList.append(1)
-
-    maxTransferRect = copy.copy(rectangle)
-    maxTransferRect.dims = tuple(workList)
+    maxTransferDims = tuple(inRect.dims[idx] if idx == permIdx else 1 for idx, permIdx in enumerate(perm))
+    maxTransferRect = HyperRectangle(inRect.offset, maxTransferDims)
 
     referenceBuffer = copy.copy(ctxt.lookup(L2Name))
-    referenceBuffer.shape = _permuteList(referenceBuffer.shape, _invPerm)
-    minRect, referenceRect = minimizeRectangleDims(maxTransferRect, referenceBuffer)
+    referenceBuffer.shape = _permute(referenceBuffer.shape, _invPerm)
+    minRect, referenceShape = minimizeRectangle(maxTransferRect, referenceBuffer.shape)
 
     droppedIdx = [
         idx for idx in range(len(perm))
@@ -70,7 +40,7 @@ def _transposedDMAStrides(ctxt: NetworkContext, rectangle: HyperRectangle, direc
         newPerm.append(p - sub)
 
     strides = [1]
-    for dim in reversed(referenceRect.dims[1:]):
+    for dim in reversed(referenceShape[1:]):
         strides.insert(0, strides[0] * dim)
 
     permStrides = [strides[idx] for idx in newPerm]

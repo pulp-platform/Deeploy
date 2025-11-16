@@ -1,7 +1,8 @@
-pytorch1.11.0:Å
-)
+pytorch2.7.1:¡
+(
 onnx::Add_0
-onnx::Add_12Add_0"Addtorch-jit-exportZ%
+onnx::Add_12/Add"Add
+main_graphZ%
 onnx::Add_0
 
 
@@ -19,10 +20,4 @@
 
 
 
-j
-2
-
-
-
-
-B	
+B

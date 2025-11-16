@@ -1,7 +1,14 @@
-# Deeploy
+<div align="center">
 
-![CI](https://github.com/pulp-platform/Deeploy/actions/workflows/CI.yml/badge.svg?branch=devel)
-![Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/BuildDocker.yml/badge.svg)
+  <img src="docs/_static/DeeployLogoGreen.svg" alt="Logo" width="300">
+
+# Deeploy: DNN Compiler for Heterogeneous SoCs
+</div>
+
+[![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
+)](https://pulp-platform.github.io/Deeploy/)
+[![CI](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-deeploy.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-deeploy.yml)
+[![Deeploy Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/docker-build-deeploy.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/docker-build-deeploy.yml)
 [![GitHub last commit](https://img.shields.io/github/last-commit/pulp-platform/Deeploy)](#)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![](https://img.shields.io/badge/Provided_by_PULP_Platform-24AF4B)
@@ -10,11 +17,21 @@ Deeploy is an ONNX-to-C compiler that generates low-level optimized C Code for m
 
 Deeploy is developed as part of the PULP project, a joint effort between ETH Zurich and the University of Bologna.
 
-## License
+## Documentation & Tutorials
 
-Unless specified otherwise in the respective file headers, all code checked into this repository is made available under a permissive license. All software sources and tool scripts are licensed under Apache 2.0, except for files contained in the `scripts` directory, which are licensed under the MIT license, and files contained in the `DeeployTest/Tests`directory, which are licensed under the [Creative Commons Attribution-NoDerivates 4.0 International](https://creativecommons.org/licenses/by-nd/4.0) license (CC BY-ND 4.0).
+You can find the documentation at the following links:
+- [Devel Branch Docs](https://pulp-platform.github.io/Deeploy/branch/devel/)
+- [Main Branch Docs](https://pulp-platform.github.io/Deeploy/)
+
+A DeepWiki generated documentation is availabe [here](https://deepwiki.com/pulp-platform/Deeploy).
 
 ## Getting started
+
+Download the repository and its submodules:
+```
+git clone https://github.com/pulp-platform/Deeploy.git && cd Deeploy
+git submodule update --init --recursive
+```
 
 Installing Deeploy is as simple as running:
 ```
@@ -26,14 +43,13 @@ We provide a Docker container where Deeploy works Out-of-the-Box (*i.e.* with al
 ```
 docker pull ghcr.io/pulp-platform/deeploy:main
 ```
-Then you can start the container in interactive mode with:
+Then you can create and start the container in interactive mode with:
 ```
-docker run -it ghcr.io/pulp-platform/deeploy:main
+docker run -it --name deeploy_main -v $(pwd):/app/Deeploy ghcr.io/pulp-platform/deeploy:main
 ```
-From the container, clone Deeploy, its submodules, and install the package with:
+Install Deeploy inside the container in editable mode:
 ```
-git clone https://github.com/pulp-platform/Deeploy.git && cd Deeploy
-git submodule update --init --recursive
+cd Deeploy
 pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
 ```
 Congratulations, you installed Deeploy and its dependencies! Now, to test your installation let's run one simple test on each platform with the following commands:
@@ -42,44 +58,40 @@ cd DeeployTest
 python testRunner_generic.py -t Tests/Adder
 python testRunner_cortexm.py -t Tests/Adder
 python testRunner_mempool.py -t Tests/Adder
+python testRunner_snitch.py -t Tests/Adder/
 python testRunner_siracusa.py -t Tests/Adder --cores=8
 python testRunner_snitch.py -t Tests/Adder --cores=9
+python testRunner_softhier.py -t Tests/Adder --toolchain=GCC
+python testRunner_chimera.py -t Tests/Adder
+```
+
+To restart and connect to the container, run:
+```
+docker start -i deeploy_main
+cd Deeploy
 ```
 
 You can find the ONNX file in `DeeployTest/Tests/Adder`, to visualize it, you can use [Netron](https://netron.app/). You can also find the generated code for the platform X in `TEST_X` in `DeeployTest` and you should notice that the generated code for the `Adder` test is very simple. However, this gets more complex when you add tiling. Let's generate the code for a single layer but using tiling this time:
 ```
 python testRunner_tiled_siracusa.py -t Tests/testMatMul --cores=8 --l1=16000
-``` 
+```
 Now you can open the generated code in `DeeployTest/TEST_SIRACUSA/Tests/testMatMul/Network.c` and see how we executed a tiled layer.
 
 ## Supported Platforms
 
-- **Generic CPU:**
-- **CortexM Processors:**
-    - Simulators: [QEMU](https://www.qemu.org/)
-- **MemPool extended with ITA:**
-    - Hardware: [Mempool paper](https://arxiv.org/abs/2303.17742), [ITA paper](https://arxiv.org/abs/2307.03493)
-    - Simulators: [Banshee](https://github.com/pulp-platform/banshee)
-- **Siracusa:**
-    - Hardware: [Siracusa paper](https://arxiv.org/abs/2312.14750)
-    - Simulators: [GVSoC](https://github.com/gvsoc/gvsoc)
-- **Snitch Cluster**
-    - Hardware: [Snitch paper](https://arxiv.org/abs/2002.10143)
-    - Simlators: [GVSoC](https://github.com/gvsoc/gvsoc)
-
-## Documentation
-
-All relevant documentation can be found in the `docs` folder and is hosted on [GitHub Pages](https://pulp-platform.github.io/Deeploy/).
-
-To build the documentation locally, simply run:
-```
-make docs
-```
-Then open `docs/_build/html/index.html` .
+| **Platform**           | **Hardware**                                                                                     | **Simulator**                                                  | **CI Status**
+| ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------
+| **Generic CPU**        | Your laptop CPU :)                                                                               | Host                                                           | [![CI • Generic](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-generic.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-generic.yml)
+| **CortexM Processors** | [Documentation](https://www.arm.com/products/silicon-ip-cpu/cortex-m/cortex-m4)                  | [QEMU](https://www.qemu.org/)                                  | [![CI • Cortex-M](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-cortexm.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-cortexm.yml)
+| **MemPool + ITA**      | [Mempool paper](https://arxiv.org/abs/2303.17742), [ITA paper](https://arxiv.org/abs/2307.03493) | [Banshee](https://github.com/pulp-platform/banshee)            | [![CI • Mempool](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-mempool.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-mempool.yml)
+| **Siracusa**           | [Siracusa paper](https://arxiv.org/abs/2312.14750)                                               | [GVSoC](https://github.com/gvsoc/gvsoc)                        | [![CI • Siracusa](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa.yml) [![CI • Siracusa (Tiled)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa-tiled.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa-tiled.yml) [![CI • Siracusa + Neureka (Tiled)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa-neureka-tiled.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-siracusa-neureka-tiled.yml)
+| **Snitch Cluster**     | [Snitch paper](https://arxiv.org/abs/2002.10143)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        | [![CI • Snitch](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-snitch.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-snitch.yml) [![CI • Snitch (Tiled)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-snitch-tiled.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-snitch-tiled.yml)
+| **SoftHier**           | [Repo](https://github.com/gvsoc/gvsoc/tree/soft_hier_release)                                    | [GVSoC](https://github.com/gvsoc/gvsoc/tree/soft_hier_release) | [![CI • SoftHier](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-softhier.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-softhier.yml)
+| **Chimera**            | [Repo](https://github.com/pulp-platform/chimera)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        | [![CI • Chimera](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-chimera.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-chimera.yml)
 
 ## Publications
 
-If you use Deeploy in your work or research, you can cite us:
+If you use Deeploy in your work or research, you can cite us with:
 
 ### ESWEEK 2024: Deeploy: Enabling Energy-Efficient Deployment of Small Language Models On Heterogeneous Microcontrollers
 ```
@@ -103,8 +115,8 @@ The preprint is available on arXiv @ [arXiv:2408.04413](https://arxiv.org/abs/24
 ```
 @article{WieseTowardAttentionBasedTinyML2025,
   author={Wiese, Philip and İslamoğlu, Gamze and Scherer, Moritz and Macan, Luka and Jung, Victor J.B. and Burrello, Alessio and Conti, Francesco and Benini, Luca},
-  journal={IEEE Design & Test}, 
-  title={Toward Attention-based TinyML: A Heterogeneous Accelerated Architecture and Automated Deployment Flow}, 
+  journal={IEEE Design & Test},
+  title={Toward Attention-based TinyML: A Heterogeneous Accelerated Architecture and Automated Deployment Flow},
   year={2025},
   pages={1-1},
   keywords={Tiny machine learning;Transformers;Memory management;Hardware acceleration;Bandwidth;Registers;Software;Engines;Energy efficiency;Computational modeling;Neural Networks;TinyML;Deployment;Transformers;Accelerators},
@@ -112,3 +124,11 @@ The preprint is available on arXiv @ [arXiv:2408.04413](https://arxiv.org/abs/24
 
 ```
 The preprint is available on arXiv @ [arXiv:2408.02473](https://arxiv.org/abs/2408.02473).
+
+## License
+All licenses used in this repository are listed under the `LICENSES` folder. Unless specified otherwise in the respective file headers, all code checked into this repository is made available under a permissive license.
+- Most software sources and tool scripts are licensed under the [Apache 2.0 license](https://opensource.org/licenses/Apache-2.0).
+- Some files in the `scripts` directory are licensed under the [MIT license](https://opensource.org/license/mit).
+- Markdown, JSON, text files, pictures, and files in the `DeeployTest/Tests` directory are licensed under the [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0) license (CC BY 4.0).
+
+To extract license information for all files, you can use the [reuse tool](https://reuse.software/) and by running `reuse spdx` in the root directory of this repository.

@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
 Tutorials
 *********
 
@@ -8,5 +12,7 @@ Each tutorial covers a specific topic and includes code examples to illustrate t
    :maxdepth: 1
    :caption: Tutorials
 
+   introduction
    debugging
+
 

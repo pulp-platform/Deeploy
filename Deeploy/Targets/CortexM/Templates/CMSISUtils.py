@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2022 ETH Zurich and University of Bologna
 #
-# File: CMSISUtils.py
-#
-# Last edited: 10.01.2022
-#
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import numpy as np
 
@@ -90,8 +69,8 @@ def bindConvParams(ctxt, name, repName, batch, operatorRepresentation):
     operatorRepresentation[f'{repName}_conv_params'] = ctxt.lookup(f'{name}_conv_params').name
 
     convQuantDict = {
-        'multiplier': ctxt._mangle(operatorRepresentation['mul']),
-        'shift': ctxt._mangle(operatorRepresentation['shift']),
+        'multiplier': operatorRepresentation['mul'],
+        'shift': operatorRepresentation['shift'],
     }
     nameList += [ctxt.hoistStruct(convQuantDict, f'{name}_quant_params', cmsis_nn_per_channel_quant_params)]
     operatorRepresentation[f'{repName}_quant_params'] = ctxt.lookup(f'{name}_quant_params').name

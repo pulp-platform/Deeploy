@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+from typing import Callable, Dict, Type
+
+import onnx_graphsurgeon as gs
+
+from Deeploy.AbstractDataTypes import Pointer
+from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
+from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
+
+
+class SoftHierDeployer(SignPropDeployer):
+
+    def __init__(self,
+                 graph: gs.Graph,
+                 deploymentPlatform: DeploymentPlatform,
+                 inputTypes: Dict[str, Type[Pointer]],
+                 loweringOptimizer: TopologyOptimizer,
+                 scheduler: Callable = lambda x: x,
+                 name: str = 'DeeployNetwork',
+                 default_channels_first: bool = True,
+                 deeployStateDir: str = "DeeployState",
+                 inputOffsets: Dict[str, int] = {}):
+        super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
+                         default_channels_first, deeployStateDir)
+
+        self.inputOffsets = inputOffsets
+
+        self.loweringOptimizer.passes += []

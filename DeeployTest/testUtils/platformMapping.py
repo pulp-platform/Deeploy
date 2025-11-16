@@ -1,35 +1,17 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: platformMapping.py
-#
-# Last edited: 23.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Type, Union
 
 import onnx_graphsurgeon as gs
 
+from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
+from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
+from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
 from Deeploy.Targets.CortexM.Platform import CMSISOptimizer, CMSISPlatform
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
@@ -39,15 +21,15 @@ from Deeploy.Targets.MemPool.Platform import MemPoolOptimizer, MemPoolPlatform
 from Deeploy.Targets.Neureka.Deployer import NeurekaDeployer
 from Deeploy.Targets.Neureka.Platform import MemoryNeurekaPlatform, MemoryNeurekaPlatformWrapper, NeurekaOptimizer, \
     NeurekaPlatform
-from Deeploy.Targets.Redmule.Deployer import RedmuleDeployer
-from Deeploy.Targets.Redmule.Platform import RedmuleOptimizer, RedmulePlatform
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform
 from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
+from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
+from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
-_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Siracusa_w_redmule"]
+_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -86,6 +68,12 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
     elif platformName == "Snitch":
         Platform = SnitchPlatform()
 
+    elif platformName == "SoftHier":
+        Platform = SoftHierPlatform()
+
+    elif platformName == "Chimera":
+        Platform = ChimeraPlatform()
+
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
 
@@ -94,7 +82,7 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
 def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHierarchy,
                         defaultTargetMemoryLevel: MemoryLevel) -> Union[MemoryPlatform, MemoryPlatformWrapper]:
-    if isinstance(platform, (PULPPlatform, RedmulePlatform)):
+    if isinstance(platform, (PULPPlatform)):
         return MemoryPULPPlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel)
     elif isinstance(platform, NeurekaPlatform):
         weightMemoryLevel = memoryHierarchy.memoryLevels["WeightMemory_SRAM"] \
@@ -106,7 +94,7 @@ def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHie
 
 def mapDeployer(platform: DeploymentPlatform,
                 graph: gs.Graph,
-                inputTypes: Dict[str, type],
+                inputTypes: Dict[str, Type[Pointer]],
                 loweringOptimizer: Optional[TopologyOptimizer] = None,
                 scheduler: Optional[Callable] = None,
                 name: Optional[str] = None,
@@ -159,6 +147,24 @@ def mapDeployer(platform: DeploymentPlatform,
                                    deeployStateDir = deeployStateDir,
                                    inputOffsets = inputOffsets)
 
+    elif isinstance(platform, SoftHierPlatform):
+
+        if loweringOptimizer is None:
+            loweringOptimizer = SoftHierOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = True
+
+        deployer = SoftHierDeployer(graph,
+                                    platform,
+                                    inputTypes,
+                                    loweringOptimizer,
+                                    scheduler,
+                                    name = name,
+                                    default_channels_first = default_channels_first,
+                                    deeployStateDir = deeployStateDir,
+                                    inputOffsets = inputOffsets)
+
     elif isinstance(platform, GenericPlatform):
         # WIESEP: CMSIS performs add-multiply-divide and we normally do multiply-add-divide
         #         Because these deployer were fine-tuned with a add-multiply-divide aware deployer can emulate this
@@ -189,22 +195,6 @@ def mapDeployer(platform: DeploymentPlatform,
             default_channels_first = False
 
         deployer = NeurekaDeployer(graph,
-                                   platform,
-                                   inputTypes,
-                                   loweringOptimizer,
-                                   scheduler,
-                                   name = name,
-                                   default_channels_first = default_channels_first,
-                                   deeployStateDir = deeployStateDir)
-        
-    elif isinstance(platform, (RedmulePlatform)):
-        if loweringOptimizer is None:
-            loweringOptimizer = RedmuleOptimizer
-
-        if default_channels_first is None:
-            default_channels_first = False
-
-        deployer = RedmuleDeployer(graph,
                                    platform,
                                    inputTypes,
                                    loweringOptimizer,
@@ -245,6 +235,22 @@ def mapDeployer(platform: DeploymentPlatform,
                                   name = name,
                                   default_channels_first = default_channels_first,
                                   deeployStateDir = deeployStateDir)
+
+    elif isinstance(platform, (ChimeraPlatform)):
+        if loweringOptimizer is None:
+            loweringOptimizer = ChimeraOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = ChimeraDeployer(graph,
+                                   platform,
+                                   inputTypes,
+                                   loweringOptimizer,
+                                   scheduler,
+                                   name = name,
+                                   default_channels_first = default_channels_first,
+                                   deeployStateDir = deeployStateDir)
 
     else:
         raise RuntimeError(f"Deployer for platform {platform} is not implemented")

@@ -1,28 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2022 ETH Zurich and University of Bologna
 #
-# File: testMemoryLevelExtension.py
-#
-# Last edited: 04.05.2022
-#
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Victor Jung, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import copy
 import os
@@ -32,7 +10,7 @@ import onnx
 import onnx_graphsurgeon as gs
 from testUtils.platformMapping import defaultScheduler, mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser, getPaths
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     NCHWtoNHWCPass, TransposeMatmulInputsPass
@@ -87,7 +65,7 @@ if __name__ == '__main__':
     platform, signProp = mapPlatform(args.platform)
 
     for index, num in enumerate(test_inputs):
-        _type, offset = inferInputType(num, signProp)[0]
+        _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
         if "simpleRegression" in args.dir:

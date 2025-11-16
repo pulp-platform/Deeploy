@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: SignPropDeployer.py
-#
-# Last edited: 11.06.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import Callable, Dict, Type
 
@@ -29,6 +8,7 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
+from Deeploy.Logging import DEFAULT_LOGGER as log
 
 
 class SignPropDeployer(NetworkDeployer):
@@ -62,3 +42,16 @@ class SignPropDeployer(NetworkDeployer):
             nb.nLevels = (2**data_type.referencedType.typeWidth)
 
         return ctxt
+
+    def _printInputOutputSummary(self):
+        log.info('Input:')
+        for buf in self.inputs():
+            log.info(
+                f" - '{buf.name}': Type: {buf._type.referencedType.typeName}, nLevels: {buf.nLevels}, Signed: {buf._signed}, Offset: {self.inputOffsets[buf.name]}"
+            )
+
+        log.info('Output:')
+        for buf in self.outputs():
+            log.info(
+                f" - '{buf.name}': Type: {buf._type.referencedType.typeName}, nLevels: {buf.nLevels}, Signed: {buf._signed}"
+            )

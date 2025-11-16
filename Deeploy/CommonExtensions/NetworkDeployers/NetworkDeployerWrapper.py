@@ -1,33 +1,10 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: NetworkDeployerWrapper.py
-#
-# Last edited: 26.07.2024
-#
-# Copyright (C) 2024, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from typing import Any, Tuple, Union
 
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import CodeGenVerbosity, NetworkContext, NetworkDeployer, ONNXLayer, _NoVerbosity
+from Deeploy.DeeployTypes import CodeGenVerbosity, DeploymentEngine, NetworkContext, NetworkDeployer, _NoVerbosity
 
 
 class NetworkDeployerWrapper(NetworkDeployer):
@@ -84,15 +61,16 @@ class NetworkDeployerWrapper(NetworkDeployer):
     def codeTransform(self, verbose: CodeGenVerbosity = _NoVerbosity):
         return self._innerObject.codeTransform(verbose)
 
-    # MemoryAwareDeployer augment
-    def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
-                   default_channels_first: bool) -> Tuple[NetworkContext, bool]:
-        return self._innerObject._parseNode(node, ctxt, default_channels_first)
-
     # PULPDeployer augment
     def generateBufferAllocationCode(self) -> str:
         return self._innerObject.generateBufferAllocationCode()
 
     # MultiEngineDeployer augment
-    def _mapNode(self, node: gs.Node) -> Union[ONNXLayer, Any]:
-        return self._innerObject._mapNode(node)
+    def _selectEngine(self, node: gs.Node) -> DeploymentEngine:
+        return self._innerObject._selectEngine(node)
+
+    def _printMemorySummary(self):
+        return self._innerObject._printMemorySummary()
+
+    def _printInputOutputSummary(self):
+        return self._innerObject._printInputOutputSummary()

@@ -1,28 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: MemPoolPlatform.py
-#
-# Last edited: 17.12.2022
-#
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Philip Wiese, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import Dict
 
@@ -30,8 +8,8 @@ import numpy as np
 
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBinding, BasicConv2DBindings, \
-    BasicDebugPrintBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBinding, BasicGatherBindings, \
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicConv1DBindings, BasicConv2DBindings, \
+    BasicDebugPrintBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicGatherBindings, \
     BasicGELUBindings, BasicLayerNormBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicReduceMeanBindings, BasicReduceSumBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, \
     BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, BasicTransposeBindings, DummyBinding
@@ -59,10 +37,10 @@ from Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes import MemPoolFus
 
 # Fallback bindings from the generic platform
 # (they support a wider range of attribute values)
-GenericConv1D_Mapper = NodeMapper(GenericConv1DParser(), [BasicConv1DBinding])
+GenericConv1D_Mapper = NodeMapper(GenericConv1DParser(), BasicConv1DBindings)
 GenericDWConv1D_Mapper = NodeMapper(GenericDWConv1DParser(), [BasicDWConv1DBinding])
 GenericConv2D_Mapper = NodeMapper(GenericConv2DParser(), BasicConv2DBindings)
-GenericDWConv2D_Mapper = NodeMapper(GenericDWConv2DParser(), [BasicDWConv2DBinding])
+GenericDWConv2D_Mapper = NodeMapper(GenericDWConv2DParser(), BasicDWConv2DBindings)
 
 GenericConv_Mappers = [GenericConv2D_Mapper, GenericDWConv2D_Mapper, GenericConv1D_Mapper, GenericDWConv1D_Mapper]
 
@@ -185,22 +163,24 @@ class MemPoolStructBuffer(StructBuffer):
     deallocTemplate = NodeTemplate("")
 
 
-MemPoolOptimizer = TopologyOptimizer([
-    MemPoolFuseMHSAPass(H = 8, bias = False, preSoftMaxRQ = True, integerDiv = False),
-    MemPoolFuseMHSAPass(H = 1, bias = False, preSoftMaxRQ = True, integerDiv = False),
-    MemPoolFuseMHSAPass(H = -1, bias = False, preSoftMaxRQ = True, integerDiv = False),
-    MemPoolFuseMHSAPass(H = -1, bias = True, preSoftMaxRQ = True, integerDiv = False),
-    MemPoolSplitMHSAPass(),
-    iGELURequantMergePass(),
-    MatMulAddMergePass(),
-    SplitAddPass(),
-    MergeConstAddAndRequantPass(),
-    MemPoolMatMulRequantMergePass(),
-    MemPoolGEMMRequantMergePass(),
-    ExtractPaddingFromConvPass(),
-    ExtractPaddingFromPoolPass(),
-    # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
-])
+MemPoolOptimizer = TopologyOptimizer(
+    [
+        MemPoolFuseMHSAPass(H = 8, bias = False, preSoftMaxRQ = True, integerDiv = False),
+        MemPoolFuseMHSAPass(H = 1, bias = False, preSoftMaxRQ = True, integerDiv = False),
+        MemPoolFuseMHSAPass(H = -1, bias = False, preSoftMaxRQ = True, integerDiv = False),
+        MemPoolFuseMHSAPass(H = -1, bias = True, preSoftMaxRQ = True, integerDiv = False),
+        MemPoolSplitMHSAPass(),
+        iGELURequantMergePass(),
+        MatMulAddMergePass(),
+        SplitAddPass(),
+        MergeConstAddAndRequantPass(),
+        MemPoolMatMulRequantMergePass(),
+        MemPoolGEMMRequantMergePass(),
+        ExtractPaddingFromConvPass(),
+        ExtractPaddingFromPoolPass(),
+        # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
+    ],
+    name = "MemPoolOptimizer")
 
 includeList = ["DeeployMath.h", "runtime.h", "synchronization.h"]
 

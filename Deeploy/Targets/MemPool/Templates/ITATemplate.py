@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: ITATemplate.py
-#
-# Last edited: 16.11.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Philip Wiese, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import Dict, Tuple
 
@@ -213,7 +192,6 @@ class _1HSATemplate(NodeTemplate):
         if hasattr(data_out, "_signed") and hasattr(data_out, "nLevels"):
             operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_out.nLevels // 2)
 
-        # import IPython; IPython.embed()
         return ctxt, operatorRepresentation, nameList
 
 
@@ -323,9 +301,8 @@ class _MHSATemplate(NodeTemplate):
             if hasattr(data_out, "_signed") and hasattr(data_out, "nLevels"):
                 operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_out.nLevels // 2)
 
-        operatorRepresentation['data_in_array'] = ctxt._mangle(operatorRepresentation['nodeName'] + f"_data_in_array")
-        operatorRepresentation['quant_params_array'] = ctxt._mangle(operatorRepresentation['nodeName'] +
-                                                                    f"_quant_params_array")
+        operatorRepresentation['data_in_array'] = f"{nodeName}_data_in_array"
+        operatorRepresentation['quant_params_array'] = f"{nodeName}_quant_params_array"
 
         return ctxt, operatorRepresentation, nameList
 

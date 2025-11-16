@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 macro(add_deeploy_library name)
     add_library(${ARGV})
     add_custom_command(
@@ -18,7 +22,11 @@ macro(link_compile_dump name)
     add_custom_command(
         TARGET ${name}
         POST_BUILD
-        COMMAND ln -sf ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}/compile_commands.json)
+        COMMAND
+            mkdir -p ${CMAKE_SOURCE_DIR}/DeeployTest/TEST_RECENT &&
+            ln -sfn ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/DeeployTest/TEST_RECENT/build &&
+            ln -sfn ${GENERATED_SOURCE} ${CMAKE_SOURCE_DIR}/DeeployTest/TEST_RECENT/src
+            )
 endmacro()
 
 function(math_shell expr output)

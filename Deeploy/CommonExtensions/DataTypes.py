@@ -1,29 +1,10 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2022 ETH Zurich and University of Bologna
 #
-# File: BasicDataTypes.py
-#
-# Last edited: 31.08.2022
-#
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-from typing import Tuple, Type
+from typing import Iterable, Tuple, Type, Union
+
+import numpy.typing as npt
 
 from Deeploy.AbstractDataTypes import FloatImmediate, IntegerImmediate
 
@@ -106,9 +87,37 @@ class float64_t(FloatImmediate):
 
 SignedIntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (int8_t, int16_t, int32_t, int64_t)
 UnsignedIntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (uint8_t, uint16_t, uint32_t, uint64_t)
-IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = (sorted((
-    *SignedIntegerDataTypes,
-    *UnsignedIntegerDataTypes,
-),
-                                                               key = lambda _type: _type.typeWidth))
+IntegerDataTypes: Tuple[Type[IntegerImmediate], ...] = tuple(
+    sorted((
+        *SignedIntegerDataTypes,
+        *UnsignedIntegerDataTypes,
+    ), key = lambda _type: _type.typeWidth))
 FloatDataTypes: Tuple[Type[FloatImmediate], ...] = (bfloat16_t, float16_t, float32_t, float64_t)
+
+
+def minimalIntegerType(value: Union[int, Iterable[int], npt.NDArray]) -> Type[IntegerImmediate]:
+    # Sort data types by typeWidth and signedness (unsigned types go first)
+    sorted_types = sorted(
+        IntegerDataTypes,
+        key = lambda t: (t.typeWidth, t.typeMin < 0),
+    )
+
+    for _type in sorted_types:
+        if _type.checkValue(value):
+            return _type
+
+    raise RuntimeError(f"Couldn't find appropriate integer type for value: {value}")
+
+
+def minimalFloatType(value: Union[float, Iterable[float], npt.NDArray]) -> Type[FloatImmediate]:
+    # Sort data types by typeWidth
+    sorted_types = sorted(
+        FloatDataTypes,
+        key = lambda t: t.typeWidth,
+    )
+
+    for _type in sorted_types:
+        if _type.checkValue(value):
+            return _type
+
+    raise RuntimeError(f"Couldn't find appropriate float type for value: {value}")

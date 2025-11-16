@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(TOOLCHAIN_PREFIX ${TOOLCHAIN_INSTALL_DIR}/bin)
 
 set(CMAKE_SYSTEM_NAME Generic)
@@ -28,14 +32,12 @@ add_compile_options(
   -O2
   -g3
   -DNUM_CORES=${NUM_CORES}
-  -MMD
   -MP
   -I${TOOLCHAIN_INSTALL_DIR}/picolibc/arm/include
 )
 
 add_link_options(
   -target armv7m-none-eabi
-  -MMD
   -MP
   -mcpu=${ISA}
   -L${TOOLCHAIN_INSTALL_DIR}/picolibc/arm/lib

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
@@ -12,7 +16,6 @@ add_library(deeploylib INTERFACE)
 add_compile_options(
     -std=gnu99
 
-    -ffast-math
     -fdiagnostics-color=always
 
     -Wunused-variable
@@ -29,12 +32,10 @@ add_compile_options(
 add_link_options(
     -std=gnu99
 
-    -ffast-math
     -fdiagnostics-color=always
 
     -Wunused-variable
     -Wconversion
     -Wall
     -Wextra
-    -Wl,--gc-sections
 )

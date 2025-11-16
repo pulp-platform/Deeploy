@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(TOOLCHAIN_PREFIX ${TOOLCHAIN_INSTALL_DIR}/bin)
 
 set(CMAKE_SYSTEM_NAME Generic)
@@ -14,7 +18,6 @@ set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 
 add_compile_options(
     -target riscv32-unknown-elf
-    -MMD
     -MP
     -mcpu=snitch
     -menable-experimental-extensions
@@ -31,12 +34,11 @@ add_compile_options(
 
 add_link_options(
     -target riscv32-unknown-elf
-    -MMD
     -MP
     -fuse-ld=lld
     -nostartfiles
     -nostdlib
-    -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imafd/lib 
+    -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imafd/lib
     -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imafd
 )
 

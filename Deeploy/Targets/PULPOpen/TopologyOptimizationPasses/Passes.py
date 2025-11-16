@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: PULPPasses.py
-#
-# Last edited: 10.03.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import copy
 from collections import OrderedDict
@@ -64,8 +43,6 @@ def _squash_transpose_add_fun(graph: gs.Graph, match: Match, name: str):
                 op = "Transpose",
                 name = addNode.name + "_transpose",
                 attrs = transposeAttrs)
-
-    #import IPython; IPython.embed()
 
     return graph
 
@@ -194,7 +171,9 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
     totalShift = int(np.log2(rqs.attrs['div'].values))
 
     # Artifically add half the shift division value to implement rounding
-    rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + 2**(totalShift - 1)
+    rounding = 2**(totalShift - 1) if totalShift > 0 else 0
+
+    rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + rounding
 
     _inputs = list(conv.inputs) + list(rqs.inputs[1:])
 

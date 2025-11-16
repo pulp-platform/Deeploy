@@ -1,172 +1,238 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: TilingCodeGeneration.py
-#
-# Last edited: 24.10.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+import copy
+import math
 from abc import abstractmethod
-from typing import Dict, List, Optional, Tuple, Type
+from typing import List, Optional, Tuple, TypeVar
 
-import Deeploy.CommonExtensions.DataTypes as BasicDataTypes
-from Deeploy.AbstractDataTypes import Immediate, PointerClass
+import numpy as np
+
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureExecutionBlock
 from Deeploy.CommonExtensions.CodeTransformationPasses.IntrospectiveCodeTransformation import \
     IntrospectiveCodeTransformationMixIn
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration
-from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ConstantBuffer, ExecutionBlock, \
+from Deeploy.DeeployTypes import CodeGenVerbosity, CodeSnippet, CodeTransformationPass, ExecutionBlock, \
     NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer, _NoVerbosity
+from Deeploy.TilingExtension.AsyncDma import AnydimAsyncDmaTransferAdapter, AsyncDma, DmaDirection, Future
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import TilingHoistingMixIn
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import PrototypeTilingMixIn
-from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
-from Deeploy.TilingExtension.TilingCodegen import TilingSchedule, VariableReplacementScheme, minimizeVariableReplacement
+from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint, TensorMemoryConstraint
+from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule, VariableReplacementScheme, \
+    calculateFlatOffset, minimizeRectangle, minimizeVariableReplacement, padOffset, padShape, stridesFromShape
+
+T = TypeVar('T')
 
 
-class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformationMixIn, PrototypeTilingMixIn):
+def transposeListOfLists(listOfLists: List[List[T]]) -> List[List[T]]:
+    transposedListOfLists = []
+    for _list in listOfLists:
+        for i, element in enumerate(_list):
+            if i >= len(transposedListOfLists):
+                assert i == len(transposedListOfLists)
+                transposedListOfLists.append([element])
+            else:
+                transposedListOfLists[i].append(element)
+    return transposedListOfLists
 
-    def __init__(self, targetMemLevel: str):
-        self.targetMemLevel = targetMemLevel
-        self.argStructGeneration = ArgumentStructGeneration()
+
+class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformationMixIn, PrototypeTilingMixIn,
+                           TilingHoistingMixIn):
+
+    _lineComment = NodeTemplate("\n// ${comment}")
+
+    _relativeOffsetReferenceUpdateTemplate = NodeTemplate("""
+    // UPDATE VARIABLE ${reference}
+    ${reference} += ${relativeOffset};
+    """)
+
+    _relativeOffsetReferenceUpdateTiledTemplate = NodeTemplate("""
+    // UPDATE VARIABLE ${reference}
+    ${reference} += ${relativeOffset}[${tileIdxVar}];
+    """)
+
+    _openTileLoopTemplate = NodeTemplate("""
+    // TILING LOOP
+    for (int TILING_I=${numTiles}[*${tileIdxPtr}]; TILING_I<${numTiles}[(*${tileIdxPtr})+1]; TILING_I++){
+    """)
+
+    _closeTileLoopTemplate = NodeTemplate("""
+    // CLOSE TILING LOOP
+    }
+    *${tileIdxPtr} += 1;
+    """)
 
     @abstractmethod
+    def _tilingLoop(self, ctxt: NetworkContext, executionBlock: ExecutionBlock,
+                    nodeMemoryConstraint: NodeMemoryConstraint, tilingSchedule: TilingSchedule,
+                    variableReplacement: VariableReplacementScheme,
+                    operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, ExecutionBlock, bool]:
+        pass
+
     def generateTilingLoop(
             self, ctxt: NetworkContext, executionBlock: ExecutionBlock, nodeMemoryConstraint: NodeMemoryConstraint,
-            tilingSchedule: TilingSchedule, variableReplacement: VariableReplacementScheme,
+            tilingSchedules: List[TilingSchedule], variableReplacement: VariableReplacementScheme,
             operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, ExecutionBlock, bool]:
 
-        return ctxt, executionBlock, False
+        flatTilingSchedule = copy.copy(tilingSchedules[0])
+        for tilingSchedule in tilingSchedules[1:]:
+            flatTilingSchedule += tilingSchedule
+
+        offsetLists = list({**flatTilingSchedule.inputBaseOffsets, **flatTilingSchedule.outputBaseOffsets}.values())
+
+        if len(offsetLists) == 0:
+            return ctxt, executionBlock, False
+
+        for offsetList in offsetLists:
+            if not len(offsetList) == self.bufferCount:
+                return ctxt, executionBlock, False
+
+        numTiles, tileIdxPtr = self._hoistTileNumAndIdxPtr(ctxt, tilingSchedules)
+        operatorRepresentation["numTiles"] = numTiles.name
+        operatorRepresentation["tileIdxPtr"] = tileIdxPtr.name
+
+        return self._tilingLoop(ctxt, executionBlock, nodeMemoryConstraint, flatTilingSchedule, variableReplacement,
+                                operatorRepresentation)
+
+    def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma, bufferCount: int):
+        self.externalMemory = externalMemory
+        self.localMemory = localMemory
+        self.dma = dma
+        self.bufferCount = bufferCount
+        TilingHoistingMixIn.__init__(self, localMemory)
+        self.argStructGeneration = ArgumentStructGeneration()
 
     # SCHEREMO: internalPtr refers to the HIGHER memory level of a transfer,
     # e.g. in both an L2 -> L1 and L1 -> L2 transfer, the internalPtr is in L1.
-    @staticmethod
-    def isFinalMemoryLevel(nodeMemoryConstraint: NodeMemoryConstraint, internalPtr: VariableBuffer) -> bool:
-        externalName = internalPtr._referenceName
-        tensorMemoryConstraint = nodeMemoryConstraint.tensorMemoryConstraints[externalName]
-        if len(tensorMemoryConstraint.memoryConstraints.keys()) <= 2:
+    def isFinalMemoryLevel(self, tensorMemoryConstraint: TensorMemoryConstraint) -> bool:
+        memoryOrder = list(tensorMemoryConstraint.memoryConstraints.keys())
+        assert self.localMemory in memoryOrder, f"Memory {self.localMemory} does not exist in the tensor memory constraint {tensorMemoryConstraint}"
+        if len(memoryOrder) < 2:
             return True
+        return self.localMemory in memoryOrder[:2]
 
-        finalMemoryLevels = list(tensorMemoryConstraint.memoryConstraints.keys())[:2]
-        memoryLevel = internalPtr._memoryLevel
+    def _generateDmaTransferCalls(self, ctxt: NetworkContext, tensorName: str, transfers: List[HyperRectangle],
+                                  tileIdxVar: str, localBuffer: VariableBuffer, externalBuffer: VariableBuffer,
+                                  direction: DmaDirection, future: Future) -> List[CodeSnippet]:
+        assert all(len(transfers[0].dims) == len(rect.dims) for rect in transfers), \
+            "Currently supporting only rectangles of same rank"
 
-        return memoryLevel in finalMemoryLevels
+        assert len(transfers[0].dims) > 0, "Expecting transfers of rank greater than 0"
 
-    def _hoistTileIdxPtr(self,
-                         ctxt: NetworkContext,
-                         operatorRepresentation: OperatorRepresentation,
-                         sourceMemoryLevel: str = "L2") -> str:
+        assert len(transfers[0].dims) == len(externalBuffer.shape), \
+            "External buffer's rank should be equal to the internal buffer's"
 
-        newPtrName = self.prefix + operatorRepresentation['nodeName'] + "_tileIdxPtr"
+        anydimAdapter = AnydimAsyncDmaTransferAdapter(self.dma)
 
-        tilePtrBuffer = ctxt.VariableBuffer(newPtrName, shape = [1])
-        ctxt.add(tilePtrBuffer, "local")
+        initSnippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, transfers[0].dims,
+                                              stridesFromShape(externalBuffer.shape),
+                                              stridesFromShape(transfers[0].dims), direction, future,
+                                              math.prod(externalBuffer.shape,))
 
-        _type = ctxt.lookup(self.prefix + operatorRepresentation['nodeName'] + "_numTiles")._type
+        # Add allocation snippets
+        templates = [snippet.template for snippet in initSnippets]
+        opReprUpdates = [[] for _ in range(len(initSnippets))]
 
-        tilePtrBuffer._type = _type
-        tilePtrBuffer._instance = tilePtrBuffer._type(newPtrName, ctxt)
-        tilePtrBuffer._memoryLevel = sourceMemoryLevel
+        for rect in transfers:
+            snippets = anydimAdapter.transfer(ctxt, externalBuffer, localBuffer, rect.dims,
+                                              stridesFromShape(externalBuffer.shape), stridesFromShape(rect.dims),
+                                              direction, future, math.prod(externalBuffer.shape))
+            for i, snippet in enumerate(snippets):
+                opReprUpdates[i].append(snippet.operatorRepresentation)
 
-        tilePtrBuffer.allocTemplate = NodeTemplate("")
-        tilePtrBuffer.deallocTemplate = NodeTemplate("")
-        tilePtrBuffer.initTemplate = NodeTemplate("""
-        ${type.referencedType.typeName} bu_${name} = 0;
-        ${type.referencedType.typeName}* ${name} = &bu_${name};""")
+        tiledSnippets: List[CodeSnippet] = [
+            CodeSnippet(*self._tileTemplate(ctxt, opReprUpdate, template, tileIdxVar, f"{tensorName}_"))
+            for template, opReprUpdate in zip(templates, opReprUpdates)
+        ]
 
-        return newPtrName
+        return tiledSnippets
 
-    def _hoistNumTiles(self,
-                       ctxt: NetworkContext,
-                       nodeName: str,
-                       tilingSchedules: List[TilingSchedule],
-                       sourceMemoryLevel: str = "L2") -> str:
+    def _generateExternalReferenceUpdate(self, ctxt: NetworkContext, tensorName: str, transfers: List[HyperRectangle],
+                                         tileIdxVar: str, externalBuffer: VariableBuffer) -> Optional[CodeSnippet]:
+        externalBufferStrides = stridesFromShape(externalBuffer.shape)
+        offsets = [calculateFlatOffset(rect.offset, externalBufferStrides) for rect in transfers]
+        relativeOffsets = [_next - _prev for _prev, _next in zip(offsets[:-1], offsets[1:])]
 
-        newPtrName = self.prefix + nodeName + "_numTiles"
+        if len(relativeOffsets) == 0 or all(offset == 0 for offset in relativeOffsets):
+            return None
 
-        numTiles = [len(tilingSchedule.outputLoadSchedule) for tilingSchedule in tilingSchedules]
-        cumNumTiles = [0]
-        for idx in list(range(len(numTiles))):
-            cumNumTiles.append(cumNumTiles[-1] + numTiles[idx])
+        operatorRepresentation: OperatorRepresentation = {"reference": externalBuffer.name, "tileIdxVar": tileIdxVar}
 
-        cb = ctxt.ConstantBuffer(newPtrName, [len(cumNumTiles)], values = cumNumTiles)
-        ctxt.add(cb, "global")
-
-        minType = None
-        if BasicDataTypes.uint8_t.checkValue(cumNumTiles):
-            minType = BasicDataTypes.uint8_t
-        elif BasicDataTypes.uint16_t.checkValue(cumNumTiles):
-            minType = BasicDataTypes.uint16_t
+        if all(relativeOffsets[0] == offset for offset in relativeOffsets):
+            operatorRepresentation["relativeOffset"] = relativeOffsets[0]
+            template = self._relativeOffsetReferenceUpdateTemplate
         else:
-            minType = BasicDataTypes.uint32_t
+            relativeOffsets.append(0)  # To have the same length as the number of tiles
+            buffer = self._hoistValues(ctxt, f'{tensorName}_relativeOffset', relativeOffsets)
+            operatorRepresentation["relativeOffset"] = buffer.name
+            operatorRepresentation["tileIdxVar"] = tileIdxVar
+            template = self._relativeOffsetReferenceUpdateTiledTemplate
 
-        cb._type = PointerClass(minType)
-        cb._instance = cb._type(newPtrName, ctxt)
-        cb._memoryLevel = sourceMemoryLevel
+        return CodeSnippet(template, operatorRepresentation)
 
-        return newPtrName
+    # TODO: Not super sure this should go here. It could be shared, but it seems a little bit too specific
+    # with the `isFinalMemory` thing.
+    def _legalizeTransfers(self, transfers: List[HyperRectangle], outerShape: Tuple[int, ...], typeWidth: int,
+                           isFinalMemoryLevel: bool) -> Tuple[List[HyperRectangle], Tuple[int, ...]]:
+        transfersCommonRank = max(len(rect.dims) for rect in transfers)
+        commonRank = max(transfersCommonRank, len(outerShape))
+        outerShape = padShape(outerShape, commonRank)
 
-    def _hoistConstantAndReference(self,
-                                   ctxt: NetworkContext,
-                                   constBuf: ConstantBuffer,
-                                   operatorRepresentation: OperatorRepresentation,
-                                   nodeName: str,
-                                   operatorRepresentationName: str,
-                                   immediateType: Optional[Type[Immediate]] = None) -> Tuple[NetworkContext, Dict]:
+        minOuterShape = None
 
-        if immediateType is None:
-            _type = PointerClass(BasicDataTypes.int32_t)
+        if isFinalMemoryLevel:
+            minimizedTransfers = []
+            for rect in transfers:
+                paddedRect = HyperRectangle(padOffset(rect.offset, commonRank), padShape(rect.dims, commonRank))
+                minRect, newMinOuterShape = minimizeRectangle(paddedRect, outerShape)
+                if minOuterShape is None:
+                    minOuterShape = newMinOuterShape
+                else:
+                    if minOuterShape != newMinOuterShape:
+                        rectStr = "\n".join(str(trans) for trans in transfers[:transfers.index(rect)])
+                        raise RuntimeError(f"""Currently support a single minimal outer shape.
+Old minOuterShape: {minOuterShape} vs. new minOuterShape {newMinOuterShape}.
+New minOuterShape produced by outerDims: {outerShape} and rect: {rect}.
+Old minOuterShape produced by outerDims: {outerShape} and rects:
+{rectStr}""")
+                minimizedTransfers.append(minRect)
         else:
-            _type = PointerClass(immediateType)
+            minimizedTransfers = [HyperRectangle((0,), (int(np.prod(rect.dims)),)) for rect in transfers]
+            minOuterShape = (int(np.prod(outerShape)),)
 
-        name = constBuf.name
+        if minOuterShape is not None:
+            outerShape = minOuterShape
+        transfers = minimizedTransfers
 
-        ctxt.add(constBuf, "global")
-        constBuf._type = _type
-        constBuf._instance = constBuf._type(name, ctxt)
-        constBuf._users = [nodeName]
-        constBuf._memoryLevel = self.targetMemLevel
+        def sizeInBytes(length: int, typeWidth: int) -> int:
+            return int(np.ceil((length * typeWidth) / 8))
 
-        refName = name + "_ref"
-        reference = ctxt.hoistReference(name, refName)
-        ctxt.lookup(reference)._memoryLevel = self.targetMemLevel
+        outerShape = outerShape[:-1] + (sizeInBytes(outerShape[-1], typeWidth),)
 
-        operatorRepresentation[operatorRepresentationName] = refName
+        inBytesTransfers = []
+        for rect in transfers:
+            newOffset = rect.offset[:-1] + (sizeInBytes(rect.offset[-1], typeWidth),)
+            newDims = rect.dims[:-1] + (sizeInBytes(rect.dims[-1], typeWidth),)
+            inBytesTransfers.append(HyperRectangle(newOffset, newDims))
+        transfers = inBytesTransfers
 
-        return ctxt, operatorRepresentation
+        return transfers, outerShape
+
+    def _tileTemplate(self, ctxt: NetworkContext, perTileOpReprs: List[OperatorRepresentation], template: NodeTemplate,
+                      tileIdxVar: str, prefix: str) -> Tuple[NodeTemplate, OperatorRepresentation]:
+        opRepr, hoistedNames = self._hoistOpReprUpdates(ctxt, perTileOpReprs, prefix)
+        if len(hoistedNames) > 0:
+            template = copy.deepcopy(template)
+            self.indexVars(template.template, hoistedNames, "tileIdxVar")
+            opRepr["tileIdxVar"] = tileIdxVar
+        return template, opRepr
 
     def apply(self,
               ctxt: NetworkContext,
               executionBlock: ExecutionBlock,
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
-
-        def unravelReference(ctxt: NetworkContext, name: str) -> str:
-
-            if name not in ctxt.localObjects.keys() and name not in ctxt.globalObjects.keys():
-                return name
-
-            refBuffer = ctxt.lookup(name)
-            if not hasattr(refBuffer, "_referenceName"):
-                return name
-
-            return unravelReference(ctxt, refBuffer._referenceName)
-
         if isinstance(executionBlock, ClosureExecutionBlock):
             baseExecutionBlock = executionBlock.baseBlock
         else:
@@ -190,30 +256,31 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
 
         templateNode = possibleTemplateNodes[0]
 
+        self._initPrefix(templateNode.operatorRepresentation['nodeName'])
+
         operatorRepresentation = templateNode.operatorRepresentation
-        unravelRep = operatorRepresentation.copy()
-        for key in unravelRep.keys():
-
-            val = unravelRep[key]
-            if not isinstance(val, str):
-                continue
-
-            unravelRep[key] = unravelReference(ctxt, val)
-
         template = templateNode.template
 
-        variableReplacement, tilingSchedules = template.tileConstraint.wrapTilingSolution(
-            nodeMemoryConstraint, self.targetMemLevel, ctxt, unravelRep)
+        unraveledOpRepr = operatorRepresentation.copy()
+        for key, value in unraveledOpRepr.items():
+            if ctxt.is_buffer(value):
+                buffer = ctxt.lookup(value)
+                assert isinstance(buffer, VariableBuffer)
+                unraveledOpRepr[key] = ctxt.unravelReference(buffer).name
 
-        minimalVariableReplacement, newNodeRep = minimizeVariableReplacement(variableReplacement,
-                                                                             templateNode.operatorRepresentation)
-        for key, value in newNodeRep.items():
-            templateNode.operatorRepresentation[key] = value
+        variableReplacement, tilingSchedules = template.tileConstraint.wrapTilingSolution(
+            nodeMemoryConstraint, self.localMemory, ctxt, unraveledOpRepr)
+
+        minimalVariableReplacement, newOpRepr = minimizeVariableReplacement(variableReplacement, operatorRepresentation)
+
+        operatorRepresentation.update(newOpRepr)
 
         ctxt, executionBlock, applicable = self.generateTilingLoop(ctxt, executionBlock, nodeMemoryConstraint,
                                                                    tilingSchedules, minimalVariableReplacement,
                                                                    operatorRepresentation)
         if applicable:
             ctxt, executionBlock = self.argStructGeneration.apply(ctxt, executionBlock, name)
+
+        self._deinitPrefix()
 
         return ctxt, executionBlock

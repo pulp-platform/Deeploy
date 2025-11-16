@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: SnitchBindings.py
-#
-# Last edited: 30.05.2024
-#
-# Copyright (C) 2024, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from functools import partial
 
@@ -35,12 +14,14 @@ from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation i
 from Deeploy.Targets.Generic.Templates import iNoNormTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, GEMMChecker, RQAddChecker, SoftmaxChecker, iNoNormChecker
 from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
-    SnitchProfileExecutionBlockPass, SnitchSynchCoresPass
+    SnitchSynchCoresPass
+from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
 from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, RQAddTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Snitch.Templates.FloatSoftmaxTemplate import FloatSoftmax_Template
 from Deeploy.Targets.Snitch.Templates.GemmTemplate import SnitchGemm_Template
 from Deeploy.Targets.Snitch.Templates.RqGemmTemplate import SnitchRqGemm_Template
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
+    TilingVariableReplacementUpdate
 
 TilingCallClosure = partial(ClosureGeneration, closureSuffix = "_tiling_closure")
 MemoryAwareFunctionCallClosure = partial(MemoryAwareClosureGeneration,
@@ -56,11 +37,11 @@ BasicTransformer = CodeTransformation(
 
 TiledTransformer = CodeTransformation([
     SnitchCoreFilterPass("compute"),
-    SnitchProfileExecutionBlockPass(),
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False),
     SnitchSynchCoresPass(),
-    SnitchClusterTiling("L1"),
+    TilingVariableReplacementUpdate("L1"),
+    SnitchClusterTiling("L2", "L1", SnitchDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),

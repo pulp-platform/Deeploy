@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "DeeploySnitchMath.h"
 
 void Softmax_fp32(float32_t *input, float32_t *output, int32_t ldI,

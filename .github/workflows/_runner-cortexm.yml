@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: _runner-cortexm
+
+"on":
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      test-names:
+        required: true
+        type: string
+
+jobs:
+  test-runner-cortexm:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: /app/.ccache
+          key: ccache-ci
+      - name: Run Test
+        run: |
+          testNames="${{ inputs.test-names }}"
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          echo "$testNames" | while IFS= read -r testName; do
+            if [[ -n "$testName" ]]; then
+              echo "Running test: $testName"
+              python testRunner_cortexm.py -t Tests/$testName
+            fi
+          done
+        shell: bash

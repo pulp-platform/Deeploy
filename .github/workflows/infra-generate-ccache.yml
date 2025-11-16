@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: Infrastructure • Generate CCache
+
+"on":
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "Deeploy Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy:devel"
+  schedule:
+    # Runs the workflow on the default branch every day at 1AM CET to keep the cache fresh
+    - cron: "0 1 * * *"
+
+jobs:
+  generate-ccache:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy:devel' }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Generate CCache
+        run: |
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          python testRunner_generic.py -t ./Tests/Adder
+          python testRunner_mempool.py -t ./Tests/Adder
+          python testRunner_cortexm.py -t ./Tests/Adder
+          python testRunner_snitch.py -t ./Tests/Adder
+          python testRunner_tiled_snitch.py -t ./Tests/Adder
+          python testRunner_siracusa.py -t ./Tests/Adder
+          python testRunner_tiled_siracusa.py -t ./Tests/Adder
+          python testRunner_tiled_siracusa_w_neureka.py -t ./Tests/Adder
+          python testRunner_chimera.py -t ./Tests/Adder
+      - name: Clean and Upload CCache
+        uses: actions/cache@v4
+        with:
+          path: /app/.ccache
+          key: ccache-ci

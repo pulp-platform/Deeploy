@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(TOOLCHAIN_PREFIX ${TOOLCHAIN_INSTALL_DIR}/bin)
 
 set(CMAKE_SYSTEM_NAME Generic)
@@ -26,7 +30,6 @@ add_compile_options(
   -mno-relax
   -O3
   -DNUM_CORES=${NUM_CORES}
-  -MMD
   -MP
   --sysroot=${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imf
   -fno-builtin-memcpy
@@ -35,7 +38,6 @@ add_compile_options(
 
 add_link_options(
   -target riscv32-unknown-elf
-  -MMD
   -MP
   -nostartfiles
   -march=${ISA}
