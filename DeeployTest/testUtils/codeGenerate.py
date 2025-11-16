@@ -224,11 +224,11 @@ def generateL3HexDump(deployer: NetworkDeployer, path: str, test_inputs: List, t
 
     def dumpBuffer(buf: VariableBuffer, path: str):
 
-        if not isinstance(buf, ConstantBuffer) and "input" in buf.name:
+        if "input" in buf.name:
             idx = int(buf.name.split("_")[1])
             array = _shapeBroadcast(deployer.ctxt, test_inputs[idx], f"input_{idx}")
 
-        elif not isinstance(buf, ConstantBuffer) and "output" in buf.name:
+        elif "output" in buf.name:
             _list = buf.name.split("_")
             idx = int(_list[1])
             array = _shapeBroadcast(deployer.ctxt, test_outputs[idx], f"output_{idx}")

@@ -79,7 +79,7 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
 def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHierarchy,
                         defaultTargetMemoryLevel: MemoryLevel) -> Union[MemoryPlatform, MemoryPlatformWrapper]:
-    if isinstance(platform, (PULPPlatform)):
+    if isinstance(platform, PULPPlatform):
         return MemoryPULPPlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel)
     elif isinstance(platform, NeurekaPlatform):
         weightMemoryLevel = memoryHierarchy.memoryLevels["WeightMemory_SRAM"] \

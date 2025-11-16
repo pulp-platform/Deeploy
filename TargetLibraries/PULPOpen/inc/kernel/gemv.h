@@ -8,7 +8,6 @@
 #define __DEEPLOY_MATH_GEMV_KERNEL_HEADER_
 
 #include "stdint.h"
-#include "DeeployPULPMath.h"
 
 void gemv_s8_s8_plp(int8_t *pIn, int8_t *pBias, int8_t *pOut, int8_t *pWeight,
                     int32_t *pKappa, int32_t *pLambda, uint16_t out_mult,

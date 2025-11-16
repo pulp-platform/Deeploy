@@ -373,9 +373,6 @@ class TransientBuffer(VariableBuffer):
         self._type: Type[Pointer] = PointerClass(VoidType)
         self.size = size
 
-        self.is_input: bool = False
-        self.is_output: bool = False
-
     def __eq__(self, other):
         ret = all([self.name == other.name, self.size == other.size])
         return ret

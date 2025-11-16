@@ -8,19 +8,13 @@
 
 void MatMul_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
                            const float32_t *__restrict__ pSrcB,
-                           float32_t *__restrict__ pDstY,
-                           uint32_t M,
-                           uint32_t N,
-                           uint32_t O)
-{
+                           float32_t *__restrict__ pDstY, uint32_t M,
+                           uint32_t N, uint32_t O) {
 
-  for (uint32_t i = 0; i < M; ++i)
-  {
-    for (uint32_t j = 0; j < O; ++j)
-    {
+  for (uint32_t i = 0; i < M; ++i) {
+    for (uint32_t j = 0; j < O; ++j) {
       float32_t sum = 0.0f;
-      for (uint32_t k = 0; k < N; ++k)
-      {
+      for (uint32_t k = 0; k < N; ++k) {
         sum += pSrcA[i * N + k] * pSrcB[k * O + j];
       }
       pDstY[i * O + j] = sum;

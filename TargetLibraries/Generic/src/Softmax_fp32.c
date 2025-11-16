@@ -16,11 +16,11 @@ void Softmax_fp32_fp32(float32_t *input, float32_t *output, int32_t size,
     float32_t max_val = -inf;
     float sum = 0.0f;
 
-        for (int i = 0; i < last_dim_length; i++) {
-            if (input[b * last_dim_length + i] > max_val) {
-                max_val = input[b * last_dim_length + i];
-            }
-        }
+    for (int i = 0; i < last_dim_length; i++) {
+      if (input[b * last_dim_length + i] > max_val) {
+        max_val = input[b * last_dim_length + i];
+      }
+    }
 
     for (int i = 0; i < last_dim_length; i++) {
       float32_t exp_val = input[b * last_dim_length + i] - max_val;
