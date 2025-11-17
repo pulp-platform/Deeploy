@@ -14,6 +14,7 @@ from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
 from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
 from Deeploy.Targets.CortexM.Platform import CMSISOptimizer, CMSISPlatform
+from Deeploy.Targets.GAP9.Deployer import GAP9Deployer
 from Deeploy.Targets.GAP9.Platform import GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
 from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericPlatform
@@ -206,8 +207,24 @@ def mapDeployer(platform: DeploymentPlatform,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir)
 
-    elif isinstance(platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper, GAP9Platform,
-                               MemoryGAP9Platform, MemoryGAP9PlatformWrapper)):
+    elif isinstance(platform, (GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper)):
+
+        if loweringOptimizer is None:
+            loweringOptimizer = PULPOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = GAP9Deployer(graph,
+                                platform,
+                                inputTypes,
+                                loweringOptimizer,
+                                scheduler,
+                                name = name,
+                                default_channels_first = default_channels_first,
+                                deeployStateDir = deeployStateDir)
+
+    elif isinstance(platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
 
         if loweringOptimizer is None:
             loweringOptimizer = PULPOptimizer
