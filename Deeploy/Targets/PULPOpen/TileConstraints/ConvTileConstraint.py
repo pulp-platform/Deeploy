@@ -372,7 +372,7 @@ class Conv2DTileConstraint(TileConstraint):
         #   Weight should not be tiled
         tilerModel.addConstraint(weightHeightVar == parseDict['dim_kernel_x'])
         tilerModel.addConstraint(weightWidthVar == parseDict['dim_kernel_y'])
-        tilerModel.addConstraint(weightInChannelVar == parseDict['ch_im_in'])
+        tilerModel.addConstraint(weightInChannelVar * parseDict['group'] == parseDict['ch_im_in'])
 
         return tilerModel
 
@@ -459,10 +459,12 @@ class Conv2DTileConstraint(TileConstraint):
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         # Extract required component information from operator representation
+        varIn = operatorRepresentation["data_in"]
         varWeight = operatorRepresentation['weight']
         varBias = operatorRepresentation['bias']
-        varIn = operatorRepresentation["data_in"]
         varOut = operatorRepresentation['data_out']
+
+        group = operatorRepresentation["group"]
 
         # Prepare address names, also handling bias
         if varBias != "NULL":
@@ -526,7 +528,7 @@ class Conv2DTileConstraint(TileConstraint):
                 kernelShape = (weightH, weightW),
                 pads = pads,
                 strides = strides,
-                inputCSize = weightC,
+                inputCSize = weightC * group,
                 outputCube = cube,
                 inputDims = ctxt.lookup(varIn).shape,
                 outputDims = ctxt.lookup(varOut).shape,
