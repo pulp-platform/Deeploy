@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Demo TinyViT compatibility with tiled Siracusa [#124](https://github.com/pulp-platform/Deeploy/pull/124)
 - TinyViT on non-tiled Siracusa [#117](https://github.com/pulp-platform/Deeploy/pull/117)
 - Support Fully Asynchronous DMAs [#114](https://github.com/pulp-platform/Deeploy/pull/114)
 - Disallow shape inference [#128](https://github.com/pulp-platform/Deeploy/pull/128)
@@ -25,6 +26,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix bias hoisting in generic GEMM with no bias [#126](https://github.com/pulp-platform/Deeploy/pull/126)
 
 ### Added
+- Support for input tiling for PULP FP regular and DW conv 2D.
+- CI tests for tiled Siracusa FP regular and DW conv 2D, with and without bias, for skip connections, and for the demo version of TinyViT.
+- Documentation for PULP FP regular and DW conv 2D and MatMul tile constraints.
+- PULP ReduceMean and Slice tile constraints.
 - PULP 2D FP DW conv Im2Col template and kernel, with bias support.
 - Bias support for PULP 2D FP regular conv Im2Col in template & kernel.
 - PULP FP DW conv 2D parser.
@@ -70,6 +75,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - annotateNCores method to PULPDeployer that adds an `n_cores` key to all PULPClusterEngine templates' operatorRepresentations
 
 ### Changed
+- Decreased L1 maximal memory limit for CI pipeline tests where compatible thanks to the implementation of Conv2D input tiling support.
 - Reduced size of reshape & skip connection test, for non-tiled Siracusa memory compatibility.
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
 - mchan HAL is now reduced to bare-bones
@@ -109,6 +115,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - changed `_mapNode` to `_selectEngine` which reduces the responsibility of that function to, as the name states, just engine selection
 
 ### Fixed
+- Fixed PULP FP32 regular and DW Conv2D, and MatMul tile constraints.
+- Fixed type casting for tiling code generation.
+- Fixed bug in buffer name identification in code generation for tests with L3 default memory level.
+- PULP GELU kernel to use tanh approximation.
 - Fixed bug for non-batched elements in the PULPOpen FP GEMM and matmul templates.
 - Added underscore to the beginning of closure names to avoid naming issues when they start with unsupported first characters (like numbers).
 - Data types in the PULPOpen FP add and mul templates.
