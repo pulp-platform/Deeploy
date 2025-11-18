@@ -238,33 +238,18 @@ class RQDWConv2DTileConstraint(TileConstraint):
 class DWConv2DTileConstraint(Conv2DTileConstraint):
 
     @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        tilerModel = Conv2DTileConstraint.addGeometricalConstraint(tilerModel, parseDict, ctxt)
+    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        tilerModel = Conv2DTileConstraint.addPolicyConstraint(tilerModel, parseDict, ctxt)
 
         # Add constraint for relationship between in and out number of channels
+        # TODO: Fix DW kernel to include group info and support channel tiling
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
 
         inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 3)
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 3)
 
-        tilerModel.addConstraint((outputChannelVar % inputChannelVar) == 0)
+        tilerModel.addConstraint((inputChannelVar == parseDict['ch_im_in']))
+        tilerModel.addConstraint((outputChannelVar == parseDict['ch_im_out']))
 
         return tilerModel
-
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        return Conv2DTileConstraint.addPolicyConstraint(tilerModel, parseDict, ctxt)
-
-    @staticmethod
-    def constructSymbolicNodeRep(tilerModel: TilerModel, parseDict: Dict,
-                                 ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
-        return Conv2DTileConstraint.constructSymbolicNodeRep(tilerModel, parseDict, ctxt)
-
-    @classmethod
-    def serializeTilingSolution(
-            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
-            targetMemLevel: str, ctxt: NetworkContext,
-            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        return Conv2DTileConstraint.serializeTilingSolution(tilingSolution, absoluteOutputCubes, targetMemLevel, ctxt,
-                                                            operatorRepresentation)

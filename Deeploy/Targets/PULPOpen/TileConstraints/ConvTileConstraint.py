@@ -489,6 +489,7 @@ class Conv2DTileConstraint(TileConstraint):
             "dim_im_in_y": [],
             "dim_im_out_x": [],
             "dim_im_out_y": [],
+            "ch_im_in": [],
             "ch_im_out": [],
             "padding_y_top": [],
             "padding_y_bottom": [],
@@ -501,6 +502,7 @@ class Conv2DTileConstraint(TileConstraint):
             "dim_im_in_y": PointerClass(uint16_t),
             "dim_im_out_x": PointerClass(uint16_t),
             "dim_im_out_y": PointerClass(uint16_t),
+            "ch_im_in": PointerClass(uint16_t),
             "ch_im_out": PointerClass(uint16_t),
             "padding_y_top": PointerClass(uint8_t),
             "padding_y_bottom": PointerClass(uint8_t),
@@ -509,9 +511,7 @@ class Conv2DTileConstraint(TileConstraint):
         }
 
         # Obtain weight dimensions
-        weightH = ctxt.lookup(varWeight).shape[1]
-        weightW = ctxt.lookup(varWeight).shape[2]
-        weightC = ctxt.lookup(varWeight).shape[3]
+        (_, weightH, weightW, weightCin) = ctxt.lookup(varWeight).shape
 
         # Obtain padding and striding information
         pads = operatorRepresentation['pads']
@@ -528,7 +528,7 @@ class Conv2DTileConstraint(TileConstraint):
                 kernelShape = (weightH, weightW),
                 pads = pads,
                 strides = strides,
-                inputCSize = weightC * group,
+                inputCSize = weightCin * group,
                 outputCube = cube,
                 inputDims = ctxt.lookup(varIn).shape,
                 outputDims = ctxt.lookup(varOut).shape,
@@ -540,8 +540,11 @@ class Conv2DTileConstraint(TileConstraint):
             # Add element information for the operator representation
             replacements['dim_im_in_x'].append(InCube.dims[1])
             replacements['dim_im_in_y'].append(InCube.dims[2])
+
             replacements['dim_im_out_x'].append(HSize)
             replacements['dim_im_out_y'].append(WSize)
+
+            replacements['ch_im_in'].append(weightCin * group)
             replacements['ch_im_out'].append(CSize)
 
             replacements['padding_y_top'].append(padding_top)
@@ -553,7 +556,7 @@ class Conv2DTileConstraint(TileConstraint):
             inputInCubes.append(InCube)
 
             # Obtain and add weight cube with tiling information to the corresponding list
-            WeightCube = HyperRectangle((COffset, 0, 0, 0), (CSize, weightH, weightW, weightC))
+            WeightCube = HyperRectangle((COffset, 0, 0, 0), (CSize, weightH, weightW, weightCin))
             inputWeightCubes.append(WeightCube)
 
             # Obtain and add bias cube with tiling information to the corresponding list,
