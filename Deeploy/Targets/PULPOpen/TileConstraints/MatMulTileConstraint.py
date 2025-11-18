@@ -75,19 +75,19 @@ class MatMulTileConstraint(TileConstraint):
 
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-
-        # Get input buffers and other required information
+        # ===== GET NECESSARY INFORMATION =====
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
 
         tensorsShapeLen = len(bufferA.shape)
 
-        # Get dimensions of interest from the 2 inputs
+        # ===== EXTRACT TENSOR DIMS AS VARS =====
         ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
                                                    dimIdx = (tensorsShapeLen - 1) - parseDict['transA'])
         BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
                                                   dimIdx = (tensorsShapeLen - 2) + parseDict['transB'])
 
+        # ===== ADD CONSTRAINTS =====
         # VIC: We don't want to deal with intermediate results between kernel calls
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])
         tilerModel.addConstraint(BFirstDimVar == parseDict['N'])
@@ -125,7 +125,7 @@ class MatMulTileConstraint(TileConstraint):
         # Prepare replacements lists
         replacements = {"M": [], "O": [], "batch": []}
 
-        # Every output is constructed by a pair of inputs. Reconstruct this pair.
+        # Every output tile is constructed by a pair of input tiles. Reconstruct this pair.
         for cube in outputCubes:
             # Get output dimensions
             MOffset, OOffset = cube.offset[-2:]
@@ -147,7 +147,7 @@ class MatMulTileConstraint(TileConstraint):
             replacements["O"].append(OSize)
             replacements["batch"].append(BatchSize)
 
-            # Compute A cube information
+            # ===== Compute A cube information =====
             #   Matrix offsets and shape
             AMatrixOffsets = (MOffset, NOffset)
             AMatrixShape = (MSize, NSize)
@@ -169,7 +169,7 @@ class MatMulTileConstraint(TileConstraint):
                 tuple(reversed(ABatchShape)) + tuple(AMatrixShape))
             inputACubes.append(ACube)
 
-            # Compute B cube information
+            # ===== Compute B cube information =====
             #   Matrix offsets and shape
             BMatrixOffsets = (NOffset, OOffset)
             BMatrixShape = (NSize, OSize)

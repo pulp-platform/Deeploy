@@ -22,7 +22,7 @@ class SliceTileConstraint(TileConstraint):
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
-        # Get necessary information
+        # ===== GET NECESSARY INFORMATION =====
         #   Get I/O buffer names
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
@@ -34,11 +34,12 @@ class SliceTileConstraint(TileConstraint):
         sliceAxes = parseDict['axes']
         sliceSteps = parseDict['steps']
 
-        # Add I/O dimensions to the model as variables
+        # ===== ADD I/O DIMENSIONS TO THE MODEL AS VARIABLES =====
         for bufferName in [inputBufferName, outputBufferName]:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
-        # Add constratints for the I/O dimensions
+        # ===== ADD CONSTRAINTS =====
+        #   Add constraints for the I/O dimensions
         for idx in range(len(inputShape)):
             # Get current dimension variables
             inputDimensionVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = idx)
@@ -55,10 +56,6 @@ class SliceTileConstraint(TileConstraint):
                 # Otherwise, input and output dimensions need to be equal
                 tilerModel.addConstraint(outputDimensionVar == inputDimensionVar)
 
-        return tilerModel
-
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
         return tilerModel
 
     @staticmethod

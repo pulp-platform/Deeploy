@@ -21,7 +21,7 @@ class ReduceMeanTileConstraint(TileConstraint):
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        # Get necessary information
+        # ===== GET NECESSARY INFORMATION =====
         #   Get I/O buffer names
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
@@ -33,11 +33,12 @@ class ReduceMeanTileConstraint(TileConstraint):
         reduceAxes = parseDict['axes']
         keepDims = parseDict['keepdims']
 
-        # Add I/O dimensions to the model as variables
+        # ===== ADD I/O DIMENSIONS TO THE MODEL AS VARIABLES =====
         for bufferName in [inputBufferName, outputBufferName]:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
-        # Add constratints for the I/O dimensions
+        # ===== ADD CONSTRAINTS =====
+        #   Add constraints for the I/O dimensions
         input_ax = 0
         for idx in range(len(outputShape)):
             # Get current dimension variables
@@ -58,10 +59,6 @@ class ReduceMeanTileConstraint(TileConstraint):
 
                 input_ax += 1
 
-        return tilerModel
-
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
         return tilerModel
 
     @staticmethod
