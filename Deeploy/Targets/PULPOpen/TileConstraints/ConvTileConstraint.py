@@ -300,6 +300,13 @@ class Conv2DTileConstraint(TileConstraint):
         if has_bias:
             biasDimVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = 0)
 
+        # ===== COMPUTE EFFECTIVE INPUT HEIGHT AND WIDTH =====
+        #   Assume worst case scenario (data padding on all sides) when tiling on a ceratin dimension.
+        effectiveInputHeight = inputHeightVar + ((pads[0] + pads[2]) * (inputHeightVar == inputBuffer.shape[1])) - (
+            (weightHeightVar - 1) * (inputHeightVar != inputBuffer.shape[1]))
+        effectiveInputWidth = inputWidthVar + ((pads[1] + pads[3]) * (inputWidthVar == inputBuffer.shape[2])) - (
+            (weightWidthVar - 1) * (inputWidthVar != inputBuffer.shape[2]))
+
         # ===== ADD CONSTRAINTS =====
         #   Add constraint for batch size match between input and output
         tilerModel.addConstraint(outputBatchVar == inputBatchVar)
@@ -307,16 +314,10 @@ class Conv2DTileConstraint(TileConstraint):
         #   Add constraint for input width and height sizes match
         #   (Depends on output height and width, kernel size, padding, dilations, and strides.
         #   For more information on the connections, see ONNX and/or Torch Conv2D documentation).
-        #   Assume worst case scenario (data padding on all sides) when tiling on a ceratin dimension.
-        effectiveHeight = inputHeightVar + ((pads[0] + pads[2]) * (inputHeightVar == inputBuffer.shape[1])) - (
-            (weightHeightVar - 1) * (inputHeightVar != inputBuffer.shape[1]))
-        effectiveWidth = inputWidthVar + ((pads[1] + pads[3]) * (inputWidthVar == inputBuffer.shape[2])) - (
-            (weightWidthVar - 1) * (inputWidthVar != inputBuffer.shape[2]))
-
         tilerModel.addConstraint(
-            (outputHeightVar == (effectiveHeight - dilations[0] * (weightHeightVar - 1) - 1) // strides[0] + 1))
+            (outputHeightVar == (effectiveInputHeight - dilations[0] * (weightHeightVar - 1) - 1) // strides[0] + 1))
         tilerModel.addConstraint(
-            (outputWidthVar == (effectiveWidth - dilations[1] * (weightWidthVar - 1) - 1) // strides[1] + 1))
+            (outputWidthVar == (effectiveInputWidth - dilations[1] * (weightWidthVar - 1) - 1) // strides[1] + 1))
 
         #   Add constraint for input channel size match
         #   (Depends on weight output channel and conv grouping)
@@ -341,6 +342,7 @@ class Conv2DTileConstraint(TileConstraint):
         weightBuffer = ctxt.lookup(name = parseDict['weight'])
 
         #   Get other information
+        pads = parseDict["pads"]
         strides = parseDict["strides"]
 
         # ===== EXTRACT TENSOR DIMS AS VARS =====
@@ -357,17 +359,24 @@ class Conv2DTileConstraint(TileConstraint):
         weightWidthVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 2)
         weightInChannelVar = tilerModel.getTensorDimVar(tensorName = weightBuffer.name, dimIdx = 3)
 
+        # ===== COMPUTE EFFECTIVE INPUT HEIGHT AND WIDTH =====
+        #   Assume worst case scenario (data padding on all sides) when tiling on a ceratin dimension.
+        effectiveInputHeight = inputHeightVar + ((pads[0] + pads[2]) * (inputHeightVar == inputBuffer.shape[1])) - (
+            (weightHeightVar - 1) * (inputHeightVar != inputBuffer.shape[1]))
+        effectiveInputWidth = inputWidthVar + ((pads[1] + pads[3]) * (inputWidthVar == inputBuffer.shape[2])) - (
+            (weightWidthVar - 1) * (inputWidthVar != inputBuffer.shape[2]))
+
         # ===== ADD CONSTRAINTS =====
         #   Keep whole input channels (required for im2col algorithm)
         tilerModel.addConstraint(inputChannelVar == parseDict['ch_im_in'])
 
         #   Require minimum input spatial dimensions to be at least kernel size for proper convolution application
-        tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'])
-        tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'])
+        tilerModel.addConstraint(effectiveInputHeight >= parseDict['dim_kernel_x'])
+        tilerModel.addConstraint(effectiveInputWidth >= parseDict['dim_kernel_y'])
 
         #   Ensure input tiles are compatible with stride
-        tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
-        tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
+        tilerModel.addConstraint((effectiveInputHeight % strides[0]) == 0)
+        tilerModel.addConstraint((effectiveInputWidth % strides[1]) == 0)
 
         #   Weight should not be tiled
         tilerModel.addConstraint(weightHeightVar == parseDict['dim_kernel_x'])
