@@ -26,9 +26,6 @@ class ReduceMeanTileConstraint(TileConstraint):
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
 
-        #   Get I/O shapes
-        outputShape = parseDict['data_out_shape']
-
         #   Get other necessary information
         reduceAxes = parseDict['axes']
         keepDims = parseDict['keepdims']
@@ -39,25 +36,24 @@ class ReduceMeanTileConstraint(TileConstraint):
 
         # ===== ADD CONSTRAINTS =====
         #   Add constraints for the I/O dimensions
-        input_ax = 0
-        for idx in range(len(outputShape)):
-            # Get current dimension variables
-            outputDimensionVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = idx)
-
-            if idx in reduceAxes:
-                # For reduced axes, constrain to 1 if keepdims is set,
-                # otherwise skip this axis in the input tensor,
-                # as it needs to be eliminated.
+        #   Iterate over input axes and maintain an output index pointer
+        inputShape = parseDict['data_in_shape']
+        output_idx = 0
+        for input_ax in range(len(inputShape)):
+            if input_ax in reduceAxes:
+                # This axis is reduced
                 if keepDims:
+                    # Get the output dimension variable and constrain it to 1
+                    outputDimensionVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = output_idx)
                     tilerModel.addConstraint(outputDimensionVar == 1)
-                    input_ax += 1
+                    output_idx += 1
+                # If keepDims is false, this axis doesn't exist in output, so don't increment output_idx
             else:
-                # Otherwise, input and output dimensions need to be equal
+                # This axis is not reduced, so input and output dimensions need to be equal
                 inputDimensionVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = input_ax)
-
+                outputDimensionVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = output_idx)
                 tilerModel.addConstraint(outputDimensionVar == inputDimensionVar)
-
-                input_ax += 1
+                output_idx += 1
 
         return tilerModel
 
