@@ -17,12 +17,12 @@ void PULP_GELU_fp32_fp32(float32_t *data_in, float32_t *data_out,
   int8_t log2Core = LOG2(NUM_CORES);
 
   // Split into chunks for each core
-  int16_t chunk = (dataSize >> log2Core) + ((dataSize & (NUM_CORES - 1)) != 0);
-  int16_t chunk_start = MIN(chunk * core_id, dataSize);
-  int16_t chunk_stop = MIN(chunk_start + chunk, dataSize);
+  int32_t chunk = (dataSize >> log2Core) + ((dataSize & (NUM_CORES - 1)) != 0);
+  int32_t chunk_start = MIN(chunk * core_id, dataSize);
+  int32_t chunk_stop = MIN(chunk_start + chunk, dataSize);
 
   // Compute GELU on the assigned chunk
-  for (uint32_t i = chunk_start; i < chunk_stop; i++) {
+  for (int32_t i = chunk_start; i < chunk_stop; i++) {
     float32_t x = data_in[i];
     float32_t cdf = 0.5f * (1.0f + tanhf((sqrtf(2.0f / (float)M_PI) *
                                           (x + 0.044715f * powf(x, 3.0f)))));

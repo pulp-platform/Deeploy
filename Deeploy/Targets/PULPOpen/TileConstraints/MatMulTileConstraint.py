@@ -79,13 +79,11 @@ class MatMulTileConstraint(TileConstraint):
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
 
-        tensorsShapeLen = len(bufferA.shape)
-
         # ===== EXTRACT TENSOR DIMS AS VARS =====
         ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
-                                                   dimIdx = (tensorsShapeLen - 1) - parseDict['transA'])
+                                                   dimIdx = (len(bufferA.shape) - 1) - parseDict['transA'])
         BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
-                                                  dimIdx = (tensorsShapeLen - 2) + parseDict['transB'])
+                                                  dimIdx = (len(bufferB.shape) - 2) + parseDict['transB'])
 
         # ===== ADD CONSTRAINTS =====
         # VIC: We don't want to deal with intermediate results between kernel calls
@@ -111,11 +109,15 @@ class MatMulTileConstraint(TileConstraint):
         buffB = ctxt.lookup(operatorRepresentation['B'])
         buffOut = ctxt.lookup(operatorRepresentation['data_out'])
 
+        transA = operatorRepresentation['transA']
+        transB = operatorRepresentation['transB']
+
         tensorsShapeLenA = len(buffA.shape)
         tensorsShapeLenB = len(buffB.shape)
         tensorsShapeOutput = len(buffOut.shape)
 
-        NSize = buffA.shape[-1]
+        # NSize depends on transA: if transA=0, N is last dim; if transA=1, N is second-to-last
+        NSize = buffA.shape[-1] if transA == 0 else buffA.shape[-2]
         NOffset = 0
 
         # Prepare input cubes lists
@@ -148,9 +150,13 @@ class MatMulTileConstraint(TileConstraint):
             replacements["batch"].append(BatchSize)
 
             # ===== Compute A cube information =====
-            #   Matrix offsets and shape
-            AMatrixOffsets = (MOffset, NOffset)
-            AMatrixShape = (MSize, NSize)
+            #   Matrix offsets and shape (swap based on transA)
+            if transA == 0:
+                AMatrixOffsets = (MOffset, NOffset)
+                AMatrixShape = (MSize, NSize)
+            else:
+                AMatrixOffsets = (NOffset, MOffset)
+                AMatrixShape = (NSize, MSize)
 
             #   Batch offset and shape (with broadcasting handling)
             ABatchOffsets = list()
@@ -170,9 +176,13 @@ class MatMulTileConstraint(TileConstraint):
             inputACubes.append(ACube)
 
             # ===== Compute B cube information =====
-            #   Matrix offsets and shape
-            BMatrixOffsets = (NOffset, OOffset)
-            BMatrixShape = (NSize, OSize)
+            #   Matrix offsets and shape (swap based on transB)
+            if transB == 0:
+                BMatrixOffsets = (NOffset, OOffset)
+                BMatrixShape = (NSize, OSize)
+            else:
+                BMatrixOffsets = (OOffset, NOffset)
+                BMatrixShape = (OSize, NSize)
 
             #   Batch offset and shape (with broadcasting handling)
             BBatchOffsets = list()
@@ -206,7 +216,8 @@ class MatMulTileConstraint(TileConstraint):
         }
 
         # Update load schedule lists
-        for a, b in zip(inputACubes, inputBCubes):
+        # *With strict=True to fail fast if different list lenghts
+        for a, b in zip(inputACubes, inputBCubes, strict = True):
             inputLoadSchedule.append({"A": a, "B": b})
 
         for out in outputCubes:
