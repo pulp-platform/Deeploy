@@ -65,7 +65,7 @@ class ReduceMeanTileConstraint(TileConstraint):
         return symbolicParseDict
 
     @staticmethod
-    def computeInputCubeFromOutputCube(outputCube: AbsoluteHyperRectangle, parseDict: Dict) -> HyperRectangle:
+    def computeInputCubeFromOutputCube(outputCube: HyperRectangle, parseDict: Dict) -> HyperRectangle:
         # Get required parameters
         originalInputShape = parseDict['data_in_shape']
         keepDims = parseDict['keepdims']
