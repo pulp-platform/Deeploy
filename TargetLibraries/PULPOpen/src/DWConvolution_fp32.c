@@ -18,7 +18,7 @@ void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
 
   // Compute core information
   int8_t core_id = pi_core_id();
-  int8_t log2Core = (int8_t)log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
 
   // Compute the chunk size for each core
   // (Splitting work along the output channels)
