@@ -15,9 +15,18 @@ import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
-from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
+from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.GAP9.Bindings import GAP9Transformer, GAP9ClusterTransformer, GAP9SimpleTransformer
+
+# GAP9-specific L3 RAM allocation and loading templates
+_GAP9L3AllocTemplate = NodeTemplate("""
+${locPtr} = cl_ram_malloc(${size});
+""")
+
+_GAP9L3InitTemplate = NodeTemplate("""
+load_file_to_ram(${locPtr}, "${extName}.hex");
+""")
 
 
 class GAP9Deployer(PULPDeployer):
@@ -27,9 +36,10 @@ class GAP9Deployer(PULPDeployer):
     This deployer uses GAP9-specific transformers that employ ClDma (cl_dma.h)
     instead of the low-level MCHAN API used by PULPDeployer.
     
-    The key difference is in the DMA implementation:
-    - PULP: Uses MchanDma (low-level MCHAN hardware API)
-    - GAP9: Uses ClDma (PMSIS cl_dma.h high-level API)
+    The key differences from PULPDeployer:
+    - DMA: Uses ClDma (PMSIS cl_dma.h) instead of MchanDma (MCHAN hardware API)
+    - L3 RAM: Uses GAP9 APS256XXN OctaSPI RAM accessed via pi_cl_ram_* APIs
+    - File System: Uses ReadFS to load L3 data from flash
     """
 
     def __init__(self,
@@ -56,3 +66,54 @@ class GAP9Deployer(PULPDeployer):
         self.Transformer = GAP9Transformer
         self.ClusterTransformer = GAP9ClusterTransformer
         self.SimpleTransformer = GAP9SimpleTransformer
+
+    def generateBufferAllocationCode(self) -> str:
+        """
+        Generate buffer allocation code with GAP9-specific L3 RAM support.
+        
+        For L3 buffers:
+        1. Allocate space in APS256XXN OctaSPI RAM using cl_ram_malloc()
+        2. Load data from ReadFS using load_file_to_ram()
+        3. Assign extName to enable hex dump generation
+        """
+        retStr = super().generateBufferAllocationCode()
+
+        L3FileStr = ""
+        globalConstBuffers = [
+            buf for key, buf in self.ctxt.globalObjects.items() 
+            if isinstance(buf, VariableBuffer) and buf._deploy
+        ]
+        nonArenaBuffers = [buf for buf in globalConstBuffers if buf._users != []]
+        outputBuffNames = [outputBuffer.name for outputBuffer in self.graph.outputs]
+
+        # Find all L3 constant buffers
+        l3ConstBuffer = []
+        for buf in nonArenaBuffers:
+            if hasattr(buf, "_memoryLevel") and buf._memoryLevel == "L3" and buf.name not in outputBuffNames:
+                l3ConstBuffer.append(buf)
+
+        # Generate allocation and loading code for each L3 buffer
+        for idx, buf in enumerate(l3ConstBuffer):
+            locPtr = str(buf._instance)
+            extName = str(idx)
+            buf.extName = extName  # This enables hex dump generation
+            size = np.prod(buf.shape) * (buf._type.referencedType.typeWidth // 8)
+
+            # Allocate L3 RAM space (for constant buffers only)
+            if isinstance(buf, ConstantBuffer):
+                L3FileStr += _GAP9L3AllocTemplate.generate({
+                    "locPtr": locPtr, 
+                    "extName": extName, 
+                    "size": size
+                })
+
+            # Load data from ReadFS
+            L3FileStr += _GAP9L3InitTemplate.generate({
+                "locPtr": locPtr, 
+                "extName": extName, 
+                "size": size
+            })
+
+        retStr = retStr + L3FileStr
+
+        return retStr

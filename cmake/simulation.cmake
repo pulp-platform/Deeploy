@@ -69,6 +69,14 @@ function(gvsoc_flags_add_files_to_hyperflash out_var files_var)
 	set(${out_var} ${flags} PARENT_SCOPE)
 endfunction()
 
+function(gvsoc_flags_add_files_to_flash out_var files_var)
+	set(flags)
+	foreach(file ${${files_var}})
+		list(APPEND flags "--flash-property=${file}@flash:readfs_flash:files")
+	endforeach()
+	set(${out_var} ${flags} PARENT_SCOPE)
+endfunction()
+
 # The macro creates a new gvsoc_<name> cmake target which executes the final
 # binary on the gvsoc simulator. To give extra flags to the gvsoc command, set
 # the GVSOC_EXTRA_FLAGS variable.

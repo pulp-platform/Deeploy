@@ -132,7 +132,7 @@ int main(void) {
   for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
     tot_tested += DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE);
 
-    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
+    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x10000000) {
       compbuf = pi_l2_malloc(DeeployNetwork_outputs_bytes[buf]);
       ram_read(compbuf, DeeployNetwork_outputs[buf],
                DeeployNetwork_outputs_bytes[buf]);
@@ -170,7 +170,7 @@ int main(void) {
         }
       }
     }
-    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
+    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x10000000) {
       pi_l2_free(compbuf, DeeployNetwork_outputs_bytes[buf]);
     }
   }

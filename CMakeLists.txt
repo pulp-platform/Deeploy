@@ -225,7 +225,7 @@ endif()
 
 if(platform STREQUAL GAP9)
   project(${TESTNAME} LANGUAGES C ASM)
-
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/gap9/gap9_gvsoc.cmake)
   add_compile_options(
     -Wno-error=unknown-pragmas
   )
