@@ -154,13 +154,17 @@ PULPDMASliceBindings = [
 
 PULPSliceBindings = [
     NodeBinding(
-        SliceChecker([
-            PointerClass(type),
-            PointerClass(uint8_t),
-            PointerClass(uint8_t),
-            PointerClass(uint8_t),
-            PointerClass(uint8_t)
-        ], [PointerClass(type)]), SliceTemplate.referenceTemplate, ForkTransformer) for type in FloatDataTypes
+        SliceChecker(
+            [
+                PointerClass(float_type),  # data_in
+                PointerClass(int_type),  # starts
+                PointerClass(int_type),  # ends
+                PointerClass(int_type),  # axes
+                PointerClass(int_type)  # steps
+            ],
+            [PointerClass(float_type)]),
+        SliceTemplate.referenceTemplate,
+        ForkTransformer) for float_type in FloatDataTypes for int_type in IntegerDataTypes
 ]
 
 PULPReshapeBindings = [

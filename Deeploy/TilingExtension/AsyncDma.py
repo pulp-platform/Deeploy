@@ -198,7 +198,7 @@ class AnydimAsyncDmaTransferAdapter:
             templateStr += ";"
             super().__init__(templateStr)
 
-    offsetPtrTemplate = NodeTemplate("void * const ${resultPtr} = (void *)${basePtr} + ${offset};")
+    offsetPtrTemplate = NodeTemplate("void * const ${resultPtr} = (void *)((char *)${basePtr} + ${offset});")
 
     def __init__(self, dma: AsyncDma) -> None:
         self.dma = dma
