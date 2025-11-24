@@ -1,0 +1,18 @@
+	deeploy-test-generator:
+;
+inputoutput"
+ReduceMean*
+axes@@ *
+keepdims ReduceMeanNetZ
+input
+
+
+ 
+0
+ b 
+output
+
+
+
+
+ B
