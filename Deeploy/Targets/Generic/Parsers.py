@@ -529,7 +529,7 @@ class ReduceMeanParser(ReduceParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        if 1 <= len(node.inputs) and (node.inputs[0].dtype == np.float32):
+        if 1 <= len(node.inputs) and ("axes" not in node.attrs):
             # Float node, requiring 1 or 2 inputs (ONNX opset version >= 18).
             # "axes" input is optional.
             # If axes is not provided, then reduction will happen over all dimensions.
@@ -551,19 +551,22 @@ class ReduceMeanParser(ReduceParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        if 1 <= len(node.inputs) and (node.inputs[0].dtype == np.float32):
-            # Extract context infomration for Float ReduceMean node (ONNX opset version >= 18)
+        if 1 <= len(node.inputs) and ("axes" not in node.attrs):
+            # Extract context information for Float ReduceMean node (ONNX opset version >= 18)
             data_in = ctxt.lookup(node.inputs[0].name)
             data_out = ctxt.lookup(node.outputs[0].name)
 
             # Extract axes as numpy sorted array
             # If not provided, according to ONNX specification, reduction will happen over all dimensions
             if len(node.inputs) == 2:
-                if isinstance(node.inputs[1], gs.Constant):
-                    axes = node.inputs[1].values
-                else:
-                    axes = ctxt.lookup(node.inputs[1].name).values
+                axes = ctxt.lookup(node.inputs[1].name)
 
+                # Mark the axes variable to be excluded from the context, since only used in the template, as part of the operator representation
+                axes._live = False
+                axes._deploy = False
+
+                # Sort axes
+                axes = axes.values
                 axes.sort()
             else:
                 axes = np.array(list(range(len(data_in.shape))))
