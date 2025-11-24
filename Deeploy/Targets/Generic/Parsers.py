@@ -529,9 +529,14 @@ class ReduceMeanParser(ReduceParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        if len(node.inputs) == 2:
-            # Float node, requiring 2 inputs (ONNX opset version >= 18)
-            wellFormed = all(['keepdims' in node.attrs, len(node.inputs) == 2, len(node.outputs) == 1])
+        if 1 <= len(node.inputs) and (node.inputs[0].dtype == np.float32):
+            # Float node, requiring 1 or 2 inputs (ONNX opset version >= 18).
+            # "axes" input is optional.
+            # If axes is not provided, then reduction will happen over all dimensions.
+            #
+            # WARNING: noop_with_empty_axes attribute not handled
+
+            wellFormed = all(['keepdims' in node.attrs, 1 <= len(node.inputs) <= 2, len(node.outputs) == 1])
 
             if wellFormed:
                 self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
@@ -546,23 +551,34 @@ class ReduceMeanParser(ReduceParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        if len(node.inputs) == 2:
+        if 1 <= len(node.inputs) and (node.inputs[0].dtype == np.float32):
+            # Extract context infomration for Float ReduceMean node (ONNX opset version >= 18)
             data_in = ctxt.lookup(node.inputs[0].name)
             data_out = ctxt.lookup(node.outputs[0].name)
 
-            axes = ctxt.lookup(node.inputs[1].name)
+            # Extract axes as numpy sorted array
+            # If not provided, according to ONNX specification, reduction will happen over all dimensions
+            if len(node.inputs) == 2:
+                if isinstance(node.inputs[1], gs.Constant):
+                    axes = node.inputs[1].values
+                else:
+                    axes = ctxt.lookup(node.inputs[1].name).values
 
+                axes.sort()
+            else:
+                axes = np.array(list(range(len(data_in.shape))))
+
+            # Update operator representation
             self.operatorRepresentation['data_in'] = data_in.name
             self.operatorRepresentation['data_out'] = data_out.name
+
             self.operatorRepresentation['data_in_shape'] = data_in.shape
             self.operatorRepresentation['data_out_shape'] = data_out.shape
-            self.operatorRepresentation['size'] = np.prod(data_in.shape)
-            self.operatorRepresentation['axisLength'] = data_in.shape[axes.values[0]]
-            self.operatorRepresentation['axes'] = axes.values
 
-            # Mark the axes variable to be excluded from the context, since only used in the template, as part of the operator representation
-            axes._live = False
-            axes._deploy = False
+            self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+            self.operatorRepresentation['axes'] = axes
+            self.operatorRepresentation['axisLength'] = data_in.shape[axes[0]]
 
             return ctxt, True
         else:

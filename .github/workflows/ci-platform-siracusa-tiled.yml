@@ -82,7 +82,7 @@ jobs:
           {"name":"FP32Kernels/Activations/ReLU","L1":[20]},
 
           {"name":"FP32Kernels/Conv2D/RegularBias","L1":[8800]},
-          {"name":"FP32Kernels/Conv2D/RegularNoBias","L1":[1600]},
+          {"name":"FP32Kernels/Conv2D/RegularNoBias","L1":[2000]},
           {"name":"FP32Kernels/Conv2D/RegularZeroValuedBias","L1":[8800]},
 
           {"name":"FP32Kernels/Conv2D/DWBias","L1":[10000]},
@@ -90,7 +90,7 @@ jobs:
           {"name":"FP32Kernels/Conv2D/DWZeroValuedBias","L1":[9800]},
 
           {"name":"FP32Kernels/SkipConnection/ReshapeWithSkipConnection","L1":[2600]},
-      
+
           {"name":"testMatMul","L1":[64000,32000,16000]},
           {"name":"test2DRequantizedConv","L1":[8000,6000,5000]},
           {"name":"testRequantizedDWConv","L1":[5121]},

@@ -17,9 +17,11 @@ class _FloatReduceMeanTemplate(NodeTemplate):
 
         data_in = ctxt.lookup(operatorRepresentation['data_in'])
         data_out = ctxt.lookup(operatorRepresentation['data_out'])
+
         operatorRepresentation['input_offset'] = 0
         if hasattr(data_in, "_signed") and hasattr(data_in, "nLevels"):
             operatorRepresentation['input_offset'] = (data_in._signed == 0) * int(data_in.nLevels / 2)
+
         operatorRepresentation['output_offset'] = 0
         if hasattr(data_out, "_signed") and hasattr(data_out, "nLevels"):
             operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_in.nLevels / 2)
@@ -71,7 +73,7 @@ ${data_out}_accumulator += ((${data_in_type.referencedType.typeName} (*)${shapeS
 }
 % endfor
 % if keepdims:
-*dummy_${data_out}++ = (${data_out_type.referencedType.typeName}) ((${data_out}_accumulator / ${reduceLength} + ${output_offset});
+*dummy_${data_out}++ = (${data_out_type.referencedType.typeName}) (${data_out}_accumulator / ${reduceLength} + ${output_offset});
 % else:
 *dummy_${data_out}++ = (${data_out_type.referencedType.typeName}) (${data_out}_accumulator / ${reduceLength});
 % endif
