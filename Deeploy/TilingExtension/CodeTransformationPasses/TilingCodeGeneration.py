@@ -44,12 +44,12 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
 
     _relativeOffsetReferenceUpdateTemplate = NodeTemplate("""
     // UPDATE VARIABLE ${reference}
-    ${reference} += ${relativeOffset};
+    ${reference} = (${typeName}*)((char*)(${reference}) + ${relativeOffset});
     """)
 
     _relativeOffsetReferenceUpdateTiledTemplate = NodeTemplate("""
     // UPDATE VARIABLE ${reference}
-    ${reference} += ${relativeOffset}[${tileIdxVar}];
+    ${reference} = (${typeName}*)((char*)(${reference}) + ${relativeOffset}[${tileIdxVar}]);
     """)
 
     _openTileLoopTemplate = NodeTemplate("""
@@ -157,7 +157,11 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
         if len(relativeOffsets) == 0 or all(offset == 0 for offset in relativeOffsets):
             return None
 
-        operatorRepresentation: OperatorRepresentation = {"reference": externalBuffer.name, "tileIdxVar": tileIdxVar}
+        operatorRepresentation: OperatorRepresentation = {
+            "reference": externalBuffer.name,
+            "tileIdxVar": tileIdxVar,
+            "typeName": externalBuffer._type.referencedType.typeName,
+        }
 
         if all(relativeOffsets[0] == offset for offset in relativeOffsets):
             operatorRepresentation["relativeOffset"] = relativeOffsets[0]

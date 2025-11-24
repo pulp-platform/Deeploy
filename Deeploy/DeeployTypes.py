@@ -480,7 +480,7 @@ class _ReferenceBuffer(VariableBuffer):
     % if offset is None:
     ${type.typeName} ${name} = (${type.typeName}) ${referenceName};\\
     % else:
-    ${type.typeName} ${name} = (${type.typeName}) ${referenceName} + ${offset};\\
+    ${type.typeName} ${name} = (${type.typeName})((char*) ${referenceName} + ${offset});\\
     % endif
     """)
     deallocTemplate = NodeTemplate("")

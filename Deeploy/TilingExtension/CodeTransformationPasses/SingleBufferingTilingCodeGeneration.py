@@ -55,9 +55,12 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
             if future not in futures:
                 callStack.append(future.alloc())
 
-            callStack.extend(
-                self._generateDmaTransferCalls(ctxt, tensorName, rectangles, tileIdxVar, localBuffer, externalBufferRef,
-                                               direction, future))
+            try:
+                callStack.extend(
+                    self._generateDmaTransferCalls(ctxt, tensorName, rectangles, tileIdxVar, localBuffer,
+                                                   externalBufferRef, direction, future))
+            except AssertionError as e:
+                raise AssertionError(f"{e} while generating DMA transfer for tensor '{tensorName}'") from e
 
             referenceUpdate = self._generateExternalReferenceUpdate(ctxt, tensorName, rectangles, tileIdxVar,
                                                                     externalBufferRef)
