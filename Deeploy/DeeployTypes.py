@@ -325,7 +325,7 @@ class VariableBuffer():
         return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
 
     def has_live_aliases(self, ctxt: NetworkContext) -> bool:
-        """Checks whether this VariableBuffer has any live aliases, i.e. buffers that are still live and are aliased by this buffer.
+        """Checks whether this VariableBuffer has any live ancestors, i.e. buffers that are still live and are aliased by this buffer.
         Parameters
         ----------
         ctxt : NetworkContext
@@ -333,7 +333,7 @@ class VariableBuffer():
         Returns
         -------
         bool
-            True if this VariableBuffer has any live aliases, False otherwise
+            True if this VariableBuffer has any live ancestors, False otherwise
         """
         # Do a breadth-first search across the aliasing double-linked list
         live = self._live
@@ -1019,18 +1019,32 @@ class NetworkContext():
         """
         return copy.copy(self)
 
+
 class NodeParser():
     """Deeploy's core Parser class. Analyzes network nodes and evaluates whether they can be mapped by it.
+
     """
 
     def __init__(self):
-        self.operatorRepresentation: OperatorRepresentation = {}
-        print("[DEBUG][NodeParser.__init__] New NodeParser created")
+        self.operatorRepresentation: OperatorRepresentation = {
+        }  #: Dict[str, Any]: The internal representation of the operator this parser has analyzed that describes all relevant attributes of the node to be used by code generation
 
     @abstractmethod
     def parseNode(self, node: gs.Node) -> bool:
-        """Parser-specific method to-be-implemented."""
-        print(f"[DEBUG][parseNode] Default parseNode called for node {node.op}")
+        """Parser-specific method to-be-implemented. Given a graphsurgeon node, this method returns whether its attributes are mappable by this parser.
+
+        Parameters
+        ----------
+        node : gs.Node
+            Graphsurgeon node to be evaluated
+
+        Returns
+        -------
+        bool
+            False if any attribute in the node cannot be mapped
+            correctly.
+
+        """
         return True
 
     @abstractmethod
@@ -1038,28 +1052,57 @@ class NodeParser():
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        """Parser-specific method."""
-        print(f"[DEBUG][parseNodeCtxt] Default parseNodeCtxt called for node {node.op}")
+        """Parses the node's input and output tensors, and adds them to its operatorRepresentation. May also be used to assert certain input- and output-level characteristics like correct dimensions.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Current NetworkContext
+        node : gs.Node
+            Node to be analyzed
+        channels_first : bool
+            Flag to indicate whether tensor dimensions are expected to
+            be in CxHxW layout (true) or HxWxC layout (false)
+
+        Returns
+        -------
+        Tuple[NetworkContext, bool]
+            Tuple of the updated NetworkContext and return boolean to
+            indicate whether the node, including it's IO tensors can
+            be mapped.
+
+        """
+
         return ctxt, True
 
     @classmethod
     def parseInputs(cls, ctxt: NetworkContext, node: gs.Node) -> NetworkContext:
-        print(f"[DEBUG][parseInputs] Hoisting inputs for node {node.op}, name={node.name}")
+        """DONT OVERRIDE - Takes care of hoisting IO tensors into the NetworkContext. Also verifies
+        that all inputs have been registered and the output has not been registered.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Current NetworkContext
+        node : gs.Node
+            Node whose IO tensors should be hoisted
+
+        Returns
+        -------
+        NetworkContext
+            Updated NetworkContext with hoisted IO tensors
+
+        """
         data_in_buffers = []
-
         for inputNode in node.inputs:
-            print(f"[DEBUG][parseInputs]  Input tensor name: {inputNode.name}")
-
             data_in = inputNode.name
 
             # Hoist constant inputs
             if type(inputNode) == gs.ir.tensor.Constant and not ctxt.is_global(data_in):
-                print(f"[DEBUG][parseInputs]   Hoisting constant tensor {data_in}")
                 ctxt.hoistConstant(inputNode)
             else:
                 localBuffer = ctxt.lookup(data_in)
                 data_in_buffers.append(localBuffer.name)
-                print(f"[DEBUG][parseInputs]   Registered input buffer: {localBuffer.name}")
 
             ctxt.addUser(data_in, node)
 
@@ -1067,46 +1110,74 @@ class NodeParser():
 
     @classmethod
     def parseOutputs(cls, ctxt: NetworkContext, node: gs.Node) -> NetworkContext:
-        print(f"[DEBUG][parseOutputs] Registering outputs for node {node.op}, name={node.name}")
+        """DONT OVERRIDE - registers the output tensor of the operator
 
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Current NetworkContext
+        node : gs.Node
+            Operator whose outputs should be parsed
+
+        Returns
+        -------
+        NetworkContext
+            Updated NetworkContext
+
+        """
         outputNodes = node.outputs
         outputNames = [node.name for node in outputNodes]
 
         for node, name in zip(outputNodes, outputNames):
-            print(f"[DEBUG][parseOutputs]  Output tensor name: {name}")
             if not ctxt.is_global(name):
-                print(f"[DEBUG][parseOutputs]   Creating new VariableBuffer for {name}")
-                nb = ctxt.VariableBuffer(name=name, shape=node.shape)
+                nb = ctxt.VariableBuffer(name = name, shape = node.shape)
                 ctxt.add(nb, 'local')
             else:
-                print(f"[DEBUG][parseOutputs]   Output {name} already global")
                 nb = ctxt.lookup(name)
 
         return ctxt
 
     @staticmethod
     def _unpack_const(attr) -> Union[int, float]:
-        print("[DEBUG][_unpack_const] Extracting scalar value from constant attribute")
+        """DON'T OVERRIDE - Helper function to get a Python scalar from an ONNX attribute.
+        The attributes can either be a numpy scalar value or a Constant tensor.
+        This expects the numpy value to be of size 1.
+        """
         if isinstance(attr, gs.Constant):
             value = attr.values
         elif isinstance(attr, np.ndarray):
             value = attr
         else:
-            raise AssertionError(f"Unsupported attribute type {type(attr)}")
+            assert False, f"Unsupported attribute type {type(attr)}"
+        assert value.size == 1, f"Expected attribute of size 1. Got an array of shape {value.shape}"
+        return value.item()
 
-        assert value.size == 1, f"Expected attribute of size 1. Got array shape {value.shape}"
-        val = value.item()
-        print(f"[DEBUG][_unpack_const]  Value = {val}")
-        return val
-
+    # Don't touch this
     def parse(self,
               ctxt: NetworkContext,
               node: gs.Node,
               default_channels_first: bool = True,
               ioParse: bool = True) -> Tuple[NetworkContext, bool]:
+        """DONT OVERRIDE - Uses other NodeParser functions to implement a full parsing passing of the node
 
-        print(f"\n[DEBUG][parse] >>> Enter NodeParser.parse(), node={node.op}, name={node.name}")
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Current NetworkContext
+        node : gs.Node
+            Node to be parsed
+        default_channels_first : bool
+            The default `channels_first` value if none is provided by the node's attributes
+        ioParse : bool
+            Flag to indicate whether to go through IO parsing or not
 
+        Returns
+        -------
+        Tuple[NetworkContext, bool]
+            Returns updated NetworkContext and flag to indicate
+            success
+
+        """
         self.operatorRepresentation = {}
 
         if "channels_first" in node.attrs:
@@ -1114,33 +1185,17 @@ class NodeParser():
         else:
             self.operatorRepresentation['channels_first'] = default_channels_first
 
-        print(f"[DEBUG][parse] channels_first={self.operatorRepresentation['channels_first']}")
-        print("[DEBUG][parse] Calling parseNode() ...")
-
         ret = self.parseNode(node)
-        print(f"[DEBUG][parse] parseNode() returned {ret}")
 
         if not ret:
-            print("[DEBUG][parse] parseNode returned False → abort")
             return ctxt, False
 
         if ioParse:
-            print("[DEBUG][parse] Copying context for IO parsing")
             ctxt = ctxt.copy()
-
-            print("[DEBUG][parse] Calling parseInputs() ...")
             ctxt = self.parseInputs(ctxt, node)
-
-            print("[DEBUG][parse] Calling parseOutputs() ...")
             ctxt = self.parseOutputs(ctxt, node)
 
-        print(f"[DEBUG][parse] <<< Exit NodeParser.parse() for node {node.op}")
         return ctxt, True
-
-    
-
-
-
 
 
 class NodeTypeChecker():
@@ -2507,10 +2562,10 @@ class NetworkContainer():
             self.ctxt = layer.codeTransform(self.ctxt, verbose)
         self.transformed = True
 
-    def _selectEngine(self, node: gs.Node) -> DeploymentEngine:
+    def _mapNode(self, node: gs.Node) -> Union[ONNXLayer, Any]:
         for engine in self.Platform.engines:
             if node.op in engine.Mapping:
-                return engine
+                return engine.Mapping[node.op](node)
         raise RuntimeError(f"No mapping found for node {node.name} with op type {node.op}")
 
     def _bindLayers(self):
@@ -2527,8 +2582,7 @@ class NetworkContainer():
                 flatSchedule += subGraph
 
         for node in flatSchedule:
-            engine = self._selectEngine(node)
-            layer = engine.Mapping[node.op](node)
+            layer = self._mapNode(node)
             if isinstance(layer, ONNXLayer):
                 log.debug(f"   {SUCCESS_MARK} Bind {node.name} to layer {layer.__class__.__name__}")
                 self.layerBinding[layer.node.name] = layer
