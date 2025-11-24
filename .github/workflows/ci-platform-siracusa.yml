@@ -37,6 +37,19 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
         Adder
+
+        FP32Kernels/Activations/ReLU
+
+        FP32Kernels/Conv2D/DWBias
+        FP32Kernels/Conv2D/DWNoBias
+        FP32Kernels/Conv2D/DWZeroValuedBias
+
+        FP32Kernels/Conv2D/RegularBias
+        FP32Kernels/Conv2D/RegularNoBias
+        FP32Kernels/Conv2D/RegularZeroValuedBias
+
+        FP32Kernels/SkipConnection/ReshapeWithSkipConnection
+
         MultIO
         test1DPad
         test2DPad
@@ -53,17 +66,7 @@ jobs:
         testBacktracking
         testFloatAdder
         testFloatGEMM
-
-        testFloat2DConvolution
-        testFloat2DConvolutionBias
-        testFloat2DConvolutionZeroBias
-
-        testFloat2DDWConvolution
-        testFloat2DDWConvolutionBias
-        testFloat2DDWConvolutionZeroBias
-
         testFloatLayerNorm
-        testFloatRelu
         testFloatMaxPool
         testFloatMatmul
         testFloatSoftmax
@@ -72,7 +75,6 @@ jobs:
         Quant
         Dequant
         testFloatReduceSum
-        testFloatReshapeWithSkipConnection
         testFloatSoftmaxGrad
         testFloatSoftmaxCrossEntropy
         testFloatSoftmaxCrossEntropyGrad
