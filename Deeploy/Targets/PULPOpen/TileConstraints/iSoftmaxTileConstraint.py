@@ -117,10 +117,10 @@ class SoftmaxGradTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         for idx in range(shapeLen):
-            upstream_dim = tilerModel.getTensorDimVar(tensorName=upstream_grad, dimIdx=idx)
-            softmax_out_dim = tilerModel.getTensorDimVar(tensorName=softmax_output, dimIdx=idx)
-            softmax_grad_dim = tilerModel.getTensorDimVar(tensorName=softmax_grad, dimIdx=idx)
-            
+            upstream_dim = tilerModel.getTensorDimVar(tensorName = upstream_grad, dimIdx = idx)
+            softmax_out_dim = tilerModel.getTensorDimVar(tensorName = softmax_output, dimIdx = idx)
+            softmax_grad_dim = tilerModel.getTensorDimVar(tensorName = softmax_grad, dimIdx = idx)
+
             tilerModel.addConstraint(upstream_dim == softmax_out_dim)
             tilerModel.addConstraint(upstream_dim == softmax_grad_dim)
 
@@ -133,7 +133,7 @@ class SoftmaxGradTileConstraint(TileConstraint):
 
         lastDimLength = inputBuffer.shape[-1]
         lastDimIdx = len(inputBuffer.shape) - 1
-        lastDimVar = tilerModel.getTensorDimVar(tensorName=upstream_grad, dimIdx=lastDimIdx)
+        lastDimVar = tilerModel.getTensorDimVar(tensorName = upstream_grad, dimIdx = lastDimIdx)
 
         tilerModel.addConstraint(lastDimVar == lastDimLength)
 
@@ -162,7 +162,7 @@ class SoftmaxGradTileConstraint(TileConstraint):
 
         addrNames = ['upstream_grad', 'softmax_output', 'softmax_grad']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
-                                                                 operatorRepresentation, addrNames)
+                                                                  operatorRepresentation, addrNames)
 
         replacements = {"lastDimLength": [], "size": []}
 

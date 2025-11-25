@@ -199,18 +199,18 @@ def minimizeRectangle(rect: HyperRectangle, referenceShape: Sequence[int]) -> Tu
     return HyperRectangle(tuple(minRectOffset), tuple(minRectShape)), tuple(minReferenceShape)
 
 
-def padShape(shape: Tuple[int, ...], rank: int) -> Tuple[int, ...]:
-    assert rank >= len(
-        shape), f"Cannot pad to rank smaller then shape's. Received rank: {rank}, shape rank: {len(shape)}"
-    ret = tuple([1] * (rank - len(shape))) + shape
+def padOffset(offset, rank: int):
+    # Ensure offset is a tuple
+    offset = tuple(offset) if not isinstance(offset, tuple) else offset
+    ret = tuple([0] * (rank - len(offset))) + offset
     assert len(ret) == rank
     return ret
 
 
-def padOffset(offset: Tuple[int, ...], rank: int) -> Tuple[int, ...]:
-    assert rank >= len(
-        offset), f"Cannot pad to rank smaller then offset's. Received rank: {rank}, offset rank: {len(offset)}"
-    ret = tuple([0] * (rank - len(offset))) + offset
+def padShape(shape, rank: int):
+    # Ensure shape is a tuple
+    shape = tuple(shape) if not isinstance(shape, tuple) else shape
+    ret = tuple([1] * (rank - len(shape))) + shape
     assert len(ret) == rank
     return ret
 

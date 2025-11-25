@@ -185,9 +185,11 @@ PULPAddBindings = [
     NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatAddTemplate.referenceTemplate, ForkTransformer)
 ] + [
-    NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatAddTemplate.referenceTemplate, ForkTransformer)
-] 
+    NodeBinding(
+        AddChecker([PointerClass(float32_t), PointerClass(float32_t),
+                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatAddTemplate.referenceTemplate,
+        ForkTransformer)
+]
 
 PULPRQSConv2DBindings = [
     NodeBinding(
@@ -415,8 +417,11 @@ PULPLayernormBinding = NodeBinding(
     ForkTransformer)
 
 PULPLayernormGradBinding = NodeBinding(
-    LayerNormChecker([PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t),
-                      PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
+    LayerNormChecker(
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
     ForkTransformer)
 
 PULPFloatGELUBinding = NodeBinding(

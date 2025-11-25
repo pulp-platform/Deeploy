@@ -25,7 +25,6 @@
 
 from typing import Dict, List, Tuple, Union
 
-import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -46,7 +45,7 @@ class ReduceSumTileConstraint(TileConstraint):
 
         inputBuffer = ctxt.lookup(inputBufferName)
         outputBuffer = ctxt.lookup(outputBufferName)
-        
+
         inputShapeLen = len(inputBuffer.shape)
         outputShapeLen = len(outputBuffer.shape)
 
@@ -57,29 +56,29 @@ class ReduceSumTileConstraint(TileConstraint):
         # For ReduceSum, we need to handle dimension reduction
         # If keepdims=True, all dimensions should match (reduced dims become 1)
         # If keepdims=False, reduced dimensions are removed from output
-        
+
         keepdims = parseDict.get('keepdims', True)  # Default to True if not specified
-        
+
         if keepdims:
             # keepdims=True: output has same number of dimensions as input
             if inputShapeLen == outputShapeLen:
                 for idx in range(inputShapeLen):
-                    outputDim = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=idx)
-                    inputDim = tilerModel.getTensorDimVar(tensorName=inputBufferName, dimIdx=idx)
-                    
+                    outputDim = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = idx)
+                    inputDim = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = idx)
+
                     # For reduced dimensions, output should be 1
                     if 'axis' in parseDict:
                         axis = parseDict['axis']
                         if isinstance(axis, int):
                             axis = [axis]
-                        
+
                         # Handle negative axis indexing
                         normalized_axis = []
                         for ax in axis:
                             if ax < 0:
                                 ax = inputShapeLen + ax
                             normalized_axis.append(ax)
-                        
+
                         if idx in normalized_axis:
                             # This dimension is reduced, output should be 1
                             tilerModel.addConstraint(outputDim == 1)
@@ -91,14 +90,14 @@ class ReduceSumTileConstraint(TileConstraint):
                         tilerModel.addConstraint(outputDim == 1)
             else:
                 raise ValueError("With keepdims=True, input and output should have same number of dimensions")
-        
+
         else:
             # keepdims=False: reduced dimensions are removed from output
             if 'axis' in parseDict:
                 axis = parseDict['axis']
                 if isinstance(axis, int):
                     axis = [axis]
-                
+
                 # Handle negative axis indexing
                 normalized_axis = []
                 for ax in axis:
@@ -106,24 +105,24 @@ class ReduceSumTileConstraint(TileConstraint):
                         ax = inputShapeLen + ax
                     normalized_axis.append(ax)
                 normalized_axis = sorted(normalized_axis)
-                
+
                 # Expected output shape length
                 expected_output_len = inputShapeLen - len(normalized_axis)
-                
+
                 if outputShapeLen != expected_output_len:
                     raise ValueError(f"With keepdims=False and axis={axis}, expected output to have "
-                                   f"{expected_output_len} dimensions, but got {outputShapeLen}")
-                
+                                     f"{expected_output_len} dimensions, but got {outputShapeLen}")
+
                 # Map input dimensions to output dimensions (skipping reduced ones)
                 output_idx = 0
                 for input_idx in range(inputShapeLen):
                     if input_idx not in normalized_axis:
                         # This dimension is preserved
-                        outputDim = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=output_idx)
-                        inputDim = tilerModel.getTensorDimVar(tensorName=inputBufferName, dimIdx=input_idx)
+                        outputDim = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = output_idx)
+                        inputDim = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = input_idx)
                         tilerModel.addConstraint(outputDim == inputDim)
                         output_idx += 1
-            
+
             else:
                 # No axis specified - global reduction, output should be scalar
                 # In many frameworks, scalar outputs are represented as 1D tensors with size 1
@@ -133,14 +132,14 @@ class ReduceSumTileConstraint(TileConstraint):
                     pass
                 elif outputShapeLen == 1:
                     # 1D tensor with size 1 representing scalar
-                    outputDim = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=0)
+                    outputDim = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 0)
                     tilerModel.addConstraint(outputDim == 1)
                 else:
                     # Allow other representations but warn about potential issues
                     # Some frameworks might represent scalars differently
                     # For now, just ensure all output dimensions are 1
                     for idx in range(outputShapeLen):
-                        outputDim = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=idx)
+                        outputDim = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = idx)
                         tilerModel.addConstraint(outputDim == 1)
 
         return tilerModel
@@ -159,11 +158,11 @@ class ReduceSumTileConstraint(TileConstraint):
         inputBuffer = ctxt.lookup(inputBufferName)
 
         symbolicParseDict = parseDict.copy()
-        
+
         # Since we force all dimensions to be full size, we can use the actual shape
         # This ensures the template gets the correct dimensions for the single cube
         symbolicParseDict['data_in_shape'] = list(inputBuffer.shape)
-        
+
         # Add axes information (normalized)
         if 'axis' in parseDict:
             axis = parseDict['axis']
@@ -171,19 +170,19 @@ class ReduceSumTileConstraint(TileConstraint):
                 axes = [axis]
             else:
                 axes = list(axis)
-            
+
             # Handle negative axis indexing
             normalized_axes = []
             for ax in axes:
                 if ax < 0:
                     ax = len(inputBuffer.shape) + ax
                 normalized_axes.append(ax)
-            
+
             symbolicParseDict['axes'] = normalized_axes
         else:
             # Global reduction - all axes
             symbolicParseDict['axes'] = list(range(len(inputBuffer.shape)))
-        
+
         # Add keepdims information
         symbolicParseDict['keepdims'] = parseDict.get('keepdims', True)
 
@@ -194,13 +193,13 @@ class ReduceSumTileConstraint(TileConstraint):
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        
+
         # Get original tensor shapes from context
         inputBufferName = operatorRepresentation['data_in']
         outputBufferName = operatorRepresentation['data_out']
         inputBuffer = ctxt.lookup(inputBufferName)
         outputBuffer = ctxt.lookup(outputBufferName)
-        
+
         # Use original dimensions for ReduceSum computation
         originalInputShape = list(inputBuffer.shape)
         originalOutputShape = list(outputBuffer.shape)
@@ -211,7 +210,7 @@ class ReduceSumTileConstraint(TileConstraint):
 
         replacements = {"data_in_shape": [], "axes": [], "keepdims": [], "reduceLength": []}
         replacementTypes = {
-            "data_in_shape": PointerClass(uint32_t), 
+            "data_in_shape": PointerClass(uint32_t),
             "axes": PointerClass(uint32_t),
             "keepdims": PointerClass(uint32_t),
             "reduceLength": PointerClass(uint32_t)
@@ -228,7 +227,7 @@ class ReduceSumTileConstraint(TileConstraint):
                 axes = [axis]
             else:
                 axes = list(axis)
-            
+
             # Handle negative axis indexing
             normalized_axes = []
             for ax in axes:
@@ -239,7 +238,7 @@ class ReduceSumTileConstraint(TileConstraint):
         else:
             # Global reduction - all axes
             axes = list(range(len(originalInputShape)))
-        
+
         # Calculate reduceLength (product of dimensions being reduced)
         reduceLength = 1
         for ax in axes:
@@ -255,20 +254,14 @@ class ReduceSumTileConstraint(TileConstraint):
         # Create scheduling based on original dimensions
         inputLoadSchedule = []
         outputLoadSchedule = []
-        
+
         # Create HyperRectangles with original dimensions
         from Deeploy.TilingExtension.TilingCodegen import HyperRectangle
-        
-        inputCube = HyperRectangle(
-            dims=originalInputShape,
-            offset=[0] * len(originalInputShape)
-        )
-        
-        outputCube = HyperRectangle(
-            dims=originalOutputShape,
-            offset=[0] * len(originalOutputShape)
-        )
-        
+
+        inputCube = HyperRectangle(dims = originalInputShape, offset = [0] * len(originalInputShape))
+
+        outputCube = HyperRectangle(dims = originalOutputShape, offset = [0] * len(originalOutputShape))
+
         inputLoadSchedule.append({"data_in": inputCube})
         outputLoadSchedule.append({"data_out": outputCube})
 

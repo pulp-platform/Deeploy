@@ -35,7 +35,7 @@ void Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
 
           sum += pSrcA[a_idx] * pSrcB[b_idx];
         }
-        pDstY[i * O + j] = sum  + pDstC[i * O + j];
+        pDstY[i * O + j] = sum + pDstC[i * O + j];
       }
     }
   }
