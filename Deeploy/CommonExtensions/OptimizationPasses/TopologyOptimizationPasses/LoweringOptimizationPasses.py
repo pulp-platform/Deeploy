@@ -536,7 +536,8 @@ def _remove_only_singleton_reduce_mean(graph: gs.Graph, match: Match, name: str)
     else:
         axis = node.inputs[1].values
 
-    if all(node.inputs[0].shape[ax] == 1 for ax in axis):
+    # Check if shape information is available
+    if node.inputs[0].shape is not None and all(node.inputs[0].shape[ax] == 1 for ax in axis):
         graph.deleteNode(node)
 
     return graph

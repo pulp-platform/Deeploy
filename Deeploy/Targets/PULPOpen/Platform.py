@@ -6,7 +6,7 @@ import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    RemoveEmptyConvBiasPass
+    RemoveEmptyConvBiasPass, RemoveOnlySingletonReduceMeanPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NetworkContext, NodeMapper, \
     NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
@@ -240,6 +240,7 @@ PULPOptimizer = TopologyOptimizer([
     PULPMatMulRequantMergePass(),
     PULPAddRequantMergePass(),
     RemoveEmptyConvBiasPass(),
+    RemoveOnlySingletonReduceMeanPass(),
 ],
                                   name = "PULPOptimizer")
 

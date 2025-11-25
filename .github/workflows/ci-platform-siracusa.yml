@@ -48,6 +48,26 @@ jobs:
         FP32Kernels/Conv2D/RegularNoBias
         FP32Kernels/Conv2D/RegularZeroValuedBias
 
+        FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean
+        FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add
+        FP32Kernels/ReduceMean/KeepDims/AllAxes
+        FP32Kernels/ReduceMean/KeepDims/Axes0_1_2_3
+        FP32Kernels/ReduceMean/KeepDims/Axes1_3
+        FP32Kernels/ReduceMean/KeepDims/Axes2_1
+        FP32Kernels/ReduceMean/KeepDims/Axis0
+        FP32Kernels/ReduceMean/KeepDims/Axis2
+        FP32Kernels/ReduceMean/KeepDims/ReduceMean_Add
+
+        FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean
+        FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean_Add
+        FP32Kernels/ReduceMean/NoKeepDims/AllAxes
+        FP32Kernels/ReduceMean/NoKeepDims/Axes0_1_2_3
+        FP32Kernels/ReduceMean/NoKeepDims/Axes1_3
+        FP32Kernels/ReduceMean/NoKeepDims/Axes2_1
+        FP32Kernels/ReduceMean/NoKeepDims/Axis0
+        FP32Kernels/ReduceMean/NoKeepDims/Axis2
+        FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add
+
         FP32Kernels/SkipConnection/ReshapeWithSkipConnection
 
         MultIO
