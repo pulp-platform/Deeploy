@@ -1964,6 +1964,65 @@ class IntegerDivParser(NodeParser):
         return ctxt, True
 
 
+class PowParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return node.op == 'Pow' and len(node.inputs) == 2 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        # Lookup both inputs (data and exponent)
+        data_in = ctxt.lookup(node.inputs[0].name)
+        exponent_tensor = ctxt.lookup(node.inputs[1].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['exponent'] = exponent_tensor.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        # Extract exponent value from the constant tensor
+        if isinstance(exponent_tensor, ConstantBuffer):
+            exp_value = int(exponent_tensor.values.flatten()[0])
+            self.operatorRepresentation['exponent_value'] = exp_value
+        else:
+            # Tensor exponent not supported
+            raise ValueError(f"Node {node.name}: Exponent must be a constant. "
+                             f"Variable tensor exponents are not supported.")
+
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+
+        return ctxt, True
+
+
+class SqrtParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return node.op == 'Sqrt' and len(node.inputs) == 1 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+
+        return ctxt, True
+
+
 class DivParser(NodeParser):
 
     def __init__(self):
@@ -2747,3 +2806,64 @@ class ConvTranspose1DParser(ConvTransposeParser):
                 "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
             return newCtxt, True
         return ctxt, False
+
+
+############################
+
+
+class PowParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return node.op == 'Pow' and len(node.inputs) == 2 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        exponent = node.inputs[1]
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        # Check if exponent is a constant
+        if isinstance(exponent, gs.Constant):
+            exp_value = float(exponent.values)
+            self.operatorRepresentation['exponent'] = exp_value
+            self.operatorRepresentation['is_constant_exp'] = True
+        else:
+            exp_tensor = ctxt.lookup(exponent.name)
+            self.operatorRepresentation['exponent'] = exp_tensor.name
+            self.operatorRepresentation['is_constant_exp'] = False
+
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+
+        return ctxt, True
+
+
+class SqrtParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return node.op == 'Sqrt' and len(node.inputs) == 1 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+
+        return ctxt, True
