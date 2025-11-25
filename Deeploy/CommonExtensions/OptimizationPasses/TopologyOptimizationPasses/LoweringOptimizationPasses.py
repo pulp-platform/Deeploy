@@ -521,3 +521,31 @@ class RemoveEmptyConvBiasPass(ReplaceSequentialPatternPass):
         graph = _singleNodePattern("Conv")
         name = "_REMOVE_EMPTY_CONV_BIAS_PASS"
         super().__init__(graph, _remove_empty_conv_bias_fun, name)
+
+
+def _remove_only_singleton_reduce_mean(graph: gs.Graph, match: Match, name: str):
+    node = next(iter((match.nodes_map.values())))
+
+    # Keep node if only one in the graph
+    if len(graph.nodes) == 1:
+        return graph
+
+    # Delete node if only reduction over singleton dimensions
+    if 'axis' in node.attrs:
+        axis = node.attrs['axis']
+    else:
+        axis = node.inputs[1].values
+
+    if all(node.inputs[0].shape[ax] == 1 for ax in axis):
+        graph.deleteNode(node)
+
+    return graph
+
+
+@contextagnostic
+class RemoveOnlySingletonReduceMeanPass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        graph = _singleNodePattern("ReduceMean")
+        name = "_REMOVE_ONLY_SINGLETON_REDUCE_MEAN_PASS"
+        super().__init__(graph, _remove_only_singleton_reduce_mean, name)

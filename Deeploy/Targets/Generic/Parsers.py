@@ -571,6 +571,16 @@ class ReduceMeanParser(ReduceParser):
             else:
                 axes = np.array(list(range(len(data_in.shape))))
 
+            # Remove axes reduced over singleton dimensions
+            # Keep first axis if only singleton dimensions are reduced
+            nonSingletonAxes = []
+            for axis in axes:
+                if data_in.shape[axis] != 1:
+                    nonSingletonAxes.append(axis)
+            if len(nonSingletonAxes) == 0:
+                nonSingletonAxes.append(axes[0])
+            axes = np.array(nonSingletonAxes)
+
             # Update operator representation
             self.operatorRepresentation['data_in'] = data_in.name
             self.operatorRepresentation['data_out'] = data_out.name

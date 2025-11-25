@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    RemoveEmptyConvBiasPass
+    RemoveEmptyConvBiasPass, RemoveOnlySingletonReduceMeanPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBindings, BasicConcatBindings, \
@@ -164,6 +164,7 @@ GenericOptimizer = TopologyOptimizer(
         ExtractPaddingFromConvPass(),
         ExtractPaddingFromPoolPass(),
         RemoveEmptyConvBiasPass(),
+        RemoveOnlySingletonReduceMeanPass(),
         # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
     ],
     name = "GenericOptimizer")
