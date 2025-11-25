@@ -118,8 +118,8 @@ jobs:
             L1: [64000]
           - name: "CCT/CCT_1_16_16_8"
             L1: [64000]
-          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8"
-            L1: [64000]
+          - name: "testTrainCCT/CCT2_FT2"
+            L1: [128000]
         num-cores: [8]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
@@ -149,8 +149,8 @@ jobs:
             L1: [60000, 10000, 5000]
           - name: "CCT/CCT_2_32_32_128"
             L1: [128000]
-          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
-            L1: [64000]
+          - name: "testTrainCCT/CCT2_FT2"
+            L1: [128000]
         num-cores: [8]
         default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
@@ -187,8 +187,8 @@ jobs:
             L1: [60000, 20000, 10000]
           - name: "CCT/CCT_2_32_32_128"
             L1: [128000]
-          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
-            L1: [64000]
+          - name: "testTrainCCT/CCT2_FT2"
+            L1: [128000]
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]
