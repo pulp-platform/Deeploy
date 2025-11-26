@@ -14,7 +14,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
                                    uint32_t N, uint32_t O, uint32_t transA,
                                    uint32_t transB) {
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
   uint32_t M_chunk = (M >> log2Core) + ((M & (NUM_CORES - 1)) != 0);
   uint32_t M_start = MIN(core_id * M_chunk, M);
   uint32_t M_end = MIN(M_start + M_chunk, M);

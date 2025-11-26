@@ -676,8 +676,8 @@ def _split_transposes_fun(graph: gs.Graph, match: Match, name: str):
     inputNode.outputs = [postSplitOutput]
 
     for node in originalNode.outputs.copy():
-        nodeName = node.name + f"_transpose_in"
-        varName = node.name + f"_transpose_in_var"
+        nodeName = f"{t1.name}_{node.name}_transpose_in"
+        varName = f"{t1.name}_{node.name}_transpose_in_var"
         newOutput = gs.Variable(name = varName, dtype = np.float32, shape = t1.outputs[0].shape)
 
         transposeNode = gs.Node(name = nodeName,

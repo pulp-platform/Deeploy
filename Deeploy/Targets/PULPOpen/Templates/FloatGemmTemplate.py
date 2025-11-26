@@ -20,6 +20,7 @@ class PULPFloatGEMMTemplate(NodeTemplate):
             # No bias case - set C to NULL and provide a default type
             operatorRepresentation['C'] = None
             operatorRepresentation['C_type'] = float32_tPtr  # Default to fp32 type
+            operatorRepresentation['C_batched'] = False
 
         return ctxt, operatorRepresentation, []
 
@@ -61,12 +62,18 @@ for(uint32_t i=0; i<${batch}; i++){
         ${transB}
     );
     % endif
-    
+% if A_batched:
     ref_${data_out}_${A} += ${M} * ${N};
+% endif
+
+% if B_batched:
     ref_${data_out}_${B} += ${N} * ${O};
-    % if C is not None:
+% endif
+
+% if C is not None and C_batched:
     ref_${data_out}_${C} += ${M} * ${O};
-    % endif
+% endif
+
     ref_${data_out}_${data_out} += ${M} * ${O};
 }
 """)
