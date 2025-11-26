@@ -46,7 +46,7 @@ void LayernormGrad_fp32_fp32(float32_t *grad_in, float32_t *data_in,
   float32_t centered_input;
 
   for (int i = 0; i < (size / lastDimLength); i++) {
-    // Step 1: Recompute mean and variance from forward pass
+    // RW: Step 1: Recompute mean and variance from forward pass
     mean = 0.0f;
     variance = 0.0f;
 
@@ -64,11 +64,11 @@ void LayernormGrad_fp32_fp32(float32_t *grad_in, float32_t *data_in,
     std = sqrtf(variance);
     inv_std = 1.0f / std;
 
-    // Step 2: Compute intermediate values needed for gradient calculation
+    // RW: Step 2: Compute intermediate values needed for gradient calculation
     sum_dy = 0.0f;
     sum_dy_scaled_centered = 0.0f;
 
-    // Calculate sum(dy) and sum(dy * scale * (x - mean) / std)
+    // RW: Calculate sum(dy) and sum(dy * scale * (x - mean) / std)
     for (int j = 0; j < lastDimLength; j++) {
       sum_dy += grad_in[j + i * lastDimLength];
       centered_input = data_in[j + i * lastDimLength] - mean;
@@ -76,7 +76,7 @@ void LayernormGrad_fp32_fp32(float32_t *grad_in, float32_t *data_in,
           grad_in[j + i * lastDimLength] * scale[j] * centered_input * inv_std;
     }
 
-    // Step 3: Calculate gradients for each element
+    // RW: Step 3: Calculate gradients for each element
     for (int j = 0; j < lastDimLength; j++) {
       centered_input = data_in[j + i * lastDimLength] - mean;
 

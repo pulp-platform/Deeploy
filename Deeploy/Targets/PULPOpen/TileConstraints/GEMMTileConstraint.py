@@ -193,7 +193,6 @@ class FloatGEMMTileConstraint(TileConstraint):
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
-        # Get to-be-tiled tensor's buffers
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
@@ -203,7 +202,6 @@ class FloatGEMMTileConstraint(TileConstraint):
         if has_bias:
             bufferC = ctxt.lookup(name = parseDict['C'])
 
-        # Add I/O dimensions to the model as variables
         buffer_names = [bufferA.name, bufferB.name, outputBuffer.name]
         if has_bias:
             buffer_names.append(bufferC.name)
@@ -224,11 +222,10 @@ class FloatGEMMTileConstraint(TileConstraint):
         outputFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = dimOffsetOut)
         outputSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = dimOffsetOut + 1)
 
-        # Map output dims to inputs dims
         tilerModel.addConstraint(outputFirstDimVar == AFirstDimVar)
         tilerModel.addConstraint(outputSecondDimVar == BSecondDimVar)
 
-        # Add GEMM Geometrical constraints
+
         tilerModel.addConstraint(ASecondDimVar == BFirstDimVar)
 
         # Add bias constraints only if bias is present
@@ -273,15 +270,17 @@ class FloatGEMMTileConstraint(TileConstraint):
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+        
+        outputCubes = [HyperRectangle(tuple(cube.rectangle.offset), tuple(cube.rectangle.dims))
+                       for cube in absoluteOutputCubes]
 
-        # Check if C (bias) is present
+        
         has_bias = 'C' in operatorRepresentation and operatorRepresentation['C'] is not None
 
-        # Build address names list based on whether bias is present
+        
         addrNames = ['A', 'B', 'data_out']
         if has_bias:
-            addrNames.insert(2, 'C')  # Insert 'C' before 'data_out'
+            addrNames.insert(2, 'C')  
 
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
@@ -305,7 +304,7 @@ class FloatGEMMTileConstraint(TileConstraint):
 
         replacements = {"M": [], "O": [], "batch": []}
 
-        # Every output is constructed by a pair of inputs. Reconstruct this pair.
+        
         for cube in outputCubes:
 
             BSize = 1
@@ -340,9 +339,9 @@ class FloatGEMMTileConstraint(TileConstraint):
             inputACubes.append(ACube)
             inputBCubes.append(BCube)
 
-            # Only create C cubes if bias is present
+            
             if has_bias:
-                CCube = HyperRectangle(cube.offset, cube.dims)
+                CCube = HyperRectangle(tuple(cube.offset), tuple(cube.dims))
                 inputAddCubes.append(CCube)
 
         inputLoadSchedule = []
@@ -357,7 +356,6 @@ class FloatGEMMTileConstraint(TileConstraint):
             "batch": PointerClass(uint8_t)
         }
 
-        # Build input load schedule based on whether bias is present
         if has_bias:
             for a, b, c in zip(inputACubes, inputBCubes, inputAddCubes):
                 inputLoadSchedule.append({"A": a, "B": b, "C": c})

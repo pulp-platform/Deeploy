@@ -13,23 +13,27 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
                                    float32_t *__restrict__ pDstY, uint32_t M,
                                    uint32_t N, uint32_t O, uint32_t transA,
                                    uint32_t transB) {
+
   int8_t core_id = pi_core_id();
   int8_t log2Core = LOG2(NUM_CORES);
+
   uint32_t M_chunk = (M >> log2Core) + ((M & (NUM_CORES - 1)) != 0);
   uint32_t M_start = MIN(core_id * M_chunk, M);
   uint32_t M_end = MIN(M_start + M_chunk, M);
+  uint32_t M_size = M_end - M_start;
 
-  if (M_start >= M_end)
+  if (M_size == 0) {
     return;
+  }
 
   const uint32_t has_bias = (pDstC != NULL);
   const uint32_t N_unroll =
-      N - (N % 6); // 6-way unrolling: largest multiple of 6 ≤ N
+      N - (N % 6); 
   const uint32_t O_unroll =
-      O - (O % 6); // 6-way unrolling: largest multiple of 6 ≤ O
+      O - (O % 6); 
 
   if (!transA && !transB) {
-    // Case: A not transposed, B not transposed
+   
     for (uint32_t i = M_start; i < M_end; ++i) {
       const float32_t *__restrict__ a_row = &pSrcA[i * N];
       float32_t *__restrict__ y_row = &pDstY[i * O];
@@ -37,14 +41,14 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
 
       uint32_t j = 0;
 
-      // Process 6 output elements at a time (1x6 unrolling)
+      
       for (; j < O_unroll; j += 6) {
         float32_t sum0 = 0.0f, sum1 = 0.0f, sum2 = 0.0f, sum3 = 0.0f,
                   sum4 = 0.0f, sum5 = 0.0f;
 
         uint32_t k = 0;
 
-        // Inner loop processing one element at a time
+        
         for (; k < N; ++k) {
           const float32_t a_val = a_row[k];
           sum0 += a_val * pSrcB[k * O + j];
@@ -55,7 +59,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
           sum5 += a_val * pSrcB[k * O + j + 5];
         }
 
-        // Store results with bias if present
+        
         if (has_bias) {
           y_row[j] = sum0 + c_row[j];
           y_row[j + 1] = sum1 + c_row[j + 1];
@@ -73,7 +77,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
         }
       }
 
-      // Handle remaining elements in O dimension
+      
       for (; j < O; ++j) {
         float32_t sum = 0.0f;
         for (uint32_t k = 0; k < N; ++k) {
@@ -84,7 +88,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
       }
     }
   } else if (transA && !transB) {
-    // Case: A transposed, B not transposed
+    
     for (uint32_t i = M_start; i < M_end; ++i) {
       float32_t *__restrict__ y_row = &pDstY[i * O];
       const float32_t *__restrict__ c_row = has_bias ? &pDstC[i * O] : NULL;
@@ -179,7 +183,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
       }
     }
   } else if (!transA && transB) {
-    // Case: A not transposed, B transposed
+    
     for (uint32_t i = M_start; i < M_end; ++i) {
       const float32_t *__restrict__ a_row = &pSrcA[i * N];
       float32_t *__restrict__ y_row = &pDstY[i * O];
@@ -265,7 +269,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
       }
     }
   } else {
-    // Case: A transposed, B transposed
+    
     for (uint32_t i = M_start; i < M_end; ++i) {
       float32_t *__restrict__ y_row = &pDstY[i * O];
       const float32_t *__restrict__ c_row = has_bias ? &pDstC[i * O] : NULL;

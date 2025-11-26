@@ -62,17 +62,17 @@ for(uint32_t i=0; i<${batch}; i++){
         ${transB}
     );
     % endif
-% if A_batched:
+    % if A_batched:
     ref_${data_out}_${A} += ${M} * ${N};
-% endif
+    % endif
 
-% if B_batched:
+    % if B_batched:
     ref_${data_out}_${B} += ${N} * ${O};
-% endif
+    % endif
 
-% if C is not None and C_batched:
+    % if C is not None and C_batched:
     ref_${data_out}_${C} += ${M} * ${O};
-% endif
+    % endif
 
     ref_${data_out}_${data_out} += ${M} * ${O};
 }
