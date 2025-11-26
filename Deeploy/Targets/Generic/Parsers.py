@@ -769,8 +769,9 @@ class GELUParser(NodeParser):
 
         return ctxt, True
 
+
 class GELUGradParser(NodeParser):
-    
+
     def __init__(self):
         super().__init__()
 
@@ -792,8 +793,9 @@ class GELUGradParser(NodeParser):
         self.operatorRepresentation['data_in'] = gelu_input.name
         self.operatorRepresentation['grad_out'] = gelu_grad.name
         self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
-       
+
         return ctxt, True
+
 
 class RQSiGELUParser(GELUParser):
 
@@ -1671,8 +1673,9 @@ class LayerNormParser(iLayerNormParser):
 
         return ctxt, True
 
+
 class LayerNormGradParser(iLayerNormParser):
-     
+
     def parseNode(self, node: gs.Node) -> (bool):
 
         ret = all(['epsilon' in node.attrs, len(node.inputs) == 4, len(node.outputs) == 1])
@@ -1681,7 +1684,7 @@ class LayerNormGradParser(iLayerNormParser):
             self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
 
         return ret
-    
+
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,

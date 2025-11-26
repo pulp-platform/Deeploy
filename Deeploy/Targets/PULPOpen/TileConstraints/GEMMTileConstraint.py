@@ -197,7 +197,7 @@ class FloatGEMMTileConstraint(TileConstraint):
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
-        
+
         has_bias = 'C' in parseDict and parseDict['C'] is not None
         bufferC = None
         if has_bias:
@@ -207,7 +207,7 @@ class FloatGEMMTileConstraint(TileConstraint):
         buffer_names = [bufferA.name, bufferB.name, outputBuffer.name]
         if has_bias:
             buffer_names.append(bufferC.name)
-            
+
         for bufferName in buffer_names:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
@@ -277,7 +277,7 @@ class FloatGEMMTileConstraint(TileConstraint):
 
         # Check if C (bias) is present
         has_bias = 'C' in operatorRepresentation and operatorRepresentation['C'] is not None
-        
+
         # Build address names list based on whether bias is present
         addrNames = ['A', 'B', 'data_out']
         if has_bias:

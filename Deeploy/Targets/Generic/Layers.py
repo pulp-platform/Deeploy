@@ -57,6 +57,7 @@ class GELULayer(ONNXLayer):
 
         return mul1 + neg + exp + add + div + mul2
 
+
 class GELUGradLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
@@ -64,11 +65,11 @@ class GELUGradLayer(ONNXLayer):
 
     def computeOps(self):
         size = self.mapper.parser.operatorRepresentation['size']
-        ops_per_element = 9  
+        ops_per_element = 9
         gelu_grad_ops = size * ops_per_element
         return gelu_grad_ops
-        
-        
+
+
 class iHardswishLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
@@ -448,9 +449,13 @@ class LayerNormLayer(ONNXLayer):
         compDiv = self.mapper.parser.operatorRepresentation['size']
         return compAverage + compNormalize + compSqr + compSum + compSqrt + compDiv
 
+
 class LayerNormGradLayer(ONNXLayer):
+
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+
+
 class TransposeLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
@@ -475,9 +480,9 @@ class SGDLayer(ONNXLayer):
         super().__init__(maps)
 
     def computeOps(self):
-        
+
         size = self.mapper.parser.operatorRepresentation['size']
-        return size*2
+        return size * 2
 
 
 class LinearAttentionLayer(ONNXLayer):
