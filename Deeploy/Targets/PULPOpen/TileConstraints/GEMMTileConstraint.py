@@ -225,7 +225,6 @@ class FloatGEMMTileConstraint(TileConstraint):
         tilerModel.addConstraint(outputFirstDimVar == AFirstDimVar)
         tilerModel.addConstraint(outputSecondDimVar == BSecondDimVar)
 
-
         tilerModel.addConstraint(ASecondDimVar == BFirstDimVar)
 
         # Add bias constraints only if bias is present
@@ -270,17 +269,16 @@ class FloatGEMMTileConstraint(TileConstraint):
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        
-        outputCubes = [HyperRectangle(tuple(cube.rectangle.offset), tuple(cube.rectangle.dims))
-                       for cube in absoluteOutputCubes]
 
-        
+        outputCubes = [
+            HyperRectangle(tuple(cube.rectangle.offset), tuple(cube.rectangle.dims)) for cube in absoluteOutputCubes
+        ]
+
         has_bias = 'C' in operatorRepresentation and operatorRepresentation['C'] is not None
 
-        
         addrNames = ['A', 'B', 'data_out']
         if has_bias:
-            addrNames.insert(2, 'C')  
+            addrNames.insert(2, 'C')
 
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
@@ -304,7 +302,6 @@ class FloatGEMMTileConstraint(TileConstraint):
 
         replacements = {"M": [], "O": [], "batch": []}
 
-        
         for cube in outputCubes:
 
             BSize = 1
@@ -339,7 +336,6 @@ class FloatGEMMTileConstraint(TileConstraint):
             inputACubes.append(ACube)
             inputBCubes.append(BCube)
 
-            
             if has_bias:
                 CCube = HyperRectangle(tuple(cube.offset), tuple(cube.dims))
                 inputAddCubes.append(CCube)

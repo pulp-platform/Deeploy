@@ -27,13 +27,11 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
   }
 
   const uint32_t has_bias = (pDstC != NULL);
-  const uint32_t N_unroll =
-      N - (N % 6); 
-  const uint32_t O_unroll =
-      O - (O % 6); 
+  const uint32_t N_unroll = N - (N % 6);
+  const uint32_t O_unroll = O - (O % 6);
 
   if (!transA && !transB) {
-   
+
     for (uint32_t i = M_start; i < M_end; ++i) {
       const float32_t *__restrict__ a_row = &pSrcA[i * N];
       float32_t *__restrict__ y_row = &pDstY[i * O];
@@ -41,14 +39,12 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
 
       uint32_t j = 0;
 
-      
       for (; j < O_unroll; j += 6) {
         float32_t sum0 = 0.0f, sum1 = 0.0f, sum2 = 0.0f, sum3 = 0.0f,
                   sum4 = 0.0f, sum5 = 0.0f;
 
         uint32_t k = 0;
 
-        
         for (; k < N; ++k) {
           const float32_t a_val = a_row[k];
           sum0 += a_val * pSrcB[k * O + j];
@@ -59,7 +55,6 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
           sum5 += a_val * pSrcB[k * O + j + 5];
         }
 
-        
         if (has_bias) {
           y_row[j] = sum0 + c_row[j];
           y_row[j + 1] = sum1 + c_row[j + 1];
@@ -77,7 +72,6 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
         }
       }
 
-      
       for (; j < O; ++j) {
         float32_t sum = 0.0f;
         for (uint32_t k = 0; k < N; ++k) {
@@ -88,7 +82,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
       }
     }
   } else if (transA && !transB) {
-    
+
     for (uint32_t i = M_start; i < M_end; ++i) {
       float32_t *__restrict__ y_row = &pDstY[i * O];
       const float32_t *__restrict__ c_row = has_bias ? &pDstC[i * O] : NULL;
@@ -183,7 +177,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
       }
     }
   } else if (!transA && transB) {
-    
+
     for (uint32_t i = M_start; i < M_end; ++i) {
       const float32_t *__restrict__ a_row = &pSrcA[i * N];
       float32_t *__restrict__ y_row = &pDstY[i * O];
@@ -269,7 +263,7 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
       }
     }
   } else {
-    
+
     for (uint32_t i = M_start; i < M_end; ++i) {
       float32_t *__restrict__ y_row = &pDstY[i * O];
       const float32_t *__restrict__ c_row = has_bias ? &pDstC[i * O] : NULL;
