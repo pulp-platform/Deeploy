@@ -2804,3 +2804,43 @@ class ConvTranspose1DParser(ConvTransposeParser):
                 "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
             return newCtxt, True
         return ctxt, False
+
+
+class GlobalAveragePoolParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        # GlobalAveragePool takes one input and produces one output
+        ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        if len(data_in.shape) == 4:  # 2D case (NCHW)
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            self.operatorRepresentation['channels'] = data_in.shape[1]
+            self.operatorRepresentation['ch_im_in'] = data_in.shape[1]  
+            self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
+            self.operatorRepresentation['dim_im_in_y'] = data_in.shape[3]
+            self.operatorRepresentation['size'] = int(data_in.shape[2] * data_in.shape[3])
+            return ctxt, True
+        elif len(data_in.shape) == 3:  # 1D case (NCL)
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            self.operatorRepresentation['channels'] = data_in.shape[1]
+            self.operatorRepresentation['ch_im_in'] = data_in.shape[1]  
+            self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+            self.operatorRepresentation['size'] = int(data_in.shape[2])
+            return ctxt, True
+
+        return ctxt, False

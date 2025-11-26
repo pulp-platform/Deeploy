@@ -402,6 +402,11 @@ class MaxPoolLayer(ONNXLayer):
         total_ops = data_out_size * comparisons_per_window
         return total_ops
 
+class GlobalAveragePoolLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
 
 class ReduceMeanLayer(ONNXLayer):
 

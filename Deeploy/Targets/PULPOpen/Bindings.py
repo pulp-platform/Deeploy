@@ -14,12 +14,13 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, \
-    FloatReduceSumTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, \
+    FloatGlobalAveragePoolTemplate, FloatReduceMeanTemplate, FloatReduceSumTemplate, GatherTemplate, QuantTemplate, \
+    RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
-    GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
-    QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, HardswishChecker, LayerNormChecker, \
+    MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
+    RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -311,6 +312,11 @@ PULPReduceMeanBindings = [
 PULPReduceSumBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatReduceSumTemplate.referenceTemplate, ClusterTransformer)
+]
+
+PULPGlobalAveragePoolBindings = [
+    NodeBinding(GlobalAveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatGlobalAveragePoolTemplate.referenceTemplate, ForkTransformer)
 ]
 
 PULPUniformRQSBindings = [

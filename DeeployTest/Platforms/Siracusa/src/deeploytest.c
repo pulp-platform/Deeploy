@@ -11,7 +11,7 @@
 #include "testinputs.h"
 #include "testoutputs.h"
 
-#define MAINSTACKSIZE 8000
+#define MAINSTACKSIZE 12000
 #define SLAVESTACKSIZE 3800
 
 struct pi_device cluster_dev;
