@@ -268,7 +268,7 @@ class GEMMLayer(ONNXLayer):
             N = inputShapes[1][-1]
 
         if len(inputShapes) == 3:
-            inputShapes[2] = outputShapes[0]
+            inputShapes[2] = [M, N]
 
         return (inputShapes, outputShapes)
 

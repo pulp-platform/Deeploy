@@ -417,7 +417,7 @@ snitch_runtime: ${SNITCH_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/runwangdl/gvsoc.git && \
+	git clone https://github.com/gvsoc/gvsoc.git && \
 	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
 	git submodule update --init --recursive && \
 	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt

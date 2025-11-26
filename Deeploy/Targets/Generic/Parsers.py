@@ -1064,7 +1064,7 @@ class ReluParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
 
-        ret = all([len(node.inputs) >= 1, len(node.outputs) == 1])
+        ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
 
         return ret
 

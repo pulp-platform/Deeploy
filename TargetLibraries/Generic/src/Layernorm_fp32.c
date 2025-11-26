@@ -5,6 +5,7 @@
  */
 
 #include "DeeployBasicMath.h"
+#include <math.h>
 
 void Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
                          float32_t *scale, float32_t *bias, float32_t epsilon,
@@ -20,12 +21,12 @@ void Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
     for (int j = 0; j < lastDimLength; j++) {
       mean += data_in[j + i * lastDimLength];
     }
-    mean = mean / lastDimLength;
+    mean = mean / (float32_t)lastDimLength;
     for (int j = 0; j < lastDimLength; j++) {
       temp = data_in[j + i * lastDimLength] - mean;
       sum += temp * temp;
     }
-    sum = sum / lastDimLength;
+    sum = sum / (float32_t)lastDimLength;
     sum += epsilon;
     std = sqrtf(sum);
 
