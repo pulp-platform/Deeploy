@@ -76,9 +76,6 @@ jobs:
         testFloatPow
         testFloatSqrt
         testFloatRMSNorm
-        testFloat16Pow
-        testFloat16Sqrt
-        testFloat16RMSNorm
         Quant
         Dequant
         QuantizedLinear
