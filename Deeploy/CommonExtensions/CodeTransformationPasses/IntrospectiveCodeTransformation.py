@@ -142,6 +142,24 @@ class IntrospectiveCodeTransformationMixIn():
             operatorRepresentation[expr] for expr in makoExpressions if expr in operatorRepresentation
         ]
 
+        # Add in mako expressions that are accessed through pageargs
+        # Required for unknown number of data dimensions
+        for expr in makoExpressions:
+            if expr.startswith("pageargs["):
+                # Extract key inside pageargs[]
+                key = expr[len("pageargs["):-1]
+                assert key.startswith("'") or key.startswith("\""), "pageargs key must begin with a string literal"
+
+                # Extract initial string literal (between first 2 " or ' characters)
+                quoteChar = key[0]
+                endIdx = key.find(quoteChar, 1)
+                key = key[1:endIdx]
+
+                # Search for all expressions that begin with the given key
+                for exprKey in operatorRepresentation.keys():
+                    if exprKey.startswith(key):
+                        representedExpressions.append(operatorRepresentation[exprKey])
+
         # Filter buffers from expressions
         references = [expr for expr in representedExpressions if ctxt.is_buffer(expr)]
 

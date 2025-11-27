@@ -4,11 +4,10 @@
 
 from typing import Dict, List, Tuple, Union
 
-import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import uint16_t
+from Deeploy.CommonExtensions.DataTypes import uint32_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
@@ -62,6 +61,12 @@ class ReduceMeanTileConstraint(TileConstraint):
                                  ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
         symbolicParseDict = parseDict.copy()
 
+        inputBuffer = ctxt.lookup(name = parseDict['data_in'])
+        for ax in range(len(parseDict['data_in_shape'])):
+            if ax not in parseDict['axes']:
+                dimVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = ax)
+                symbolicParseDict['dim_in_' + str(ax)] = dimVar
+
         return symbolicParseDict
 
     @staticmethod
@@ -106,33 +111,14 @@ class ReduceMeanTileConstraint(TileConstraint):
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
-        # Prepare replacement lists for the elements inside the operator representation,
-        # for the cubes to be computed further down in this function
+        # Prepare replacements for non-reduced input sizes
+        replacements: Dict[str, List[int]] = dict()
+        replacementTypes = dict()
 
-        # ~~~~~ SEE ISSUE #134: https://github.com/pulp-platform/Deeploy/issues/134 ~~~~~
-        # Freeze tiling input and output tiling for now
-        replacements: Dict[str, List[int]] = {
-            # "data_in_shape": [],
-            # "data_out_shape": [],
-            "size": [],
-        }
-
-        replacementTypes = {
-            # "data_in_shape": [
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t)
-            # ],
-            # "data_out_shape": [
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t)
-            # ],
-            "size": PointerClass(uint16_t),
-        }
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        for ax in range(len(operatorRepresentation['data_in_shape'])):
+            if ax not in operatorRepresentation['axes']:
+                replacements["dim_in_" + str(ax)] = []
+                replacementTypes["dim_in_" + str(ax)] = PointerClass(uint32_t)
 
         # Prepare loading schedule lists
         inputLoadSchedule = []
@@ -144,13 +130,10 @@ class ReduceMeanTileConstraint(TileConstraint):
             in_cube = ReduceMeanTileConstraint.computeInputCubeFromOutputCube(out_cube,
                                                                               parseDict = operatorRepresentation)
 
-            # Append replacement elements
-            # ~~~~~ SEE ISSUE #134: https://github.com/pulp-platform/Deeploy/issues/134 ~~~~~
-            # Freeze tiling input and output tiling for now
-            # replacements["data_in_shape"].append(list(in_cube.dims).copy())
-            # replacements["data_out_shape"].append(list(out_cube.dims).copy())
-            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            replacements["size"].append(int(np.prod(out_cube.dims)))
+            # Add replacements for non-reduced input sizes
+            for ax in range(len(operatorRepresentation['data_in_shape'])):
+                if ax not in operatorRepresentation['axes']:
+                    replacements["dim_in_" + str(ax)].append(in_cube.dims[ax])
 
             # Append new cubes
             inputLoadSchedule.append({"data_in": in_cube})

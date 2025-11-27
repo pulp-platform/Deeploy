@@ -24,61 +24,66 @@ class _FloatReduceMeanTemplate(NodeTemplate):
 
         operatorRepresentation['output_offset'] = 0
         if hasattr(data_out, "_signed") and hasattr(data_out, "nLevels"):
-            operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_in.nLevels / 2)
+            operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_out.nLevels / 2)
+
+        for ax in range(len(operatorRepresentation['data_in_shape'])):
+            if ax not in operatorRepresentation['axes']:
+                _ = operatorRepresentation['dim_in_' + str(ax)]
 
         return ctxt, operatorRepresentation, []
 
 
 referenceTemplate = _FloatReduceMeanTemplate("""
-## =============== Compute required variables ===============
-## Compute the total number of elements being reduced in one axis
+## =============== Perform necessary precomputations ===============
 <%
-reduceLength = 1
+# Update input shape based on tiling
+new_data_in_shape = data_in_shape.copy()
 
+for i in range(len(new_data_in_shape)):
+    if i not in axes:
+        new_data_in_shape[i] = pageargs['dim_in_' + str(i)]
+
+# Compute the total number of elements being reduced in one axis
+reduceLength = 1
 for i, axis in enumerate(axes):
     if axis < 0:
         axes[i] += len(data_in_shape)
     reduceLength = reduceLength * data_in_shape[axis]
-%>
-
-## Compute the remaining dimensions after reduction
-## Order them for more efficient parallelization
-<%
-restDims = set(list(range(len(data_in_shape)))).difference(set(axes))
-restDims = sorted(list(restDims), key=lambda x: data_in_shape[x])
+                                             
+# Compute the remaining dimensions after reduction
+# Order them for more efficient parallelization
+# (heuristically working on the largest non-tiled stride last,
+# since it's impossible to get tiling information here)
+restDims = list(set(list(range(len(data_in_shape)))).difference(set(axes)))
+restDims = sorted(restDims, key=lambda x: data_in_shape[x])
 
 dataSize = data_in_shape[restDims[-1]]
-%>
 
-## =============== Prepare shape and access strings ===============
-## shapeStr is going to have the [d1][d2]... format
-## accessStr is going to have the [i_0][i_1]... format
-<%
-    shapeStr = ''
-    accessStr = ''
+# =============== Prepare shape and access strings ===============
+# shapeStr is going to have the [d1][d2]... format
+# accessStr is going to have the [i_0][i_1]... format
+shapeStr = ''
+accessStr = ''
 
-    data_out_str = '0'
-    data_out_str_prod = 1
-%>
+data_out_str = "0"
+data_out_str_prod = "1"
 
-% for idx, i in enumerate(data_in_shape[1:]):
-<%
-    shapeStr += '[' + str(i) + ']'
-%>
-% endfor
+for idx, i in enumerate(new_data_in_shape[1:]):
+    if isinstance(i, str):
+        shapeStr += '[*' + i + ']'
+    else:
+        shapeStr += '[' + str(i) + ']'
 
-% for j in range(len(data_in_shape)):
-<%
+for j in range(len(data_in_shape)):
     accessStr += '[i_' + str(j) + ']'
-%>
-% endfor
-                                             
-% for k in sorted(restDims, reverse=True):
-<%
+
+for k in sorted(restDims, reverse=True):
     data_out_str += ' + i_' + str(k) + '*' + str(data_out_str_prod)
-    data_out_str_prod = data_out_str_prod * data_in_shape[k]
+    if isinstance(new_data_in_shape[k], str):
+        data_out_str_prod += "* *(" + new_data_in_shape[k] + ")"
+    else:
+        data_out_str_prod += "* " + str(new_data_in_shape[k])
 %>
-% endfor
 
 ## =============== Start of the actual template ===============
 // ReduceMean (Name: ${nodeName}, Op: ${nodeOp})
@@ -94,16 +99,20 @@ uint32_t chunk_stop = MIN(chunk_start + chunk, ${dataSize}U);
 ## Iterate through non-reduced dimensions
 ## Keep the last dimension for parallelization
 % for i in list(restDims[:-1]):
-for(uint32_t i_${i} = 0; i_${i}<${data_in_shape[i]}; i_${i}++) {
+% if isinstance(pageargs['dim_in_' + str(i)], str):
+for(uint32_t i_${i} = 0; i_${i} < *${pageargs['dim_in_' + str(i)]}; i_${i}++) {
+% else:
+for(uint32_t i_${i} = 0; i_${i} < ${pageargs['dim_in_' + str(i)]}; i_${i}++) {
+% endif
 % endfor
-for(uint32_t i_${restDims[-1]} = chunk_start; i_${restDims[-1]}<chunk_stop; i_${restDims[-1]}++) {
+for(uint32_t i_${restDims[-1]} = chunk_start; i_${restDims[-1]} < chunk_stop; i_${restDims[-1]}++) {
 ## Initialize accumulator
 uint32_t out_idx = ${data_out_str};
 ${data_out}[out_idx] = ${input_offset}*${reduceLength};
 
 ## Iterate through reduced dimensions and accumulate
 % for i in list(axes):
-for(uint32_t i_${i} = 0; i_${i}<${data_in_shape[i]}; i_${i}++) {
+for(uint32_t i_${i} = 0; i_${i} < ${data_in_shape[i]}; i_${i}++) {
 % endfor
 ${data_out}[out_idx] += ((${data_in_type.referencedType.typeName} (*)${shapeStr})${data_in})${accessStr};
 % for i in range(len(axes)):

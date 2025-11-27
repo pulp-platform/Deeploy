@@ -31,40 +31,30 @@ class _FloatReduceMeanTemplate(NodeTemplate):
 
 referenceTemplate = _FloatReduceMeanTemplate("""
 ## =============== Compute required variables ===============
-## Compute the total number of elements being reduced in one axis
 <%
+## Compute the total number of elements being reduced in one axis
 reduceLength = 1
 
 for i, axis in enumerate(axes):
     if axis < 0:
         axes[i] += len(data_in_shape)
     reduceLength = reduceLength * data_in_shape[axis]
-%>
 
 ## Compute the remaining dimensions after reduction
-<%
 restDims = set(list(range(len(data_in_shape)))).difference(set(axes))
-%>
 
 ## =============== Prepare shape and access strings ===============
 ## shapeStr is going to have the [d1][d2]... format
 ## accessStr is going to have the [i_0][i_1]... format
-<%
-    shapeStr = ''
-    accessStr = ''
-%>
+shapeStr = ''
+accessStr = ''
 
-% for idx, i in enumerate(data_in_shape[1:]):
-<%
+for idx, i in enumerate(data_in_shape[1:]):
     shapeStr += '['+str(i)+']'
-%>
-% endfor
 
-% for j in range(len(data_in_shape)):
-<%
+for j in range(len(data_in_shape)):
     accessStr += '[i_'+str(j)+']'
 %>
-% endfor
 
 ## =============== Start of the actual template ===============
 ## Prepare variables

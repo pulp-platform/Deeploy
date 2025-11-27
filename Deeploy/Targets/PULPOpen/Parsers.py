@@ -8,8 +8,8 @@ from typing import Tuple
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.Targets.Generic.Parsers import Conv2DParser, GEMMParser, RQSConv1DParser, RQSConv2DParser, \
-    RQSParserInterface
+from Deeploy.Targets.Generic.Parsers import Conv2DParser, GEMMParser, ReduceMeanParser, RQSConv1DParser, \
+    RQSConv2DParser, RQSParserInterface
 
 
 class PULPConv2DParser(RQSConv2DParser):
@@ -462,3 +462,25 @@ class PULPTallGEMMParser(PULPGEMMParser):
             return ctxt, False
 
         return newCtxt, True
+
+
+class PULPReduceMeanParser(ReduceMeanParser):
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+            # Add to operator representation the non-reduced dimensions for tiling purposes
+            originalInputShape = newCtxt.lookup(self.operatorRepresentation['data_in']).shape
+            reducedAxes = self.operatorRepresentation['axes']
+
+            for ax in range(len(originalInputShape)):
+                if ax not in reducedAxes:
+                    self.operatorRepresentation['dim_in_' + str(ax)] = originalInputShape[ax]
+
+            return newCtxt, True
+        else:
+            return ctxt, False
