@@ -17,6 +17,7 @@
 #define SLAVESTACKSIZE 3800
 
 struct pi_device cluster_dev;
+uint32_t total_cycles = 0;
 
 typedef struct {
   void *expected;
@@ -68,7 +69,12 @@ void InitNetworkWrapper(void *args) {
 
 void RunNetworkWrapper(void *args) {
   (void)args;
+  // Initialize performance counter in cluster context
+  ResetTimer();
+  StartTimer();
   RunNetwork(pi_core_id(), pi_cl_cluster_nb_cores());
+  total_cycles = getCycles();
+  StopTimer();
 }
 
 int main(void) {
@@ -113,10 +119,7 @@ int main(void) {
 
   pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
-  ResetTimer();
-  StartTimer();
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
-  StopTimer();
 
 #ifndef CI
   printf("Output:\r\n");
@@ -175,7 +178,7 @@ int main(void) {
     }
   }
 
-  printf("Runtime: %u cycles\r\n", getCycles());
+  printf("Runtime: %u cycles\r\n", total_cycles);
   printf("Errors: %u out of %u \r\n", tot_err, tot_tested);
 
   return 0;
