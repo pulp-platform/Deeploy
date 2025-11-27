@@ -42,8 +42,12 @@ for i, axis in enumerate(axes):
 %>
 
 ## Compute the remaining dimensions after reduction
+## Order them for more efficient parallelization
 <%
 restDims = set(list(range(len(data_in_shape)))).difference(set(axes))
+restDims = sorted(list(restDims), key=lambda x: data_in_shape[x])
+
+dataSize = data_in_shape[restDims[-1]]
 %>
 
 ## =============== Prepare shape and access strings ===============
@@ -52,53 +56,66 @@ restDims = set(list(range(len(data_in_shape)))).difference(set(axes))
 <%
     shapeStr = ''
     accessStr = ''
+
+    data_out_str = '0'
+    data_out_str_prod = 1
 %>
 
 % for idx, i in enumerate(data_in_shape[1:]):
 <%
-    shapeStr += '['+str(i)+']'
+    shapeStr += '[' + str(i) + ']'
 %>
 % endfor
 
 % for j in range(len(data_in_shape)):
 <%
-    accessStr += '[i_'+str(j)+']'
+    accessStr += '[i_' + str(j) + ']'
+%>
+% endfor
+                                             
+% for k in reversed(restDims):
+<%
+    data_out_str += ' + i_' + str(k) + '*' + str(data_out_str_prod)
+    data_out_str_prod = data_out_str_prod * data_in_shape[k]
 %>
 % endfor
 
 ## =============== Start of the actual template ===============
-## Prepare variables
 // ReduceMean (Name: ${nodeName}, Op: ${nodeOp})
-BEGIN_SINGLE_CORE
+## Get core information
+int8_t core_id = pi_core_id();
+int8_t log2Core = LOG2(NUM_CORES);
 
-${data_out_type.referencedType.typeName} ${data_out}_accumulator = 0;
-${data_out_type.typeName} dummy_${data_out} = ${data_out};
+## Split into chunks for each core
+int32_t chunk = (${dataSize} >> log2Core) + ((${dataSize} & (NUM_CORES - 1)) != 0);
+int32_t chunk_start = MIN(chunk * core_id, ${dataSize});
+int32_t chunk_stop = MIN(chunk_start + chunk, ${dataSize});
 
 ## Iterate through non-reduced dimensions
-% for i in list(restDims):
+## Keep the last dimension for parallelization
+% for i in list(restDims[:-1]):
 for(uint32_t i_${i} = 0; i_${i}<${data_in_shape[i]}; i_${i}++) {
 % endfor
+for(uint32_t i_${restDims[-1]} = chunk_start; i_${restDims[-1]}<chunk_stop; i_${restDims[-1]}++) {
 ## Initialize accumulator
-${data_out}_accumulator = ${input_offset}*${reduceLength};
+${data_out}[${data_out_str}] = ${input_offset}*${reduceLength};
 
 ## Iterate through reduced dimensions and accumulate
 % for i in list(axes):
 for(uint32_t i_${i} = 0; i_${i}<${data_in_shape[i]}; i_${i}++) {
 % endfor
-${data_out}_accumulator += ((${data_in_type.referencedType.typeName} (*)${shapeStr})${data_in})${accessStr};
+${data_out}[${data_out_str}] += ((${data_in_type.referencedType.typeName} (*)${shapeStr})${data_in})${accessStr};
 % for i in range(len(axes)):
 }
 % endfor
 
 ## Write back the mean value
 % if keepdims:
-*dummy_${data_out}++ = (${data_out_type.referencedType.typeName}) (${data_out}_accumulator / ${reduceLength} + ${output_offset});
+${data_out}[${data_out_str}] = (${data_out_type.referencedType.typeName}) (${data_out}[${data_out_str}] / ${reduceLength} + ${output_offset});
 % else:
-*dummy_${data_out}++ = (${data_out_type.referencedType.typeName}) (${data_out}_accumulator / ${reduceLength});
+${data_out}[${data_out_str}] = (${data_out_type.referencedType.typeName}) (${data_out}[${data_out_str}] / ${reduceLength});
 % endif
 % for i in range(len(restDims)):
 }
 % endfor
-
-END_SINGLE_CORE
 """)
