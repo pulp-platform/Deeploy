@@ -28,51 +28,67 @@ class _ReduceMeanTemplate(NodeTemplate):
 
 
 referenceTemplate = _ReduceMeanTemplate("""
-// ReduceMean (Name: ${nodeName}, Op: ${nodeOp})
-BEGIN_SINGLE_CORE
-int32_t ${data_out}_accumulator = 0;
+## =============== Compute required variables ===============
+## Compute the total number of elements being reduced in one axis
 <%
-
 reduceLength = 1
+
 for i, axis in enumerate(axes):
     if axis < 0:
         axes[i] += len(data_in_shape)
     reduceLength = reduceLength * data_in_shape[axis]
 %>
+
+## Compute the remaining dimensions after reduction
+<%
+restDims = set(list(range(len(data_in_shape)))).difference(set(axes))
+%>
+
+## =============== Prepare shape and access strings ===============
+## shapeStr is going to have the [d1][d2]... format
+## accessStr is going to have the [i_0][i_1]... format
 <%
     shapeStr = ''
     accessStr = ''
 %>
+
 % for idx, i in enumerate(data_in_shape[1:]):
 <%
     shapeStr += '['+str(i)+']'
 %>
 % endfor
+
 % for j in range(len(data_in_shape)):
 <%
     accessStr += '[i_'+str(j)+']'
 %>
 % endfor
+
+## =============== Start of the actual template ===============
+// ReduceMean (Name: ${nodeName}, Op: ${nodeOp})
+BEGIN_SINGLE_CORE
+
+int32_t ${data_out}_accumulator = 0;
 ${data_out_type.typeName} dummy_${data_out} = ${data_out};
 
-<%
-restDims = set(list(range(len(data_in_shape)))).difference(set(axes))
-%>
 % for i in list(restDims):
 for(uint32_t i_${i} = 0; i_${i}<${data_in_shape[i]}; i_${i}++){
 % endfor
 ${data_out}_accumulator = ${input_offset}*${reduceLength};
+
 % for i in list(axes):
 for(uint32_t i_${i} = 0; i_${i}<${data_in_shape[i]}; i_${i}++){
 % endfor
 ${data_out}_accumulator += ((${data_in_type.referencedType.typeName} (*)${shapeStr})${data_in})${accessStr};
-
 % for i in range(len(axes)):
 }
 % endfor
+
 % if keepdims:
 *dummy_${data_out}++ = (${data_out_type.referencedType.typeName}) ((${data_out}_accumulator + ${data_out}_sgn*(${reduceLength}>>1)) / ${reduceLength} + ${output_offset});
 % else:
+
+## Quant-requant required operations
 <%
 
 import numpy as np
