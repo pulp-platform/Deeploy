@@ -73,7 +73,7 @@ dataSize = data_in_shape[restDims[-1]]
 %>
 % endfor
                                              
-% for k in reversed(restDims):
+% for k in sorted(restDims, reverse=True):
 <%
     data_out_str += ' + i_' + str(k) + '*' + str(data_out_str_prod)
     data_out_str_prod = data_out_str_prod * data_in_shape[k]
@@ -83,13 +83,13 @@ dataSize = data_in_shape[restDims[-1]]
 ## =============== Start of the actual template ===============
 // ReduceMean (Name: ${nodeName}, Op: ${nodeOp})
 ## Get core information
-int8_t core_id = pi_core_id();
-int8_t log2Core = LOG2(NUM_CORES);
+uint32_t core_id = pi_core_id();
+uint32_t log2Core = (uint32_t) LOG2(NUM_CORES);
 
 ## Split into chunks for each core
-int32_t chunk = (${dataSize} >> log2Core) + ((${dataSize} & (NUM_CORES - 1)) != 0);
-int32_t chunk_start = MIN(chunk * core_id, ${dataSize});
-int32_t chunk_stop = MIN(chunk_start + chunk, ${dataSize});
+uint32_t chunk = (${dataSize}U >> log2Core) + ((${dataSize}U & (NUM_CORES - 1)) != 0);
+uint32_t chunk_start = MIN(chunk * core_id, ${dataSize}U);
+uint32_t chunk_stop = MIN(chunk_start + chunk, ${dataSize}U);
 
 ## Iterate through non-reduced dimensions
 ## Keep the last dimension for parallelization
@@ -98,22 +98,23 @@ for(uint32_t i_${i} = 0; i_${i}<${data_in_shape[i]}; i_${i}++) {
 % endfor
 for(uint32_t i_${restDims[-1]} = chunk_start; i_${restDims[-1]}<chunk_stop; i_${restDims[-1]}++) {
 ## Initialize accumulator
-${data_out}[${data_out_str}] = ${input_offset}*${reduceLength};
+uint32_t out_idx = ${data_out_str};
+${data_out}[out_idx] = ${input_offset}*${reduceLength};
 
 ## Iterate through reduced dimensions and accumulate
 % for i in list(axes):
 for(uint32_t i_${i} = 0; i_${i}<${data_in_shape[i]}; i_${i}++) {
 % endfor
-${data_out}[${data_out_str}] += ((${data_in_type.referencedType.typeName} (*)${shapeStr})${data_in})${accessStr};
+${data_out}[out_idx] += ((${data_in_type.referencedType.typeName} (*)${shapeStr})${data_in})${accessStr};
 % for i in range(len(axes)):
 }
 % endfor
 
 ## Write back the mean value
 % if keepdims:
-${data_out}[${data_out_str}] = (${data_out_type.referencedType.typeName}) (${data_out}[${data_out_str}] / ${reduceLength} + ${output_offset});
+${data_out}[out_idx] = (${data_out_type.referencedType.typeName}) (${data_out}[out_idx] / ${reduceLength} + ${output_offset});
 % else:
-${data_out}[${data_out_str}] = (${data_out_type.referencedType.typeName}) (${data_out}[${data_out_str}] / ${reduceLength});
+${data_out}[out_idx] = (${data_out_type.referencedType.typeName}) (${data_out}[out_idx] / ${reduceLength});
 % endif
 % for i in range(len(restDims)):
 }
