@@ -20,8 +20,8 @@ macro(add_gvsoc_emulation name target)
         message(FATAL_ERROR "Environment variable GAP_SDK_HOME not set")
     endif()
 
-    # Check if GAPY_RUNNER_ARGS is defined (indicates L3 with readfs files)
-    if(DEFINED GAPY_RUNNER_ARGS)
+    # Check if GAPY_RUNNER_ARGS is defined and non-empty (indicates L3 with readfs files)
+    if(GAPY_RUNNER_ARGS)
         # L3 mode: Use gapy with flash layout and readfs
         message(STATUS "[Deeploy GAP9] L3 mode: using gapy with readfs")
         
@@ -86,29 +86,29 @@ macro(add_gvsoc_emulation name target)
         )
         
     else()
-        # L2 mode: Use traditional gvsoc command directly
-        message(STATUS "[Deeploy GAP9] L2 mode: using traditional gvsoc")
-        
+        # L2 mode: Use traditional gvsoc command directly (no flash/readfs)
+        message(STATUS "[Deeploy GAP9] L2 mode: using traditional gvsoc without flash")
+
         set(GVSOC_EXECUTABLE "${GVSOC_INSTALL_DIR}/bin/gvsoc")
-        
+
+        # L2 mode: run directly without flash operations
         set(GVSOC_CMD
             ${GVSOC_EXECUTABLE}
             --target=${target}
             --binary ${GVSOC_BINARY}
             --work-dir=${GVSOC_WORKDIR}
-            ${GVSOC_EXTRA_FLAGS}
-            image flash run
+            run
         )
-        
+
         # Convert list to string for printing
         string(REPLACE ";" " " GVSOC_CMD_STR "${GVSOC_CMD}")
-        
+
         add_custom_target(gvsoc_${name}
             DEPENDS ${name}
             WORKING_DIRECTORY ${GVSOC_WORKDIR}
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/*.bin ${GVSOC_WORKDIR}/ || true
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/*.bin ${GVSOC_WORKDIR}/ || true                  
             COMMAND ${CMAKE_COMMAND} -E echo "=========================================="
-            COMMAND ${CMAKE_COMMAND} -E echo "[Deeploy GAP9] Executing gvsoc command (L2 mode):"
+            COMMAND ${CMAKE_COMMAND} -E echo "[Deeploy GAP9] Executing gvsoc command - L2 mode:"
             COMMAND ${CMAKE_COMMAND} -E echo "${GVSOC_CMD_STR}"
             COMMAND ${CMAKE_COMMAND} -E echo "=========================================="
             COMMAND ${GVSOC_CMD}

@@ -265,6 +265,12 @@ def generateTestNetwork(deployer: NetworkDeployer, test_inputs: List[np.ndarray]
     # Create input and output vectors
     os.makedirs(dumpdir, exist_ok = True)
 
+    # Clean up old hex files to avoid confusion between L2/L3 modes
+    import shutil
+    hex_dir = os.path.join(dumpdir, 'hex')
+    if os.path.exists(hex_dir):
+        shutil.rmtree(hex_dir)
+
     testInputStr = generateTestInputsHeader(deployer, test_inputs)
     with open(f'{dumpdir}/testinputs.h', "w") as f:
         f.write(testInputStr)
