@@ -7,7 +7,7 @@ import itertools
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float16_t, \
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes,  \
     float32_t, int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
@@ -121,15 +121,11 @@ BasicGEMMBindings = [
 BasicPowBindings = [
     NodeBinding(DummyChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatPowTemplate.referenceTemplate, BasicTransformer),
-    NodeBinding(DummyChecker([PointerClass(float16_t), PointerClass(float16_t)], [PointerClass(float16_t)]),
-                FloatPowTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicSqrtBindings = [
     NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatSqrtTemplate.referenceTemplate,
                 BasicTransformer),
-    NodeBinding(DummyChecker([PointerClass(float16_t)], [PointerClass(float16_t)]), FloatSqrtTemplate.referenceTemplate,
-                BasicTransformer)
 ]
 
 BasicDivBindings = [

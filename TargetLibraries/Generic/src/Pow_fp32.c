@@ -5,23 +5,22 @@
  */
 
 #include "DeeployBasicMath.h"
+#include <math.h>
 
-void Pow_fp32_int32_fp32(float32_t *data_in, int32_t exponent,
-                         float32_t *data_out, int32_t size) {
+void Pow_fp32_fp32_fp32(const float32_t *__restrict__ data_in, 
+                        const float32_t *__restrict__ exponent,
+                        float32_t *__restrict__ data_out, 
+                        int32_t size) {
   for (int i = 0; i < size; i++) {
-    float32_t result = 1.0f;
-    int32_t exp = exponent;
-    float32_t base = data_in[i];
+    data_out[i] = powf(data_in[i], exponent[i]);
+  }
+}
 
-    if (exp < 0) {
-      base = 1.0f / base;
-      exp = -exp;
-    }
-
-    for (int32_t j = 0; j < exp; j++) {
-      result *= base;
-    }
-
-    data_out[i] = result;
+void Pow_fp32_scalar_fp32(const float32_t *__restrict__ data_in, 
+                          float32_t exponent,
+                          float32_t *__restrict__ data_out, 
+                          int32_t size) {
+  for (int i = 0; i < size; i++) {
+    data_out[i] = powf(data_in[i], exponent);
   }
 }

@@ -8,7 +8,7 @@ from typing import Tuple
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import NetworkContext, NodeParser, VariableBuffer
+from Deeploy.DeeployTypes import NetworkContext, NodeParser, VariableBuffer, ConstantBuffer
 
 
 class ConcatParser(NodeParser):
@@ -2000,29 +2000,6 @@ class PowParser(NodeParser):
         return ctxt, True
 
 
-class SqrtParser(NodeParser):
-
-    def __init__(self):
-        super().__init__()
-
-    def parseNode(self, node: gs.Node) -> bool:
-        return node.op == 'Sqrt' and len(node.inputs) == 1 and len(node.outputs) == 1
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
-
-        return ctxt, True
-
-
 class DivParser(NodeParser):
 
     def __init__(self):
@@ -2806,44 +2783,6 @@ class ConvTranspose1DParser(ConvTransposeParser):
                 "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
             return newCtxt, True
         return ctxt, False
-
-
-############################
-
-
-class PowParser(NodeParser):
-
-    def __init__(self):
-        super().__init__()
-
-    def parseNode(self, node: gs.Node) -> bool:
-        return node.op == 'Pow' and len(node.inputs) == 2 and len(node.outputs) == 1
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        exponent = node.inputs[1]
-        data_out = ctxt.lookup(node.outputs[0].name)
-
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-
-        # Check if exponent is a constant
-        if isinstance(exponent, gs.Constant):
-            exp_value = float(exponent.values)
-            self.operatorRepresentation['exponent'] = exp_value
-            self.operatorRepresentation['is_constant_exp'] = True
-        else:
-            exp_tensor = ctxt.lookup(exponent.name)
-            self.operatorRepresentation['exponent'] = exp_tensor.name
-            self.operatorRepresentation['is_constant_exp'] = False
-
-        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
-
-        return ctxt, True
 
 
 class SqrtParser(NodeParser):

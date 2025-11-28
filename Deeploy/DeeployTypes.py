@@ -325,7 +325,7 @@ class VariableBuffer():
         return (cls(name = node.name, shape = node.shape if not isinstance(node, gs.Constant) else node.values.shape))
 
     def has_live_aliases(self, ctxt: NetworkContext) -> bool:
-        """Checks whether this VariableBuffer has any live ancestors, i.e. buffers that are still live and are aliased by this buffer.
+        """Checks whether this VariableBuffer has any live aliases, i.e. buffers that are still live and are aliased by this buffer.
         Parameters
         ----------
         ctxt : NetworkContext
@@ -333,7 +333,7 @@ class VariableBuffer():
         Returns
         -------
         bool
-            True if this VariableBuffer has any live ancestors, False otherwise
+            True if this VariableBuffer has any live aliases, False otherwise
         """
         # Do a breadth-first search across the aliasing double-linked list
         live = self._live
@@ -2562,10 +2562,10 @@ class NetworkContainer():
             self.ctxt = layer.codeTransform(self.ctxt, verbose)
         self.transformed = True
 
-    def _mapNode(self, node: gs.Node) -> Union[ONNXLayer, Any]:
+    def _selectEngine(self, node: gs.Node) -> DeploymentEngine:
         for engine in self.Platform.engines:
             if node.op in engine.Mapping:
-                return engine.Mapping[node.op](node)
+                return engine
         raise RuntimeError(f"No mapping found for node {node.name} with op type {node.op}")
 
     def _bindLayers(self):
@@ -2582,7 +2582,8 @@ class NetworkContainer():
                 flatSchedule += subGraph
 
         for node in flatSchedule:
-            layer = self._mapNode(node)
+            engine = self._selectEngine(node)
+            layer = engine.Mapping[node.op](node)
             if isinstance(layer, ONNXLayer):
                 log.debug(f"   {SUCCESS_MARK} Bind {node.name} to layer {layer.__class__.__name__}")
                 self.layerBinding[layer.node.name] = layer
