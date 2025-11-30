@@ -47,11 +47,20 @@ jobs:
           {"name":"Hardswish","L1":[750]},
           {"name":"RQHardswish","L1":[750]},
           {"name":"testFloatGEMM","L1":[8000]},
-          {"name":"testFloat2DConvolution","L1":[8000]},
+
+          {"name":"testFloat2DConvolution","L1":[1600]},
+          {"name":"testFloat2DConvolutionBias","L1":[6600]},
+          {"name":"testFloat2DConvolutionZeroBias","L1":[6600]},
+
+          {"name":"testFloat2DDWConvolution","L1":[7200]},
+          {"name":"testFloat2DDWConvolutionBias","L1":[7200]},
+          {"name":"testFloat2DDWConvolutionZeroBias","L1":[7200]},
+
           {"name":"testFloatLayerNorm","L1":[2000]},
-          {"name":"testFloatRelu","L1":[2000]},
           {"name":"testFloatMaxPool","L1":[2000]},
           {"name":"testFloatMatmul","L1":[2000]},
+          {"name":"testFloatRelu","L1":[2000]},
+          {"name":"testFloatReshapeWithSkipConnection","L1":[1400]},
           {"name":"testFloatSoftmax","L1":[4000]},
           {"name":"testFloatTranspose","L1":[2000]},
           {"name":"testFloatMul","L1":[2000]},
@@ -78,11 +87,20 @@ jobs:
           {"name":"Hardswish","L1":[750]},
           {"name":"RQHardswish","L1":[800]},
           {"name":"testFloatGEMM","L1":[8000]},
-          {"name":"testFloat2DConvolution","L1":[15000]},
+
+          {"name":"testFloat2DConvolution","L1":[2000]},
+          {"name":"testFloat2DConvolutionBias","L1":[8800]},
+          {"name":"testFloat2DConvolutionZeroBias","L1":[8800]},
+
+          {"name":"testFloat2DDWConvolution","L1":[9800]},
+          {"name":"testFloat2DDWConvolutionBias","L1":[10000]},
+          {"name":"testFloat2DDWConvolutionZeroBias","L1":[9800]},
+
           {"name":"testFloatLayerNorm","L1":[2000]},
-          {"name":"testFloatRelu","L1":[2000]},
           {"name":"testFloatMaxPool","L1":[5000]},
           {"name":"testFloatMatmul","L1":[5000]},
+          {"name":"testFloatRelu","L1":[20]},
+          {"name":"testFloatReshapeWithSkipConnection","L1":[2600]},
           {"name":"testFloatSoftmax","L1":[8000]},
           {"name":"testFloatTranspose","L1":[2000]},
           {"name":"testFloatMul","L1":[2000]}
@@ -117,9 +135,11 @@ jobs:
           - name: "MLPerf/AnomalyDetection"
             L1: [64000]
           - name: "CCT/CCT_1_16_16_8"
-            L1: [64000]
+            L1: [2000, 64000]
           - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8"
-            L1: [64000]
+            L1: [4000, 64000]
+          - name: "testFloatDemoTinyViT"
+            L1: [4000]
         num-cores: [8]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
@@ -148,9 +168,11 @@ jobs:
           - name: "microLlama/microLlama1"
             L1: [60000, 10000, 5000]
           - name: "CCT/CCT_2_32_32_128"
-            L1: [128000]
+            L1: [64000, 128000]
           - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
-            L1: [64000]
+            L1: [32000, 64000]
+          - name: "testFloatDemoTinyViT"
+            L1: [4000]
         num-cores: [8]
         default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
@@ -186,9 +208,11 @@ jobs:
           - name: "microLlama/microLlama8_parallel"
             L1: [60000, 20000, 10000]
           - name: "CCT/CCT_2_32_32_128"
-            L1: [128000]
+            L1: [64000, 128000]
           - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
-            L1: [64000]
+            L1: [8000, 64000]
+          - name: "testFloatDemoTinyViT"
+            L1: [4000]
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]

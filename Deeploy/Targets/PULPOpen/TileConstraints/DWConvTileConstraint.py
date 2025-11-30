@@ -17,7 +17,7 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
     VariableReplacementScheme
 
 
-class DWConv2DTileConstraint(TileConstraint):
+class RQDWConv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -233,3 +233,23 @@ class DWConv2DTileConstraint(TileConstraint):
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
 
         return variableReplacementSchedule, tilingSchedule
+
+
+class DWConv2DTileConstraint(Conv2DTileConstraint):
+
+    @staticmethod
+    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        tilerModel = Conv2DTileConstraint.addPolicyConstraint(tilerModel, parseDict, ctxt)
+
+        # Add constraint for relationship between in and out number of channels
+        # TODO: Fix DW kernel to include group info and support channel tiling
+        inputBufferName = parseDict['data_in']
+        outputBufferName = parseDict['data_out']
+
+        inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 3)
+        outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 3)
+
+        tilerModel.addConstraint((inputChannelVar == parseDict['ch_im_in']))
+        tilerModel.addConstraint((outputChannelVar == parseDict['ch_im_out']))
+
+        return tilerModel
