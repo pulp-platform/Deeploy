@@ -15,6 +15,7 @@ import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
+from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.GAP9.Bindings import GAP9Transformer, GAP9ClusterTransformer, GAP9SimpleTransformer
@@ -68,15 +69,7 @@ class GAP9Deployer(PULPDeployer):
         self.SimpleTransformer = GAP9SimpleTransformer
 
     def generateBufferAllocationCode(self) -> str:
-        """
-        Generate buffer allocation code with GAP9-specific L3 RAM support.
-        
-        For L3 buffers:
-        1. Allocate space in APS256XXN OctaSPI RAM using cl_ram_malloc()
-        2. Load data from ReadFS using load_file_to_ram()
-        3. Assign extName to enable hex dump generation
-        """
-        retStr = super().generateBufferAllocationCode()
+        retStr = SignPropDeployer.generateBufferAllocationCode(self)
 
         L3FileStr = ""
         globalConstBuffers = [
