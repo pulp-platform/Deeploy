@@ -28,7 +28,7 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.Bindings import TilingCallClosure, ForkClosure, \
     MemoryAwareFunctionCallClosure, L3MemoryAwareFunctionCallClosure, MemoryAwareForkTransformer
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
-from Deeploy.Targets.GAP9.DMA.ClDma import ClDma
+from Deeploy.Targets.GAP9.DMA.MchanDma import GAP9MchanDma
 from Deeploy.Targets.GAP9.DMA.L3Dma import gap9L3DmaHack
 
 # Import templates from PULPOpen and Generic
@@ -55,7 +55,7 @@ GAP9Transformer = CodeTransformation([
     PULPSynchCoresPass(),
     ForkClosure(writeback = False, generateStruct = True),
     TilingVariableReplacementUpdate("L1"),
-    PULPClusterTiling("L2", "L1", ClDma()),  # Use ClDma instead of MchanDma
+    PULPClusterTiling("L2", "L1", GAP9MchanDma()),  # Use GAP9MchanDma instead of ClDma
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
@@ -74,7 +74,7 @@ GAP9ClusterTransformer = CodeTransformation([
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacementUpdate("L1"),
-    PULPClusterTiling("L2", "L1", ClDma()),  # Use ClDma instead of MchanDma
+    PULPClusterTiling("L2", "L1", GAP9MchanDma()),  # Use GAP9MchanDma instead of ClDma
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),

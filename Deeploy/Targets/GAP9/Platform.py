@@ -232,7 +232,8 @@ class GAP9StructBuffer(StructBuffer):
 _includeList = [
     "pmsis.h",
     "DeeployGAP9Math.h",
-    "pulp_nn_kernels.h"
+    "pulp_nn_kernels.h",
+    "DeeployMchan.h"  
 ]
 
 
