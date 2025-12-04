@@ -7,8 +7,8 @@ import itertools
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes,  \
-    float32_t, int8_t, int32_t, uint8_t
+from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
+    int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \

@@ -13,14 +13,12 @@
 
 #include "DeeployBasicMath.h"
 
-void Pow_fp32_fp32_fp32(const float32_t *__restrict__ data_in, 
+void Pow_fp32_fp32_fp32(const float32_t *__restrict__ data_in,
                         const float32_t *__restrict__ exponent,
-                        float32_t *__restrict__ data_out, 
-                        int32_t size);
+                        float32_t *__restrict__ data_out, int32_t size);
 
-void Pow_fp32_scalar_fp32(const float32_t *__restrict__ data_in, 
-                          float32_t exponent,
-                          float32_t *__restrict__ data_out, 
+void Pow_fp32_scalar_fp32(const float32_t *__restrict__ data_in,
+                          float32_t exponent, float32_t *__restrict__ data_out,
                           int32_t size);
 
 #endif

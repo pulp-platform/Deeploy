@@ -8,7 +8,7 @@ from typing import Tuple
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import NetworkContext, NodeParser, VariableBuffer, ConstantBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
 
 
 class ConcatParser(NodeParser):
@@ -1985,16 +1985,6 @@ class PowParser(NodeParser):
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['exponent'] = exponent_tensor.name
         self.operatorRepresentation['data_out'] = data_out.name
-
-        # Extract exponent value from the constant tensor
-        if isinstance(exponent_tensor, ConstantBuffer):
-            exp_value = int(exponent_tensor.values.flatten()[0])
-            self.operatorRepresentation['exponent_value'] = exp_value
-        else:
-            # Tensor exponent not supported
-            raise ValueError(f"Node {node.name}: Exponent must be a constant. "
-                             f"Variable tensor exponents are not supported.")
-
         self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
 
         return ctxt, True
