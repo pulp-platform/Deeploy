@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Support for RMSNorm (Pow and Sqrt operators) [#136](https://github.com/pulp-platform/Deeploy/pull/136)
 - Demo TinyViT compatibility with tiled Siracusa [#124](https://github.com/pulp-platform/Deeploy/pull/124)
 - TinyViT on non-tiled Siracusa [#117](https://github.com/pulp-platform/Deeploy/pull/117)
 - Support Fully Asynchronous DMAs [#114](https://github.com/pulp-platform/Deeploy/pull/114)
@@ -26,6 +27,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix bias hoisting in generic GEMM with no bias [#126](https://github.com/pulp-platform/Deeploy/pull/126)
 
 ### Added
+- Support for RMSNorm operation via operator decomposition.
+- Added `Pow` (Power) and `Sqrt` (Square Root) operation support (Parsers, Layers, Bindings, Templates, and FP32 Kernels) for the Generic platform.
 - Support for input tiling for PULP FP regular and DW conv 2D.
 - CI tests for tiled Siracusa FP regular and DW conv 2D, with and without bias, for skip connections, and for the demo version of TinyViT.
 - Documentation for PULP FP regular and DW conv 2D and MatMul tile constraints.
