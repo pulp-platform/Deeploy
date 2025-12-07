@@ -227,7 +227,7 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         tensorIn = node.inputs[0]
         tensorOut = node.outputs[0]
 
-        if node.op in ["RequantizedConv", "Conv"]:
+        if node.op in ["RequantizedConv", "Conv", "ConvGradX"]:
             spatialDims = len(node.inputs[1].shape) - 2
         elif node.op in ["MaxPool", "AveragePool", "AveragePoolGrad"]:
             spatialDims = len(node.attrs["kernel_shape"])
@@ -242,8 +242,9 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         permuteOut = _transformLayoutPermutation(len(tensorOut.shape), spatialDims, channels_first)
         graph.nodes.append(_prependTranspose(tensorOut, node, permuteOut))
 
-        if node.op in ["Conv", "RequantizedConv"]:
+        if node.op in ["Conv", "RequantizedConv", "ConvGradX"]:
             # In the case of Conv: [weights, opt. bias], RequantizedConv: [weights, mul, add, opt. shift]
+            # ConvGradX: [weight] (no bias)
             for tensor in node.inputs[1:]:
                 _transformLayoutConst(tensor, spatialDims, default_channels_first)
 
@@ -276,6 +277,15 @@ class NCHWtoNHWCAveragePoolGradPass(ReplaceSequentialPatternPass):
     def __init__(self, default_channels_first: bool = True):
         graph = _singleNodePattern(op = "AveragePoolGrad")
         name = "_NCHW_TO_NHWC_AVERAGEPOOLGRAD_PASS"
+        super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
+
+
+@contextagnostic
+class NCHWtoNHWCConvGradXPass(ReplaceSequentialPatternPass):
+
+    def __init__(self, default_channels_first: bool = True):
+        graph = _singleNodePattern(op = "ConvGradX")
+        name = "_NCHW_TO_NHWC_CONVGRADX_PASS"
         super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
 
 
@@ -383,6 +393,7 @@ class NCHWtoNHWCPass(SequentialPass):
             NCHWtoNHWCMaxPoolPass(default_channels_first),
             NCHWtoNHWCAveragePoolPass(default_channels_first),
             NCHWtoNHWCAveragePoolGradPass(default_channels_first),
+            NCHWtoNHWCConvGradXPass(default_channels_first),
             NCHWtoNHWCDwConvPass(default_channels_first),
             NCHWtoNHWCConvPass(default_channels_first),
         ]
@@ -398,6 +409,7 @@ class PULPNCHWtoNHWCPass(SequentialPass):
             NCHWtoNHWCMaxPoolPass(default_channels_first),
             NCHWtoNHWCAveragePoolPass(default_channels_first),
             NCHWtoNHWCAveragePoolGradPass(default_channels_first),
+            NCHWtoNHWCConvGradXPass(default_channels_first),
             PULPNCHWtoNHWCDwConvPass(default_channels_first),
             NCHWtoNHWCConvPass(default_channels_first),
         ]

@@ -217,3 +217,65 @@ void PULP_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     }
   }
 }
+
+void PULP_ConvTrans2d_fp32_fp32_fp32_HWC(
+    const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
+    uint32_t F_total, const float *__restrict__ pWeight, uint32_t C, uint32_t P,
+    uint32_t Q, uint32_t SP, uint32_t SQ, float *__restrict__ pGradIn,
+    uint32_t pad_top, uint32_t pad_bottom, uint32_t pad_left,
+    uint32_t pad_right) 
+{
+    int8_t core_id  = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    uint16_t ch_chunk =
+        (C >> log2Core) + ((C & (NUM_CORES - 1)) != 0);
+    uint16_t ch_start = MIN(ch_chunk * core_id, C);
+    uint16_t ch_stop  = MIN(ch_start + ch_chunk, C);
+    uint16_t ch_count = ch_stop - ch_start;
+
+    if (ch_count == 0) {
+        return;
+    }
+
+    uint32_t H_in = (H_out - 1) * SP + P - pad_top  - pad_bottom;
+    uint32_t W_in = (W_out - 1) * SQ + Q - pad_left - pad_right;
+
+    for (uint32_t ih = 0; ih < H_in; ++ih) {
+        for (uint32_t iw = 0; iw < W_in; ++iw) {
+            for (uint32_t ic = ch_start; ic < ch_stop; ++ic) {
+                pGradIn[(ih * W_in + iw) * C + ic] = 0.0f;
+            }
+        }
+    }
+
+    for (uint32_t oc = 0; oc < F_total; ++oc) {
+        for (uint32_t kh = 0; kh < P; ++kh) {
+            for (uint32_t kw = 0; kw < Q; ++kw) {
+
+                uint32_t w_base = oc * (P * Q * C) + kh * (Q * C) + kw * C;
+
+                for (uint32_t oh = 0; oh < H_out; ++oh) {
+                    int32_t ih = oh * SP + kh - pad_top;
+
+                    if (ih < 0 || ih >= (int32_t)H_in) continue;
+
+                    for (uint32_t ow = 0; ow < W_out; ++ow) {
+                        int32_t iw = (int32_t)ow * (int32_t)SQ
+                                     + (int32_t)kw - (int32_t)pad_left;
+
+                        if (iw < 0 || iw >= (int32_t)W_in) continue;
+
+                        uint32_t go_idx = (oh * W_out + ow) * F_total + oc;
+
+                        uint32_t gi_base = ((uint32_t)ih * W_in + (uint32_t)iw) * C;
+
+                        for (uint32_t ic = ch_start; ic < ch_stop; ++ic) {
+                            pGradIn[gi_base + ic] += pGradOut[go_idx] * pWeight[w_base + ic];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

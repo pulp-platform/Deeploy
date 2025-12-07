@@ -462,3 +462,8 @@ class PULPTallGEMMParser(PULPGEMMParser):
             return ctxt, False
 
         return newCtxt, True
+
+class PULPConvTrans2DParser(PULPFPConv2DParser):
+
+    def __init__(self, noBiasHoisting = True):
+            super().__init__(noBiasHoisting)

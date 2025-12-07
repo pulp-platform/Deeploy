@@ -251,6 +251,13 @@ PULPFloatDWConv2DBindings = [
         ForkTransformer) for float_type in FloatDataTypes
 ]
 
+PULPFloatConvTrans2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvTemplate.referenceConvTrans2DTemplate,
+        ForkTransformer)
+]
+
 PULPRQSMatrixVecBindings = [
     NodeBinding(
         PULPLinearChecker([PointerClass(type1),
@@ -464,3 +471,4 @@ BasicDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 ForkTransformer),
 ]
+
