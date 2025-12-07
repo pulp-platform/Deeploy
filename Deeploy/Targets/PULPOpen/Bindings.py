@@ -284,6 +284,11 @@ PULPAveragePool2DBindings = [
                 FloatAveragePoolTemplate.referenceTemplate, ForkTransformer)
 ]
 
+PULPAveragePoolGrad2DBindings = [
+    NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceGradTemplate, ForkTransformer)
+]
+
 PULPConv1DBinding = NodeBinding(
     PULPConvChecker(
         [PointerClass(int8_t), PointerClass(int8_t),
