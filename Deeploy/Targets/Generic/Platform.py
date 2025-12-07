@@ -3,27 +3,27 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    RemoveEmptyConvBiasPass
+    RemoveEmptyConvBiasPass, NCHWtoNHWCPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBindings, BasicConcatBindings, \
     BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, BasicDebugPrintBindings, \
     BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicGatherBindings, \
-    BasicGELUBindings, BasicGEMMBindings, BasicGlobalAveragePoolBindings, BasicITAPartialSoftmaxBinding, \
+    BasicGELUBindings, BasicGEMMBindings, BasicITAPartialSoftmaxBinding, \
     BasicITASoftmaxBinding, BasicLayerNormBindings, BasicMatMulBindings, BasicMaxPool1DBindings, \
-    BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicQuantBindings, \
+    BasicMaxPool2DBindings, BasicAveragePool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicQuantBindings, \
     BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, \
     BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, \
     BasicTransposeBindings, DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, BatchNormalizationLayer, ConcatLayer, ConvLayer, \
-    ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, GatherLayer, GELULayer, GEMMLayer, GlobalAveragePoolLayer, ITAMaxLayer, \
-    LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
+    ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, GatherLayer, GELULayer, GEMMLayer, ITAMaxLayer, \
+    LayerNormLayer, MatMulLayer, MaxPoolLayer, AveragePoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SliceLayer, SoftmaxLayer, \
     TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, BatchNormParser, ConcatParser, ConvTranspose1DParser, \
     DebugParser, DequantParser, DivParser, DummyParser, FlattenParser, GatherParser, GELUParser, GenericConv1DParser, \
     GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, \
-    GlobalAveragePoolParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, MatMulParser, \
+    IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, MatMulParser, \
     MaxPool1DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, \
     RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, SoftmaxParser, \
     TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
@@ -52,7 +52,7 @@ ITAPartialMaxMapper = NodeMapper(ITAPartialMaxParser(), [BasicITAPartialSoftmaxB
 MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 MaxPoolMapper = NodeMapper(GenericMaxPool2DParser(), BasicMaxPool2DBindings)
 MaxPool1DMapper = NodeMapper(MaxPool1DParser(), BasicMaxPool1DBindings)
-GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), BasicGlobalAveragePoolBindings)
+AveragePoolMapper = NodeMapper(GenericMaxPool2DParser(), BasicAveragePool2DBindings)
 MulMapper = NodeMapper(MulParser(), BasicMulBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
@@ -99,6 +99,7 @@ GenericMapping = {
     'MatMul': GEMMLayer([MatMulMapper]),
     'MatMulInteger': MatMulLayer([MatMulMapper]),
     'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPoolMapper]),
+    'AveragePool': AveragePoolLayer([AveragePoolMapper]),
     'Mul': MulLayer([MulMapper]),
     'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
     'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
@@ -116,7 +117,6 @@ GenericMapping = {
     'Dequant': DequantLayer([DequantMapper]),
     'BatchNormalization': BatchNormalizationLayer([BatchNormalizationMapper]),
     'ConvTranspose': ConvTransposeLayer([ConvTransposeMapper]),
-    'GlobalAveragePool': GlobalAveragePoolLayer([GlobalAveragePoolMapper])
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel

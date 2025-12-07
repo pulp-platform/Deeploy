@@ -2806,41 +2806,65 @@ class ConvTranspose1DParser(ConvTransposeParser):
         return ctxt, False
 
 
-class GlobalAveragePoolParser(NodeParser):
+class AveragePool2DParser(MaxPool2DParser):
 
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # GlobalAveragePool takes one input and produces one output
-        ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
-        return ret
+        ret = super().parseNode(node)
+        wellFormed = False
+
+        if ret:
+            pads = self.operatorRepresentation['pads']
+            kernel_shape = self.operatorRepresentation['kernel_shape']
+            strides = self.operatorRepresentation['strides']
+
+            if len(pads) == 4 and len(kernel_shape) == 2 and len(strides) == 2:
+                wellFormed = True
+                
+            self.operatorRepresentation['padding_x_left']  = int(pads[0])
+            self.operatorRepresentation['padding_y_top']   = int(pads[1])
+            self.operatorRepresentation['padding_x_right'] = int(pads[2])
+            self.operatorRepresentation['padding_y_bottom']= int(pads[3])
+
+            self.operatorRepresentation['stride_x']   = int(strides[0])
+            self.operatorRepresentation['stride_y']   = int(strides[1])
+            self.operatorRepresentation['dim_kernel_x'] = int(kernel_shape[0])
+            self.operatorRepresentation['dim_kernel_y'] = int(kernel_shape[1])
+
+        return wellFormed
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
+        newCtxt, ret = super(MaxPool2DParser, self).parseNodeCtxt(ctxt, node, channels_first)
+        wellFormed = False
+        if ret:
+            data_in = newCtxt.lookup(self.operatorRepresentation['data_in'])
+            data_out = newCtxt.lookup(self.operatorRepresentation['data_out'])
 
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-
-        if len(data_in.shape) == 4:  # 2D case (NCHW)
             self.operatorRepresentation['batch'] = data_in.shape[0]
-            self.operatorRepresentation['channels'] = data_in.shape[1]
-            self.operatorRepresentation['ch_im_in'] = data_in.shape[1]  
-            self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
-            self.operatorRepresentation['dim_im_in_y'] = data_in.shape[3]
-            self.operatorRepresentation['size'] = int(data_in.shape[2] * data_in.shape[3])
-            return ctxt, True
-        elif len(data_in.shape) == 3:  # 1D case (NCL)
-            self.operatorRepresentation['batch'] = data_in.shape[0]
-            self.operatorRepresentation['channels'] = data_in.shape[1]
-            self.operatorRepresentation['ch_im_in'] = data_in.shape[1]  
-            self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
-            self.operatorRepresentation['size'] = int(data_in.shape[2])
-            return ctxt, True
 
-        return ctxt, False
+            if channels_first:
+                self.operatorRepresentation['ch_im_in']     = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_x']  = data_in.shape[2]
+                self.operatorRepresentation['dim_im_in_y']  = data_in.shape[3]
+                self.operatorRepresentation['ch_im_out']    = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[2]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[3]
+            else:
+                self.operatorRepresentation['ch_im_in']     = data_in.shape[3]
+                self.operatorRepresentation['dim_im_in_x']  = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_y']  = data_in.shape[2]
+                self.operatorRepresentation['ch_im_out']    = data_out.shape[3]
+                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+
+            if len(data_in.shape) == 4 and len(data_out.shape) == 4:
+                wellFormed = True
+
+        return newCtxt, wellFormed
+

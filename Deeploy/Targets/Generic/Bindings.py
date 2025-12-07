@@ -14,7 +14,7 @@ from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation i
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
     FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatGlobalAveragePoolTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
+    FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatAveragePoolTemplate, \
     FloatMulTemplate, FloatPadTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
     GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, \
     MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
@@ -22,7 +22,7 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
-    GlobalAveragePoolChecker, LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, \
+    LayerNormChecker, MatMulChecker, MaxPoolChecker, AveragePoolChecker, MulChecker, PadChecker, \
     QuantChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, \
     RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 
@@ -167,9 +167,9 @@ BasicMaxPool2DBindings = [
                 FloatMaxPoolTemplate.referenceTemplate, BasicTransformer)
 ]
 
-BasicGlobalAveragePoolBindings = [
-    NodeBinding(GlobalAveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatGlobalAveragePoolTemplate.referenceTemplate, BasicTransformer)
+BasicAveragePool2DBindings = [
+    NodeBinding(AveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicMulBindings = [

@@ -23,6 +23,7 @@
 
 #include "pmsis.h"
 
+#include "kernel/AvgPool.h"
 #include "kernel/Conv.h"
 #include "kernel/GELU.h"
 #include "kernel/Layernorm.h"

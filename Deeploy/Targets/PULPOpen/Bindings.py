@@ -15,10 +15,10 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, \
-    FloatGlobalAveragePoolTemplate, FloatReduceMeanTemplate, FloatReduceSumTemplate, GatherTemplate, QuantTemplate, \
+    FloatReduceMeanTemplate, FloatReduceSumTemplate, GatherTemplate, QuantTemplate, \
     RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
-    GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, HardswishChecker, LayerNormChecker, \
+    GatherChecker, GELUChecker, GEMMChecker, AveragePoolChecker, HardswishChecker, LayerNormChecker, \
     MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
     RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -33,7 +33,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, \
     MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate
+    iRMSNormTemplate, iSoftmaxTemplate, FloatAveragePoolTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -279,6 +279,11 @@ PULPMaxPool2DBindings = [
                 FloatMaxPoolTemplate.referenceTemplate, ForkTransformer)
 ]
 
+PULPAveragePool2DBindings = [
+    NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate, ForkTransformer)
+]
+
 PULPConv1DBinding = NodeBinding(
     PULPConvChecker(
         [PointerClass(int8_t), PointerClass(int8_t),
@@ -312,11 +317,6 @@ PULPReduceMeanBindings = [
 PULPReduceSumBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatReduceSumTemplate.referenceTemplate, ClusterTransformer)
-]
-
-PULPGlobalAveragePoolBindings = [
-    NodeBinding(GlobalAveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatGlobalAveragePoolTemplate.referenceTemplate, ForkTransformer)
 ]
 
 PULPUniformRQSBindings = [
