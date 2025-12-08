@@ -480,7 +480,6 @@ class SGDLayer(ONNXLayer):
         super().__init__(maps)
 
 
-
 class LinearAttentionLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):

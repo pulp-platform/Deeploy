@@ -189,9 +189,8 @@ PULPAddBindings = [
     NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatAddTemplate.referenceTemplate, ForkTransformer)
 ] + [
-    NodeBinding(
-        AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]), FloatAddTemplate.referenceTemplate,
-        ForkTransformer)
+    NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAddTemplate.referenceTemplate, ForkTransformer)
 ]
 
 PULPRQSConv2DBindings = [

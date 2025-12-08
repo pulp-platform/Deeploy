@@ -1,0 +1,6 @@
+autoflake cleanup completed!
+Running clang-format to fix C/C++ code formatting...
+Using LLVM clang-format: /app/install/llvm/bin/clang-format
+Running clang-format with python script...
+Command: python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable="/app/install/llvm/bin/clang-format" ./ scripts
+clang-format formatting completed!
