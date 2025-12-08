@@ -190,8 +190,7 @@ PULPAddBindings = [
                 FloatAddTemplate.referenceTemplate, ForkTransformer)
 ] + [
     NodeBinding(
-        AddChecker([PointerClass(float32_t), PointerClass(float32_t),
-                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatAddTemplate.referenceTemplate,
+        AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]), FloatAddTemplate.referenceTemplate,
         ForkTransformer)
 ]
 

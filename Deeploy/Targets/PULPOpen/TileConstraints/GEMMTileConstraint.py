@@ -193,10 +193,12 @@ class FloatGEMMTileConstraint(TileConstraint):
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
+        # Get to-be-tiled tensor's buffers
         bufferA = ctxt.lookup(name = parseDict['A'])
         bufferB = ctxt.lookup(name = parseDict['B'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
 
+        # Add I/O dimensions to the model as variables
         has_bias = 'C' in parseDict and parseDict['C'] is not None
         bufferC = None
         if has_bias:
@@ -222,9 +224,11 @@ class FloatGEMMTileConstraint(TileConstraint):
         outputFirstDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = dimOffsetOut)
         outputSecondDimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = dimOffsetOut + 1)
 
+        # Map output dims to inputs dims
         tilerModel.addConstraint(outputFirstDimVar == AFirstDimVar)
         tilerModel.addConstraint(outputSecondDimVar == BSecondDimVar)
 
+        # Add GEMM Geometrical constraints
         tilerModel.addConstraint(ASecondDimVar == BFirstDimVar)
 
         # Add bias constraints only if bias is present
@@ -287,7 +291,6 @@ class FloatGEMMTileConstraint(TileConstraint):
         transB = operatorRepresentation['transB']
 
         varA = operatorRepresentation['A']
-        varB = operatorRepresentation['B']
 
         if transA == 0:
             NSize = ctxt.lookup(varA).shape[-1]

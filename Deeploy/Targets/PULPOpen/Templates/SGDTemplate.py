@@ -9,9 +9,9 @@ referenceTemplate = NodeTemplate("""
 // (Name: ${nodeName}, Op: ${nodeOp})
 int8_t ${nodeName}_core_id = pi_core_id();
 int8_t ${nodeName}_log2Core = log2(NUM_CORES);
-int16_t ${nodeName}_chunk = (${size} >> ${nodeName}_log2Core) + ((${size} & (NUM_CORES-1))!=0);
-int16_t ${nodeName}_chunk_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${size});
-int16_t ${nodeName}_chunk_stop = MIN(${nodeName}_chunk_start + ${nodeName}_chunk, ${size});
+int32_t ${nodeName}_chunk = (${size} >> ${nodeName}_log2Core) + ((${size} & (NUM_CORES-1))!=0);
+int32_t ${nodeName}_chunk_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${size});
+int32_t ${nodeName}_chunk_stop = MIN(${nodeName}_chunk_start + ${nodeName}_chunk, ${size});
 
 ${weight_type.typeName} ref_${weight} = ${weight};
 ${grad_type.typeName} ref_${grad} = ${grad};
