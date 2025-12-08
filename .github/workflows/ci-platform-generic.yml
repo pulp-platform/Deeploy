@@ -73,6 +73,10 @@ jobs:
         testFloatSoftmax
         testFloatTranspose
         testFloatMul
+        testFloatPowScalar
+        testFloatPowVector
+        testFloatSqrt
+        testFloatRMSNorm
         Quant
         Dequant
         QuantizedLinear

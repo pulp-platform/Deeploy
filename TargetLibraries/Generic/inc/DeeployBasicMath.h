@@ -44,6 +44,7 @@
 #include "kernel/MatMul.h"
 #include "kernel/MaxPool.h"
 #include "kernel/MaxPool1d.h"
+#include "kernel/Pow.h"
 #include "kernel/RMSNorm.h"
 #include "kernel/RQDiv.h"
 #include "kernel/RQGELU.h"
@@ -51,5 +52,6 @@
 #include "kernel/Relu.h"
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
+#include "kernel/Sqrt.h"
 
 #endif //__DEEPLOY_BASIC_MATH_HEADER_
