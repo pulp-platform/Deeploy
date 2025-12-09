@@ -470,6 +470,7 @@ class PULPReduceMeanParser(ReduceMeanParser):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        # Inherit the generic ReduceMean parsing
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
         if ret:

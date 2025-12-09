@@ -208,11 +208,13 @@ BasicReduceMeanBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
+    # ONNX OPSET < 18
     NodeBinding(ReduceMeanChecker([PointerClass(float_type), PointerClass(integer_type)], [PointerClass(float_type)]),
                 FloatReduceMeanTemplate.referenceTemplate, BasicTransformer)
     for integer_type in SignedIntegerDataTypes
     for float_type in FloatDataTypes
 ] + [
+    # ONNX OPSET >= 18
     NodeBinding(ReduceMeanChecker([PointerClass(float_type)], [PointerClass(float_type)]),
                 FloatReduceMeanTemplate.referenceTemplate, BasicTransformer) for float_type in FloatDataTypes
 ]
