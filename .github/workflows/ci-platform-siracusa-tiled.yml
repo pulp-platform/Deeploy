@@ -109,13 +109,41 @@ jobs:
         [
           {"name":"FP32Kernels/Activations/ReLU","L1":[20]},
 
+          {"name":"FP32Kernels/Conv2D/DWBias","L1":[10000]},
+          {"name":"FP32Kernels/Conv2D/DWNoBias","L1":[9800]},
+          {"name":"FP32Kernels/Conv2D/DWZeroValuedBias","L1":[9800]},
+
           {"name":"FP32Kernels/Conv2D/RegularBias","L1":[8800]},
           {"name":"FP32Kernels/Conv2D/RegularNoBias","L1":[2000]},
           {"name":"FP32Kernels/Conv2D/RegularZeroValuedBias","L1":[8800]},
 
-          {"name":"FP32Kernels/Conv2D/DWBias","L1":[10000]},
-          {"name":"FP32Kernels/Conv2D/DWNoBias","L1":[9800]},
-          {"name":"FP32Kernels/Conv2D/DWZeroValuedBias","L1":[9800]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean", "L1": [8000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add", "L1": [8000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/AllAxes", "L1": [100000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes1_2_3", "L1": [100000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes1_3", "L1": [10000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes1_3", "L1": [50000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes2_1", "L1": [13000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes2_1", "L1": [50000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axis0", "L1": [17000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axis0", "L1": [50000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axis2", "L1": [17000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/Axis2", "L1": [50000]},
+          {"name": "FP32Kernels/ReduceMean/KeepDims/ReduceMean_Add", "L1": [8000]},
+
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean", "L1": [8000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean_Add", "L1": [8000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/AllAxes", "L1": [100000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes1_2_3", "L1": [100000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes1_3", "L1": [10000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes1_3", "L1": [50000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes2_1", "L1": [13000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes2_1", "L1": [50000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axis0", "L1": [17000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axis0", "L1": [50000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axis2", "L1": [17000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axis2", "L1": [50000]},
+          {"name": "FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add", "L1": [8000]},
 
           {"name":"FP32Kernels/SkipConnection/ReshapeWithSkipConnection","L1":[2600]},
 
@@ -203,6 +231,8 @@ jobs:
             L1: [128000]
           - name: "testFloatDemoTinyViT"
             L1: [4000]
+          - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
+            L1: [200, 40000]
         num-cores: [8]
         default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
@@ -214,7 +244,6 @@ jobs:
       L1: ${{ toJson(matrix.test-data.L1) }}
       default-memory-level: ${{ matrix.default-memory-level }}
 
-  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
   siracusa-models-tiled-doublebuffer-L3:
     needs: select-env
     strategy:
@@ -243,6 +272,8 @@ jobs:
             L1: [128000]
           - name: "testFloatDemoTinyViT"
             L1: [4000]
+          - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
+            L1: [200, 40000]
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]
