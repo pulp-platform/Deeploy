@@ -8,6 +8,11 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 
 
 class _FloatReduceMeanTemplate(NodeTemplate):
+    '''
+    WARNING: This version of parallelization is optimized for the TinyViT ReduceMean layers
+    (49 elements in the reduced axis). Greater sizes of the reduced axis may benefit
+    from different parallelization and tiling strategies.
+    '''
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
@@ -57,7 +62,7 @@ for i, axis in enumerate(axes):
 restDims = list(set(list(range(len(data_in_shape)))).difference(set(axes)))
 restDims = sorted(restDims, key=lambda x: data_in_shape[x])
 
-dataSize = data_in_shape[restDims[-1]]
+dataSize = new_data_in_shape[restDims[-1]]
 
 # =============== Prepare shape and access strings ===============
 # shapeStr is going to have the [d1][d2]... format
@@ -92,9 +97,15 @@ uint32_t core_id = pi_core_id();
 uint32_t log2Core = (uint32_t) LOG2(NUM_CORES);
 
 ## Split into chunks for each core
+% if isinstance(dataSize, str):
+uint32_t chunk = (*(${dataSize}) >> log2Core) + ((*(${dataSize}) & (NUM_CORES - 1)) != 0);
+uint32_t chunk_start = MIN(chunk * core_id, *(${dataSize}));
+uint32_t chunk_stop = MIN(chunk_start + chunk, *(${dataSize}));
+% else:
 uint32_t chunk = (${dataSize}U >> log2Core) + ((${dataSize}U & (NUM_CORES - 1)) != 0);
 uint32_t chunk_start = MIN(chunk * core_id, ${dataSize}U);
 uint32_t chunk_stop = MIN(chunk_start + chunk, ${dataSize}U);
+% endif
 
 ## Iterate through non-reduced dimensions
 ## Keep the last dimension for parallelization

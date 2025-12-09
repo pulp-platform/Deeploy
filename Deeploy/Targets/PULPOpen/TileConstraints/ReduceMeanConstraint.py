@@ -17,6 +17,11 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
 
 
 class ReduceMeanTileConstraint(TileConstraint):
+    '''
+    WARNING: This version of tiling is optimized for the TinyViT ReduceMean layers
+    (49 elements in the reduced axis). Greater sizes of the reduced axis may benefit
+    from different parallelization and tiling strategies.
+    '''
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -34,7 +39,7 @@ class ReduceMeanTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         # ===== ADD CONSTRAINTS =====
-        #   Add constraints for the I/O dimensions
+        #   Add constraints for the relationship between the I/O dimensions
         #   Iterate over input axes and maintain an output index pointer
         inputShape = parseDict['data_in_shape']
         output_idx = 0
@@ -53,6 +58,33 @@ class ReduceMeanTileConstraint(TileConstraint):
                 outputDimensionVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = output_idx)
                 tilerModel.addConstraint(outputDimensionVar == inputDimensionVar)
                 output_idx += 1
+
+        return tilerModel
+
+    @staticmethod
+    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        # ===== GET NECESSARY INFORMATION =====
+        #   Get I/O buffer names
+        inputBufferName = parseDict['data_in']
+
+        #   Get other necessary information
+        inputShape = parseDict['data_in_shape']
+        reduceAxes = parseDict['axes']
+        nonReducedDims = [ax for ax in range(len(inputShape)) if ax not in reduceAxes]
+
+        if len(nonReducedDims) > 0:
+            biggestNonReducedDim = max(nonReducedDims, key = lambda ax: inputShape[ax])
+        else:
+            biggestNonReducedDim = -1  # No non-reduced dimensions
+
+        # ===== ADD CONSTRAINTS =====
+        #  Kernel parallelized only on biggest non-reduced dimension,
+        #  so tile only on that dimension
+        for ax in range(len(inputShape)):
+            dimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = ax)
+            if ax != biggestNonReducedDim:
+                # This is not the biggest non-reduced dimension, force no tiling
+                tilerModel.addConstraint(dimVar == inputShape[ax])
 
         return tilerModel
 

@@ -70,7 +70,7 @@ jobs:
 
         FP32Kernels/SkipConnection/ReshapeWithSkipConnection
 
-        Models/TinyViT/5M/FP32Kernels/ReduceMean
+        Models/TinyViT/5M/Layers/FP32/ReduceMean
 
         MultIO
         test1DPad
