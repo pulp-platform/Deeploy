@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -54,7 +54,7 @@ for i, axis in enumerate(axes):
     if axis < 0:
         axes[i] += len(data_in_shape)
     reduceLength = reduceLength * data_in_shape[axis]
-                                             
+
 # Compute the remaining dimensions after reduction
 # Order them for more efficient parallelization
 # (heuristically working on the largest non-tiled stride last,

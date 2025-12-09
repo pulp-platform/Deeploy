@@ -148,7 +148,8 @@ class IntrospectiveCodeTransformationMixIn():
             if expr.startswith("pageargs["):
                 # Extract key inside pageargs[]
                 key = expr[len("pageargs["):-1]
-                assert key.startswith("'") or key.startswith("\""), "pageargs key must begin with a string literal"
+                assert key.startswith("'") or key.startswith(
+                    "\""), f"pageargs key must begin with a string literal, got: {key}"
 
                 # Extract initial string literal (between first 2 " or ' characters)
                 quoteChar = key[0]
