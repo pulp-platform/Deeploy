@@ -62,6 +62,33 @@ class ReduceMeanTileConstraint(TileConstraint):
         return tilerModel
 
     @staticmethod
+    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        # ===== GET NECESSARY INFORMATION =====
+        #   Get I/O buffer names
+        inputBufferName = parseDict['data_in']
+
+        #   Get other necessary information
+        inputShape = parseDict['data_in_shape']
+        reduceAxes = parseDict['axes']
+        nonReducedDims = [ax for ax in range(len(inputShape)) if ax not in reduceAxes]
+
+        if len(nonReducedDims) > 0:
+            biggestNonReducedDim = max(nonReducedDims, key = lambda ax: inputShape[ax])
+        else:
+            biggestNonReducedDim = -1  # No non-reduced dimensions
+
+        # ===== ADD CONSTRAINTS =====
+        #  Kernel parallelized only on biggest non-reduced dimension,
+        #  so tile only on that dimension
+        for ax in range(len(inputShape)):
+            dimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = ax)
+            if ax != biggestNonReducedDim:
+                # This is not the biggest non-reduced dimension, force no tiling
+                tilerModel.addConstraint(dimVar == inputShape[ax])
+
+        return tilerModel
+
+    @staticmethod
     def constructSymbolicNodeRep(tilerModel: TilerModel, parseDict: Dict,
                                  ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
         symbolicParseDict = parseDict.copy()
