@@ -24,7 +24,7 @@ class _FloatReduceMeanTemplate(NodeTemplate):
 
         operatorRepresentation['output_offset'] = 0
         if hasattr(data_out, "_signed") and hasattr(data_out, "nLevels"):
-            operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_in.nLevels / 2)
+            operatorRepresentation['output_offset'] = -(data_out._signed == 0) * int(data_out.nLevels / 2)
 
         return ctxt, operatorRepresentation, []
 

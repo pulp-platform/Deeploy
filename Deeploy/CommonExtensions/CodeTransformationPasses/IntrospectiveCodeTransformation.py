@@ -156,6 +156,8 @@ class IntrospectiveCodeTransformationMixIn():
                 endIdx = key.find(quoteChar, 1)
                 key = key[1:endIdx]
 
+                assert endIdx != -1, f"pageargs key missing closing quote: {expr}"
+
                 # Search for all expressions that begin with the given key
                 for exprKey in operatorRepresentation.keys():
                     if exprKey.startswith(key):
