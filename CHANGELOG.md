@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- FP32 ReduceMean operator improvement [#137](https://github.com/pulp-platform/Deeploy/pull/137)
 - Support for RMSNorm (Pow and Sqrt operators) [#136](https://github.com/pulp-platform/Deeploy/pull/136)
 - Demo TinyViT compatibility with tiled Siracusa [#124](https://github.com/pulp-platform/Deeploy/pull/124)
 - TinyViT on non-tiled Siracusa [#117](https://github.com/pulp-platform/Deeploy/pull/117)
@@ -27,6 +28,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix bias hoisting in generic GEMM with no bias [#126](https://github.com/pulp-platform/Deeploy/pull/126)
 
 ### Added
+- Support for unknown number of data dimensions in the tiler
+- Parallelization support for the FP32 ReduceMean operator on PULPOpen
+- Extensive testing for the ReduceMean operator
+- Pass to remove ReduceMean operators that don't change data content, but only its shape
 - Support for RMSNorm operation via operator decomposition.
 - Added `Pow` (Power) and `Sqrt` (Square Root) operation support (Parsers, Layers, Bindings, Templates, and FP32 Kernels) for the Generic platform.
 - Support for input tiling for PULP FP regular and DW conv 2D.
@@ -78,6 +83,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - annotateNCores method to PULPDeployer that adds an `n_cores` key to all PULPClusterEngine templates' operatorRepresentations
 
 ### Changed
+- Structure of Tests subdir for improved ordering
+- Structure of .gitignore file for improved ordering
 - Decreased L1 maximal memory limit for CI pipeline tests where compatible thanks to the implementation of Conv2D input tiling support.
 - Reduced size of reshape & skip connection test, for non-tiled Siracusa memory compatibility.
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -118,6 +125,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - changed `_mapNode` to `_selectEngine` which reduces the responsibility of that function to, as the name states, just engine selection
 
 ### Fixed
+- Fixed ReduceMean parallelization and tiling issues described in Issue [#134](https://github.com/pulp-platform/Deeploy/issues/134).
 - Fixed PULP FP32 regular and DW Conv2D, and MatMul tile constraints.
 - Fixed type casting for tiling code generation.
 - Fixed bug in buffer name identification in code generation for tests with L3 default memory level.
