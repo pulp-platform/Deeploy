@@ -272,6 +272,13 @@ PULPFloatConvGradW2DBindings = [
         ForkTransformer)
 ]
 
+PULPFloatDWConvGradW2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvTemplate.referenceDWConvGradW2DTemplate,
+        ForkTransformer)
+]
+
 PULPFloatConvGradB2DBindings = [
     NodeBinding(
         PULPConvGradBChecker([PointerClass(float32_t)],  # Only one input: output_grad

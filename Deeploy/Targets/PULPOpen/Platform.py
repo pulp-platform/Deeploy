@@ -34,7 +34,8 @@ from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBi
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
-    PULPTallGEMMParser, PULPConvTrans2DParser, PULPConvGradW2DParser, PULPConvGradB2DParser, PULPDWConvTrans2DParser
+    PULPTallGEMMParser, PULPConvTrans2DParser, PULPConvGradW2DParser, PULPConvGradB2DParser, PULPDWConvTrans2DParser, \
+    PULPDWConvGradW2DParser
 from Deeploy.Targets.PULPOpen.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConcatTilingReadyBindings, \
     PULPConv2DTilingReadyBindings, PULPDWConv2DTilingReadyBindings, PULPFlattenTilingReadyBindings, \
@@ -49,7 +50,8 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings, PULPAveragePool2DTilingReadyBindings, \
-    PULPAveragePoolGrad2DTilingReadyBindings, PULPConvTrans2DTilingReadyBindings, PULPConvGradW2DTilingReadyBindings, PULPConvGradB2DTilingReadyBindings, PULPDWConvTrans2DTilingReadyBindings
+    PULPAveragePoolGrad2DTilingReadyBindings, PULPConvTrans2DTilingReadyBindings, PULPConvGradW2DTilingReadyBindings, PULPConvGradB2DTilingReadyBindings, PULPDWConvTrans2DTilingReadyBindings, \
+    PULPDWConvGradW2DTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -82,6 +84,7 @@ FPConv2DMapper = NodeMapper(PULPFPConv2DParser(), PULPConv2DTilingReadyBindings)
 ConvGradXMapper = NodeMapper(PULPConvTrans2DParser(), PULPConvTrans2DTilingReadyBindings)
 DwConvGradxMapper = NodeMapper(PULPDWConvTrans2DParser(), PULPDWConvTrans2DTilingReadyBindings)
 ConvGradWMapper = NodeMapper(PULPConvGradW2DParser(), PULPConvGradW2DTilingReadyBindings)
+DwConvGradWMapper = NodeMapper(PULPDWConvGradW2DParser(), PULPDWConvGradW2DTilingReadyBindings)
 ConvGradBMapper = NodeMapper(PULPConvGradB2DParser(), PULPConvGradB2DTilingReadyBindings)
 
 Conv2DMapper = NodeMapper(PULPConv2DParser(), PULPRQSConv2DTilingReadyBindings)
@@ -121,7 +124,7 @@ AveragePoolGrad2DMapper = NodeMapper(AveragePool2DParser(), PULPAveragePoolGrad2
 PULPMapping = {
     'Conv': ConvLayer([FPConv2DMapper, FPDWConv2DMapper]),
     'ConvGradX': ConvLayer([ConvGradXMapper, DwConvGradxMapper]),
-    'ConvGradW': ConvLayer([ConvGradWMapper]),
+    'ConvGradW': ConvLayer([ConvGradWMapper, DwConvGradWMapper]),
     'ConvGradB': ConvLayer([ConvGradBMapper]),
     'RequantizedConv': PULPRQSConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
     'RequantizedGemm': PULPRQSGEMMLayer([MatrixVecMapper, TallGEMMMapper, GEMMMapper]),

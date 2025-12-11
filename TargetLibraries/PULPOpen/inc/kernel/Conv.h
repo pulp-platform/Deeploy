@@ -68,4 +68,15 @@ void PULP_DWConvTrans2d_fp32_fp32_fp32_HWC(
     uint32_t pad_top, uint32_t pad_bottom,
     uint32_t pad_left, uint32_t pad_right);
 
+void PULP_DWConvGradW2d_fp32_fp32_fp32_NCHW(
+    const float *__restrict__ pGradOut,
+    uint32_t H_out, uint32_t W_out, uint32_t C_out,
+    const float *__restrict__ pInput,
+    uint32_t H_in, uint32_t W_in, uint32_t C_in,
+    uint32_t P, uint32_t Q,
+    uint32_t SP, uint32_t SQ,
+    float *__restrict__ pGradWeight,
+    uint32_t pad_top, uint32_t pad_bottom,
+    uint32_t pad_left, uint32_t pad_right);
+
 #endif // __DEEPLOY_MATH_CONV_KERNEL_HEADER_

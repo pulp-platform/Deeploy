@@ -24,7 +24,8 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBinding
     PULPSliceBindings, PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings,  \
     PULPAveragePool2DBindings, PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, \
     PULPTransposeBindings, PULPUniformRQSBindings, PULPAveragePoolGrad2DBindings, PULPFloatConvTrans2DBindings, \
-    PULPFloatConvGradW2DBindings, PULPFloatConvGradB2DBindings, PULPFloatDWConvTrans2DBindings
+    PULPFloatConvGradW2DBindings, PULPFloatConvGradB2DBindings, PULPFloatDWConvTrans2DBindings, \
+    PULPFloatDWConvGradW2DBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
     RQDWConv2DTileConstraint
@@ -174,6 +175,9 @@ PULPDWConvTrans2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PU
 
 PULPConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvGradW2DBindings,
                                                              tileConstraint = ConvGradW2DTileConstraint())
+
+PULPDWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradW2DBindings,
+                                                               tileConstraint = ConvGradW2DTileConstraint())
 
 PULPConvGradB2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvGradB2DBindings,
                                                              tileConstraint = ConvGradW2DTileConstraint())

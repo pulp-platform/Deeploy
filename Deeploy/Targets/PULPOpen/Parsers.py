@@ -597,10 +597,37 @@ class PULPDWConvTrans2DParser(PULPFPDWConv2DParser):
             return super().parseNodeCtxt(ctxt, node, channels_first)
 
 
-class PULPConvGradW2DParser(PULPFPConv2DParser):
+class PULPConvGradW2DParser(Conv2DParser):
+    """Parser for standard ConvGradW (non-grouped)"""
 
     def __init__(self, noBiasHoisting = True):
         super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> bool:
+        """Parse ConvGradW node, rejecting grouped convolutions"""
+        # Call Conv2DParser.parseNode directly (skip PULPFPConv2DParser's group==1 check)
+        wellFormed = Conv2DParser.parseNode(self, node)
+        
+        if not wellFormed:
+            return False
+        
+        # Reject if group > 1 (handled by DWConvGradW2DParser)
+        if 'group' in self.operatorRepresentation:
+            group = self.operatorRepresentation['group']
+            if group > 1:
+                return False
+        
+        # ConvGradW has 2 inputs: output_grad and input_data
+        if len(node.inputs) != 2:
+            return False
+        
+        # Extract padding attributes
+        self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+        self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+        self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+        self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+        
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -711,5 +738,104 @@ class PULPConvGradB2DParser(PULPFPConv2DParser):
         self.operatorRepresentation['grad_out_type'] = output_grad_tensor._type
         self.operatorRepresentation['bias'] = node.outputs[0].name
         self.operatorRepresentation['bias_type'] = output_grad_tensor._type  # Same type as grad_out
+        
+        return ctxt, True
+
+
+class PULPDWConvGradW2DParser(Conv2DParser):
+    """Parser for depthwise ConvGradW (grouped convolution weight gradient)"""
+
+    def __init__(self, noBiasHoisting=True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> bool:
+        """Parse grouped ConvGradW node"""
+        # Call Conv2DParser.parseNode directly (skip PULPFPConv2DParser's group==1 check)
+        wellFormed = Conv2DParser.parseNode(self, node)
+        
+        if not wellFormed:
+            return False
+        
+        # Must have group attribute and group > 1
+        if 'group' not in self.operatorRepresentation:
+            return False
+        
+        group = self.operatorRepresentation['group']
+        if group <= 1:
+            return False
+        
+        # ConvGradW has 2 inputs: output_grad and input_data
+        if len(node.inputs) != 2:
+            return False
+        
+        # Extract padding attributes
+        self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+        self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+        self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+        self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+        
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        """Parse DWConvGradW - depthwise/grouped weight gradient computation"""
+        
+        if not self.parseNode(node):
+            return ctxt, False
+        
+        # Get input tensors
+        grad_out_tensor = ctxt.lookup(node.inputs[0].name)
+        data_in_tensor = ctxt.lookup(node.inputs[1].name)
+        
+        # Extract batch size
+        batch = grad_out_tensor.shape[0]
+        
+        # Extract dimensions (NCHW format)
+        C_out, H_out, W_out = grad_out_tensor.shape[1], grad_out_tensor.shape[2], grad_out_tensor.shape[3]
+        C_in, H_in, W_in = data_in_tensor.shape[1], data_in_tensor.shape[2], data_in_tensor.shape[3]
+        
+        # Get group info
+        group = self.operatorRepresentation['group']
+        
+        # Verify grouping constraints
+        assert C_out % group == 0, f"Output channels {C_out} not divisible by group {group}"
+        assert C_in % group == 0, f"Input channels {C_in} not divisible by group {group}"
+        
+        # For depthwise: group == C_in == C_out
+        # Weight shape is [C_out, C_in/group, kH, kW]
+        C_in_per_group = C_in // group
+        
+        # Store batch size
+        self.operatorRepresentation['batch'] = batch
+        
+        # Store dimensions
+        self.operatorRepresentation['ch_im_out'] = C_out
+        self.operatorRepresentation['dim_im_out_x'] = W_out
+        self.operatorRepresentation['dim_im_out_y'] = H_out
+        self.operatorRepresentation['ch_im_in'] = C_in
+        self.operatorRepresentation['dim_im_in_x'] = W_in
+        self.operatorRepresentation['dim_im_in_y'] = H_in
+        
+        # Store kernel dimensions
+        self.operatorRepresentation['dim_kernel_y'] = self.operatorRepresentation['kernel_shape'][0]
+        self.operatorRepresentation['dim_kernel_x'] = self.operatorRepresentation['kernel_shape'][1]
+        
+        # Store strides
+        self.operatorRepresentation['stride_y'] = self.operatorRepresentation['strides'][0]
+        self.operatorRepresentation['stride_x'] = self.operatorRepresentation['strides'][1]
+        
+        # Set tensor names and types
+        self.operatorRepresentation['grad_out'] = node.inputs[0].name
+        self.operatorRepresentation['grad_out_type'] = grad_out_tensor._type
+        self.operatorRepresentation['data_in'] = node.inputs[1].name
+        self.operatorRepresentation['data_in_type'] = data_in_tensor._type
+        self.operatorRepresentation['weight'] = node.outputs[0].name
+        self.operatorRepresentation['weight_type'] = grad_out_tensor._type
+        
+        # No bias for ConvGradW
+        self.operatorRepresentation['has_bias'] = 'false'
+        self.operatorRepresentation['bias'] = 'NULL'
         
         return ctxt, True

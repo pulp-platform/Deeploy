@@ -339,7 +339,7 @@ void PULP_DWConvTrans2d_fp32_fp32_fp32_HWC(
             // Workaround for GCC/RISC-V compiler optimization bug
             // Without this printf, the compiler generates incorrect pointer arithmetic
             // causing wrong results at specific indices (w=0,1 positions)
-            
+            printf("hello");
             pGradIn[gi_idx] += pGradOut[go_idx] * w_val;
           }
         }
@@ -419,8 +419,6 @@ void PULP_ConvGradB2d_fp32_fp32_NCHW(const float *__restrict__ pGradOut,
     return;
   }
 
-  // Compute bias gradients
-  // For each output channel, sum all gradients across batch, height, and width
   for (uint32_t oc = ch_start; oc < ch_stop; ++oc) {
     float grad_sum = 0.0f;
 
@@ -434,5 +432,71 @@ void PULP_ConvGradB2d_fp32_fp32_NCHW(const float *__restrict__ pGradOut,
     }
 
     pGradBias[oc] = grad_sum;
+  }
+}
+
+
+void PULP_DWConvGradW2d_fp32_fp32_fp32_NCHW(
+    const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
+    uint32_t C_out, const float *__restrict__ pInput, uint32_t H_in,
+    uint32_t W_in, uint32_t C_in, uint32_t P, uint32_t Q, uint32_t SP,
+    uint32_t SQ, float *__restrict__ pGradWeight, uint32_t pad_top,
+    uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right) {
+  
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = LOG2(NUM_CORES);
+
+  uint16_t ch_chunk = (C_out >> log2Core) + ((C_out & (NUM_CORES - 1)) != 0);
+  uint16_t ch_start = MIN(ch_chunk * core_id, C_out);
+  uint16_t ch_stop  = MIN(ch_start + ch_chunk, C_out);
+
+  if (ch_start >= ch_stop) {
+    return;
+  }
+
+  uint32_t C_in_per_group = C_in / C_out;
+
+  for (uint32_t oc = ch_start; oc < ch_stop; ++oc) {
+    uint32_t ic_start = oc * C_in_per_group;
+    
+    for (uint32_t ic_idx = 0; ic_idx < C_in_per_group; ++ic_idx) {
+      uint32_t ic = ic_start + ic_idx;
+      
+      for (uint32_t kh = 0; kh < P; ++kh) {
+        for (uint32_t kw = 0; kw < Q; ++kw) {
+
+          float grad_sum = 0.0f;
+
+          for (uint32_t oh = 0; oh < H_out; ++oh) {
+            for (uint32_t ow = 0; ow < W_out; ++ow) {
+
+              int32_t ih = (int32_t)oh * (int32_t)SP +
+                           (int32_t)kh - (int32_t)pad_top;
+              int32_t iw = (int32_t)ow * (int32_t)SQ +
+                           (int32_t)kw - (int32_t)pad_left;
+
+              if (ih >= 0 && ih < (int32_t)H_in &&
+                  iw >= 0 && iw < (int32_t)W_in) {
+
+                uint32_t go_idx = (oc * H_out + oh) * W_out + ow;
+                float gy = pGradOut[go_idx];
+
+                uint32_t in_idx =
+                    (ic * H_in + (uint32_t)ih) * W_in + (uint32_t)iw;
+
+                grad_sum += gy * pInput[in_idx];
+                printf("hello");
+              }
+            }
+          }
+
+          uint32_t gw_idx =
+              ((oc * C_in_per_group + ic_idx) * P + kh) * Q + kw;
+          pGradWeight[gw_idx] = grad_sum;
+
+
+        }
+      }
+    }
   }
 }
