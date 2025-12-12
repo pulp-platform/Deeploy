@@ -41,6 +41,10 @@ jobs:
           key: ccache-ci
       - name: Run Test
         run: |
+          # Activate GAP9 SDK environment
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh
+          
           testNames="${{ inputs.test-names }}"
           cd DeeployTest
           mkdir -p /app/.ccache

@@ -71,6 +71,8 @@ jobs:
           max_attempts: 3
           retry_on: timeout
           command: |
+            source /app/install/gap9-sdk/.gap9-venv/bin/activate
+            source /app/install/gap9-sdk/configs/gap9_evk_audio.sh
             cd DeeployTest
             mkdir -p /app/.ccache
             export CCACHE_DIR=/app/.ccache

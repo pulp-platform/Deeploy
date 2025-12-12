@@ -26,26 +26,65 @@ COPY Makefile ./
 COPY requirements-dev.txt ./
 
 # Install SSH keys to access private repositories
-RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan iis-git.ee.ethz.ch >> ~/.ssh/known_hosts
+RUN mkdir -p -m 0700 ~/.ssh && \
+    ssh-keyscan iis-git.ee.ethz.ch >> ~/.ssh/known_hosts && \
+    ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-# Compile emulators
+# Install build dependencies for GAP9 SDK
+RUN apt-get update && \
+    apt-get install -y \
+        device-tree-compiler \
+        bison \
+        flex \
+        rsync \
+        build-essential \
+        g++ \
+        python3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Compile emulators (except banshee and gvsoc)
 # WIESEP: We need to already clean up some space, otherwise the GitHub runners run out of disk space
 RUN --mount=type=cache,target=/ccache \
     --mount=type=cache,target=/root/.cache/pip \
     --mount=type=cache,target=/root/.cargo/registry \
-    ccache -z && \
-    make pulp-sdk chimera-sdk qemu mempool banshee xtensor && \
-    make gvsoc && \
-    cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
+    make pulp-sdk chimera-sdk qemu mempool xtensor
+
+# Install Rust 1.70.0 separately for better caching
+RUN --mount=type=cache,target=/root/.cargo/registry \
+    rustup install 1.70.0 && \
+    rustup default 1.70.0
+
+# Install GAP9 RISC-V GCC toolchain (required for GAP9 SDK build)
+RUN --mount=type=cache,target=/ccache \
+    make gap9-toolchain
+
+# Build GAP9 SDK
+RUN --mount=type=ssh \
+    --mount=type=cache,target=/ccache \
+    --mount=type=cache,target=/root/.cache/pip \
+    make gap9-sdk
+
+# Compile banshee with Rust 1.70.0
+RUN --mount=type=cache,target=/ccache \
+    --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/root/.cargo/registry \
+    export PATH="/root/.rustup/toolchains/1.70.0-x86_64-unknown-linux-gnu/bin:$PATH" && \
+    make banshee
+
+# Compile gvsoc
+RUN --mount=type=cache,target=/ccache \
+    --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/root/.cargo/registry \
+    make gvsoc
+
+# Save gvsoc requirements and clean up toolchain source
+RUN cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
     cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
-    rm -rf toolchain/pulp-sdk toolchain/qemu toolchain/mempool toolchain/banshee toolchain/xtensor toolchain/xtl toolchain/xsimd toolchain/gvsoc && \
-    ccache -s
+    rm -rf toolchain/pulp-sdk toolchain/qemu toolchain/mempool toolchain/banshee toolchain/xtensor toolchain/xtl toolchain/xsimd toolchain/gvsoc
 
 # Install SoftHier emulator and toolchain
 RUN --mount=type=cache,target=/ccache \
-    ccache -z && \
-    make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier && \
-    ccache -s
+    make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier
 
 # Install Bender
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
@@ -62,18 +101,10 @@ fi
 ENV CC="gcc"
 ENV CXX="g++"
 
-RUN --mount=type=ssh \
-    --mount=type=cache,target=/ccache \
-    --mount=type=cache,target=/root/.cache/pip \
-    ccache -z && \
-    make gap9-sdk && \
-    ccache -s
 
 RUN --mount=type=cache,target=/ccache \
     --mount=type=cache,target=/root/.cache/pip \
-    ccache -z && \
-    make snitch_runtime && \
-    ccache -s
+    make snitch_runtime
 
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain

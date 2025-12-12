@@ -412,25 +412,27 @@ ${TOOLCHAIN_DIR}/gap9-toolchain:
 ${GAP_RISCV_GCC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gap9-toolchain
 	cd ${TOOLCHAIN_DIR}/gap9-toolchain  && \
 	mkdir -p ${GAP_RISCV_GCC_INSTALL_DIR} && \
+	sed -i 's/sudo rsync/rsync/g' install.sh && \
 	./install.sh ${GAP_RISCV_GCC_INSTALL_DIR}
 
 gap9-toolchain: ${GAP_RISCV_GCC_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/gap9-sdk:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone git@iis-git.ee.ethz.ch:wiesep/gap9_sdk.git gap9-sdk && \
-	cd ${TOOLCHAIN_DIR}/gap9-sdk && git checkout ${GAP9_SDK_COMMIT_HASH} && \
-	git submodule update --init --recursive && \
-	git apply ${TOOLCHAIN_DIR}/gap9-sdk.patch
+	git clone git@github.com:pulp-platform/gap-sdk.git gap9-sdk && \
+	cd ${TOOLCHAIN_DIR}/gap9-sdk && \
+	git submodule update --init --recursive
 
-${GAP9_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gap9-sdk
+${GAP9_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gap9-sdk ${GAP_RISCV_GCC_INSTALL_DIR}
 	mkdir -p ${GAP9_SDK_INSTALL_DIR}
 	cp -r ${TOOLCHAIN_DIR}/gap9-sdk ${GAP9_SDK_INSTALL_DIR}/../ && \
 	cd ${GAP9_SDK_INSTALL_DIR} && \
 	python -m venv .gap9-venv && \
 	. .gap9-venv/bin/activate && \
 	. configs/gap9_evk_audio.sh && \
-	make install_dependency cmake_sdk.build  && \
+	sed -i '/pip3 install -r tools\/audio-framework\/requirements.txt/s/^/# /' install_python_deps.sh && \
+	./install_python_deps.sh && \
+	make cmake_sdk.build && \
 	deactivate
 
 gap9-sdk: ${GAP9_SDK_INSTALL_DIR}
