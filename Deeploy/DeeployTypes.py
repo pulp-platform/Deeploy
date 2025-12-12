@@ -504,6 +504,15 @@ class _ReferenceBuffer(VariableBuffer):
         repr['offset'] = self._offset
         return repr
 
+    def __str__(self) -> str:
+        if hasattr(self, "_type"):
+            return f'VariableBuffer: name: {self.name}, type: {self._type}, reference: {self._referenceName}+{self._offset}'
+
+        return f'VariableBuffer: name: {self.name}, reference: {self._referenceName}+{self._offset}'
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class NetworkContext():
     """The global context of the compiler. This object holds all the typing inferred in the type-checking passes within the respective buffers. It holds all hoisted transient buffers, struct buffers, and global definitions. The context is the source of truth for all code generation in the backend.
