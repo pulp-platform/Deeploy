@@ -461,6 +461,10 @@ PULPMulBindings = [
 PULPReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                               FloatReluTemplate.referenceTemplate, ForkTransformer)
 
+PULPReluGradBinding = NodeBinding(
+    ReluChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+    FloatReluTemplate.referenceGradTemplate, ForkTransformer)
+
 PULPLayernormBinding = NodeBinding(
     LayerNormChecker(
         [PointerClass(float32_t), PointerClass(float32_t),

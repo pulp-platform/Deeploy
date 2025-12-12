@@ -12,3 +12,13 @@ PULP_Relu_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.reference
     ${size}
 );
 """)
+
+referenceGradTemplate = NodeTemplate("""
+// ReLU Grad (Name: ${nodeName}, Op: ${nodeOp})
+PULP_ReluGrad_fp${grad_in_type.referencedType.typeWidth}_fp${grad_out_type.referencedType.typeWidth}(
+    ${grad_in},
+    ${data_in},
+    ${grad_out},
+    ${size}
+);
+""")
