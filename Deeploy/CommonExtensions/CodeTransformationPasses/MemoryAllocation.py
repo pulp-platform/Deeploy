@@ -125,9 +125,9 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
 
             memoryLevel = "None" if not hasattr(buffer, "_memoryLevel") else buffer._memoryLevel
             if memoryLevel not in ctxt._dynamicSize:
-                ctxt._dynamicSize[memoryLevel] = int(buffer.sizeInBytes())
+                ctxt._dynamicSize[memoryLevel] = int(buffer.sizeInBytes)
             else:
-                ctxt._dynamicSize[memoryLevel] += int(buffer.sizeInBytes())
+                ctxt._dynamicSize[memoryLevel] += int(buffer.sizeInBytes)
 
             executionBlock.addLeft(buffer.allocTemplate, buffer._bufferRepresentation())
 
@@ -146,7 +146,7 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
                 if memoryLevel not in ctxt._dynamicSize:
                     ctxt._dynamicSize[memoryLevel] = 0
                 else:
-                    ctxt._dynamicSize[memoryLevel] -= int(buffer.sizeInBytes())
+                    ctxt._dynamicSize[memoryLevel] -= int(buffer.sizeInBytes)
                 executionBlock.addRight(buffer.deallocTemplate, buffer._bufferRepresentation())
 
         return ctxt, executionBlock
@@ -178,9 +178,9 @@ class MemoryPassthroughGeneration(MemoryManagementGeneration):
 
             memoryLevel = "None" if not hasattr(buffer, "_memoryLevel") else buffer._memoryLevel
             if memoryLevel not in ctxt._dynamicSize:
-                ctxt._dynamicSize[memoryLevel] = int(buffer.sizeInBytes())
+                ctxt._dynamicSize[memoryLevel] = int(buffer.sizeInBytes)
             else:
-                ctxt._dynamicSize[memoryLevel] += int(buffer.sizeInBytes())
+                ctxt._dynamicSize[memoryLevel] += int(buffer.sizeInBytes)
 
             buffer._live = True
 
@@ -197,7 +197,7 @@ class MemoryPassthroughGeneration(MemoryManagementGeneration):
             if memoryLevel not in ctxt._dynamicSize:
                 ctxt._dynamicSize[memoryLevel] = 0
             else:
-                ctxt._dynamicSize[memoryLevel] -= int(buffer.sizeInBytes())
+                ctxt._dynamicSize[memoryLevel] -= int(buffer.sizeInBytes)
 
             buffer._live = False
 

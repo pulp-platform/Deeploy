@@ -348,6 +348,7 @@ class VariableBuffer():
             queue |= buffNext.aliases - visited
         return live
 
+    @property
     def sizeInBytes(self) -> int:
         """Returns the size of this VariableBuffer in bytes
 
@@ -386,6 +387,11 @@ class TransientBuffer(VariableBuffer):
     def __repr__(self) -> str:
         return f'TransientBuffer: name: {self.name}, size: {self.size}'
 
+    @classmethod
+    def fromVariableBuffer(cls, buffer: VariableBuffer):
+        ret = cls(name = buffer.name, size = buffer.sizeInBytes)
+
+    @property
     def sizeInBytes(self) -> int:
         return int(self.size)
 
