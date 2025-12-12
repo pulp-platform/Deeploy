@@ -89,7 +89,7 @@ class MemorySummaryMixin:
                 # We do not count structs for now, since they are not properly modeled
                 if isinstance(_buffer, ConstantBuffer) and getattr(_buffer, "_deploy", False):
                     if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level in ("None", None):
-                        staticSize += _buffer.sizeInBytes()
+                        staticSize += _buffer.sizeInBytes
 
             total = staticSize + dynamicSize
             memLevels = self.Platform.memoryHierarchy.memoryLevels
