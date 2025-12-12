@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Improve Profiling [#138](https://github.com/pulp-platform/Deeploy/pull/138)
 - FP32 ReduceMean operator improvement [#137](https://github.com/pulp-platform/Deeploy/pull/137)
 - Support for RMSNorm (Pow and Sqrt operators) [#136](https://github.com/pulp-platform/Deeploy/pull/136)
 - Demo TinyViT compatibility with tiled Siracusa [#124](https://github.com/pulp-platform/Deeploy/pull/124)
@@ -81,6 +82,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added new waiting-strategy logic with fine-grained `PerTensorWaitingStrategy`
 - PULPClusterEngine now accepts a `n_cores` parameter to set the number of cores used
 - annotateNCores method to PULPDeployer that adds an `n_cores` key to all PULPClusterEngine templates' operatorRepresentations
+- Calculate non-kernel overhead and show total time spent during profiling
 
 ### Changed
 - Structure of Tests subdir for improved ordering
@@ -123,6 +125,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added missing shape annotation to the testTypeInferenceDifferentTypes
 - Refactored DMA code generation (`SnitchDma`, `Mchan`) to correctly overlap transfers and compute in double-buffering mode
 - changed `_mapNode` to `_selectEngine` which reduces the responsibility of that function to, as the name states, just engine selection
+- Print kernel profiling information for all memory levels
 
 ### Fixed
 - Fixed ReduceMean parallelization and tiling issues described in Issue [#134](https://github.com/pulp-platform/Deeploy/issues/134).
