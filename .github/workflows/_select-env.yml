@@ -32,7 +32,7 @@ jobs:
       - id: set-runner
         shell: bash
         run: |
-          if [[ "${{ github.repository }}" == "pulp-platform/Deeploy" ]]; then
+          if [[ "${{ github.repository }}" == "pulp-platform/Deeploy" ]] || [[ "${{ github.repository }}" == "runwangdl/Deeploy" ]]; then
             echo "runner=self-hosted" >> "$GITHUB_OUTPUT"
           else
             echo "runner=ubuntu-latest" >> "$GITHUB_OUTPUT"

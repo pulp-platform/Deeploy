@@ -6,12 +6,12 @@
 name: CI • Generic
 
 "on":
-  push:
-    branches:
-      - "**"
-    tags:
-      - "v*.*.*"
-  pull_request:
+  # push:
+    # branches:
+      # - "**"
+    # tags:
+      # - "v*.*.*"
+  # pull_request:
   workflow_dispatch:
     inputs:
       docker_image_deeploy:

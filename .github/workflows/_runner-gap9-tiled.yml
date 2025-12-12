@@ -56,14 +56,27 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Build Deeploy
-        shell: bash
-        run: pip install -e .
       - name: Cache ccache
         uses: actions/cache/restore@v4
         with:
           path: /app/.ccache
           key: ccache-ci
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-gap9-pip-${{ hashFiles('**/pyproject.toml', '**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-gap9-pip-
+      - name: Build Deeploy
+        shell: bash
+        run: |
+          # Activate GAP9 SDK environment first
+          export LLVM_INSTALL_DIR=/app/install/llvm
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh
+          # Install Deeploy in the GAP9 venv
+          pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
       - name: Run Test
         uses: nick-fields/retry@v3
         with:
