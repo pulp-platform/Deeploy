@@ -72,7 +72,6 @@ jobs:
         shell: bash
         run: |
           # Activate GAP9 SDK environment first
-          export LLVM_INSTALL_DIR=/app/install/llvm
           source /app/install/gap9-sdk/.gap9-venv/bin/activate
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh
           # Install Deeploy in the GAP9 venv
