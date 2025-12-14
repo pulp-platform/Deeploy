@@ -39,7 +39,7 @@ jobs:
         [
           {"name":"IntKernels/Add/Large","L1":[5000,10000]},
           {"name":"IntKernels/Activations/Softmax/Large","L1":[5000,10000]},
-          
+
           {"name":"FP32Kernels/Activations/Softmax/Regular","L1":[2000,5000,10000]},
 
           {"name":"FP32Kernels/GEMM/regular","L1":[2000,5000,10000]},

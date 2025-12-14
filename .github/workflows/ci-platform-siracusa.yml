@@ -125,7 +125,7 @@ jobs:
 
         Models/miniMobileNet
         Models/miniMobileNetv2
-        
+
         Models/MLPerf/KeywordSpotting
         Models/MLPerf/ImageClassification
         Models/MLPerf/AnomalyDetection

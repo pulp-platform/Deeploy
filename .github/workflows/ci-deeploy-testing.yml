@@ -40,19 +40,19 @@ jobs:
         include:
           - name: fail-input0
             platform: Generic
-            test: testTypeInferenceDifferentTypes
+            test: Others/TypeInference
             type_map: "A=int8_t B=int8_t C=int8_t"
             offset_map: "A=0 B=0 C=0"
             shouldFail: true
           - name: fail-input2
             platform: Generic
-            test: testTypeInferenceDifferentTypes
+            test: Others/TypeInference
             type_map: "A=int16_t B=int8_t C=int16_t"
             offset_map: "A=0 B=0 C=0"
             shouldFail: true
           - name: pass
             platform: Generic
-            test: testTypeInferenceDifferentTypes
+            test: Others/TypeInference
             type_map: "A=int16_t B=int8_t C=int32_t"
             offset_map: "A=0 B=0 C=0"
             shouldFail: false
