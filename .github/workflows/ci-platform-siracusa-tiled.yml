@@ -38,6 +38,8 @@ jobs:
       tests-config: |
         [
           {"name":"FP32Kernels/Activations/ReLU","L1":[2000]},
+          {"name":"FP32Kernels/Activations/Softmax/Regular","L1":[4000]},
+
           {"name":"FP32Kernels/Add/large","L1":[220000]},
 
           {"name":"FP32Kernels/Conv2D/DWBias","L1":[7200]},
@@ -74,11 +76,10 @@ jobs:
           {"name":"FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add","L1":[8000]},
 
           {"name":"FP32Kernels/SkipConnection/ReshapeWithSkipConnection","L1":[1400]},
-          {"name":"FP32Kernels/Softmax/Regular","L1":[4000]},
           {"name":"FP32Kernels/Transpose","L1":[2000]},
 
           {"name":"IntKernels/Activations/Hardswish","L1":[750]},
-          {"name":"IntKernels/Activations/iSoftmax","L1":[800,500,300]},
+          {"name":"IntKernels/Activations/Softmax/Regular","L1":[800,500,300]},
 
           {"name":"IntKernels/Concat","L1":[32000,16000,8000]},
 
@@ -104,6 +105,7 @@ jobs:
       tests-config: |
         [
           {"name":"FP32Kernels/Activations/ReLU","L1":[20]},
+          {"name":"FP32Kernels/Activations/Softmax/Regular","L1":[8000]},
 
           {"name":"FP32Kernels/Conv2D/DWBias","L1":[10000]},
           {"name":"FP32Kernels/Conv2D/DWNoBias","L1":[9800]},
@@ -139,11 +141,10 @@ jobs:
           {"name":"FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add","L1":[8000]},
 
           {"name":"FP32Kernels/SkipConnection/ReshapeWithSkipConnection","L1":[2600]},
-          {"name":"FP32Kernels/Softmax/Regular","L1":[8000]},
           {"name":"FP32Kernels/Transpose","L1":[2000]},
 
           {"name":"IntKernels/Activations/Hardswish","L1":[750]},
-          {"name":"IntKernels/Activations/iSoftmax","L1":[1600,1000,600]},
+          {"name":"IntKernels/Activations/Softmax/Regular","L1":[1600,1000,600]},
 
           {"name":"IntKernels/Concat","L1":[64000,32000,16000]},
           {"name":"IntKernels/MatMul/regular","L1":[64000,32000,16000]},

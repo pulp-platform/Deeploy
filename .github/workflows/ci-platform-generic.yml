@@ -37,6 +37,8 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
         FP32Kernels/Activations/ReLU
+        FP32Kernels/Activations/Softmax/Regular
+
         FP32Kernels/Add/regular
 
         FP32Kernels/Conv2D/DWBias
@@ -80,11 +82,10 @@ jobs:
         FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add
 
         FP32Kernels/SkipConnection/ReshapeWithSkipConnection
-        FP32Kernels/Softmax/Regular
         FP32Kernels/Sqrt
         FP32Kernels/Transpose
 
-        IntKernels/Activations/iSoftmax
+        IntKernels/Activations/Softmax/Regular
 
         IntKernels/Add/MultIO
         IntKernels/Add/Regular

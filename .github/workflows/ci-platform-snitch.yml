@@ -36,14 +36,14 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        FP32Kernels/Softmax/Regular
+        FP32Kernels/Activations/Softmax/Regular
 
         IntKernels/Add/Large
         IntKernels/Add/Regular
 
-        IntKernels/Activations/iSoftmax
-        
-        IntKernels/iSoftmaxLarge
+        IntKernels/Activations/Softmax/Large
+        IntKernels/Activations/Softmax/Regular
+
         IntKernels/MatMul/regular
 
         Others/iNoNorm
