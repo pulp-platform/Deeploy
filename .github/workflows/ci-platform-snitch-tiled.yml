@@ -43,11 +43,11 @@ jobs:
           {"name":"FP32Kernels/Activations/Softmax/Regular","L1":[2000,5000,10000]},
 
           {"name":"FP32Kernels/GEMM/regular","L1":[2000,5000,10000]},
-          {"name":"FP32Kernels/GEMM/transB","L1":[2000,5000,10000]}
+          {"name":"FP32Kernels/GEMM/transB","L1":[2000,5000,10000]},
 
           {"name":"Others/iNoNorm","L1":[5000,10000]},
           {"name":"Others/RQAdd","L1":[5000,10000]},
-          {"name":"Others/RQGEMM","L1":[2000,5000]},
+          {"name":"Others/RQGEMM","L1":[2000,5000]}
         ]
       simulators: |
         gvsoc
