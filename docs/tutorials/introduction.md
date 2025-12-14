@@ -38,11 +38,11 @@ From the `DeeployTest` folder, you can use the `testRunner` to compile ONNXs and
 
 To validate your installation, you can run a simple Add node on each platform:
 ```
-python testRunner_generic.py -t Tests/Adder
-python testRunner_cortexm.py -t Tests/Adder
-python testRunner_mempool.py -t Tests/Adder
-python testRunner_snitch.py -t Tests/Adder/
-python testRunner_siracusa.py -t Tests/Adder --cores=8
+python testRunner_generic.py -t Tests/IntKernels/Add/Regular
+python testRunner_cortexm.py -t Tests/IntKernels/Add/Regular
+python testRunner_mempool.py -t Tests/IntKernels/Add/Regular
+python testRunner_snitch.py -t Tests/IntKernels/Add/Regular/
+python testRunner_siracusa.py -t Tests/IntKernels/Add/Regular --cores=8
 ```
 Once all these basic tests are passed, we can jump into the basics of Deeploy.
 
@@ -67,9 +67,9 @@ The figure below gives an overview of the deployment stack. As you can see, ther
 
 You can visualize the ONNX graphs using [Netron](https://netron.app/). Either use the web interface or install the python package with `pip install netron`.
 
-> ✅ **Task:** Visualize the ONNX graph of the `Adder`, `MobileNetv2`, and `Transformer`
+> ✅ **Task:** Visualize the ONNX graph of the `IntKernels/Add/Regular`, `Models/MobileNetv2`, and `Others/Transformer`
 
-The ONNX graphs are in `DeeployTest/Tests/<TestName>/network.onnx`. The networks are increasing in complexity, `Adder` is a single node network for unit testing, while `MobileNetv2` is a simple sequential network mostly made of convolutions. Finally, the `Transformer` network showcases a typical transformer block used in Encoder and Decoder networks. If you want to peek at a complex network, you can visualize `microLlama/microLlama128`.
+The ONNX graphs are in `DeeployTest/Tests/<TestName>/network.onnx`. The networks are increasing in complexity, `IntKernels/Add/Regular` is a single node network for unit testing, while `Models/MobileNetv2` is a simple sequential network mostly made of convolutions. Finally, the `Others/Transformer` network showcases a typical transformer block used in Encoder and Decoder networks. If you want to peek at a complex network, you can visualize `Models/microLlama/microLlama128`.
 
 Now that we understand Deeploy's input, let's check the output-generated code!
 
@@ -77,15 +77,15 @@ Now that we understand Deeploy's input, let's check the output-generated code!
 
 The generated code is located in the following directory: `DeeployTest/TEST_<PlatformName>/Tests`, and the `Network.c` file is the interesting one.
 
-The generated code is trivial for the `Adder` graph; we simply use the template for the `Add` node of the Generic platform. You can find the template declaration in `Deeploy/Targets/Generic/Templates/AddTemplate.py`.
+The generated code is trivial for the `IntKernels/Add/Regular` graph; we simply use the template for the `Add` node of the Generic platform. You can find the template declaration in `Deeploy/Targets/Generic/Templates/AddTemplate.py`.
 
-Now, if you want to look at something a bit more complex, run `python testRunner_generic.py  -t ./Tests/miniMobileNetv2` (from `DeeployTest`) and look at the generated code. There are two interesting points you can notice:
+Now, if you want to look at something a bit more complex, run `python testRunner_generic.py  -t ./Tests/Models/miniMobileNetv2` (from `DeeployTest`) and look at the generated code. There are two interesting points you can notice:
 - We hoist the constants at the top of the file.
-- In the `RunNetwork` function, we sequentially have node templates to execute the operands and malloc/free to manage the memory. You can open the ONNX graph of `miniMobileNetv2` on the side to try to match the nodes of the graph with their generated code.
+- In the `RunNetwork` function, we sequentially have node templates to execute the operands and malloc/free to manage the memory. You can open the ONNX graph of `Models/miniMobileNetv2` on the side to try to match the nodes of the graph with their generated code.
 
 > ✅ **Task:** Visualize the effect of passes on the ONNX graph for the Siracusa platform.
 
-Deeploy applies passes on the ONNX graph to transform its topology and optimize its execution. Let's visualize the effect of the passes used in the Siracusa Platform. First, let's execute our `miniMobileNetv2` on Siracusa with `python testRunner_siracusa.py  -t ./Tests/miniMobileNetv2`. You can find the original ONNX graph at `DeeployTest/Tests/miniMobileNetv2/network.onnx`, and the transformed ONNX graph at `DeeployTest/TEST_SIRACUSA/Tests/miniMobileNetv2/deeployStates/backend_post_binding.onnx`. Open both ONNX graphs side by side to compare them.
+Deeploy applies passes on the ONNX graph to transform its topology and optimize its execution. Let's visualize the effect of the passes used in the Siracusa Platform. First, let's execute our `miniMobileNetv2` on Siracusa with `python testRunner_siracusa.py  -t ./Tests/Models/miniMobileNetv2`. You can find the original ONNX graph at `DeeployTest/Tests/Models/miniMobileNetv2/network.onnx`, and the transformed ONNX graph at `DeeployTest/TEST_SIRACUSA/Tests/Models/miniMobileNetv2/deeployStates/backend_post_binding.onnx`. Open both ONNX graphs side by side to compare them.
 
 You can notice the effect of two passes on the graph:
 - One pass fuses the `Conv` and `RequantShift` nodes. This is a common technique named [Operator Fusion](https://medium.com/data-science/how-pytorch-2-0-accelerates-deep-learning-with-operator-fusion-and-cpu-gpu-code-generation-35132a85bd26) and used in many DNN compilers.
@@ -140,7 +140,7 @@ Now that you understand the hardware and the kind of workload we want to execute
 <details>
  <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
 
- > If you run `python testRunner_siracusa.py -t Tests/microLlama/microLlama128 --cores=1` and then `python testRunner_siracusa.py -t Tests/microLlama/microLlama128 --cores=8`, you should measure a runtime of ~16,1M cycles for 1 core and 3.1M cycles for 8 cores.
+ > If you run `python testRunner_siracusa.py -t Tests/Models/microLlama/microLlama128 --cores=1` and then `python testRunner_siracusa.py -t Tests/Models/microLlama/microLlama128 --cores=8`, you should measure a runtime of ~16,1M cycles for 1 core and 3.1M cycles for 8 cores.
  >
  > The speedup ratio is obtained via $\frac{\text{Runtime 1 cores}}{\text{Runtime 8 cores}} = 5.2$. Hence, using 8 cores instead of 1 leads to a 5.2 times speedup.
  >
@@ -162,9 +162,9 @@ The good news is that Deeploy can already do that! So, let's generate and run so
 <details>
  <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
 
- > Bad configuration: `python testRunner_tiled_siracusa.py -t Tests/microLlama/microLlama64_parallel --cores=8 --l1 8000 --defaultMemLevel=L2` -> Runtime: 47.5 MCycles
+ > Bad configuration: `python testRunner_tiled_siracusa.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 8000 --defaultMemLevel=L2` -> Runtime: 47.5 MCycles
  >
- > Good configuration `python testRunner_tiled_siracusa.py -t Tests/microLlama/microLlama64_parallel --cores=8 --l1 64000 --defaultMemLevel=L2`: -> Runtime: 35.3 MCycles
+ > Good configuration `python testRunner_tiled_siracusa.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 64000 --defaultMemLevel=L2`: -> Runtime: 35.3 MCycles
  >
  > Justification: As the size of the L1 memory gets smaller, tiles also get smaller and smaller. Smaller tiles usually mean that it's harder to keep the core properly utilized.
 
@@ -199,7 +199,7 @@ To use the NPU, you can use the `testRunner_tiled_siracusa_w_neureka.py`. The Li
  > The runtime in parallel mode with NPU is obtained with:
  >
  >`
- python testRunner_tiled_siracusa_w_neureka.py -t Tests/microLlama/microLlama64_parallel --cores=8 --l1 64000 --defaultMemLevel=L2
+ python testRunner_tiled_siracusa_w_neureka.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 64000 --defaultMemLevel=L2
  `
  >
  > And returns 28.6 MCycles of runtime. The runtime without NPU was measured above and is 35.3 MCycles. Hence, the speedup is ~1.23 times.

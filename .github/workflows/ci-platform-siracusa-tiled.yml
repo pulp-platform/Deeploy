@@ -38,56 +38,60 @@ jobs:
       tests-config: |
         [
           {"name":"FP32Kernels/Activations/ReLU","L1":[2000]},
+          {"name":"FP32Kernels/Add/large","L1":[220000]},
 
           {"name":"FP32Kernels/Conv2D/DWBias","L1":[7200]},
           {"name":"FP32Kernels/Conv2D/DWNoBias","L1":[7200]},
           {"name":"FP32Kernels/Conv2D/DWZeroValuedBias","L1":[7200]},
-
           {"name":"FP32Kernels/Conv2D/RegularBias","L1":[6600]},
           {"name":"FP32Kernels/Conv2D/RegularNoBias","L1":[1600]},
           {"name":"FP32Kernels/Conv2D/RegularZeroValuedBias","L1":[6600]},
 
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean", "L1": [8000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add", "L1": [8000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/AllAxes", "L1": [50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes1_2_3", "L1": [50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes1_3", "L1": [5000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes2_1", "L1": [6200, 50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axis0", "L1": [8400, 50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axis2", "L1": [8400, 50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/ReduceMean_Add", "L1": [8000]},
+          {"name":"FP32Kernels/GEMM/regular","L1":[8000]},
+          {"name":"FP32Kernels/MatMul","L1":[2000]},
+          {"name":"FP32Kernels/MaxPool","L1":[2000]},
+          {"name":"FP32Kernels/Mul","L1":[2000]},
+          {"name":"FP32Kernels/Norm/LayerNorm","L1":[2000]},
 
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean", "L1": [8000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean_Add", "L1": [8000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/AllAxes", "L1": [50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes1_2_3", "L1": [50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes1_3", "L1": [5000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes2_1", "L1": [6200, 50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axis0", "L1": [8400, 50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axis2", "L1": [8400, 50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add", "L1": [8000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean","L1":[8000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add","L1":[8000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/AllAxes","L1":[50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axes1_2_3","L1":[50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axes1_3","L1":[5000,50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axes2_1","L1":[6200,50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axis0","L1":[8400,50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axis2","L1":[8400,50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/ReduceMean_Add","L1":[8000]},
+
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean","L1":[8000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean_Add","L1":[8000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/AllAxes","L1":[50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axes1_2_3","L1":[50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axes1_3","L1":[5000,50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axes2_1","L1":[6200,50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axis0","L1":[8400,50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axis2","L1":[8400,50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add","L1":[8000]},
 
           {"name":"FP32Kernels/SkipConnection/ReshapeWithSkipConnection","L1":[1400]},
+          {"name":"FP32Kernels/Softmax/Regular","L1":[4000]},
+          {"name":"FP32Kernels/Transpose","L1":[2000]},
 
-          {"name":"testMatMul","L1":[64000,32000,16000]},
-          {"name":"test2DRequantizedConv","L1":[8000,6000,4000]},
-          {"name":"test2DRequantizedStriddedPaddedConv","L1":[600]},
-          {"name":"testRequantizedDWConv","L1":[2561]},
-          {"name":"iSoftmax","L1":[800,500,300]},
-          {"name":"testConcat","L1":[32000,16000,8000]},
-          {"name":"testRMSNorm","L1":[2048,1024,512]},
-          {"name":"Hardswish","L1":[750]},
-          {"name":"RQHardswish","L1":[750]},
-          {"name":"testFloatGEMM","L1":[8000]},
-          {"name":"testFloatLayerNorm","L1":[2000]},
-          {"name":"testFloatMaxPool","L1":[2000]},
-          {"name":"testFloatMatmul","L1":[2000]},
-          {"name":"testFloatSoftmax","L1":[4000]},
-          {"name":"testFloatTranspose","L1":[2000]},
-          {"name":"testFloatMul","L1":[2000]},
-          {"name":"largeFloatAdd","L1":[220000]},
-          {"name":"testRQGEMMwBatch","L1":[20000]},
-          {"name":"testMatMulBatch","L1":[20000]}
+          {"name":"IntKernels/Activations/Hardswish","L1":[750]},
+          {"name":"IntKernels/Activations/iSoftmax","L1":[800,500,300]},
+
+          {"name":"IntKernels/Concat","L1":[32000,16000,8000]},
+
+          {"name":"IntKernels/MatMul/batch","L1":[20000]},
+          {"name":"IntKernels/MatMul/regular","L1":[64000,32000,16000]},
+
+          {"name":"IntKernels/RMSNorm","L1":[2048,1024,512]},
+
+          {"name":"Others/RequantizedConv2D","L1":[8000,6000,4000]},
+          {"name":"Others/RequantizedDWConv","L1":[2561]},
+          {"name":"Others/RequantizedStriddedPaddedConv2D","L1":[600]},
+          {"name":"Others/RQGEMMwBatch","L1":[20000]},
+          {"name":"Others/RQHardswish","L1":[750]}
         ]
       num-cores: 8
 
@@ -104,48 +108,50 @@ jobs:
           {"name":"FP32Kernels/Conv2D/DWBias","L1":[10000]},
           {"name":"FP32Kernels/Conv2D/DWNoBias","L1":[9800]},
           {"name":"FP32Kernels/Conv2D/DWZeroValuedBias","L1":[9800]},
-
           {"name":"FP32Kernels/Conv2D/RegularBias","L1":[8800]},
           {"name":"FP32Kernels/Conv2D/RegularNoBias","L1":[2000]},
           {"name":"FP32Kernels/Conv2D/RegularZeroValuedBias","L1":[8800]},
 
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean", "L1": [8000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add", "L1": [8000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/AllAxes", "L1": [100000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes1_2_3", "L1": [100000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes1_3", "L1": [10000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axes2_1", "L1": [13000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axis0", "L1": [17000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/Axis2", "L1": [17000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/KeepDims/ReduceMean_Add", "L1": [8000]},
+          {"name":"FP32Kernels/GEMM/regular","L1":[8000]},
+          {"name":"FP32Kernels/MatMul","L1":[5000]},
+          {"name":"FP32Kernels/MaxPool","L1":[5000]},
+          {"name":"FP32Kernels/Mul","L1":[2000]},
+          {"name":"FP32Kernels/Norm/LayerNorm","L1":[2000]},
 
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean", "L1": [8000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean_Add", "L1": [8000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/AllAxes", "L1": [100000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes1_2_3", "L1": [100000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes1_3", "L1": [10000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axes2_1", "L1": [13000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axis0", "L1": [17000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/Axis2", "L1": [17000, 50000]},
-          {"name": "FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add", "L1": [8000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean","L1":[8000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add","L1":[8000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/AllAxes","L1":[100000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axes1_2_3","L1":[100000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axes1_3","L1":[10000,50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axes2_1","L1":[13000,50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axis0","L1":[17000,50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/Axis2","L1":[17000,50000]},
+          {"name":"FP32Kernels/ReduceMean/KeepDims/ReduceMean_Add","L1":[8000]},
+
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean","L1":[8000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean_Add","L1":[8000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/AllAxes","L1":[100000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axes1_2_3","L1":[100000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axes1_3","L1":[10000,50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axes2_1","L1":[13000,50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axis0","L1":[17000,50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/Axis2","L1":[17000,50000]},
+          {"name":"FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add","L1":[8000]},
 
           {"name":"FP32Kernels/SkipConnection/ReshapeWithSkipConnection","L1":[2600]},
+          {"name":"FP32Kernels/Softmax/Regular","L1":[8000]},
+          {"name":"FP32Kernels/Transpose","L1":[2000]},
 
-          {"name":"testMatMul","L1":[64000,32000,16000]},
-          {"name":"test2DRequantizedConv","L1":[8000,6000,5000]},
-          {"name":"testRequantizedDWConv","L1":[5121]},
-          {"name":"iSoftmax","L1":[1600,1000,600]},
-          {"name":"testConcat","L1":[64000,32000,16000]},
-          {"name":"testRMSNorm","L1":[4096,2048,1024]},
-          {"name":"Hardswish","L1":[750]},
-          {"name":"RQHardswish","L1":[800]},
-          {"name":"testFloatGEMM","L1":[8000]},
-          {"name":"testFloatLayerNorm","L1":[2000]},
-          {"name":"testFloatMaxPool","L1":[5000]},
-          {"name":"testFloatMatmul","L1":[5000]},
-          {"name":"testFloatSoftmax","L1":[8000]},
-          {"name":"testFloatTranspose","L1":[2000]},
-          {"name":"testFloatMul","L1":[2000]}
+          {"name":"IntKernels/Activations/Hardswish","L1":[750]},
+          {"name":"IntKernels/Activations/iSoftmax","L1":[1600,1000,600]},
+
+          {"name":"IntKernels/Concat","L1":[64000,32000,16000]},
+          {"name":"IntKernels/MatMul/regular","L1":[64000,32000,16000]},
+          {"name":"IntKernels/RMSNorm","L1":[4096,2048,1024]},
+
+          {"name":"Others/RequantizedConv2D","L1":[8000,6000,5000]},
+          {"name":"Others/RequantizedDWConv","L1":[5121]},
+          {"name":"Others/RQHardswish","L1":[800]}
         ]
       num-cores: 8
       double-buffer: true
@@ -156,32 +162,40 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - name: "simpleRegression"
-            L1: [45000, 30000, 15000]
-          - name: "miniMobileNet"
+          - name: "IntKernels/Attention"
+            L1: [60000, 10000, 5000]
+
+          - name: "Models/CCT/FP32/CCT_1_16_16_8"
+            L1: [64000]
+
+          - name: "Models/microLlama/microLlama1"
+            L1: [60000, 10000, 5000]
+          - name: "Models/microLlama/microLlama8"
+            L1: [60000, 10000, 5000]
+          - name: "Models/microLlama/microLlama8_parallel"
+            L1: [60000, 10000, 5000]
+
+          - name: "Models/miniMobileNet"
             L1: [60000, 12000, 6000, 3000]
-          - name: "miniMobileNetv2"
+          - name: "Models/miniMobileNetv2"
             L1: [60000, 16000, 12000, 8000]
-          - name: "Attention"
-            L1: [60000, 10000, 5000]
-          - name: "microLlama/microLlama1"
-            L1: [60000, 10000, 5000]
-          - name: "microLlama/microLlama8"
-            L1: [60000, 10000, 5000]
-          - name: "microLlama/microLlama8_parallel"
-            L1: [60000, 10000, 5000]
-          - name: "MLPerf/KeywordSpotting"
+
+          - name: "Models/MLPerf/AnomalyDetection"
             L1: [64000]
-          - name: "MLPerf/ImageClassification"
+          - name: "Models/MLPerf/ImageClassification"
             L1: [64000]
-          - name: "MLPerf/AnomalyDetection"
+          - name: "Models/MLPerf/KeywordSpotting"
             L1: [64000]
-          - name: "CCT/CCT_1_16_16_8"
-            L1: [64000]
-          - name: "testFloatDemoTinyViT"
-            L1: [4000]
+
           - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
             L1: [200, 40000]
+          - name: "Models/TinyViT/Demo"
+            L1: [4000]
+
+          - name: "Others/SimpleRegression"
+            L1: [45000, 30000, 15000]
+          - name: "Others/TrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8"
+            L1: [4000, 64000]
         num-cores: [8]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
@@ -197,26 +211,32 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - name: "simpleRegression"
-            L1: [45000, 30000, 16000] # SCHEREMO note
-          - name: "miniMobileNet"
-            L1: [60000, 12000, 6000] # SCHEREMO note
-          - name: "miniMobileNetv2"
-            L1: [60000, 16000, 12000, 8000]
-          - name: "Attention"
+          - name: "IntKernels/Attention"
             L1: [60000, 10000, 5000, 2500]
-          - name: "Transformer"
-            L1: [60000, 30000, 15000]
-          - name: "microLlama/microLlama1"
-            L1: [60000, 10000, 5000]
-          - name: "CCT/CCT_2_32_32_128"
+
+          - name: "Models/CCT/FP32/CCT_2_32_32_128"
             L1: [128000]
+
+          - name: "Models/microLlama/microLlama1"
+            L1: [60000, 10000, 5000]
+
+          - name: "Models/miniMobileNet"
+            L1: [60000, 12000, 6000] # SCHEREMO note
+          - name: "Models/miniMobileNetv2"
+            L1: [60000, 16000, 12000, 8000]
           - name: "testTrainCCT/CCT2_FT2"
             L1: [128000]
-          - name: "testFloatDemoTinyViT"
-            L1: [4000]
           - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
             L1: [200, 40000]
+          - name: "Models/TinyViT/Demo"
+            L1: [4000]
+
+          - name: "Others/SimpleRegression"
+            L1: [45000, 30000, 16000] # SCHEREMO note
+          - name: "Others/TrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
+            L1: [32000, 64000]
+          - name: "Others/Transformer"
+            L1: [60000, 30000, 15000]
         num-cores: [8]
         default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
@@ -234,30 +254,35 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - name: "simpleRegression"
-            L1: [60000, 45000, 30000]
-          - name: "miniMobileNet"
-            L1: [60000, 24000, 12000, 6000]
-          - name: "miniMobileNetv2"
-            L1: [60000, 32000, 24000, 16000]
-          - name: "Attention"
+          - name: "IntKernels/Attention"
             L1: [60000, 20000, 10000, 5000]
-          - name: "Transformer"
-            L1: [60000, 30000, 15000]
-          - name: "microLlama/microLlama1"
-            L1: [60000, 20000, 10000]
-          - name: "microLlama/microLlama8"
-            L1: [60000, 20000, 10000]
-          - name: "microLlama/microLlama8_parallel"
-            L1: [60000, 20000, 10000]
-          - name: "CCT/CCT_2_32_32_128"
+
+          - name: "Models/CCT/FP32/CCT_2_32_32_128"
             L1: [128000]
-          - name: "testTrainCCT/CCT2_FT2"
-            L1: [128000]
-          - name: "testFloatDemoTinyViT"
-            L1: [4000]
+
+          - name: "Models/microLlama/microLlama1"
+            L1: [60000, 20000, 10000]
+          - name: "Models/microLlama/microLlama8"
+            L1: [60000, 20000, 10000]
+          - name: "Models/microLlama/microLlama8_parallel"
+            L1: [60000, 20000, 10000]
+
+          - name: "Models/miniMobileNet"
+            L1: [60000, 24000, 12000, 6000]
+          - name: "Models/miniMobileNetv2"
+            L1: [60000, 32000, 24000, 16000]
+
           - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
             L1: [200, 40000]
+          - name: "Models/TinyViT/Demo"
+            L1: [4000]
+
+          - name: "Others/SimpleRegression"
+            L1: [60000, 45000, 30000]
+          - name: "Others/TrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
+            L1: [8000, 64000]
+          - name: "Others/Transformer"
+            L1: [60000, 30000, 15000]
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]

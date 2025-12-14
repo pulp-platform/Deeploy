@@ -60,10 +60,10 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=MiniMalloc
-          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=60000 --memAllocStrategy=MiniMalloc --shouldFail
-          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=90000 --memAllocStrategy=TetrisRandom
-          python testMVP.py -t Tests/CCT/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=TetrisRandom --shouldFail
+          python testMVP.py -t Tests/Models/CCT/FP32/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=MiniMalloc
+          python testMVP.py -t Tests/Models/CCT/FP32/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=60000 --memAllocStrategy=MiniMalloc --shouldFail
+          python testMVP.py -t Tests/Models/CCT/FP32/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=90000 --memAllocStrategy=TetrisRandom
+          python testMVP.py -t Tests/Models/CCT/FP32/CCT_1_16_16_8 -p Siracusa --defaultMemLevel=L2 --l1=64000 --l2=75000 --memAllocStrategy=TetrisRandom --shouldFail
 
   deeploy-state-serialization:
     needs: select-env
@@ -82,10 +82,10 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p QEMU-ARM
-          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p Siracusa
-          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p MemPool
-          python deeployStateEqualityTest.py -t ./Tests/simpleRegression -p Generic
+          python deeployStateEqualityTest.py -t ./Tests/Others/SimpleRegression -p QEMU-ARM
+          python deeployStateEqualityTest.py -t ./Tests/Others/SimpleRegression -p Siracusa
+          python deeployStateEqualityTest.py -t ./Tests/Others/SimpleRegression -p MemPool
+          python deeployStateEqualityTest.py -t ./Tests/Others/SimpleRegression -p Generic
 
   deeploy-memory-level-extension:
     needs: select-env
@@ -104,10 +104,10 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p QEMU-ARM
-          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p Siracusa
-          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p MemPool
-          python testMemoryLevelExtension.py -t ./Tests/simpleRegression -p Generic
+          python testMemoryLevelExtension.py -t ./Tests/Others/SimpleRegression -p QEMU-ARM
+          python testMemoryLevelExtension.py -t ./Tests/Others/SimpleRegression -p Siracusa
+          python testMemoryLevelExtension.py -t ./Tests/Others/SimpleRegression -p MemPool
+          python testMemoryLevelExtension.py -t ./Tests/Others/SimpleRegression -p Generic
 
   deeploy-tiler-extension:
     needs: select-env
@@ -126,14 +126,14 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression
-          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN
-          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul
-          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool
-          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression --l1 2000 --shouldFail
-          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN --l1 2000 --shouldFail
-          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul --l1 2000 --shouldFail
-          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/Others/SimpleRegression
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MatMul/regular
+          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/Others/SimpleRegression --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/simpleCNN --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MatMul/regular --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MaxPool --l1 2000 --shouldFail
 
   deeploy-memory-allocation-extension:
     needs: select-env
@@ -152,12 +152,12 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testTilerExtension.py -p Siracusa -t ./Tests/simpleRegression
-          python testTilerExtension.py -p Siracusa -t ./Tests/simpleCNN
-          python testTilerExtension.py -p Siracusa -t ./Tests/miniMobileNet
-          python testTilerExtension.py -p Siracusa -t ./Tests/miniMobileNetv2
-          python testTilerExtension.py -p Siracusa -t ./Tests/testMatMul
-          python testTilerExtension.py -p Siracusa -t ./Tests/testMaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/Others/SimpleRegression
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/miniMobileNet
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/miniMobileNetv2
+          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MatMul/regular
+          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MaxPool
 
   deeploy-typing:
     needs: select-env
@@ -195,9 +195,9 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testPrintInputOutputTransformation.py -p Generic -t ./Tests/simpleRegression
-          python testPrintInputOutputTransformation.py -p Siracusa -t ./Tests/simpleRegression
-          python testDebugPrintPass.py -p Generic -t ./Tests/simpleRegression
+          python testPrintInputOutputTransformation.py -p Generic -t ./Tests/Others/SimpleRegression
+          python testPrintInputOutputTransformation.py -p Siracusa -t ./Tests/Others/SimpleRegression
+          python testDebugPrintPass.py -p Generic -t ./Tests/Others/SimpleRegression
 
   deeploy-regex-matching:
     needs: select-env

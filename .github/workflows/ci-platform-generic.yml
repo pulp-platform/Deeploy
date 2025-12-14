@@ -36,9 +36,8 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        Adder
-
         FP32Kernels/Activations/ReLU
+        FP32Kernels/Add/regular
 
         FP32Kernels/Conv2D/DWBias
         FP32Kernels/Conv2D/DWNoBias
@@ -47,6 +46,18 @@ jobs:
         FP32Kernels/Conv2D/RegularBias
         FP32Kernels/Conv2D/RegularNoBias
         FP32Kernels/Conv2D/RegularZeroValuedBias
+
+        FP32Kernels/Div
+        FP32Kernels/GEMM/regular
+        FP32Kernels/MatMul
+        FP32Kernels/MaxPool
+        FP32Kernels/Mul
+
+        FP32Kernels/Norm/LayerNorm
+        FP32Kernels/Norm/RMSNorm
+
+        FP32Kernels/Pow/Scalar
+        FP32Kernels/Pow/Vector
 
         FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean
         FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add
@@ -69,44 +80,44 @@ jobs:
         FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add
 
         FP32Kernels/SkipConnection/ReshapeWithSkipConnection
+        FP32Kernels/Softmax/Regular
+        FP32Kernels/Sqrt
+        FP32Kernels/Transpose
+
+        IntKernels/Activations/iSoftmax
+
+        IntKernels/Add/MultIO
+        IntKernels/Add/Regular
+
+        IntKernels/Conv/1D/DW
+        IntKernels/Conv/1D/Regular
+
+        IntKernels/Conv/2D/DW
+        IntKernels/Conv/2D/Regular
+
+        IntKernels/GEMM
+
+        IntKernels/MatMul/add
+        IntKernels/MatMul/regular
+
+        IntKernels/MaxPool
+
+        IntKernels/Pad/1D
+        IntKernels/Pad/2D
+
+        IntKernels/ReduceMean
+        IntKernels/ReduceSum
+        IntKernels/Slice
 
         Models/TinyViT/5M/Layers/FP32/ReduceMean
 
-        MultIO
-        test1DConvolution
-        test2DConvolution
-        test1DDWConvolution
-        test2DDWConvolution
-        test1DPad
-        test2DPad
-        testGEMM
-        testMatMul
-        testMatMulAdd
-        testMaxPool
-        testRQConv
-        testRQMatMul
-        testReduceSum
-        testReduceMean
-        testSlice
-        testRequantizedDWConv
-        test2DRequantizedConv
-        iSoftmax
-        testFloatAdder
-        testFloatGEMM
-        testFloatLayerNorm
-        testFloatDiv
-        testFloatMaxPool
-        testFloatMatmul
-        testFloatSoftmax
-        testFloatTranspose
-        testFloatMul
-        testFloatPowScalar
-        testFloatPowVector
-        testFloatSqrt
-        testFloatRMSNorm
-        Quant
-        Dequant
-        QuantizedLinear
+        Others/Dequant
+        Others/Quant
+        Others/QuantizedLinear
+        Others/RequantizedConv2D
+        Others/RequantizedDWConv
+        Others/RQConv
+        Others/RQMatMul
 
   generic-models:
     needs: select-env
@@ -115,16 +126,20 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        simpleRegression
-        WaveFormer
-        simpleCNN
-        ICCT
-        ICCT_ITA
-        ICCT_8
-        ICCT_ITA_8
-        miniMobileNet
-        miniMobileNetv2
-        CCT/CCT_1_16_16_8
-        CCT/CCT_2_32_32_128_Opset20
-        testFloatDemoTinyViT
-        Autoencoder1D
+        Models/Autoencoder1D
+
+        Models/CCT/FP32/CCT_1_16_16_8
+        Models/CCT/FP32/CCT_2_32_32_128_Opset20
+        Models/CCT/Int/ICCT
+        Models/CCT/Int/ICCT_8
+        Models/CCT/Int/ICCT_ITA
+        Models/CCT/Int/ICCT_ITA_8
+
+        Models/miniMobileNet
+        Models/miniMobileNetv2
+
+        Models/simpleCNN
+        Models/TinyViT/Demo
+        Models/WaveFormer
+
+        Others/SimpleRegression

@@ -36,17 +36,21 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        Adder
-
         FP32Kernels/Activations/ReLU
+        FP32Kernels/Add/regular
 
         FP32Kernels/Conv2D/DWBias
         FP32Kernels/Conv2D/DWNoBias
         FP32Kernels/Conv2D/DWZeroValuedBias
-
         FP32Kernels/Conv2D/RegularBias
         FP32Kernels/Conv2D/RegularNoBias
         FP32Kernels/Conv2D/RegularZeroValuedBias
+
+        FP32Kernels/GEMM/regular
+        FP32Kernels/MatMul
+        FP32Kernels/MaxPool
+        FP32Kernels/Mul
+        FP32Kernels/Norm/LayerNorm
 
         FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean
         FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add
@@ -68,39 +72,42 @@ jobs:
         FP32Kernels/ReduceMean/NoKeepDims/Axis2
         FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add
 
+        FP32Kernels/ReduceSum
         FP32Kernels/SkipConnection/ReshapeWithSkipConnection
+
+        FP32Kernels/Softmax/CrossEntropy
+        FP32Kernels/Softmax/CrossEntropyGrad
+        FP32Kernels/Softmax/Grad
+        FP32Kernels/Softmax/Regular
+
+        FP32Kernels/Transpose
+
+        IntKernels/Activations/Hardswish
+        IntKernels/Activations/iSoftmax
+
+        IntKernels/Add/MultIO
+        IntKernels/Add/Regular
+
+        IntKernels/Concat
+
+        IntKernels/MatMul/add
+        IntKernels/MatMul/regular
+
+        IntKernels/Pad/1D
+        IntKernels/Pad/2D
+
+        IntKernels/RMSNorm
 
         Models/TinyViT/5M/Layers/FP32/ReduceMean
 
-        MultIO
-        test1DPad
-        test2DPad
-        testMatMul
-        testMatMulAdd
-        testRequantizedDWConv
-        test2DRequantizedConv
-        iSoftmax
-        testConcat
-        testRMSNorm
-        trueIntegerDivSandwich
-        Hardswish
-        RQHardswish
-        testBacktracking
-        testFloatAdder
-        testFloatGEMM
-        testFloatLayerNorm
-        testFloatMaxPool
-        testFloatMatmul
-        testFloatSoftmax
-        testFloatTranspose
-        testFloatMul
-        Quant
-        Dequant
-        testFloatReduceSum
-        testFloatSoftmaxGrad
-        testFloatSoftmaxCrossEntropy
-        testFloatSoftmaxCrossEntropyGrad
-        QuantizedLinear
+        Others/Backtracking
+        Others/Dequant
+        Others/Quant
+        Others/QuantizedLinear
+        Others/RequantizedConv2D
+        Others/RequantizedDWConv
+        Others/RQHardswish
+        Others/trueIntegerDivSandwich
       num-cores: 8
 
   siracusa-models:
@@ -110,14 +117,20 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        simpleRegression
-        miniMobileNet
-        miniMobileNetv2
-        Attention
-        MLPerf/KeywordSpotting
-        MLPerf/ImageClassification
-        MLPerf/AnomalyDetection
-        CCT/CCT_1_16_16_8
-        CCT/CCT_2_32_32_128_Opset20
-        testFloatDemoTinyViT
+        IntKernels/Attention
+
+        Models/CCT/FP32/CCT_1_16_16_8
+        Models/CCT/FP32/CCT_2_32_32_128_Opset20
+
+        Models/miniMobileNet
+        Models/miniMobileNetv2
+        
+        Models/MLPerf/KeywordSpotting
+        Models/MLPerf/ImageClassification
+        Models/MLPerf/AnomalyDetection
+
+        Models/TinyViT/Demo
+
+        Others/SimpleRegression
+        Others/TrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8
       num-cores: 8

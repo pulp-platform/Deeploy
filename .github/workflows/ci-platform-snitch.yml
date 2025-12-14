@@ -36,16 +36,20 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        Adder
-        iSoftmax
-        TestiNoNorm
-        TestAdderLarge
-        TestiSoftmaxLarge
-        testMatMul
-        testRQGEMM
-        TestRQAdd
-        testRQGEMMTransB
-        testFloatSoftmax
+        FP32Kernels/Softmax/Regular
+
+        IntKernels/Add/Large
+        IntKernels/Add/Regular
+
+        IntKernels/Activations/iSoftmax
+        
+        IntKernels/iSoftmaxLarge
+        IntKernels/MatMul/regular
+
+        Others/iNoNorm
+        Others/RQGEMM
+        Others/RQAdd
+        Others/RQGEMMTransB
       num-cores: 9
       simulators: |
         gvsoc

@@ -36,26 +36,35 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        Adder
-        MultIO
-        test1DConvolution
-        test2DConvolution
-        test1DDWConvolution
-        test2DDWConvolution
-        test1DPad
-        test2DPad
-        testGEMM
-        testMatMul
-        testMatMulAdd
-        testMaxPool
-        testRQConv
-        testRQGEMM
-        testRQMatMul
-        testReduceSum
-        testReduceMean
-        testSlice
-        testRequantizedDWConv
-        test2DRequantizedConv
+        IntKernels/Add/MultIO
+        IntKernels/Add/Regular
+
+        IntKernels/Conv/1D/DW
+        IntKernels/Conv/1D/Regular
+
+        IntKernels/Conv/2D/DW
+        IntKernels/Conv/2D/Regular
+
+        IntKernels/GEMM
+
+        IntKernels/MatMul/add
+        IntKernels/MatMul/regular
+
+        IntKernels/MaxPool
+
+        IntKernels/Pad/1D
+        IntKernels/Pad/2D
+
+        IntKernels/ReduceMean
+        IntKernels/ReduceSum
+
+        IntKernels/Slice
+
+        Others/RequantizedConv2D
+        Others/RequantizedDWConv
+        Others/RQConv
+        Others/RQGEMM
+        Others/RQMatMul
 
   mempool-models:
     needs: select-env
@@ -64,10 +73,13 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        simpleRegression
-        simpleCNN
-        ICCT
-        ICCT_ITA
-        ICCT_8
-        miniMobileNet
-        miniMobileNetv2
+        Models/CCT/Int/ICCT
+        Models/CCT/Int/ICCT_8
+        Models/CCT/Int/ICCT_ITA
+
+        Models/miniMobileNet
+        Models/miniMobileNetv2
+
+        Models/simpleCNN
+
+        Others/SimpleRegression

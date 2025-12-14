@@ -37,10 +37,10 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"testRequantizedLinear","L1":[16000]},
-          {"name":"testPointwise","L1":[32000]},
-          {"name":"testPointwiseConvBNReLU","L1":[32000]},
-          {"name":"testPointwiseUnsignedWeights","L1":[32000]}
+          {"name":"Others/RequantizedLinear","L1":[16000]},
+          {"name":"IntKernels/Conv/2D/PW/regular","L1":[32000]},
+          {"name":"IntKernels/Conv/2D/PW/convBNReLU","L1":[32000]},
+          {"name":"IntKernels/Conv/2D/PW/unsignedWeights","L1":[32000]}
         ]
       num-cores: 8
 
@@ -52,10 +52,10 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"testRequantizedLinear","L1":[16000]},
-          {"name":"testPointwise","L1":[32000]},
-          {"name":"testPointwiseConvBNReLU","L1":[32000]},
-          {"name":"testPointwiseUnsignedWeights","L1":[32000]}
+          {"name":"Others/RequantizedLinear","L1":[16000]},
+          {"name":"IntKernels/Conv/2D/PW/regular","L1":[32000]},
+          {"name":"IntKernels/Conv/2D/PW/convBNReLU","L1":[32000]},
+          {"name":"IntKernels/Conv/2D/PW/unsignedWeights","L1":[32000]}
         ]
       num-cores: 8
       # double buffer enabled:
@@ -67,10 +67,10 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - { name: "miniMobileNet", L1: [2000] } # LMACAN: 1000 leads to non-2d transfers in L3!
-          - { name: "Attention", L1: [2500] }
-          - { name: "Transformer", L1: [15000] }
-          - { name: "microLlama/microLlama1", L1: [10000] }
+          - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN: 1000 leads to non-2d transfers in L3!
+          - { name: "IntKernels/Attention", L1: [2500] }
+          - { name: "Others/Transformer", L1: [15000] }
+          - { name: "Models/microLlama/microLlama1", L1: [10000] }
         num-cores: [8]
         default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
@@ -88,9 +88,9 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - { name: "miniMobileNet", L1: [2000] } # LMACAN note
-          - { name: "Attention", L1: [5000] }
-          - { name: "Transformer", L1: [30000] }
+          - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN note
+          - { name: "IntKernels/Attention", L1: [5000] }
+          - { name: "Others/Transformer", L1: [30000] }
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]
@@ -112,10 +112,10 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"testRequantizedLinear","L1":[16000]},
-          {"name":"testPointwise","L1":[32000]},
-          {"name":"testPointwiseConvBNReLU","L1":[32000]},
-          {"name":"testPointwiseUnsignedWeights","L1":[32000]}
+          {"name":"Others/RequantizedLinear","L1":[16000]},
+          {"name":"IntKernels/Conv/2D/PW/regular","L1":[32000]},
+          {"name":"IntKernels/Conv/2D/PW/convBNReLU","L1":[32000]},
+          {"name":"IntKernels/Conv/2D/PW/unsignedWeights","L1":[32000]}
         ]
       num-cores: 8
       neureka-wmem: true
@@ -126,10 +126,10 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - { name: "miniMobileNet", L1: [2000] } # LMACAN note
-          - { name: "Attention", L1: [3500] }
-          # - { name: "Transformer", L1: [30000] }
-          - { name: "microLlama/microLlama1", L1: [10000] }
+          - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN note
+          - { name: "IntKernels/Attention", L1: [3500] }
+          # - { name: "Others/Transformer", L1: [30000] }
+          - { name: "Models/microLlama/microLlama1", L1: [10000] }
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]
