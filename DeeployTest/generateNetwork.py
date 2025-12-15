@@ -135,7 +135,7 @@ def generateNetwork(args):
 
     if not isinstance(
             platform, CMSISPlatform
-    ) and not "simpleCNN" in args.dir and not "testRQMatMul" in args.dir and not "testRQGEMM" in args.dir:
+    ) and not "simpleCNN" in args.dir and not "RQMatMul" in args.dir and not "RQGEMM" in args.dir:
         deployer.loweringOptimizer.passes.insert(0, EmulateCMSISRequantPass())
 
     verbosityCfg = _NoVerbosity
