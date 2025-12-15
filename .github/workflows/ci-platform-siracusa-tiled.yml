@@ -195,8 +195,6 @@ jobs:
 
           - name: "Others/SimpleRegression"
             L1: [45000, 30000, 15000]
-          - name: "Others/TrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8"
-            L1: [4000, 64000]
         num-cores: [8]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
@@ -225,8 +223,6 @@ jobs:
             L1: [60000, 12000, 6000] # SCHEREMO note
           - name: "Models/miniMobileNetv2"
             L1: [60000, 16000, 12000, 8000]
-          - name: "testTrainCCT/CCT2_FT2"
-            L1: [128000]
           - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
             L1: [200, 40000]
           - name: "Models/TinyViT/Demo"
@@ -234,8 +230,8 @@ jobs:
 
           - name: "Others/SimpleRegression"
             L1: [45000, 30000, 16000] # SCHEREMO note
-          - name: "Others/TrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
-            L1: [32000, 64000]
+          - name: "Others/TrainCCT/CCT2_FT2"
+            L1: [128000]
           - name: "Others/Transformer"
             L1: [60000, 30000, 15000]
         num-cores: [8]
@@ -280,8 +276,8 @@ jobs:
 
           - name: "Others/SimpleRegression"
             L1: [60000, 45000, 30000]
-          - name: "Others/TrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
-            L1: [8000, 64000]
+          - name: "Others/TrainCCT/CCT2_FT2"
+            L1: [128000]
           - name: "Others/Transformer"
             L1: [60000, 30000, 15000]
         num-cores: [8]

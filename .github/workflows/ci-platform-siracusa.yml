@@ -133,5 +133,4 @@ jobs:
         Models/TinyViT/Demo
 
         Others/SimpleRegression
-        Others/TrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8
       num-cores: 8
