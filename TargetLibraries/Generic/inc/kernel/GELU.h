@@ -25,4 +25,8 @@ void GELU_fp32_fp32(float32_t *data_in, float32_t *data_out, int32_t dataSize);
 void GELU_fp32_fp32_sigmoid(float32_t *data_in, float32_t *data_out,
                             int32_t dataSize);
 
+void GELU_fp32_fp32_sigmoid_grad_chunk(float32_t *grad_in, float32_t *data_in,
+                                       float32_t *grad_out, int32_t start_idx,
+                                       int32_t end_idx);
+
 #endif //__DEEPLOY_BASIC_MATH_GELU_KERNEL_HEADER_

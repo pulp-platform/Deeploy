@@ -30,3 +30,24 @@ void GELU_fp32_fp32_sigmoid(float32_t *data_in, float32_t *data_out,
     data_out[i] = x * sigmoid;
   }
 }
+
+void GELU_fp32_fp32_sigmoid_grad_chunk(float32_t *grad_in, float32_t *data_in,
+                                       float32_t *grad_out, int32_t start_idx,
+                                       int32_t end_idx) {
+  // d(Gelu)/dx ≈ sigmoid(1.702 * x) + x * sigmoid(1.702 * x) * (1 -
+  // sigmoid(1.702 * x)) * 1.702
+  const float COEFF = 1.702f;
+  for (int32_t i = start_idx; i < end_idx; i++) {
+    float x = data_in[i];
+    float upstream_grad = grad_in[i];
+    float z = COEFF * x;
+    float sigmoid_z = 1.0f / (1.0f + expf(-z));
+
+    // d(Gelu)/dx = sigmoid(1.702*x) + x * sigmoid(1.702*x) *
+    // (1-sigmoid(1.702*x)) * 1.702
+    float sigmoid_derivative = sigmoid_z * (1.0f - sigmoid_z) * COEFF;
+    float gelu_derivative = sigmoid_z + x * sigmoid_derivative;
+
+    grad_out[i] = upstream_grad * gelu_derivative;
+  }
+}

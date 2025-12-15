@@ -135,9 +135,7 @@ jobs:
           - name: "MLPerf/AnomalyDetection"
             L1: [64000]
           - name: "CCT/CCT_1_16_16_8"
-            L1: [2000, 64000]
-          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_8"
-            L1: [4000, 64000]
+            L1: [64000]
           - name: "testFloatDemoTinyViT"
             L1: [4000]
         num-cores: [8]
@@ -168,9 +166,9 @@ jobs:
           - name: "microLlama/microLlama1"
             L1: [60000, 10000, 5000]
           - name: "CCT/CCT_2_32_32_128"
-            L1: [64000, 128000]
-          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
-            L1: [32000, 64000]
+            L1: [128000]
+          - name: "testTrainCCT/CCT2_FT2"
+            L1: [128000]
           - name: "testFloatDemoTinyViT"
             L1: [4000]
         num-cores: [8]
@@ -208,9 +206,9 @@ jobs:
           - name: "microLlama/microLlama8_parallel"
             L1: [60000, 20000, 10000]
           - name: "CCT/CCT_2_32_32_128"
-            L1: [64000, 128000]
-          - name: "testTrainCCT/CCT1_Classifier_Training/CCT_1_16_16_128"
-            L1: [8000, 64000]
+            L1: [128000]
+          - name: "testTrainCCT/CCT2_FT2"
+            L1: [128000]
           - name: "testFloatDemoTinyViT"
             L1: [4000]
         num-cores: [8]

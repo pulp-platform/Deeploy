@@ -770,6 +770,33 @@ class GELUParser(NodeParser):
         return ctxt, True
 
 
+class GELUGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        upstream_grad = ctxt.lookup(node.inputs[0].name)
+        gelu_input = ctxt.lookup(node.inputs[1].name)
+        gelu_grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['grad_in'] = upstream_grad.name
+        self.operatorRepresentation['data_in'] = gelu_input.name
+        self.operatorRepresentation['grad_out'] = gelu_grad.name
+        self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
+
+        return ctxt, True
+
+
 class RQSiGELUParser(GELUParser):
 
     def __init__(self):
@@ -1635,6 +1662,36 @@ class LayerNormParser(iLayerNormParser):
 
         inputs = ['data_in', 'weight', 'bias']
         outputs = ['data_out']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
+        self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
+
+        return ctxt, True
+
+
+class LayerNormGradParser(iLayerNormParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 4, len(node.outputs) == 1])
+
+        if ret:
+            self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['grad_in', 'data_in', 'weight', 'bias']
+        outputs = ['grad_out']
 
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name

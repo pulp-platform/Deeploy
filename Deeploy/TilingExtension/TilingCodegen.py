@@ -31,8 +31,8 @@ class HyperRectangle():
         assert len(offset) == len(
             dims), f"HyperRectangle offset and dims for mismatching dimensions {offset} and {dims}"
 
-        self.offset = offset
-        self.dims = dims
+        self.offset = tuple(offset) if not isinstance(offset, tuple) else offset
+        self.dims = tuple(dims) if not isinstance(dims, tuple) else dims
 
 
 @dataclass
