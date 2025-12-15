@@ -62,10 +62,10 @@ jobs:
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh
           # Install Deeploy in the GAP9 venv
           pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
+          deactivate
       - name: Run Test
         run: |
           # Activate GAP9 SDK environment
-          export LLVM_INSTALL_DIR=/app/install/llvm
           source /app/install/gap9-sdk/.gap9-venv/bin/activate
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh
           
@@ -79,4 +79,5 @@ jobs:
               python testRunner_gap9.py -t Tests/$testName --cores=${{ inputs.num-cores }}
             fi
           done
+          deactivate
         shell: bash

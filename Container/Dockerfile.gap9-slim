@@ -1,0 +1,20 @@
+FROM deeploy:gap9-slim
+
+ENV TZ=Etc/UTC
+ENV CMAKE=/usr/bin/cmake
+ENV PULP_SDK_HOME=/app/install/pulp-sdk
+ENV GAP_SDK_HOME=/app/install/gap9-sdk
+ENV SNITCH_HOME=/app/install/snitch_cluster
+ENV CHIMERA_SDK_HOME=/app/install/chimera-sdk
+ENV LLVM_INSTALL_DIR=/app/install/llvm
+ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
+ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
+ENV MEMPOOL_HOME=/app/install/mempool
+ENV GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
+ENV PATH=/root/.cargo/bin:/app/install/qemu/bin:/app/install/banshee:$PATH
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+WORKDIR /app
+
+CMD ["/bin/zsh"]

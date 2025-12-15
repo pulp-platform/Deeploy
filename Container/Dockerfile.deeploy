@@ -56,13 +56,23 @@ RUN --mount=type=cache,target=/root/.cargo/registry \
 
 # Install GAP9 RISC-V GCC toolchain (required for GAP9 SDK build)
 RUN --mount=type=cache,target=/ccache \
-    make gap9-toolchain
+    make gap9-toolchain && \
+    find /app/install/gcc/gap9 -type f -executable -exec strip --strip-debug {} \; 2>/dev/null || true
 
-# Build GAP9 SDK
+# Build GAP9 SDK and clean up immediately
 RUN --mount=type=ssh \
     --mount=type=cache,target=/ccache \
     --mount=type=cache,target=/root/.cache/pip \
-    make gap9-sdk
+    make gap9-sdk && \
+    rm -rf /app/install/gap9-sdk/build/gvsoc && \
+    rm -rf /app/install/gap9-sdk/examples && \
+    rm -rf /app/install/gap9-sdk/nn_menu && \
+    rm -rf /app/install/gap9-sdk/doc && \
+    find /app/install/gap9-sdk -name "*.o" -delete && \
+    find /app/install/gap9-sdk -type f -name "*.a" -delete && \
+    /app/install/gap9-sdk/.gap9-venv/bin/pip cache purge && \
+    find /app/install/gap9-sdk/.gap9-venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find /app/install/gap9-sdk/.gap9-venv -type f -name "*.pyc" -delete
 
 # Compile banshee with Rust 1.70.0
 RUN --mount=type=cache,target=/ccache \
@@ -82,9 +92,9 @@ RUN cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt 
     cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
     rm -rf toolchain/pulp-sdk toolchain/qemu toolchain/mempool toolchain/banshee toolchain/xtensor toolchain/xtl toolchain/xsimd toolchain/gvsoc
 
-# Install SoftHier emulator and toolchain
-RUN --mount=type=cache,target=/ccache \
-    make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier
+# Install SoftHier emulator and toolchain (optional - comment out to save 2.6GB)
+# RUN --mount=type=cache,target=/ccache \
+#     make SOFTHIER_INSTALL_DIR=/app/install/softhier softhier
 
 # Install Bender
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
@@ -108,6 +118,9 @@ RUN --mount=type=cache,target=/ccache \
 
 # Remove toolchain to make the container lighter
 RUN rm -rf toolchain
+
+
+# Final cleanup already done in GAP9 SDK build step
 
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
 FROM ubuntu:22.04 AS deeploy
