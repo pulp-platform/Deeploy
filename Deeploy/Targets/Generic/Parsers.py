@@ -143,7 +143,10 @@ class SliceParser(NodeParser):
         if len(node.inputs) <= 4:
             values = np.ones((self.operatorRepresentation['dims']), dtype = np.int64)
             stepsTensor = gs.Constant(f'{node.name}_Steps_Tensor', values = values)
+
             ctxt.hoistConstant(stepsTensor)
+            ctxt.addUser(stepsTensor.name, node)
+
             node.inputs.append(stepsTensor)
 
         self.operatorRepresentation['starts'] = node.inputs[1].name
