@@ -10,8 +10,8 @@
 /*
  * GAP9 MCHAN v7 configuration wrapper for Deeploy
  *
- * This header configures and includes mchan.h with proper GAP9-specific settings.
- * Based on DORY's GAP9 DMA implementation.
+ * This header configures and includes mchan.h with proper GAP9-specific
+ * settings. Based on DORY's GAP9 DMA implementation.
  */
 
 #include "pmsis.h"
@@ -34,7 +34,7 @@
 // Define event bit for cluster DMA
 #ifdef MCHAN_EVENT
 #ifndef MCHAN_EVENT_BIT
-#define MCHAN_EVENT_BIT (CLUSTER_IRQ_DMA0)  // Typically 8
+#define MCHAN_EVENT_BIT (CLUSTER_IRQ_DMA0) // Typically 8
 #endif
 #endif
 

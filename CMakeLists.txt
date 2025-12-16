@@ -14,7 +14,6 @@ set(CMAKE_C_COMPILER_LAUNCHER "ccache")
 set(CMAKE_CXX_COMPILER_LAUNCHER "ccache")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 if(TOOLCHAIN STREQUAL GCC)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
@@ -36,6 +35,7 @@ elseif(platform STREQUAL PULPOpen)
 elseif(platform STREQUAL GAP9)
   message(STATUS "Building for platform 'GAP9'")
   # set( CMAKE_MESSAGE_LOG_LEVEL "DEBUG" )
+  # RW：GAP9 SDK requires executables in CMAKE_BINARY_DIR root 
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   set(ENV{KCONFIG_CONFIG} DeeployTest/Platforms/GAP9/sdk.config)
   include($ENV{GAP_SDK_HOME}/utils/cmake/setup.cmake)

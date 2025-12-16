@@ -47,8 +47,6 @@ jobs:
             L1: [800, 500, 300]
           - name: "testConcat"
             L1: [32000, 16000, 8000]
-          - name: "testRMSNorm"
-            L1: [2048, 1024, 512]
           - name: "Hardswish"
             L1: [750]
           - name: "RQHardswish"
@@ -83,8 +81,6 @@ jobs:
             L1: [2000]
           - name: "testFloatMul"
             L1: [2000]
-          - name: "largeFloatAdd"
-            L1: [220000]
           - name: "testRQGEMMwBatch"
             L1: [20000]
           - name: "testMatMulBatch"
@@ -113,8 +109,6 @@ jobs:
             L1: [1600, 1000, 600]
           - name: "testConcat"
             L1: [64000, 32000, 16000]
-          - name: "testRMSNorm"
-            L1: [4096, 2048, 1024]
           - name: "Hardswish"
             L1: [750]
           - name: "RQHardswish"

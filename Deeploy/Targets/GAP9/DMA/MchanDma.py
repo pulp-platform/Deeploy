@@ -10,13 +10,6 @@ from Deeploy.TilingExtension.AsyncDma import AsyncDma, DirectionWaitingStrategy,
 
 
 class MchanTransferFuture(Future):
-    """
-    Future implementation for GAP9's MCHAN v7 low-level API.
-    Based on DORY's implementation: https://github.com/pulp-platform/dory
-
-    Uses direct hardware register access for maximum performance.
-    """
-
     _initTemplate = NodeTemplate("int ${name} = -1;")
 
     _deinitTemplate = NodeTemplate("")
@@ -24,31 +17,24 @@ class MchanTransferFuture(Future):
     _allocTemplate = NodeTemplate("${name} = mchan_transfer_get_id();")
 
     _waitTemplate = NodeTemplate("""
-if (${name} >= 0) {
-    mchan_transfer_wait(${name});
-    mchan_transfer_free(${name});
-}
-""")
+        if (${name} >= 0) {
+            mchan_transfer_wait(${name});
+            mchan_transfer_free(${name});
+        }
+        """)
 
 
 class GAP9MchanDma(AsyncDma):
-    """
-    GAP9 Cluster DMA implementation using MCHAN v7 low-level API.
-
-    This implementation follows DORY's approach for GAP9:
-    - Direct hardware register access for MCHAN v7
-    - Manual transfer ID management
-    - Support for 1D, 2D, and 3D transfers
-    - Event-based or polled synchronization
-
-    References:
-    - DORY GAP9: https://github.com/pulp-platform/dory/tree/master/dory/Hardware_targets/PULP/GAP9
-    - MCHAN v7 specification in GAP9 documentation
-    """
 
     _transferTemplates = {
-        1: NodeTemplate("{ mchan_transfer_t __mchan_tmp = { .cmd = ${cmd}, .size = ${size}, .loc = ${loc}, .ext = ${ext} }; mchan_transfer_push_1d(__mchan_tmp); }"),
-        2: NodeTemplate("{ mchan_transfer_t __mchan_tmp = { .cmd = ${cmd}, .size = ${size}, .loc = ${loc}, .ext = ${ext}, .ext_size_1d = ${size_1d}, .ext_stride_1d = ${stride_2d} }; mchan_transfer_push_2d(__mchan_tmp); }"),
+        1:
+            NodeTemplate(
+                "{ mchan_transfer_t __mchan_tmp = { .cmd = ${cmd}, .size = ${size}, .loc = ${loc}, .ext = ${ext} }; mchan_transfer_push_1d(__mchan_tmp); }"
+            ),
+        2:
+            NodeTemplate(
+                "{ mchan_transfer_t __mchan_tmp = { .cmd = ${cmd}, .size = ${size}, .loc = ${loc}, .ext = ${ext}, .ext_size_1d = ${size_1d}, .ext_stride_1d = ${stride_2d} }; mchan_transfer_push_2d(__mchan_tmp); }"
+            ),
     }
     _waitingStrategy = DirectionWaitingStrategy(MchanTransferFuture, "transfer")
 

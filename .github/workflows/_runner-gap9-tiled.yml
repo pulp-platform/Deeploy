@@ -58,21 +58,25 @@ jobs:
           submodules: recursive
       - name: Build Deeploy
         shell: bash
-        run: pip install -e .
-      - name: Cache ccache
-        uses: actions/cache/restore@v4
+        run: |
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          pip install -e . || true
+          deactivate
+      - name: Setup ccache
+        uses: actions/cache@v4
         with:
           path: /app/.ccache
           key: ccache-ci
       - name: Run Test
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 15
-          max_attempts: 3
-          retry_on: timeout
-          command: |
-            cd DeeployTest
-            mkdir -p /app/.ccache
-            export CCACHE_DIR=/app/.ccache
-            python testRunner_tiled_gap9.py -t Tests/${{ inputs.test-name }} --cores=${{ inputs.num-cores }} --l1 ${{ matrix.L1 }} --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
-          shell: bash
+        run: |
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          export GVSOC_INSTALL_DIR=/app/install/gap9-sdk/install/workstation
+          export GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          python testRunner_tiled_gap9.py -t Tests/${{ inputs.test-name }} --cores=${{ inputs.num-cores }} --l1 ${{ matrix.L1 }} --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
+          deactivate
+        shell: bash

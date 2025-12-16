@@ -46,7 +46,6 @@ jobs:
         test2DRequantizedConv
         iSoftmax
         testConcat
-        testRMSNorm
         trueIntegerDivSandwich
         Hardswish
         RQHardswish

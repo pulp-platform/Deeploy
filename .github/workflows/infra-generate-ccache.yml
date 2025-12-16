@@ -43,6 +43,15 @@ jobs:
           python testRunner_tiled_siracusa.py -t ./Tests/Adder
           python testRunner_tiled_siracusa_w_neureka.py -t ./Tests/Adder
           python testRunner_chimera.py -t ./Tests/Adder
+
+          # GAP9 tests
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          export GVSOC_INSTALL_DIR=/app/install/gap9-sdk/install/workstation
+          export GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
+          python testRunner_gap9.py -t ./Tests/Adder
+          python testRunner_tiled_gap9.py -t ./Tests/Adder
+          deactivate
       - name: Clean and Upload CCache
         uses: actions/cache@v4
         with:
