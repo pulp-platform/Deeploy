@@ -97,7 +97,7 @@ macro(add_gvsoc_emulation name target)
             --target=${target}
             --binary ${GVSOC_BINARY}
             --work-dir=${GVSOC_WORKDIR}
-            run
+            image flash run
         )
 
         # Convert list to string for printing
@@ -106,7 +106,10 @@ macro(add_gvsoc_emulation name target)
         add_custom_target(gvsoc_${name}
             DEPENDS ${name}
             WORKING_DIRECTORY ${GVSOC_WORKDIR}
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/*.bin ${GVSOC_WORKDIR}/ || true                  
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/*.bin ${GVSOC_WORKDIR}/ || true
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${GAP9_SDK_HOME}/utils/efuse/GAP9/efuse_hyper_preload.data
+                ${GVSOC_WORKDIR}/chip.efuse_preload.data
             COMMAND ${CMAKE_COMMAND} -E echo "=========================================="
             COMMAND ${CMAKE_COMMAND} -E echo "[Deeploy GAP9] Executing gvsoc command - L2 mode:"
             COMMAND ${CMAKE_COMMAND} -E echo "${GVSOC_CMD_STR}"

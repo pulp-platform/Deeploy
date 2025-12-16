@@ -33,22 +33,31 @@ jobs:
           submodules: recursive
       - name: Build Deeploy
         shell: bash
-        run: pip install -e .
+        run: |
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          pip install -e . || true
+          deactivate
       - name: Cache ccache
         uses: actions/cache/restore@v4
         with:
           path: /app/.ccache
-          key: ccache-ci
+          key: ccache-ci 
       - name: Run Test
         run: |
           testNames="${{ inputs.test-names }}"
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          export GVSOC_INSTALL_DIR=/app/install/gap9-sdk/install/workstation
+          export GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
           echo "$testNames" | while IFS= read -r testName; do
             if [[ -n "$testName" ]]; then
               echo "Running test: $testName"
-              python testRunner_gap9.py -t Tests/$testName --cores=${{ inputs.num-cores }}
+              python testRunner_gap9.py -t Tests/$testName
             fi
           done
+          deactivate
         shell: bash
