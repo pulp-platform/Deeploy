@@ -3,16 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from pathlib import Path
-from typing import List
 
 import pytest
-
-from testUtils.pytestRunner import (
-    DeeployTestConfig,
-    get_test_paths,
-    run_complete_test,
-    get_worker_id,
-)
+from testUtils.pytestRunner import DeeployTestConfig, get_test_paths, get_worker_id, run_complete_test
 
 KERNEL_TESTS = [
     "Adder",
@@ -77,6 +70,7 @@ MODEL_TESTS = [
     "Autoencoder1D",
 ]
 
+
 def create_test_config(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args):
     """
     Create DeeployTestConfig for a specific test.
@@ -93,28 +87,27 @@ def create_test_config(test_name, deeploy_test_dir, toolchain, toolchain_dir, cm
     """
     platform = "Generic"
     test_dir = f"Tests/{test_name}"
-    
-    gen_dir, test_dir_abs, test_name_clean = get_test_paths(
-        test_dir, platform, base_dir=deeploy_test_dir
-    )
-    
+
+    gen_dir, test_dir_abs, test_name_clean = get_test_paths(test_dir, platform, base_dir = deeploy_test_dir)
+
     worker_id = get_worker_id()
     build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}")
-    
+
     config = DeeployTestConfig(
-        test_name=test_name_clean,
-        test_dir=test_dir_abs,
-        platform=platform,
-        simulator="host",
-        tiling=False,
-        gen_dir=gen_dir,
-        build_dir=build_dir,
-        toolchain=toolchain,
-        toolchain_install_dir=toolchain_dir,
-        cmake_args=cmake_args,
+        test_name = test_name_clean,
+        test_dir = test_dir_abs,
+        platform = platform,
+        simulator = "host",
+        tiling = False,
+        gen_dir = gen_dir,
+        build_dir = build_dir,
+        toolchain = toolchain,
+        toolchain_install_dir = toolchain_dir,
+        cmake_args = cmake_args,
     )
-    
+
     return config
+
 
 def run_and_assert_test(test_name, config, skipgen, skipsim):
     """
@@ -127,29 +120,27 @@ def run_and_assert_test(test_name, config, skipgen, skipsim):
         skipsim: Whether to skip simulation
     """
     # Run the complete test
-    result = run_complete_test(config, skipgen=skipgen, skipsim=skipsim)
-    
+    result = run_complete_test(config, skipgen = skipgen, skipsim = skipsim)
+
     # Assert results
-    assert result.success, (
-        f"Test {test_name} failed with {result.error_count} errors out of {result.total_count}\n"
-        f"Output:\n{result.stdout}"
-    )
-    
+    assert result.success, (f"Test {test_name} failed with {result.error_count} errors out of {result.total_count}\n"
+                            f"Output:\n{result.stdout}")
+
     if result.error_count >= 0:  # Valid parse
-        assert result.error_count == 0, (
-            f"Found {result.error_count} errors out of {result.total_count} tests"
-        )
-    
+        assert result.error_count == 0, (f"Found {result.error_count} errors out of {result.total_count} tests")
+
+
 @pytest.mark.generic
 @pytest.mark.kernels
-@pytest.mark.parametrize("test_name", KERNEL_TESTS, ids=KERNEL_TESTS)
+@pytest.mark.parametrize("test_name", KERNEL_TESTS, ids = KERNEL_TESTS)
 def test_generic_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     config = create_test_config(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args)
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
+
 @pytest.mark.generic
 @pytest.mark.models
-@pytest.mark.parametrize("test_name", MODEL_TESTS, ids=MODEL_TESTS)
+@pytest.mark.parametrize("test_name", MODEL_TESTS, ids = MODEL_TESTS)
 def test_model(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     config = create_test_config(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args)
     run_and_assert_test(test_name, config, skipgen, skipsim)
