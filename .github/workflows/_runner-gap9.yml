@@ -38,11 +38,11 @@ jobs:
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
           pip install -e . || true
           deactivate
-      - name: Cache ccache
-        uses: actions/cache/restore@v4
+      - name: Setup ccache
+        uses: actions/cache@v4
         with:
           path: /app/.ccache
-          key: ccache-ci 
+          key: ccache-ci
       - name: Run Test
         run: |
           testNames="${{ inputs.test-names }}"

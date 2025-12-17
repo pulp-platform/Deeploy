@@ -4,8 +4,6 @@
 
 set(ProjectId ${TESTNAME})
 
-# set($ENV{KCONFIG_CONFIG} ${CMAKE_CURRENT_LIST_DIR}/sdk.config)
-# set(${SDKCONFIG_DIR} ${CMAKE_CURRENT_LIST_DIR})
 
 
 set(${SDKCONFIG_FILE} ${CMAKE_CURRENT_LIST_DIR}/sdk.config)

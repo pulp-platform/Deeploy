@@ -10,7 +10,19 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.GAP9.Templates import AllocateTemplate, FreeTemplate
-from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
+# Import GAP9-specific tiler bindings
+from Deeploy.Targets.GAP9.Tiler import GAP9AddTilingReadyBindings, GAP9ConcatTilingReadyBindings, \
+    GAP9Conv2DTilingReadyBindings, GAP9DWConv2DTilingReadyBindings, GAP9FlattenTilingReadyBindings, \
+    GAP9FPGELUTilingReadyBindings, GAP9FPGEMMTilingReadyBindings, GAP9GatherTilingReadyBindings, \
+    GAP9iHardswishTilingReadyBindings, GAP9iRMSNormTilingReadyBindings, GAP9iRQSGELUTilingReadyBindings, \
+    GAP9LayernormTilingReadyBindings, GAP9MatMulTilingReadyBindings, GAP9MaxPool2DTilingReadyBindings, \
+    GAP9MulTilingReadyBindings, GAP9ReduceSumTilingReadyBindings, GAP9ReluTilingReadyBindings, \
+    GAP9RQAddTilingReadyBindings, GAP9RQSConv2DTilingReadyBindings, GAP9RQSDWConv2DTilingReadyBindings, \
+    GAP9RQSGEMMTilingReadyBindings, GAP9RQSiHardswishTilingReadyBindings, GAP9RQSMatrixVecTilingReadyBindings, \
+    GAP9RQSTallGEMMTilingReadyBindings, GAP9RQSTilingReadyBindings, GAP9SGDTilingReadyBindings, \
+    GAP9SoftmaxCrossEntropyGradTilingReadyBindings, GAP9SoftmaxCrossEntropyTilingReadyBindings, \
+    GAP9SoftmaxGradTilingReadyBindings, GAP9SoftmaxTilingReadyBindings, GAP9TransposeTilingReadyBindings, \
+    GAP9UniformRQSTilingReadyBindings
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
@@ -24,47 +36,13 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantPars
     RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
     TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
+from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
-    PULPDMASliceBindings, PULPDWConv1DBinding, PULPFloatDWConv2DBindings, PULPReduceMeanBindings, PULPSliceBindings
+    PULPDMASliceBindings, PULPDWConv1DBinding, PULPReduceMeanBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
     PULPTallGEMMParser
-
-# Import GAP9-specific tiler bindings
-from Deeploy.Targets.GAP9.Tiler import (
-    GAP9AddTilingReadyBindings,
-    GAP9ConcatTilingReadyBindings,
-    GAP9Conv2DTilingReadyBindings,
-    GAP9FlattenTilingReadyBindings,
-    GAP9FPGELUTilingReadyBindings,
-    GAP9FPGEMMTilingReadyBindings,
-    GAP9GatherTilingReadyBindings,
-    GAP9iHardswishTilingReadyBindings,
-    GAP9iRMSNormTilingReadyBindings,
-    GAP9iRQSGELUTilingReadyBindings,
-    GAP9LayernormTilingReadyBindings,
-    GAP9MatMulTilingReadyBindings,
-    GAP9MaxPool2DTilingReadyBindings,
-    GAP9MulTilingReadyBindings,
-    GAP9ReduceSumTilingReadyBindings,
-    GAP9ReluTilingReadyBindings,
-    GAP9RQAddTilingReadyBindings,
-    GAP9RQSConv2DTilingReadyBindings,
-    GAP9RQSDWConv2DTilingReadyBindings,
-    GAP9RQSGEMMTilingReadyBindings,
-    GAP9RQSiHardswishTilingReadyBindings,
-    GAP9RQSMatrixVecTilingReadyBindings,
-    GAP9RQSTallGEMMTilingReadyBindings,
-    GAP9RQSTilingReadyBindings,
-    GAP9SGDTilingReadyBindings,
-    GAP9SoftmaxCrossEntropyGradTilingReadyBindings,
-    GAP9SoftmaxCrossEntropyTilingReadyBindings,
-    GAP9SoftmaxGradTilingReadyBindings,
-    GAP9SoftmaxTilingReadyBindings,
-    GAP9TransposeTilingReadyBindings,
-    GAP9UniformRQSTilingReadyBindings,
-)
 
 # Create GAP9-specific NodeMappers
 GAP9_RQAddMapper = NodeMapper(RQAddParser(), GAP9RQAddTilingReadyBindings)
@@ -89,7 +67,7 @@ GAP9_Conv1DMapper = NodeMapper(PULPConv1DParser(), [PULPConv1DBinding])
 GAP9_DWConv1DMapper = NodeMapper(PULPDWConv1DParser(), [PULPDWConv1DBinding])
 GAP9_FPConv2DMapper = NodeMapper(PULPFPConv2DParser(), GAP9Conv2DTilingReadyBindings)
 GAP9_Conv2DMapper = NodeMapper(PULPConv2DParser(), GAP9RQSConv2DTilingReadyBindings)
-GAP9_FPDWConv2DMapper = NodeMapper(PULPFPDWConv2DParser(), PULPFloatDWConv2DBindings)
+GAP9_FPDWConv2DMapper = NodeMapper(PULPFPDWConv2DParser(), GAP9DWConv2DTilingReadyBindings)
 GAP9_DWConv2DMapper = NodeMapper(PULPDWConv2DParser(), GAP9RQSDWConv2DTilingReadyBindings)
 GAP9_GEMMMapper = NodeMapper(PULPGEMMParser(), GAP9RQSGEMMTilingReadyBindings)
 GAP9_FloatGEMMMapper = NodeMapper(GEMMParser(), GAP9FPGEMMTilingReadyBindings)
@@ -118,44 +96,82 @@ GAP9_GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
 
 # GAP9-specific mapping using ClDma
 GAP9Mapping = {
-    'Conv': ConvLayer([GAP9_FPConv2DMapper, GAP9_FPDWConv2DMapper]),
-    'RequantizedConv': PULPRQSConvLayer([GAP9_Conv2DMapper, GAP9_DWConv2DMapper, GAP9_Conv1DMapper, GAP9_DWConv1DMapper]),
-    'RequantizedGemm': PULPRQSGEMMLayer([GAP9_MatrixVecMapper, GAP9_TallGEMMMapper, GAP9_GEMMMapper]),
-    'Gemm': GEMMLayer([GAP9_FloatGEMMMapper, GAP9_GEMMDequantMapper]),
-    'Gelu': GELULayer([GAP9_GELUMapper]),
-    'LayerNormalization': LayerNormLayer([GAP9_LayerNormMapper]),
-    'MaxPool': MaxPoolLayer([GAP9_MaxPool2DMapper]),
-    'RequantizediGELU': RQSiGELULayer([GAP9_RQGELU_int8_Mapper]),
-    'RQIntegerDiv': RQIntegerDivLayer([GAP9_RQIntegerDivMapper]),
-    'MatMul': MatMulLayer([GAP9_MatMulMapper]),
-    'IntegerMean': ReduceMeanLayer([GAP9_ReduceMeanMapper]),
-    'iSoftmax': SoftmaxLayer([GAP9_Softmax_int8_Mapper]),
-    'Softmax': SoftmaxLayer([GAP9_SoftmaxMapper]),
-    'ReduceMean': ReduceMeanLayer([GAP9_ReduceMeanMapper]),
-    'ReduceSum': ReduceSumLayer([GAP9_ReduceSumMapper]),
-    'RequantShift': RequantShiftLayer([GAP9_UniformRequantShiftMapper, GAP9_RequantShiftMapper]),
-    'Add': AddLayer([GAP9_AddMapper]),
-    'Flatten': ReshapeLayer([GAP9_FlattenMapper]),
-    'Gather': GatherLayer([GAP9_GatherMapper]),
-    'Mul': MulLayer([GAP9_MulMapper]),
-    'Pad': PadLayer([GAP9_Pad1DMapper, GAP9_Pad2DMapper]),
-    'Relu': ReluLayer([GAP9_ReluMapper]),
-    'Reshape': ReshapeLayer([GAP9_ReshapeMapper]),
-    'Squeeze': ReshapeLayer([GAP9_UnsqueezeMapper]),
-    'Transpose': TransposeLayer([GAP9_TransposeMapper]),
-    'Unsqueeze': ReshapeLayer([GAP9_UnsqueezeMapper]),
-    'Slice': SliceLayer([GAP9_SliceMapper, GAP9_DMASliceMapper]),
-    'RequantizedAdd': AddLayer([GAP9_RQAddMapper]),
-    'Concat': ConcatLayer([GAP9_ConcatMapper]),
-    'iRMSNorm': iRMSNormLayer([GAP9_iRMSNormMapper]),
-    'iHardswish': iHardswishLayer([GAP9_iHardswishMapper]),
-    'RequantizediHardswish': RQSiHardswishLayer([GAP9_RQSiHardswishMapper]),
-    'Quant': QuantLayer([GAP9_QuantMapper]),
-    'Dequant': QuantLayer([GAP9_DequantMapper]),
-    'SoftmaxGrad': SoftmaxGradLayer([GAP9_SoftmaxGradMapper]),
-    'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([GAP9_SoftmaxCrossEntropyLossMapper]),
-    'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([GAP9_SoftmaxCrossEntropyLossGradMapper]),
-    'SGD': SGDLayer([GAP9_SGDMapper])
+    'Conv':
+        ConvLayer([GAP9_FPConv2DMapper, GAP9_FPDWConv2DMapper]),
+    'RequantizedConv':
+        PULPRQSConvLayer([GAP9_Conv2DMapper, GAP9_DWConv2DMapper, GAP9_Conv1DMapper, GAP9_DWConv1DMapper]),
+    'RequantizedGemm':
+        PULPRQSGEMMLayer([GAP9_MatrixVecMapper, GAP9_TallGEMMMapper, GAP9_GEMMMapper]),
+    'Gemm':
+        GEMMLayer([GAP9_FloatGEMMMapper, GAP9_GEMMDequantMapper]),
+    'Gelu':
+        GELULayer([GAP9_GELUMapper]),
+    'LayerNormalization':
+        LayerNormLayer([GAP9_LayerNormMapper]),
+    'MaxPool':
+        MaxPoolLayer([GAP9_MaxPool2DMapper]),
+    'RequantizediGELU':
+        RQSiGELULayer([GAP9_RQGELU_int8_Mapper]),
+    'RQIntegerDiv':
+        RQIntegerDivLayer([GAP9_RQIntegerDivMapper]),
+    'MatMul':
+        MatMulLayer([GAP9_MatMulMapper]),
+    'IntegerMean':
+        ReduceMeanLayer([GAP9_ReduceMeanMapper]),
+    'iSoftmax':
+        SoftmaxLayer([GAP9_Softmax_int8_Mapper]),
+    'Softmax':
+        SoftmaxLayer([GAP9_SoftmaxMapper]),
+    'ReduceMean':
+        ReduceMeanLayer([GAP9_ReduceMeanMapper]),
+    'ReduceSum':
+        ReduceSumLayer([GAP9_ReduceSumMapper]),
+    'RequantShift':
+        RequantShiftLayer([GAP9_UniformRequantShiftMapper, GAP9_RequantShiftMapper]),
+    'Add':
+        AddLayer([GAP9_AddMapper]),
+    'Flatten':
+        ReshapeLayer([GAP9_FlattenMapper]),
+    'Gather':
+        GatherLayer([GAP9_GatherMapper]),
+    'Mul':
+        MulLayer([GAP9_MulMapper]),
+    'Pad':
+        PadLayer([GAP9_Pad1DMapper, GAP9_Pad2DMapper]),
+    'Relu':
+        ReluLayer([GAP9_ReluMapper]),
+    'Reshape':
+        ReshapeLayer([GAP9_ReshapeMapper]),
+    'Squeeze':
+        ReshapeLayer([GAP9_UnsqueezeMapper]),
+    'Transpose':
+        TransposeLayer([GAP9_TransposeMapper]),
+    'Unsqueeze':
+        ReshapeLayer([GAP9_UnsqueezeMapper]),
+    'Slice':
+        SliceLayer([GAP9_SliceMapper, GAP9_DMASliceMapper]),
+    'RequantizedAdd':
+        AddLayer([GAP9_RQAddMapper]),
+    'Concat':
+        ConcatLayer([GAP9_ConcatMapper]),
+    'iRMSNorm':
+        iRMSNormLayer([GAP9_iRMSNormMapper]),
+    'iHardswish':
+        iHardswishLayer([GAP9_iHardswishMapper]),
+    'RequantizediHardswish':
+        RQSiHardswishLayer([GAP9_RQSiHardswishMapper]),
+    'Quant':
+        QuantLayer([GAP9_QuantMapper]),
+    'Dequant':
+        QuantLayer([GAP9_DequantMapper]),
+    'SoftmaxGrad':
+        SoftmaxGradLayer([GAP9_SoftmaxGradMapper]),
+    'SoftmaxCrossEntropyLoss':
+        SoftmaxCrossEntropyLossLayer([GAP9_SoftmaxCrossEntropyLossMapper]),
+    'SoftmaxCrossEntropyLossGrad':
+        SoftmaxCrossEntropyLossGradLayer([GAP9_SoftmaxCrossEntropyLossGradMapper]),
+    'SGD':
+        SGDLayer([GAP9_SGDMapper])
 }
 
 
@@ -229,17 +245,17 @@ class GAP9StructBuffer(StructBuffer):
 
 
 # SCHEREMO: stdint is included before pulp_nn_kernels.h because it is supposed to be included in there, but isn't...
-_includeList = [
-    "pmsis.h",
-    "DeeployGAP9Math.h",
-    "pulp_nn_kernels.h",
-    "DeeployMchan.h"  
-]
+_includeList = ["pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h"]
 
 
 class GAP9ClusterEngine(DeploymentEngine):
 
-    def __init__(self, name: str, Mapping = GAP9Mapping, initCode = "", includeList = _includeList, n_cores: int = 8) -> None:
+    def __init__(self,
+                 name: str,
+                 Mapping = GAP9Mapping,
+                 initCode = "",
+                 includeList = _includeList,
+                 n_cores: int = 8) -> None:
         super().__init__(name, Mapping, initCode, includeList)
         self.n_cores = n_cores
 

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
-
 """
 GAP9-specific deployer that uses cl_dma.h API.
 
@@ -9,7 +8,7 @@ This deployer extends PULPDeployer to use GAP9-specific DMA (ClDma) via
 the GAP9Bindings transformers.
 """
 
-from typing import Callable, Dict, List, Type
+from typing import Callable, Dict, Type
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -17,8 +16,8 @@ import onnx_graphsurgeon as gs
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
+from Deeploy.Targets.GAP9.Bindings import GAP9ClusterTransformer, GAP9SimpleTransformer, GAP9Transformer
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
-from Deeploy.Targets.GAP9.Bindings import GAP9Transformer, GAP9ClusterTransformer, GAP9SimpleTransformer
 
 # GAP9-specific L3 RAM allocation and loading templates
 _GAP9L3AllocTemplate = NodeTemplate("""
@@ -62,7 +61,7 @@ class GAP9Deployer(PULPDeployer):
                          default_channels_first = default_channels_first,
                          deeployStateDir = deeployStateDir,
                          inputOffsets = inputOffsets)
-        
+
         # Override transformers to use GAP9-specific ones with ClDma
         self.Transformer = GAP9Transformer
         self.ClusterTransformer = GAP9ClusterTransformer
@@ -73,8 +72,7 @@ class GAP9Deployer(PULPDeployer):
 
         L3FileStr = ""
         globalConstBuffers = [
-            buf for key, buf in self.ctxt.globalObjects.items() 
-            if isinstance(buf, VariableBuffer) and buf._deploy
+            buf for key, buf in self.ctxt.globalObjects.items() if isinstance(buf, VariableBuffer) and buf._deploy
         ]
         nonArenaBuffers = [buf for buf in globalConstBuffers if buf._users != []]
         outputBuffNames = [outputBuffer.name for outputBuffer in self.graph.outputs]
@@ -94,18 +92,10 @@ class GAP9Deployer(PULPDeployer):
 
             # Allocate L3 RAM space (for constant buffers only)
             if isinstance(buf, ConstantBuffer):
-                L3FileStr += _GAP9L3AllocTemplate.generate({
-                    "locPtr": locPtr, 
-                    "extName": extName, 
-                    "size": size
-                })
+                L3FileStr += _GAP9L3AllocTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
 
             # Load data from ReadFS
-            L3FileStr += _GAP9L3InitTemplate.generate({
-                "locPtr": locPtr, 
-                "extName": extName, 
-                "size": size
-            })
+            L3FileStr += _GAP9L3InitTemplate.generate({"locPtr": locPtr, "extName": extName, "size": size})
 
         retStr = retStr + L3FileStr
 

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
-
 """
 GAP9-specific tiler bindings using ClDma instead of MchanDma.
 
@@ -11,6 +10,14 @@ instead of the low-level MCHAN API.
 
 import copy
 
+from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9ConcatBindings, GAP9FloatConv2DBindings, \
+    GAP9FloatDWConv2DBindings, GAP9FloatGELUBinding, GAP9FloatGEMMBindings, GAP9GatherBindings, \
+    GAP9iHardswishBindings, GAP9iRMSNormBindings, GAP9iRQSGELUBindings, GAP9LayernormBinding, GAP9MatMulBindings, \
+    GAP9MaxPool2DBindings, GAP9MulBindings, GAP9ReduceSumBindings, GAP9ReluBinding, GAP9ReshapeBindings, \
+    GAP9RQAddBindings, GAP9RQSBindings, GAP9RQSConv2DBindings, GAP9RQSDWConv2DBindings, GAP9RQSGEMMBindings, \
+    GAP9RQSiHardswishBindings, GAP9RQSMatrixVecBindings, GAP9RQSTallGEMMBindings, GAP9SGDBindings, \
+    GAP9SoftmaxBindings, GAP9SoftmaxCrossEntropyLossBindings, GAP9SoftmaxCrossEntropyLossGradBindings, \
+    GAP9SoftmaxGradBindings, GAP9TransposeBindings, GAP9UniformRQSBindings
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -22,40 +29,6 @@ from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import 
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
-from Deeploy.Targets.GAP9.Bindings import (
-    GAP9AddBindings,
-    GAP9ConcatBindings,
-    GAP9FloatConv2DBindings,
-    GAP9FloatGELUBinding,
-    GAP9FloatGEMMBindings,
-    GAP9GatherBindings,
-    GAP9iHardswishBindings,
-    GAP9iRMSNormBindings,
-    GAP9iRQSGELUBindings,
-    GAP9LayernormBinding,
-    GAP9MatMulBindings,
-    GAP9MaxPool2DBindings,
-    GAP9MulBindings,
-    GAP9ReduceSumBindings,
-    GAP9ReluBinding,
-    GAP9ReshapeBindings,
-    GAP9RQAddBindings,
-    GAP9RQSBindings,
-    GAP9RQSConv2DBindings,
-    GAP9RQSDWConv2DBindings,
-    GAP9RQSGEMMBindings,
-    GAP9RQSiHardswishBindings,
-    GAP9RQSMatrixVecBindings,
-    GAP9RQSTallGEMMBindings,
-    GAP9SGDBindings,
-    GAP9SoftmaxBindings,
-    GAP9SoftmaxCrossEntropyLossBindings,
-    GAP9SoftmaxCrossEntropyLossGradBindings,
-    GAP9SoftmaxGradBindings,
-    GAP9TransposeBindings,
-    GAP9UniformRQSBindings,
-    GAP9FloatDWConv2DBindings
-)
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
     RQDWConv2DTileConstraint
