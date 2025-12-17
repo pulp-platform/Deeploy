@@ -1,0 +1,29 @@
+	deeploy_test_gen:Ø
+1starts_c"Constant*
+value*: Bstarts 
+-ends_c"Constant*
+value*:@Bends 
+-axes_c"Constant*
+value*:Baxes 
+/steps_c"Constant*
+value*:Bsteps 
+E
+input
+starts_c
+ends_c
+axes_c
+steps_coutput
+slice_node"Slice
+SliceGraphZ
+input
+
+
+1
+
+`b 
+output
+
+
+1
+
+ B
