@@ -51,8 +51,14 @@ def pytest_configure(config: pytest.Config) -> None:
     # Register custom markers
     config.addinivalue_line("markers", "generic: mark test as a Generic platform test")
     config.addinivalue_line("markers", "cortexm: mark test as a Cortex-M (QEMU-ARM) platform test")
+    config.addinivalue_line("markers", "siracusa: mark test as a Siracusa platform test (untiled)")
+    config.addinivalue_line("markers", "siracusa_tiled: mark test as a Siracusa platform test (tiled)")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")
     config.addinivalue_line("markers", "models: mark test as a model test (full networks)")
+    config.addinivalue_line("markers", "singlebuffer: mark test as single-buffer configuration")
+    config.addinivalue_line("markers", "doublebuffer: mark test as double-buffer configuration")
+    config.addinivalue_line("markers", "l2: mark test as L2 default memory level")
+    config.addinivalue_line("markers", "l3: mark test as L3 default memory level")
     config.addinivalue_line("markers", "slow: mark test as slow running")
 
     # Configure logging based on verbosity

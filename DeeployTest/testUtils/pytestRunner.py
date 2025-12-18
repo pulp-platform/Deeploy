@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple
@@ -132,10 +133,10 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
 
     log.debug(f"[pytestRunner] Generation command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, capture_output = True, text = True)
+    result = subprocess.run(cmd, check = False)
 
     if result.returncode != 0:
-        log.error(f"Network generation failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}")
+        log.error(f"Network generation failed with return code {result.returncode}")
         raise RuntimeError(f"Network generation failed for {config.test_name}")
 
 
@@ -192,10 +193,10 @@ def configure_cmake(config: DeeployTestConfig) -> None:
 
     log.debug(f"[pytestRunner] CMake command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, capture_output = True, text = True, env = env)
+    result = subprocess.run(cmd, check = False, env = env)
 
     if result.returncode != 0:
-        log.error(f"CMake configuration failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}")
+        log.error(f"CMake configuration failed with return code {result.returncode}")
         raise RuntimeError(f"CMake configuration failed for {config.test_name}")
 
 
@@ -223,10 +224,10 @@ def build_binary(config: DeeployTestConfig) -> None:
 
     log.debug(f"[pytestRunner] Build command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, capture_output = True, text = True, env = env)
+    result = subprocess.run(cmd, check = False, env = env)
 
     if result.returncode != 0:
-        log.error(f"Build failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}")
+        log.error(f"Build failed with return code {result.returncode}")
         raise RuntimeError(f"Build failed for {config.test_name}")
 
 
@@ -280,6 +281,12 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     log.debug(f"[pytestRunner] Simulation command: {' '.join(cmd)}")
 
     result = subprocess.run(cmd, capture_output = True, text = True, env = env)
+
+    # Print captured output so it's visible when running with pytest -s
+    if result.stdout:
+        print(result.stdout, end = '')
+    if result.stderr:
+        print(result.stderr, end = '', file = sys.stderr)
 
     # Parse output for error count
     output = result.stdout + result.stderr
@@ -362,19 +369,39 @@ def create_test_config(
     toolchain_dir: Optional[str],
     cmake_args: List[str],
     tiling: bool = False,
+    cores: Optional[int] = None,
+    l1: Optional[int] = None,
+    l2: int = 1024000,
+    default_mem_level: str = "L2",
+    double_buffer: bool = False,
+    mem_alloc_strategy: str = "MiniMalloc",
+    search_strategy: str = "random-max",
+    profile_tiling: bool = False,
+    plot_mem_alloc: bool = False,
+    randomized_mem_scheduler: bool = False,
 ) -> DeeployTestConfig:
     """
     Create DeeployTestConfig for a specific test and platform.
     
     Args:
         test_name: Name of the test
-        platform: Target platform (e.g., "Generic", "QEMU-ARM")
+        platform: Target platform (e.g., "Generic", "QEMU-ARM", "Siracusa")
         simulator: Simulator to use
         deeploy_test_dir: Base DeeployTest directory
         toolchain: Toolchain to use - LLVM/GCC
         toolchain_dir: Path to toolchain installation
         cmake_args: Additional CMake arguments
         tiling: Whether to use tiling
+        cores: Number of cores (for Siracusa platforms)
+        l1: L1 memory size in bytes (for tiled platforms)
+        l2: L2 memory size in bytes (default: 1024000)
+        default_mem_level: Default memory level ("L2" or "L3")
+        double_buffer: Enable double buffering
+        mem_alloc_strategy: Memory allocation strategy
+        search_strategy: CP solver search strategy
+        profile_tiling: Enable tiling profiling
+        plot_mem_alloc: Enable memory allocation plotting
+        randomized_mem_scheduler: Enable randomized memory scheduler
         
     Returns:
         DeeployTestConfig instance
@@ -384,7 +411,39 @@ def create_test_config(
     gen_dir, test_dir_abs, test_name_clean = get_test_paths(test_dir, platform, base_dir = deeploy_test_dir)
 
     worker_id = get_worker_id()
-    build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}")
+    
+    # VJUNG: Build dir has to be unique for each worker to prevent conflict
+    build_suffix = Path(gen_dir).name
+    build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}_{build_suffix}")
+
+    cmake_args_list = list(cmake_args) if cmake_args else []
+    if cores is not None:
+        cmake_args_list.append(f"NUM_CORES={cores}")
+
+    gen_args_list = []
+    
+    if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka"]:
+        gen_args_list.append(f"--cores={cores}")
+    
+    if tiling:
+        if l1 is not None:
+            gen_args_list.append(f"--l1={l1}")
+        if l2 != 1024000:
+            gen_args_list.append(f"--l2={l2}")
+        if default_mem_level != "L2":
+            gen_args_list.append(f"--defaultMemLevel={default_mem_level}")
+        if double_buffer:
+            gen_args_list.append("--doublebuffer")
+        if mem_alloc_strategy != "MiniMalloc":
+            gen_args_list.append(f"--memAllocStrategy={mem_alloc_strategy}")
+        if search_strategy != "random-max":
+            gen_args_list.append(f"--searchStrategy={search_strategy}")
+        if profile_tiling:
+            gen_args_list.append("--profileTiling")
+        if plot_mem_alloc:
+            gen_args_list.append("--plotMemAlloc")
+        if randomized_mem_scheduler:
+            gen_args_list.append("--randomizedMemoryScheduler")
 
     config = DeeployTestConfig(
         test_name = test_name_clean,
@@ -396,7 +455,8 @@ def create_test_config(
         build_dir = build_dir,
         toolchain = toolchain,
         toolchain_install_dir = toolchain_dir,
-        cmake_args = cmake_args,
+        cmake_args = cmake_args_list,
+        gen_args = gen_args_list,
     )
 
     return config
