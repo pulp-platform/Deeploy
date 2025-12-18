@@ -50,6 +50,7 @@ def pytest_configure(config: pytest.Config) -> None:
     """Native PyTest hook: configure pytest for Deeploy tests."""
     # Register custom markers
     config.addinivalue_line("markers", "generic: mark test as a Generic platform test")
+    config.addinivalue_line("markers", "cortexm: mark test as a Cortex-M (QEMU-ARM) platform test")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")
     config.addinivalue_line("markers", "models: mark test as a model test (full networks)")
     config.addinivalue_line("markers", "slow: mark test as slow running")

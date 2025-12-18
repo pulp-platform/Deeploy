@@ -351,3 +351,74 @@ def get_worker_id() -> str:
         Worker ID string (e.g., 'gw0', 'gw1', 'master' for non-parallel)
     """
     return os.environ.get("PYTEST_XDIST_WORKER", "master")
+
+
+def create_test_config(
+    test_name: str,
+    platform: str,
+    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none'],
+    deeploy_test_dir: str,
+    toolchain: str,
+    toolchain_dir: Optional[str],
+    cmake_args: List[str],
+    tiling: bool = False,
+) -> DeeployTestConfig:
+    """
+    Create DeeployTestConfig for a specific test and platform.
+    
+    Args:
+        test_name: Name of the test
+        platform: Target platform (e.g., "Generic", "QEMU-ARM")
+        simulator: Simulator to use
+        deeploy_test_dir: Base DeeployTest directory
+        toolchain: Toolchain to use - LLVM/GCC
+        toolchain_dir: Path to toolchain installation
+        cmake_args: Additional CMake arguments
+        tiling: Whether to use tiling
+        
+    Returns:
+        DeeployTestConfig instance
+    """
+    test_dir = f"Tests/{test_name}"
+
+    gen_dir, test_dir_abs, test_name_clean = get_test_paths(test_dir, platform, base_dir = deeploy_test_dir)
+
+    worker_id = get_worker_id()
+    build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}")
+
+    config = DeeployTestConfig(
+        test_name = test_name_clean,
+        test_dir = test_dir_abs,
+        platform = platform,
+        simulator = simulator,
+        tiling = tiling,
+        gen_dir = gen_dir,
+        build_dir = build_dir,
+        toolchain = toolchain,
+        toolchain_install_dir = toolchain_dir,
+        cmake_args = cmake_args,
+    )
+
+    return config
+
+
+def run_and_assert_test(test_name: str, config: DeeployTestConfig, skipgen: bool, skipsim: bool) -> None:
+    """
+    Shared helper function to run a test and assert its results.
+    
+    Args:
+        test_name: Name of the test
+        config: DeeployTestConfig instance
+        skipgen: Whether to skip network generation
+        skipsim: Whether to skip simulation
+        
+    Raises:
+        AssertionError: If test fails or has errors
+    """
+    result = run_complete_test(config, skipgen = skipgen, skipsim = skipsim)
+
+    assert result.success, (f"Test {test_name} failed with {result.error_count} errors out of {result.total_count}\n"
+                            f"Output:\n{result.stdout}")
+
+    if result.error_count >= 0:
+        assert result.error_count == 0, (f"Found {result.error_count} errors out of {result.total_count} tests")
