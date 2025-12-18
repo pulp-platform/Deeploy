@@ -36,7 +36,7 @@ jobs:
         with:
           path: /app/.ccache
           key: ccache-ci
-      - name: Run Test
+      - name: Run Test # VJUNG: Run tests with 4 parallel threads as GitHub action VM has 4 cores.
         run: |
           cd DeeployTest
           mkdir -p /app/.ccache

@@ -130,6 +130,12 @@ def run_and_assert_test(test_name, config, skipgen, skipsim):
         assert result.error_count == 0, (f"Found {result.error_count} errors out of {result.total_count} tests")
 
 
+### Markers summary ###
+# generic: tests from the generic platform
+# kernels: single kernel (or single layer) tests
+# models: full model (multiple layer) tests
+
+
 @pytest.mark.generic
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", KERNEL_TESTS, ids = KERNEL_TESTS)
