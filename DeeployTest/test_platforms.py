@@ -3,24 +3,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from testUtils.pytestRunner import create_test_config, run_and_assert_test
-
+from test_cortexm_config import KERNEL_TESTS as CORTEXM_KERNEL_TESTS
+from test_cortexm_config import MODEL_TESTS as CORTEXM_MODEL_TESTS
 # Import platform-specific test configurations
 from test_generic_config import KERNEL_TESTS as GENERIC_KERNEL_TESTS
 from test_generic_config import MODEL_TESTS as GENERIC_MODEL_TESTS
-from test_cortexm_config import KERNEL_TESTS as CORTEXM_KERNEL_TESTS
-from test_cortexm_config import MODEL_TESTS as CORTEXM_MODEL_TESTS
+from test_siracusa_config import DEFAULT_CORES as SIRACUSA_DEFAULT_CORES
 from test_siracusa_config import KERNEL_TESTS as SIRACUSA_KERNEL_TESTS
 from test_siracusa_config import MODEL_TESTS as SIRACUSA_MODEL_TESTS
-from test_siracusa_config import DEFAULT_CORES as SIRACUSA_DEFAULT_CORES
-from test_siracusa_tiled_config import (
-    L2_SINGLEBUFFER_KERNELS,
-    L2_DOUBLEBUFFER_KERNELS,
-    L2_SINGLEBUFFER_MODELS,
-    L2_DOUBLEBUFFER_MODELS,
-    L3_SINGLEBUFFER_MODELS,
-    L3_DOUBLEBUFFER_MODELS,
-)
+from test_siracusa_tiled_config import L2_DOUBLEBUFFER_KERNELS, L2_DOUBLEBUFFER_MODELS, L2_SINGLEBUFFER_KERNELS, \
+    L2_SINGLEBUFFER_MODELS, L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
+from testUtils.pytestRunner import create_test_config, run_and_assert_test
 
 
 def generate_test_params(test_dict, config_name):
@@ -62,7 +55,6 @@ PLATFORM_CONFIGS = {
         "model_tests": CORTEXM_MODEL_TESTS,
     },
 }
-
 
 ### Markers summary ###
 # Platform markers:
@@ -209,9 +201,8 @@ def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
     generate_test_params(L2_SINGLEBUFFER_KERNELS, "L2-singlebuffer"),
     ids = param_id,
 )
-def test_siracusa_tiled_kernels_l2_singlebuffer(
-    test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim
-) -> None:
+def test_siracusa_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                                skipgen, skipsim) -> None:
     """Test Siracusa tiled kernel tests (L2, single-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
@@ -255,9 +246,8 @@ def test_siracusa_tiled_kernels_l2_singlebuffer(
     generate_test_params(L2_DOUBLEBUFFER_KERNELS, "L2-doublebuffer"),
     ids = param_id,
 )
-def test_siracusa_tiled_kernels_l2_doublebuffer(
-    test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim
-) -> None:
+def test_siracusa_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                                skipgen, skipsim) -> None:
     """Test Siracusa tiled kernel tests (L2, double-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
@@ -286,9 +276,8 @@ def test_siracusa_tiled_kernels_l2_doublebuffer(
     generate_test_params(L2_SINGLEBUFFER_MODELS, "L2-singlebuffer"),
     ids = param_id,
 )
-def test_siracusa_tiled_models_l2_singlebuffer(
-    test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim
-) -> None:
+def test_siracusa_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                               skipgen, skipsim) -> None:
     """Test Siracusa tiled model tests (L2, single-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
@@ -317,9 +306,8 @@ def test_siracusa_tiled_models_l2_singlebuffer(
     generate_test_params(L2_DOUBLEBUFFER_MODELS, "L2-doublebuffer"),
     ids = param_id,
 )
-def test_siracusa_tiled_models_l2_doublebuffer(
-    test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim
-) -> None:
+def test_siracusa_tiled_models_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                               skipgen, skipsim) -> None:
     """Test Siracusa tiled model tests (L2, double-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
@@ -348,9 +336,8 @@ def test_siracusa_tiled_models_l2_doublebuffer(
     generate_test_params(L3_SINGLEBUFFER_MODELS, "L3-singlebuffer"),
     ids = param_id,
 )
-def test_siracusa_tiled_models_l3_singlebuffer(
-    test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim
-) -> None:
+def test_siracusa_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                               skipgen, skipsim) -> None:
     """Test Siracusa tiled model tests (L3, single-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
@@ -379,9 +366,8 @@ def test_siracusa_tiled_models_l3_singlebuffer(
     generate_test_params(L3_DOUBLEBUFFER_MODELS, "L3-doublebuffer"),
     ids = param_id,
 )
-def test_siracusa_tiled_models_l3_doublebuffer(
-    test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim
-) -> None:
+def test_siracusa_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                               skipgen, skipsim) -> None:
     """Test Siracusa tiled model tests (L3, double-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(

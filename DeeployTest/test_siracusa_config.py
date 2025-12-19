@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-
 PLATFORM_NAME = "Siracusa"
 SIMULATOR = "gvsoc"
 DEFAULT_CORES = 8

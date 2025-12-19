@@ -98,13 +98,13 @@ def ccache_dir():
     # Use existing CCACHE_DIR if already set
     if "CCACHE_DIR" in os.environ:
         return Path(os.environ["CCACHE_DIR"])
-    
+
     # Fall back to /app/.ccache if it exists (for CI containers)
     ccache_path = Path("/app/.ccache")
     if ccache_path.exists():
         os.environ["CCACHE_DIR"] = str(ccache_path)
         return ccache_path
-    
+
     return None
 
 

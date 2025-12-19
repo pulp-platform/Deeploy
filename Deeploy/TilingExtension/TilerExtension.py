@@ -73,7 +73,7 @@ class Tiler():
         else:
             minimalloc_base = self._MINIMALLOC_INPUT_FILENAME
             minimalloc_output_base = self._MINIMALLOC_OUTPUT_FILENAME
-        
+
         if testName is not None:
             # VJUNG: Sanitize path
             safe_test_name = testName.replace("/", "_").replace("\\", "_")
@@ -289,8 +289,8 @@ class Tiler():
             raise KeyError("MINIMALLOC_INSTALL_DIR symbol not found!")
 
         minimallocOutput = subprocess.run([
-            f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}",
-            f"--input={self._minimalloc_input}.csv", f"--output={self._minimalloc_output}.csv"
+            f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}", f"--input={self._minimalloc_input}.csv",
+            f"--output={self._minimalloc_output}.csv"
         ],
                                           capture_output = True,
                                           text = True)
@@ -961,7 +961,11 @@ class Tiler():
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
 
-    def __init__(self, deployer: Union[MemoryLevelAwareDeployer, MemoryDeployerWrapper], tilerCls: Type[Tiler] = Tiler, testName: Optional[str] = None, workDir: Optional[str] = None):
+    def __init__(self,
+                 deployer: Union[MemoryLevelAwareDeployer, MemoryDeployerWrapper],
+                 tilerCls: Type[Tiler] = Tiler,
+                 testName: Optional[str] = None,
+                 workDir: Optional[str] = None):
         super().__init__(deployer)
         assert isinstance(self.Platform, (MemoryPlatform, MemoryPlatformWrapper)), \
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"

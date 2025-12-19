@@ -411,7 +411,7 @@ def create_test_config(
     gen_dir, test_dir_abs, test_name_clean = get_test_paths(test_dir, platform, base_dir = deeploy_test_dir)
 
     worker_id = get_worker_id()
-    
+
     # Build directory: shared per worker, not per test (for ccache efficiency)
     # Only add worker suffix for parallel execution (worker_id != "master")
     if worker_id == "master":
@@ -424,10 +424,10 @@ def create_test_config(
         cmake_args_list.append(f"NUM_CORES={cores}")
 
     gen_args_list = []
-    
+
     if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka"]:
         gen_args_list.append(f"--cores={cores}")
-    
+
     if tiling:
         if l1 is not None:
             gen_args_list.append(f"--l1={l1}")

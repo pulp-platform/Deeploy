@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import hashlib
 import os
 import sys
-import hashlib
 from collections import OrderedDict
 from typing import List, Tuple
 
@@ -119,7 +119,7 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
     # VJUNG: Create unique ID for the IO files of minimalloc and prevent conflict in case of parallel execution
     unique_params = f"{args.dumpdir}_L1{args.l1}_L2{args.l2}_{args.defaultMemLevel}_DB{args.doublebuffer}"
     testIdentifier = hashlib.md5(unique_params.encode()).hexdigest()[:16]
-    
+
     if args.doublebuffer:
         assert args.defaultMemLevel in ["L3", "L2"]
         if args.defaultMemLevel == "L3":
