@@ -4,6 +4,7 @@
 
 import math
 from typing import Tuple
+import numpy as np
 
 import onnx_graphsurgeon as gs
 
@@ -492,45 +493,42 @@ class PULPConvTrans2DParser(PULPFPConv2DParser):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        """Override for ConvGradX - swap input/output semantics"""
-        
+        """Override for ConvGradX - set dimensions correctly without swapping"""
+
+        print(f"[DEBUG] PULPConvTrans2DParser.parseNodeCtxt called with node.op={node.op}")
+
         if node.op == 'ConvGradX':
-            # For ConvGradX: inputs are [output_grad, weight], output is input_grad
-            # But parent expects: inputs are [input, weight], output is output
-            # So we need to swap the semantics
-            
-            # Temporarily swap input/output for parent parsing
-            output_grad_name = node.inputs[0].name
-            input_grad_name = node.outputs[0].name
-            
+            output_grad_name = node.inputs[0].name  # dY
+            weight_name = node.inputs[1].name
+            input_grad_name = node.outputs[0].name  # dX
+
             # Get tensors
-            output_grad = ctxt.lookup(output_grad_name)
-            weight = ctxt.lookup(node.inputs[1].name)
-            
-            # Create a temporary input tensor with output_grad's info as if it's the output
-            # and output tensor with input_grad's info as if it's the input
-            temp_input = node.inputs[0]
-            temp_output = node.outputs[0]
-            
-            # Swap
-            node.inputs[0] = temp_output
-            node.outputs[0] = temp_input
-            
-            # Call parent
-            newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-            
-            # Restore
-            node.inputs[0] = temp_input
-            node.outputs[0] = temp_output
-            
-            if ret:
-                # Fix the tensor names for ConvGradX
-                self.operatorRepresentation['data_in'] = output_grad_name
-                self.operatorRepresentation['data_out'] = input_grad_name
-                self.operatorRepresentation["has_bias"] = "false"
-                self.operatorRepresentation["bias"] = "NULL"
-                
-            return newCtxt, ret
+            output_grad = ctxt.lookup(output_grad_name)  # dY: [N, C_out, H_out, W_out]
+            weight = ctxt.lookup(weight_name)
+            input_grad = ctxt.lookup(input_grad_name)   # dX: [N, C_in, H_in, W_in]
+
+            # Set tensor names
+            self.operatorRepresentation['data_in'] = output_grad_name   # dY
+            self.operatorRepresentation['weight'] = weight_name
+            self.operatorRepresentation['data_out'] = input_grad_name   # dX
+            self.operatorRepresentation["has_bias"] = "false"
+            self.operatorRepresentation["bias"] = "NULL"
+
+            self.operatorRepresentation['batch'] = input_grad.shape[0]
+            self.operatorRepresentation['ch_im_in'] = input_grad.shape[1]
+            self.operatorRepresentation['dim_im_in_x'] = input_grad.shape[2]  # H_in
+            self.operatorRepresentation['dim_im_in_y'] = input_grad.shape[3]  # W_in
+
+            # From output_grad (dY): [N, C_out, H_out, W_out]
+            self.operatorRepresentation['ch_im_out'] = output_grad.shape[1]
+            self.operatorRepresentation['dim_im_out_x'] = output_grad.shape[2]  # H_out
+            self.operatorRepresentation['dim_im_out_y'] = output_grad.shape[3]  # W_out
+
+
+            # Size for memory allocation
+            self.operatorRepresentation['size'] = np.prod(output_grad.shape)
+
+            return ctxt, True
         else:
             return super().parseNodeCtxt(ctxt, node, channels_first)
 
