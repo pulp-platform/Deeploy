@@ -74,5 +74,20 @@ jobs:
             cd DeeployTest
             mkdir -p /app/.ccache
             export CCACHE_DIR=/app/.ccache
-            python testRunner_tiled_siracusa.py -t Tests/${{ inputs.test-name }} --cores=${{ inputs.num-cores }} --l1 ${{ matrix.L1 }} --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
+            
+            # Determine buffer mode and memory level for pytest markers
+            BUFFER_MARKER="${{ inputs.double-buffer && 'doublebuffer' || 'singlebuffer' }}"
+            MEMLEVEL_MARKER="${{ inputs.default-memory-level == 'L3' && 'l3' || 'l2' }}"
+            
+            # Determine if it's a kernel or model test
+            TEST_TYPE="kernels"
+            if [[ "${{ inputs.test-name }}" == *"/"* ]] || [[ "${{ inputs.test-name }}" =~ (simpleRegression|MobileNet|Attention|Transformer|Llama|MLPerf|CCT|TinyViT) ]]; then
+              TEST_TYPE="models"
+            fi
+            
+            # Build test ID pattern: testname-L1value-config
+            TEST_PATTERN="${{ inputs.test-name }}-${{ matrix.L1 }}-${{ inputs.default-memory-level }}-${BUFFER_MARKER}"
+            
+            # Run pytest with specific test matching the pattern
+            pytest test_platforms.py::test_siracusa_tiled_${TEST_TYPE}_${MEMLEVEL_MARKER}_${BUFFER_MARKER} -k "$TEST_PATTERN" -v
           shell: bash

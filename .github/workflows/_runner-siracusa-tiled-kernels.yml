@@ -1,0 +1,40 @@
+name: Siracusa Tiled Kernels Runner
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      memory-level:
+        required: true
+        type: string
+        description: 'Memory level marker (l2 or l3)'
+      buffer-mode:
+        required: true
+        type: string
+        description: 'Buffer mode marker (singlebuffer or doublebuffer)'
+
+jobs:
+  run-tests:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Deeploy
+        run: |
+          pip install -e .
+
+      - name: Run kernel tests
+        run: |
+          cd DeeployTest
+          pytest test_platforms.py -m "siracusa_tiled and kernels and ${{ inputs.memory-level }} and ${{ inputs.buffer-mode }}" -v

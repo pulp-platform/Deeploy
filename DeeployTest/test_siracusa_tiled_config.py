@@ -80,6 +80,21 @@ L2_SINGLEBUFFER_MODELS = {
     "testFloatDemoTinyViT": [4000],
 }
 
+L2_DOUBLEBUFFER_MODELS = {
+    "simpleRegression": [60000, 45000, 30000],
+    "miniMobileNet": [60000, 24000, 12000, 6000],
+    "miniMobileNetv2": [60000, 32000, 24000, 16000],
+    "Attention": [60000, 20000, 10000, 5000],
+    "microLlama/microLlama1": [60000, 20000, 10000],
+    "microLlama/microLlama8": [60000, 20000, 10000],
+    "microLlama/microLlama8_parallel": [60000, 20000, 10000],
+    "MLPerf/KeywordSpotting": [128000],
+    "MLPerf/ImageClassification": [128000],
+    "MLPerf/AnomalyDetection": [128000],
+    "CCT/CCT_1_16_16_8": [128000],
+    "testFloatDemoTinyViT": [8000],
+}
+
 L3_SINGLEBUFFER_MODELS = {
     "simpleRegression": [45000, 30000, 16000],
     "miniMobileNet": [60000, 12000, 6000],

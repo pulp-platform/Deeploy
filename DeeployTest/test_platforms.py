@@ -2,13 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Central test file for all platforms.
-
-This file defines the test functions with markers for all supported platforms.
-Each platform's test lists are imported from their respective config files.
-"""
-
 import pytest
 from testUtils.pytestRunner import create_test_config, run_and_assert_test
 

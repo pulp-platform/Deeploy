@@ -51,11 +51,6 @@ jobs:
       - name: Build Deeploy
         shell: bash
         run: pip install -e .
-      - name: Install jq
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get update -y
-          apt-get install -y jq
       - name: Cache ccache
         uses: actions/cache/restore@v4
         with:
@@ -64,16 +59,14 @@ jobs:
       - name: Run Tests
         run: |
           cd DeeployTest
-          echo '${{ inputs.tests-config }}' > tests.json
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
 
-          jq -c '.[]' tests.json | while read test; do
-            testName=$(echo "$test" | jq -r '.name')
-            L1_values=$(echo "$test" | jq -r '.L1[]')
-            for L1_value in $L1_values; do
-              echo "Running test: $testName with L1: $L1_value"
-              python testRunner_tiled_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }} --l1 $L1_value --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
-            done
-          done
+          # Determine buffer mode and memory level for pytest markers
+          BUFFER_MARKER="${{ inputs.double-buffer && 'doublebuffer' || 'singlebuffer' }}"
+          MEMLEVEL_MARKER="${{ inputs.default-memory-level == 'L3' && 'l3' || 'l2' }}"
+          
+          # Run all kernel tests matching the buffer and memory level configuration
+          echo "Running Siracusa tiled kernel tests (${MEMLEVEL_MARKER}, ${BUFFER_MARKER})"
+          pytest test_platforms.py::test_siracusa_tiled_kernels_${MEMLEVEL_MARKER}_${BUFFER_MARKER} -v
         shell: bash
