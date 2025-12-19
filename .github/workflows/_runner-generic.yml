@@ -41,5 +41,5 @@ jobs:
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          pytest test_platform.py -v -n 4 -m "generic and ${{ inputs.pytest-marker }}"
+          pytest test_platforms.py -v -n 4 -m "generic and ${{ inputs.pytest-marker }}"
         shell: bash
