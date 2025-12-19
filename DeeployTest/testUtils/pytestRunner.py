@@ -412,9 +412,12 @@ def create_test_config(
 
     worker_id = get_worker_id()
     
-    # VJUNG: Build dir has to be unique for each worker to prevent conflict
-    build_suffix = Path(gen_dir).name
-    build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}_{build_suffix}")
+    # Build directory: shared per worker, not per test (for ccache efficiency)
+    # Only add worker suffix for parallel execution (worker_id != "master")
+    if worker_id == "master":
+        build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / "build_master")
+    else:
+        build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}")
 
     cmake_args_list = list(cmake_args) if cmake_args else []
     if cores is not None:
