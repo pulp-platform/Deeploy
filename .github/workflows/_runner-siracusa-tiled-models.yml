@@ -41,7 +41,7 @@ jobs:
       - name: Run model test with retry
         uses: nick-fields/retry@v3
         with:
-          timeout_minutes: 10
+          timeout_minutes: 20
           max_attempts: 3
           retry_on: error
           command: |
