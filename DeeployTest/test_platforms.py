@@ -17,6 +17,7 @@ from test_siracusa_tiled_config import (
     L2_SINGLEBUFFER_KERNELS,
     L2_DOUBLEBUFFER_KERNELS,
     L2_SINGLEBUFFER_MODELS,
+    L2_DOUBLEBUFFER_MODELS,
     L3_SINGLEBUFFER_MODELS,
     L3_DOUBLEBUFFER_MODELS,
 )
@@ -303,6 +304,37 @@ def test_siracusa_tiled_models_l2_singlebuffer(
         l1 = l1,
         default_mem_level = "L2",
         double_buffer = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa_tiled
+@pytest.mark.models
+@pytest.mark.doublebuffer
+@pytest.mark.l2
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(L2_DOUBLEBUFFER_MODELS, "L2-doublebuffer"),
+    ids = param_id,
+)
+def test_siracusa_tiled_models_l2_doublebuffer(
+    test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim
+) -> None:
+    """Test Siracusa tiled model tests (L2, double-buffer)."""
+    test_name, l1, config_name = test_params
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = SIRACUSA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 

@@ -44,5 +44,5 @@ jobs:
           export CCACHE_DIR=/app/.ccache
           
           # Run tests using pytest markers
-          pytest test_platforms.py::test_siracusa_${{ inputs.test-type }} -v
+          pytest test_platforms.py::test_siracusa_${{ inputs.test-type }} -v -s
         shell: bash
