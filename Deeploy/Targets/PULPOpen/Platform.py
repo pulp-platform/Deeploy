@@ -34,7 +34,7 @@ from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBi
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
-    PULPTallGEMMParser, PULPConvTrans2DParser, PULPConvGradW2DParser, PULPConvGradB2DParser, PULPDWConvTrans2DParser, \
+    PULPTallGEMMParser, PULPConvGradX2DParser, PULPConvGradW2DParser, PULPConvGradB2DParser, PULPDWConvGradX2DParser, \
     PULPDWConvGradW2DParser
 from Deeploy.Targets.PULPOpen.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConcatTilingReadyBindings, \
@@ -50,7 +50,7 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings, PULPAveragePool2DTilingReadyBindings, \
-    PULPAveragePoolGrad2DTilingReadyBindings, PULPConvTrans2DTilingReadyBindings, PULPConvGradW2DTilingReadyBindings, PULPConvGradB2DTilingReadyBindings, PULPDWConvTrans2DTilingReadyBindings, \
+    PULPAveragePoolGrad2DTilingReadyBindings, PULPConvGradX2DTilingReadyBindings, PULPConvGradW2DTilingReadyBindings, PULPConvGradB2DTilingReadyBindings, PULPDWConvGradX2DTilingReadyBindings, \
     PULPDWConvGradW2DTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
@@ -81,8 +81,8 @@ Conv1DMapper = NodeMapper(PULPConv1DParser(), [PULPConv1DBinding])
 DWConv1DMapper = NodeMapper(PULPDWConv1DParser(), [PULPDWConv1DBinding])
 FPConv2DMapper = NodeMapper(PULPFPConv2DParser(), PULPConv2DTilingReadyBindings)
 
-ConvGradXMapper = NodeMapper(PULPConvTrans2DParser(), PULPConvTrans2DTilingReadyBindings)
-DwConvGradxMapper = NodeMapper(PULPDWConvTrans2DParser(), PULPDWConvTrans2DTilingReadyBindings)
+ConvGradXMapper = NodeMapper(PULPConvGradX2DParser(), PULPConvGradX2DTilingReadyBindings)
+DwConvGradxMapper = NodeMapper(PULPDWConvGradX2DParser(), PULPDWConvGradX2DTilingReadyBindings)
 ConvGradWMapper = NodeMapper(PULPConvGradW2DParser(), PULPConvGradW2DTilingReadyBindings)
 DwConvGradWMapper = NodeMapper(PULPDWConvGradW2DParser(), PULPDWConvGradW2DTilingReadyBindings)
 ConvGradBMapper = NodeMapper(PULPConvGradB2DParser(), PULPConvGradB2DTilingReadyBindings)

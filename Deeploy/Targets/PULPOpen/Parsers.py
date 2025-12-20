@@ -464,7 +464,7 @@ class PULPTallGEMMParser(PULPGEMMParser):
 
         return newCtxt, True
 
-class PULPConvTrans2DParser(PULPFPConv2DParser):
+class PULPConvGradX2DParser(PULPFPConv2DParser):
 
     def __init__(self, noBiasHoisting = True):
         super().__init__(noBiasHoisting)
@@ -532,7 +532,7 @@ class PULPConvTrans2DParser(PULPFPConv2DParser):
         else:
             return super().parseNodeCtxt(ctxt, node, channels_first)
 
-class PULPDWConvTrans2DParser(PULPFPDWConv2DParser):
+class PULPDWConvGradX2DParser(PULPFPDWConv2DParser):
 
     def __init__(self, noBiasHoisting = True):
         super().__init__(noBiasHoisting)
@@ -561,36 +561,42 @@ class PULPDWConvTrans2DParser(PULPFPDWConv2DParser):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        """Override for ConvGradX - swap input/output semantics"""
-        
+        """Parse ConvGradX node context directly without relying on parent's swap logic"""
+
         if node.op == 'ConvGradX':
-            # For ConvGradX: inputs are [output_grad, weight], output is input_grad
-            # Temporarily swap input/output for parent parsing
-            output_grad_name = node.inputs[0].name
-            input_grad_name = node.outputs[0].name
-            
-            # Swap
-            temp_input = node.inputs[0]
-            temp_output = node.outputs[0]
-            node.inputs[0] = temp_output
-            node.outputs[0] = temp_input
-            
-            # Call parent
-            newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-            
-            # Restore
-            node.inputs[0] = temp_input
-            node.outputs[0] = temp_output
-            
-            if ret:
-                # Fix the tensor names for ConvGradX
-                self.operatorRepresentation['data_in'] = output_grad_name
-                self.operatorRepresentation['data_out'] = input_grad_name
-                self.operatorRepresentation["weight"] = ctxt.lookup(node.inputs[1].name).name
-                self.operatorRepresentation["has_bias"] = "false"
-                self.operatorRepresentation["bias"] = "NULL"
-                
-            return newCtxt, ret
+            # For ConvGradX (depthwise transposed conv):
+            # inputs[0] = output_grad: [N, C_out, H_out, W_out]
+            # inputs[1] = weight: [C_out, C_in/group, kH, kW] (for DW: [C_in, 1, kH, kW])
+            # outputs[0] = input_grad: [N, C_in, H_in, W_in]
+
+            output_grad = ctxt.lookup(node.inputs[0].name)
+            weight = ctxt.lookup(node.inputs[1].name)
+            input_grad = ctxt.lookup(node.outputs[0].name)
+
+            # Map tensor names
+            self.operatorRepresentation['data_in'] = node.inputs[0].name  # output_grad
+            self.operatorRepresentation['data_out'] = node.outputs[0].name  # input_grad
+            self.operatorRepresentation['weight'] = node.inputs[1].name
+            self.operatorRepresentation["has_bias"] = "false"
+            self.operatorRepresentation["bias"] = "NULL"
+            self.operatorRepresentation['batch'] = input_grad.shape[0]
+
+            # why channel fist fault
+            # output_grad dimensions (what we receive as "input")
+            self.operatorRepresentation['ch_im_in'] = output_grad.shape[1]  # C_out
+            self.operatorRepresentation['dim_im_in_x'] = output_grad.shape[2]  # H_out
+            self.operatorRepresentation['dim_im_in_y'] = output_grad.shape[3]  # W_out
+
+            # input_grad dimensions (what we compute as "output")
+            self.operatorRepresentation['ch_im_out'] = input_grad.shape[1]  # C_in
+            self.operatorRepresentation['dim_im_out_x'] = input_grad.shape[2]  # H_in
+            self.operatorRepresentation['dim_im_out_y'] = input_grad.shape[3]  # W_in
+        
+
+            if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_out']:
+                return ctxt, True
+
+            return ctxt, False
         else:
             return super().parseNodeCtxt(ctxt, node, channels_first)
 

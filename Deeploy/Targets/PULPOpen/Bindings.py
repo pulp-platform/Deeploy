@@ -33,7 +33,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, \
     MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate, FloatAveragePoolTemplate
+    iRMSNormTemplate, iSoftmaxTemplate, FloatAveragePoolTemplate, FloatConvGradTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker, PULPConvGradBChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -251,39 +251,39 @@ PULPFloatDWConv2DBindings = [
         ForkTransformer) for float_type in FloatDataTypes
 ]
 
-PULPFloatConvTrans2DBindings = [
+PULPFloatConvGradX2DBindings = [
     NodeBinding(
         ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
-                    [PointerClass(float32_t)]), FloatConvTemplate.referenceConvGradX2DTemplate,
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradX2DTemplate,
         ClusterTransformer)
 ]
 
-PULPFloatDWConvTrans2DBindings = [
+PULPFloatDWConvGradX2DBindings = [
     NodeBinding(
         ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
-                    [PointerClass(float32_t)]), FloatConvTemplate.referenceDWConvTrans2DTemplate,
-        ForkTransformer)
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceDWConvGradX2DTemplate,
+        ClusterTransformer)
 ]
 
 PULPFloatConvGradW2DBindings = [
     NodeBinding(
         ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
-                    [PointerClass(float32_t)]), FloatConvTemplate.referenceConvGradW2DTemplate,
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradW2DTemplate,
         ClusterTransformer)
 ]
 
 PULPFloatDWConvGradW2DBindings = [
     NodeBinding(
         ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
-                    [PointerClass(float32_t)]), FloatConvTemplate.referenceDWConvGradW2DTemplate,
-        ForkTransformer)
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceDWConvGradW2DTemplate,
+        ClusterTransformer)
 ]
 
 PULPFloatConvGradB2DBindings = [
     NodeBinding(
         PULPConvGradBChecker([PointerClass(float32_t)],  # Only one input: output_grad
                              [PointerClass(float32_t)]), # Output: bias_grad
-        FloatConvTemplate.referenceConvGradB2DTemplate,
+        FloatConvGradTemplate.referenceConvGradB2DTemplate,
         ForkTransformer)
 ]
 
