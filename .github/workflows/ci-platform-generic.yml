@@ -36,89 +36,89 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        FP32Kernels/Activations/ReLU
-        FP32Kernels/Activations/Softmax/Regular
+        Kernels/FP32/ReLU
+        Kernels/FP32/Softmax/Regular
 
-        FP32Kernels/Add/regular
+        Kernels/FP32/Add/Regular
 
-        FP32Kernels/Conv2D/DWBias
-        FP32Kernels/Conv2D/DWNoBias
-        FP32Kernels/Conv2D/DWZeroValuedBias
+        Kernels/FP32/Conv/DW_2D_Bias
+        Kernels/FP32/Conv/DW_2D_NoBias
+        Kernels/FP32/Conv/DW_2D_ZeroValuedBias
 
-        FP32Kernels/Conv2D/RegularBias
-        FP32Kernels/Conv2D/RegularNoBias
-        FP32Kernels/Conv2D/RegularZeroValuedBias
+        Kernels/FP32/Conv/Regular_2D_Bias
+        Kernels/FP32/Conv/Regular_2D_NoBias
+        Kernels/FP32/Conv/Regular_2D_ZeroValuedBias
 
-        FP32Kernels/Div
-        FP32Kernels/GEMM/regular
-        FP32Kernels/MatMul
-        FP32Kernels/MaxPool
-        FP32Kernels/Mul
+        Kernels/FP32/Div
+        Kernels/FP32/GEMM/Regular
+        Kernels/FP32/MatMul
+        Kernels/FP32/MaxPool
+        Kernels/FP32/Mul
 
-        FP32Kernels/Norm/LayerNorm
-        FP32Kernels/Norm/RMSNorm
+        Kernels/FP32/LayerNorm
+        Kernels/FP32/RMSNorm
 
-        FP32Kernels/Pow/Scalar
-        FP32Kernels/Pow/Vector
+        Kernels/FP32/Pow/Scalar
+        Kernels/FP32/Pow/Vector
 
-        FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean
-        FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add
-        FP32Kernels/ReduceMean/KeepDims/AllAxes
-        FP32Kernels/ReduceMean/KeepDims/Axes1_2_3
-        FP32Kernels/ReduceMean/KeepDims/Axes1_3
-        FP32Kernels/ReduceMean/KeepDims/Axes2_1
-        FP32Kernels/ReduceMean/KeepDims/Axis0
-        FP32Kernels/ReduceMean/KeepDims/Axis2
-        FP32Kernels/ReduceMean/KeepDims/ReduceMean_Add
+        Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean
+        Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add
+        Kernels/FP32/ReduceMean/KeepDims/AllAxes
+        Kernels/FP32/ReduceMean/KeepDims/Axes1_2_3
+        Kernels/FP32/ReduceMean/KeepDims/Axes1_3
+        Kernels/FP32/ReduceMean/KeepDims/Axes2_1
+        Kernels/FP32/ReduceMean/KeepDims/Axis0
+        Kernels/FP32/ReduceMean/KeepDims/Axis2
+        Kernels/FP32/ReduceMean/KeepDims/ReduceMean_Add
 
-        FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean
-        FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean_Add
-        FP32Kernels/ReduceMean/NoKeepDims/AllAxes
-        FP32Kernels/ReduceMean/NoKeepDims/Axes1_2_3
-        FP32Kernels/ReduceMean/NoKeepDims/Axes1_3
-        FP32Kernels/ReduceMean/NoKeepDims/Axes2_1
-        FP32Kernels/ReduceMean/NoKeepDims/Axis0
-        FP32Kernels/ReduceMean/NoKeepDims/Axis2
-        FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add
+        Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean
+        Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean_Add
+        Kernels/FP32/ReduceMean/NoKeepDims/AllAxes
+        Kernels/FP32/ReduceMean/NoKeepDims/Axes1_2_3
+        Kernels/FP32/ReduceMean/NoKeepDims/Axes1_3
+        Kernels/FP32/ReduceMean/NoKeepDims/Axes2_1
+        Kernels/FP32/ReduceMean/NoKeepDims/Axis0
+        Kernels/FP32/ReduceMean/NoKeepDims/Axis2
+        Kernels/FP32/ReduceMean/NoKeepDims/ReduceMean_Add
 
-        FP32Kernels/SkipConnection/ReshapeWithSkipConnection
-        FP32Kernels/Sqrt
-        FP32Kernels/Transpose
+        Kernels/FP32/Reshape/SkipConnection
+        Kernels/FP32/Sqrt
+        Kernels/FP32/Transpose
 
-        IntKernels/Activations/Softmax/Regular
+        Kernels/Integer/Slice
 
-        IntKernels/Add/MultIO
-        IntKernels/Add/Regular
+        Kernels/Integer/Add/MultIO
+        Kernels/Integer/Add/Regular
 
-        IntKernels/Conv/1D/DW
-        IntKernels/Conv/1D/Regular
+        Kernels/Integer/Conv/DW_1D
+        Kernels/Integer/Conv/Regular_1D
 
-        IntKernels/Conv/2D/DW
-        IntKernels/Conv/2D/Regular
+        Kernels/Integer/Conv/DW_2D
+        Kernels/Integer/Conv/Regular_2D
 
-        IntKernels/GEMM
+        Kernels/Integer/GEMM/Regular
 
-        IntKernels/MatMul/add
-        IntKernels/MatMul/regular
+        Kernels/Integer/MatMul/Add
+        Kernels/Integer/MatMul/Regular
 
-        IntKernels/MaxPool
+        Kernels/Integer/MaxPool
 
-        IntKernels/Pad/1D
-        IntKernels/Pad/2D
+        Kernels/Integer/Pad/Regular_1D
+        Kernels/Integer/Pad/Regular_2D
 
-        IntKernels/ReduceMean
-        IntKernels/ReduceSum
-        IntKernels/Slice
+        Kernels/Integer/ReduceMean
+        Kernels/Integer/ReduceSum
+        Kernels/Integer/Slice
 
         Models/TinyViT/5M/Layers/FP32/ReduceMean
 
-        Others/Dequant
-        Others/Quant
-        Others/QuantizedLinear
-        Others/RequantizedConv2D
-        Others/RequantizedDWConv
-        Others/RQConv
-        Others/RQMatMul
+        Kernels/Mixed/Dequant
+        Kernels/Mixed/Quant
+        Kernels/Mixed/QuantizedLinear
+        Kernels/Integer/Conv/Regular_2D_RQ
+        Kernels/Integer/Conv/DW_2D_RQ
+        Kernels/Integer/Conv/Regular_2D_RQ
+        Kernels/Integer/MatMul/Regular_RQ
 
   generic-models:
     needs: select-env
@@ -139,8 +139,8 @@ jobs:
         Models/miniMobileNet
         Models/miniMobileNetv2
 
-        Models/simpleCNN
+        Models/CNN_Linear1
         Models/TinyViT/Demo
         Models/WaveFormer
 
-        Others/SimpleRegression
+        Models/CNN_Linear2

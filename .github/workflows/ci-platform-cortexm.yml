@@ -36,17 +36,17 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        IntKernels/Add/Regular
-        IntKernels/Add/MultIO
-        IntKernels/Pad/1D
-        IntKernels/Pad/2D
-        IntKernels/MatMul/regular
-        IntKernels/MatMul/add
-        IntKernels/MaxPool
-        Others/RQConv
-        IntKernels/ReduceSum
-        IntKernels/ReduceMean
-        IntKernels/Slice
+        Kernels/Integer/Add/Regular
+        Kernels/Integer/Add/MultIO
+        Kernels/Integer/Pad/Regular_1D
+        Kernels/Integer/Pad/Regular_2D
+        Kernels/Integer/MatMul/Regular
+        Kernels/Integer/MatMul/Add
+        Kernels/Integer/MaxPool
+        Kernels/Integer/Conv/Regular_2D_RQ
+        Kernels/Integer/ReduceSum
+        Kernels/Integer/ReduceMean
+        Kernels/Integer/Slice
 
   cortexm-models:
     needs: select-env
@@ -55,5 +55,5 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        Others/SimpleRegression
+        Models/CNN_Linear2
         Models/WaveFormer

@@ -50,7 +50,7 @@ for(int j=0;j<${M};j++){
 // LMACAN: In some edge cases sporadic errors happen if this loop is not added.
 // We believe this is due to missing bubbles in the pipeline that break operator forwarding.
 // Breaking test:
-//   `python testRunner_tiled_siracusa.py -t=Tests/Others/Transformer --defaultMemLevel=L3 --doublebuffer --l1=30000`
+//   `python testRunner_tiled_siracusa.py -t=Tests/Models/Transformer --defaultMemLevel=L3 --doublebuffer --l1=30000`
 #pragma unroll 1
 for(int k=0;k<3;k++){
   asm volatile("nop" ::);

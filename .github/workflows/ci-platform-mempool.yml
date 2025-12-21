@@ -36,35 +36,35 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        IntKernels/Add/MultIO
-        IntKernels/Add/Regular
+        Kernels/Integer/Add/MultIO
+        Kernels/Integer/Add/Regular
 
-        IntKernels/Conv/1D/DW
-        IntKernels/Conv/1D/Regular
+        Kernels/Integer/Conv/DW_1D
+        Kernels/Integer/Conv/Regular_1D
 
-        IntKernels/Conv/2D/DW
-        IntKernels/Conv/2D/Regular
+        Kernels/Integer/Conv/DW_2D
+        Kernels/Integer/Conv/Regular_2D
 
-        IntKernels/GEMM
+        Kernels/Integer/GEMM/Regular
 
-        IntKernels/MatMul/add
-        IntKernels/MatMul/regular
+        Kernels/Integer/MatMul/Add
+        Kernels/Integer/MatMul/Regular
 
-        IntKernels/MaxPool
+        Kernels/Integer/MaxPool
 
-        IntKernels/Pad/1D
-        IntKernels/Pad/2D
+        Kernels/Integer/Pad/Regular_1D
+        Kernels/Integer/Pad/Regular_2D
 
-        IntKernels/ReduceMean
-        IntKernels/ReduceSum
+        Kernels/Integer/ReduceMean
+        Kernels/Integer/ReduceSum
 
-        IntKernels/Slice
+        Kernels/Integer/Slice
 
-        Others/RequantizedConv2D
-        Others/RequantizedDWConv
-        Others/RQConv
-        Others/RQGEMM
-        Others/RQMatMul
+        Kernels/Integer/Conv/Regular_2D_RQ
+        Kernels/Integer/Conv/DW_2D_RQ
+        Kernels/Integer/Conv/Regular_2D_RQ
+        Kernels/Integer/GEMM/Regular_RQ
+        Kernels/Integer/MatMul/Regular_RQ
 
   mempool-models:
     needs: select-env
@@ -80,6 +80,6 @@ jobs:
         Models/miniMobileNet
         Models/miniMobileNetv2
 
-        Models/simpleCNN
+        Models/CNN_Linear1
 
-        Others/SimpleRegression
+        Models/CNN_Linear2

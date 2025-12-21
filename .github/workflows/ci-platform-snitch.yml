@@ -36,20 +36,20 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        FP32Kernels/Activations/Softmax/Regular
+        Kernels/FP32/Softmax/Regular
 
-        IntKernels/Add/Large
-        IntKernels/Add/Regular
+        Kernels/Integer/Add/Large
+        Kernels/Integer/Add/Regular
 
-        IntKernels/Activations/Softmax/Large
-        IntKernels/Activations/Softmax/Regular
+        Kernels/Integer/Concat
+        Kernels/Integer/Slice
 
-        IntKernels/MatMul/regular
+        Kernels/Integer/MatMul/Regular
 
-        Others/iNoNorm
-        Others/RQGEMM
-        Others/RQAdd
-        Others/RQGEMMTransB
+        Kernels/Integer/iNoNorm
+        Kernels/Integer/GEMM/Regular_RQ
+        Kernels/Integer/Add/Regular_RQ
+        Kernels/Integer/GEMM/Regular_RQTransB
       num-cores: 9
       simulators: |
         gvsoc

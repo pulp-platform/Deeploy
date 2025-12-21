@@ -36,79 +36,79 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        FP32Kernels/Activations/ReLU
+        Kernels/FP32/ReLU
 
-        FP32Kernels/Activations/Softmax/CrossEntropy
-        FP32Kernels/Activations/Softmax/CrossEntropyGrad
-        FP32Kernels/Activations/Softmax/Grad
-        FP32Kernels/Activations/Softmax/Regular
+        Kernels/FP32/Softmax/CrossEntropy
+        Kernels/FP32/Softmax/CrossEntropyGrad
+        Kernels/FP32/Softmax/Grad
+        Kernels/FP32/Softmax/Regular
 
-        FP32Kernels/Add/regular
+        Kernels/FP32/Add/Regular
 
-        FP32Kernels/Conv2D/DWBias
-        FP32Kernels/Conv2D/DWNoBias
-        FP32Kernels/Conv2D/DWZeroValuedBias
-        FP32Kernels/Conv2D/RegularBias
-        FP32Kernels/Conv2D/RegularNoBias
-        FP32Kernels/Conv2D/RegularZeroValuedBias
+        Kernels/FP32/Conv/DW_2D_Bias
+        Kernels/FP32/Conv/DW_2D_NoBias
+        Kernels/FP32/Conv/DW_2D_ZeroValuedBias
+        Kernels/FP32/Conv/Regular_2D_Bias
+        Kernels/FP32/Conv/Regular_2D_NoBias
+        Kernels/FP32/Conv/Regular_2D_ZeroValuedBias
 
-        FP32Kernels/GEMM/regular
-        FP32Kernels/MatMul
-        FP32Kernels/MaxPool
-        FP32Kernels/Mul
-        FP32Kernels/Norm/LayerNorm
+        Kernels/FP32/GEMM/Regular
+        Kernels/FP32/MatMul
+        Kernels/FP32/MaxPool
+        Kernels/FP32/Mul
+        Kernels/FP32/LayerNorm
 
-        FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean
-        FP32Kernels/ReduceMean/KeepDims/Add_ReduceMean_Add
-        FP32Kernels/ReduceMean/KeepDims/AllAxes
-        FP32Kernels/ReduceMean/KeepDims/Axes1_2_3
-        FP32Kernels/ReduceMean/KeepDims/Axes1_3
-        FP32Kernels/ReduceMean/KeepDims/Axes2_1
-        FP32Kernels/ReduceMean/KeepDims/Axis0
-        FP32Kernels/ReduceMean/KeepDims/Axis2
-        FP32Kernels/ReduceMean/KeepDims/ReduceMean_Add
+        Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean
+        Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add
+        Kernels/FP32/ReduceMean/KeepDims/AllAxes
+        Kernels/FP32/ReduceMean/KeepDims/Axes1_2_3
+        Kernels/FP32/ReduceMean/KeepDims/Axes1_3
+        Kernels/FP32/ReduceMean/KeepDims/Axes2_1
+        Kernels/FP32/ReduceMean/KeepDims/Axis0
+        Kernels/FP32/ReduceMean/KeepDims/Axis2
+        Kernels/FP32/ReduceMean/KeepDims/ReduceMean_Add
 
-        FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean
-        FP32Kernels/ReduceMean/NoKeepDims/Add_ReduceMean_Add
-        FP32Kernels/ReduceMean/NoKeepDims/AllAxes
-        FP32Kernels/ReduceMean/NoKeepDims/Axes1_2_3
-        FP32Kernels/ReduceMean/NoKeepDims/Axes1_3
-        FP32Kernels/ReduceMean/NoKeepDims/Axes2_1
-        FP32Kernels/ReduceMean/NoKeepDims/Axis0
-        FP32Kernels/ReduceMean/NoKeepDims/Axis2
-        FP32Kernels/ReduceMean/NoKeepDims/ReduceMean_Add
+        Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean
+        Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean_Add
+        Kernels/FP32/ReduceMean/NoKeepDims/AllAxes
+        Kernels/FP32/ReduceMean/NoKeepDims/Axes1_2_3
+        Kernels/FP32/ReduceMean/NoKeepDims/Axes1_3
+        Kernels/FP32/ReduceMean/NoKeepDims/Axes2_1
+        Kernels/FP32/ReduceMean/NoKeepDims/Axis0
+        Kernels/FP32/ReduceMean/NoKeepDims/Axis2
+        Kernels/FP32/ReduceMean/NoKeepDims/ReduceMean_Add
 
-        FP32Kernels/ReduceSum
-        FP32Kernels/SkipConnection/ReshapeWithSkipConnection
+        Kernels/FP32/ReduceSum
+        Kernels/FP32/Reshape/SkipConnection
 
-        FP32Kernels/Transpose
+        Kernels/FP32/Transpose
 
-        IntKernels/Activations/Hardswish
-        IntKernels/Activations/Softmax/Regular
+        Kernels/Integer/Hardswish/Regular
+        Kernels/Integer/Slice
 
-        IntKernels/Add/MultIO
-        IntKernels/Add/Regular
+        Kernels/Integer/Add/MultIO
+        Kernels/Integer/Add/Regular
 
-        IntKernels/Concat
+        Kernels/Integer/Concat
 
-        IntKernels/MatMul/add
-        IntKernels/MatMul/regular
+        Kernels/Integer/MatMul/Add
+        Kernels/Integer/MatMul/Regular
 
-        IntKernels/Pad/1D
-        IntKernels/Pad/2D
+        Kernels/Integer/Pad/Regular_1D
+        Kernels/Integer/Pad/Regular_2D
 
-        IntKernels/RMSNorm
+        Kernels/Integer/RMSNorm
 
         Models/TinyViT/5M/Layers/FP32/ReduceMean
 
         Others/Backtracking
-        Others/Dequant
-        Others/Quant
-        Others/QuantizedLinear
-        Others/RequantizedConv2D
-        Others/RequantizedDWConv
-        Others/RQHardswish
-        Others/trueIntegerDivSandwich
+        Kernels/Mixed/Dequant
+        Kernels/Mixed/Quant
+        Kernels/Mixed/QuantizedLinear
+        Kernels/Integer/Conv/Regular_2D_RQ
+        Kernels/Integer/Conv/DW_2D_RQ
+        Kernels/Integer/Hardswish/Regular_RQ
+        Kernels/Integer/TrueIntegerDiv
       num-cores: 8
 
   siracusa-models:
@@ -118,7 +118,7 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        IntKernels/Attention
+        Kernels/Integer/Attention
 
         Models/CCT/FP32/CCT_1_16_16_8
         Models/CCT/FP32/CCT_2_32_32_128_Opset20
@@ -132,5 +132,5 @@ jobs:
 
         Models/TinyViT/Demo
 
-        Others/SimpleRegression
+        Models/CNN_Linear2
       num-cores: 8

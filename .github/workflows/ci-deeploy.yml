@@ -82,10 +82,10 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python deeployStateEqualityTest.py -t ./Tests/Others/SimpleRegression -p QEMU-ARM
-          python deeployStateEqualityTest.py -t ./Tests/Others/SimpleRegression -p Siracusa
-          python deeployStateEqualityTest.py -t ./Tests/Others/SimpleRegression -p MemPool
-          python deeployStateEqualityTest.py -t ./Tests/Others/SimpleRegression -p Generic
+          python deeployStateEqualityTest.py -t ./Tests/Models/CNN_Linear2 -p QEMU-ARM
+          python deeployStateEqualityTest.py -t ./Tests/Models/CNN_Linear2 -p Siracusa
+          python deeployStateEqualityTest.py -t ./Tests/Models/CNN_Linear2 -p MemPool
+          python deeployStateEqualityTest.py -t ./Tests/Models/CNN_Linear2 -p Generic
 
   deeploy-memory-level-extension:
     needs: select-env
@@ -104,10 +104,10 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testMemoryLevelExtension.py -t ./Tests/Others/SimpleRegression -p QEMU-ARM
-          python testMemoryLevelExtension.py -t ./Tests/Others/SimpleRegression -p Siracusa
-          python testMemoryLevelExtension.py -t ./Tests/Others/SimpleRegression -p MemPool
-          python testMemoryLevelExtension.py -t ./Tests/Others/SimpleRegression -p Generic
+          python testMemoryLevelExtension.py -t ./Tests/Models/CNN_Linear2 -p QEMU-ARM
+          python testMemoryLevelExtension.py -t ./Tests/Models/CNN_Linear2 -p Siracusa
+          python testMemoryLevelExtension.py -t ./Tests/Models/CNN_Linear2 -p MemPool
+          python testMemoryLevelExtension.py -t ./Tests/Models/CNN_Linear2 -p Generic
 
   deeploy-tiler-extension:
     needs: select-env
@@ -126,14 +126,14 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testTilerExtension.py -p Siracusa -t ./Tests/Others/SimpleRegression
-          python testTilerExtension.py -p Siracusa -t ./Tests/Models/simpleCNN
-          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MatMul/regular
-          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MaxPool
-          python testTilerExtension.py -p Siracusa -t ./Tests/Others/SimpleRegression --l1 2000 --shouldFail
-          python testTilerExtension.py -p Siracusa -t ./Tests/Models/simpleCNN --l1 2000 --shouldFail
-          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MatMul/regular --l1 2000 --shouldFail
-          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MaxPool --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear2
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear1
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MatMul/Regular
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear2 --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear1 --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MatMul/Regular --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool --l1 2000 --shouldFail
 
   deeploy-memory-allocation-extension:
     needs: select-env
@@ -152,12 +152,12 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testTilerExtension.py -p Siracusa -t ./Tests/Others/SimpleRegression
-          python testTilerExtension.py -p Siracusa -t ./Tests/Models/simpleCNN
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear2
+          python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear1
           python testTilerExtension.py -p Siracusa -t ./Tests/Models/miniMobileNet
           python testTilerExtension.py -p Siracusa -t ./Tests/Models/miniMobileNetv2
-          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MatMul/regular
-          python testTilerExtension.py -p Siracusa -t ./Tests/IntKernels/MaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MatMul/Regular
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool
 
   deeploy-typing:
     needs: select-env
@@ -195,9 +195,9 @@ jobs:
         shell: bash
         run: |
           cd DeeployTest
-          python testPrintInputOutputTransformation.py -p Generic -t ./Tests/Others/SimpleRegression
-          python testPrintInputOutputTransformation.py -p Siracusa -t ./Tests/Others/SimpleRegression
-          python testDebugPrintPass.py -p Generic -t ./Tests/Others/SimpleRegression
+          python testPrintInputOutputTransformation.py -p Generic -t ./Tests/Models/CNN_Linear2
+          python testPrintInputOutputTransformation.py -p Siracusa -t ./Tests/Models/CNN_Linear2
+          python testDebugPrintPass.py -p Generic -t ./Tests/Models/CNN_Linear2
 
   deeploy-regex-matching:
     needs: select-env

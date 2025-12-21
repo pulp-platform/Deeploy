@@ -37,10 +37,10 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"Others/RequantizedLinear","L1":[16000]},
-          {"name":"IntKernels/Conv/2D/PW/regular","L1":[32000]},
-          {"name":"IntKernels/Conv/2D/PW/convBNReLU","L1":[32000]},
-          {"name":"IntKernels/Conv/2D/PW/unsignedWeights","L1":[32000]}
+          {"name":"Kernels/Integer/GEMM/Regular_RQ","L1":[16000]},
+          {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
+          {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
+          {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
         ]
       num-cores: 8
 
@@ -52,10 +52,10 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"Others/RequantizedLinear","L1":[16000]},
-          {"name":"IntKernels/Conv/2D/PW/regular","L1":[32000]},
-          {"name":"IntKernels/Conv/2D/PW/convBNReLU","L1":[32000]},
-          {"name":"IntKernels/Conv/2D/PW/unsignedWeights","L1":[32000]}
+          {"name":"Kernels/Integer/GEMM/Regular_RQ","L1":[16000]},
+          {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
+          {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
+          {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
         ]
       num-cores: 8
       # double buffer enabled:
@@ -68,8 +68,8 @@ jobs:
       matrix:
         test-data:
           - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN: 1000 leads to non-2d transfers in L3!
-          - { name: "IntKernels/Attention", L1: [2500] }
-          - { name: "Others/Transformer", L1: [15000] }
+          - { name: "Kernels/Integer/Attention", L1: [2500] }
+          - { name: "Models/Transformer", L1: [15000] }
           - { name: "Models/microLlama/microLlama1", L1: [10000] }
         num-cores: [8]
         default-memory-level: ["L3"]
@@ -89,8 +89,8 @@ jobs:
       matrix:
         test-data:
           - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN note
-          - { name: "IntKernels/Attention", L1: [5000] }
-          - { name: "Others/Transformer", L1: [30000] }
+          - { name: "Kernels/Integer/Attention", L1: [5000] }
+          - { name: "Models/Transformer", L1: [30000] }
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]
@@ -112,10 +112,10 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"Others/RequantizedLinear","L1":[16000]},
-          {"name":"IntKernels/Conv/2D/PW/regular","L1":[32000]},
-          {"name":"IntKernels/Conv/2D/PW/convBNReLU","L1":[32000]},
-          {"name":"IntKernels/Conv/2D/PW/unsignedWeights","L1":[32000]}
+          {"name":"Kernels/Integer/GEMM/Regular_RQ","L1":[16000]},
+          {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
+          {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
+          {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
         ]
       num-cores: 8
       neureka-wmem: true
@@ -127,8 +127,8 @@ jobs:
       matrix:
         test-data:
           - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN note
-          - { name: "IntKernels/Attention", L1: [3500] }
-          # - { name: "Others/Transformer", L1: [30000] }
+          - { name: "Kernels/Integer/Attention", L1: [3500] }
+          # - { name: "Models/Transformer", L1: [30000] }
           - { name: "Models/microLlama/microLlama1", L1: [10000] }
         num-cores: [8]
         double-buffer: [true]

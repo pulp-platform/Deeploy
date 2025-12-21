@@ -37,17 +37,17 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"IntKernels/Add/Large","L1":[5000,10000]},
-          {"name":"IntKernels/Activations/Softmax/Large","L1":[5000,10000]},
+          {"name":"Kernels/Integer/Add/Large","L1":[5000,10000]},
+          {"name":"Kernels/Integer/Concat","L1":[5000,10000]},
 
-          {"name":"FP32Kernels/Activations/Softmax/Regular","L1":[2000,5000,10000]},
+          {"name":"Kernels/FP32/Softmax/Regular","L1":[2000,5000,10000]},
 
-          {"name":"FP32Kernels/GEMM/regular","L1":[2000,5000,10000]},
-          {"name":"FP32Kernels/GEMM/transB","L1":[2000,5000,10000]},
+          {"name":"Kernels/FP32/GEMM/Regular","L1":[2000,5000,10000]},
+          {"name":"Kernels/FP32/GEMM/TransB","L1":[2000,5000,10000]},
 
-          {"name":"Others/iNoNorm","L1":[5000,10000]},
-          {"name":"Others/RQAdd","L1":[5000,10000]},
-          {"name":"Others/RQGEMM","L1":[2000,5000]}
+          {"name":"Kernels/Integer/iNoNorm","L1":[5000,10000]},
+          {"name":"Kernels/Integer/Add/Regular_RQ","L1":[5000,10000]},
+          {"name":"Kernels/Integer/GEMM/Regular_RQ","L1":[2000,5000]}
         ]
       simulators: |
         gvsoc
