@@ -85,7 +85,7 @@ jobs:
         Kernels/FP32/Sqrt
         Kernels/FP32/Transpose
 
-        Kernels/Integer/Slice
+        Kernels/Integer/Softmax/Regular
 
         Kernels/Integer/Add/MultIO
         Kernels/Integer/Add/Regular
@@ -114,8 +114,7 @@ jobs:
 
         Kernels/Mixed/Dequant
         Kernels/Mixed/Quant
-        Kernels/Mixed/QuantizedLinear
-        Kernels/Integer/Conv/Regular_2D_RQ
+        Models/Transformer_DeepQuant
         Kernels/Integer/Conv/DW_2D_RQ
         Kernels/Integer/Conv/Regular_2D_RQ
         Kernels/Integer/MatMul/Regular_RQ

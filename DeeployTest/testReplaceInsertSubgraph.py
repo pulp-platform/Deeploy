@@ -11,7 +11,7 @@ from Deeploy.DeeployTypes import TopologyOptimizer
 from Deeploy.OptimizationPasses.TopologyOptimizationPasses.PULPPasses import PULPConvRequantMergePass
 
 if __name__ == "__main__":
-    test_dir = "Tests/Others/SimpleRegression"
+    test_dir = "Tests/Models/CNN_Linear2"
 
     model = onnx.load(os.path.join(test_dir, "network.onnx"))
     graph = gs.import_onnx(model).toposort()

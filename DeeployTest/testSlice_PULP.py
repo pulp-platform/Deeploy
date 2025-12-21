@@ -41,11 +41,11 @@ if __name__ == "__main__":
 
     signProp = False
 
-    onnx_graph = onnx.load_model('./Tests/IntKernels/Slice/network.onnx')
+    onnx_graph = onnx.load_model('./Tests/Kernels/Integer/Slice/network.onnx')
     graph = gs.import_onnx(onnx_graph)
 
-    inputs = np.load('./Tests/IntKernels/Slice/inputs.npz')
-    outputs = np.load(f'./Tests/IntKernels/Slice/outputs.npz')
+    inputs = np.load('./Tests/Kernels/Integer/Slice/inputs.npz')
+    outputs = np.load(f'./Tests/Kernels/Integer/Slice/outputs.npz')
     tensors = graph.tensors()
 
     # Load as int64 and infer types later
@@ -99,10 +99,10 @@ if __name__ == "__main__":
             if not isFloat and not buffer._signed:
                 values -= buffer.nLevels // 2
 
-    generateTestNetwork(deployer, test_inputs, test_outputs, 'TEST_SIRACUSA/Tests/IntKernels/Slice', _NoVerbosity)
+    generateTestNetwork(deployer, test_inputs, test_outputs, 'TEST_SIRACUSA/Tests/Kernels/Integer/Slice', _NoVerbosity)
 
     os.system(
-        f"$CMAKE -DTOOLCHAIN={args.toolchain} -DTOOLCHAIN_INSTALL_DIR={_TOOLCHAIN_DIR}  -DTESTNAME=Slice -DGENERATED_SOURCE=TEST_SIRACUSA/Tests/IntKernels/Slice -Dplatform=Siracusa -B TEST_SIRACUSA/build -DNUM_CORES=1 .."
+        f"$CMAKE -DTOOLCHAIN={args.toolchain} -DTOOLCHAIN_INSTALL_DIR={_TOOLCHAIN_DIR}  -DTESTNAME=Slice -DGENERATED_SOURCE=TEST_SIRACUSA/Tests/Kernels/Integer/Slice -Dplatform=Siracusa -B TEST_SIRACUSA/build -DNUM_CORES=1 .."
     )
     process = subprocess.Popen(["$CMAKE --build TEST_SIRACUSA/build --target gvsoc_Slice"],
                                stdout = subprocess.PIPE,
@@ -110,7 +110,8 @@ if __name__ == "__main__":
                                shell = True,
                                encoding = 'utf-8')
     fileHandle = open('out.txt', 'a')
-    fileHandle.write(f"################## Testing Tests/IntKernels/Slice on SIRACUSA Platform ##################\n")
+    fileHandle.write(
+        f"################## Testing Tests/Kernels/Integer/Slice on SIRACUSA Platform ##################\n")
 
     result = ""
     while True:
@@ -127,4 +128,4 @@ if __name__ == "__main__":
     fileHandle.close()
 
     if not "Errors: 0 out of " in result:
-        raise RuntimeError(f"Found an error in Tests/IntKernels/Slice")
+        raise RuntimeError(f"Found an error in Tests/Kernels/Integer/Slice")

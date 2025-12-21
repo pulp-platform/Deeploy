@@ -41,8 +41,8 @@ jobs:
         Kernels/Integer/Add/Large
         Kernels/Integer/Add/Regular
 
-        Kernels/Integer/Concat
-        Kernels/Integer/Slice
+        Kernels/Integer/Softmax/Large
+        Kernels/Integer/Softmax/Regular
 
         Kernels/Integer/MatMul/Regular
 

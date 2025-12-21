@@ -24,7 +24,7 @@ if __name__ == '__main__':
                         metavar = 'testdir',
                         dest = 'dir',
                         type = str,
-                        default = './Tests/Others/SimpleRegression',
+                        default = './Tests/Models/CNN_Linear2',
                         help = 'Set the regression test\n')
     parser.add_argument('-d',
                         metavar = 'dumpdir',
