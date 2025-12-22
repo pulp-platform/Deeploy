@@ -47,9 +47,9 @@ jobs:
         Kernels/Integer/MatMul/Regular
 
         Kernels/Integer/iNoNorm
-        Kernels/Integer/GEMM/Regular_RQ
+        Kernels/Integer/GEMM/Regular_RQPerRow
         Kernels/Integer/Add/Regular_RQ
-        Kernels/Integer/GEMM/Regular_RQTransB
+        Kernels/Integer/GEMM/TransB_RQ
       num-cores: 9
       simulators: |
         gvsoc

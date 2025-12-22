@@ -135,7 +135,7 @@ def generateNetwork(args):
 
     if not isinstance(
             platform, CMSISPlatform
-    ) and not "CNN_Linear1" in args.dir and not "Regular_RQ" in args.dir and not "Regular_RQ" in args.dir:
+    ) and not "CNN_Linear1" in args.dir and not "GEMM/Regular_RQPerRow" in args.dir and not "MatMul/Regular_RQ" in args.dir:
         deployer.loweringOptimizer.passes.insert(0, EmulateCMSISRequantPass())
 
     verbosityCfg = _NoVerbosity

@@ -63,7 +63,7 @@ jobs:
         Kernels/Integer/Conv/Regular_2D_RQ
         Kernels/Integer/Conv/DW_2D_RQ
         Kernels/Integer/Conv/Regular_2D_RQ
-        Kernels/Integer/GEMM/Regular_RQ
+        Kernels/Integer/GEMM/Regular_RQPerRow
         Kernels/Integer/MatMul/Regular_RQ
 
   mempool-models:

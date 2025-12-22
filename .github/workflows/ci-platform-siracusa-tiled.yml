@@ -79,7 +79,7 @@ jobs:
           {"name":"Kernels/FP32/Transpose","L1":[2000]},
 
           {"name":"Kernels/Integer/Hardswish/Regular","L1":[750]},
-          {"name":"Kernels/Integer/Slice","L1":[800,500,300]},
+          {"name":"Kernels/Integer/Softmax/Regular","L1":[800,500,300]},
 
           {"name":"Kernels/Integer/Concat","L1":[32000,16000,8000]},
 
@@ -144,7 +144,7 @@ jobs:
           {"name":"Kernels/FP32/Transpose","L1":[2000]},
 
           {"name":"Kernels/Integer/Hardswish/Regular","L1":[750]},
-          {"name":"Kernels/Integer/Slice","L1":[1600,1000,600]},
+          {"name":"Kernels/Integer/Softmax/Regular","L1":[1600,1000,600]},
 
           {"name":"Kernels/Integer/Concat","L1":[64000,32000,16000]},
           {"name":"Kernels/Integer/MatMul/Regular","L1":[64000,32000,16000]},

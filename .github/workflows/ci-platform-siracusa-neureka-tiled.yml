@@ -37,7 +37,7 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"Kernels/Integer/GEMM/Regular_RQ","L1":[16000]},
+          {"name":"Kernels/Integer/GEMM/Regular_RQPerColumn","L1":[16000]},
           {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
           {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
           {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
@@ -52,7 +52,7 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"Kernels/Integer/GEMM/Regular_RQ","L1":[16000]},
+          {"name":"Kernels/Integer/GEMM/Regular_RQPerColumn","L1":[16000]},
           {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
           {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
           {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
@@ -112,7 +112,7 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"Kernels/Integer/GEMM/Regular_RQ","L1":[16000]},
+          {"name":"Kernels/Integer/GEMM/Regular_RQPerColumn","L1":[16000]},
           {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
           {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
           {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
