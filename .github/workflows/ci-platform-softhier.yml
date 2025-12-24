@@ -36,4 +36,4 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
-        Adder
+        Kernels/Integer/Add/Regular

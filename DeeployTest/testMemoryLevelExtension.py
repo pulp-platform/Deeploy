@@ -68,7 +68,7 @@ if __name__ == '__main__':
         _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
-        if "simpleRegression" in args.dir:
+        if "CNN_Linear2" in args.dir:
             inputOffsets[f"input_{index}"] = 0
 
     deployer = mapDeployer(platform, graph, inputTypes, deeployStateDir = _DEEPLOYSTATEDIR, inputOffsets = inputOffsets)

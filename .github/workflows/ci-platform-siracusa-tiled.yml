@@ -37,36 +37,62 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"testMatMul","L1":[64000,32000,16000]},
-          {"name":"test2DRequantizedConv","L1":[8000,6000,4000]},
-          {"name":"test2DRequantizedStriddedPaddedConv","L1":[600]},
-          {"name":"testRequantizedDWConv","L1":[2561]},
-          {"name":"iSoftmax","L1":[800,500,300]},
-          {"name":"testConcat","L1":[32000,16000,8000]},
-          {"name":"testRMSNorm","L1":[2048,1024,512]},
-          {"name":"Hardswish","L1":[750]},
-          {"name":"RQHardswish","L1":[750]},
-          {"name":"testFloatGEMM","L1":[8000]},
+          {"name":"Kernels/FP32/ReLU","L1":[2000]},
+          {"name":"Kernels/FP32/Softmax/Regular","L1":[4000]},
 
-          {"name":"testFloat2DConvolution","L1":[1600]},
-          {"name":"testFloat2DConvolutionBias","L1":[6600]},
-          {"name":"testFloat2DConvolutionZeroBias","L1":[6600]},
+          {"name":"Kernels/FP32/Add/Large","L1":[220000]},
 
-          {"name":"testFloat2DDWConvolution","L1":[7200]},
-          {"name":"testFloat2DDWConvolutionBias","L1":[7200]},
-          {"name":"testFloat2DDWConvolutionZeroBias","L1":[7200]},
+          {"name":"Kernels/FP32/Conv/DW_2D_Bias","L1":[7200]},
+          {"name":"Kernels/FP32/Conv/DW_2D_NoBias","L1":[7200]},
+          {"name":"Kernels/FP32/Conv/DW_2D_ZeroValuedBias","L1":[7200]},
+          {"name":"Kernels/FP32/Conv/Regular_2D_Bias","L1":[6600]},
+          {"name":"Kernels/FP32/Conv/Regular_2D_NoBias","L1":[1600]},
+          {"name":"Kernels/FP32/Conv/Regular_2D_ZeroValuedBias","L1":[6600]},
 
-          {"name":"testFloatLayerNorm","L1":[2000]},
-          {"name":"testFloatMaxPool","L1":[2000]},
-          {"name":"testFloatMatmul","L1":[2000]},
-          {"name":"testFloatRelu","L1":[2000]},
-          {"name":"testFloatReshapeWithSkipConnection","L1":[1400]},
-          {"name":"testFloatSoftmax","L1":[4000]},
-          {"name":"testFloatTranspose","L1":[2000]},
-          {"name":"testFloatMul","L1":[2000]},
-          {"name":"largeFloatAdd","L1":[220000]},
-          {"name":"testRQGEMMwBatch","L1":[20000]},
-          {"name":"testMatMulBatch","L1":[20000]}
+          {"name":"Kernels/FP32/GEMM/Regular","L1":[8000]},
+          {"name":"Kernels/FP32/MatMul","L1":[2000]},
+          {"name":"Kernels/FP32/MaxPool","L1":[2000]},
+          {"name":"Kernels/FP32/Mul","L1":[2000]},
+          {"name":"Kernels/FP32/LayerNorm","L1":[2000]},
+
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean","L1":[8000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add","L1":[8000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/AllAxes","L1":[50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axes1_2_3","L1":[50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axes1_3","L1":[5000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axes2_1","L1":[6200,50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axis0","L1":[8400,50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axis2","L1":[8400,50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/ReduceMean_Add","L1":[8000]},
+
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean","L1":[8000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean_Add","L1":[8000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/AllAxes","L1":[50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axes1_2_3","L1":[50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axes1_3","L1":[5000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axes2_1","L1":[6200,50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axis0","L1":[8400,50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axis2","L1":[8400,50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/ReduceMean_Add","L1":[8000]},
+
+          {"name":"Kernels/FP32/Reshape/SkipConnection","L1":[1400]},
+          {"name":"Kernels/FP32/Transpose","L1":[2000]},
+
+          {"name":"Kernels/Integer/Hardswish/Regular","L1":[750]},
+          {"name":"Kernels/Integer/Softmax/Regular","L1":[800,500,300]},
+
+          {"name":"Kernels/Integer/Concat","L1":[32000,16000,8000]},
+
+          {"name":"Kernels/Integer/MatMul/Batch","L1":[20000]},
+          {"name":"Kernels/Integer/MatMul/Regular","L1":[64000,32000,16000]},
+
+          {"name":"Kernels/Integer/RMSNorm","L1":[2048,1024,512]},
+
+          {"name":"Kernels/Integer/Conv/Regular_2D_RQ","L1":[8000,6000,4000]},
+          {"name":"Kernels/Integer/Conv/DW_2D_RQ","L1":[2561]},
+          {"name":"Kernels/Integer/Conv/StriddedPadded_2D_RQ","L1":[600]},
+          {"name":"Kernels/Integer/GEMM/Batch_RQ","L1":[20000]},
+          {"name":"Kernels/Integer/Hardswish/Regular_RQ","L1":[750]}
         ]
       num-cores: 8
 
@@ -78,32 +104,55 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       tests-config: |
         [
-          {"name":"testMatMul","L1":[64000,32000,16000]},
-          {"name":"test2DRequantizedConv","L1":[8000,6000,5000]},
-          {"name":"testRequantizedDWConv","L1":[5121]},
-          {"name":"iSoftmax","L1":[1600,1000,600]},
-          {"name":"testConcat","L1":[64000,32000,16000]},
-          {"name":"testRMSNorm","L1":[4096,2048,1024]},
-          {"name":"Hardswish","L1":[750]},
-          {"name":"RQHardswish","L1":[800]},
-          {"name":"testFloatGEMM","L1":[8000]},
+          {"name":"Kernels/FP32/ReLU","L1":[20]},
+          {"name":"Kernels/FP32/Softmax/Regular","L1":[8000]},
 
-          {"name":"testFloat2DConvolution","L1":[2000]},
-          {"name":"testFloat2DConvolutionBias","L1":[8800]},
-          {"name":"testFloat2DConvolutionZeroBias","L1":[8800]},
+          {"name":"Kernels/FP32/Conv/DW_2D_Bias","L1":[10000]},
+          {"name":"Kernels/FP32/Conv/DW_2D_NoBias","L1":[9800]},
+          {"name":"Kernels/FP32/Conv/DW_2D_ZeroValuedBias","L1":[9800]},
+          {"name":"Kernels/FP32/Conv/Regular_2D_Bias","L1":[8800]},
+          {"name":"Kernels/FP32/Conv/Regular_2D_NoBias","L1":[2000]},
+          {"name":"Kernels/FP32/Conv/Regular_2D_ZeroValuedBias","L1":[8800]},
 
-          {"name":"testFloat2DDWConvolution","L1":[9800]},
-          {"name":"testFloat2DDWConvolutionBias","L1":[10000]},
-          {"name":"testFloat2DDWConvolutionZeroBias","L1":[9800]},
+          {"name":"Kernels/FP32/GEMM/Regular","L1":[8000]},
+          {"name":"Kernels/FP32/MatMul","L1":[5000]},
+          {"name":"Kernels/FP32/MaxPool","L1":[5000]},
+          {"name":"Kernels/FP32/Mul","L1":[2000]},
+          {"name":"Kernels/FP32/LayerNorm","L1":[2000]},
 
-          {"name":"testFloatLayerNorm","L1":[2000]},
-          {"name":"testFloatMaxPool","L1":[5000]},
-          {"name":"testFloatMatmul","L1":[5000]},
-          {"name":"testFloatRelu","L1":[20]},
-          {"name":"testFloatReshapeWithSkipConnection","L1":[2600]},
-          {"name":"testFloatSoftmax","L1":[8000]},
-          {"name":"testFloatTranspose","L1":[2000]},
-          {"name":"testFloatMul","L1":[2000]}
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean","L1":[8000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add","L1":[8000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/AllAxes","L1":[100000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axes1_2_3","L1":[100000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axes1_3","L1":[10000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axes2_1","L1":[13000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axis0","L1":[17000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/Axis2","L1":[17000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/KeepDims/ReduceMean_Add","L1":[8000]},
+
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean","L1":[8000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean_Add","L1":[8000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/AllAxes","L1":[100000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axes1_2_3","L1":[100000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axes1_3","L1":[10000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axes2_1","L1":[13000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axis0","L1":[17000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/Axis2","L1":[17000,50000]},
+          {"name":"Kernels/FP32/ReduceMean/NoKeepDims/ReduceMean_Add","L1":[8000]},
+
+          {"name":"Kernels/FP32/Reshape/SkipConnection","L1":[2600]},
+          {"name":"Kernels/FP32/Transpose","L1":[2000]},
+
+          {"name":"Kernels/Integer/Hardswish/Regular","L1":[750]},
+          {"name":"Kernels/Integer/Softmax/Regular","L1":[1600,1000,600]},
+
+          {"name":"Kernels/Integer/Concat","L1":[64000,32000,16000]},
+          {"name":"Kernels/Integer/MatMul/Regular","L1":[64000,32000,16000]},
+          {"name":"Kernels/Integer/RMSNorm","L1":[4096,2048,1024]},
+
+          {"name":"Kernels/Integer/Conv/Regular_2D_RQ","L1":[8000,6000,5000]},
+          {"name":"Kernels/Integer/Conv/DW_2D_RQ","L1":[5121]},
+          {"name":"Kernels/Integer/Hardswish/Regular_RQ","L1":[800]}
         ]
       num-cores: 8
       double-buffer: true
@@ -114,30 +163,38 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - name: "simpleRegression"
-            L1: [45000, 30000, 15000]
-          - name: "miniMobileNet"
+          - name: "Kernels/Integer/Attention"
+            L1: [60000, 10000, 5000]
+
+          - name: "Models/CCT/FP32/CCT_1_16_16_8"
+            L1: [64000]
+
+          - name: "Models/microLlama/microLlama1"
+            L1: [60000, 10000, 5000]
+          - name: "Models/microLlama/microLlama8"
+            L1: [60000, 10000, 5000]
+          - name: "Models/microLlama/microLlama8_parallel"
+            L1: [60000, 10000, 5000]
+
+          - name: "Models/miniMobileNet"
             L1: [60000, 12000, 6000, 3000]
-          - name: "miniMobileNetv2"
+          - name: "Models/miniMobileNetv2"
             L1: [60000, 16000, 12000, 8000]
-          - name: "Attention"
-            L1: [60000, 10000, 5000]
-          - name: "microLlama/microLlama1"
-            L1: [60000, 10000, 5000]
-          - name: "microLlama/microLlama8"
-            L1: [60000, 10000, 5000]
-          - name: "microLlama/microLlama8_parallel"
-            L1: [60000, 10000, 5000]
-          - name: "MLPerf/KeywordSpotting"
+
+          - name: "Models/MLPerf/AnomalyDetection"
             L1: [64000]
-          - name: "MLPerf/ImageClassification"
+          - name: "Models/MLPerf/ImageClassification"
             L1: [64000]
-          - name: "MLPerf/AnomalyDetection"
+          - name: "Models/MLPerf/KeywordSpotting"
             L1: [64000]
-          - name: "CCT/CCT_1_16_16_8"
-            L1: [64000]
-          - name: "testFloatDemoTinyViT"
+
+          - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
+            L1: [200, 40000]
+          - name: "Models/TinyViT/Demo"
             L1: [4000]
+
+          - name: "Models/CNN_Linear2"
+            L1: [45000, 30000, 15000]
         num-cores: [8]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
@@ -153,24 +210,30 @@ jobs:
       fail-fast: false
       matrix:
         test-data:
-          - name: "simpleRegression"
-            L1: [45000, 30000, 16000] # SCHEREMO note
-          - name: "miniMobileNet"
-            L1: [60000, 12000, 6000] # SCHEREMO note
-          - name: "miniMobileNetv2"
-            L1: [60000, 16000, 12000, 8000]
-          - name: "Attention"
+          - name: "Kernels/Integer/Attention"
             L1: [60000, 10000, 5000, 2500]
-          - name: "Transformer"
-            L1: [60000, 30000, 15000]
-          - name: "microLlama/microLlama1"
+
+          - name: "Models/CCT/FP32/CCT_2_32_32_128"
+            L1: [128000]
+
+          - name: "Models/microLlama/microLlama1"
             L1: [60000, 10000, 5000]
-          - name: "CCT/CCT_2_32_32_128"
-            L1: [128000]
-          - name: "testTrainCCT/CCT2_FT2"
-            L1: [128000]
-          - name: "testFloatDemoTinyViT"
+
+          - name: "Models/miniMobileNet"
+            L1: [60000, 12000, 6000] # SCHEREMO note
+          - name: "Models/miniMobileNetv2"
+            L1: [60000, 16000, 12000, 8000]
+          - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
+            L1: [200, 40000]
+          - name: "Models/TinyViT/Demo"
             L1: [4000]
+
+          - name: "Models/CNN_Linear2"
+            L1: [45000, 30000, 16000] # SCHEREMO note
+          - name: "Models/CCT_Train/CCT2_FT2"
+            L1: [128000]
+          - name: "Models/Transformer"
+            L1: [60000, 30000, 15000]
         num-cores: [8]
         default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-tiled.yml
@@ -182,35 +245,41 @@ jobs:
       L1: ${{ toJson(matrix.test-data.L1) }}
       default-memory-level: ${{ matrix.default-memory-level }}
 
-  # TEMPORARILY DISABLE L3 TRANSFER DUE TO DRIVER BUG CAUSING SPORADIC CRASH
   siracusa-models-tiled-doublebuffer-L3:
     needs: select-env
     strategy:
       fail-fast: false
       matrix:
         test-data:
-          - name: "simpleRegression"
-            L1: [60000, 45000, 30000]
-          - name: "miniMobileNet"
-            L1: [60000, 24000, 12000, 6000]
-          - name: "miniMobileNetv2"
-            L1: [60000, 32000, 24000, 16000]
-          - name: "Attention"
+          - name: "Kernels/Integer/Attention"
             L1: [60000, 20000, 10000, 5000]
-          - name: "Transformer"
-            L1: [60000, 30000, 15000]
-          - name: "microLlama/microLlama1"
-            L1: [60000, 20000, 10000]
-          - name: "microLlama/microLlama8"
-            L1: [60000, 20000, 10000]
-          - name: "microLlama/microLlama8_parallel"
-            L1: [60000, 20000, 10000]
-          - name: "CCT/CCT_2_32_32_128"
+
+          - name: "Models/CCT/FP32/CCT_2_32_32_128"
             L1: [128000]
-          - name: "testTrainCCT/CCT2_FT2"
-            L1: [128000]
-          - name: "testFloatDemoTinyViT"
+
+          - name: "Models/microLlama/microLlama1"
+            L1: [60000, 20000, 10000]
+          - name: "Models/microLlama/microLlama8"
+            L1: [60000, 20000, 10000]
+          - name: "Models/microLlama/microLlama8_parallel"
+            L1: [60000, 20000, 10000]
+
+          - name: "Models/miniMobileNet"
+            L1: [60000, 24000, 12000, 6000]
+          - name: "Models/miniMobileNetv2"
+            L1: [60000, 32000, 24000, 16000]
+
+          - name: "Models/TinyViT/5M/Layers/FP32/ReduceMean"
+            L1: [200, 40000]
+          - name: "Models/TinyViT/Demo"
             L1: [4000]
+
+          - name: "Models/CNN_Linear2"
+            L1: [60000, 45000, 30000]
+          - name: "Models/CCT_Train/CCT2_FT2"
+            L1: [128000]
+          - name: "Models/Transformer"
+            L1: [60000, 30000, 15000]
         num-cores: [8]
         double-buffer: [true]
         default-memory-level: ["L3"]

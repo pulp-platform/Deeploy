@@ -22,7 +22,7 @@ from Deeploy.OptimizationPasses.TopologyOptimizationPasses.PULPPasses import PUL
 
 
 def _test_partial_coloring():
-    test_dir = "Tests/simpleRegression"
+    test_dir = "Tests/Models/CNN_Linear2"
 
     model = onnx.load(os.path.join(test_dir, "network.onnx"))
     graph = gs.import_onnx(model).toposort()
@@ -79,7 +79,7 @@ def _test_pass(_pass: TopologyOptimizationPass, graph: gs.Graph, engineName: str
 
 
 def _test_passes():
-    test_dir = "Tests/simpleRegression"
+    test_dir = "Tests/Models/CNN_Linear2"
     model = onnx.load(os.path.join(test_dir, "network.onnx"))
     graph = gs.import_onnx(model).toposort()
     passes = [

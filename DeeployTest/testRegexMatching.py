@@ -42,7 +42,7 @@ class ConvTestPass(ReplaceSequentialPatternPass):
 
 if __name__ == "__main__":
     optimizer = TopologyOptimizer([ConvTestPass()])
-    model = onnx.load_model('Tests/simpleCNN/network.onnx')
+    model = onnx.load_model('Tests/Models/CNN_Linear1/network.onnx')
     graph = gs.import_onnx(model)
 
     match_count = 0

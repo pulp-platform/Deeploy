@@ -84,7 +84,7 @@ For example, you can run
 
 ```
 cd DeeployTest
-python testRunner_generic.py -t Tests/simpleRegression
+python testRunner_generic.py -t Tests/Others/SimpleRegression
 ```
 
 to run the `simpleRegression` test on your workstation. Various other tests are available and compatibility between tests and platforms is tested in the `.gitlab-ci.yml` file.
