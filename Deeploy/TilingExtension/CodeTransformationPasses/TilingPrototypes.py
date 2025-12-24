@@ -97,9 +97,9 @@ class ProfilingPrototypeMixIn(ABC):
     _printCycleContribution = NodeTemplate("""
     uint32_t total = ${measurementInput} + ${measurementKernel} + ${measurementOutput};
     uint32_t dma = ${measurementInput} + ${measurementOutput};
-    float dma_percentage = (total == 0) ? 0 : dma * 100.0f / total;
+    float overhead_percentage = (total == 0) ? 0 : dma * 100.0f / total;
     float kernel_percentage = (total == 0) ? 0 : ${measurementKernel} * 100.0f / total;
-    printf("%s%u] Total      :%6u cycles (%2.1f%% Kernel + %2.1f%% Overhad, %u + %u)\\n", ${prefixStr}, ${profileIdxVar}, total, kernel_percentage, dma_percentage, ${measurementKernel}, dma);
+    printf("%s%u] Total      :%6u cycles (%2.1f%% Kernel + %2.1f%% Overhead, %u + %u)\\n", ${prefixStr}, ${profileIdxVar}, total, kernel_percentage, overhead_percentage    , ${measurementKernel}, dma);
     """)
 
     _printLoopTeardown = NodeTemplate("""
