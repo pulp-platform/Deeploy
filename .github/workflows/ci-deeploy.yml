@@ -129,11 +129,11 @@ jobs:
           python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear2
           python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear1
           python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MatMul/Regular
-          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool/Regular_2D
           python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear2 --l1 2000 --shouldFail
           python testTilerExtension.py -p Siracusa -t ./Tests/Models/CNN_Linear1 --l1 2000 --shouldFail
           python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MatMul/Regular --l1 2000 --shouldFail
-          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool --l1 2000 --shouldFail
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool/Regular_2D --l1 2000 --shouldFail
 
   deeploy-memory-allocation-extension:
     needs: select-env
@@ -157,7 +157,7 @@ jobs:
           python testTilerExtension.py -p Siracusa -t ./Tests/Models/miniMobileNet
           python testTilerExtension.py -p Siracusa -t ./Tests/Models/miniMobileNetv2
           python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MatMul/Regular
-          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool
+          python testTilerExtension.py -p Siracusa -t ./Tests/Kernels/Integer/MaxPool/Regular_2D
 
   deeploy-typing:
     needs: select-env

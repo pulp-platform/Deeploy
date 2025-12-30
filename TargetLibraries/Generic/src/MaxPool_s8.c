@@ -48,3 +48,24 @@ void MaxPool2d_s8_s8_NCHW(int8_t const *__restrict__ pSrcA, uint32_t C,
     }
   }
 }
+
+void MaxPool1d_s8_s8(int8_t const *__restrict__ pSrcA, uint32_t C, uint32_t L,
+                     uint32_t K, uint32_t S, int8_t *__restrict__ pDstC,
+                     int32_t input_offset, int32_t output_offset) {
+  uint32_t L_out = (L - K) / S + 1;
+  for (uint32_t c = 0; c < C; ++c) {
+    for (uint32_t l_out = 0; l_out < L_out; ++l_out) {
+      int32_t max = -128;
+      for (uint32_t k = 0; k < K; ++k) {
+        uint32_t l_in = l_out * S + k;
+        if (l_in >= L)
+          continue;
+        int32_t tmp = (int32_t)(pSrcA[c * L + l_in] + input_offset);
+        if (tmp > max) {
+          max = tmp;
+        }
+      }
+      pDstC[c * L_out + l_out] = (int8_t)(max + output_offset);
+    }
+  }
+}

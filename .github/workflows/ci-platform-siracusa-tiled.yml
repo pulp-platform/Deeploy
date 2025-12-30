@@ -51,7 +51,7 @@ jobs:
 
           {"name":"Kernels/FP32/GEMM/Regular","L1":[8000]},
           {"name":"Kernels/FP32/MatMul","L1":[2000]},
-          {"name":"Kernels/FP32/MaxPool","L1":[2000]},
+          {"name":"Kernels/FP32/MaxPool/Regular_2D","L1":[2000]},
           {"name":"Kernels/FP32/Mul","L1":[2000]},
           {"name":"Kernels/FP32/LayerNorm","L1":[2000]},
 
@@ -116,7 +116,7 @@ jobs:
 
           {"name":"Kernels/FP32/GEMM/Regular","L1":[8000]},
           {"name":"Kernels/FP32/MatMul","L1":[5000]},
-          {"name":"Kernels/FP32/MaxPool","L1":[5000]},
+          {"name":"Kernels/FP32/MaxPool/Regular_2D","L1":[5000]},
           {"name":"Kernels/FP32/Mul","L1":[2000]},
           {"name":"Kernels/FP32/LayerNorm","L1":[2000]},
 
