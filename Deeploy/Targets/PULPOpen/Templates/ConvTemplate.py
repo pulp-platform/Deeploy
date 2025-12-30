@@ -88,7 +88,7 @@ class PULP1DConvTemplate(NodeTemplate):
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-        im2col_dim = 8 * (1 * (1 + operatorRepresentation['pads'][0]) + operatorRepresentation['dim_kernel_y'])
+        im2col_dim = 8 * 2 * operatorRepresentation['ch_im_in'] * operatorRepresentation['dim_kernel_y']
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
         return [(im2col_name, im2col_dim)]
 
@@ -175,16 +175,7 @@ else:
     signatureString += '_u8'
 %>
 
-<%
-operatorString = ''
-if dim_kernel_x == 1 and dim_kernel_y == 1:
-    operatorString = 'pointwise'
-else:
-    operatorString = 'conv'
-operatorString = 'conv'
-%>
-
-pulp_nn_${operatorString}${signatureString}(${data_in}, ${ctxtBuffer}, NULL, ${data_out}, ${weight}, ${mul}, ${add}, 1, ${log2D}, 1, ${dim_im_in_y}, ${ch_im_in}, 1, ${dim_im_out_y}, ${ch_im_out}, 1, ${dim_kernel_y}, ${padding_y_top}, ${padding_y_bottom}, 0, 0, 1, ${stride_y}, 1, 1);
+pulp_nn_conv${signatureString}(${data_in}, ${ctxtBuffer}, NULL, ${data_out}, ${weight}, ${mul}, ${add}, 1, ${log2D}, 1, ${dim_im_in_y}, ${ch_im_in}, 1, ${dim_im_out_y}, ${ch_im_out}, 1, ${dim_kernel_y}, ${padding_y_top}, ${padding_y_bottom}, 0, 0, 1, ${stride_y}, 1, 1);
 """)
 
 PULPDWConv1D_8_Template = PULP1DDWConvTemplate("""
