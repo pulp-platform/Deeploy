@@ -278,11 +278,16 @@ PULPMaxPool2DBindings = [
                 FloatMaxPoolTemplate.referenceTemplate, ForkTransformer)
 ]
 
-PULPConv1DBinding = NodeBinding(
-    PULPConvChecker(
-        [PointerClass(int8_t), PointerClass(int8_t),
-         PointerClass(int32_t),
-         PointerClass(int32_t)], [PointerClass(int8_t)]), ConvTemplate.PULPConv1D_8_Template, ForkTransformer)
+PULPConv1DBindings = [
+    NodeBinding(
+        PULPConvChecker([PointerClass(_type),
+                         PointerClass(int8_t),
+                         PointerClass(int32_t),
+                         PointerClass(int32_t)], [PointerClass(_type)]),
+        ConvTemplate.PULPConv1D_8_Template,
+        ForkTransformer,
+    ) for _type in (int8_t, uint8_t)
+]
 
 PULPDWConv1DBinding = NodeBinding(
     PULPConvChecker(
