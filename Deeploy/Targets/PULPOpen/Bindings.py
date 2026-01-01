@@ -278,7 +278,7 @@ PULPMaxPool2DBindings = [
                 FloatMaxPoolTemplate.referenceTemplate, ForkTransformer)
 ]
 
-PULPConv1DBindings = [
+PULPRQSConv1DBindings = [
     NodeBinding(
         PULPConvChecker([PointerClass(_type),
                          PointerClass(int8_t),
