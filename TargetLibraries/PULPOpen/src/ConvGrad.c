@@ -76,9 +76,6 @@ void PULP_ConvGradW2d_fp32_fp32_fp32_CHW(
     uint32_t W_in, uint32_t C_in, uint32_t P, uint32_t Q, uint32_t SP,
     uint32_t SQ, float *__restrict__ pGradWeight, uint32_t pad_top,
     uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right) {
-  // NOTE: Removed memset - gradients should be accumulated across batches
-  // The caller is responsible for zero-initializing pGradWeight before the batch loop
-  // memset(pGradWeight, 0, sizeof(float) * (C_out * C_in * P * Q));
 
   struct blob input_blob = {0};
   struct blob output_blob = {0};
@@ -148,9 +145,6 @@ void PULP_ConvGradW2d_fp32_fp32_fp32_CHW_Im2Col(
     uint32_t SQ, float *__restrict__ pGradWeight, uint32_t pad_top,
     uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right,
     float *__restrict__ ctxtBuffer, uint32_t ctxtBufferSize) {
-  // NOTE: Removed memset - gradients should be accumulated across batches
-  // The caller is responsible for zero-initializing pGradWeight before the batch loop
-  // memset(pGradWeight, 0, sizeof(float) * (C_out * C_in * P * Q));
 
   struct blob input_blob = {0};
   struct blob output_blob = {0};

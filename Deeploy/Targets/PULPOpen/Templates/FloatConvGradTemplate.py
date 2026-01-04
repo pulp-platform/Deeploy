@@ -17,24 +17,12 @@ class PULP2DFloatConvGradWIm2ColTemplate(NodeTemplate):
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-        # For ConvGradW, im2col buffer stores im2col transformed input
-        # IMPORTANT: pulp-trainlib forces padding=0 for weight gradient im2col
-        # Htot = (H_in - P + stride_h) / stride_h
-        # Wtot = (W_in - Q + stride_w) / stride_w
-        # Size: C_in * P * Q * Htot * Wtot * sizeof(float)
-
-        H_in = operatorRepresentation['dim_im_in_x']
-        W_in = operatorRepresentation['dim_im_in_y']
-        C_in = operatorRepresentation['ch_im_in']
-        P = operatorRepresentation['dim_kernel_x']
-        Q = operatorRepresentation['dim_kernel_y']
-        stride_h = operatorRepresentation['stride_x']
-        stride_w = operatorRepresentation['stride_y']
-
-        Htot = (H_in - P + stride_h) // stride_h
-        Wtot = (W_in - Q + stride_w) // stride_w
-
-        im2col_dim = (operatorRepresentation["data_in_type"].typeWidth // 8) * C_in * P * Q * Htot * Wtot
+        # For ConvGradW, im2col buffer stores im2row transformed input
+        # Size: H_out * W_out * kernel_h * kernel_w * C_in * sizeof(float)
+        im2col_dim = (operatorRepresentation["data_in_type"].typeWidth // 8) * \
+                     operatorRepresentation['dim_im_out_x'] * operatorRepresentation['dim_im_out_y'] * \
+                     operatorRepresentation['ch_im_in'] * \
+                     operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']
 
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
 
@@ -86,9 +74,6 @@ ${grad_out_type.typeName} ref_${weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${weight}_${data_in} = ${data_in};
 ${weight_type.typeName} ref_${weight}_out = ${weight};
 
-// Initialize weight gradients to zero before accumulating across batches
-memset(ref_${weight}_out, 0, sizeof(${weight_type.referencedType.typeName}) * ${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y});
-
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_CHW(
         ref_${weight}_${grad_out},
@@ -107,13 +92,10 @@ for (uint32_t n=0; n<${batch}; ++n) {
 """)
 
 referenceConvGradW2DIm2ColTemplate = PULP2DFloatConvGradWIm2ColTemplate("""
-// 2D FP ConvGradW NCHW using pulp-trainlib Im2Col (Name: ${nodeName}, Op: ${nodeOp})
+// 2D FP ConvGradW NCHW using pulp-trainlib naive (Name: ${nodeName}, Op: ${nodeOp})
 ${grad_out_type.typeName} ref_${weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${weight}_${data_in} = ${data_in};
 ${weight_type.typeName} ref_${weight}_out = ${weight};
-
-// Initialize weight gradients to zero before accumulating across batches
-memset(ref_${weight}_out, 0, sizeof(${weight_type.referencedType.typeName}) * ${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y});
 
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_CHW_Im2Col(
