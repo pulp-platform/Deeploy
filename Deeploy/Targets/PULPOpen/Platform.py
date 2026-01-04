@@ -50,7 +50,7 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings, PULPAveragePool2DTilingReadyBindings, \
-    PULPAveragePoolGrad2DTilingReadyBindings, PULPConvGradX2DTilingReadyBindings, PULPConvGradW2DTilingReadyBindings, PULPConvGradB2DTilingReadyBindings, PULPDWConvGradX2DTilingReadyBindings, \
+    PULPAveragePoolGrad2DTilingReadyBindings, PULPConvGradX2DTilingReadyBindings, PULPConvGradW2DTilingReadyBindings, PULPDWConvGradX2DTilingReadyBindings, \
     PULPDWConvGradW2DTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
@@ -85,7 +85,6 @@ ConvGradXMapper = NodeMapper(PULPConvGradX2DParser(), PULPConvGradX2DTilingReady
 DwConvGradxMapper = NodeMapper(PULPDWConvGradX2DParser(), PULPDWConvGradX2DTilingReadyBindings)
 ConvGradWMapper = NodeMapper(PULPConvGradW2DParser(), PULPConvGradW2DTilingReadyBindings)
 DwConvGradWMapper = NodeMapper(PULPDWConvGradW2DParser(), PULPDWConvGradW2DTilingReadyBindings)
-ConvGradBMapper = NodeMapper(PULPConvGradB2DParser(), PULPConvGradB2DTilingReadyBindings)
 
 Conv2DMapper = NodeMapper(PULPConv2DParser(), PULPRQSConv2DTilingReadyBindings)
 FPDWConv2DMapper = NodeMapper(PULPFPDWConv2DParser(), PULPDWConv2DTilingReadyBindings)
@@ -126,7 +125,6 @@ PULPMapping = {
     'Conv': ConvLayer([FPConv2DMapper, FPDWConv2DMapper]),
     'ConvGradX': ConvLayer([ConvGradXMapper, DwConvGradxMapper]),
     'ConvGradW': ConvLayer([ConvGradWMapper, DwConvGradWMapper]),
-    'ConvGradB': ConvLayer([ConvGradBMapper]),
     'RequantizedConv': PULPRQSConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
     'RequantizedGemm': PULPRQSGEMMLayer([MatrixVecMapper, TallGEMMMapper, GEMMMapper]),
     'Gemm': GEMMLayer([FloatGEMMMapper, GEMMDequantMapper]),

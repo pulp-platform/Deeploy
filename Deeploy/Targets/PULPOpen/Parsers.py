@@ -528,6 +528,12 @@ class PULPConvGradX2DParser(PULPFPConv2DParser):
             # Size for memory allocation
             self.operatorRepresentation['size'] = np.prod(output_grad.shape)
 
+            # Initialize offset fields (will be filled during tiling)
+            self.operatorRepresentation['offset_grad_in_h'] = 0
+            self.operatorRepresentation['offset_grad_in_w'] = 0
+            self.operatorRepresentation['offset_grad_out_h'] = 0
+            self.operatorRepresentation['offset_grad_out_w'] = 0
+
             return ctxt, True
         else:
             return super().parseNodeCtxt(ctxt, node, channels_first)

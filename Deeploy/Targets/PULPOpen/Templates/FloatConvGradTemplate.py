@@ -8,6 +8,47 @@ from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
+class PULP2DFloatConvGradWIm2ColTemplate(NodeTemplate):
+
+    def __init__(self, templateStr):
+        super().__init__(templateStr)
+
+    @staticmethod
+    def computeTransientBuffersSize(
+            ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
+        # For ConvGradW, im2col buffer stores im2col transformed input
+        # IMPORTANT: pulp-trainlib forces padding=0 for weight gradient im2col
+        # Htot = (H_in - P + stride_h) / stride_h
+        # Wtot = (W_in - Q + stride_w) / stride_w
+        # Size: C_in * P * Q * Htot * Wtot * sizeof(float)
+
+        H_in = operatorRepresentation['dim_im_in_x']
+        W_in = operatorRepresentation['dim_im_in_y']
+        C_in = operatorRepresentation['ch_im_in']
+        P = operatorRepresentation['dim_kernel_x']
+        Q = operatorRepresentation['dim_kernel_y']
+        stride_h = operatorRepresentation['stride_x']
+        stride_w = operatorRepresentation['stride_y']
+
+        Htot = (H_in - P + stride_h) // stride_h
+        Wtot = (W_in - Q + stride_w) // stride_w
+
+        im2col_dim = (operatorRepresentation["data_in_type"].typeWidth // 8) * C_in * P * Q * Htot * Wtot
+
+        im2col_name = operatorRepresentation['nodeName'] + "_buffer"
+
+        return [(im2col_name, im2col_dim)]
+
+    def hoistTransientBuffers(self, ctxt: NetworkContext,
+                              operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
+        im2col_name, im2col_dim = PULP2DFloatConvGradWIm2ColTemplate.computeTransientBuffersSize(
+            ctxt, operatorRepresentation)[0]
+        ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
+
+        operatorRepresentation['ctxtBuffer'] = im2col_name
+        operatorRepresentation['ctxtBufferSize'] = im2col_dim
+        return ctxt, operatorRepresentation, [im2col_name]
 
 
 
@@ -18,7 +59,7 @@ ${weight_type.typeName}   ref_${data_out}_${weight}  = ${weight};    // W
 ${data_out_type.typeName} ref_${data_out}_out        = ${data_out};  // dX
 
 for (uint32_t n=0; n<${batch}; ++n) {
-    PULP_ConvGradX2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_CHW(
+    PULP_ConvGradX2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_CHW_tiled(
         ref_${data_out}_${data_in},
         ${dim_im_out_x}, ${dim_im_out_y}, ${ch_im_out},
         ref_${data_out}_${weight},
@@ -27,7 +68,10 @@ for (uint32_t n=0; n<${batch}; ++n) {
         ${stride_x}, ${stride_y},
         ref_${data_out}_out,
         ${dim_im_in_x}, ${dim_im_in_y},
-        ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}
+        ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right},
+        ${offset_grad_in_h}, ${offset_grad_in_w},
+        ${offset_grad_out_h}, ${offset_grad_out_w}
+
     );
 
     ref_${data_out}_${data_in} += ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x};
@@ -42,6 +86,9 @@ ${grad_out_type.typeName} ref_${weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${weight}_${data_in} = ${data_in};
 ${weight_type.typeName} ref_${weight}_out = ${weight};
 
+// Initialize weight gradients to zero before accumulating across batches
+memset(ref_${weight}_out, 0, sizeof(${weight_type.referencedType.typeName}) * ${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y});
+
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_CHW(
         ref_${weight}_${grad_out},
@@ -52,6 +99,33 @@ for (uint32_t n=0; n<${batch}; ++n) {
         ${stride_x}, ${stride_y},
         ref_${weight}_out,
         ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}
+    );
+
+    ref_${weight}_${grad_out} += ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x};
+    ref_${weight}_${data_in} += ${ch_im_in} * ${dim_im_in_y} * ${dim_im_in_x};
+}
+""")
+
+referenceConvGradW2DIm2ColTemplate = PULP2DFloatConvGradWIm2ColTemplate("""
+// 2D FP ConvGradW NCHW using pulp-trainlib Im2Col (Name: ${nodeName}, Op: ${nodeOp})
+${grad_out_type.typeName} ref_${weight}_${grad_out} = ${grad_out};
+${data_in_type.typeName} ref_${weight}_${data_in} = ${data_in};
+${weight_type.typeName} ref_${weight}_out = ${weight};
+
+// Initialize weight gradients to zero before accumulating across batches
+memset(ref_${weight}_out, 0, sizeof(${weight_type.referencedType.typeName}) * ${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y});
+
+for (uint32_t n=0; n<${batch}; ++n) {
+    PULP_ConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_CHW_Im2Col(
+        ref_${weight}_${grad_out},
+        ${dim_im_out_x}, ${dim_im_out_y}, ${ch_im_out},
+        ref_${weight}_${data_in},
+        ${dim_im_in_x}, ${dim_im_in_y}, ${ch_im_in},
+        ${dim_kernel_x}, ${dim_kernel_y},
+        ${stride_x}, ${stride_y},
+        ref_${weight}_out,
+        ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right},
+        ${ctxtBuffer}, ${ctxtBufferSize}
     );
 
     ref_${weight}_${grad_out} += ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x};

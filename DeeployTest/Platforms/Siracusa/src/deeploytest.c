@@ -44,10 +44,10 @@ void CompareFloatOnCluster(void *args) {
       if ((diff < -1e-4) || (diff > 1e-4) || isnan(diff)) {
         local_err_count += 1;
 
-        // printf("Expected: %10.6f  ", expected_val);
-        // printf("Actual: %10.6f  ", actual_val);
-        // printf("Diff: %10.6f at Index %12u in Output %u\r\n", diff, i,
-        //        output_buf_index);
+        printf("Expected: %10.6f  ", expected_val);
+        printf("Actual: %10.6f  ", actual_val);
+        printf("Diff: %10.6f at Index %12u in Output %u\r\n", diff, i,
+               output_buf_index);
       }
     }
 

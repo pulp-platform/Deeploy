@@ -243,6 +243,20 @@ PULPFloatConv2DBindings = [
         ForkTransformer)
 ]
 
+PULPFloatConvGradW2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradW2DTemplate,
+        ClusterTransformer)
+]
+
+PULPFloatConvGradX2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradX2DTemplate,
+        ForkTransformer)
+]
+
 PULPFloatDWConv2DBindings = [
     NodeBinding(
         ConvChecker(
@@ -251,24 +265,10 @@ PULPFloatDWConv2DBindings = [
         ForkTransformer) for float_type in FloatDataTypes
 ]
 
-PULPFloatConvGradX2DBindings = [
-    NodeBinding(
-        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
-                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradX2DTemplate,
-        ClusterTransformer)
-]
-
 PULPFloatDWConvGradX2DBindings = [
     NodeBinding(
         ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
                     [PointerClass(float32_t)]), FloatConvGradTemplate.referenceDWConvGradX2DTemplate,
-        ClusterTransformer)
-]
-
-PULPFloatConvGradW2DBindings = [
-    NodeBinding(
-        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
-                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradW2DTemplate,
         ClusterTransformer)
 ]
 
