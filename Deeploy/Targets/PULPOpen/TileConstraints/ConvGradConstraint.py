@@ -482,6 +482,8 @@ class ConvGradW2DTileConstraint(TileConstraint):
         gradWBuf    = ctxt.lookup(name=parseDict["weight"])     # dW (output)
 
         group = parseDict["group"]
+        pads = parseDict["pads"]
+        strides = parseDict["strides"]
 
         # Input (X) vars - NCHW
         Ci_x = tilerModel.getTensorDimVar(inputBuf.name, 1)
@@ -505,15 +507,24 @@ class ConvGradW2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(P == parseDict["dim_kernel_x"])
         tilerModel.addConstraint(Q == parseDict["dim_kernel_y"])
 
-        # --- Input channels must match ---
+        # --- Input channels must be full (required for im2col algorithm) ---
         tilerModel.addConstraint(Ci_x == parseDict["ch_im_in"])
         tilerModel.addConstraint(Co_dy == parseDict["ch_im_out"])
 
-        # --- Minimum spatial tile sizes ---
-        tilerModel.addConstraint(Hi_x >= 1)
-        tilerModel.addConstraint(Wi_x >= 1)
-        tilerModel.addConstraint(Ho_dy >= 1)
-        tilerModel.addConstraint(Wo_dy >= 1)
+        # --- Compute effective input spatial dimensions (similar to Conv2D) ---
+        # Account for padding when at full dimension, and kernel overlap when tiled
+        effectiveInputHeight = Hi_x + ((pads[0] + pads[1]) * (Hi_x == inputBuf.shape[2])) - (
+            (P - 1) * (Hi_x != inputBuf.shape[2]))
+        effectiveInputWidth = Wi_x + ((pads[2] + pads[3]) * (Wi_x == inputBuf.shape[3])) - (
+            (Q - 1) * (Wi_x != inputBuf.shape[3]))
+
+        # --- Require minimum spatial dimensions to be at least kernel size ---
+        tilerModel.addConstraint(effectiveInputHeight >= parseDict["dim_kernel_x"])
+        tilerModel.addConstraint(effectiveInputWidth >= parseDict["dim_kernel_y"])
+
+        # --- Ensure tiles are compatible with stride ---
+        tilerModel.addConstraint((effectiveInputHeight % strides[0]) == 0)
+        tilerModel.addConstraint((effectiveInputWidth % strides[1]) == 0)
 
         return tilerModel
 
@@ -621,13 +632,16 @@ class ConvGradW2DTileConstraint(TileConstraint):
         operatorRepresentation: OperatorRepresentation
     ) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         """
-        For ConvGradW, output cubes correspond to grad_weight (dW).
-        Since we don't tile the weight, there should be only one output cube (full weight).
+        ConvGradW with H/W tiling (im2col approach):
+        - Tile grad_out (dY) over spatial H/W dimensions
+        - For each grad_out tile, compute required input (X) tile with overlap
+        - All tiles accumulate into full grad_weight (dW)
 
-        We tile the input (X) and grad_out (dY) over batch and/or spatial dimensions.
+        Similar to Conv2D im2col pattern.
         """
 
-        # Output cubes correspond to node output tensor => weight => grad_weight (dW)
+        # Extract output cubes - for ConvGradW, these represent grad_weight (always full)
+        # But we create multiple cubes for different spatial computation tiles
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
         varInput   = operatorRepresentation["data_in"]    # X
@@ -637,6 +651,8 @@ class ConvGradW2DTileConstraint(TileConstraint):
         group   = operatorRepresentation["group"]
         pads    = operatorRepresentation["pads"]         # [t,b,l,r]
         strides = operatorRepresentation["strides"]      # [sh, sw]
+        pad_top, pad_bottom, pad_left, pad_right = pads
+        stride_h, stride_w = strides
 
         addrNames = ["data_in", "grad_out", "weight"]
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(
@@ -678,72 +694,99 @@ class ConvGradW2DTileConstraint(TileConstraint):
         fullInputDims   = ctxt.lookup(varInput).shape     # (N, C_in, H_in, W_in)
         fullGradOutDims = ctxt.lookup(varGradOut).shape   # (N, C_out, H_out, W_out)
 
-        stride_h, stride_w = strides
+        # For ConvGradW with H/W tiling:
+        # - Output (grad_weight) is always full size (for accumulation)
+        # - We tile the INPUTS (X and grad_out) spatially
+        # - Extract tile dimensions from tilingSolution (computed by framework)
 
-        # Note: For ConvGradW, we typically don't tile the weight output.
-        # Instead, we tile over batch/spatial dimensions of input and grad_out.
-        # The output cube here represents the full weight gradient.
+        # Get the tile dimensions from the memory constraint solution
+        # The framework computes optimal tile sizes for L1 memory
+        gradOutTileDims = tilingSolution.tensorMemoryConstraints[varGradOut].memoryConstraints[targetMemLevel].shape
+        inputTileDims = tilingSolution.tensorMemoryConstraints[varInput].memoryConstraints[targetMemLevel].shape
 
-        # If policy constraints are correct, there should be only one output cube (full dW)
-        assert len(outputCubes) == 1, "ConvGradW should have only one output cube (full weight)"
+        # Extract spatial tile sizes
+        # grad_out: (N, C_out, H_out_tile, W_out_tile)
+        N_tile = gradOutTileDims[0]
+        H_out_tile = gradOutTileDims[2]
+        W_out_tile = gradOutTileDims[3]
 
-        # Since we're tiling input/grad_out but not weight, we need to define
-        # how to break up the computation. Typically, we tile grad_out and compute
-        # corresponding input tiles.
+        # Compute how many tiles needed to cover full spatial dimensions
+        # For im2col with overlap, we need to compute tile offsets carefully
+        N_full, C_out_full, H_out_full, W_out_full = fullGradOutDims
+        N_in_full, C_in_full, H_in_full, W_in_full = fullInputDims
 
-        # For simplicity, assume grad_out is tiled and we compute required input tiles
-        # This is a simplified approach - actual tiling may need custom logic
+        # Generate tiles to cover the full grad_out spatial dimensions
+        # Each tile may overlap with neighbors due to kernel receptive field
+        h_tiles = []
+        w_tiles = []
 
-        # Get the single weight output cube (should be full weight)
-        dw_cube = outputCubes[0]
+        # Compute H dimension tiles
+        h_offset = 0
+        while h_offset < H_out_full:
+            h_size = min(H_out_tile, H_out_full - h_offset)
+            h_tiles.append((h_offset, h_size))
+            h_offset += h_size
 
-        # For now, create a single tile covering full grad_out and input
-        # In practice, you'd tile grad_out over batch/spatial dimensions
+        # Compute W dimension tiles
+        w_offset = 0
+        while w_offset < W_out_full:
+            w_size = min(W_out_tile, W_out_full - w_offset)
+            w_tiles.append((w_offset, w_size))
+            w_offset += w_size
 
-        # Full grad_out cube
-        gradOutCube = HyperRectangle(
-            (0, 0, 0, 0),
-            fullGradOutDims
-        )
+        # Create tiles for all H/W combinations
+        for h_off, h_sz in h_tiles:
+            for w_off, w_sz in w_tiles:
+                # Create grad_out tile for this spatial region
+                gradOutCube = HyperRectangle(
+                    (0, 0, h_off, w_off),
+                    (N_tile, C_out_full, h_sz, w_sz)
+                )
 
-        # Corresponding input cube
-        inputCube, pad_tuple = cls.computeInputTileFromGradOutTile(
-            kernelShape=(weightP, weightQ),
-            pads=tuple(pads),
-            strides=(stride_h, stride_w),
-            inputCSize=fullInputDims[1],  # C_in
-            gradOutTile=gradOutCube,
-            inputDims=fullInputDims,
-            gradOutDims=fullGradOutDims,
-        )
+                # Compute corresponding input (X) tile with overlap
+                # This uses im2col logic: input needs extra space for kernel receptive field
+                inputCube, pad_tuple = cls.computeInputTileFromGradOutTile(
+                    kernelShape=(weightP, weightQ),
+                    pads=tuple(pads),
+                    strides=(stride_h, stride_w),
+                    inputCSize=C_in_full,  # Full C_in (im2col requirement)
+                    gradOutTile=gradOutCube,
+                    inputDims=fullInputDims,
+                    gradOutDims=fullGradOutDims,
+                )
 
-        pad_top, pad_bottom, pad_left, pad_right = pad_tuple
+                tilepad_top, tilepad_bottom, tilepad_left, tilepad_right = pad_tuple
 
-        # Replacements for this tile
-        replacements["dim_im_in_x"].append(inputCube.dims[2])    # H_in
-        replacements["dim_im_in_y"].append(inputCube.dims[3])    # W_in
-        replacements["dim_im_out_x"].append(gradOutCube.dims[2]) # H_out
-        replacements["dim_im_out_y"].append(gradOutCube.dims[3]) # W_out
-        replacements["ch_im_in"].append(fullInputDims[1])        # C_in
-        replacements["ch_im_out"].append(fullGradOutDims[1])     # C_out
+                # Store replacements for this tile (im2col kernel parameters)
+                replacements["dim_im_in_x"].append(inputCube.dims[2])      # H_in tile
+                replacements["dim_im_in_y"].append(inputCube.dims[3])      # W_in tile
+                replacements["dim_im_out_x"].append(h_sz)                  # H_out tile
+                replacements["dim_im_out_y"].append(w_sz)                  # W_out tile
+                replacements["ch_im_in"].append(C_in_full)                 # Full C_in
+                replacements["ch_im_out"].append(C_out_full)               # Full C_out
 
-        replacements["padding_y_top"].append(pad_top)
-        replacements["padding_y_bottom"].append(pad_bottom)
-        replacements["padding_x_left"].append(pad_left)
-        replacements["padding_x_right"].append(pad_right)
+                # Tile-specific padding (edge tiles have padding, interior tiles don't)
+                replacements["padding_y_top"].append(tilepad_top)
+                replacements["padding_y_bottom"].append(tilepad_bottom)
+                replacements["padding_x_left"].append(tilepad_left)
+                replacements["padding_x_right"].append(tilepad_right)
 
-        inputXCubes.append(inputCube)
-        inputGradOutCubes.append(gradOutCube)
+                inputXCubes.append(inputCube)
+                inputGradOutCubes.append(gradOutCube)
 
         # Build load schedules
         inputLoadSchedule = []
         outputLoadSchedule = []
 
+        # Each input tile pair (X, grad_out) computes a partial gradient
         for x_cube, dy_cube in zip(inputXCubes, inputGradOutCubes):
             inputLoadSchedule.append({"data_in": x_cube, "grad_out": dy_cube})
 
-        for out_cube in outputCubes:
-            outputLoadSchedule.append({"weight": out_cube})
+        # All tiles accumulate into the same full grad_weight
+        # Create one output entry per input tile (all point to same full grad_weight)
+        fullGradWeightCube = HyperRectangle((0, 0, 0, 0), (weightCo, weightCi, weightP, weightQ))
+        for _ in range(len(inputXCubes)):
+            outputLoadSchedule.append({"weight": fullGradWeightCube})
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
