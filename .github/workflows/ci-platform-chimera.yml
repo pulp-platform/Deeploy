@@ -35,7 +35,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-names: |
-        Adder
-      simulators: |
-        gvsoc
+      pytest-marker: "kernels"

@@ -14,7 +14,7 @@ name: _runner-softhier
       docker-image:
         required: true
         type: string
-      test-names:
+      pytest-marker:
         required: true
         type: string
 
@@ -31,15 +31,11 @@ jobs:
       - name: Build Deeploy
         shell: bash
         run: pip install -e .
-      - name: Run Test
+      - name: Run Test # VJUNG: Run tests with 4 parallel threads as GitHub action VM has 4 cores.
         run: |
-          testNames="${{ inputs.test-names }}"
           export SOFTHIER_INSTALL_DIR=/app/install/softhier
           cd DeeployTest
-          echo "$testNames" | while IFS= read -r testName; do
-            if [[ -n "$testName" ]]; then
-              echo "Running test: $testName"
-              python testRunner_softhier.py -t Tests/$testName --toolchain=GCC
-            fi
-          done
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          pytest test_platforms.py -v -n 4 -m "softhier and ${{ inputs.pytest-marker }}" --toolchain=GCC
         shell: bash

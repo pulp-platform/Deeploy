@@ -3,9 +3,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
+
+# Import platform-specific test configurations
+from test_chimera_config import KERNEL_TESTS as CHIMERA_KERNEL_TESTS
+from test_chimera_config import MODEL_TESTS as CHIMERA_MODEL_TESTS
 from test_cortexm_config import KERNEL_TESTS as CORTEXM_KERNEL_TESTS
 from test_cortexm_config import MODEL_TESTS as CORTEXM_MODEL_TESTS
-# Import platform-specific test configurations
 from test_generic_config import KERNEL_TESTS as GENERIC_KERNEL_TESTS
 from test_generic_config import MODEL_TESTS as GENERIC_MODEL_TESTS
 from test_mempool_config import DEFAULT_NUM_THREADS as MEMPOOL_DEFAULT_NUM_THREADS
@@ -16,6 +19,12 @@ from test_siracusa_config import KERNEL_TESTS as SIRACUSA_KERNEL_TESTS
 from test_siracusa_config import MODEL_TESTS as SIRACUSA_MODEL_TESTS
 from test_siracusa_tiled_config import L2_DOUBLEBUFFER_KERNELS, L2_DOUBLEBUFFER_MODELS, L2_SINGLEBUFFER_KERNELS, \
     L2_SINGLEBUFFER_MODELS, L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
+from test_snitch_config import DEFAULT_NUM_CORES as SNITCH_DEFAULT_NUM_CORES
+from test_snitch_config import KERNEL_TESTS as SNITCH_KERNEL_TESTS
+from test_snitch_config import MODEL_TESTS as SNITCH_MODEL_TESTS
+from test_softhier_config import DEFAULT_NUM_CLUSTERS as SOFTHIER_DEFAULT_NUM_CLUSTERS
+from test_softhier_config import KERNEL_TESTS as SOFTHIER_KERNEL_TESTS
+from test_softhier_config import MODEL_TESTS as SOFTHIER_MODEL_TESTS
 from testUtils.pytestRunner import create_test_config, run_and_assert_test
 
 
@@ -64,12 +73,36 @@ PLATFORM_CONFIGS = {
         "model_tests": MEMPOOL_MODEL_TESTS,
         "default_num_threads": MEMPOOL_DEFAULT_NUM_THREADS,
     },
+    "chimera": {
+        "platform": "Chimera",
+        "simulator": "gvsoc",
+        "kernel_tests": CHIMERA_KERNEL_TESTS,
+        "model_tests": CHIMERA_MODEL_TESTS,
+    },
+    "softhier": {
+        "platform": "SoftHier",
+        "simulator": "gvsoc",
+        "kernel_tests": SOFTHIER_KERNEL_TESTS,
+        "model_tests": SOFTHIER_MODEL_TESTS,
+        "default_num_clusters": SOFTHIER_DEFAULT_NUM_CLUSTERS,
+    },
+    "snitch": {
+        "platform": "Snitch",
+        "simulator": "gvsoc",
+        "kernel_tests": SNITCH_KERNEL_TESTS,
+        "model_tests": SNITCH_MODEL_TESTS,
+        "default_num_cores": SNITCH_DEFAULT_NUM_CORES,
+    },
 }
 
 ### Markers summary ###
 # Platform markers:
 #   generic: tests from the generic platform
 #   cortexm: tests from the cortex-m (QEMU-ARM) platform
+#   mempool: tests from the MemPool platform
+#   chimera: tests from the Chimera platform
+#   softhier: tests from the SoftHier platform
+#   snitch: tests from the Snitch platform
 #   siracusa: tests from the Siracusa platform (untiled)
 #   siracusa_tiled: tests from the Siracusa platform (tiled)
 # Test type markers:
@@ -435,3 +468,69 @@ def test_siracusa_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, to
         double_buffer = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.chimera
+@pytest.mark.kernels
+@pytest.mark.parametrize("test_name", CHIMERA_KERNEL_TESTS, ids = CHIMERA_KERNEL_TESTS)
+def test_chimera_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    """Test Chimera platform kernel tests."""
+    platform_config = PLATFORM_CONFIGS["chimera"]
+    config = create_test_config(
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.softhier
+@pytest.mark.kernels
+@pytest.mark.parametrize("test_name", SOFTHIER_KERNEL_TESTS, ids = SOFTHIER_KERNEL_TESTS)
+def test_softhier_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    """Test SoftHier platform kernel tests."""
+    platform_config = PLATFORM_CONFIGS["softhier"]
+    
+    # Add SoftHier-specific CMake args for number of clusters
+    softhier_cmake_args = cmake_args + [f"num_clusters={platform_config['default_num_clusters']}"]
+    
+    config = create_test_config(
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = softhier_cmake_args,
+        tiling = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.snitch
+@pytest.mark.kernels
+@pytest.mark.parametrize("test_name", SNITCH_KERNEL_TESTS, ids = SNITCH_KERNEL_TESTS)
+def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    """Test Snitch platform kernel tests."""
+    platform_config = PLATFORM_CONFIGS["snitch"]
+    
+    # Add Snitch-specific CMake args for number of cores
+    snitch_cmake_args = cmake_args + [f"NUM_CORES={platform_config['default_num_cores']}"]
+    
+    config = create_test_config(
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = snitch_cmake_args,
+        tiling = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
