@@ -822,11 +822,11 @@ class PULPDWConvGradW2DParser(Conv2DParser):
         
         # Store dimensions
         self.operatorRepresentation['ch_im_out'] = C_out
-        self.operatorRepresentation['dim_im_out_x'] = W_out
-        self.operatorRepresentation['dim_im_out_y'] = H_out
+        self.operatorRepresentation['dim_im_out_x'] = H_out
+        self.operatorRepresentation['dim_im_out_y'] = W_out
         self.operatorRepresentation['ch_im_in'] = C_in
-        self.operatorRepresentation['dim_im_in_x'] = W_in
-        self.operatorRepresentation['dim_im_in_y'] = H_in
+        self.operatorRepresentation['dim_im_in_x'] = H_in
+        self.operatorRepresentation['dim_im_in_y'] = W_in
         
         # Store kernel dimensions
         self.operatorRepresentation['dim_kernel_y'] = self.operatorRepresentation['kernel_shape'][0]

@@ -194,6 +194,10 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         """
     retStr += deployer.generateEngineInitializationCode()
     retStr += deployer.generateBufferAllocationCode()
+    # keep for untiled
+    retStr += """
+    memset(DeeployNetwork_output_0, 0, 2304 * sizeof(float32_t));
+    """
     retStr += """
     }
     """

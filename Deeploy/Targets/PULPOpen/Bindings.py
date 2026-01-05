@@ -279,14 +279,6 @@ PULPFloatDWConvGradW2DBindings = [
         ClusterTransformer)
 ]
 
-PULPFloatConvGradB2DBindings = [
-    NodeBinding(
-        PULPConvGradBChecker([PointerClass(float32_t)],  # Only one input: output_grad
-                             [PointerClass(float32_t)]), # Output: bias_grad
-        FloatConvGradTemplate.referenceConvGradB2DTemplate,
-        ForkTransformer)
-]
-
 PULPRQSMatrixVecBindings = [
     NodeBinding(
         PULPLinearChecker([PointerClass(type1),

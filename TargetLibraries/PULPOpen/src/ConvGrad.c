@@ -639,35 +639,6 @@ void PULP_DWConvTrans2d_fp32_fp32_fp32_HWC(
   pulp_conv_dw_fp32_bw_input_grads_cl(&dw_args);
 }
 
-void PULP_ConvGradB2d_fp32_fp32_NCHW(const float *__restrict__ pGradOut,
-                                     uint32_t H_out, uint32_t W_out,
-                                     uint32_t C_out,
-                                     float *__restrict__ pGradBias) {
-  int8_t core_id = pi_core_id();
-  int8_t log2Core = LOG2(NUM_CORES);
-
-  uint16_t ch_chunk = (C_out >> log2Core) + ((C_out & (NUM_CORES - 1)) != 0);
-  uint16_t ch_start = MIN(ch_chunk * core_id, C_out);
-  uint16_t ch_stop = MIN(ch_start + ch_chunk, C_out);
-
-  if (ch_start >= ch_stop) {
-    return;
-  }
-
-  for (uint32_t oc = ch_start; oc < ch_stop; ++oc) {
-    float grad_sum = 0.0f;
-
-    for (uint32_t oh = 0; oh < H_out; ++oh) {
-      for (uint32_t ow = 0; ow < W_out; ++ow) {
-        uint32_t go_idx = (oc * H_out + oh) * W_out + ow;
-        grad_sum += pGradOut[go_idx];
-      }
-  }
-
-    pGradBias[oc] = grad_sum;
-  }
-}
-
 void PULP_DWConvGradW2d_fp32_fp32_fp32_CHW(
     const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
     uint32_t C_out, const float *__restrict__ pInput, uint32_t H_in,
@@ -679,8 +650,6 @@ void PULP_DWConvGradW2d_fp32_fp32_fp32_CHW(
   // Requires H_out + kernel_size - 1 ≤ H_in
 
   uint32_t gradw_elems = C_out * (C_in / C_out) * P * Q;
-
-  memset(pGradWeight, 0, sizeof(float) * gradw_elems);
 
   struct blob input_blob = {0};
   struct blob coeff_blob = {0};
