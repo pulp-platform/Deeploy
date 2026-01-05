@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-
 # Import platform-specific test configurations
 from test_chimera_config import KERNEL_TESTS as CHIMERA_KERNEL_TESTS
 from test_chimera_config import MODEL_TESTS as CHIMERA_MODEL_TESTS
@@ -197,10 +196,10 @@ def test_cortexm_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
 def test_mempool_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     """Test MemPool platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["mempool"]
-    
+
     # Add MemPool-specific CMake args for number of threads
     mempool_cmake_args = cmake_args + [f"num_threads={platform_config['default_num_threads']}"]
-    
+
     config = create_test_config(
         test_name = test_name,
         platform = platform_config["platform"],
@@ -220,10 +219,10 @@ def test_mempool_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 def test_mempool_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     """Test MemPool platform model tests."""
     platform_config = PLATFORM_CONFIGS["mempool"]
-    
+
     # Add MemPool-specific CMake args for number of threads
     mempool_cmake_args = cmake_args + [f"num_threads={platform_config['default_num_threads']}"]
-    
+
     config = create_test_config(
         test_name = test_name,
         platform = platform_config["platform"],
@@ -495,10 +494,10 @@ def test_chimera_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 def test_softhier_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     """Test SoftHier platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["softhier"]
-    
+
     # Add SoftHier-specific CMake args for number of clusters
     softhier_cmake_args = cmake_args + [f"num_clusters={platform_config['default_num_clusters']}"]
-    
+
     config = create_test_config(
         test_name = test_name,
         platform = platform_config["platform"],
@@ -518,10 +517,10 @@ def test_softhier_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir,
 def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     """Test Snitch platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["snitch"]
-    
+
     # Add Snitch-specific CMake args for number of cores
     snitch_cmake_args = cmake_args + [f"NUM_CORES={platform_config['default_num_cores']}"]
-    
+
     config = create_test_config(
         test_name = test_name,
         platform = platform_config["platform"],
@@ -533,4 +532,3 @@ def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
         tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
-
