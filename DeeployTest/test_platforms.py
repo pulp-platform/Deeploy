@@ -8,6 +8,9 @@ from test_cortexm_config import MODEL_TESTS as CORTEXM_MODEL_TESTS
 # Import platform-specific test configurations
 from test_generic_config import KERNEL_TESTS as GENERIC_KERNEL_TESTS
 from test_generic_config import MODEL_TESTS as GENERIC_MODEL_TESTS
+from test_mempool_config import DEFAULT_NUM_THREADS as MEMPOOL_DEFAULT_NUM_THREADS
+from test_mempool_config import KERNEL_TESTS as MEMPOOL_KERNEL_TESTS
+from test_mempool_config import MODEL_TESTS as MEMPOOL_MODEL_TESTS
 from test_siracusa_config import DEFAULT_CORES as SIRACUSA_DEFAULT_CORES
 from test_siracusa_config import KERNEL_TESTS as SIRACUSA_KERNEL_TESTS
 from test_siracusa_config import MODEL_TESTS as SIRACUSA_MODEL_TESTS
@@ -53,6 +56,13 @@ PLATFORM_CONFIGS = {
         "simulator": "qemu",
         "kernel_tests": CORTEXM_KERNEL_TESTS,
         "model_tests": CORTEXM_MODEL_TESTS,
+    },
+    "mempool": {
+        "platform": "MemPool",
+        "simulator": "banshee",
+        "kernel_tests": MEMPOOL_KERNEL_TESTS,
+        "model_tests": MEMPOOL_MODEL_TESTS,
+        "default_num_threads": MEMPOOL_DEFAULT_NUM_THREADS,
     },
 }
 
@@ -148,7 +158,50 @@ def test_cortexm_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
-### Siracusa Platform Tests ###
+@pytest.mark.mempool
+@pytest.mark.kernels
+@pytest.mark.parametrize("test_name", MEMPOOL_KERNEL_TESTS, ids = MEMPOOL_KERNEL_TESTS)
+def test_mempool_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    """Test MemPool platform kernel tests."""
+    platform_config = PLATFORM_CONFIGS["mempool"]
+    
+    # Add MemPool-specific CMake args for number of threads
+    mempool_cmake_args = cmake_args + [f"num_threads={platform_config['default_num_threads']}"]
+    
+    config = create_test_config(
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = mempool_cmake_args,
+        tiling = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.mempool
+@pytest.mark.models
+@pytest.mark.parametrize("test_name", MEMPOOL_MODEL_TESTS, ids = MEMPOOL_MODEL_TESTS)
+def test_mempool_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    """Test MemPool platform model tests."""
+    platform_config = PLATFORM_CONFIGS["mempool"]
+    
+    # Add MemPool-specific CMake args for number of threads
+    mempool_cmake_args = cmake_args + [f"num_threads={platform_config['default_num_threads']}"]
+    
+    config = create_test_config(
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = mempool_cmake_args,
+        tiling = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.siracusa
@@ -187,9 +240,6 @@ def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
         cores = SIRACUSA_DEFAULT_CORES,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
-
-
-### Siracusa Tiled Platform Tests ###
 
 
 @pytest.mark.siracusa_tiled

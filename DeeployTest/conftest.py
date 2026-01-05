@@ -51,6 +51,7 @@ def pytest_configure(config: pytest.Config) -> None:
     # Register custom markers
     config.addinivalue_line("markers", "generic: mark test as a Generic platform test")
     config.addinivalue_line("markers", "cortexm: mark test as a Cortex-M (QEMU-ARM) platform test")
+    config.addinivalue_line("markers", "mempool: mark test as a MemPool platform test")
     config.addinivalue_line("markers", "siracusa: mark test as a Siracusa platform test (untiled)")
     config.addinivalue_line("markers", "siracusa_tiled: mark test as a Siracusa platform test (tiled)")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")
