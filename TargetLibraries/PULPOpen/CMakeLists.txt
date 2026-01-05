@@ -53,6 +53,7 @@ file(GLOB PULP_TRAINLIB_CONV_SOURCES
   "${CMAKE_CURRENT_LIST_DIR}/third_party/pulp-trainlib/lib/sources/pulp_conv2d_fp32.c"
   "${CMAKE_CURRENT_LIST_DIR}/third_party/pulp-trainlib/lib/sources/pulp_im2col_fp32.c"
   "${CMAKE_CURRENT_LIST_DIR}/third_party/pulp-trainlib/lib/sources/pulp_conv_dw_fp32.c"
+  "${CMAKE_CURRENT_LIST_DIR}/third_party/pulp-trainlib/lib/sources/pulp_conv_pw_fp32.c"
   "${CMAKE_CURRENT_LIST_DIR}/third_party/pulp-trainlib/lib/sources/pulp_matmul_fp32.c"
   "${CMAKE_CURRENT_LIST_DIR}/third_party/pulp-trainlib/lib/sources/pulp_train_utils_fp32.c"
   "${CMAKE_CURRENT_LIST_DIR}/third_party/pulp-trainlib/lib/sources/pulp_conv_naive_fp32.c"

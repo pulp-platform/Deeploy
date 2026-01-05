@@ -157,3 +157,23 @@ for (uint32_t n=0; n<${batch}; ++n) {
     ref_${data_out}_${data_out} += ${ch_im_out} * ${dim_im_out_x} * ${dim_im_out_y};
 }
 """)
+
+referencePWConvGradW2DTemplate = NodeTemplate("""
+// 2D FP Pointwise ConvGradW (1x1) NCHW using pulp-trainlib pw interface (Name: ${nodeName}, Op: ${nodeOp})
+${grad_out_type.typeName} ref_${weight}_${grad_out} = ${grad_out};
+${data_in_type.typeName} ref_${weight}_${data_in} = ${data_in};
+${weight_type.typeName} ref_${weight}_out = ${weight};
+
+for (uint32_t n=0; n<${batch}; ++n) {
+    PULP_PWConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_CHW(
+        ref_${weight}_${grad_out},
+        ${dim_im_out_x}, ${dim_im_out_y}, ${ch_im_out},
+        ref_${weight}_${data_in},
+        ${dim_im_in_x}, ${dim_im_in_y}, ${ch_im_in},
+        ref_${weight}_out
+    );
+
+    ref_${weight}_${grad_out} += ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x};
+    ref_${weight}_${data_in} += ${ch_im_in} * ${dim_im_in_y} * ${dim_im_in_x};
+}
+""")

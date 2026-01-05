@@ -70,6 +70,22 @@ struct DepthWise_Conv_args {
   int HWC;
 };
 
+void pulp_conv_pw_fp32_bw_param_grads_cl(void *PointWise_Conv_args);
+void pulp_conv_pw_fp32_bw_input_grads_cl(void *PointWise_Conv_args);
+
+struct PointWise_Conv_args {
+  struct blob *input;
+  struct blob *coeff;
+  struct blob *output;
+  float *transpose_buffer;
+  int skip_wg_grad;
+  int skip_in_grad;
+  int opt_matmul_type_fw;
+  int opt_matmul_type_wg;
+  int opt_matmul_type_ig;
+  int HWC;
+};
+
 void PULP_ConvGradW2d_fp32_fp32_fp32_CHW(
     const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
     uint32_t C_out, const float *__restrict__ pInput, uint32_t H_in,
@@ -693,6 +709,131 @@ void PULP_DWConvGradW2d_fp32_fp32_fp32_CHW(
 
   dw_args.skip_wg_grad = 0;
   dw_args.skip_in_grad = 1;
-  dw_args.HWC = 0; 
+  dw_args.HWC = 0;
   pulp_conv_dw_fp32_bw_param_grads_cl(&dw_args);
+}
+
+// ============================================================================
+// Pointwise Convolution Gradient Functions (using pulptrainlib pw interfaces)
+// ============================================================================
+
+/**
+ * @brief Pointwise Convolution Weight Gradient (1x1 Conv)
+ *
+ * Computes gradient w.r.t. weights for 1x1 convolution using pulptrainlib's
+ * optimized pointwise convolution backward pass for parameter gradients.
+ *
+ * @param pGradOut    Gradient w.r.t. output [C_out, H_out, W_out] CHW layout
+ * @param H_out       Output height
+ * @param W_out       Output width
+ * @param C_out       Output channels
+ * @param pInput      Forward pass input [C_in, H_in, W_in] CHW layout
+ * @param H_in        Input height (must equal H_out for 1x1 conv)
+ * @param W_in        Input width (must equal W_out for 1x1 conv)
+ * @param C_in        Input channels
+ * @param pGradWeight Output weight gradient [C_out, C_in, 1, 1] CHW layout
+ */
+void PULP_PWConvGradW2d_fp32_fp32_fp32_CHW(
+    const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
+    uint32_t C_out, const float *__restrict__ pInput, uint32_t H_in,
+    uint32_t W_in, uint32_t C_in, float *__restrict__ pGradWeight) {
+
+  struct blob input_blob = {0};
+  struct blob output_blob = {0};
+  struct blob coeff_blob = {0};
+
+  // Input blob (forward activation)
+  input_blob.data = (float *)pInput;
+  input_blob.diff = NULL;
+  input_blob.W = (int)W_in;
+  input_blob.H = (int)H_in;
+  input_blob.C = (int)C_in;
+  input_blob.dim = (int)(C_in * H_in * W_in);
+
+  // Output blob (gradient w.r.t. output)
+  output_blob.data = NULL;
+  output_blob.diff = (float *)pGradOut;
+  output_blob.W = (int)W_out;
+  output_blob.H = (int)H_out;
+  output_blob.C = (int)C_out;
+  output_blob.dim = (int)(C_out * H_out * W_out);
+
+  // Weight blob (gradient w.r.t. weights - output)
+  // For PW conv: kernel is 1x1, so dim = C_out * C_in
+  coeff_blob.data = NULL;
+  coeff_blob.diff = (float *)pGradWeight;
+  coeff_blob.W = 1;
+  coeff_blob.H = 1;
+  coeff_blob.C = (int)C_in;
+  coeff_blob.dim = (int)(C_out * C_in);
+
+  struct PointWise_Conv_args pw_args;
+  memset(&pw_args, 0, sizeof(pw_args));
+
+  pw_args.input = &input_blob;
+  pw_args.output = &output_blob;
+  pw_args.coeff = &coeff_blob;
+  pw_args.transpose_buffer = NULL;
+
+  pw_args.skip_wg_grad = 0;  // Compute weight gradient
+  pw_args.skip_in_grad = 1;  // Skip input gradient
+  pw_args.HWC = 0;           // CHW layout
+  pw_args.opt_matmul_type_fw = 0;
+  pw_args.opt_matmul_type_wg = 0;
+  pw_args.opt_matmul_type_ig = 0;
+
+  pulp_conv_pw_fp32_bw_param_grads_cl(&pw_args);
+}
+
+
+void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
+    const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
+    uint32_t C_out, const float *__restrict__ pWeight, uint32_t C_in,
+    float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in) {
+
+  struct blob input_blob = {0};
+  struct blob output_blob = {0};
+  struct blob coeff_blob = {0};
+
+  // Input blob (gradient w.r.t. input - output)
+  input_blob.data = NULL;
+  input_blob.diff = (float *)pGradIn;
+  input_blob.W = (int)W_in;
+  input_blob.H = (int)H_in;
+  input_blob.C = (int)C_in;
+  input_blob.dim = (int)(C_in * H_in * W_in);
+
+  // Output blob (gradient w.r.t. output)
+  output_blob.data = NULL;
+  output_blob.diff = (float *)pGradOut;
+  output_blob.W = (int)W_out;
+  output_blob.H = (int)H_out;
+  output_blob.C = (int)C_out;
+  output_blob.dim = (int)(C_out * H_out * W_out);
+
+  // Weight blob (forward weights)
+  // For PW conv: kernel is 1x1, so dim = C_out * C_in
+  coeff_blob.data = (float *)pWeight;
+  coeff_blob.diff = NULL;
+  coeff_blob.W = 1;
+  coeff_blob.H = 1;
+  coeff_blob.C = (int)C_in;
+  coeff_blob.dim = (int)(C_out * C_in);
+
+  struct PointWise_Conv_args pw_args;
+  memset(&pw_args, 0, sizeof(pw_args));
+
+  pw_args.input = &input_blob;
+  pw_args.output = &output_blob;
+  pw_args.coeff = &coeff_blob;
+  pw_args.transpose_buffer = NULL;
+
+  pw_args.skip_wg_grad = 1;  // Skip weight gradient
+  pw_args.skip_in_grad = 0;  // Compute input gradient
+  pw_args.HWC = 0;           // CHW layout
+  pw_args.opt_matmul_type_fw = 0;
+  pw_args.opt_matmul_type_wg = 0;
+  pw_args.opt_matmul_type_ig = 0;
+
+  pulp_conv_pw_fp32_bw_input_grads_cl(&pw_args);
 }

@@ -752,6 +752,24 @@ class PULPConvGradB2DParser(PULPFPConv2DParser):
         return ctxt, True
 
 
+class PULPPWConvGradW2DParser(PULPConvGradW2DParser):
+    """Parser for pointwise ConvGradW (1x1 convolution weight gradient)"""
+
+    def __init__(self, noBiasHoisting=True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> bool:
+        """Parse pointwise ConvGradW node - must have 1x1 kernel"""
+        # Call parent parseNode first
+        wellFormed = super().parseNode(node)
+
+        kernel_shape = self.operatorRepresentation['kernel_shape']
+        if kernel_shape != [1, 1]:
+            return False
+
+        return wellFormed and True
+
+
 class PULPDWConvGradW2DParser(Conv2DParser):
     """Parser for depthwise ConvGradW (grouped convolution weight gradient)"""
 

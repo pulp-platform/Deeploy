@@ -194,10 +194,18 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         """
     retStr += deployer.generateEngineInitializationCode()
     retStr += deployer.generateBufferAllocationCode()
-    # keep for untiled
-    retStr += """
-    memset(DeeployNetwork_output_0, 0, 2304 * sizeof(float32_t));
+
+    # Initialize all output buffers to zero
+    output_idx = 0
+    while deployer.ctxt.is_buffer(f'output_{output_idx}'):
+        output_buffer = deployer.ctxt.lookup(f'output_{output_idx}')
+        output_size = np.prod(output_buffer.shape) if hasattr(output_buffer, 'shape') else output_buffer._type.referencedType.typeWidth
+        typeName = output_buffer._type.referencedType.typeName
+        retStr += f"""
+    memset(DeeployNetwork_output_{output_idx}, 0, {output_size} * sizeof({typeName}));
     """
+        output_idx += 1
+
     retStr += """
     }
     """

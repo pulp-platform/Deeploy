@@ -67,4 +67,15 @@ void PULP_DWConvGradW2d_fp32_fp32_fp32_CHW(
     uint32_t SQ, float *__restrict__ pGradWeight, uint32_t pad_top,
     uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right);
 
+// Pointwise (1x1) Convolution Gradient Functions
+void PULP_PWConvGradW2d_fp32_fp32_fp32_CHW(
+    const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
+    uint32_t C_out, const float *__restrict__ pInput, uint32_t H_in,
+    uint32_t W_in, uint32_t C_in, float *__restrict__ pGradWeight);
+
+void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
+    const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
+    uint32_t C_out, const float *__restrict__ pWeight, uint32_t C_in,
+    float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in);
+
 #endif // __DEEPLOY_MATH_CONV_KERNEL_HEADER_

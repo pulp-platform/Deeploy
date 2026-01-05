@@ -24,7 +24,7 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBinding
     PULPSliceBindings, PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPFloatConvGradX2DBindings, \
         PULPFloatConvGradW2DBindings, PULPFloatDWConvGradW2DBindings, \
     PULPAveragePool2DBindings, PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, \
-    PULPTransposeBindings, PULPUniformRQSBindings, PULPAveragePoolGrad2DBindings, PULPFloatDWConvGradX2DBindings
+    PULPTransposeBindings, PULPUniformRQSBindings, PULPAveragePoolGrad2DBindings, PULPFloatDWConvGradX2DBindings, PULPFloatPWConvGradW2DBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
     RQDWConv2DTileConstraint
@@ -45,7 +45,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import 
 from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradX2DHWTileConstraint, \
-    DWConvGradX2DTileConstraint, ConvGradW2DTileConstraint, DWConvGradW2DTileConstraint
+    DWConvGradX2DTileConstraint, ConvGradW2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
@@ -180,3 +180,6 @@ PULPDWConvGradX2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PU
 
 PULPDWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradW2DBindings,
                                                                tileConstraint = ConvGradW2DTileConstraint())
+
+PULPPWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings( nodeBindings = PULPFloatPWConvGradW2DBindings,
+                                                                tileConstraint = ConvGradW2DTileConstraint())
