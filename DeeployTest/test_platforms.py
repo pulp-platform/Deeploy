@@ -21,6 +21,10 @@ from test_siracusa_tiled_config import L2_DOUBLEBUFFER_KERNELS, L2_DOUBLEBUFFER_
 from test_snitch_config import DEFAULT_NUM_CORES as SNITCH_DEFAULT_NUM_CORES
 from test_snitch_config import KERNEL_TESTS as SNITCH_KERNEL_TESTS
 from test_snitch_config import MODEL_TESTS as SNITCH_MODEL_TESTS
+from test_snitch_tiled_config import L2_DOUBLEBUFFER_KERNELS as SNITCH_L2_DOUBLEBUFFER_KERNELS
+from test_snitch_tiled_config import L2_DOUBLEBUFFER_MODELS as SNITCH_L2_DOUBLEBUFFER_MODELS
+from test_snitch_tiled_config import L2_SINGLEBUFFER_KERNELS as SNITCH_L2_SINGLEBUFFER_KERNELS
+from test_snitch_tiled_config import L2_SINGLEBUFFER_MODELS as SNITCH_L2_SINGLEBUFFER_MODELS
 from test_softhier_config import DEFAULT_NUM_CLUSTERS as SOFTHIER_DEFAULT_NUM_CLUSTERS
 from test_softhier_config import KERNEL_TESTS as SOFTHIER_KERNEL_TESTS
 from test_softhier_config import MODEL_TESTS as SOFTHIER_MODEL_TESTS
@@ -101,7 +105,8 @@ PLATFORM_CONFIGS = {
 #   mempool: tests from the MemPool platform
 #   chimera: tests from the Chimera platform
 #   softhier: tests from the SoftHier platform
-#   snitch: tests from the Snitch platform
+#   snitch: tests from the Snitch platform (untiled)
+#   snitch_tiled: tests from the Snitch platform (tiled)
 #   siracusa: tests from the Siracusa platform (untiled)
 #   siracusa_tiled: tests from the Siracusa platform (tiled)
 # Test type markers:
@@ -532,3 +537,46 @@ def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
         tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+### Snitch Tiled Platform Tests ###
+
+
+def generate_test_params_snitch(test_list, config_name):
+    """Generate test parameters for Snitch tiled tests."""
+    return [(test_name, l1, config_name) for test_name, l1 in test_list]
+
+
+@pytest.mark.snitch_tiled
+@pytest.mark.kernels
+@pytest.mark.singlebuffer
+@pytest.mark.l2
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params_snitch(SNITCH_L2_SINGLEBUFFER_KERNELS, "L2-singlebuffer"),
+    ids = param_id,
+)
+def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                              skipgen, skipsim) -> None:
+    """Test Snitch tiled kernel tests (L2, single-buffer)."""
+    test_name, l1, config_name = test_params
+    
+    # Add Snitch-specific CMake args
+    snitch_cmake_args = cmake_args + [f"NUM_CORES={SNITCH_DEFAULT_NUM_CORES}"]
+    
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Snitch",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = snitch_cmake_args,
+        tiling = True,
+        cores = SNITCH_DEFAULT_NUM_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+

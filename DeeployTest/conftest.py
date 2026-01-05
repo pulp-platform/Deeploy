@@ -55,6 +55,7 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "chimera: mark test as a Chimera platform test")
     config.addinivalue_line("markers", "softhier: mark test as a SoftHier platform test")
     config.addinivalue_line("markers", "snitch: mark test as a Snitch platform test")
+    config.addinivalue_line("markers", "snitch_tiled: mark test as a Snitch platform test (tiled)")
     config.addinivalue_line("markers", "siracusa: mark test as a Siracusa platform test (untiled)")
     config.addinivalue_line("markers", "siracusa_tiled: mark test as a Siracusa platform test (tiled)")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")

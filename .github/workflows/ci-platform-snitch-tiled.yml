@@ -35,16 +35,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      tests-config: |
-        [
-          {"name":"TestiNoNorm","L1":[5000,10000]},
-          {"name":"TestAdderLarge","L1":[5000,10000]},
-          {"name":"TestiSoftmaxLarge","L1":[5000,10000]},
-          {"name":"testRQGEMM","L1":[2000,5000]},
-          {"name":"testFloatSoftmax","L1":[2000,5000,10000]},
-          {"name":"TestRQAdd","L1":[5000,10000]},
-          {"name":"testFloatGEMM","L1":[2000,5000,10000]},
-          {"name":"testFloatGEMMtransB","L1":[2000,5000,10000]}
-        ]
-      simulators: |
-        gvsoc
+      pytest-marker: "kernels and singlebuffer and l2"
