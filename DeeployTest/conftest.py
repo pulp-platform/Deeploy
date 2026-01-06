@@ -58,12 +58,14 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "snitch_tiled: mark test as a Snitch platform test (tiled)")
     config.addinivalue_line("markers", "siracusa: mark test as a Siracusa platform test (untiled)")
     config.addinivalue_line("markers", "siracusa_tiled: mark test as a Siracusa platform test (tiled)")
+    config.addinivalue_line("markers", "siracusa_neureka_tiled: mark test as a Siracusa + Neureka platform test (tiled)")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")
     config.addinivalue_line("markers", "models: mark test as a model test (full networks)")
     config.addinivalue_line("markers", "singlebuffer: mark test as single-buffer configuration")
     config.addinivalue_line("markers", "doublebuffer: mark test as double-buffer configuration")
     config.addinivalue_line("markers", "l2: mark test as L2 default memory level")
     config.addinivalue_line("markers", "l3: mark test as L3 default memory level")
+    config.addinivalue_line("markers", "wmem: mark test as using Neureka weight memory")
     config.addinivalue_line("markers", "slow: mark test as slow running")
 
     # Configure logging based on verbosity

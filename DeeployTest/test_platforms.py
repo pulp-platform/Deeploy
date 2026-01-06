@@ -18,6 +18,13 @@ from test_siracusa_config import KERNEL_TESTS as SIRACUSA_KERNEL_TESTS
 from test_siracusa_config import MODEL_TESTS as SIRACUSA_MODEL_TESTS
 from test_siracusa_tiled_config import L2_DOUBLEBUFFER_KERNELS, L2_DOUBLEBUFFER_MODELS, L2_SINGLEBUFFER_KERNELS, \
     L2_SINGLEBUFFER_MODELS, L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
+from test_siracusa_neureka_tiled_config import DEFAULT_CORES as NEUREKA_DEFAULT_CORES
+from test_siracusa_neureka_tiled_config import L2_DOUBLEBUFFER_KERNELS as NEUREKA_L2_DOUBLEBUFFER_KERNELS
+from test_siracusa_neureka_tiled_config import L2_SINGLEBUFFER_KERNELS as NEUREKA_L2_SINGLEBUFFER_KERNELS
+from test_siracusa_neureka_tiled_config import L2_SINGLEBUFFER_KERNELS_WMEM as NEUREKA_L2_SINGLEBUFFER_KERNELS_WMEM
+from test_siracusa_neureka_tiled_config import L3_DOUBLEBUFFER_MODELS as NEUREKA_L3_DOUBLEBUFFER_MODELS
+from test_siracusa_neureka_tiled_config import L3_DOUBLEBUFFER_MODELS_WMEM as NEUREKA_L3_DOUBLEBUFFER_MODELS_WMEM
+from test_siracusa_neureka_tiled_config import L3_SINGLEBUFFER_MODELS as NEUREKA_L3_SINGLEBUFFER_MODELS
 from test_snitch_config import DEFAULT_NUM_CORES as SNITCH_DEFAULT_NUM_CORES
 from test_snitch_config import KERNEL_TESTS as SNITCH_KERNEL_TESTS
 from test_snitch_config import MODEL_TESTS as SNITCH_MODEL_TESTS
@@ -109,6 +116,7 @@ PLATFORM_CONFIGS = {
 #   snitch_tiled: tests from the Snitch platform (tiled)
 #   siracusa: tests from the Siracusa platform (untiled)
 #   siracusa_tiled: tests from the Siracusa platform (tiled)
+#   siracusa_neureka_tiled: tests from the Siracusa + Neureka platform (tiled)
 # Test type markers:
 #   kernels: single kernel (or single layer) tests
 #   models: full model (multiple layer) tests
@@ -117,6 +125,7 @@ PLATFORM_CONFIGS = {
 #   doublebuffer: double-buffer tests
 #   l2: L2 default memory level
 #   l3: L3 default memory level
+#   wmem: with Neureka weight memory enabled
 
 
 @pytest.mark.generic
@@ -577,6 +586,193 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
         l1 = l1,
         default_mem_level = "L2",
         double_buffer = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+### Siracusa + Neureka Tiled Platform Tests ###
+
+
+@pytest.mark.siracusa_neureka_tiled
+@pytest.mark.kernels
+@pytest.mark.singlebuffer
+@pytest.mark.l2
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(NEUREKA_L2_SINGLEBUFFER_KERNELS, "L2-singlebuffer"),
+    ids = param_id,
+)
+def test_siracusa_neureka_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
+                                                        cmake_args, skipgen, skipsim) -> None:
+    """Test Siracusa + Neureka tiled kernel tests (L2, single-buffer)."""
+    test_name, l1, config_name = test_params
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa_neureka_tiled
+@pytest.mark.kernels
+@pytest.mark.doublebuffer
+@pytest.mark.l2
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(NEUREKA_L2_DOUBLEBUFFER_KERNELS, "L2-doublebuffer"),
+    ids = param_id,
+)
+def test_siracusa_neureka_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
+                                                        cmake_args, skipgen, skipsim) -> None:
+    """Test Siracusa + Neureka tiled kernel tests (L2, double-buffer)."""
+    test_name, l1, config_name = test_params
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = True,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa_neureka_tiled
+@pytest.mark.models
+@pytest.mark.singlebuffer
+@pytest.mark.l3
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(NEUREKA_L3_SINGLEBUFFER_MODELS, "L3-singlebuffer"),
+    ids = param_id,
+)
+def test_siracusa_neureka_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
+                                                       cmake_args, skipgen, skipsim) -> None:
+    """Test Siracusa + Neureka tiled model tests (L3, single-buffer)."""
+    test_name, l1, config_name = test_params
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa_neureka_tiled
+@pytest.mark.models
+@pytest.mark.doublebuffer
+@pytest.mark.l3
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(NEUREKA_L3_DOUBLEBUFFER_MODELS, "L3-doublebuffer"),
+    ids = param_id,
+)
+def test_siracusa_neureka_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
+                                                       cmake_args, skipgen, skipsim) -> None:
+    """Test Siracusa + Neureka tiled model tests (L3, double-buffer)."""
+    test_name, l1, config_name = test_params
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = True,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa_neureka_tiled
+@pytest.mark.kernels
+@pytest.mark.singlebuffer
+@pytest.mark.l2
+@pytest.mark.wmem
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(NEUREKA_L2_SINGLEBUFFER_KERNELS_WMEM, "L2-singlebuffer-wmem"),
+    ids = param_id,
+)
+def test_siracusa_neureka_tiled_kernels_l2_singlebuffer_wmem(test_params, deeploy_test_dir, toolchain, toolchain_dir,
+                                                             cmake_args, skipgen, skipsim) -> None:
+    """Test Siracusa + Neureka tiled kernel tests (L2, single-buffer, weight memory)."""
+    test_name, l1, config_name = test_params
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
+        gen_args = ["--neureka-wmem"],
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa_neureka_tiled
+@pytest.mark.models
+@pytest.mark.doublebuffer
+@pytest.mark.l3
+@pytest.mark.wmem
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(NEUREKA_L3_DOUBLEBUFFER_MODELS_WMEM, "L3-doublebuffer-wmem"),
+    ids = param_id,
+)
+def test_siracusa_neureka_tiled_models_l3_doublebuffer_wmem(test_params, deeploy_test_dir, toolchain, toolchain_dir,
+                                                            cmake_args, skipgen, skipsim) -> None:
+    """Test Siracusa + Neureka tiled model tests (L3, double-buffer, weight memory)."""
+    test_name, l1, config_name = test_params
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = True,
+        gen_args = ["--neureka-wmem"],
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 

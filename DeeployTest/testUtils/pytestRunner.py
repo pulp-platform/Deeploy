@@ -379,6 +379,7 @@ def create_test_config(
     profile_tiling: bool = False,
     plot_mem_alloc: bool = False,
     randomized_mem_scheduler: bool = False,
+    gen_args: Optional[List[str]] = None,
 ) -> DeeployTestConfig:
     """
     Create DeeployTestConfig for a specific test and platform.
@@ -423,7 +424,7 @@ def create_test_config(
     if cores is not None:
         cmake_args_list.append(f"NUM_CORES={cores}")
 
-    gen_args_list = []
+    gen_args_list = list(gen_args) if gen_args else []
 
     if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka"]:
         gen_args_list.append(f"--cores={cores}")
