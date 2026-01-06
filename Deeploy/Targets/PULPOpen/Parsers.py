@@ -10,7 +10,7 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
 from Deeploy.Targets.Generic.Parsers import Conv2DParser, GEMMParser, RQSConv1DParser, RQSConv2DParser, \
-    RQSParserInterface
+    RQSParserInterface, Conv2DGradXParser, Conv2DGradWParser
 
 
 class PULPConv2DParser(RQSConv2DParser):
@@ -464,317 +464,65 @@ class PULPTallGEMMParser(PULPGEMMParser):
 
         return newCtxt, True
 
-class PULPConvGradX2DParser(PULPFPConv2DParser):
+class PULPConvGradX2DParser(Conv2DGradXParser):
+
+    def __init__(self, noBiasHoisting = True):
+        super().__init__(noBiasHoisting)
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+
+            return newCtxt, True
+
+        return ctxt, False
+
+
+class PULPDWConvGradX2DParser(PULPConvGradX2DParser):
 
     def __init__(self, noBiasHoisting = True):
         super().__init__(noBiasHoisting)
     
     def parseNode(self, node: gs.Node) -> bool:
-        """Override to recognize ConvGradX instead of Conv"""
-        # Temporarily change op to Conv for parent parsing
-        original_op = node.op
-        if node.op == 'ConvGradX':
-            node.op = 'Conv'
-        
-        # Call parent parseNode
+
         wellFormed = super().parseNode(node)
-        
-        # Restore original op
-        node.op = original_op
-        
-        # Additional validation for ConvGradX
-        if wellFormed and original_op == 'ConvGradX':
-            # ConvGradX should have 2 inputs: output_grad and weight
-            return len(node.inputs) == 2
-        
+
+        ret = all([
+            self.operatorRepresentation['group'] > 1,
+        ])
+
         return wellFormed
     
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        """Override for ConvGradX - set dimensions correctly without swapping"""
 
-        print(f"[DEBUG] PULPConvTrans2DParser.parseNodeCtxt called with node.op={node.op}")
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
-        if node.op == 'ConvGradX':
-            output_grad_name = node.inputs[0].name  # dY
-            weight_name = node.inputs[1].name
-            input_grad_name = node.outputs[0].name  # dX
-
-            # Get tensors
-            output_grad = ctxt.lookup(output_grad_name)  # dY: [N, C_out, H_out, W_out]
-            weight = ctxt.lookup(weight_name)
-            input_grad = ctxt.lookup(input_grad_name)   # dX: [N, C_in, H_in, W_in]
-
-            # Set tensor names
-            self.operatorRepresentation['data_in'] = output_grad_name   # dY
-            self.operatorRepresentation['weight'] = weight_name
-            self.operatorRepresentation['data_out'] = input_grad_name   # dX
-            self.operatorRepresentation["has_bias"] = "false"
-            self.operatorRepresentation["bias"] = "NULL"
-
-            self.operatorRepresentation['batch'] = input_grad.shape[0]
-            self.operatorRepresentation['ch_im_in'] = input_grad.shape[1]
-            self.operatorRepresentation['dim_im_in_x'] = input_grad.shape[2]  # H_in
-            self.operatorRepresentation['dim_im_in_y'] = input_grad.shape[3]  # W_in
-
-            # From output_grad (dY): [N, C_out, H_out, W_out]
-            self.operatorRepresentation['ch_im_out'] = output_grad.shape[1]
-            self.operatorRepresentation['dim_im_out_x'] = output_grad.shape[2]  # H_out
-            self.operatorRepresentation['dim_im_out_y'] = output_grad.shape[3]  # W_out
-
-
-            # Size for memory allocation
-            self.operatorRepresentation['size'] = np.prod(output_grad.shape)
-
-            # Initialize offset fields (will be filled during tiling)
-            self.operatorRepresentation['offset_grad_in_h'] = 0
-            self.operatorRepresentation['offset_grad_in_w'] = 0
-            self.operatorRepresentation['offset_grad_out_h'] = 0
-            self.operatorRepresentation['offset_grad_out_w'] = 0
-
-            return ctxt, True
-        else:
-            return super().parseNodeCtxt(ctxt, node, channels_first)
-
-class PULPDWConvGradX2DParser(PULPFPDWConv2DParser):
-
-    def __init__(self, noBiasHoisting = True):
-        super().__init__(noBiasHoisting)
-    
-    def parseNode(self, node: gs.Node) -> bool:
-        """Override to recognize ConvGradX instead of Conv"""
-        # Temporarily change op to Conv for parent parsing
-        original_op = node.op
-        if node.op == 'ConvGradX':
-            node.op = 'Conv'
+        if self.operatorRepresentation['group'] == ctxt.lookup(self.operatorRepresentation['weight']).shape[0]:
+            
+            return newCtxt, True              
         
-        # Call parent parseNode
-        wellFormed = super().parseNode(node)
-        
-        # Restore original op
-        node.op = original_op
-        
-        # Additional validation for ConvGradX
-        if wellFormed and original_op == 'ConvGradX':
-            # ConvGradX should have 2 inputs: output_grad and weight
-            return len(node.inputs) == 2
-        
-        return wellFormed
-    
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        """Parse ConvGradX node context directly without relying on parent's swap logic"""
-
-        if node.op == 'ConvGradX':
-            # For ConvGradX (depthwise transposed conv):
-            # inputs[0] = output_grad: [N, C_out, H_out, W_out]
-            # inputs[1] = weight: [C_out, C_in/group, kH, kW] (for DW: [C_in, 1, kH, kW])
-            # outputs[0] = input_grad: [N, C_in, H_in, W_in]
-
-            output_grad = ctxt.lookup(node.inputs[0].name)
-            weight = ctxt.lookup(node.inputs[1].name)
-            input_grad = ctxt.lookup(node.outputs[0].name)
-
-            # Map tensor names
-            self.operatorRepresentation['data_in'] = node.inputs[0].name  # output_grad
-            self.operatorRepresentation['data_out'] = node.outputs[0].name  # input_grad
-            self.operatorRepresentation['weight'] = node.inputs[1].name
-            self.operatorRepresentation["has_bias"] = "false"
-            self.operatorRepresentation["bias"] = "NULL"
-            self.operatorRepresentation['batch'] = input_grad.shape[0]
-
-            # Use NORMAL mapping (not reversed) to match C function expectations
-            # C function expects: dim_im_out_x/y = grad_out (H_out, W_out), dim_im_in_x/y = grad_in (H_in, W_in)
-
-            # grad_out dimensions
-            self.operatorRepresentation['ch_im_out']    = output_grad.shape[1]  # C_out
-            self.operatorRepresentation['dim_im_out_x'] = output_grad.shape[2]  # H_out
-            self.operatorRepresentation['dim_im_out_y'] = output_grad.shape[3]  # W_out
-
-            # grad_in dimensions
-            self.operatorRepresentation['ch_im_in']    = input_grad.shape[1]  # C_in
-            self.operatorRepresentation['dim_im_in_x'] = input_grad.shape[2]  # H_in
-            self.operatorRepresentation['dim_im_in_y'] = input_grad.shape[3]  # W_in
-
-            self.operatorRepresentation['offset_grad_in_h'] = 0
-            self.operatorRepresentation['offset_grad_in_w'] = 0
-            self.operatorRepresentation['offset_grad_out_h'] = 0
-            self.operatorRepresentation['offset_grad_out_w'] = 0
-
-            # Override parent's padding mapping to match C function's convention
-            # C function: padding_x_left = pad_top (H), padding_y_top = pad_left (W)
-            # ONNX pads: [top, bottom, left, right]
-            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][0])   # top (H)
-            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][1])  # bottom (H)
-            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][2])    # left (W)
-            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][3]) # right (W)
-
-            if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
-                return ctxt, True
-
-            return ctxt, False
-        else:
-            return super().parseNodeCtxt(ctxt, node, channels_first)
+        return ctxt, False
 
 
-class PULPConvGradW2DParser(Conv2DParser):
-    """Parser for standard ConvGradW (non-grouped)"""
-
-    def __init__(self, noBiasHoisting = True):
-        super().__init__(noBiasHoisting)
-
-    def parseNode(self, node: gs.Node) -> bool:
-        """Parse ConvGradW node, rejecting grouped convolutions"""
-        # Call Conv2DParser.parseNode directly (skip PULPFPConv2DParser's group==1 check)
-        wellFormed = Conv2DParser.parseNode(self, node)
-        
-        if not wellFormed:
-            return False
-        
-        # Reject if group > 1 (handled by DWConvGradW2DParser)
-        if 'group' in self.operatorRepresentation:
-            group = self.operatorRepresentation['group']
-            if group > 1:
-                return False
-        
-        # ConvGradW has 2 inputs: output_grad and input_data
-        if len(node.inputs) != 2:
-            return False
-        
-        # Extract padding attributes
-        self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
-        self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
-        self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
-        self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
-        
-        return True
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        """Parse ConvGradW - need custom logic for input dimensions"""
-        
-        if not self.parseNode(node):
-            return ctxt, False
-        
-        # Get input tensors
-        grad_out_tensor = ctxt.lookup(node.inputs[0].name)
-        data_in_tensor = ctxt.lookup(node.inputs[1].name)
-        
-        # Extract batch size
-        batch = grad_out_tensor.shape[0]
-        
-        # Extract dimensions
-        C_out, H_out, W_out = grad_out_tensor.shape[1], grad_out_tensor.shape[2], grad_out_tensor.shape[3]
-        C_in, H_in, W_in = data_in_tensor.shape[1], data_in_tensor.shape[2], data_in_tensor.shape[3]
-    
-        # Store batch size
-        self.operatorRepresentation['batch'] = batch
-        
-        # Store dimensions
-        self.operatorRepresentation['ch_im_out'] = C_out
-        self.operatorRepresentation['dim_im_out_x'] = W_out
-        self.operatorRepresentation['dim_im_out_y'] = H_out
-        self.operatorRepresentation['ch_im_in'] = C_in
-        self.operatorRepresentation['dim_im_in_x'] = W_in
-        self.operatorRepresentation['dim_im_in_y'] = H_in
-        
-        # Store kernel dimensions
-        self.operatorRepresentation['dim_kernel_y'] = self.operatorRepresentation['kernel_shape'][0]
-        self.operatorRepresentation['dim_kernel_x'] = self.operatorRepresentation['kernel_shape'][1]
-        
-        # Store strides
-        self.operatorRepresentation['stride_y'] = self.operatorRepresentation['strides'][0]
-        self.operatorRepresentation['stride_x'] = self.operatorRepresentation['strides'][1]
-        
-        # Set tensor names and types
-        self.operatorRepresentation['grad_out'] = node.inputs[0].name
-        self.operatorRepresentation['grad_out_type'] = grad_out_tensor._type
-        self.operatorRepresentation['data_in'] = node.inputs[1].name
-        self.operatorRepresentation['data_in_type'] = data_in_tensor._type
-        self.operatorRepresentation['weight'] = node.outputs[0].name
-        self.operatorRepresentation['weight_type'] = grad_out_tensor._type  # Same as grad_out
-        
-        # No bias for ConvGradW
-        self.operatorRepresentation['has_bias'] = 'false'
-        self.operatorRepresentation['bias'] = 'NULL'
-        
-        return ctxt, True
-
-class PULPConvGradB2DParser(PULPFPConv2DParser):
-
-    def __init__(self):
-        self.operatorRepresentation = {}
-
-    def parseNode(self, node: gs.Node) -> bool:
-        """Parse ConvGradB node attributes"""
-        
-        # Check basic structure
-        if node.op != 'ConvGradB':
-            return False
-        
-        if len(node.inputs) != 1:  # only output_grad
-            return False
-        
-        if len(node.outputs) != 1:  # bias_grad
-            return False
-        
-        return True
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        """Parse ConvGradB node context"""
-
-        # For ConvGradB, the inputs are:
-        # inputs[0]: output_grad [N, C_out, H_out, W_out] (NCHW)
-        # output:    bias_grad [C_out]
-
-        # Get tensors from context
-        output_grad_tensor = ctxt.lookup(node.inputs[0].name)
-        
-        # Extract batch size and dimensions (NCHW)
-        batch = output_grad_tensor.shape[0]
-        C_out = output_grad_tensor.shape[1]
-        H_out = output_grad_tensor.shape[2]
-        W_out = output_grad_tensor.shape[3]
-        
-        # Store batch size
-        self.operatorRepresentation['batch'] = batch
-        
-        # Store dimensions
-        self.operatorRepresentation['ch_im_out'] = C_out
-        self.operatorRepresentation['dim_im_out_x'] = W_out
-        self.operatorRepresentation['dim_im_out_y'] = H_out
-        
-        # Dummy kernel_shape for computeOps (ConvGradB doesn't use kernels)
-        self.operatorRepresentation['kernel_shape'] = [1, 1]
-        self.operatorRepresentation['ch_im_in'] = 1  # Dummy value
-        
-        # Set tensor names and types
-        self.operatorRepresentation['grad_out'] = node.inputs[0].name
-        self.operatorRepresentation['grad_out_type'] = output_grad_tensor._type
-        self.operatorRepresentation['bias'] = node.outputs[0].name
-        self.operatorRepresentation['bias_type'] = output_grad_tensor._type  # Same type as grad_out
-        
-        return ctxt, True
-
-
-class PULPPWConvGradW2DParser(PULPConvGradW2DParser):
-    """Parser for pointwise ConvGradW (1x1 convolution weight gradient)"""
+class PULPPWConvGradX2DParser(PULPConvGradX2DParser):
 
     def __init__(self, noBiasHoisting=True):
         super().__init__(noBiasHoisting)
 
     def parseNode(self, node: gs.Node) -> bool:
-        """Parse pointwise ConvGradW node - must have 1x1 kernel"""
-        # Call parent parseNode first
+        
         wellFormed = super().parseNode(node)
 
         kernel_shape = self.operatorRepresentation['kernel_shape']
@@ -784,100 +532,70 @@ class PULPPWConvGradW2DParser(PULPConvGradW2DParser):
         return wellFormed and True
 
 
-class PULPDWConvGradW2DParser(Conv2DParser):
-    """Parser for depthwise ConvGradW (grouped convolution weight gradient)"""
+class PULPConvGradW2DParser(Conv2DGradWParser):
 
-    def __init__(self, noBiasHoisting=True):
+    def __init__(self, noBiasHoisting = True):
         super().__init__(noBiasHoisting)
-
-    def parseNode(self, node: gs.Node) -> bool:
-        """Parse grouped ConvGradW node"""
-        # Call Conv2DParser.parseNode directly (skip PULPFPConv2DParser's group==1 check)
-        wellFormed = Conv2DParser.parseNode(self, node)
-        
-        if not wellFormed:
-            return False
-        
-        # Must have group attribute and group > 1
-        if 'group' not in self.operatorRepresentation:
-            return False
-        
-        group = self.operatorRepresentation['group']
-        if group <= 1:
-            return False
-        
-        # ConvGradW has 2 inputs: output_grad and input_data
-        if len(node.inputs) != 2:
-            return False
-        
-        # Extract padding attributes
-        self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
-        self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
-        self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
-        self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
-        
-        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        """Parse DWConvGradW - depthwise/grouped weight gradient computation"""
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+
+            return newCtxt, True
+
+        return ctxt, False
+
+
+class PULPDWConvGradW2DParser(PULPConvGradW2DParser):
+
+    def __init__(self, noBiasHoisting = True):
+        super().__init__(noBiasHoisting)
+    
+    def parseNode(self, node: gs.Node) -> bool:
+
+        wellFormed = super().parseNode(node)
+
+        ret = all([
+            self.operatorRepresentation['group'] > 1,
+        ])
+
+        return wellFormed
+    
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if self.operatorRepresentation['group'] == ctxt.lookup(self.operatorRepresentation['grad_weight']).shape[0]:
+            
+            return newCtxt, True              
         
-        if not self.parseNode(node):
-            return ctxt, False
-        
-        # Get input tensors
-        grad_out_tensor = ctxt.lookup(node.inputs[0].name)
-        data_in_tensor = ctxt.lookup(node.inputs[1].name)
-        
-        # Extract batch size
-        batch = grad_out_tensor.shape[0]
-        
-        # Extract dimensions (NCHW format)
-        C_out, H_out, W_out = grad_out_tensor.shape[1], grad_out_tensor.shape[2], grad_out_tensor.shape[3]
-        C_in, H_in, W_in = data_in_tensor.shape[1], data_in_tensor.shape[2], data_in_tensor.shape[3]
-        
-        # Get group info
-        group = self.operatorRepresentation['group']
-        
-        # Verify grouping constraints
-        assert C_out % group == 0, f"Output channels {C_out} not divisible by group {group}"
-        assert C_in % group == 0, f"Input channels {C_in} not divisible by group {group}"
-        
-        # For depthwise: group == C_in == C_out
-        # Weight shape is [C_out, C_in/group, kH, kW]
-        C_in_per_group = C_in // group
-        
-        # Store batch size
-        self.operatorRepresentation['batch'] = batch
-        
-        # Store dimensions
-        self.operatorRepresentation['ch_im_out'] = C_out
-        self.operatorRepresentation['dim_im_out_x'] = H_out
-        self.operatorRepresentation['dim_im_out_y'] = W_out
-        self.operatorRepresentation['ch_im_in'] = C_in
-        self.operatorRepresentation['dim_im_in_x'] = H_in
-        self.operatorRepresentation['dim_im_in_y'] = W_in
-        
-        # Store kernel dimensions
-        self.operatorRepresentation['dim_kernel_y'] = self.operatorRepresentation['kernel_shape'][0]
-        self.operatorRepresentation['dim_kernel_x'] = self.operatorRepresentation['kernel_shape'][1]
-        
-        # Store strides
-        self.operatorRepresentation['stride_y'] = self.operatorRepresentation['strides'][0]
-        self.operatorRepresentation['stride_x'] = self.operatorRepresentation['strides'][1]
-        
-        # Set tensor names and types
-        self.operatorRepresentation['grad_out'] = node.inputs[0].name
-        self.operatorRepresentation['grad_out_type'] = grad_out_tensor._type
-        self.operatorRepresentation['data_in'] = node.inputs[1].name
-        self.operatorRepresentation['data_in_type'] = data_in_tensor._type
-        self.operatorRepresentation['weight'] = node.outputs[0].name
-        self.operatorRepresentation['weight_type'] = grad_out_tensor._type
-        
-        # No bias for ConvGradW
-        self.operatorRepresentation['has_bias'] = 'false'
-        self.operatorRepresentation['bias'] = 'NULL'
-        
-        return ctxt, True
+        return ctxt, False
+
+
+class PULPPWConvGradW2DParser(PULPConvGradW2DParser):
+
+    def __init__(self, noBiasHoisting=True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        wellFormed = super().parseNode(node)
+
+        kernel_shape = self.operatorRepresentation['kernel_shape']
+
+        if kernel_shape != [1, 1]:
+            return False
+
+        return wellFormed and True

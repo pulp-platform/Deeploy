@@ -229,7 +229,6 @@ void PULP_ConvGradX2d_fp32_fp32_fp32_CHW_trainlib(
     uint32_t P, uint32_t Q, uint32_t SP, uint32_t SQ,
     float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in, uint32_t pad_top,
     uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right) {
-  memset(pGradIn, 0, sizeof(float) * (C_in * H_in * W_in));
 
   struct blob input_blob = (struct blob){0};
   struct blob output_blob = (struct blob){0};
@@ -756,22 +755,6 @@ void PULP_DWConvGradW2d_fp32_fp32_fp32_CHW(
 // Pointwise Convolution Gradient Functions (using pulptrainlib pw interfaces)
 // ============================================================================
 
-/**
- * @brief Pointwise Convolution Weight Gradient (1x1 Conv)
- *
- * Computes gradient w.r.t. weights for 1x1 convolution using pulptrainlib's
- * optimized pointwise convolution backward pass for parameter gradients.
- *
- * @param pGradOut    Gradient w.r.t. output [C_out, H_out, W_out] CHW layout
- * @param H_out       Output height
- * @param W_out       Output width
- * @param C_out       Output channels
- * @param pInput      Forward pass input [C_in, H_in, W_in] CHW layout
- * @param H_in        Input height (must equal H_out for 1x1 conv)
- * @param W_in        Input width (must equal W_out for 1x1 conv)
- * @param C_in        Input channels
- * @param pGradWeight Output weight gradient [C_out, C_in, 1, 1] CHW layout
- */
 void PULP_PWConvGradW2d_fp32_fp32_fp32_CHW(
     const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
     uint32_t C_out, const float *__restrict__ pInput, uint32_t H_in,
@@ -828,13 +811,13 @@ void PULP_PWConvGradW2d_fp32_fp32_fp32_CHW(
 void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
     const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
     uint32_t C_out, const float *__restrict__ pWeight, uint32_t C_in,
-    float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in) {
+    float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in,
+    float *__restrict__ pTransposeBuffer, uint32_t transposeBufferSize) {
 
   struct blob input_blob = {0};
   struct blob output_blob = {0};
   struct blob coeff_blob = {0};
 
-  // Input blob (gradient w.r.t. input - output)
   input_blob.data = NULL;
   input_blob.diff = (float *)pGradIn;
   input_blob.W = (int)W_in;
@@ -842,7 +825,6 @@ void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
   input_blob.C = (int)C_in;
   input_blob.dim = (int)(C_in * H_in * W_in);
 
-  // Output blob (gradient w.r.t. output)
   output_blob.data = NULL;
   output_blob.diff = (float *)pGradOut;
   output_blob.W = (int)W_out;
@@ -850,8 +832,6 @@ void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
   output_blob.C = (int)C_out;
   output_blob.dim = (int)(C_out * H_out * W_out);
 
-  // Weight blob (forward weights)
-  // For PW conv: kernel is 1x1, so dim = C_out * C_in
   coeff_blob.data = (float *)pWeight;
   coeff_blob.diff = NULL;
   coeff_blob.W = 1;
@@ -865,11 +845,11 @@ void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
   pw_args.input = &input_blob;
   pw_args.output = &output_blob;
   pw_args.coeff = &coeff_blob;
-  pw_args.transpose_buffer = NULL;
+  pw_args.transpose_buffer = pTransposeBuffer;
 
-  pw_args.skip_wg_grad = 1;  // Skip weight gradient
-  pw_args.skip_in_grad = 0;  // Compute input gradient
-  pw_args.HWC = 0;           // CHW layout
+  pw_args.skip_wg_grad = 1;
+  pw_args.skip_in_grad = 0;
+  pw_args.HWC = 0;
   pw_args.opt_matmul_type_fw = 0;
   pw_args.opt_matmul_type_wg = 0;
   pw_args.opt_matmul_type_ig = 0;
