@@ -587,19 +587,33 @@ class PULPDWConvGradX2DParser(PULPFPDWConv2DParser):
             self.operatorRepresentation["bias"] = "NULL"
             self.operatorRepresentation['batch'] = input_grad.shape[0]
 
-            # why channel fist fault
-            # output_grad dimensions (what we receive as "input")
-            self.operatorRepresentation['ch_im_in'] = output_grad.shape[1]  # C_out
-            self.operatorRepresentation['dim_im_in_x'] = output_grad.shape[2]  # H_out
-            self.operatorRepresentation['dim_im_in_y'] = output_grad.shape[3]  # W_out
+            # Use NORMAL mapping (not reversed) to match C function expectations
+            # C function expects: dim_im_out_x/y = grad_out (H_out, W_out), dim_im_in_x/y = grad_in (H_in, W_in)
 
-            # input_grad dimensions (what we compute as "output")
-            self.operatorRepresentation['ch_im_out'] = input_grad.shape[1]  # C_in
-            self.operatorRepresentation['dim_im_out_x'] = input_grad.shape[2]  # H_in
-            self.operatorRepresentation['dim_im_out_y'] = input_grad.shape[3]  # W_in
-        
+            # grad_out dimensions
+            self.operatorRepresentation['ch_im_out']    = output_grad.shape[1]  # C_out
+            self.operatorRepresentation['dim_im_out_x'] = output_grad.shape[2]  # H_out
+            self.operatorRepresentation['dim_im_out_y'] = output_grad.shape[3]  # W_out
 
-            if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_out']:
+            # grad_in dimensions
+            self.operatorRepresentation['ch_im_in']    = input_grad.shape[1]  # C_in
+            self.operatorRepresentation['dim_im_in_x'] = input_grad.shape[2]  # H_in
+            self.operatorRepresentation['dim_im_in_y'] = input_grad.shape[3]  # W_in
+
+            self.operatorRepresentation['offset_grad_in_h'] = 0
+            self.operatorRepresentation['offset_grad_in_w'] = 0
+            self.operatorRepresentation['offset_grad_out_h'] = 0
+            self.operatorRepresentation['offset_grad_out_w'] = 0
+
+            # Override parent's padding mapping to match C function's convention
+            # C function: padding_x_left = pad_top (H), padding_y_top = pad_left (W)
+            # ONNX pads: [top, bottom, left, right]
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][0])   # top (H)
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][1])  # bottom (H)
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][2])    # left (W)
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][3]) # right (W)
+
+            if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
                 return ctxt, True
 
             return ctxt, False

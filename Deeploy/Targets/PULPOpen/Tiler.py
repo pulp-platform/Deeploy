@@ -176,7 +176,7 @@ PULPConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULP
                                                              tileConstraint = ConvGradW2DTileConstraint())
 
 PULPDWConvGradX2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradX2DBindings,
-                                                              tileConstraint = ConvGradX2DHWTileConstraint())
+                                                              tileConstraint = DWConvGradX2DTileConstraint())
 
 PULPDWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradW2DBindings,
                                                                tileConstraint = ConvGradW2DTileConstraint())

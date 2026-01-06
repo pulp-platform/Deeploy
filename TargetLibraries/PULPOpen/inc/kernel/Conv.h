@@ -86,4 +86,27 @@ void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
     uint32_t C_out, const float *__restrict__ pWeight, uint32_t C_in,
     float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in);
 
+void PULP_DWConvGradX2d_fp32_fp32_fp32_CHW_tiled(
+    const float *__restrict__ pGradOut,
+    uint32_t dim_im_out_x,    // H_out (tile)
+    uint32_t dim_im_out_y,    // W_out (tile)
+    uint32_t ch_im_out,       // C_out (full)  
+    const float *__restrict__ pWeight,
+    uint32_t ch_im_in,        // C_in (full)
+    uint32_t dim_kernel_x,    // P (kernel H)
+    uint32_t dim_kernel_y,    // Q (kernel W)
+    uint32_t stride_h,        // SH
+    uint32_t stride_w,        // SW
+    float *__restrict__ pGradIn,
+    uint32_t dim_im_in_x,     // H_in (tile)
+    uint32_t dim_im_in_y,     // W_in (tile)
+    uint32_t padding_x_left,  // pad_top
+    uint32_t padding_x_right, // pad_bottom (unused here)
+    uint32_t padding_y_top,   // pad_left
+    uint32_t padding_y_bottom,// pad_right (unused here)
+    uint16_t offset_grad_in_h,
+    uint16_t offset_grad_in_w,
+    uint16_t offset_grad_out_h,
+    uint16_t offset_grad_out_w
+);
 #endif // __DEEPLOY_MATH_CONV_KERNEL_HEADER_

@@ -228,25 +228,32 @@ for (uint32_t n=0; n<${batch}; ++n) {
 }
 """)
 
-referenceDWConvGradX2DTemplate = NodeTemplate("""
-// 2D FP DW ConvTranspose HWC (Name: ${nodeName}, Op: ${nodeOp})
-${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
-${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
+referenceDWConvGradX2DTiledTemplate = NodeTemplate("""
+// 2D FP DW ConvGradX (dX) CHW tiled (Name: ${nodeName}, Op: ${nodeOp})
+${data_in_type.typeName}  ref_${data_out}_${data_in} = ${data_in};   // dY
+${weight_type.typeName}   ref_${data_out}_${weight}  = ${weight};    // W 
+${data_out_type.typeName} ref_${data_out}_out        = ${data_out};  // dX
+
 for (uint32_t n=0; n<${batch}; ++n) {
-    PULP_DWConvTrans2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC(
+    PULP_DWConvGradX2d_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_CHW_tiled(
         ref_${data_out}_${data_in},
-        ${dim_im_in_x}, ${dim_im_in_y}, ${ch_im_in},
-        ${weight},
+        ${dim_im_out_x}, ${dim_im_out_y}, ${ch_im_out},
+        ref_${data_out}_${weight},
+        ${ch_im_in},
         ${dim_kernel_x}, ${dim_kernel_y},
         ${stride_x}, ${stride_y},
-        ref_${data_out}_${data_out},
-        ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}
+        ref_${data_out}_out,
+        ${dim_im_in_x}, ${dim_im_in_y},
+        ${padding_x_left}, ${padding_x_right}, ${padding_y_top}, ${padding_y_bottom},
+        ${offset_grad_in_h}, ${offset_grad_in_w},
+        ${offset_grad_out_h}, ${offset_grad_out_w}
     );
 
-    ref_${data_out}_${data_in} += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};
-    ref_${data_out}_${data_out} += ${ch_im_out} * ${dim_im_out_x} * ${dim_im_out_y};
+    ref_${data_out}_${data_in} += ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x};
+    ref_${data_out}_out        += ${ch_im_in}  * ${dim_im_in_y}  * ${dim_im_in_x};
 }
 """)
+
 
 referencePWConvGradW2DTemplate = NodeTemplate("""
 // 2D FP Pointwise ConvGradW (1x1) NCHW using pulp-trainlib pw interface (Name: ${nodeName}, Op: ${nodeOp})
