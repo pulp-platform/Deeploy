@@ -29,107 +29,56 @@ jobs:
     with:
       docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
 
-  generate-matrices:
-    runs-on: ubuntu-latest
-    outputs:
-      l2-singlebuffer-models: ${{ steps.generate.outputs.l2-singlebuffer-models }}
-      l2-doublebuffer-models: ${{ steps.generate.outputs.l2-doublebuffer-models }}
-      l3-singlebuffer-models: ${{ steps.generate.outputs.l3-singlebuffer-models }}
-      l3-doublebuffer-models: ${{ steps.generate.outputs.l3-doublebuffer-models }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Generate test matrices
-        id: generate
-        run: |
-          chmod +x scripts/generate_test_matrix.py
-          echo "l2-singlebuffer-models=$(scripts/generate_test_matrix.py l2-singlebuffer-models)" >> $GITHUB_OUTPUT
-          echo "l2-doublebuffer-models=$(scripts/generate_test_matrix.py l2-doublebuffer-models)" >> $GITHUB_OUTPUT
-          echo "l3-singlebuffer-models=$(scripts/generate_test_matrix.py l3-singlebuffer-models)" >> $GITHUB_OUTPUT
-          echo "l3-doublebuffer-models=$(scripts/generate_test_matrix.py l3-doublebuffer-models)" >> $GITHUB_OUTPUT
-
   # Kernel tests - L2 singlebuffer
   siracusa-kernels-tiled-l2-singlebuffer:
     needs: select-env
-    uses: ./.github/workflows/_runner-siracusa-tiled-kernels.yml
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      memory-level: "l2"
-      buffer-mode: "singlebuffer"
+      pytest-marker: "kernels and l2 and singlebuffer"
 
   # Kernel tests - L2 doublebuffer
   siracusa-kernels-tiled-l2-doublebuffer:
     needs: select-env
-    uses: ./.github/workflows/_runner-siracusa-tiled-kernels.yml
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      memory-level: "l2"
-      buffer-mode: "doublebuffer"
+      pytest-marker: "kernels and l2 and doublebuffer"
 
   # Model tests - L2 singlebuffer
   siracusa-models-tiled-l2-singlebuffer:
-    needs: [select-env, generate-matrices]
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name: ${{ fromJSON(needs.generate-matrices.outputs.l2-singlebuffer-models) }}
-    uses: ./.github/workflows/_runner-siracusa-tiled-models.yml
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-name: ${{ matrix.test-name }}
-      memory-level: "l2"
-      buffer-mode: "singlebuffer"
+      pytest-marker: "models and l2 and singlebuffer"
 
   # Model tests - L2 doublebuffer
   siracusa-models-tiled-l2-doublebuffer:
-    needs: [select-env, generate-matrices]
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name: ${{ fromJSON(needs.generate-matrices.outputs.l2-doublebuffer-models) }}
-    uses: ./.github/workflows/_runner-siracusa-tiled-models.yml
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-name: ${{ matrix.test-name }}
-      memory-level: "l2"
-      buffer-mode: "doublebuffer"
+      pytest-marker: "models and l2 and doublebuffer"
 
   # Model tests - L3 singlebuffer
   siracusa-models-tiled-l3-singlebuffer:
-    needs: [select-env, generate-matrices]
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name: ${{ fromJSON(needs.generate-matrices.outputs.l3-singlebuffer-models) }}
-    uses: ./.github/workflows/_runner-siracusa-tiled-models.yml
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-name: ${{ matrix.test-name }}
-      memory-level: "l3"
-      buffer-mode: "singlebuffer"
+      pytest-marker: "models and l3 and singlebuffer"
 
   # Model tests - L3 doublebuffer
   siracusa-models-tiled-l3-doublebuffer:
-    needs: [select-env, generate-matrices]
-    strategy:
-      fail-fast: false
-      matrix:
-        test-name: ${{ fromJSON(needs.generate-matrices.outputs.l3-doublebuffer-models) }}
-    uses: ./.github/workflows/_runner-siracusa-tiled-models.yml
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-name: ${{ matrix.test-name }}
-      memory-level: "l3"
-      buffer-mode: "doublebuffer"
+      pytest-marker: "models and l3 and doublebuffer"

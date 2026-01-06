@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: _runner-siracusa-tiled
+
+"on":
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      pytest-marker:
+        required: true
+        type: string
+
+jobs:
+  test-runner-siracusa-tiled:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          pytest test_platforms.py -v -m "siracusa_tiled and ${{ inputs.pytest-marker }}"
+        shell: bash
