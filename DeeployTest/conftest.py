@@ -58,7 +58,8 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "snitch_tiled: mark test as a Snitch platform test (tiled)")
     config.addinivalue_line("markers", "siracusa: mark test as a Siracusa platform test (untiled)")
     config.addinivalue_line("markers", "siracusa_tiled: mark test as a Siracusa platform test (tiled)")
-    config.addinivalue_line("markers", "siracusa_neureka_tiled: mark test as a Siracusa + Neureka platform test (tiled)")
+    config.addinivalue_line("markers",
+                            "siracusa_neureka_tiled: mark test as a Siracusa + Neureka platform test (tiled)")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")
     config.addinivalue_line("markers", "models: mark test as a model test (full networks)")
     config.addinivalue_line("markers", "singlebuffer: mark test as single-buffer configuration")

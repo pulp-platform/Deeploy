@@ -16,8 +16,6 @@ from test_mempool_config import MODEL_TESTS as MEMPOOL_MODEL_TESTS
 from test_siracusa_config import DEFAULT_CORES as SIRACUSA_DEFAULT_CORES
 from test_siracusa_config import KERNEL_TESTS as SIRACUSA_KERNEL_TESTS
 from test_siracusa_config import MODEL_TESTS as SIRACUSA_MODEL_TESTS
-from test_siracusa_tiled_config import L2_DOUBLEBUFFER_KERNELS, L2_DOUBLEBUFFER_MODELS, L2_SINGLEBUFFER_KERNELS, \
-    L2_SINGLEBUFFER_MODELS, L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
 from test_siracusa_neureka_tiled_config import DEFAULT_CORES as NEUREKA_DEFAULT_CORES
 from test_siracusa_neureka_tiled_config import L2_DOUBLEBUFFER_KERNELS as NEUREKA_L2_DOUBLEBUFFER_KERNELS
 from test_siracusa_neureka_tiled_config import L2_SINGLEBUFFER_KERNELS as NEUREKA_L2_SINGLEBUFFER_KERNELS
@@ -25,13 +23,12 @@ from test_siracusa_neureka_tiled_config import L2_SINGLEBUFFER_KERNELS_WMEM as N
 from test_siracusa_neureka_tiled_config import L3_DOUBLEBUFFER_MODELS as NEUREKA_L3_DOUBLEBUFFER_MODELS
 from test_siracusa_neureka_tiled_config import L3_DOUBLEBUFFER_MODELS_WMEM as NEUREKA_L3_DOUBLEBUFFER_MODELS_WMEM
 from test_siracusa_neureka_tiled_config import L3_SINGLEBUFFER_MODELS as NEUREKA_L3_SINGLEBUFFER_MODELS
+from test_siracusa_tiled_config import L2_DOUBLEBUFFER_KERNELS, L2_DOUBLEBUFFER_MODELS, L2_SINGLEBUFFER_KERNELS, \
+    L2_SINGLEBUFFER_MODELS, L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
 from test_snitch_config import DEFAULT_NUM_CORES as SNITCH_DEFAULT_NUM_CORES
 from test_snitch_config import KERNEL_TESTS as SNITCH_KERNEL_TESTS
 from test_snitch_config import MODEL_TESTS as SNITCH_MODEL_TESTS
-from test_snitch_tiled_config import L2_DOUBLEBUFFER_KERNELS as SNITCH_L2_DOUBLEBUFFER_KERNELS
-from test_snitch_tiled_config import L2_DOUBLEBUFFER_MODELS as SNITCH_L2_DOUBLEBUFFER_MODELS
 from test_snitch_tiled_config import L2_SINGLEBUFFER_KERNELS as SNITCH_L2_SINGLEBUFFER_KERNELS
-from test_snitch_tiled_config import L2_SINGLEBUFFER_MODELS as SNITCH_L2_SINGLEBUFFER_MODELS
 from test_softhier_config import DEFAULT_NUM_CLUSTERS as SOFTHIER_DEFAULT_NUM_CLUSTERS
 from test_softhier_config import KERNEL_TESTS as SOFTHIER_KERNEL_TESTS
 from test_softhier_config import MODEL_TESTS as SOFTHIER_MODEL_TESTS
@@ -569,10 +566,10 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
                                               skipgen, skipsim) -> None:
     """Test Snitch tiled kernel tests (L2, single-buffer)."""
     test_name, l1, config_name = test_params
-    
+
     # Add Snitch-specific CMake args
     snitch_cmake_args = cmake_args + [f"NUM_CORES={SNITCH_DEFAULT_NUM_CORES}"]
-    
+
     config = create_test_config(
         test_name = test_name,
         platform = "Snitch",
@@ -775,4 +772,3 @@ def test_siracusa_neureka_tiled_models_l3_doublebuffer_wmem(test_params, deeploy
         gen_args = ["--neureka-wmem"],
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
-
