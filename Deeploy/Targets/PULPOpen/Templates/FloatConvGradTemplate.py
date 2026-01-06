@@ -232,7 +232,7 @@ for (uint32_t n=0; n<${batch}; ++n) {
         ${stride_x}, ${stride_y},
         ref_${grad_in}_out,
         ${dim_im_in_x}, ${dim_im_in_y},
-        ${padding_x_left}, ${padding_x_right}, ${padding_y_top}, ${padding_y_bottom},
+        ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right},
         ${offset_grad_in_h}, ${offset_grad_in_w},
         ${offset_grad_out_h}, ${offset_grad_out_w}
     );

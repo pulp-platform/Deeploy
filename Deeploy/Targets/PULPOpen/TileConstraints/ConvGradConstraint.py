@@ -16,529 +16,115 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
     VariableReplacementScheme
 
 
-class ConvGradX2DHWTileConstraint(TileConstraint):
+class ConvGradXTileConstraintBase(TileConstraint):
+    """
+    Base for ConvGradX2D tiling:
+
+      - absoluteOutputCubes are tiles of grad_in (dX)  (operatorRepresentation[gradInKey])
+      - for each dX tile, derive required grad_out (dY) halo tile
+      - weight is full (not tiled)
+      - emits unified template params:
+          ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right},
+          ${offset_grad_in_h}, ${offset_grad_in_w}, ${offset_grad_out_h}, ${offset_grad_out_w}
+    """
+
+    # ---- parser/opRep keys (override in subclasses if needed) ----
+    # In Deeploy ConvGradX parsers these are commonly "data_in" (dY) and "data_out" (dX).
+    gradOutKey = "grad_out"   # dY
+    gradInKey  = "grad_in"  # dX
+    weightKey  = "weight"    # W
 
     # ---------------------------
     # 1) Geometrical constraints
     # ---------------------------
-    @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+    @classmethod
+    def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        dyName = parseDict[cls.gradOutKey]
+        dxName = parseDict[cls.gradInKey]
+        wName  = parseDict[cls.weightKey]
 
-        dyName = parseDict["data_in"]    # dY
-        dxName = parseDict["data_out"]   # dX
-        wName  = parseDict["weight"]     # W
-
-        dyBuf = ctxt.lookup(dyName)
-        dxBuf = ctxt.lookup(dxName)
-        wBuf  = ctxt.lookup(wName)
-
-        # Add tensor dims to model
         tilerModel.addTensorDimToModel(ctxt, dyName)
         tilerModel.addTensorDimToModel(ctxt, dxName)
         tilerModel.addTensorDimToModel(ctxt, wName)
 
-        group   = parseDict.get("group", 1)
-        pads    = parseDict.get("pads", [0, 0, 0, 0])       # [top,bottom,left,right]
-        strides = parseDict.get("strides", [1, 1])          # [sh, sw]
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        stride_h, stride_w = strides
+        group = parseDict.get("group", 1)
 
-        # NCHW dims
-        N_dy  = tilerModel.getTensorDimVar(dyName, 0)
-        Co_dy = tilerModel.getTensorDimVar(dyName, 1)
-        Ho_dy = tilerModel.getTensorDimVar(dyName, 2)
-        Wo_dy = tilerModel.getTensorDimVar(dyName, 3)
+        # N match
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 0) == tilerModel.getTensorDimVar(dxName, 0))
 
-        N_dx  = tilerModel.getTensorDimVar(dxName, 0)
-        Ci_dx = tilerModel.getTensorDimVar(dxName, 1)
-        Hi_dx = tilerModel.getTensorDimVar(dxName, 2)
-        Wi_dx = tilerModel.getTensorDimVar(dxName, 3)
+        # Channel relations:
+        # dY: [N, C_out, H_out, W_out]
+        # dX: [N, C_in,  H_in,  W_in]
+        # W : [C_out, C_in/group, P, Q]
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 1) == tilerModel.getTensorDimVar(wName, 0))
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dxName, 1) == tilerModel.getTensorDimVar(wName, 1) * group)
 
-        # Weight dims: [C_out, C_in, P, Q]
-        wCo = tilerModel.getTensorDimVar(wName, 0)
-        wCi = tilerModel.getTensorDimVar(wName, 1)
-        P   = tilerModel.getTensorDimVar(wName, 2)
-        Q   = tilerModel.getTensorDimVar(wName, 3)
-
-        # Batch match
-        tilerModel.addConstraint(N_dy == N_dx)
-
-        # Channel relations
-        tilerModel.addConstraint(Co_dy == wCo)
-        tilerModel.addConstraint(Ci_dx == wCi * group)
         return tilerModel
-
 
     # -----------------------
     # 2) Policy constraints
     # -----------------------
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+    @classmethod
+    def addPolicyConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
         """
-        Policy:
-        - Keep full channels (C_in, C_out)
-        - Weight not tiled
-        - Enforce dy tile capacity large enough for dx->dy halo (worst-case)
+        Default policy:
+          - keep full Cin/Cout
+          - weight not tiled
+          - allow spatial tiling on dX
         """
-
-        dyName = parseDict["data_in"]
-        dxName = parseDict["data_out"]
-        wName  = parseDict["weight"]
+        dyName = parseDict[cls.gradOutKey]
+        dxName = parseDict[cls.gradInKey]
+        wName  = parseDict[cls.weightKey]
 
         dyBuf = ctxt.lookup(dyName)
         dxBuf = ctxt.lookup(dxName)
         wBuf  = ctxt.lookup(wName)
 
-        group   = parseDict.get("group", 1)
-        pads    = parseDict.get("pads", [0, 0, 0, 0])
-        strides = parseDict.get("strides", [1, 1])
-        stride_h, stride_w = strides
+        # full channels
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 1) == dyBuf.shape[1])  # Cout full
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dxName, 1) == dxBuf.shape[1])  # Cin full
 
-        # NCHW vars
-        Co_dy = tilerModel.getTensorDimVar(dyName, 1)
-        Ho_dy = tilerModel.getTensorDimVar(dyName, 2)
-        Wo_dy = tilerModel.getTensorDimVar(dyName, 3)
-
-        Ci_dx = tilerModel.getTensorDimVar(dxName, 1)
-        Hi_dx = tilerModel.getTensorDimVar(dxName, 2)
-        Wi_dx = tilerModel.getTensorDimVar(dxName, 3)
-
-        # Weight vars: [C_out, C_in, P, Q]
-        wCo = tilerModel.getTensorDimVar(wName, 0)
-        wCi = tilerModel.getTensorDimVar(wName, 1)
-        P   = tilerModel.getTensorDimVar(wName, 2)
-        Q   = tilerModel.getTensorDimVar(wName, 3)
-
-        # --- Full channels (because kernel memset(dX) internally) ---
-        tilerModel.addConstraint(Co_dy == dyBuf.shape[1])                 # full C_out
-        tilerModel.addConstraint(Ci_dx == dxBuf.shape[1])                 # full C_in
-
-        # --- Weight not tiled ---
-        tilerModel.addConstraint(wCo == wBuf.shape[0])
-        tilerModel.addConstraint(wCi == wBuf.shape[1])
-        tilerModel.addConstraint(P   == wBuf.shape[2])
-        tilerModel.addConstraint(Q   == wBuf.shape[3])
-
-        # --- dx->dy halo bounds (worst-case, DMA-friendly) ---
-        # For stride=1:
-        #   dy_h <= dx_h + (P-1)
-        #   dy_w <= dx_w + (Q-1)
-        tilerModel.addTileSizeDivisibleConstraint(parseDict,
-                                                "dim_im_out_x",
-                                                Hi_dx,
-                                                P)
-        
-
-        tilerModel.addTileSizeDivisibleConstraint(parseDict,
-                                                "dim_im_out_y",
-                                                Wi_dx,
-                                                Q)
+        # weight not tiled
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 0) == wBuf.shape[0])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 1) == wBuf.shape[1])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 2) == wBuf.shape[2])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 3) == wBuf.shape[3])
 
         return tilerModel
-
 
     # -----------------------------------
     # 3) Symbolic node representation
     # -----------------------------------
-    @staticmethod
+    @classmethod
     def constructSymbolicNodeRep(
-        tilerModel: TilerModel,
-        parseDict: Dict,
-        ctxt: NetworkContext
+        cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext
     ) -> Dict[str, Union[int, IntVar]]:
         """
-        IMPORTANT: You said dim_*_x = H and dim_*_y = W.
-        So we bind:
-          dim_im_in_x  -> H_in
-          dim_im_in_y  -> W_in
-          dim_im_out_x -> H_out
-          dim_im_out_y -> W_out
-          dim_kernel_x -> P
-          dim_kernel_y -> Q
+        Bind template fields:
+          dim_im_out_* / ch_im_out : grad_out (dY)
+          dim_im_in_*  / ch_im_in  : grad_in  (dX)
         """
-        dyName = parseDict["data_in"]
-        dxName = parseDict["data_out"]
-        wName  = parseDict["weight"]
+        dyName = parseDict[cls.gradOutKey]
+        dxName = parseDict[cls.gradInKey]
+        wName  = parseDict[cls.weightKey]
 
         symbolic = parseDict.copy()
 
-        # dY (gradOut)
-        symbolic["dim_im_out_x"] = tilerModel.getTensorDimVar(dyName, 2)  # H_out
-        symbolic["dim_im_out_y"] = tilerModel.getTensorDimVar(dyName, 3)  # W_out
-        symbolic["ch_im_out"]    = tilerModel.getTensorDimVar(dyName, 1)  # C_out
-
-        # dX (gradIn)
-        symbolic["dim_im_in_x"] = tilerModel.getTensorDimVar(dxName, 2)   # H_in
-        symbolic["dim_im_in_y"] = tilerModel.getTensorDimVar(dxName, 3)   # W_in
-        symbolic["ch_im_in"]    = tilerModel.getTensorDimVar(dxName, 1)   # C_in
-
-        # Weight [C_out, C_in, P, Q]
-        symbolic["dim_kernel_x"] = tilerModel.getTensorDimVar(wName, 2)   # P (kernel_h)
-        symbolic["dim_kernel_y"] = tilerModel.getTensorDimVar(wName, 3)   # Q (kernel_w)
-
-        # Initialize offset fields (will be filled in serializeTilingSolution)
-        symbolic["offset_grad_in_h"] = 0
-        symbolic["offset_grad_in_w"] = 0
-        symbolic["offset_grad_out_h"] = 0
-        symbolic["offset_grad_out_w"] = 0
-
-        return symbolic
-
-    @staticmethod
-    def _ceil_div(a: int, b: int) -> int:
-        # b > 0
-        return -((-a) // b)
-
-    @staticmethod
-    def _floor_div(a: int, b: int) -> int:
-        # b > 0
-        return a // b
-
-    @classmethod
-    def computeDyCubeFromDxTile(
-        cls,
-        dxTile: HyperRectangle,                 # (N,Cin,Hx,Wx)
-        dxFull: Tuple[int,int,int,int],         # full dX
-        dyFull: Tuple[int,int,int,int],         # full dY
-        P: int, Q: int,                         # kernel
-        pads: Tuple[int,int,int,int],           # (t,b,l,r)
-        strides: Tuple[int,int],                # (sh, sw)
-        dyC: int,                               # full Cout
-        dxAbsOff: Tuple[int,int,int,int],        # absolute offset for boundary pads decision
-    ) -> Tuple[HyperRectangle, Tuple[int,int,int,int]]:
-
-        (nOff, _cOff, hxOff_rel, wxOff_rel) = dxTile.offset
-        (nSize, _cinSize, hxSize, wxSize) = dxTile.dims
-
-        (_, _, hxOff_abs, wxOff_abs) = dxAbsOff
-
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        sh, sw = strides
-
-        hx0 = hxOff_abs
-        hx1 = hxOff_abs + hxSize - 1
-        wx0 = wxOff_abs
-        wx1 = wxOff_abs + wxSize - 1
-
-        Hy = dyFull[2]
-        Wy = dyFull[3]
-
-        oy0 = cls._ceil_div(hx0 - (P - 1) + pad_top, sh)
-        oy1 = cls._floor_div(hx1 + pad_top, sh)
-
-        ox0 = cls._ceil_div(wx0 - (Q - 1) + pad_left, sw)
-        ox1 = cls._floor_div(wx1 + pad_left, sw)
-
-        oy0 = max(0, oy0)
-        ox0 = max(0, ox0)
-        oy1 = min(Hy - 1, oy1)
-        ox1 = min(Wy - 1, ox1)
-
-        if oy0 > oy1 or ox0 > ox1:
-            raise RuntimeError(
-                f"dxTile {dxTile.offset}/{dxTile.dims} produces empty dy range: "
-                f"oy[{oy0},{oy1}], ox[{ox0},{ox1}] (Hy={Hy},Wy={Wy}, P={P},Q={Q}, pads={pads}, strides={strides})"
-            )
-
-        dyH = oy1 - oy0 + 1
-        dyW = ox1 - ox0 + 1
-
-        dyCube = HyperRectangle(
-            (nOff, 0, oy0, ox0),        # dy: (N, C_out, H, W)
-            (nSize, dyC, dyH, dyW)
-        )
-
-        tile_pad_top    = pad_top    if oy0 == 0 else 0
-        tile_pad_bottom = pad_bottom if (oy0 + dyH) == Hy else 0
-        tile_pad_left   = pad_left   if ox0 == 0 else 0
-        tile_pad_right  = pad_right  if (ox0 + dyW) == Wy else 0
-
-        return dyCube, (tile_pad_top, tile_pad_bottom, tile_pad_left, tile_pad_right)
-
-
-    # ---------------------------------------------------------
-    # 4) Helper: dX tile -> required dY tile (dx -> dy halo)
-    # ---------------------------------------------------------
-    @classmethod
-    def serializeTilingSolution(
-        cls,
-        tilingSolution: NodeMemoryConstraint,
-        absoluteOutputCubes: List[AbsoluteHyperRectangle],
-        targetMemLevel: str,
-        ctxt: NetworkContext,
-        operatorRepresentation: OperatorRepresentation
-    ) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-
-        # ---- resolve names early ----
-        varDY = operatorRepresentation["data_in"]    # dY
-        varW  = operatorRepresentation["weight"]     # W
-        varDX = operatorRepresentation["data_out"]   # dX
-
-        group   = operatorRepresentation.get("group", 1)
-        pads    = operatorRepresentation.get("pads", [0,0,0,0])          # [t,b,l,r]
-        strides = operatorRepresentation.get("strides", [1,1])           # [sh,sw]
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        sh, sw = strides
-
-
-        dyFull = tuple(ctxt.lookup(varDY).shape)    # (N,Cout,H,W)
-        dxFull = tuple(ctxt.lookup(varDX).shape)    # (N,Cin,H,W)
-        wShape = tuple(ctxt.lookup(varW).shape)     # (Cout,Cin,P,Q)
-        Cout, Cin, P, Q = wShape
-
-        outputCubes = [c.rectangle for c in absoluteOutputCubes]
-
-        addrNames = ["data_in", "weight", "data_out"]
-        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(
-            tilingSolution, targetMemLevel, operatorRepresentation, addrNames
-        )
-        print(f"[DEBUG] inputBaseOffsets={inputBaseOffsets}")
-        print(f"[DEBUG] outputBaseOffsets={outputBaseOffsets}")
-
-        replacements: Dict[str, List[int]] = {
-            "dim_im_in_x": [],   # H_in  (your convention: x=H)
-            "dim_im_in_y": [],   # W_in
-            "dim_im_out_x": [],  # H_out
-            "dim_im_out_y": [],  # W_out
-            "ch_im_in": [],
-            "ch_im_out": [],
-            "padding_y_top": [],
-            "padding_y_bottom": [],
-            "padding_x_left": [],
-            "padding_x_right": [],
-            "offset_grad_in_h": [],
-            "offset_grad_in_w": [],
-            "offset_grad_out_h": [],
-            "offset_grad_out_w": []
-        }
-
-        replacementTypes = {
-            "dim_im_in_x": PointerClass(uint16_t),
-            "dim_im_in_y": PointerClass(uint16_t),
-            "dim_im_out_x": PointerClass(uint16_t),
-            "dim_im_out_y": PointerClass(uint16_t),
-            "ch_im_in": PointerClass(uint16_t),
-            "ch_im_out": PointerClass(uint16_t),
-            "padding_y_top": PointerClass(uint8_t),
-            "padding_y_bottom": PointerClass(uint8_t),
-            "padding_x_left": PointerClass(uint8_t),
-            "padding_x_right": PointerClass(uint8_t),
-            "offset_grad_in_h": PointerClass(uint16_t),
-            "offset_grad_in_w": PointerClass(uint16_t),
-            "offset_grad_out_h": PointerClass(uint16_t),
-            "offset_grad_out_w": PointerClass(uint16_t),
-        }
-
-        inputDyCubes: List[HyperRectangle] = []
-        inputWCubes:  List[HyperRectangle] = []
-
-        maxDyH = 0
-        maxDyW = 0
-
-        for idx, dxCube in enumerate(outputCubes):
-            abs_obj = absoluteOutputCubes[idx]
-            abs_off = getattr(abs_obj, "absoluteOffset", None)
-            if abs_off is None:
-                abs_off = getattr(abs_obj, "absolute_offset", None)
-            if abs_off is None:
-                abs_off = dxCube.offset
-
-            print(f"\n--- Tile {idx} ---")
-            print(f"dX offset={dxCube.offset}, dims={dxCube.dims}, abs_off={abs_off}")
-
-            (_, Cin_tile, Hx, Wx) = dxCube.dims
-            if Cin_tile != dxFull[1]:
-                raise RuntimeError(f"dX tile Cin must be full ({dxFull[1]}), got {Cin_tile}")
-
-            dyCube, (tpt, tpb, tpl, tpr) = cls.computeDyCubeFromDxTile(
-                dxTile=dxCube,
-                dxFull=dxFull,
-                dyFull=dyFull,
-                P=P, Q=Q,
-                pads=(pad_top, pad_bottom, pad_left, pad_right),
-                strides=(sh, sw),
-                dyC=Cout,
-                dxAbsOff=abs_off,
-            )
-
-            print(f"-> dY offset={dyCube.offset}, dims={dyCube.dims}")
-            print(f"-> tile pads(top,bottom,left,right)=({tpt},{tpb},{tpl},{tpr})")
-
-            maxDyH = max(maxDyH, dyCube.dims[2])
-            maxDyW = max(maxDyW, dyCube.dims[3])
-
-            # replacements (x=H, y=W)
-            replacements["dim_im_in_x"].append(Hx)
-            replacements["dim_im_in_y"].append(Wx)
-            replacements["dim_im_out_x"].append(dyCube.dims[2])
-            replacements["dim_im_out_y"].append(dyCube.dims[3])
-
-            replacements["ch_im_in"].append(dxFull[1])
-            replacements["ch_im_out"].append(Cout)
-
-            # IMPORTANT: Swap padding to match dimension convention (x=H, y=W)
-            # padding_x_* is for H dimension (vertical), padding_y_* is for W dimension (horizontal)
-            replacements["padding_x_left"].append(tpt)     # top (H) → x_left
-            replacements["padding_x_right"].append(tpb)    # bottom (H) → x_right
-            replacements["padding_y_top"].append(tpl)      # left (W) → y_top
-            replacements["padding_y_bottom"].append(tpr)   # right (W) → y_bottom
-
-            # Offset for grad_in (dX) - H and W dimensions (NCHW: [N, C, H, W])
-            replacements["offset_grad_in_h"].append(abs_off[2])   # H offset
-            replacements["offset_grad_in_w"].append(abs_off[3])   # W offset
-
-            # Offset for grad_out (dY) - H and W dimensions
-            replacements["offset_grad_out_h"].append(dyCube.offset[2])  # H offset
-            replacements["offset_grad_out_w"].append(dyCube.offset[3])  # W offset
-
-            # schedules
-            inputDyCubes.append(dyCube)
-            inputWCubes.append(HyperRectangle((0, 0, 0, 0), (Cout, Cin, P, Q)))
-
-            print("-> kernel args check:")
-            print(f"   call(H_out={dyCube.dims[2]}, W_out={dyCube.dims[3]}, C_out={Cout}, "
-                f"C_in={dxFull[1]}, P={P}, Q={Q}, H_in={Hx}, W_in={Wx})")
-
-        print("\n[DEBUG] max dY tile H,W =", (maxDyH, maxDyW))
-        print("==========================================================================\n")
-
-        inputLoadSchedule = [{"data_in": dy, "weight": w} for dy, w in zip(inputDyCubes, inputWCubes)]
-        outputLoadSchedule = [{"data_out": dx} for dx in outputCubes]
-
-        tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
-        variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
-        return variableReplacementSchedule, tilingSchedule
-
-class ConvGradX2DIm2ColHWTileConstraint(TileConstraint):
-    """
-    ConvGradX (dX) im2col version
-    Strategy:
-      - Tile dY on H/W (grad_out tiles)
-      - For each dY tile, compute the required dX tile region that receives contributions
-      - Weight is full, channels are full (common requirement)
-    """
-
-    # ---------------------------
-    # 1) Geometrical constraints
-    # ---------------------------
-    @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        dyName = parseDict["data_in"]    # dY
-        dxName = parseDict["data_out"]   # dX
-        wName  = parseDict["weight"]     # W
-
-        dyBuf = ctxt.lookup(dyName)
-        dxBuf = ctxt.lookup(dxName)
-        wBuf  = ctxt.lookup(wName)
-
-        tilerModel.addTensorDimToModel(ctxt, dyName)
-        tilerModel.addTensorDimToModel(ctxt, dxName)
-        tilerModel.addTensorDimToModel(ctxt, wName)
-
-        group   = parseDict.get("group", 1)
-
-        # NCHW dims
-        N_dy  = tilerModel.getTensorDimVar(dyName, 0)
-        Co_dy = tilerModel.getTensorDimVar(dyName, 1)
-        Ho_dy = tilerModel.getTensorDimVar(dyName, 2)
-        Wo_dy = tilerModel.getTensorDimVar(dyName, 3)
-
-        N_dx  = tilerModel.getTensorDimVar(dxName, 0)
-        Ci_dx = tilerModel.getTensorDimVar(dxName, 1)
-        Hi_dx = tilerModel.getTensorDimVar(dxName, 2)
-        Wi_dx = tilerModel.getTensorDimVar(dxName, 3)
-
-        # Weight dims: [C_out, C_in, P, Q]
-        wCo = tilerModel.getTensorDimVar(wName, 0)
-        wCi = tilerModel.getTensorDimVar(wName, 1)
-        P   = tilerModel.getTensorDimVar(wName, 2)
-        Q   = tilerModel.getTensorDimVar(wName, 3)
-
-        # Batch match
-        tilerModel.addConstraint(N_dy == N_dx)
-
-        # Channel relations
-        tilerModel.addConstraint(Co_dy == wCo)
-        tilerModel.addConstraint(Ci_dx == wCi * group)
-
-        return tilerModel
-
-    # -----------------------
-    # 2) Policy constraints
-    # -----------------------
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        """
-        Policy (recommended for im2col ConvGradX):
-          - Keep full channels (Cin/Cout)
-          - Weight not tiled
-          - Tile only dY H/W (grad_out spatial tiling)
-          - (Optional) enforce dy tile sizes are >=1 and DMA friendly
-        """
-        dyName = parseDict["data_in"]
-        dxName = parseDict["data_out"]
-        wName  = parseDict["weight"]
-
-        dyBuf = ctxt.lookup(dyName)
-        dxBuf = ctxt.lookup(dxName)
-        wBuf  = ctxt.lookup(wName)
-
-        # NCHW vars
-        Co_dy = tilerModel.getTensorDimVar(dyName, 1)
-        Ho_dy = tilerModel.getTensorDimVar(dyName, 2)
-        Wo_dy = tilerModel.getTensorDimVar(dyName, 3)
-
-        Ci_dx = tilerModel.getTensorDimVar(dxName, 1)
-        Hi_dx = tilerModel.getTensorDimVar(dxName, 2)
-        Wi_dx = tilerModel.getTensorDimVar(dxName, 3)
-
-        # Weight vars: [C_out, C_in, P, Q]
-        wCo = tilerModel.getTensorDimVar(wName, 0)
-        wCi = tilerModel.getTensorDimVar(wName, 1)
-        P   = tilerModel.getTensorDimVar(wName, 2)
-        Q   = tilerModel.getTensorDimVar(wName, 3)
-
-        # --- Full channels ---
-        tilerModel.addConstraint(Co_dy == dyBuf.shape[1])  # full Cout
-        tilerModel.addConstraint(Ci_dx == dxBuf.shape[1])  # full Cin
-
-        # --- Weight not tiled ---
-        tilerModel.addConstraint(wCo == wBuf.shape[0])
-        tilerModel.addConstraint(wCi == wBuf.shape[1])
-        tilerModel.addConstraint(P   == wBuf.shape[2])
-        tilerModel.addConstraint(Q   == wBuf.shape[3])
-
-        tilerModel.addConstraint(Ho_dy >= 1)
-        tilerModel.addConstraint(Wo_dy >= 1)
-
-        return tilerModel
-
-    # -----------------------------------
-    # 3) Symbolic node representation
-    # -----------------------------------
-    @staticmethod
-    def constructSymbolicNodeRep(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
-        dyName = parseDict["data_in"]    # dY
-        dxName = parseDict["data_out"]   # dX
-        wName  = parseDict["weight"]     # W
-
-        symbolic = parseDict.copy()
-
-        # Bind dy tile dims (grad_out)
+        # dY (grad_out)
         symbolic["dim_im_out_x"] = tilerModel.getTensorDimVar(dyName, 2)  # H_out tile
         symbolic["dim_im_out_y"] = tilerModel.getTensorDimVar(dyName, 3)  # W_out tile
-        symbolic["ch_im_out"]    = tilerModel.getTensorDimVar(dyName, 1)  # C_out (full)
+        symbolic["ch_im_out"]    = tilerModel.getTensorDimVar(dyName, 1)  # Cout
 
-        # Bind dx tile dims (grad_in)  
+        # dX (grad_in)
         symbolic["dim_im_in_x"] = tilerModel.getTensorDimVar(dxName, 2)   # H_in tile
         symbolic["dim_im_in_y"] = tilerModel.getTensorDimVar(dxName, 3)   # W_in tile
-        symbolic["ch_im_in"]    = tilerModel.getTensorDimVar(dxName, 1)   # C_in (full)
+        symbolic["ch_im_in"]    = tilerModel.getTensorDimVar(dxName, 1)   # Cin
 
-        # Weight kernel
+        # kernel (H,W)
         symbolic["dim_kernel_x"] = tilerModel.getTensorDimVar(wName, 2)   # P
         symbolic["dim_kernel_y"] = tilerModel.getTensorDimVar(wName, 3)   # Q
 
-        # Offsets (filled in serialize)
+        # offsets filled in serialize
         symbolic["offset_grad_in_h"] = 0
         symbolic["offset_grad_in_w"] = 0
         symbolic["offset_grad_out_h"] = 0
@@ -558,19 +144,66 @@ class ConvGradX2DIm2ColHWTileConstraint(TileConstraint):
         return a // b
 
     @classmethod
+    def get_kernel_hw(cls, ctxt: NetworkContext, wName: str, wShape: Tuple[int, int, int, int]) -> Tuple[int, int]:
+        return wShape[2], wShape[3]
+
+    @classmethod
+    def get_dy_channels(
+        cls,
+        ctxt: NetworkContext,
+        operatorRepresentation: OperatorRepresentation,
+        dyName: str,
+        dxName: str,
+        wName: str,
+        dyFull: Tuple[int, int, int, int],
+        dxFull: Tuple[int, int, int, int],
+        wShape: Tuple[int, int, int, int],
+    ) -> int:
+        # default ConvGradX: dy channels == weight[0] (Cout)
+        return wShape[0]
+
+    @classmethod
+    def get_ch_im_out(cls, ctxt: NetworkContext, dyFull, dxFull, wShape) -> int:
+        # template's ch_im_out should match dY channels (Cout)
+        return dyFull[1]
+
+    @classmethod
+    def get_ch_im_in(cls, ctxt: NetworkContext, dyFull, dxFull, wShape) -> int:
+        # template's ch_im_in should match dX channels (Cin)
+        return dxFull[1]
+
+    @classmethod
+    def map_onnx_pads_to_template(cls, tpt: int, tpb: int, tpl: int, tpr: int) -> Tuple[int, int, int, int]:
+        """
+        ONNX pads are (top,bottom,left,right) where top/bottom are H, left/right are W.
+
+        Template wants unified order:
+          (${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right})
+        with your convention:
+          y -> W dimension, x -> H dimension
+
+        So:
+          padding_y_top    = left
+          padding_y_bottom = right
+          padding_x_left   = top
+          padding_x_right  = bottom
+        """
+        return (tpl, tpr, tpt, tpb)
+
+    @classmethod
     def computeDyCubeFromDxTile(
         cls,
         dxTile: HyperRectangle,                 # (N,Cin,Hx,Wx)
-        dxFull: Tuple[int,int,int,int],         # full dX
-        dyFull: Tuple[int,int,int,int],         # full dY
-        P: int, Q: int,                         # kernel
-        pads: Tuple[int,int,int,int],           # (t,b,l,r)
-        strides: Tuple[int,int],                # (sh, sw)
-        dyC: int,                               # full Cout
-        dxAbsOff: Tuple[int,int,int,int],        # absolute offset for boundary pads decision
-    ) -> Tuple[HyperRectangle, Tuple[int,int,int,int]]:
+        dyFull: Tuple[int, int, int, int],      # full dY
+        P: int,
+        Q: int,
+        pads: Tuple[int, int, int, int],        # (t,b,l,r)
+        strides: Tuple[int, int],               # (sh, sw)
+        dyC: int,                               # Cout for this op
+        dxAbsOff: Tuple[int, int, int, int],    # abs offset for boundary decision
+    ) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
 
-        (nOff, _cOff, hxOff_rel, wxOff_rel) = dxTile.offset
+        (nOff, _cOff, _hxOff_rel, _wxOff_rel) = dxTile.offset
         (nSize, _cinSize, hxSize, wxSize) = dxTile.dims
 
         (_, _, hxOff_abs, wxOff_abs) = dxAbsOff
@@ -588,7 +221,6 @@ class ConvGradX2DIm2ColHWTileConstraint(TileConstraint):
 
         oy0 = cls._ceil_div(hx0 - (P - 1) + pad_top, sh)
         oy1 = cls._floor_div(hx1 + pad_top, sh)
-
         ox0 = cls._ceil_div(wx0 - (Q - 1) + pad_left, sw)
         ox1 = cls._floor_div(wx1 + pad_left, sw)
 
@@ -599,18 +231,19 @@ class ConvGradX2DIm2ColHWTileConstraint(TileConstraint):
 
         if oy0 > oy1 or ox0 > ox1:
             raise RuntimeError(
-                f"dxTile {dxTile.offset}/{dxTile.dims} produces empty dy range: "
-                f"oy[{oy0},{oy1}], ox[{ox0},{ox1}] (Hy={Hy},Wy={Wy}, P={P},Q={Q}, pads={pads}, strides={strides})"
+                f"dx tile {dxTile.offset}/{dxTile.dims} produces empty dy halo: "
+                f"oy[{oy0},{oy1}] ox[{ox0},{ox1}] (Hy={Hy},Wy={Wy},P={P},Q={Q},pads={pads},strides={strides})"
             )
 
         dyH = oy1 - oy0 + 1
         dyW = ox1 - ox0 + 1
 
         dyCube = HyperRectangle(
-            (nOff, 0, oy0, ox0),        # dy: (N, C_out, H, W)
+            (nOff, 0, oy0, ox0),     # dY: (N, C_out, H, W)
             (nSize, dyC, dyH, dyW)
         )
 
+        # tile-level ONNX pads only at boundary
         tile_pad_top    = pad_top    if oy0 == 0 else 0
         tile_pad_bottom = pad_bottom if (oy0 + dyH) == Hy else 0
         tile_pad_left   = pad_left   if ox0 == 0 else 0
@@ -618,6 +251,23 @@ class ConvGradX2DIm2ColHWTileConstraint(TileConstraint):
 
         return dyCube, (tile_pad_top, tile_pad_bottom, tile_pad_left, tile_pad_right)
 
+    @staticmethod
+    def _get_abs_off(abs_obj: AbsoluteHyperRectangle, fallback_rect: HyperRectangle):
+        abs_off = getattr(abs_obj, "absoluteOffset", None)
+        if abs_off is None:
+            abs_off = getattr(abs_obj, "absolute_offset", None)
+        if abs_off is None:
+            abs_off = fallback_rect.offset
+        return abs_off
+
+    @classmethod
+    def extraSerializeChecks(cls, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> None:
+        """Hook for DW checks etc."""
+        return
+
+    # ---------------------------------------------------
+    # 4) serialize: dx tiles -> dy halo tiles
+    # ---------------------------------------------------
     @classmethod
     def serializeTilingSolution(
         cls,
@@ -627,53 +277,43 @@ class ConvGradX2DIm2ColHWTileConstraint(TileConstraint):
         ctxt: NetworkContext,
         operatorRepresentation: OperatorRepresentation
     ) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        """
-        FIXED:
-          - absoluteOutputCubes are tiles of data_out, i.e., dX tiles.
-          - For each dX tile, compute required dY (halo) tile.
-        """
 
-        varDY = operatorRepresentation["data_in"]    # dY
-        varW  = operatorRepresentation["weight"]     # W
-        varDX = operatorRepresentation["data_out"]   # dX
+        cls.extraSerializeChecks(ctxt, operatorRepresentation)
 
-        pads    = operatorRepresentation.get("pads", [0, 0, 0, 0])     # [t,b,l,r]
-        strides = operatorRepresentation.get("strides", [1, 1])        # [sh,sw]
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        sh, sw = strides
+        varDY = operatorRepresentation[cls.gradOutKey]  # dY
+        varW  = operatorRepresentation[cls.weightKey]   # W
+        varDX = operatorRepresentation[cls.gradInKey]   # dX
+
+        pads    = tuple(operatorRepresentation.get("pads", [0, 0, 0, 0]))   # (t,b,l,r)
+        strides = tuple(operatorRepresentation.get("strides", [1, 1]))      # (sh,sw)
 
         dyFull = tuple(ctxt.lookup(varDY).shape)  # (N,Cout,Ho,Wo)
         dxFull = tuple(ctxt.lookup(varDX).shape)  # (N,Cin,Hi,Wi)
-        wShape = tuple(ctxt.lookup(varW).shape)   # (Cout,Cin,P,Q)
-        Cout, Cin, P, Q = wShape
+        wShape = tuple(ctxt.lookup(varW).shape)   # (Cout,Cin/group,P,Q) or DW: (Cin,1,P,Q)
 
-        # Correct interpretation: output cubes are dX tiles
+        P, Q = cls.get_kernel_hw(ctxt, varW, wShape)
+        dyC = cls.get_dy_channels(ctxt, operatorRepresentation, varDY, varDX, varW, dyFull, dxFull, wShape)
+
         dxTiles = [c.rectangle for c in absoluteOutputCubes]
 
-        addrNames = ["data_in", "weight", "data_out"]
+        addrNames = [cls.gradOutKey, cls.weightKey, cls.gradInKey]
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(
             tilingSolution, targetMemLevel, operatorRepresentation, addrNames
         )
 
         replacements: Dict[str, List[int]] = {
-            # NOTE naming: keep consistent with your codegen template
-            "dim_im_in_x": [],      # dX tile H
-            "dim_im_in_y": [],      # dX tile W
-            "dim_im_out_x": [],     # dY tile H (halo)
-            "dim_im_out_y": [],     # dY tile W (halo)
+            "dim_im_in_x": [],
+            "dim_im_in_y": [],
+            "dim_im_out_x": [],
+            "dim_im_out_y": [],
             "ch_im_in": [],
             "ch_im_out": [],
 
-            # Full buffer dimensions (for offset calculation)
-            "dim_im_in_x_full": [],   # dX full H
-            "dim_im_in_y_full": [],   # dX full W
-            "dim_im_out_x_full": [],  # dY full H
-            "dim_im_out_y_full": [],  # dY full W
-
-            "padding_top": [],
-            "padding_bottom": [],
-            "padding_left": [],
-            "padding_right": [],
+            # unified template order:
+            "padding_y_top": [],
+            "padding_y_bottom": [],
+            "padding_x_left": [],
+            "padding_x_right": [],
 
             "offset_grad_in_h": [],
             "offset_grad_in_w": [],
@@ -689,16 +329,10 @@ class ConvGradX2DIm2ColHWTileConstraint(TileConstraint):
             "ch_im_in": PointerClass(uint16_t),
             "ch_im_out": PointerClass(uint16_t),
 
-            # Full buffer dimensions
-            "dim_im_in_x_full": PointerClass(uint16_t),
-            "dim_im_in_y_full": PointerClass(uint16_t),
-            "dim_im_out_x_full": PointerClass(uint16_t),
-            "dim_im_out_y_full": PointerClass(uint16_t),
-
-            "padding_top": PointerClass(uint8_t),
-            "padding_bottom": PointerClass(uint8_t),
-            "padding_left": PointerClass(uint8_t),
-            "padding_right": PointerClass(uint8_t),
+            "padding_y_top": PointerClass(uint8_t),
+            "padding_y_bottom": PointerClass(uint8_t),
+            "padding_x_left": PointerClass(uint8_t),
+            "padding_x_right": PointerClass(uint8_t),
 
             "offset_grad_in_h": PointerClass(uint16_t),
             "offset_grad_in_w": PointerClass(uint16_t),
@@ -710,271 +344,361 @@ class ConvGradX2DIm2ColHWTileConstraint(TileConstraint):
         inputWCubes:  List[HyperRectangle] = []
         outputDxCubes: List[HyperRectangle] = []
 
-        fullW = HyperRectangle((0, 0, 0, 0), (Cout, Cin, P, Q))
+        fullW = HyperRectangle((0, 0, 0, 0), wShape)
+
+        ch_in  = cls.get_ch_im_in(ctxt, dyFull, dxFull, wShape)
+        ch_out = cls.get_ch_im_out(ctxt, dyFull, dxFull, wShape)
 
         for idx, dxCube in enumerate(dxTiles):
-            # absolute offset (important for boundary tile pad decisions)
-            abs_obj = absoluteOutputCubes[idx]
-            abs_off = getattr(abs_obj, "absoluteOffset", None)
-            if abs_off is None:
-                abs_off = getattr(abs_obj, "absolute_offset", None)
-            if abs_off is None:
-                abs_off = dxCube.offset
+            abs_off = cls._get_abs_off(absoluteOutputCubes[idx], dxCube)
 
             dyCube, (tpt, tpb, tpl, tpr) = cls.computeDyCubeFromDxTile(
                 dxTile=dxCube,
-                dxFull=dxFull,
                 dyFull=dyFull,
                 P=P, Q=Q,
-                pads=(pad_top, pad_bottom, pad_left, pad_right),
-                strides=(sh, sw),
-                dyC=Cout,
+                pads=pads,
+                strides=strides,
+                dyC=dyC,              # IMPORTANT: use computed dyC
                 dxAbsOff=abs_off
             )
 
-            # replacements: dX tile dims (in), dY halo dims (out)
-            replacements["dim_im_in_x"].append(dxCube.dims[2])     # H_in_tile
-            replacements["dim_im_in_y"].append(dxCube.dims[3])     # W_in_tile
-            replacements["dim_im_out_x"].append(dyCube.dims[2])    # H_out_tile (halo)
-            replacements["dim_im_out_y"].append(dyCube.dims[3])    # W_out_tile (halo)
+            replacements["dim_im_in_x"].append(dxCube.dims[2])    # H_in_tile
+            replacements["dim_im_in_y"].append(dxCube.dims[3])    # W_in_tile
+            replacements["dim_im_out_x"].append(dyCube.dims[2])   # H_out_tile (halo)
+            replacements["dim_im_out_y"].append(dyCube.dims[3])   # W_out_tile (halo)
 
-            replacements["ch_im_in"].append(dxFull[1])             # full Cin
-            replacements["ch_im_out"].append(Cout)                 # full Cout
+            replacements["ch_im_in"].append(ch_in)
+            replacements["ch_im_out"].append(ch_out)
 
-            # Full buffer dimensions (constant for all tiles)
-            replacements["dim_im_in_x_full"].append(dxFull[2])     # H_in_full
-            replacements["dim_im_in_y_full"].append(dxFull[3])     # W_in_full
-            replacements["dim_im_out_x_full"].append(dyFull[2])    # H_out_full
-            replacements["dim_im_out_y_full"].append(dyFull[3])    # W_out_full
-
-            replacements["padding_top"].append(tpt)
-            replacements["padding_bottom"].append(tpb)
-            replacements["padding_left"].append(tpl)
-            replacements["padding_right"].append(tpr)
+            py_top, py_bottom, px_left, px_right = cls.map_onnx_pads_to_template(tpt, tpb, tpl, tpr)
+            replacements["padding_y_top"].append(py_top)
+            replacements["padding_y_bottom"].append(py_bottom)
+            replacements["padding_x_left"].append(px_left)
+            replacements["padding_x_right"].append(px_right)
 
             replacements["offset_grad_in_h"].append(abs_off[2])
             replacements["offset_grad_in_w"].append(abs_off[3])
             replacements["offset_grad_out_h"].append(dyCube.offset[2])
             replacements["offset_grad_out_w"].append(dyCube.offset[3])
 
-            # schedules
             inputDyCubes.append(dyCube)
             inputWCubes.append(fullW)
             outputDxCubes.append(dxCube)
 
-        inputLoadSchedule = [{"data_in": dy, "weight": w} for dy, w in zip(inputDyCubes, inputWCubes)]
-        outputLoadSchedule = [{"data_out": dx} for dx in outputDxCubes]
+        inputLoadSchedule  = [{cls.gradOutKey: dy, cls.weightKey: w} for dy, w in zip(inputDyCubes, inputWCubes)]
+        outputLoadSchedule = [{cls.gradInKey: dx} for dx in outputDxCubes]
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
         return variableReplacementSchedule, tilingSchedule
 
 
-class ConvGradW2DTileConstraint(TileConstraint):
+# ============================================================================
+# ConvGradX: subclass reusing the base
+# ============================================================================
+
+class ConvGradX2DHWTileConstraint(ConvGradXTileConstraintBase):
+    pass
+
+
+class ConvGradX2DIm2ColHWTileConstraint(ConvGradXTileConstraintBase):
+    pass
+
+class PWConvGradXTileConstraint(ConvGradXTileConstraintBase):
+    pass
+
+class DWConvGradX2DTileConstraint(ConvGradXTileConstraintBase):
+    """
+    Depthwise ConvGradX (dX) tiling, reusing ConvGradXTileConstraintBase.
+
+    Expected tensors:
+      data_in  = grad_out (dY) [N, C, H_out, W_out]
+      data_out = grad_in  (dX) [N, C, H_in,  W_in]
+      weight   = W        [C, 1, P, Q]
+    """
+
+    # If your DW parser uses different keys, override here.
+    gradOutKey = "grad_out"
+    gradInKey  = "grad_in"
+    weightKey  = "weight"
+
+    @classmethod
+    def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        dyName = parseDict[cls.gradOutKey]  # dY
+        dxName = parseDict[cls.gradInKey]   # dX
+        wName  = parseDict[cls.weightKey]   # W
+
+        tilerModel.addTensorDimToModel(ctxt, dyName)
+        tilerModel.addTensorDimToModel(ctxt, dxName)
+        tilerModel.addTensorDimToModel(ctxt, wName)
+
+        # N match
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 0) == tilerModel.getTensorDimVar(dxName, 0))
+
+        # DW channels: Cin == Cout == W[0], and W[1]==1
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 1) == tilerModel.getTensorDimVar(wName, 0))
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dxName, 1) == tilerModel.getTensorDimVar(wName, 0))
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 1) == 1)
+
+        return tilerModel
+
+    @classmethod
+    def addPolicyConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        """
+        DW policy:
+          - keep full channels (C)
+          - weight not tiled
+          - enforce W[1]==1
+        """
+        dyName = parseDict[cls.gradOutKey]
+        dxName = parseDict[cls.gradInKey]
+        wName  = parseDict[cls.weightKey]
+
+        dyBuf = ctxt.lookup(dyName)
+        dxBuf = ctxt.lookup(dxName)
+        wBuf  = ctxt.lookup(wName)
+
+        # Full channels for both dY and dX
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 1) == dyBuf.shape[1])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dxName, 1) == dxBuf.shape[1])
+
+        # Weight not tiled + DW second dim fixed to 1
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 0) == wBuf.shape[0])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 1) == 1)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 2) == wBuf.shape[2])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(wName, 3) == wBuf.shape[3])
+
+        return tilerModel
+
+    @classmethod
+    def extraSerializeChecks(cls, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> None:
+        varDY = operatorRepresentation[cls.gradOutKey]
+        varDX = operatorRepresentation[cls.gradInKey]
+        varW  = operatorRepresentation[cls.weightKey]
+
+        dyFull = tuple(ctxt.lookup(varDY).shape)  # (N,C,Ho,Wo)
+        dxFull = tuple(ctxt.lookup(varDX).shape)  # (N,C,Hi,Wi)
+        wShape = tuple(ctxt.lookup(varW).shape)   # (C,1,P,Q)
+
+        Cin = dxFull[1]
+        Cout = dyFull[1]
+        if Cin != Cout:
+            raise RuntimeError(f"DWConvGradX expects Cin==Cout, got Cin={Cin}, Cout={Cout}")
+        if wShape[0] != Cin:
+            raise RuntimeError(f"DWConvGradX expects W[0]==C, got W[0]={wShape[0]} vs C={Cin}")
+        if wShape[1] != 1:
+            raise RuntimeError(f"DWConvGradX expects W[1]==1, got {wShape[1]}")
+
+    @classmethod
+    def get_dy_channels(
+        cls,
+        ctxt: NetworkContext,
+        operatorRepresentation: OperatorRepresentation,
+        dyName: str,
+        dxName: str,
+        wName: str,
+        dyFull: Tuple[int, int, int, int],
+        dxFull: Tuple[int, int, int, int],
+        wShape: Tuple[int, int, int, int],
+    ) -> int:
+        # DW: dY channels is C
+        return dyFull[1]
+
+class ConvGradWTileConstraintBase(TileConstraint):
+    """
+    Base for ConvGradW2D tiling (im2col-style):
+      - tile grad_out (dY) over H/W
+      - for each dY tile, derive the required input (X) tile (with kernel halo)
+      - grad_weight (dW) is NOT tiled (accumulation target is full tensor)
+      - unified template padding naming:
+          ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}
+        where:
+          x => H dimension  (vertical)  => top/bottom
+          y => W dimension  (horizontal)=> left/right
+    """
+
+    # ---- parser/opRep keys (override if needed) ----
+    dataInKey = "data_in"    # X (forward input)
+    gradOutKey = "grad_out"  # dY
+    weightKey = "grad_weight"     # dW (output tensor)
 
     # ---------------------------
     # 1) Geometrical constraints
     # ---------------------------
-    @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        inputName   = parseDict["data_in"]    # X (forward input)
-        gradOutName = parseDict["grad_out"]   # dY
-        gradWName   = parseDict["weight"]     # dW (output)
+    @classmethod
+    def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        xName = parseDict[cls.dataInKey]
+        dyName = parseDict[cls.gradOutKey]
+        dwName = parseDict[cls.weightKey]
 
-        tilerModel.addTensorDimToModel(ctxt, inputName)
-        tilerModel.addTensorDimToModel(ctxt, gradOutName)
-        tilerModel.addTensorDimToModel(ctxt, gradWName)
+        tilerModel.addTensorDimToModel(ctxt, xName)
+        tilerModel.addTensorDimToModel(ctxt, dyName)
+        tilerModel.addTensorDimToModel(ctxt, dwName)
 
-        pads    = parseDict["pads"]       # [pad_top, pad_bottom, pad_left, pad_right]
-        strides = parseDict["strides"]    # [stride_h, stride_w]
-        group   = parseDict["group"]
+        group = parseDict.get("group", 1)
 
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        stride_h, stride_w = strides
+        # X, dY are NCHW
+        N_x = tilerModel.getTensorDimVar(xName, 0)
+        Ci_x = tilerModel.getTensorDimVar(xName, 1)
 
-        # NCHW dims for input (X)
-        N_x  = tilerModel.getTensorDimVar(inputName, 0)
-        Ci_x = tilerModel.getTensorDimVar(inputName, 1)
-        Hi_x = tilerModel.getTensorDimVar(inputName, 2)
-        Wi_x = tilerModel.getTensorDimVar(inputName, 3)
+        N_dy = tilerModel.getTensorDimVar(dyName, 0)
+        Co_dy = tilerModel.getTensorDimVar(dyName, 1)
 
-        # NCHW dims for grad_out (dY)
-        N_dy  = tilerModel.getTensorDimVar(gradOutName, 0)
-        Co_dy = tilerModel.getTensorDimVar(gradOutName, 1)
-        Ho_dy = tilerModel.getTensorDimVar(gradOutName, 2)
-        Wo_dy = tilerModel.getTensorDimVar(gradOutName, 3)
+        # dW layout (standard): [C_out, C_in_per_group, P, Q]
+        Co_dw = tilerModel.getTensorDimVar(dwName, 0)
+        Ci_dw = tilerModel.getTensorDimVar(dwName, 1)
 
-        # grad_weight dims: [C_out, C_in_per_group, P, Q]
-        Co_dw = tilerModel.getTensorDimVar(gradWName, 0)  # C_out
-        Ci_dw = tilerModel.getTensorDimVar(gradWName, 1)  # C_in_per_group
-        P     = tilerModel.getTensorDimVar(gradWName, 2)  # kernel_h
-        Q     = tilerModel.getTensorDimVar(gradWName, 3)  # kernel_w
-
-        # batch must match
+        # batch match
         tilerModel.addConstraint(N_x == N_dy)
 
         # channel relations
-        tilerModel.addConstraint(Ci_x == Ci_dw * group)   # input channels
-        tilerModel.addConstraint(Co_dy == Co_dw)           # output channels
-
-        # spatial relation (standard conv output shape)
-        # H_out = floor((H_in + pad_top + pad_bottom - P) / stride_h) + 1
-        # W_out = floor((W_in + pad_left + pad_right - Q) / stride_w) + 1
-        tilerModel.addConstraint(Ho_dy == (Hi_x + pad_top + pad_bottom - P) // stride_h + 1)
-        tilerModel.addConstraint(Wo_dy == (Wi_x + pad_left + pad_right - Q) // stride_w + 1)
-
+        tilerModel.addConstraint(Co_dy == Co_dw)
+        tilerModel.addConstraint(Ci_x == Ci_dw * group)
 
         return tilerModel
 
     # -----------------------
     # 2) Policy constraints
     # -----------------------
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        inputBuf    = ctxt.lookup(name=parseDict["data_in"])    # X
-        gradOutBuf  = ctxt.lookup(name=parseDict["grad_out"])   # dY
-        gradWBuf    = ctxt.lookup(name=parseDict["weight"])     # dW (output)
+    @classmethod
+    def addPolicyConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        """
+        Default policy:
+          - keep full Cin/Cout on X and dY
+          - dW output is full (no tiling) because accumulation
+          - kernel dims fixed (no tiling)
+          - allow H/W tiling on dY (and derived halo on X)
+        """
+        xName = parseDict[cls.dataInKey]
+        dyName = parseDict[cls.gradOutKey]
+        dwName = parseDict[cls.weightKey]
 
-        group = parseDict["group"]
-        pads = parseDict["pads"]
-        strides = parseDict["strides"]
+        xBuf = ctxt.lookup(xName)
+        dyBuf = ctxt.lookup(dyName)
+        dwBuf = ctxt.lookup(dwName)
 
-        # Input (X) vars - NCHW
-        Ci_x = tilerModel.getTensorDimVar(inputBuf.name, 1)
-        Hi_x = tilerModel.getTensorDimVar(inputBuf.name, 2)
-        Wi_x = tilerModel.getTensorDimVar(inputBuf.name, 3)
+        # Full channels for inputs
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(xName, 1) == xBuf.shape[1])   # Cin
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 1) == dyBuf.shape[1]) # Cout
 
-        # GradOut (dY) vars - NCHW
-        Co_dy = tilerModel.getTensorDimVar(gradOutBuf.name, 1)
-        Ho_dy = tilerModel.getTensorDimVar(gradOutBuf.name, 2)
-        Wo_dy = tilerModel.getTensorDimVar(gradOutBuf.name, 3)
+        # dW is full (all dims)
+        for d in range(len(dwBuf.shape)):
+            tilerModel.addConstraint(tilerModel.getTensorDimVar(dwName, d) == dwBuf.shape[d])
 
-        # GradWeight (dW) vars: [C_out, C_in_per_group, P, Q]
-        Co_dw = tilerModel.getTensorDimVar(gradWBuf.name, 0)
-        Ci_dw = tilerModel.getTensorDimVar(gradWBuf.name, 1)
-        P     = tilerModel.getTensorDimVar(gradWBuf.name, 2)
-        Q     = tilerModel.getTensorDimVar(gradWBuf.name, 3)
-
-        # --- Weight output must be full (no tiling, needs accumulation) ---
-        tilerModel.addConstraint(Co_dw == parseDict["ch_im_out"])
-        tilerModel.addConstraint(Ci_dw * group == parseDict["ch_im_in"])
-        tilerModel.addConstraint(P == parseDict["dim_kernel_x"])
-        tilerModel.addConstraint(Q == parseDict["dim_kernel_y"])
-
-        # --- Input channels must be full (required for im2col algorithm) ---
-        tilerModel.addConstraint(Ci_x == parseDict["ch_im_in"])
-        tilerModel.addConstraint(Co_dy == parseDict["ch_im_out"])
-
-        # --- Compute effective input spatial dimensions (similar to Conv2D) ---
-        # Account for padding when at full dimension, and kernel overlap when tiled
-        effectiveInputHeight = Hi_x + ((pads[0] + pads[1]) * (Hi_x == inputBuf.shape[2])) - (
-            (P - 1) * (Hi_x != inputBuf.shape[2]))
-        effectiveInputWidth = Wi_x + ((pads[2] + pads[3]) * (Wi_x == inputBuf.shape[3])) - (
-            (Q - 1) * (Wi_x != inputBuf.shape[3]))
-
-        # --- Require minimum spatial dimensions to be at least kernel size ---
-        tilerModel.addConstraint(effectiveInputHeight >= parseDict["dim_kernel_x"])
-        tilerModel.addConstraint(effectiveInputWidth >= parseDict["dim_kernel_y"])
-
-        # --- Ensure tiles are compatible with stride ---
-        tilerModel.addConstraint((effectiveInputHeight % strides[0]) == 0)
-        tilerModel.addConstraint((effectiveInputWidth % strides[1]) == 0)
+        # dY tile spatial dims >= 1
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 2) >= 1)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 3) >= 1)
 
         return tilerModel
 
     # -----------------------------------
     # 3) Symbolic node representation
     # -----------------------------------
-    @staticmethod
+    @classmethod
     def constructSymbolicNodeRep(
-        tilerModel: TilerModel,
-        parseDict: Dict,
-        ctxt: NetworkContext
+        cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext
     ) -> Dict[str, Union[int, IntVar]]:
+        """
+        Template bindings (matches your new template style for ConvGradW):
+          - dim_im_out_* / ch_im_out : for grad_out (dY)
+          - dim_im_in_*  / ch_im_in  : for input   (X)
+          - dim_kernel_* : from dW tensor
+          - padding_*    : unified naming
+        """
+        xName = parseDict[cls.dataInKey]
+        dyName = parseDict[cls.gradOutKey]
+        dwName = parseDict[cls.weightKey]
 
-        inputBuf   = ctxt.lookup(name=parseDict["data_in"])    # X
-        gradOutBuf = ctxt.lookup(name=parseDict["grad_out"])   # dY
-        gradWBuf   = ctxt.lookup(name=parseDict["weight"])     # dW (output)
+        symbolic = parseDict.copy()
 
-        symbolicParseDict = parseDict.copy()
+        # dY tile
+        symbolic["dim_im_out_x"] = tilerModel.getTensorDimVar(dyName, 2)  # H_out tile
+        symbolic["dim_im_out_y"] = tilerModel.getTensorDimVar(dyName, 3)  # W_out tile
+        symbolic["ch_im_out"] = tilerModel.getTensorDimVar(dyName, 1)     # C_out
 
-        # Input (X) NCHW: H/W/C at dimIdx 2/3/1
-        symbolicParseDict["dim_im_in_x"] = tilerModel.getTensorDimVar(inputBuf.name, 2)   # H_in
-        symbolicParseDict["dim_im_in_y"] = tilerModel.getTensorDimVar(inputBuf.name, 3)   # W_in
-        symbolicParseDict["ch_im_in"]    = tilerModel.getTensorDimVar(inputBuf.name, 1)   # C_in
+        # X tile
+        symbolic["dim_im_in_x"] = tilerModel.getTensorDimVar(xName, 2)    # H_in tile
+        symbolic["dim_im_in_y"] = tilerModel.getTensorDimVar(xName, 3)    # W_in tile
+        symbolic["ch_im_in"] = tilerModel.getTensorDimVar(xName, 1)       # C_in
 
-        # GradOut (dY) NCHW: H/W/C at dimIdx 2/3/1
-        symbolicParseDict["dim_im_out_x"] = tilerModel.getTensorDimVar(gradOutBuf.name, 2)  # H_out
-        symbolicParseDict["dim_im_out_y"] = tilerModel.getTensorDimVar(gradOutBuf.name, 3)  # W_out
-        symbolicParseDict["ch_im_out"]    = tilerModel.getTensorDimVar(gradOutBuf.name, 1)  # C_out
+        # Kernel dims from dW: [C_out, C_in_per_group, P, Q]
+        symbolic["dim_kernel_x"] = tilerModel.getTensorDimVar(dwName, 2)  # P (H)
+        symbolic["dim_kernel_y"] = tilerModel.getTensorDimVar(dwName, 3)  # Q (W)
 
-        # GradWeight: [C_out, C_in_per_group, P, Q]
-        symbolicParseDict["dim_kernel_x"] = tilerModel.getTensorDimVar(gradWBuf.name, 2)  # P
-        symbolicParseDict["dim_kernel_y"] = tilerModel.getTensorDimVar(gradWBuf.name, 3)  # Q
+        return symbolic
 
-        return symbolicParseDict
-
-    # ---------------------------------------------------------
-    # 4) Helper: compute required input tiles from grad_out tile
-    # ---------------------------------------------------------
+    # -------------------------------
+    # helpers
+    # -------------------------------
     @staticmethod
+    def _ceil_div(a: int, b: int) -> int:
+        return -((-a) // b)
+
+    @staticmethod
+    def _floor_div(a: int, b: int) -> int:
+        return a // b
+
+    @classmethod
     def computeInputTileFromGradOutTile(
-        kernelShape: Tuple[int, int],              # (P, Q)
-        pads: Tuple[int, int, int, int],           # (pad_top, pad_bottom, pad_left, pad_right)
-        strides: Tuple[int, int],                  # (stride_h, stride_w)
-        inputCSize: int,                           # C_in
-        gradOutTile: HyperRectangle,               # tile on dY
-        inputDims: Tuple[int, int, int, int],      # full X dims (N, C_in, H_in, W_in)
-        gradOutDims: Tuple[int, int, int, int],    # full dY dims (N, C_out, H_out, W_out)
+        cls,
+        kernel_hw: Tuple[int, int],                 # (P, Q)
+        pads: Tuple[int, int, int, int],            # (t, b, l, r)
+        strides: Tuple[int, int],                   # (sh, sw)
+        inputCSize: int,                            # Cin (full)
+        gradOutTile: HyperRectangle,                # dY tile (N, Cout, Ho_t, Wo_t)
+        inputFull: Tuple[int, int, int, int],       # X full (N, Cin, Hi, Wi)
+        gradOutFull: Tuple[int, int, int, int],     # dY full (N, Cout, Ho, Wo)
     ) -> Tuple[HyperRectangle, Tuple[int, int, int, int]]:
         """
-        Given a grad_out (dY) tile, compute the required input (X) tile.
-
-        For each output position (h_out, w_out), we need input positions:
-        [h_out*stride - pad_top, h_out*stride - pad_top + P)
-        [w_out*stride - pad_left, w_out*stride - pad_left + Q)
+        Given dY tile offsets, compute required X tile:
+          h_in in [h_out*sh - pad_top, h_out*sh - pad_top + P)
+          w_in in [w_out*sw - pad_left, w_out*sw - pad_left + Q)
         """
-        (nOff, _cOff_dy, hOff_dy, wOff_dy) = gradOutTile.offset
-        (nSize, _cSize_dy, hSize_dy, wSize_dy) = gradOutTile.dims
+        (nOff, _cOff, hoOff, woOff) = gradOutTile.offset
+        (nSize, _cSize, hoSize, woSize) = gradOutTile.dims
 
         pad_top, pad_bottom, pad_left, pad_right = pads
-        stride_h, stride_w = strides
-        P, Q = kernelShape
+        sh, sw = strides
+        P, Q = kernel_hw
 
-        # Compute required input range
-        # For h_out in [hOff_dy, hOff_dy + hSize_dy),
-        # need h_in in [h_out*stride - pad_top, h_out*stride - pad_top + P)
+        h_in_start = hoOff * sh - pad_top
+        w_in_start = woOff * sw - pad_left
 
-        h_in_start = hOff_dy * stride_h - pad_top
-        w_in_start = wOff_dy * stride_w - pad_left
+        h_in_end = (hoOff + hoSize - 1) * sh - pad_top + P
+        w_in_end = (woOff + woSize - 1) * sw - pad_left + Q
 
-        h_in_end = (hOff_dy + hSize_dy - 1) * stride_h - pad_top + P
-        w_in_end = (wOff_dy + wSize_dy - 1) * stride_w - pad_left + Q
-
-        # Clamp to valid input range
+        # clamp to X valid range
         h_in_start_c = max(0, h_in_start)
         w_in_start_c = max(0, w_in_start)
-        h_in_end_c = min(inputDims[2], h_in_end)
-        w_in_end_c = min(inputDims[3], w_in_end)
+        h_in_end_c = min(inputFull[2], h_in_end)
+        w_in_end_c = min(inputFull[3], w_in_end)
 
-        hSize_x = max(1, h_in_end_c - h_in_start_c)
-        wSize_x = max(1, w_in_end_c - w_in_start_c)
+        hiSize = max(1, h_in_end_c - h_in_start_c)
+        wiSize = max(1, w_in_end_c - w_in_start_c)
 
-        inputTile = HyperRectangle(
-            (nOff, 0, h_in_start_c, w_in_start_c),  # C_in at full
-            (nSize, inputCSize, hSize_x, wSize_x)
+        xTile = HyperRectangle(
+            (nOff, 0, h_in_start_c, w_in_start_c),
+            (nSize, inputCSize, hiSize, wiSize),
         )
 
-        # Tile-level padding
-        tile_pad_top    = pad_top    if hOff_dy == 0 else 0
-        tile_pad_bottom = pad_bottom if (hOff_dy + hSize_dy) == gradOutDims[2] else 0
-        tile_pad_left   = pad_left   if wOff_dy == 0 else 0
-        tile_pad_right  = pad_right  if (wOff_dy + wSize_dy) == gradOutDims[3] else 0
+        # ONNX pads apply only on boundary tiles of dY space
+        Hy = gradOutFull[2]
+        Wy = gradOutFull[3]
 
-        return inputTile, (tile_pad_top, tile_pad_bottom, tile_pad_left, tile_pad_right)
+        tile_pad_top = pad_top if hoOff == 0 else 0
+        tile_pad_bottom = pad_bottom if (hoOff + hoSize) == Hy else 0
+        tile_pad_left = pad_left if woOff == 0 else 0
+        tile_pad_right = pad_right if (woOff + woSize) == Wy else 0
+
+        return xTile, (tile_pad_top, tile_pad_bottom, tile_pad_left, tile_pad_right)
+
+    @classmethod
+    def extraSerializeChecks(cls, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> None:
+        """Hook for DW checks etc."""
+        return
 
     # ---------------------------------------------------
-    # 5) Serialize tiling solution into schedules + params
+    # 4) serialize: dY tiles -> X halo tiles, dW full
     # ---------------------------------------------------
     @classmethod
     def serializeTilingSolution(
@@ -983,39 +707,58 @@ class ConvGradW2DTileConstraint(TileConstraint):
         absoluteOutputCubes: List[AbsoluteHyperRectangle],
         targetMemLevel: str,
         ctxt: NetworkContext,
-        operatorRepresentation: OperatorRepresentation
+        operatorRepresentation: OperatorRepresentation,
     ) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        """
-        ConvGradW with H/W tiling (im2col approach):
-        - Tile grad_out (dY) over spatial H/W dimensions
-        - For each grad_out tile, compute required input (X) tile with overlap
-        - All tiles accumulate into full grad_weight (dW)
+        cls.extraSerializeChecks(ctxt, operatorRepresentation)
 
-        Similar to Conv2D im2col pattern.
-        """
+        xName = operatorRepresentation[cls.dataInKey]
+        dyName = operatorRepresentation[cls.gradOutKey]
+        dwName = operatorRepresentation[cls.weightKey]
 
-        # Extract output cubes - for ConvGradW, these represent grad_weight (always full)
-        # But we create multiple cubes for different spatial computation tiles
-        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+        pads = tuple(operatorRepresentation.get("pads", [0, 0, 0, 0]))        # (t,b,l,r)
+        strides = tuple(operatorRepresentation.get("strides", [1, 1]))        # (sh,sw)
 
-        varInput   = operatorRepresentation["data_in"]    # X
-        varGradOut = operatorRepresentation["grad_out"]   # dY
-        varGradW   = operatorRepresentation["weight"]     # dW (output)
+        xFull = tuple(ctxt.lookup(xName).shape)    # (N,Cin,Hi,Wi)
+        dyFull = tuple(ctxt.lookup(dyName).shape)  # (N,Cout,Ho,Wo)
+        dwShape = tuple(ctxt.lookup(dwName).shape) # standard: (Cout,Cin_per_group,P,Q)
 
-        group   = operatorRepresentation["group"]
-        pads    = operatorRepresentation["pads"]         # [t,b,l,r]
-        strides = operatorRepresentation["strides"]      # [sh, sw]
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        stride_h, stride_w = strides
+        # Use the tiler-computed dY tile shape at this mem level
+        # (if missing, fall back to full dy)
+        try:
+            dyTileShape = tilingSolution.tensorMemoryConstraints[dyName].memoryConstraints[targetMemLevel].shape
+        except Exception:
+            dyTileShape = dyFull
 
-        addrNames = ["data_in", "grad_out", "weight"]
+        N_tile = dyTileShape[0]
+        Ho_tile_max = dyTileShape[2]
+        Wo_tile_max = dyTileShape[3]
+
+        # Generate (ho,wo) tiles covering full dY spatial dims
+        Ho_full = dyFull[2]
+        Wo_full = dyFull[3]
+
+        h_tiles: List[Tuple[int, int]] = []
+        w_tiles: List[Tuple[int, int]] = []
+
+        ho = 0
+        while ho < Ho_full:
+            hs = min(Ho_tile_max, Ho_full - ho)
+            h_tiles.append((ho, hs))
+            ho += hs
+
+        wo = 0
+        while wo < Wo_full:
+            ws = min(Wo_tile_max, Wo_full - wo)
+            w_tiles.append((wo, ws))
+            wo += ws
+
+        # Base addrs: inputs are X + dY, output is dW
+        addrNames = [cls.dataInKey, cls.gradOutKey, cls.weightKey]
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(
             tilingSolution, targetMemLevel, operatorRepresentation, addrNames
         )
 
-        inputXCubes: List[HyperRectangle] = []
-        inputGradOutCubes: List[HyperRectangle] = []
-
+        # Unified template naming
         replacements: Dict[str, List[int]] = {
             "dim_im_in_x": [],
             "dim_im_in_y": [],
@@ -1042,519 +785,143 @@ class ConvGradW2DTileConstraint(TileConstraint):
             "padding_x_right": PointerClass(uint8_t),
         }
 
-        # Weight shape: [C_out, C_in_per_group, P, Q]
-        (weightCo, weightCi, weightP, weightQ) = ctxt.lookup(varGradW).shape
+        Cin_full = xFull[1]
+        Cout_full = dyFull[1]
 
-        fullInputDims   = ctxt.lookup(varInput).shape     # (N, C_in, H_in, W_in)
-        fullGradOutDims = ctxt.lookup(varGradOut).shape   # (N, C_out, H_out, W_out)
+        # dW is full cube (accumulation target)
+        fullDW = HyperRectangle((0, 0, 0, 0), dwShape)
 
-        # For ConvGradW with H/W tiling:
-        # - Output (grad_weight) is always full size (for accumulation)
-        # - We tile the INPUTS (X and grad_out) spatially
-        # - Extract tile dimensions from tilingSolution (computed by framework)
-
-        # Get the tile dimensions from the memory constraint solution
-        # The framework computes optimal tile sizes for L1 memory
-        gradOutTileDims = tilingSolution.tensorMemoryConstraints[varGradOut].memoryConstraints[targetMemLevel].shape
-        inputTileDims = tilingSolution.tensorMemoryConstraints[varInput].memoryConstraints[targetMemLevel].shape
-
-        # Extract spatial tile sizes
-        # grad_out: (N, C_out, H_out_tile, W_out_tile)
-        N_tile = gradOutTileDims[0]
-        H_out_tile = gradOutTileDims[2]
-        W_out_tile = gradOutTileDims[3]
-
-        # Compute how many tiles needed to cover full spatial dimensions
-        # For im2col with overlap, we need to compute tile offsets carefully
-        N_full, C_out_full, H_out_full, W_out_full = fullGradOutDims
-        N_in_full, C_in_full, H_in_full, W_in_full = fullInputDims
-
-        # Generate tiles to cover the full grad_out spatial dimensions
-        # Each tile may overlap with neighbors due to kernel receptive field
-        h_tiles = []
-        w_tiles = []
-
-        # Compute H dimension tiles
-        h_offset = 0
-        while h_offset < H_out_full:
-            h_size = min(H_out_tile, H_out_full - h_offset)
-            h_tiles.append((h_offset, h_size))
-            h_offset += h_size
-
-        # Compute W dimension tiles
-        w_offset = 0
-        while w_offset < W_out_full:
-            w_size = min(W_out_tile, W_out_full - w_offset)
-            w_tiles.append((w_offset, w_size))
-            w_offset += w_size
-
-        # Create tiles for all H/W combinations
-        for h_off, h_sz in h_tiles:
-            for w_off, w_sz in w_tiles:
-                # Create grad_out tile for this spatial region
-                gradOutCube = HyperRectangle(
-                    (0, 0, h_off, w_off),
-                    (N_tile, C_out_full, h_sz, w_sz)
-                )
-
-                # Compute corresponding input (X) tile with overlap
-                # This uses im2col logic: input needs extra space for kernel receptive field
-                inputCube, pad_tuple = cls.computeInputTileFromGradOutTile(
-                    kernelShape=(weightP, weightQ),
-                    pads=tuple(pads),
-                    strides=(stride_h, stride_w),
-                    inputCSize=C_in_full,  # Full C_in (im2col requirement)
-                    gradOutTile=gradOutCube,
-                    inputDims=fullInputDims,
-                    gradOutDims=fullGradOutDims,
-                )
-
-                tilepad_top, tilepad_bottom, tilepad_left, tilepad_right = pad_tuple
-
-                # Store replacements for this tile (im2col kernel parameters)
-                replacements["dim_im_in_x"].append(inputCube.dims[2])      # H_in tile
-                replacements["dim_im_in_y"].append(inputCube.dims[3])      # W_in tile
-                replacements["dim_im_out_x"].append(h_sz)                  # H_out tile
-                replacements["dim_im_out_y"].append(w_sz)                  # W_out tile
-                replacements["ch_im_in"].append(C_in_full)                 # Full C_in
-                replacements["ch_im_out"].append(C_out_full)               # Full C_out
-
-                # Tile-specific padding (edge tiles have padding, interior tiles don't)
-                replacements["padding_y_top"].append(tilepad_top)
-                replacements["padding_y_bottom"].append(tilepad_bottom)
-                replacements["padding_x_left"].append(tilepad_left)
-                replacements["padding_x_right"].append(tilepad_right)
-
-                inputXCubes.append(inputCube)
-                inputGradOutCubes.append(gradOutCube)
-
-        # Build load schedules
         inputLoadSchedule = []
         outputLoadSchedule = []
 
-        # Each input tile pair (X, grad_out) computes a partial gradient
-        for x_cube, dy_cube in zip(inputXCubes, inputGradOutCubes):
-            inputLoadSchedule.append({"data_in": x_cube, "grad_out": dy_cube})
+        # Build tiles
+        for hoOff, hoSz in h_tiles:
+            for woOff, woSz in w_tiles:
+                dyTile = HyperRectangle(
+                    (0, 0, hoOff, woOff),
+                    (N_tile, Cout_full, hoSz, woSz),
+                )
 
-        # All tiles accumulate into the same full grad_weight
-        # Create one output entry per input tile (all point to same full grad_weight)
-        fullGradWeightCube = HyperRectangle((0, 0, 0, 0), (weightCo, weightCi, weightP, weightQ))
-        for _ in range(len(inputXCubes)):
-            outputLoadSchedule.append({"weight": fullGradWeightCube})
+                xTile, (tpt, tpb, tpl, tpr) = cls.computeInputTileFromGradOutTile(
+                    kernel_hw=(dwShape[2], dwShape[3]),
+                    pads=pads,
+                    strides=strides,
+                    inputCSize=Cin_full,
+                    gradOutTile=dyTile,
+                    inputFull=xFull,
+                    gradOutFull=dyFull,
+                )
+
+                # dims (x=H, y=W)
+                replacements["dim_im_in_x"].append(xTile.dims[2])
+                replacements["dim_im_in_y"].append(xTile.dims[3])
+                replacements["dim_im_out_x"].append(dyTile.dims[2])
+                replacements["dim_im_out_y"].append(dyTile.dims[3])
+
+                replacements["ch_im_in"].append(Cin_full)
+                replacements["ch_im_out"].append(Cout_full)
+
+                # ONNX pads (t,b,l,r) -> unified naming:
+                # padding_x_* : H dimension => top/bottom
+                # padding_y_* : W dimension => left/right
+                replacements["padding_y_top"].append(tpl)      # W left
+                replacements["padding_y_bottom"].append(tpr)   # W right
+                replacements["padding_x_left"].append(tpt)     # H top
+                replacements["padding_x_right"].append(tpb)    # H bottom
+
+                inputLoadSchedule.append({cls.dataInKey: xTile, cls.gradOutKey: dyTile})
+                outputLoadSchedule.append({cls.weightKey: fullDW})
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
-
         return variableReplacementSchedule, tilingSchedule
 
 
-class ConvGradX2DCTileConstraint(TileConstraint):
+class ConvGradW2DTileConstraint(ConvGradWTileConstraintBase):
+    """Standard ConvGradW2D (non-depthwise)."""
+    pass
 
-    @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+class PWConvGradWTileConstraint(ConvGradWTileConstraintBase):
+    """Pointwise ConvGradW (1x1 kernel)."""
+    pass
 
-    #     return tilerModel
-        dyName = parseDict["data_in"]    # dY
-        dxName = parseDict["data_out"]   # dX
-        wName  = parseDict["weight"]     # W
+class DWConvGradW2DTileConstraint(ConvGradWTileConstraintBase):
+    """
+    Depthwise ConvGradW:
+      - X:  [N, C, Hi, Wi]
+      - dY: [N, C, Ho, Wo]   (Cout == Cin == C)
+      - dW: [C, 1, P, Q]
+    """
 
-        # Add tensor dims to model
+    @classmethod
+    def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        xName = parseDict[cls.dataInKey]
+        dyName = parseDict[cls.gradOutKey]
+        dwName = parseDict[cls.weightKey]
+
+        tilerModel.addTensorDimToModel(ctxt, xName)
         tilerModel.addTensorDimToModel(ctxt, dyName)
-        tilerModel.addTensorDimToModel(ctxt, dxName)
-        tilerModel.addTensorDimToModel(ctxt, wName)
+        tilerModel.addTensorDimToModel(ctxt, dwName)
 
-        group   = parseDict.get("group", 1)
+        # N match
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(xName, 0) == tilerModel.getTensorDimVar(dyName, 0))
 
-        # NCHW dims
-        N_dy  = tilerModel.getTensorDimVar(dyName, 0)
-        Co_dy = tilerModel.getTensorDimVar(dyName, 1)
+        # DW dW layout: [C, 1, P, Q]
+        C_dw = tilerModel.getTensorDimVar(dwName, 0)
+        Cpg_dw = tilerModel.getTensorDimVar(dwName, 1)
 
-        N_dx  = tilerModel.getTensorDimVar(dxName, 0)
-        Ci_dx = tilerModel.getTensorDimVar(dxName, 1)
+        # X and dY channels are both C
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(xName, 1) == C_dw)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 1) == C_dw)
 
-        wCo = tilerModel.getTensorDimVar(wName, 0)
-        wCi = tilerModel.getTensorDimVar(wName, 1)
-
-        # Batch match
-        tilerModel.addConstraint(N_dy == N_dx)
-
-        # Channel relations
-        tilerModel.addConstraint(Co_dy == wCo)
-        tilerModel.addConstraint(Ci_dx == wCi * group)
-        return tilerModel
-
-
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        inputBufferName = parseDict['data_in']
-        outputBufferName = parseDict['data_out']
-        numDims = len(ctxt.lookup(inputBufferName).shape)
-
-        for idx in range(numDims):
-            if idx != numDims - 1:  # RW: Keep all dimensions except C (index 1 in NCHW) fixed
-                tilerModel.addConstraint(
-                    tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = idx) == ctxt.lookup(
-                        outputBufferName).shape[idx])
-                tilerModel.addConstraint(
-                    tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = idx) == ctxt.lookup(
-                        inputBufferName).shape[idx])
+        # Cin_per_group must be 1
+        tilerModel.addConstraint(Cpg_dw == 1)
 
         return tilerModel
 
     @classmethod
-    def serializeTilingSolution(
-            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
-            targetMemLevel: str, ctxt: NetworkContext,
-            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+    def addPolicyConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        # Reuse base policy but also enforce DW-specific invariants tightly
+        xName = parseDict[cls.dataInKey]
+        dyName = parseDict[cls.gradOutKey]
+        dwName = parseDict[cls.weightKey]
 
-        addrNames = ['data_in', 'data_out']
-        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
-                                                                  operatorRepresentation, addrNames)
+        xBuf = ctxt.lookup(xName)
+        dyBuf = ctxt.lookup(dyName)
+        dwBuf = ctxt.lookup(dwName)
 
-        inputInCubes = []
-        replacementTypes = {}
-        replacements: Dict[str, List[int]] = {}
+        # full channels
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(xName, 1) == xBuf.shape[1])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 1) == dyBuf.shape[1])
 
-        numDims = len(ctxt.lookup(operatorRepresentation['data_in']).shape)
-        replacementTypes["ch_im_in"] = PointerClass(uint16_t)
-        replacements["ch_im_in"] = []
+        # DW invariants: Cin == Cout == dwBuf.shape[0], dwBuf.shape[1] == 1
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dwName, 0) == xBuf.shape[1])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dwName, 0) == dyBuf.shape[1])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dwName, 1) == 1)
 
-        input_shape = ctxt.lookup(operatorRepresentation['data_in']).shape
-        output_shape = ctxt.lookup(operatorRepresentation['data_out']).shape
+        # dW full (no tiling)
+        for d in range(len(dwBuf.shape)):
+            tilerModel.addConstraint(tilerModel.getTensorDimVar(dwName, d) == dwBuf.shape[d])
 
-        for cube in outputCubes:
-            input_offset = list(cube.offset)
-            input_dims = list(input_shape)
-            input_dims[-1] = cube.dims[-1]
-            InCube = HyperRectangle(tuple(input_offset), tuple(input_dims))
-            inputInCubes.append(InCube)
-
-            replacements["ch_im_in"].append(input_dims[-1])
-
-        inputLoadSchedule = []
-        outputLoadSchedule = []
-
-        for a in inputInCubes:
-            inputLoadSchedule.append({"data_in": a})
-
-        for out in outputCubes:
-            outputLoadSchedule.append({"data_out": out})
-
-        tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
-        variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
-
-        return variableReplacementSchedule, tilingSchedule
-
-
-class DWConvGradX2DTileConstraint(TileConstraint):
-    """
-    DWConvGradX (depthwise) uses REVERSED dimension mapping compared to ConvGradX!
-
-    PULPDWConvGradX2DParser maps dimensions opposite to regular ConvGradX:
-      - ch_im_in/dim_im_in_x/y refer to grad_out (C_out, H_out, W_out)
-      - ch_im_out/dim_im_out_x/y refer to grad_in (C_in, H_in, W_in)
-
-    Tensor mapping:
-      data_in  = grad_out [N, C_out, H_out, W_out] (smaller)
-      data_out = grad_in  [N, C_in,  H_in,  W_in]  (larger)
-      weight   = W [C_in, 1, P, Q] for depthwise
-    """
-
-    @staticmethod
-    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        gradOutName = parseDict["data_in"]    # grad_out (smaller)
-        gradInName  = parseDict["data_out"]   # grad_in (larger)
-        weightName  = parseDict["weight"]
-
-        tilerModel.addTensorDimToModel(ctxt, gradOutName)
-        tilerModel.addTensorDimToModel(ctxt, gradInName)
-        tilerModel.addTensorDimToModel(ctxt, weightName)
-
-        pads    = parseDict["pads"]
-        strides = parseDict["strides"]
-        group   = parseDict["group"]
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        stride_h, stride_w = strides
-
-        # grad_out (data_in, smaller)
-        N_go  = tilerModel.getTensorDimVar(gradOutName, 0)
-        Co_go = tilerModel.getTensorDimVar(gradOutName, 1)
-        Ho_go = tilerModel.getTensorDimVar(gradOutName, 2)
-        Wo_go = tilerModel.getTensorDimVar(gradOutName, 3)
-
-        # grad_in (data_out, larger)
-        N_gi  = tilerModel.getTensorDimVar(gradInName, 0)
-        Ci_gi = tilerModel.getTensorDimVar(gradInName, 1)
-        Hi_gi = tilerModel.getTensorDimVar(gradInName, 2)
-        Wi_gi = tilerModel.getTensorDimVar(gradInName, 3)
-
-        # Weight: [C_in, 1, P, Q] for DW
-        wCin = tilerModel.getTensorDimVar(weightName, 0)
-        wCpg = tilerModel.getTensorDimVar(weightName, 1)
-        P    = tilerModel.getTensorDimVar(weightName, 2)
-        Q    = tilerModel.getTensorDimVar(weightName, 3)
-
-        # Constraints
-        tilerModel.addConstraint(N_go == N_gi)
-        tilerModel.addConstraint(Co_go == wCin)
-        tilerModel.addConstraint(Ci_gi == wCin)
-        tilerModel.addConstraint(wCpg == 1)
+        # dY tile spatial dims >= 1
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 2) >= 1)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 3) >= 1)
 
         return tilerModel
 
-    @staticmethod
-    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        gradOutBuf = ctxt.lookup(name=parseDict["data_in"])
-        gradInBuf  = ctxt.lookup(name=parseDict["data_out"])
-        weightBuf  = ctxt.lookup(name=parseDict["weight"])
-
-        Co_go = tilerModel.getTensorDimVar(gradOutBuf.name, 1)
-        Ci_gi = tilerModel.getTensorDimVar(gradInBuf.name, 1)
-        Hi_gi = tilerModel.getTensorDimVar(gradInBuf.name, 2)
-        Wi_gi = tilerModel.getTensorDimVar(gradInBuf.name, 3)
-
-        P = tilerModel.getTensorDimVar(weightBuf.name, 2)
-        Q = tilerModel.getTensorDimVar(weightBuf.name, 3)
-
-        # Note: reversed mapping in parseDict!
-        tilerModel.addConstraint(Co_go == parseDict["ch_im_in"])    
-        tilerModel.addConstraint(Ci_gi == parseDict["ch_im_out"])   
-        tilerModel.addConstraint(P == parseDict["dim_kernel_x"])
-        tilerModel.addConstraint(Q == parseDict["dim_kernel_y"])
-
-        return tilerModel
-
-    @staticmethod
-    def constructSymbolicNodeRep(tilerModel: TilerModel, parseDict: Dict,
-                                 ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
-        # Parser already set up dimensions correctly with reversed mapping
-        return parseDict.copy()
-
-    @staticmethod
-    def _ceil_div(a: int, b: int) -> int:
-        return -((-a) // b)
-
-    @staticmethod
-    def _floor_div(a: int, b: int) -> int:
-        return a // b
-
     @classmethod
-    def computeDyCubeFromDxTile(
-        cls,
-        dxTile: HyperRectangle,                 # (N,Cin,Hx,Wx)
-        dxFull: Tuple[int,int,int,int],         # full dX
-        dyFull: Tuple[int,int,int,int],         # full dY
-        P: int, Q: int,                         # kernel
-        pads: Tuple[int,int,int,int],           # (t,b,l,r)
-        strides: Tuple[int,int],                # (sh, sw)
-        dyC: int,                               # full Cout
-        dxAbsOff: Tuple[int,int,int,int],        # absolute offset for boundary pads decision
-    ) -> Tuple[HyperRectangle, Tuple[int,int,int,int]]:
+    def extraSerializeChecks(cls, ctxt: NetworkContext, operatorRepresentation: OperatorRepresentation) -> None:
+        xName = operatorRepresentation[cls.dataInKey]
+        dyName = operatorRepresentation[cls.gradOutKey]
+        dwName = operatorRepresentation[cls.weightKey]
 
-        (nOff, _cOff, hxOff_rel, wxOff_rel) = dxTile.offset
-        (nSize, _cinSize, hxSize, wxSize) = dxTile.dims
+        xFull = tuple(ctxt.lookup(xName).shape)
+        dyFull = tuple(ctxt.lookup(dyName).shape)
+        dwShape = tuple(ctxt.lookup(dwName).shape)
 
-        (_, _, hxOff_abs, wxOff_abs) = dxAbsOff
-
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        sh, sw = strides
-
-        hx0 = hxOff_abs
-        hx1 = hxOff_abs + hxSize - 1
-        wx0 = wxOff_abs
-        wx1 = wxOff_abs + wxSize - 1
-
-        Hy = dyFull[2]
-        Wy = dyFull[3]
-
-        oy0 = cls._ceil_div(hx0 - (P - 1) + pad_top, sh)
-        oy1 = cls._floor_div(hx1 + pad_top, sh)
-
-        ox0 = cls._ceil_div(wx0 - (Q - 1) + pad_left, sw)
-        ox1 = cls._floor_div(wx1 + pad_left, sw)
-
-        oy0 = max(0, oy0)
-        ox0 = max(0, ox0)
-        oy1 = min(Hy - 1, oy1)
-        ox1 = min(Wy - 1, ox1)
-
-        if oy0 > oy1 or ox0 > ox1:
-            raise RuntimeError(
-                f"dxTile {dxTile.offset}/{dxTile.dims} produces empty dy range: "
-                f"oy[{oy0},{oy1}], ox[{ox0},{ox1}] (Hy={Hy},Wy={Wy}, P={P},Q={Q}, pads={pads}, strides={strides})"
-            )
-
-        dyH = oy1 - oy0 + 1
-        dyW = ox1 - ox0 + 1
-
-        dyCube = HyperRectangle(
-            (nOff, 0, oy0, ox0),        # dy: (N, C_out, H, W)
-            (nSize, dyC, dyH, dyW)
-        )
-
-        tile_pad_top    = pad_top    if oy0 == 0 else 0
-        tile_pad_bottom = pad_bottom if (oy0 + dyH) == Hy else 0
-        tile_pad_left   = pad_left   if ox0 == 0 else 0
-        tile_pad_right  = pad_right  if (ox0 + dyW) == Wy else 0
-
-        return dyCube, (tile_pad_top, tile_pad_bottom, tile_pad_left, tile_pad_right)
-
-    @classmethod
-    def serializeTilingSolution(
-        cls,
-        tilingSolution: NodeMemoryConstraint,
-        absoluteOutputCubes: List[AbsoluteHyperRectangle],
-        targetMemLevel: str,
-        ctxt: NetworkContext,
-        operatorRepresentation: OperatorRepresentation
-    ) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        """
-        FIXED:
-          - absoluteOutputCubes are tiles of data_out, i.e., dX tiles.
-          - For each dX tile, compute required dY (halo) tile.
-        """
-
-        varDY = operatorRepresentation["data_in"]    # dY
-        varW  = operatorRepresentation["weight"]     # W
-        varDX = operatorRepresentation["data_out"]   # dX
-
-        pads    = operatorRepresentation.get("pads", [0, 0, 0, 0])     # [t,b,l,r]
-        strides = operatorRepresentation.get("strides", [1, 1])        # [sh,sw]
-        pad_top, pad_bottom, pad_left, pad_right = pads
-        sh, sw = strides
-
-        dyFull = tuple(ctxt.lookup(varDY).shape)  # (N,Cout,Ho,Wo)
-        dxFull = tuple(ctxt.lookup(varDX).shape)  # (N,Cin,Hi,Wi)
-        wShape = tuple(ctxt.lookup(varW).shape)   # DW: (Cin_total, Cin_per_group, P, Q)
-        wCin_total, wCin_per_group, P, Q = wShape
-        Cin_total = dxFull[1]
-        Cout_total = dyFull[1]
-
-        assert Cin_total == Cout_total, f"DW expects Cin==Cout, got Cin={Cin_total}, Cout={Cout_total}"
-        assert wCin_total == Cin_total, f"W[0] must equal Cin_total, got {wCin_total} vs {Cin_total}"
-        assert wCin_per_group == 1, f"DW expects Cin_per_group=1, got {wCin_per_group}"
-
-        
-
-        # Correct interpretation: output cubes are dX tiles
-        dxTiles = [c.rectangle for c in absoluteOutputCubes]
-
-        addrNames = ["data_in", "weight", "data_out"]
-        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(
-            tilingSolution, targetMemLevel, operatorRepresentation, addrNames
-        )
-
-        replacements: Dict[str, List[int]] = {
-            # NOTE naming: keep consistent with your codegen template
-            "dim_im_in_x": [],      # dX tile H
-            "dim_im_in_y": [],      # dX tile W
-            "dim_im_out_x": [],     # dY tile H (halo)
-            "dim_im_out_y": [],     # dY tile W (halo)
-            "ch_im_in": [],
-            "ch_im_out": [],
-
-            # Full buffer dimensions (for offset calculation)
-            "dim_im_in_x_full": [],   # dX full H
-            "dim_im_in_y_full": [],   # dX full W
-            "dim_im_out_x_full": [],  # dY full H
-            "dim_im_out_y_full": [],  # dY full W
-
-            "padding_top": [],
-            "padding_bottom": [],
-            "padding_left": [],
-            "padding_right": [],
-
-            "offset_grad_in_h": [],
-            "offset_grad_in_w": [],
-            "offset_grad_out_h": [],
-            "offset_grad_out_w": [],
-        }
-
-        replacementTypes = {
-            "dim_im_in_x": PointerClass(uint16_t),
-            "dim_im_in_y": PointerClass(uint16_t),
-            "dim_im_out_x": PointerClass(uint16_t),
-            "dim_im_out_y": PointerClass(uint16_t),
-            "ch_im_in": PointerClass(uint16_t),
-            "ch_im_out": PointerClass(uint16_t),
-
-            # Full buffer dimensions
-            "dim_im_in_x_full": PointerClass(uint16_t),
-            "dim_im_in_y_full": PointerClass(uint16_t),
-            "dim_im_out_x_full": PointerClass(uint16_t),
-            "dim_im_out_y_full": PointerClass(uint16_t),
-
-            "padding_top": PointerClass(uint8_t),
-            "padding_bottom": PointerClass(uint8_t),
-            "padding_left": PointerClass(uint8_t),
-            "padding_right": PointerClass(uint8_t),
-
-            "offset_grad_in_h": PointerClass(uint16_t),
-            "offset_grad_in_w": PointerClass(uint16_t),
-            "offset_grad_out_h": PointerClass(uint16_t),
-            "offset_grad_out_w": PointerClass(uint16_t),
-        }
-
-        inputDyCubes: List[HyperRectangle] = []
-        inputWCubes:  List[HyperRectangle] = []
-        outputDxCubes: List[HyperRectangle] = []
-
-        fullW = HyperRectangle((0, 0, 0, 0), (wCin_total, wCin_per_group, P, Q))
-
-        for idx, dxCube in enumerate(dxTiles):
-            # absolute offset (important for boundary tile pad decisions)
-            abs_obj = absoluteOutputCubes[idx]
-            abs_off = getattr(abs_obj, "absoluteOffset", None)
-            if abs_off is None:
-                abs_off = getattr(abs_obj, "absolute_offset", None)
-            if abs_off is None:
-                abs_off = dxCube.offset
-
-            dyCube, (tpt, tpb, tpl, tpr) = cls.computeDyCubeFromDxTile(
-                dxTile=dxCube,
-                dxFull=dxFull,
-                dyFull=dyFull,
-                P=P, Q=Q,
-                pads=(pad_top, pad_bottom, pad_left, pad_right),
-                strides=(sh, sw),
-                dyC=Cout_total,
-                dxAbsOff=abs_off
-            )
-
-            # replacements: dX tile dims (in), dY halo dims (out)
-            replacements["dim_im_in_x"].append(dxCube.dims[2])     # H_in_tile
-            replacements["dim_im_in_y"].append(dxCube.dims[3])     # W_in_tile
-            replacements["dim_im_out_x"].append(dyCube.dims[2])    # H_out_tile (halo)
-            replacements["dim_im_out_y"].append(dyCube.dims[3])    # W_out_tile (halo)
-
-            replacements["ch_im_in"].append(Cin_total)
-            replacements["ch_im_out"].append(Cout_total)
-
-            # Full buffer dimensions (constant for all tiles)
-            replacements["dim_im_in_x_full"].append(dxFull[2])     # H_in_full
-            replacements["dim_im_in_y_full"].append(dxFull[3])     # W_in_full
-            replacements["dim_im_out_x_full"].append(dyFull[2])    # H_out_full
-            replacements["dim_im_out_y_full"].append(dyFull[3])    # W_out_full
-
-            replacements["padding_top"].append(tpt)
-            replacements["padding_bottom"].append(tpb)
-            replacements["padding_left"].append(tpl)
-            replacements["padding_right"].append(tpr)
-
-            replacements["offset_grad_in_h"].append(abs_off[2])
-            replacements["offset_grad_in_w"].append(abs_off[3])
-            replacements["offset_grad_out_h"].append(dyCube.offset[2])
-            replacements["offset_grad_out_w"].append(dyCube.offset[3])
-
-            # schedules
-            inputDyCubes.append(dyCube)
-            inputWCubes.append(fullW)
-            outputDxCubes.append(dxCube)
-
-        inputLoadSchedule = [{"data_in": dy, "weight": w} for dy, w in zip(inputDyCubes, inputWCubes)]
-        outputLoadSchedule = [{"data_out": dx} for dx in outputDxCubes]
-
-        tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
-        variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
-        return variableReplacementSchedule, tilingSchedule
+        Cin = xFull[1]
+        Cout = dyFull[1]
+        assert Cin == Cout, f"DWConvGradW expects Cin==Cout, got Cin={Cin}, Cout={Cout}"
+        assert dwShape[0] == Cin, f"DWConvGradW expects dW[0]==C, got dW[0]={dwShape[0]} vs C={Cin}"
+        assert dwShape[1] == 1, f"DWConvGradW expects dW[1]==1, got dW[1]={dwShape[1]}"
+        return
