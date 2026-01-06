@@ -37,5 +37,5 @@ jobs:
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          pytest test_platforms.py -v -n 4 -m "softhier and ${{ inputs.pytest-marker }}" --toolchain=GCC
+          pytest test_platforms.py -v -n 4 -m "softhier and ${{ inputs.pytest-marker }}" --toolchain=GCC --toolchain-install-dir=$SOFTHIER_INSTALL_DIR/third_party/toolchain/install
         shell: bash
