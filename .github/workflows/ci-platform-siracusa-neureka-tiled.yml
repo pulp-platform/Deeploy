@@ -31,7 +31,7 @@ jobs:
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2:
     needs: select-env
-    uses: ./.github/workflows/_runner-siracusa-neureka-tiled-sequential.yml
+    uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
@@ -39,7 +39,7 @@ jobs:
 
   siracusa-neureka-kernels-tiled-doublebuffer-L2:
     needs: select-env
-    uses: ./.github/workflows/_runner-siracusa-neureka-tiled-sequential.yml
+    uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
@@ -47,7 +47,7 @@ jobs:
 
   siracusa-neureka-models-tiled-singlebuffer-L3:
     needs: select-env
-    uses: ./.github/workflows/_runner-siracusa-neureka-tiled-sequential.yml
+    uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
@@ -55,7 +55,7 @@ jobs:
 
   siracusa-neureka-models-tiled-doublebuffer-L3:
     needs: select-env
-    uses: ./.github/workflows/_runner-siracusa-neureka-tiled-sequential.yml
+    uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
@@ -63,7 +63,7 @@ jobs:
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2-wmem:
     needs: select-env
-    uses: ./.github/workflows/_runner-siracusa-neureka-tiled-sequential.yml
+    uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
@@ -71,7 +71,7 @@ jobs:
 
   siracusa-neureka-models-tiled-doublebuffer-L3-wmem:
     needs: select-env
-    uses: ./.github/workflows/_runner-siracusa-neureka-tiled-sequential.yml
+    uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
