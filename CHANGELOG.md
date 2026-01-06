@@ -4,6 +4,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- Update submodule `pulp-nn-mixed` [#145](https://github.com/pulp-platform/Deeploy/pull/145)
 - Improve Profiling [#138](https://github.com/pulp-platform/Deeploy/pull/138)
 - FP32 ReduceMean operator improvement [#137](https://github.com/pulp-platform/Deeploy/pull/137)
 - Support for RMSNorm (Pow and Sqrt operators) [#136](https://github.com/pulp-platform/Deeploy/pull/136)
