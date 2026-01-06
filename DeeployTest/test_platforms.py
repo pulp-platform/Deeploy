@@ -129,7 +129,6 @@ PLATFORM_CONFIGS = {
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", GENERIC_KERNEL_TESTS, ids = GENERIC_KERNEL_TESTS)
 def test_generic_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test Generic platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["generic"]
     config = create_test_config(
         test_name = test_name,
@@ -148,7 +147,6 @@ def test_generic_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 @pytest.mark.models
 @pytest.mark.parametrize("test_name", GENERIC_MODEL_TESTS, ids = GENERIC_MODEL_TESTS)
 def test_generic_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test Generic platform model tests."""
     platform_config = PLATFORM_CONFIGS["generic"]
     config = create_test_config(
         test_name = test_name,
@@ -167,7 +165,6 @@ def test_generic_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", CORTEXM_KERNEL_TESTS, ids = CORTEXM_KERNEL_TESTS)
 def test_cortexm_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test Cortex-M platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["cortexm"]
     config = create_test_config(
         test_name = test_name,
@@ -186,7 +183,6 @@ def test_cortexm_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 @pytest.mark.models
 @pytest.mark.parametrize("test_name", CORTEXM_MODEL_TESTS, ids = CORTEXM_MODEL_TESTS)
 def test_cortexm_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test Cortex-M platform model tests."""
     platform_config = PLATFORM_CONFIGS["cortexm"]
     config = create_test_config(
         test_name = test_name,
@@ -205,7 +201,6 @@ def test_cortexm_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", MEMPOOL_KERNEL_TESTS, ids = MEMPOOL_KERNEL_TESTS)
 def test_mempool_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test MemPool platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["mempool"]
 
     # Add MemPool-specific CMake args for number of threads
@@ -228,7 +223,6 @@ def test_mempool_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 @pytest.mark.models
 @pytest.mark.parametrize("test_name", MEMPOOL_MODEL_TESTS, ids = MEMPOOL_MODEL_TESTS)
 def test_mempool_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test MemPool platform model tests."""
     platform_config = PLATFORM_CONFIGS["mempool"]
 
     # Add MemPool-specific CMake args for number of threads
@@ -251,7 +245,6 @@ def test_mempool_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", SIRACUSA_KERNEL_TESTS, ids = SIRACUSA_KERNEL_TESTS)
 def test_siracusa_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test Siracusa platform kernel tests (untiled)."""
     config = create_test_config(
         test_name = test_name,
         platform = "Siracusa",
@@ -270,7 +263,6 @@ def test_siracusa_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir,
 @pytest.mark.models
 @pytest.mark.parametrize("test_name", SIRACUSA_MODEL_TESTS, ids = SIRACUSA_MODEL_TESTS)
 def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test Siracusa platform model tests (untiled)."""
     config = create_test_config(
         test_name = test_name,
         platform = "Siracusa",
@@ -296,7 +288,6 @@ def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 )
 def test_siracusa_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                 skipgen, skipsim) -> None:
-    """Test Siracusa tiled kernel tests (L2, single-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -341,7 +332,6 @@ def test_siracusa_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, t
 )
 def test_siracusa_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                 skipgen, skipsim) -> None:
-    """Test Siracusa tiled kernel tests (L2, double-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -371,7 +361,6 @@ def test_siracusa_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, t
 )
 def test_siracusa_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                skipgen, skipsim) -> None:
-    """Test Siracusa tiled model tests (L2, single-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -401,7 +390,6 @@ def test_siracusa_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, to
 )
 def test_siracusa_tiled_models_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                skipgen, skipsim) -> None:
-    """Test Siracusa tiled model tests (L2, double-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -431,7 +419,6 @@ def test_siracusa_tiled_models_l2_doublebuffer(test_params, deeploy_test_dir, to
 )
 def test_siracusa_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                skipgen, skipsim) -> None:
-    """Test Siracusa tiled model tests (L3, single-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -461,7 +448,6 @@ def test_siracusa_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, to
 )
 def test_siracusa_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                skipgen, skipsim) -> None:
-    """Test Siracusa tiled model tests (L3, double-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -484,7 +470,6 @@ def test_siracusa_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, to
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", CHIMERA_KERNEL_TESTS, ids = CHIMERA_KERNEL_TESTS)
 def test_chimera_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test Chimera platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["chimera"]
     config = create_test_config(
         test_name = test_name,
@@ -503,7 +488,6 @@ def test_chimera_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", SOFTHIER_KERNEL_TESTS, ids = SOFTHIER_KERNEL_TESTS)
 def test_softhier_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test SoftHier platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["softhier"]
 
     # Add SoftHier-specific CMake args for number of clusters
@@ -526,7 +510,6 @@ def test_softhier_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir,
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", SNITCH_KERNEL_TESTS, ids = SNITCH_KERNEL_TESTS)
 def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
-    """Test Snitch platform kernel tests."""
     platform_config = PLATFORM_CONFIGS["snitch"]
 
     # Add Snitch-specific CMake args for number of cores
@@ -545,9 +528,6 @@ def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
-### Snitch Tiled Platform Tests ###
-
-
 def generate_test_params_snitch(test_list, config_name):
     """Generate test parameters for Snitch tiled tests."""
     return [(test_name, l1, config_name) for test_name, l1 in test_list]
@@ -564,7 +544,6 @@ def generate_test_params_snitch(test_list, config_name):
 )
 def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                               skipgen, skipsim) -> None:
-    """Test Snitch tiled kernel tests (L2, single-buffer)."""
     test_name, l1, config_name = test_params
 
     # Add Snitch-specific CMake args
@@ -587,9 +566,6 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
-### Siracusa + Neureka Tiled Platform Tests ###
-
-
 @pytest.mark.siracusa_neureka_tiled
 @pytest.mark.kernels
 @pytest.mark.singlebuffer
@@ -601,7 +577,6 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
 )
 def test_siracusa_neureka_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                         cmake_args, skipgen, skipsim) -> None:
-    """Test Siracusa + Neureka tiled kernel tests (L2, single-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -631,7 +606,6 @@ def test_siracusa_neureka_tiled_kernels_l2_singlebuffer(test_params, deeploy_tes
 )
 def test_siracusa_neureka_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                         cmake_args, skipgen, skipsim) -> None:
-    """Test Siracusa + Neureka tiled kernel tests (L2, double-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -661,7 +635,6 @@ def test_siracusa_neureka_tiled_kernels_l2_doublebuffer(test_params, deeploy_tes
 )
 def test_siracusa_neureka_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                        cmake_args, skipgen, skipsim) -> None:
-    """Test Siracusa + Neureka tiled model tests (L3, single-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -691,7 +664,6 @@ def test_siracusa_neureka_tiled_models_l3_singlebuffer(test_params, deeploy_test
 )
 def test_siracusa_neureka_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                        cmake_args, skipgen, skipsim) -> None:
-    """Test Siracusa + Neureka tiled model tests (L3, double-buffer)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -722,7 +694,6 @@ def test_siracusa_neureka_tiled_models_l3_doublebuffer(test_params, deeploy_test
 )
 def test_siracusa_neureka_tiled_kernels_l2_singlebuffer_wmem(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                              cmake_args, skipgen, skipsim) -> None:
-    """Test Siracusa + Neureka tiled kernel tests (L2, single-buffer, weight memory)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
@@ -754,7 +725,6 @@ def test_siracusa_neureka_tiled_kernels_l2_singlebuffer_wmem(test_params, deeplo
 )
 def test_siracusa_neureka_tiled_models_l3_doublebuffer_wmem(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                             cmake_args, skipgen, skipsim) -> None:
-    """Test Siracusa + Neureka tiled model tests (L3, double-buffer, weight memory)."""
     test_name, l1, config_name = test_params
     config = create_test_config(
         test_name = test_name,
