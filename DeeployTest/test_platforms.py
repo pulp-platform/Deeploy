@@ -528,18 +528,13 @@ def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
-def generate_test_params_snitch(test_list, config_name):
-    """Generate test parameters for Snitch tiled tests."""
-    return [(test_name, l1, config_name) for test_name, l1 in test_list]
-
-
 @pytest.mark.snitch_tiled
 @pytest.mark.kernels
 @pytest.mark.singlebuffer
 @pytest.mark.l2
 @pytest.mark.parametrize(
     "test_params",
-    generate_test_params_snitch(SNITCH_L2_SINGLEBUFFER_KERNELS, "L2-singlebuffer"),
+    generate_test_params(SNITCH_L2_SINGLEBUFFER_KERNELS, "L2-singlebuffer"),
     ids = param_id,
 )
 def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
