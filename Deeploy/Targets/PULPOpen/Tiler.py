@@ -45,7 +45,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import 
 from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradX2DHWTileConstraint, \
-    DWConvGradX2DTileConstraint, ConvGradW2DTileConstraint
+    DWConvGradX2DTileConstraint, ConvGradW2DTileConstraint, ConvGradX2DIm2ColHWTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
@@ -170,13 +170,13 @@ PULPReduceMeanTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPR
                                                             tileConstraint = ReduceMeanTileConstraint())
 
 PULPConvGradX2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvGradX2DBindings,
-                                                            tileConstraint = ConvGradX2DHWTileConstraint())
+                                                            tileConstraint = ConvGradX2DIm2ColHWTileConstraint())
 
 PULPConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvGradW2DBindings,
                                                              tileConstraint = ConvGradW2DTileConstraint())
 
 PULPDWConvGradX2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradX2DBindings,
-                                                              tileConstraint = DWConvGradX2DTileConstraint())
+                                                              tileConstraint = ConvGradX2DHWTileConstraint())
 
 PULPDWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradW2DBindings,
                                                                tileConstraint = ConvGradW2DTileConstraint())
