@@ -12,21 +12,19 @@ Total test matrix: 3 DMAs × 10 shapes × 2 buffering modes = 60 tests
 """
 
 import os
-import shutil
 from pathlib import Path
 
 import numpy as np
 import pytest
 from testUtils.codeGenerate import generateTestNetwork
-from testUtils.dmaUtils import (MemcpyLayer, MemcpyParser, MemcpyTileConstraint, MemcpyTypeChecker, generate_graph,
-                                 memcpyTemplate, prepare_deployer_with_custom_tiling, setup_pulp_deployer,
-                                 setup_snitch_deployer)
+from testUtils.dmaUtils import MemcpyLayer, MemcpyParser, MemcpyTileConstraint, MemcpyTypeChecker, generate_graph, \
+    memcpyTemplate, prepare_deployer_with_custom_tiling, setup_pulp_deployer, setup_snitch_deployer
 from testUtils.pytestRunner import build_binary, configure_cmake, get_test_paths, get_worker_id
 from testUtils.typeMapping import baseTypeFromName, dtypeFromDeeployType
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import (ArgumentStructGeneration,
-                                                                                 MemoryManagementGeneration)
+from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
+    MemoryManagementGeneration
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeMapper, _NoVerbosity
 from Deeploy.Targets.PULPOpen.Bindings import L3MemoryAwareFunctionCallClosure
 from Deeploy.Targets.PULPOpen.Bindings import MemoryAwareFunctionCallClosure as PULPMemoryAwareFunctionCallClosure
@@ -41,12 +39,12 @@ from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterSynch import S
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchCoreFilter import SnitchCoreFilterPass
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchProfileExecutionBlock import SnitchProfileExecutionBlockPass
 from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import (
-    TilingVariableReplacement, TilingVariableReplacementUpdate)
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
+    TilingVariableReplacementUpdate
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse = True)
 def clear_deeploy_state():
     """Clear dynamically generated struct classes from AbstractDataTypes before each test.
     
@@ -55,7 +53,7 @@ def clear_deeploy_state():
     conflicts when tests with different configurations try to create new versions.
     """
     import Deeploy.AbstractDataTypes as ADT
-    
+
     # Get list of all attributes before test
     attrs_to_remove = []
     for attr_name in dir(ADT):
@@ -64,13 +62,13 @@ def clear_deeploy_state():
             attr = getattr(ADT, attr_name, None)
             if isinstance(attr, type):
                 attrs_to_remove.append(attr_name)
-    
+
     # Remove stale struct classes
     for attr_name in attrs_to_remove:
         delattr(ADT, attr_name)
-    
+
     yield  # Run the test
-    
+
     # Clean up after test as well
     for attr_name in dir(ADT):
         if attr_name.startswith('_') and ('closure_args' in attr_name or 'memcpy' in attr_name.lower()):
@@ -110,7 +108,7 @@ def param_id_dma(val):
 
 
 def setup_dma_deployer(dma_type: str, input_shape: tuple, tile_shape: tuple, node_count: int, data_type: str,
-                        doublebuffer: bool, gen_dir: str):
+                       doublebuffer: bool, gen_dir: str):
     """
     Set up deployer for DMA testing with custom tiling.
     
@@ -155,7 +153,7 @@ def setup_dma_deployer(dma_type: str, input_shape: tuple, tile_shape: tuple, nod
     graph = generate_graph(node_count, input_shape, dtype)
     inputTypes = {"input_0": PointerClass(_type)}
     _DEEPLOYSTATEDIR = os.path.join(gen_dir, "deeployStates")
-    
+
     if dma_type == "SnitchDma":
         deployer = setup_snitch_deployer(defaultMemory, targetMemory, graph, inputTypes, doublebuffer, _DEEPLOYSTATEDIR)
     else:
@@ -240,7 +238,7 @@ def test_mchan_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolch
     # Generate network
     if not skipgen:
         deployer, test_inputs, test_outputs = setup_dma_deployer("MchanDma", input_shape, tile_shape, node_count,
-                                                                   data_type, doublebuffer, gen_dir)
+                                                                 data_type, doublebuffer, gen_dir)
         generateTestNetwork(deployer, [test_inputs], [test_outputs], gen_dir, _NoVerbosity)
 
     # Build and run
@@ -290,7 +288,7 @@ def test_l3_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain
     # Generate network
     if not skipgen:
         deployer, test_inputs, test_outputs = setup_dma_deployer("L3Dma", input_shape, tile_shape, node_count,
-                                                                   data_type, doublebuffer, gen_dir)
+                                                                 data_type, doublebuffer, gen_dir)
         generateTestNetwork(deployer, [test_inputs], [test_outputs], gen_dir, _NoVerbosity)
 
     # Build and run
@@ -340,7 +338,7 @@ def test_snitch_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolc
     # Generate network
     if not skipgen:
         deployer, test_inputs, test_outputs = setup_dma_deployer("SnitchDma", input_shape, tile_shape, node_count,
-                                                                   data_type, doublebuffer, gen_dir)
+                                                                 data_type, doublebuffer, gen_dir)
         generateTestNetwork(deployer, [test_inputs], [test_outputs], gen_dir, _NoVerbosity)
 
     # Build and run
