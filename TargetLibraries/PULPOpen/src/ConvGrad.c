@@ -818,6 +818,8 @@ void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
   struct blob output_blob = {0};
   struct blob coeff_blob = {0};
 
+  memset(pGradIn, 0, sizeof(float) * (C_in * H_in * W_in));
+
   input_blob.data = NULL;
   input_blob.diff = (float *)pGradIn;
   input_blob.W = (int)W_in;
