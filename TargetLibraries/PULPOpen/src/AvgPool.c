@@ -104,9 +104,10 @@ void PULP_AvgPool2d_fp32_fp32_CHW(const float32_t *__restrict__ pSrcA,
 
 
 void PULP_AvgPoolGrad2d_fp32_fp32_HWC(const float32_t *__restrict__ pGradOut,
-                                      uint32_t W_out, uint32_t H_out, uint32_t C,
-                                      uint32_t Q, uint32_t P, uint32_t SQ,
-                                      uint32_t SP, float32_t *__restrict__ pGradIn,
+                                      uint32_t H_out, uint32_t W_out, uint32_t C,
+                                      uint32_t H_in, uint32_t W_in,
+                                      uint32_t P, uint32_t Q, uint32_t SP,
+                                      uint32_t SQ, float32_t *__restrict__ pGradIn,
                                       uint32_t pad_top, uint32_t pad_bottom,
                                       uint32_t pad_left, uint32_t pad_right)
 {
@@ -116,9 +117,6 @@ void PULP_AvgPoolGrad2d_fp32_fp32_HWC(const float32_t *__restrict__ pGradOut,
   uint16_t ch_chunk = (C >> log2Core) + ((C & (NUM_CORES - 1)) != 0);
   uint16_t ch_start = MIN(ch_chunk * core_id, C);
   uint16_t ch_stop  = MIN(ch_start + ch_chunk, C);
-
-  uint32_t H_in = (H_out - 1) * SP + P - pad_top  - pad_bottom;
-  uint32_t W_in = (W_out - 1) * SQ + Q - pad_left - pad_right;
 
   for (uint32_t h = 0; h < H_in; ++h) {
     for (uint32_t w = 0; w < W_in; ++w) {

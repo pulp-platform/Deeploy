@@ -25,8 +25,8 @@ void PULP_Relu_fp32_fp32(float32_t *input, float32_t *output, uint32_t size) {
   }
 }
 
-void PULP_ReluGrad_fp32_fp32(float32_t *grad_in, float32_t *data_in, 
-                              float32_t *grad_out, uint32_t size) {
+void PULP_ReluGrad_fp32_fp32(float32_t *grad_out, float32_t *data_in, 
+                              float32_t *grad_in, uint32_t size) {
 
   int8_t core_id = pi_core_id();
   int8_t log2Core = LOG2(NUM_CORES);
@@ -36,12 +36,12 @@ void PULP_ReluGrad_fp32_fp32(float32_t *grad_in, float32_t *data_in,
   int32_t end = MIN(start + chunk, size);
   int32_t local_size = end - start;
 
-  float32_t *local_grad_in = grad_in + start;
-  float32_t *local_data_in = data_in + start;
   float32_t *local_grad_out = grad_out + start;
+  float32_t *local_data_in = data_in + start;
+  float32_t *local_grad_in = grad_in + start;
 
   for (int32_t i = 0; i < local_size; i++) {
     // If input > 0, gradient flows through; otherwise gradient is 0
-    local_grad_out[i] = (local_data_in[i] > 0.0f) ? local_grad_in[i] : 0.0f;
+    local_grad_in[i] = (local_data_in[i] > 0.0f) ? local_grad_out[i] : 0.0f;
   }
 }
