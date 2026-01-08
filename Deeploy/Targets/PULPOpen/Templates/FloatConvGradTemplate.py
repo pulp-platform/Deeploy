@@ -146,6 +146,13 @@ ${grad_out_type.typeName} ref_${grad_weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${grad_weight}_${data_in} = ${data_in};
 ${grad_weight_type.typeName} ref_${grad_weight}_out = ${grad_weight};
 
+// Zero-initialize output tensor on first tile
+static int ${nodeName}_${grad_weight}_initialized = 0;
+if (!${nodeName}_${grad_weight}_initialized) {
+  memset(${grad_weight}, 0, (${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y}) *  sizeof(${grad_weight_type.referencedType.typeName}));
+  ${nodeName}_${grad_weight}_initialized = 1;
+}
+
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW(
         ref_${grad_weight}_${grad_out},
@@ -168,6 +175,14 @@ referenceConvGradW2DIm2ColTemplate = PULP2DFloatConvGradWIm2ColTemplate("""
 ${grad_out_type.typeName} ref_${grad_weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${grad_weight}_${data_in} = ${data_in};
 ${grad_weight_type.typeName} ref_${grad_weight}_out = ${grad_weight};
+
+
+// Zero-initialize output tensor on first tile
+static int ${nodeName}_${grad_weight}_initialized = 0;
+if (!${nodeName}_${grad_weight}_initialized) {
+  memset(${grad_weight}, 0, (${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y}) *  sizeof(${grad_weight_type.referencedType.typeName}));
+  ${nodeName}_${grad_weight}_initialized = 1;
+}
 
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW_Im2Col(
@@ -198,6 +213,24 @@ ${grad_out_type.typeName} ref_${grad_weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${grad_weight}_${data_in} = ${data_in};
 ${grad_weight_type.typeName} ref_${grad_weight}_out = ${grad_weight};
 
+
+// Zero-initialize output tensor on first tile
+static uint8_t ${nodeName}_${grad_weight}_init = 0;
+if (!${nodeName}_${grad_weight}_init) {
+    memset(${grad_weight}, 0, ${ch_im_out} * ${dim_kernel_x} * ${dim_kernel_y} * sizeof(${grad_weight_type.referencedType.typeName}));
+    ${nodeName}_${grad_weight}_init = 1;
+}
+
+if(pi_core_id()==0) {
+    printf("\\n");
+    printf("DWConvgradw input:\\n");
+    for(int i=0; i<${ch_im_out} * ${dim_im_out_x} * ${dim_im_out_y}; i++) {
+        printf("%f ", ${grad_out}[i]);
+        if(i%20==19) printf("\\n");
+    }
+    printf("\\n");
+}
+
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_DWConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW(
         ref_${grad_weight}_${grad_out},
@@ -212,6 +245,16 @@ for (uint32_t n=0; n<${batch}; ++n) {
 
     ref_${grad_weight}_${grad_out} += ${ch_im_out} * ${dim_im_out_x} * ${dim_im_out_y};
     ref_${grad_weight}_${data_in} += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};
+}
+
+if(pi_core_id()==0) {
+    printf("\\n");
+    printf("DWConvgradw output:\\n");
+    for(int i=0; i<${ch_im_out} * ${dim_kernel_x} * ${dim_kernel_y}; i++) {
+        printf("%f ", ${grad_weight}[i]);
+        if(i%20==19) printf("\\n");
+    }
+    printf("\\n");
 }
 """)
 
@@ -283,6 +326,13 @@ ${grad_out_type.typeName} ref_${grad_weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${grad_weight}_${data_in} = ${data_in};
 ${grad_weight_type.typeName} ref_${grad_weight}_out = ${grad_weight};
 
+// Zero-initialize output tensor on first tile
+static int ${nodeName}_${grad_weight}_initialized = 0;
+if (!${nodeName}_${grad_weight}_initialized) {
+    memset(${grad_weight}, 0, ${ch_im_out} * ${ch_im_in} * sizeof(${grad_weight_type.referencedType.typeName}));
+    ${nodeName}_${grad_weight}_initialized = 1;
+}
+
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_PWConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW(
         ref_${grad_weight}_${grad_out},
@@ -291,10 +341,11 @@ for (uint32_t n=0; n<${batch}; ++n) {
         ${dim_im_in_x}, ${dim_im_in_y}, ${ch_im_in},
         ref_${grad_weight}_out
     );
+}   
 
     ref_${grad_weight}_${grad_out} += ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x};
     ref_${grad_weight}_${data_in} += ${ch_im_in} * ${dim_im_in_y} * ${dim_im_in_x};
-}
+
 """)
 
 referencePWConvGradX2DTemplate = PULP2DFloatPWConvGradXTemplate("""
@@ -317,4 +368,5 @@ for (uint32_t n=0; n<${batch}; ++n) {
     ref_${grad_in}_${grad_out} += ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x};
     ref_${grad_in}_out        += ${ch_im_in}  * ${dim_im_in_y}  * ${dim_im_in_x};
 }
+
 """)
