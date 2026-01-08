@@ -1103,9 +1103,9 @@ class ReluGradParser(NodeParser):
         relu_input = ctxt.lookup(node.inputs[1].name)
         relu_grad = ctxt.lookup(node.outputs[0].name)
 
-        self.operatorRepresentation['grad_in'] = upstream_grad.name
+        self.operatorRepresentation['grad_out'] = upstream_grad.name
         self.operatorRepresentation['data_in'] = relu_input.name
-        self.operatorRepresentation['grad_out'] = relu_grad.name
+        self.operatorRepresentation['grad_in'] = relu_grad.name
         self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
 
         return ctxt, True
