@@ -68,10 +68,6 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "l3: mark test as L3 default memory level")
     config.addinivalue_line("markers", "wmem: mark test as using Neureka weight memory")
     config.addinivalue_line("markers", "dma: mark test as DMA test")
-    config.addinivalue_line("markers", "mchan_dma: mark test as MchanDma test (Siracusa L2→L1)")
-    config.addinivalue_line("markers", "l3_dma: mark test as L3Dma test (Siracusa L3→L2)")
-    config.addinivalue_line("markers", "snitch_dma: mark test as SnitchDma test (Snitch L2→L1)")
-    config.addinivalue_line("markers", "slow: mark test as slow running")
 
     # Configure logging based on verbosity
     verbosity = config.option.verbose

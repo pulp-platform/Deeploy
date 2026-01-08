@@ -57,4 +57,6 @@ pytest test_platforms.py -m generic -v -n 16
 
 ### Misc
 
-When running `pytest -m <my-markers>` in a folder, PyTest will scan each file looking for tests. To speed up the detection you can specify the platform test file like `pytest test_platforms.py -m <my-markers>`.
+- When running `pytest -m <my-markers>` in a folder, PyTest will scan each file looking for tests. To speed up the detection you can specify the platform test file like `pytest test_platforms.py -m <my-markers>`.
+- If you place a breakpoint like `import IPython; IPython.embed()`, you need to run the test with `-s` to be able to enter breakpoints.
+- The `--pdb` flag is very useful as it drops a debugger session on failure.

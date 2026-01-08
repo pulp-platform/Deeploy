@@ -28,10 +28,12 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import (ArgumentStructGeneration,
                                                                                  MemoryManagementGeneration)
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeMapper, _NoVerbosity
+from Deeploy.Targets.PULPOpen.Bindings import L3MemoryAwareFunctionCallClosure
 from Deeploy.Targets.PULPOpen.Bindings import MemoryAwareFunctionCallClosure as PULPMemoryAwareFunctionCallClosure
 from Deeploy.Targets.PULPOpen.Bindings import TilingCallClosure as PULPTilingCallClosure
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
-from Deeploy.Targets.PULPOpen.DMA.L3Dma import L3Dma
+from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
+from Deeploy.Targets.PULPOpen.DMA.L3Dma import L3Dma, l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.Snitch.Bindings import MemoryAwareFunctionCallClosure, TilingCallClosure
 from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling
@@ -42,6 +44,43 @@ from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import (
     TilingVariableReplacement, TilingVariableReplacementUpdate)
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
+
+
+@pytest.fixture(autouse=True)
+def clear_deeploy_state():
+    """Clear dynamically generated struct classes from AbstractDataTypes before each test.
+    
+    This prevents state pollution between DMA tests where dynamically generated
+    struct classes (like _memcpy_0_tiling_closure_args_t) persist and cause
+    conflicts when tests with different configurations try to create new versions.
+    """
+    import Deeploy.AbstractDataTypes as ADT
+    
+    # Get list of all attributes before test
+    attrs_to_remove = []
+    for attr_name in dir(ADT):
+        # Remove dynamically generated struct classes (closure args, etc.)
+        if attr_name.startswith('_') and ('closure_args' in attr_name or 'memcpy' in attr_name.lower()):
+            attr = getattr(ADT, attr_name, None)
+            if isinstance(attr, type):
+                attrs_to_remove.append(attr_name)
+    
+    # Remove stale struct classes
+    for attr_name in attrs_to_remove:
+        delattr(ADT, attr_name)
+    
+    yield  # Run the test
+    
+    # Clean up after test as well
+    for attr_name in dir(ADT):
+        if attr_name.startswith('_') and ('closure_args' in attr_name or 'memcpy' in attr_name.lower()):
+            attr = getattr(ADT, attr_name, None)
+            if isinstance(attr, type):
+                try:
+                    delattr(ADT, attr_name)
+                except AttributeError:
+                    pass
+
 
 # Test shape configurations: (input_shape, tile_shape, node_count, data_type)
 DMA_TEST_SHAPES = [
@@ -138,7 +177,20 @@ def setup_dma_deployer(dma_type: str, input_shape: tuple, tile_shape: tuple, nod
             MemoryManagementGeneration(defaultMemory),
             MemoryManagementGeneration(),
         ])
-    else:  # MchanDma, L3Dma
+    elif dma_type == "L3Dma":
+        # L3Dma uses PULPL3Tiling and L3MemoryAwareFunctionCallClosure
+        transformer = CodeTransformation([
+            TilingVariableReplacement(targetMemory),
+            PULPTilingCallClosure(writeback = False, generateStruct = True),
+            TilingVariableReplacementUpdate(targetMemory),
+            PULPL3Tiling("L3", "L2", l3DmaHack),
+            ArgumentStructGeneration(),
+            L3MemoryAwareFunctionCallClosure(writeback = False),
+            MemoryManagementGeneration("L2"),
+            MemoryManagementGeneration("L3.*"),
+            MemoryManagementGeneration(),
+        ])
+    else:  # MchanDma
         transformer = CodeTransformation([
             TilingVariableReplacement(targetMemory),
             PULPTilingCallClosure(writeback = False, generateStruct = True),
@@ -173,8 +225,6 @@ def setup_dma_deployer(dma_type: str, input_shape: tuple, tile_shape: tuple, nod
 
 
 @pytest.mark.dma
-@pytest.mark.mchan_dma
-@pytest.mark.siracusa_tiled
 @pytest.mark.parametrize("test_shape", DMA_TEST_SHAPES, ids = param_id_dma)
 @pytest.mark.parametrize("doublebuffer", [True, False], ids = param_id_dma)
 def test_mchan_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
@@ -189,9 +239,6 @@ def test_mchan_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolch
 
     # Generate network
     if not skipgen:
-        # Clean gen_dir to avoid stale state
-        if os.path.exists(gen_dir):
-            shutil.rmtree(gen_dir)
         deployer, test_inputs, test_outputs = setup_dma_deployer("MchanDma", input_shape, tile_shape, node_count,
                                                                    data_type, doublebuffer, gen_dir)
         generateTestNetwork(deployer, [test_inputs], [test_outputs], gen_dir, _NoVerbosity)
@@ -228,8 +275,6 @@ def test_mchan_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolch
 
 
 @pytest.mark.dma
-@pytest.mark.l3_dma
-@pytest.mark.siracusa_tiled
 @pytest.mark.parametrize("test_shape", DMA_TEST_SHAPES, ids = param_id_dma)
 @pytest.mark.parametrize("doublebuffer", [True, False], ids = param_id_dma)
 def test_l3_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
@@ -244,9 +289,6 @@ def test_l3_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain
 
     # Generate network
     if not skipgen:
-        # Clean gen_dir to avoid stale state
-        if os.path.exists(gen_dir):
-            shutil.rmtree(gen_dir)
         deployer, test_inputs, test_outputs = setup_dma_deployer("L3Dma", input_shape, tile_shape, node_count,
                                                                    data_type, doublebuffer, gen_dir)
         generateTestNetwork(deployer, [test_inputs], [test_outputs], gen_dir, _NoVerbosity)
@@ -283,8 +325,6 @@ def test_l3_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain
 
 
 @pytest.mark.dma
-@pytest.mark.snitch_dma
-@pytest.mark.snitch_tiled
 @pytest.mark.parametrize("test_shape", DMA_TEST_SHAPES, ids = param_id_dma)
 @pytest.mark.parametrize("doublebuffer", [True, False], ids = param_id_dma)
 def test_snitch_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
@@ -299,9 +339,6 @@ def test_snitch_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolc
 
     # Generate network
     if not skipgen:
-        # Clean gen_dir to avoid stale state
-        if os.path.exists(gen_dir):
-            shutil.rmtree(gen_dir)
         deployer, test_inputs, test_outputs = setup_dma_deployer("SnitchDma", input_shape, tile_shape, node_count,
                                                                    data_type, doublebuffer, gen_dir)
         generateTestNetwork(deployer, [test_inputs], [test_outputs], gen_dir, _NoVerbosity)
