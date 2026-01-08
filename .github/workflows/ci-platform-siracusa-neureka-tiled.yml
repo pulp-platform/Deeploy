@@ -36,6 +36,14 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-marker: "kernels and singlebuffer and l2 and not wmem"
+      # tests-config: |
+      #   [
+      #     {"name":"Kernels/Integer/GEMM/Regular_RQPerColumn","L1":[16000]},
+      #     {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
+      #     {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
+      #     {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
+      #   ]
+      # num-cores: 8
 
   siracusa-neureka-kernels-tiled-doublebuffer-L2:
     needs: select-env
@@ -47,6 +55,29 @@ jobs:
 
   siracusa-neureka-models-tiled-singlebuffer-L3:
     needs: select-env
+  #     tests-config: |
+  #       [
+  #         {"name":"Kernels/Integer/GEMM/Regular_RQPerColumn","L1":[16000]},
+  #         {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
+  #         {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
+  #         {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
+  #       ]
+  #     num-cores: 8
+  #     # double buffer enabled:
+  #     double-buffer: true
+
+  # siracusa-neureka-models-tiled-singlebuffer-L3:
+  #   needs: select-env
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test-data:
+  #         - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN: 1000 leads to non-2d transfers in L3!
+  #         - { name: "Kernels/Integer/Attention", L1: [2500] }
+  #         - { name: "Models/Transformer", L1: [15000] }
+  #         - { name: "Models/microLlama/microLlama1", L1: [10000] }
+  #       num-cores: [8]
+  #       default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
@@ -55,6 +86,16 @@ jobs:
 
   siracusa-neureka-models-tiled-doublebuffer-L3:
     needs: select-env
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     test-data:
+    #       - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN note
+    #       - { name: "Kernels/Integer/Attention", L1: [5000] }
+    #       - { name: "Models/Transformer", L1: [30000] }
+    #     num-cores: [8]
+    #     double-buffer: [true]
+    #     default-memory-level: ["L3"]
     uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
@@ -63,6 +104,34 @@ jobs:
 
   siracusa-neureka-kernels-tiled-singlebuffer-L2-wmem:
     needs: select-env
+  #   uses: ./.github/workflows/_runner-siracusa-neureka-tiled-sequential.yml
+  #   with:
+  #     runner: ${{ needs.select-env.outputs.runner }}
+  #     docker-image: ${{ needs.select-env.outputs.image }}
+  #     tests-config: |
+  #       [
+  #         {"name":"Kernels/Integer/GEMM/Regular_RQPerColumn","L1":[16000]},
+  #         {"name":"Kernels/Integer/Conv/PW_2D","L1":[32000]},
+  #         {"name":"Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ","L1":[32000]},
+  #         {"name":"Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ","L1":[32000]}
+  #       ]
+  #     num-cores: 8
+  #     neureka-wmem: true
+
+  # siracusa-neureka-models-tiled-doublebuffer-L3-wmem:
+  #   needs: select-env
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test-data:
+  #         - { name: "Models/miniMobileNet", L1: [2000] } # LMACAN note
+  #         - { name: "Kernels/Integer/Attention", L1: [3500] }
+  #         # - { name: "Models/Transformer", L1: [30000] }
+  #         - { name: "Models/microLlama/microLlama1", L1: [10000] }
+  #       num-cores: [8]
+  #       double-buffer: [true]
+  #       default-memory-level: ["L3"]
+  #       neureka-wmem: [true]
     uses: ./.github/workflows/_runner-siracusa-neureka-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}

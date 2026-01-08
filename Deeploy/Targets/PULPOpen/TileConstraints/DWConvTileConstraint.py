@@ -239,6 +239,7 @@ class DWConv2DTileConstraint(Conv2DTileConstraint):
 
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        # Inherit from regular Conv2D policy constraints
         tilerModel = Conv2DTileConstraint.addPolicyConstraint(tilerModel, parseDict, ctxt)
 
         # Add constraint for relationship between in and out number of channels

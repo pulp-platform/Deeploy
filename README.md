@@ -55,14 +55,16 @@ pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
 Congratulations, you installed Deeploy and its dependencies! Now, to test your installation let's run one simple test on each platform with the following commands:
 ```
 cd DeeployTest
-python testRunner_generic.py -t Tests/Adder
-python testRunner_cortexm.py -t Tests/Adder
-python testRunner_mempool.py -t Tests/Adder
-python testRunner_snitch.py -t Tests/Adder/
-python testRunner_siracusa.py -t Tests/Adder --cores=8
-python testRunner_snitch.py -t Tests/Adder --cores=9
-python testRunner_softhier.py -t Tests/Adder --toolchain=GCC
-python testRunner_chimera.py -t Tests/Adder
+python testRunner_generic.py -t ./Tests/Kernels/Integer/Add/Regular
+python testRunner_cortexm.py -t ./Tests/Kernels/Integer/Add/Regular
+python testRunner_mempool.py -t ./Tests/Kernels/Integer/Add/Regular
+python testRunner_snitch.py -t ./Tests/Kernels/Integer/Add/Regular
+python testRunner_tiled_snitch.py -t ./Tests/Kernels/Integer/Add/Regular
+python testRunner_siracusa.py -t ./Tests/Kernels/Integer/Add/Regular
+python testRunner_tiled_siracusa.py -t ./Tests/Kernels/Integer/Add/Regular
+python testRunner_tiled_siracusa_w_neureka.py -t ./Tests/Kernels/Integer/Add/Regular
+python testRunner_softhier.py -t ./Tests/Kernels/Integer/Add/Regular --toolchain=GCC
+python testRunner_chimera.py -t ./Tests/Kernels/Integer/Add/Regular
 ```
 
 To restart and connect to the container, run:

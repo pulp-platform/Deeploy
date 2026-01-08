@@ -29,6 +29,17 @@ jobs:
       - name: Build Deeploy
         shell: bash
         run: pip install -e .
+
+      # python testRunner_generic.py -t ./Tests/Kernels/Integer/Add/Regular
+      # python testRunner_mempool.py -t ./Tests/Kernels/Integer/Add/Regular
+      # python testRunner_cortexm.py -t ./Tests/Kernels/Integer/Add/Regular
+      # python testRunner_snitch.py -t ./Tests/Kernels/Integer/Add/Regular
+      # python testRunner_tiled_snitch.py -t ./Tests/Kernels/Integer/Add/Regular
+      # python testRunner_siracusa.py -t ./Tests/Kernels/Integer/Add/Regular
+      # python testRunner_tiled_siracusa.py -t ./Tests/Kernels/Integer/Add/Regular
+      # python testRunner_tiled_siracusa_w_neureka.py -t ./Tests/Kernels/Integer/Add/Regular
+      # python testRunner_chimera.py -t ./Tests/Kernels/Integer/Add/Regular
+
       - name: Generate CCache
         run: |
           cd DeeployTest
@@ -43,8 +54,10 @@ jobs:
           pytest 'test_platforms.py::test_siracusa_tiled_kernels_singlebuffer_l2[Adder-64000-L2-singlebuffer]' --skipsim
           pytest 'test_platforms.py::test_siracusa_neureka_tiled_kernels_l2_singlebuffer[testRequantizedLinear-16000-L2-singlebuffer]' --skipsim
           pytest 'test_platforms.py::test_chimera_kernels[Adder]' --skipsim
+
       - name: Clean and Upload CCache
         uses: actions/cache@v4
         with:
           path: /app/.ccache
           key: ccache-ci
+            

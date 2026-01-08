@@ -11,7 +11,7 @@ from testUtils.graphColoring import graph_coloring
 from Deeploy.ComponentGraph import extractComponentGraph, extractComponentsFromComponentGraph
 
 if __name__ == "__main__":
-    test_dir = "Tests/WaveFormer"
+    test_dir = "Tests/Models/WaveFormer"
     colors = ["red", "green", "blue", "yellow"]
     component_color = "red"
     color_attr = "color"

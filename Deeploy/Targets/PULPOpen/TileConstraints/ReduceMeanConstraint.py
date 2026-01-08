@@ -4,11 +4,10 @@
 
 from typing import Dict, List, Tuple, Union
 
-import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import uint16_t
+from Deeploy.CommonExtensions.DataTypes import uint32_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
@@ -18,6 +17,11 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
 
 
 class ReduceMeanTileConstraint(TileConstraint):
+    '''
+    WARNING: This version of tiling is optimized for the TinyViT ReduceMean layers
+    (49 elements in the reduced axis). Greater sizes of the reduced axis may benefit
+    from different parallelization and tiling strategies.
+    '''
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -35,7 +39,7 @@ class ReduceMeanTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         # ===== ADD CONSTRAINTS =====
-        #   Add constraints for the I/O dimensions
+        #   Add constraints for the relationship between the I/O dimensions
         #   Iterate over input axes and maintain an output index pointer
         inputShape = parseDict['data_in_shape']
         output_idx = 0
@@ -58,9 +62,42 @@ class ReduceMeanTileConstraint(TileConstraint):
         return tilerModel
 
     @staticmethod
+    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        # ===== GET NECESSARY INFORMATION =====
+        #   Get I/O buffer names
+        inputBufferName = parseDict['data_in']
+
+        #   Get other necessary information
+        inputShape = parseDict['data_in_shape']
+        reduceAxes = parseDict['axes']
+        nonReducedDims = [ax for ax in range(len(inputShape)) if ax not in reduceAxes]
+
+        if len(nonReducedDims) > 0:
+            biggestNonReducedDim = max(nonReducedDims, key = lambda ax: inputShape[ax])
+        else:
+            biggestNonReducedDim = -1  # No non-reduced dimensions
+
+        # ===== ADD CONSTRAINTS =====
+        #  Kernel parallelized only on biggest non-reduced dimension,
+        #  so tile only on that dimension
+        for ax in range(len(inputShape)):
+            dimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = ax)
+            if ax != biggestNonReducedDim:
+                # This is not the biggest non-reduced dimension, force no tiling
+                tilerModel.addConstraint(dimVar == inputShape[ax])
+
+        return tilerModel
+
+    @staticmethod
     def constructSymbolicNodeRep(tilerModel: TilerModel, parseDict: Dict,
                                  ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
         symbolicParseDict = parseDict.copy()
+
+        inputBuffer = ctxt.lookup(name = parseDict['data_in'])
+        for ax in range(len(parseDict['data_in_shape'])):
+            if ax not in parseDict['axes']:
+                dimVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = ax)
+                symbolicParseDict['dim_in_' + str(ax)] = dimVar
 
         return symbolicParseDict
 
@@ -106,33 +143,14 @@ class ReduceMeanTileConstraint(TileConstraint):
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
-        # Prepare replacement lists for the elements inside the operator representation,
-        # for the cubes to be computed further down in this function
+        # Prepare replacements for non-reduced input sizes
+        replacements: Dict[str, List[int]] = dict()
+        replacementTypes = dict()
 
-        # ~~~~~ SEE ISSUE #134: https://github.com/pulp-platform/Deeploy/issues/134 ~~~~~
-        # Freeze tiling input and output tiling for now
-        replacements: Dict[str, List[int]] = {
-            # "data_in_shape": [],
-            # "data_out_shape": [],
-            "size": [],
-        }
-
-        replacementTypes = {
-            # "data_in_shape": [
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t)
-            # ],
-            # "data_out_shape": [
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t)
-            # ],
-            "size": PointerClass(uint16_t),
-        }
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        for ax in range(len(operatorRepresentation['data_in_shape'])):
+            if ax not in operatorRepresentation['axes']:
+                replacements["dim_in_" + str(ax)] = []
+                replacementTypes["dim_in_" + str(ax)] = PointerClass(uint32_t)
 
         # Prepare loading schedule lists
         inputLoadSchedule = []
@@ -144,13 +162,10 @@ class ReduceMeanTileConstraint(TileConstraint):
             in_cube = ReduceMeanTileConstraint.computeInputCubeFromOutputCube(out_cube,
                                                                               parseDict = operatorRepresentation)
 
-            # Append replacement elements
-            # ~~~~~ SEE ISSUE #134: https://github.com/pulp-platform/Deeploy/issues/134 ~~~~~
-            # Freeze tiling input and output tiling for now
-            # replacements["data_in_shape"].append(list(in_cube.dims).copy())
-            # replacements["data_out_shape"].append(list(out_cube.dims).copy())
-            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            replacements["size"].append(int(np.prod(out_cube.dims)))
+            # Add replacements for non-reduced input sizes
+            for ax in range(len(operatorRepresentation['data_in_shape'])):
+                if ax not in operatorRepresentation['axes']:
+                    replacements["dim_in_" + str(ax)].append(in_cube.dims[ax])
 
             # Append new cubes
             inputLoadSchedule.append({"data_in": in_cube})
