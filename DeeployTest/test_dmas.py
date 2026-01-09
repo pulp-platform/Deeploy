@@ -222,7 +222,7 @@ def setup_dma_deployer(dma_type: str, input_shape: tuple, tile_shape: tuple, nod
     return deployer, test_inputs, test_outputs
 
 
-@pytest.mark.dma
+@pytest.mark.deeploy_internal
 @pytest.mark.parametrize("test_shape", DMA_TEST_SHAPES, ids = param_id_dma)
 @pytest.mark.parametrize("doublebuffer", [True, False], ids = param_id_dma)
 def test_mchan_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
@@ -272,7 +272,7 @@ def test_mchan_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolch
         assert result.error_count == 0, f"Found {result.error_count} errors"
 
 
-@pytest.mark.dma
+@pytest.mark.deeploy_internal
 @pytest.mark.parametrize("test_shape", DMA_TEST_SHAPES, ids = param_id_dma)
 @pytest.mark.parametrize("doublebuffer", [True, False], ids = param_id_dma)
 def test_l3_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
@@ -322,7 +322,7 @@ def test_l3_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain
         assert result.error_count == 0, f"Found {result.error_count} errors"
 
 
-@pytest.mark.dma
+@pytest.mark.deeploy_internal
 @pytest.mark.parametrize("test_shape", DMA_TEST_SHAPES, ids = param_id_dma)
 @pytest.mark.parametrize("doublebuffer", [True, False], ids = param_id_dma)
 def test_snitch_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,

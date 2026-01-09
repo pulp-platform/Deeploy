@@ -68,6 +68,9 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "l3: mark test as L3 default memory level")
     config.addinivalue_line("markers", "wmem: mark test as using Neureka weight memory")
     config.addinivalue_line("markers", "dma: mark test as DMA test")
+    config.addinivalue_line(
+        "markers",
+        "deeploy_internal: mark test as internal Deeploy test (state serialization, extensions, transformations)")
 
     # Configure logging based on verbosity
     verbosity = config.option.verbose
