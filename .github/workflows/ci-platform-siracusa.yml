@@ -36,81 +36,6 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-type: kernels
-      # test-names: |
-      #   Kernels/FP32/ReLU
-
-      #   Kernels/FP32/Softmax/CrossEntropy
-      #   Kernels/FP32/Softmax/CrossEntropyGrad
-      #   Kernels/FP32/Softmax/Grad
-      #   Kernels/FP32/Softmax/Regular
-
-      #   Kernels/FP32/Add/Regular
-
-      #   Kernels/FP32/Conv/DW_2D_Bias
-      #   Kernels/FP32/Conv/DW_2D_NoBias
-      #   Kernels/FP32/Conv/DW_2D_ZeroValuedBias
-      #   Kernels/FP32/Conv/Regular_2D_Bias
-      #   Kernels/FP32/Conv/Regular_2D_NoBias
-      #   Kernels/FP32/Conv/Regular_2D_ZeroValuedBias
-
-      #   Kernels/FP32/GEMM/Regular
-      #   Kernels/FP32/MatMul
-      #   Kernels/FP32/MaxPool
-      #   Kernels/FP32/Mul
-      #   Kernels/FP32/LayerNorm
-
-      #   Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean
-      #   Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add
-      #   Kernels/FP32/ReduceMean/KeepDims/AllAxes
-      #   Kernels/FP32/ReduceMean/KeepDims/Axes1_2_3
-      #   Kernels/FP32/ReduceMean/KeepDims/Axes1_3
-      #   Kernels/FP32/ReduceMean/KeepDims/Axes2_1
-      #   Kernels/FP32/ReduceMean/KeepDims/Axis0
-      #   Kernels/FP32/ReduceMean/KeepDims/Axis2
-      #   Kernels/FP32/ReduceMean/KeepDims/ReduceMean_Add
-
-      #   Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean
-      #   Kernels/FP32/ReduceMean/NoKeepDims/Add_ReduceMean_Add
-      #   Kernels/FP32/ReduceMean/NoKeepDims/AllAxes
-      #   Kernels/FP32/ReduceMean/NoKeepDims/Axes1_2_3
-      #   Kernels/FP32/ReduceMean/NoKeepDims/Axes1_3
-      #   Kernels/FP32/ReduceMean/NoKeepDims/Axes2_1
-      #   Kernels/FP32/ReduceMean/NoKeepDims/Axis0
-      #   Kernels/FP32/ReduceMean/NoKeepDims/Axis2
-      #   Kernels/FP32/ReduceMean/NoKeepDims/ReduceMean_Add
-
-      #   Kernels/FP32/ReduceSum
-      #   Kernels/FP32/Reshape/SkipConnection
-
-      #   Kernels/FP32/Transpose
-
-      #   Kernels/Integer/Hardswish/Regular
-      #   Kernels/Integer/Softmax/Regular
-
-      #   Kernels/Integer/Add/MultIO
-      #   Kernels/Integer/Add/Regular
-
-      #   Kernels/Integer/Concat
-
-      #   Kernels/Integer/MatMul/Add
-      #   Kernels/Integer/MatMul/Regular
-
-      #   Kernels/Integer/Pad/Regular_1D
-      #   Kernels/Integer/Pad/Regular_2D
-
-      #   Kernels/Integer/RMSNorm
-
-      #   Models/TinyViT/5M/Layers/FP32/ReduceMean
-
-      #   Others/Backtracking
-      #   Kernels/Mixed/Dequant
-      #   Kernels/Mixed/Quant
-      #   Models/Transformer_DeepQuant
-      #   Kernels/Integer/Conv/Regular_2D_RQ
-      #   Kernels/Integer/Conv/DW_2D_RQ
-      #   Kernels/Integer/Hardswish/Regular_RQ
-      #   Kernels/Integer/TrueIntegerDiv
-      # num-cores: 8
 
   siracusa-models:
     needs: select-env
@@ -119,20 +44,3 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       test-type: models
-      # test-names: |
-      #   Kernels/Integer/Attention
-
-      #   Models/CCT/FP32/CCT_1_16_16_8
-      #   Models/CCT/FP32/CCT_2_32_32_128_Opset20
-
-      #   Models/miniMobileNet
-      #   Models/miniMobileNetv2
-
-      #   Models/MLPerf/KeywordSpotting
-      #   Models/MLPerf/ImageClassification
-      #   Models/MLPerf/AnomalyDetection
-
-      #   Models/TinyViT/Demo
-
-      #   Models/CNN_Linear2
-      # num-cores: 8

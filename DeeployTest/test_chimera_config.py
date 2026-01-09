@@ -7,7 +7,7 @@
 # Currently only Adder test is in CI
 
 KERNEL_TESTS = [
-    "Adder",
+    "Kernels/Integer/Add/Regular",
 ]
 
 MODEL_TESTS = []

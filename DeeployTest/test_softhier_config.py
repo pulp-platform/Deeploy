@@ -9,7 +9,7 @@
 DEFAULT_NUM_CLUSTERS = 1
 
 KERNEL_TESTS = [
-    "Adder",
+    "Kernels/Integer/Add/Regular",
 ]
 
 MODEL_TESTS = []

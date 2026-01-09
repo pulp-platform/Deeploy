@@ -36,35 +36,6 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-marker: "kernels"
-      # test-names: |
-      #   Kernels/Integer/Add/MultIO
-      #   Kernels/Integer/Add/Regular
-
-      #   Kernels/Integer/Conv/DW_1D
-      #   Kernels/Integer/Conv/Regular_1D
-
-      #   Kernels/Integer/Conv/DW_2D
-      #   Kernels/Integer/Conv/Regular_2D
-
-      #   Kernels/Integer/GEMM/Regular
-
-      #   Kernels/Integer/MatMul/Add
-      #   Kernels/Integer/MatMul/Regular
-
-      #   Kernels/Integer/MaxPool
-
-      #   Kernels/Integer/Pad/Regular_1D
-      #   Kernels/Integer/Pad/Regular_2D
-
-      #   Kernels/Integer/ReduceMean
-      #   Kernels/Integer/ReduceSum
-
-      #   Kernels/Integer/Slice
-
-      #   Kernels/Integer/Conv/Regular_2D_RQ
-      #   Kernels/Integer/Conv/DW_2D_RQ
-      #   Kernels/Integer/GEMM/Regular_RQPerRow
-      #   Kernels/Integer/MatMul/Regular_RQ
 
   mempool-models:
     needs: select-env
@@ -73,14 +44,3 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-marker: "models"
-      # test-names: |
-      #   Models/CCT/Int/ICCT
-      #   Models/CCT/Int/ICCT_8
-      #   Models/CCT/Int/ICCT_ITA
-
-      #   Models/miniMobileNet
-      #   Models/miniMobileNetv2
-
-      #   Models/CNN_Linear1
-
-      #   Models/CNN_Linear2

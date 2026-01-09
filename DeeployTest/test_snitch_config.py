@@ -9,16 +9,16 @@
 DEFAULT_NUM_CORES = 9
 
 KERNEL_TESTS = [
-    "Adder",
-    "iSoftmax",
-    "TestiNoNorm",
-    "TestAdderLarge",
-    "TestiSoftmaxLarge",
-    "testMatMul",
-    "testRQGEMM",
-    "TestRQAdd",
-    "testRQGEMMTransB",
-    "testFloatSoftmax",
+    "Kernels/FP32/Softmax/Regular",
+    "Kernels/Integer/Add/Large",
+    "Kernels/Integer/Add/Regular",
+    "Kernels/Integer/Softmax/Large",
+    "Kernels/Integer/Softmax/Regular",
+    "Kernels/Integer/MatMul/Regular",
+    "Kernels/Integer/iNoNorm",
+    "Kernels/Integer/GEMM/Regular_RQPerRow",
+    "Kernels/Integer/Add/Regular_RQ",
+    "Kernels/Integer/GEMM/TransB_RQ",
 ]
 
 MODEL_TESTS = []

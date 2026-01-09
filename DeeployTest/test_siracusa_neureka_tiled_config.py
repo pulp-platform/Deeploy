@@ -11,47 +11,47 @@ DEFAULT_CORES = 8
 # L2 single-buffer kernel tests
 # Format: dict of {test_name: [L1_sizes]}
 L2_SINGLEBUFFER_KERNELS = {
-    "testRequantizedLinear": [16000],
-    "testPointwise": [32000],
-    "testPointwiseConvBNReLU": [32000],
-    "testPointwiseUnsignedWeights": [32000],
+    "Kernels/Integer/GEMM/Regular_RQPerColumn": [16000],
+    "Kernels/Integer/Conv/PW_2D": [32000],
+    "Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ": [32000],
+    "Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ": [32000],
 }
 
 # L2 double-buffer kernel tests
 L2_DOUBLEBUFFER_KERNELS = {
-    "testRequantizedLinear": [16000],
-    "testPointwise": [32000],
-    "testPointwiseConvBNReLU": [32000],
-    "testPointwiseUnsignedWeights": [32000],
+    "Kernels/Integer/GEMM/Regular_RQPerColumn": [16000],
+    "Kernels/Integer/Conv/PW_2D": [32000],
+    "Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ": [32000],
+    "Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ": [32000],
 }
 
 # L3 single-buffer model tests
 # Format: dict of {test_name: [L1_sizes]}
 L3_SINGLEBUFFER_MODELS = {
-    "miniMobileNet": [2000],
-    "Attention": [2500],
-    "Transformer": [15000],
-    "microLlama/microLlama1": [10000],
+    "Models/miniMobileNet": [2000],
+    "Kernels/Integer/Attention": [2500],
+    "Models/Transformer": [15000],
+    "Models/microLlama/microLlama1": [10000],
 }
 
 # L3 double-buffer model tests
 L3_DOUBLEBUFFER_MODELS = {
-    "miniMobileNet": [2000],
-    "Attention": [5000],
-    "Transformer": [30000],
+    "Models/miniMobileNet": [2000],
+    "Kernels/Integer/Attention": [5000],
+    "Models/Transformer": [30000],
 }
 
 # L2 single-buffer kernel tests with weight memory (neureka-wmem)
 L2_SINGLEBUFFER_KERNELS_WMEM = {
-    "testRequantizedLinear": [16000],
-    "testPointwise": [32000],
-    "testPointwiseConvBNReLU": [32000],
-    "testPointwiseUnsignedWeights": [32000],
+    "Kernels/Integer/GEMM/Regular_RQPerColumn": [16000],
+    "Kernels/Integer/Conv/PW_2D": [32000],
+    "Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ": [32000],
+    "Kernels/Integer/Conv/PW_2D_RQ/Unsigned_RQ": [32000],
 }
 
 # L3 double-buffer model tests with weight memory (neureka-wmem)
 L3_DOUBLEBUFFER_MODELS_WMEM = {
-    "miniMobileNet": [2000],
-    "Attention": [3500],
-    "microLlama/microLlama1": [10000],
+    "Models/miniMobileNet": [2000],
+    "Kernels/Integer/Attention": [3500],
+    "Models/microLlama/microLlama1": [10000],
 }
