@@ -26,7 +26,16 @@ jobs:
       - id: set-docker-image
         shell: bash
         run: |
-          IMAGE="ghcr.io/runwangdl/deeploy:gap9"
+          if [[ -n "${{ inputs.docker_image_deeploy }}" ]]; then
+            IMAGE="${{ inputs.docker_image_deeploy }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF##refs/tags/}"
+            IMAGE="ghcr.io/pulp-platform/deeploy:${TAG_NAME}"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            IMAGE="ghcr.io/pulp-platform/deeploy:main"
+          else
+            IMAGE="ghcr.io/pulp-platform/deeploy:devel"
+          fi
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
 
       - id: set-runner
