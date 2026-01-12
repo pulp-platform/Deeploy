@@ -11,11 +11,17 @@ The test suite is located in the `DeeployTest` folder, all commands below are as
 @pytest.mark.mempool: mark test as a MemPool platform test
 ```
 
-You can run all test from a given mark group with `pytest -m <marker-name> -v`. Each platform has a given marker, if you want to run all tests from the generic platform, you can use `pytest -m generic -v`.
+You can run all test from a given mark group with `pytest -m <marker-name> -v`. Each platform has a given marker, if you want to run all tests from the generic platform, you can use:
+```
+pytest -m generic -v
+```
 
-You can use boolean expressions on the markers to execute unions or intersections of markers. For instance, to execute only the kernel tests from the generic platform, one can use `pytest -m 'generic and kernels' -v`.
+You can use boolean expressions on the markers to execute unions or intersections of markers. For instance, to execute only the kernel tests from the generic platform, one can use:
+```
+pytest -m 'generic and kernels' -v
+```
 
-To display the tests captured by a given marker or expression, you can use the `--collect-only` flag. For instance, to list the kernel tests on the Siracusa with Neureka platform that are from L2 and single-buffered, I can use `pytest -m 'siracusa_neureka_tiled and kernels and l2 and singlebuffer' -v --collect-only`, which returns:
+To display the tests captured by a given marker or expression, you can use the `--collect-only` flag. For instance, to list the kernel tests on the Siracusa with Neureka platform that are from L2 and single-buffered, you can use `pytest -m 'siracusa_neureka_tiled and kernels and l2 and singlebuffer' -v --collect-only`, which returns:
 
 ```
 platform linux -- Python 3.10.0, pytest-9.0.2, pluggy-1.6.0 -- /usr/scratch/normandie/jungvi/micromamba/envs/deeploy/bin/python3.10
@@ -39,7 +45,10 @@ collected 378 items / 370 deselected / 8 selected
 
 ### Executing a Single Test
 
-To run a single test, one can use the test identifier from the `--collect-only` output, for instance `pytest 'test_platforms.py::test_siracusa_neureka_tiled_kernels_l2_singlebuffer[testRequantizedLinear-16000-L2-singlebuffer]' -v`.
+To run a single test, one can use the test identifier from the `--collect-only` output, for instance:
+```
+pytest 'test_platforms.py::test_siracusa_neureka_tiled_kernels_l2_singlebuffer[testRequantizedLinear-16000-L2-singlebuffer]' -v
+```
 
 ### Controlling Test Verbosity
 
