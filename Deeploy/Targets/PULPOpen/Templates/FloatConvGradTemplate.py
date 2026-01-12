@@ -221,16 +221,6 @@ if (!${nodeName}_${grad_weight}_init) {
     ${nodeName}_${grad_weight}_init = 1;
 }
 
-if(pi_core_id()==0) {
-    printf("\\n");
-    printf("DWConvgradw input:\\n");
-    for(int i=0; i<${ch_im_out} * ${dim_im_out_x} * ${dim_im_out_y}; i++) {
-        printf("%f ", ${grad_out}[i]);
-        if(i%20==19) printf("\\n");
-    }
-    printf("\\n");
-}
-
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_DWConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW(
         ref_${grad_weight}_${grad_out},
@@ -247,15 +237,6 @@ for (uint32_t n=0; n<${batch}; ++n) {
     ref_${grad_weight}_${data_in} += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};
 }
 
-if(pi_core_id()==0) {
-    printf("\\n");
-    printf("DWConvgradw output:\\n");
-    for(int i=0; i<${ch_im_out} * ${dim_kernel_x} * ${dim_kernel_y}; i++) {
-        printf("%f ", ${grad_weight}[i]);
-        if(i%20==19) printf("\\n");
-    }
-    printf("\\n");
-}
 """)
 
 

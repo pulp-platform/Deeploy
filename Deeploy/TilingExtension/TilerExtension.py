@@ -191,13 +191,6 @@ class Tiler():
             scratchBuffer._instance = scratchBuffer._type(arenaName, ctxt)
             scratchBuffer._memoryLevel = level
 
-            # Add custom allocTemplate that includes memset to zero the arena
-            # This is critical for gradient accumulation across tiles
-            if level == "L1":
-                from Deeploy.DeeployTypes import NodeTemplate
-                scratchBuffer.allocTemplate = NodeTemplate(f"""${{name}} = (${{type.typeName}}) pmsis_l1_malloc(sizeof(${{type.referencedType.typeName}}) * ${{size}});
-memset(${{name}}, 0, sizeof(${{type.referencedType.typeName}}) * ${{size}});
-""")
 
             # JUNGVI: Memory Arena buffers should be allocated first since other variable global buffers may belong to a memory arena
             ctxt.globalObjects.move_to_end(scratchBuffer.name, last = False)

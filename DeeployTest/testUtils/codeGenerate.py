@@ -201,9 +201,6 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         output_buffer = deployer.ctxt.lookup(f'output_{output_idx}')
         output_size = np.prod(output_buffer.shape) if hasattr(output_buffer, 'shape') else output_buffer._type.referencedType.typeWidth
         typeName = output_buffer._type.referencedType.typeName
-        retStr += f"""
-    memset(DeeployNetwork_output_{output_idx}, 0, {output_size} * sizeof({typeName}));
-    """
         output_idx += 1
 
     retStr += """
