@@ -14,10 +14,10 @@ name: _runner-siracusa
       docker-image:
         required: true
         type: string
-      test-type:
+      pytest-marker:
         required: true
         type: string
-        description: "Type of tests to run: kernels or models"
+        description: "Pytest marker for test selection (e.g., 'kernels', 'models')"
 
 jobs:
   test-runner-siracusa:
@@ -44,5 +44,5 @@ jobs:
           export CCACHE_DIR=/app/.ccache
 
           # Run tests using pytest markers
-          pytest test_platforms.py::test_siracusa_${{ inputs.test-type }} -v -s
+          pytest test_platforms.py -m -v -n 4 "siracusa and ${{ inputs.pytest-marker }}"
         shell: bash

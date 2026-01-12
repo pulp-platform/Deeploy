@@ -35,7 +35,7 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-type: kernels
+      pytest-marker: kernels
 
   siracusa-models:
     needs: select-env
@@ -43,4 +43,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-type: models
+      pytest-marker: models

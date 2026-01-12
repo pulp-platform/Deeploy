@@ -304,21 +304,6 @@ def test_siracusa_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, t
         double_buffer = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
-    config = create_test_config(
-        test_name = test_name,
-        platform = "Siracusa",
-        simulator = "gvsoc",
-        deeploy_test_dir = deeploy_test_dir,
-        toolchain = toolchain,
-        toolchain_dir = toolchain_dir,
-        cmake_args = cmake_args,
-        tiling = True,
-        cores = SIRACUSA_DEFAULT_CORES,
-        l1 = l1,
-        default_mem_level = "L2",
-        double_buffer = False,
-    )
-    run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.siracusa_tiled
