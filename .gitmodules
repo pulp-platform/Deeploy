@@ -13,4 +13,4 @@
 	url = https://github.com/ARM-software/CMSIS-NN.git
 [submodule "pulp-trainlib"]
 	path = TargetLibraries/PULPOpen/third_party/pulp-trainlib
-	url = https://github.com/pulp-platform/pulp-trainlib.git
+	url = https://github.com/runwangdl/pulp-trainlib.git
