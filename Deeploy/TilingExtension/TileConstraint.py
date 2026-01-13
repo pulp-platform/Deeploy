@@ -146,6 +146,8 @@ class TileConstraint():
             targetIdx = 1
 
         fullShape = ctxt.lookup(outVar).shape
+        if isinstance(fullShape, int):
+            fullShape = (fullShape,)
         initialOffset = (0,) * len(fullShape)
         outputCubes = [
             AbsoluteHyperRectangle(rectangle = HyperRectangle(offset = initialOffset, dims = tuple(fullShape)),
