@@ -43,6 +43,8 @@ elseif(DEEPLOY_ARCH STREQUAL PULP)
 
   if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka)
     add_subdirectory(Platforms/Siracusa)
+  elseif(platform STREQUAL PULPOpen_iDMA)
+    add_subdirectory(Platforms/PULPOpen_iDMA)
   elseif(platform STREQUAL PULPOpen)
     add_subdirectory(Platforms/PULPOpen)
   endif()

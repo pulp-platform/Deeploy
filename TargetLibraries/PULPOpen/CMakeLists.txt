@@ -12,7 +12,7 @@ endif()
 
 if(platform STREQUAL "Siracusa" OR platform STREQUAL "Siracusa_w_neureka")
   include(cmake/pulp-sdk-siracusa.cmake)
-elseif(platform STREQUAL "PULPOpen")
+elseif(platform STREQUAL "PULPOpen_iDMA" OR platform STREQUAL "PULPOpen")
   include(cmake/pulp-sdk-pulp-open.cmake)
 else()
   message(FATAL_ERROR "Unrecognized platform: ${platform}")
