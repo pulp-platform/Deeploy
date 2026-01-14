@@ -13,15 +13,15 @@ class DeeployTestConfig:
     test_name: str
     test_dir: str
     platform: str
-    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none']
+    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'qsim', 'qsim.gui', 'host', 'none']
     tiling: bool
     gen_dir: str
     build_dir: str
     toolchain: str = "LLVM"
     toolchain_install_dir: Optional[str] = None
     gvsoc_install_dir: Optional[str] = None
-    cmake_args: List[str] = None
-    gen_args: List[str] = None
+    cmake_args: Optional[List[str]] = None
+    gen_args: Optional[List[str]] = None
     verbose: int = 0
     debug: bool = False
 

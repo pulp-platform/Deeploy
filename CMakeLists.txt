@@ -31,6 +31,8 @@ elseif(platform STREQUAL Siracusa)
   message(STATUS "Building for platform 'Siracusa'")
 elseif(platform STREQUAL Siracusa_w_neureka)
   message(STATUS "Building for platform 'Siracusa_w_neureka'")
+elseif(platform STREQUAL PULPOpen_iDMA)
+  message(STATUS "Building for platform 'PULP-Open' with iDMA")
 elseif(platform STREQUAL PULPOpen)
   message(STATUS "Building for platform 'PULP-Open'")
 elseif(platform STREQUAL GAP9)
@@ -198,7 +200,7 @@ if(platform STREQUAL QEMU-ARM)
 
 endif()
 
-if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka OR platform STREQUAL PULPOpen)
+if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka OR platform STREQUAL PULPOpen_iDMA OR platform STREQUAL PULPOpen)
 
   if(TOOLCHAIN STREQUAL LLVM)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/pulp/toolchain_llvm.cmake)
@@ -210,7 +212,7 @@ if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka OR platfor
 
   if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka)
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/pulp/siracusa/siracusa.cmake)
-  elseif(platform STREQUAL PULPOpen)
+  elseif(platform STREQUAL PULPOpen_iDMA OR platform STREQUAL PULPOpen)
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/pulp/pulp-open/pulp-open.cmake)
   endif()
 

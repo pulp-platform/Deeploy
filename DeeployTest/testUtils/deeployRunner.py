@@ -65,7 +65,7 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           dest = 'simulator',
                           type = str,
                           default = None,
-                          help = 'Simulator to use: gvsoc, banshee, qemu, vsim, host, none — '
+                          help = 'Simulator to use: gvsoc, banshee, qemu, vsim, qsim, host, none — '
                           'or "board" to flash and run on the physical target (GAP9 only)\n')
         self.add_argument('-v', action = 'count', dest = 'verbose', default = 0, help = 'Increase verbosity level\n')
         self.add_argument('-D',
@@ -369,6 +369,8 @@ def main(default_platform: Optional[str] = None,
         "chimera": "Chimera",
         "softhier": "SoftHier",
         "xdna2": "XDNA2",
+        "pulpopen": "PULPOpen",
+        "pulpopen_idma": "PULPOpen_iDMA",
     }
 
     if args.platform:
@@ -409,6 +411,8 @@ def main(default_platform: Optional[str] = None,
             "Snitch": "gvsoc",
             "Chimera": "gvsoc",
             "SoftHier": "gvsoc",
+            "PULPOpen": "gvsoc",
+            "PULPOpen_iDMA": "qsim",
         }
         simulator = simulator_map.get(platform, "host")
         log.info(f"No simulator specified, using default for {platform}: {simulator}")
