@@ -183,7 +183,12 @@ def create_config_from_args(args: argparse.Namespace,
     test_dir = args.dir
     gen_dir, test_dir_abs, test_name = get_test_paths(test_dir, platform, base_dir = str(base_dir))
 
-    build_dir = str(base_dir / f"TEST_{platform.upper()}" / "build")
+    # Use worker-specific build directory to avoid collisions with parallel execution with pytest-xdist
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
+    if worker_id == "master":
+        build_dir = str(base_dir / f"TEST_{platform.upper()}" / "build_master")
+    else:
+        build_dir = str(base_dir / f"TEST_{platform.upper()}" / f"build_{worker_id}")
 
     cmake_args_list = list(args.cmake) if args.cmake else []
 

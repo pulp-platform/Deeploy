@@ -6,7 +6,16 @@ import os
 from pathlib import Path
 from typing import List, Literal, Optional
 
-from .core import DeeployTestConfig, get_test_paths, run_complete_test
+from .core import DeeployTestConfig, build_binary, configure_cmake, get_test_paths, run_complete_test, run_simulation
+
+__all__ = [
+    'get_worker_id',
+    'create_test_config',
+    'run_and_assert_test',
+    'build_binary',
+    'configure_cmake',
+    'run_simulation',
+]
 
 
 def get_worker_id() -> str:
