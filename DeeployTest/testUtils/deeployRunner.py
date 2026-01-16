@@ -380,6 +380,9 @@ def main(default_platform: Optional[str] = None,
         platform_specific_cmake_args.append(f"-DNUM_CORES={args.cores}")
     elif hasattr(args, 'num_cores'):
         platform_specific_cmake_args.append(f"-DNUM_CORES={args.num_cores}")
+    
+    if hasattr(args, 'num_clusters'):
+        platform_specific_cmake_args.append(f"-DNUM_CLUSTERS={args.num_clusters}")
 
     config = create_config_from_args(args, platform, simulator, tiling_enabled, platform_specific_cmake_args)
 
