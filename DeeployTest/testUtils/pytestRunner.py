@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Literal, Optional
 
 from .core import DeeployTestConfig, get_test_paths, run_complete_test
+from .core.execution import build_binary, configure_cmake, run_simulation
 
 
 def get_worker_id() -> str:
