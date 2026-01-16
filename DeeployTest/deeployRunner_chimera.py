@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """Deeploy runner for Chimera platform."""
 
-from testUtils.deeployRunner import main
 import sys
+
+from testUtils.deeployRunner import main
 
 if __name__ == "__main__":
 

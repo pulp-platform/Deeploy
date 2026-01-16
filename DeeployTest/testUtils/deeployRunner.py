@@ -6,12 +6,14 @@ import argparse
 import codecs
 import os
 import sys
-import coloredlogs
 from pathlib import Path
 from typing import Optional
 
-from Deeploy.Logging import DEFAULT_FMT, DETAILED_FILE_LOG_FORMAT
+import coloredlogs
+
+from Deeploy.Logging import DEFAULT_FMT
 from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.Logging import DETAILED_FILE_LOG_FORMAT
 
 from .core import DeeployTestConfig, run_complete_test
 from .core.paths import get_test_paths

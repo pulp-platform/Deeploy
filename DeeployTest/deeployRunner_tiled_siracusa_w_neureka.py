@@ -3,8 +3,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from testUtils.deeployRunner import main
 import sys
+
+from testUtils.deeployRunner import main
 
 if __name__ == "__main__":
 
