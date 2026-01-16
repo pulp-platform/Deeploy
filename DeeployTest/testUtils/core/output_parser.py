@@ -40,10 +40,10 @@ def parse_test_output(stdout: str, stderr: str = "") -> TestResult:
         runtime_cycles = int(cycle_match.group(1))
 
     return TestResult(
-        success=success,
-        error_count=error_count,
-        total_count=total_count,
-        stdout=stdout,
-        stderr=stderr,
-        runtime_cycles=runtime_cycles,
+        success = success,
+        error_count = error_count,
+        total_count = total_count,
+        stdout = stdout,
+        stderr = stderr,
+        runtime_cycles = runtime_cycles,
     )

@@ -56,7 +56,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
 
     log.debug(f"[Execution] Generation command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, check=False)
+    result = subprocess.run(cmd, check = False)
 
     if result.returncode != 0:
         log.error(f"Network generation failed with return code {result.returncode}")
@@ -108,7 +108,7 @@ def configure_cmake(config: DeeployTestConfig) -> None:
 
     log.debug(f"[Execution] CMake command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, check=False, env=env)
+    result = subprocess.run(cmd, check = False, env = env)
 
     if result.returncode != 0:
         log.error(f"CMake configuration failed with return code {result.returncode}")
@@ -133,7 +133,7 @@ def build_binary(config: DeeployTestConfig) -> None:
 
     log.debug(f"[Execution] Build command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, check=False, env=env)
+    result = subprocess.run(cmd, check = False, env = env)
 
     if result.returncode != 0:
         log.error(f"Build failed with return code {result.returncode}")
@@ -149,7 +149,7 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     """
     if skip:
         log.info(f"Skipping simulation for {config.test_name}")
-        return TestResult(success=True, error_count=0, total_count=0, stdout="Skipped")
+        return TestResult(success = True, error_count = 0, total_count = 0, stdout = "Skipped")
 
     if config.simulator == 'none':
         raise RuntimeError("No simulator specified!")
@@ -183,12 +183,12 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    result = subprocess.run(cmd, capture_output = True, text = True, env = env)
 
     if result.stdout:
-        print(result.stdout, end='')
+        print(result.stdout, end = '')
     if result.stderr:
-        print(result.stderr, end='', file=sys.stderr)
+        print(result.stderr, end = '', file = sys.stderr)
 
     # Parse output for error count and cycles
     test_result = parse_test_output(result.stdout, result.stderr)
@@ -206,7 +206,7 @@ def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim:
     log.info(f"################## Testing {config.test_name} on {config.platform} Platform ##################")
 
     # Step 1: Generate network
-    generate_network(config, skip=skipgen)
+    generate_network(config, skip = skipgen)
 
     # Step 2: Configure CMake
     configure_cmake(config)
@@ -215,6 +215,6 @@ def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim:
     build_binary(config)
 
     # Step 4: Run simulation
-    result = run_simulation(config, skip=skipsim)
+    result = run_simulation(config, skip = skipsim)
 
     return result
