@@ -24,6 +24,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ### List of Pull Requests
 - PyPi Package Deployment + Remove Banshee Dept [#154](https://github.com/pulp-platform/Deeploy/pull/154)
 - PyTest Migration [#144](https://github.com/pulp-platform/Deeploy/pull/144)
+- Support for MaxPool1D and RQSConv1D for PULPOpen [#146](https://github.com/pulp-platform/Deeploy/pull/146)
 - Update submodule `pulp-nn-mixed` [#145](https://github.com/pulp-platform/Deeploy/pull/145)
 - Improve Profiling [#138](https://github.com/pulp-platform/Deeploy/pull/138)
 - FP32 ReduceMean operator improvement [#137](https://github.com/pulp-platform/Deeploy/pull/137)
@@ -60,6 +61,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - `pytestRunner.py` contains helper functions and fixtures for the whole project.
 - `test_platforms.py` lists the E2E tests and sorts them into marked categories (per platform and per kernel/model).
 - Each platform has a test config file where a list or a dict describes the tests.
+- Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Support for unknown number of data dimensions in the tiler
 - Parallelization support for the FP32 ReduceMean operator on PULPOpen
 - Extensive testing for the ReduceMean operator
@@ -165,6 +167,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Update `README.md` to remove reference to NVIDIA's PyPi index.
 - `nvidia-pyindex` was broken as it now tries to build the wheel to respect the new policy on packages using `pyproject`. Instead of installing this package, we just add the `https://pypi.ngc.nvidia.com` channel to the pip config file.
 - Pin versions of broken dependencies of Banshee.
+- im2col buffer size in Conv1d template
 - Fixed ReduceMean parallelization and tiling issues described in Issue [#134](https://github.com/pulp-platform/Deeploy/issues/134).
 - Fixed PULP FP32 regular and DW Conv2D, and MatMul tile constraints.
 - Fixed type casting for tiling code generation.
