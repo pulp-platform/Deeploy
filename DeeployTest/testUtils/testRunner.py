@@ -298,7 +298,7 @@ class TestRunner():
                  gen_args: str = "",
                  cmake_args: str = ""):
 
-        if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none']:
+        if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board' ,'none']:
             raise ValueError(
                 f"Invalid emulator {simulator} (valid options are 'gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none')!"
             )
@@ -381,7 +381,7 @@ class TestRunner():
         else:
             self.cmake_args += " -D gvsoc_simulation=OFF"
 
-        command = f"$CMAKE -D TOOLCHAIN={self._args.toolchain} -D GVSOC_INSTALL_DIR={self._dir_gvsoc} -D TOOLCHAIN_INSTALL_DIR={self._dir_toolchain} -D GENERATED_SOURCE={self._dir_gen} -D platform={self._platform} {self.cmake_args} -B {self._dir_build} -D TESTNAME={self._name_test} .."
+        command = f"$CMAKE -D TOOLCHAIN={self._args.toolchain} -D GVSOC_INSTALL_DIR={self._dir_gvsoc} -D TOOLCHAIN_INSTALL_DIR={self._dir_toolchain} -D GENERATED_SOURCE={self._dir_gen} -D platform={self._platform} -D SIMULATOR={self._simulator} {self.cmake_args} -B {self._dir_build} -D TESTNAME={self._name_test} .."
 
         if self._args.verbose >= 3:
             command = "VERBOSE=1 " + command + " --log-level debug"
@@ -414,6 +414,8 @@ class TestRunner():
 
         if self._simulator == 'host':
             command = f"{self._dir_build}/bin/{self._name_test}"
+        elif self._simulator == 'board':
+            command = f"$CMAKE --build {self._dir_build} --target board_{self._name_test}"
         else:
             command = f"$CMAKE --build {self._dir_build} --target {self._simulator}_{self._name_test}"
 
