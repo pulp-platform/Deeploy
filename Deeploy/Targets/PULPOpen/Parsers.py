@@ -568,7 +568,7 @@ class PULPDWConvGradW2DParser(PULPConvGradW2DParser):
             self.operatorRepresentation['group'] > 1,
         ])
 
-        return wellFormed
+        return wellFormed and ret
     
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,

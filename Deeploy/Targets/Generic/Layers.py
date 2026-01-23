@@ -475,6 +475,83 @@ class LayerNormGradLayer(ONNXLayer):
         super().__init__(maps)
 
 
+class GroupNormGradXStatLayer(ONNXLayer):
+    """Layer for GroupNormGradXStat - computes intermediate gradient statistics."""
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        # GroupNormGradXStat operations per element:
+        # - gamma * dY multiplication
+        # - X_norm computation
+        # - gamma * dY * X_norm multiplication
+        # - reduction sum
+        ops_per_element = 8
+        return size * ops_per_element
+
+
+class GroupNormGradXLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        # GroupNormGradX operations per element:
+        # - X_norm computation
+        # - final gradient computation
+        ops_per_element = 6
+        return size * ops_per_element
+
+
+class GroupNormGradWLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        # GroupNormGradW operations:
+        # - X_norm computation per element
+        # - dY * X_norm multiplication
+        # - reduction sum over N, H, W
+        ops_per_element = 5
+        return size * ops_per_element
+
+
+class GroupNormalizationStatLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        # GroupNormalizationStat operations:
+        # - sum for mean
+        # - subtract mean, square, sum for variance
+        # - sqrt + epsilon for inv_std
+        ops_per_element = 6
+        return size * ops_per_element
+
+
+class GroupNormalizationLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        # GroupNormalization operations:
+        # - subtract mean
+        # - multiply by inv_std
+        # - multiply by gamma
+        # - add beta
+        ops_per_element = 4
+        return size * ops_per_element
+
+
 class TransposeLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):

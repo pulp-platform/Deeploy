@@ -1731,6 +1731,214 @@ class LayerNormGradParser(iLayerNormParser):
         return ctxt, True
 
 
+class GroupNormGradXStatParser(NodeParser):
+    """Parser for GroupNormGradXStat - computes intermediate statistics for GroupNormGradX."""
+
+    def parseNode(self, node: gs.Node) -> (bool):
+        # GroupNormGradXStat expects:
+        # Inputs: dY, X, gamma, stat
+        # Outputs: grad_stat
+        # Attrs: num_groups
+        ret = all([
+            'num_groups' in node.attrs,
+            len(node.inputs) == 4,
+            len(node.outputs) == 1
+        ])
+
+        if ret:
+            self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['dY', 'X', 'gamma', 'stat']
+        outputs = ['grad_stat']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['N'] = input_shape[0]
+        self.operatorRepresentation['C'] = input_shape[1]
+        self.operatorRepresentation['H'] = input_shape[2] if len(input_shape) > 2 else 1
+        self.operatorRepresentation['W'] = input_shape[3] if len(input_shape) > 3 else 1
+
+        return ctxt, True
+
+
+class GroupNormGradXParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+        # GroupNormGradX expects:
+        # Inputs: dY, X, gamma, stat, grad_stat
+        # Outputs: dX
+        # Attrs: num_groups
+        ret = all([
+            'num_groups' in node.attrs,
+            len(node.inputs) == 5,
+            len(node.outputs) == 1
+        ])
+
+        if ret:
+            self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['dY', 'X', 'gamma', 'stat', 'grad_stat']
+        outputs = ['dX']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['N'] = input_shape[0]
+        self.operatorRepresentation['C'] = input_shape[1]
+        self.operatorRepresentation['H'] = input_shape[2] if len(input_shape) > 2 else 1
+        self.operatorRepresentation['W'] = input_shape[3] if len(input_shape) > 3 else 1
+
+        return ctxt, True
+
+
+class GroupNormGradWParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+        # GroupNormGradW expects:
+        # Inputs: dY, X, mean, inv_std
+        # Outputs: dGamma
+        # Attrs: epsilon, num_groups
+        ret = all([
+            'num_groups' in node.attrs,
+            len(node.inputs) == 3,
+            len(node.outputs) == 1
+        ])
+
+        if ret:
+            self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['dY', 'X', 'stat']
+        outputs = ['dGamma']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['N'] = input_shape[0]
+        self.operatorRepresentation['C'] = input_shape[1]
+        self.operatorRepresentation['H'] = input_shape[2] if len(input_shape) > 2 else 1
+        self.operatorRepresentation['W'] = input_shape[3] if len(input_shape) > 3 else 1
+
+        return ctxt, True
+
+
+class GroupNormalizationStatParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+        # GroupNormalizationStat expects:
+        # Inputs: X
+        # Outputs: stat [N, G, 2] where stat[:,:,0]=mean, stat[:,:,1]=inv_std
+        # Attrs: epsilon, num_groups
+        ret = all([
+            'epsilon' in node.attrs, 'num_groups' in node.attrs,
+            len(node.inputs) == 1,
+            len(node.outputs) == 1
+        ])
+
+        if ret:
+            self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
+            self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['X']
+        outputs = ['stat']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['N'] = input_shape[0]
+        self.operatorRepresentation['C'] = input_shape[1]
+        self.operatorRepresentation['H'] = input_shape[2] if len(input_shape) > 2 else 1
+        self.operatorRepresentation['W'] = input_shape[3] if len(input_shape) > 3 else 1
+
+        return ctxt, True
+
+
+class GroupNormalizationParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+        # GroupNormalization expects:
+        # Inputs: X, gamma, beta, stat
+        # Outputs: Y
+        # Attrs: epsilon, num_groups
+        ret = all([
+            'num_groups' in node.attrs,
+            len(node.inputs) == 4,
+            len(node.outputs) == 1
+        ])
+
+        if ret:
+            
+            self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['X', 'gamma', 'beta', 'stat']
+        outputs = ['Y']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['N'] = input_shape[0]
+        self.operatorRepresentation['C'] = input_shape[1]
+        self.operatorRepresentation['H'] = input_shape[2] if len(input_shape) > 2 else 1
+        self.operatorRepresentation['W'] = input_shape[3] if len(input_shape) > 3 else 1
+
+        return ctxt, True
+
+
 class MatMulParser(NodeParser):
 
     def __init__(self, noBiasHoisting = True):
