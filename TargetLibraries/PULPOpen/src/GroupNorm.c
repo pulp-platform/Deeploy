@@ -255,3 +255,20 @@ void GroupNormalization_fp32(const float32_t *X, const float32_t *gamma,
         }
     }
 }
+
+void GroupNormGradB_fp32_fp32(const float32_t *dY, float32_t *dBeta,
+                               int32_t N, int32_t C, int32_t H, int32_t W) {
+    // dBeta[c] = sum over (n, h, w) of dY[n, c, h, w]
+    for (int32_t c = 0; c < C; c++) {
+        float32_t sum = 0.0f;
+        for (int32_t n = 0; n < N; n++) {
+            for (int32_t h = 0; h < H; h++) {
+                for (int32_t w = 0; w < W; w++) {
+                    int32_t idx = ((n * C + c) * H + h) * W + w;
+                    sum += dY[idx];
+                }
+            }
+        }
+        dBeta[c] += sum;  // += for tiling accumulation
+    }
+}

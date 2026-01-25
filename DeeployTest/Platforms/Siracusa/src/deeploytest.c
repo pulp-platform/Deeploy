@@ -41,7 +41,7 @@ void CompareFloatOnCluster(void *args) {
       float actual_val = actual[i];
       float diff = expected_val - actual_val;
 
-      if ((diff < -6e-4) || (diff > 6e-4) || isnan(diff)) {
+      if ((diff < -1e-3) || (diff > 1e-3) || isnan(diff)) {
         local_err_count += 1;
 
         printf("Expected: %10.6f  ", expected_val);

@@ -521,6 +521,19 @@ class GroupNormGradWLayer(ONNXLayer):
         return size * ops_per_element
 
 
+class GroupNormGradBLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        # GroupNormGradB operations:
+        # - sum dY over N, H, W for each channel
+        ops_per_element = 1
+        return size * ops_per_element
+
+
 class GroupNormalizationStatLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):

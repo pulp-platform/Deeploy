@@ -127,4 +127,22 @@ void GroupNormGradXStat_fp32_fp32(const float32_t *dY,
                                   float32_t *grad_stat,
                                   int32_t N, int32_t C, int32_t H, int32_t W,
                                 int32_t num_groups);
+
+/**
+ * @brief Compute the gradient of GroupNorm with respect to beta (bias parameter).
+ *
+ * dBeta[c] = sum over (N, H, W) of dY[n, c, h, w]
+ *
+ * Supports HW tiling - accumulates partial sums across tiles.
+ *
+ * @param dY        Upstream gradient [N, C, H, W] (tiled)
+ * @param dBeta     Output gradient for beta [C] (accumulated)
+ * @param N         Batch size
+ * @param C         Number of channels
+ * @param H         Height of this tile
+ * @param W         Width of this tile
+ */
+void GroupNormGradB_fp32_fp32(const float32_t *dY, float32_t *dBeta,
+                               int32_t N, int32_t C, int32_t H, int32_t W);
+
 #endif // __DEEPLOY_MATH_GROUPNORM_KERNEL_HEADER_

@@ -1855,6 +1855,43 @@ class GroupNormGradWParser(NodeParser):
         return ctxt, True
 
 
+class GroupNormGradBParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+        # GroupNormGradB expects:
+        # Inputs: dY
+        # Outputs: dBeta
+        # No attrs needed (just sum dY over N, H, W)
+        ret = all([
+            len(node.inputs) == 1,
+            len(node.outputs) == 1
+        ])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['dY']
+        outputs = ['dBeta']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['N'] = input_shape[0]
+        self.operatorRepresentation['C'] = input_shape[1]
+        self.operatorRepresentation['H'] = input_shape[2] if len(input_shape) > 2 else 1
+        self.operatorRepresentation['W'] = input_shape[3] if len(input_shape) > 3 else 1
+
+        return ctxt, True
+
+
 class GroupNormalizationStatParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> (bool):

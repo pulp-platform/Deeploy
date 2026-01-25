@@ -56,7 +56,31 @@ class GroupNormGradXStatTileConstraint(TileConstraint):
             tilerModel.getTensorDimVar(tensorName=grad_stat_buffer_name, dimIdx=2) == 2
         )
 
-        # not tile 
+        # not tile dy and X
+        # tilerModel.addConstraint(
+        #     tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=0) == N
+        # )
+        # tilerModel.addConstraint(
+        #     tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=1) == input_shape[1]
+        # )       
+        # tilerModel.addConstraint(
+        #     tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=2) == input_shape[2]
+        # )
+        # tilerModel.addConstraint(
+        #     tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=3) == input_shape[3]
+        # )   
+        # tilerModel.addConstraint(
+        #     tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=0) == N
+        # )
+        # tilerModel.addConstraint(
+        #     tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=1) == input_shape[1]
+        # )       
+        # tilerModel.addConstraint(
+        #     tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=2) == input_shape[2]
+        # )
+        # tilerModel.addConstraint(
+        #     tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=3) == input_shape[3]
+        # )   
 
         return tilerModel
 
