@@ -259,7 +259,7 @@ PULPFloatConvGradX2DBindings = [
     NodeBinding(
         ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
                     [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradX2DIm2ColTiledTemplate,
-        ClusterTransformer)
+        ForkTransformer)
 ]
 
 PULPFloatDWConv2DBindings = [
