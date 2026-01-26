@@ -193,9 +193,13 @@ class MaxPoolParser(NodeParser):
     def parseNode(self, node: gs.Node) -> bool:
 
         ret = all([
-            'ceil_mode' in node.attrs, 'kernel_shape' in node.attrs, 'pads' in node.attrs, 'strides' in node.attrs,
+            'ceil_mode' in node.attrs,
+            'kernel_shape' in node.attrs,
+            'pads' in node.attrs,
+            'strides' in node.attrs,
             len(node.inputs) == 1,
-            len(node.outputs) >= 1
+            len(node.outputs) >= 1,
+            all([stride > 0 for stride in node.attrs['strides']]),
         ])
 
         if ret:
