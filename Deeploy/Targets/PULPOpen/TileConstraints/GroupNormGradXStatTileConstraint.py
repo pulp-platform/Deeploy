@@ -56,31 +56,30 @@ class GroupNormGradXStatTileConstraint(TileConstraint):
             tilerModel.getTensorDimVar(tensorName=grad_stat_buffer_name, dimIdx=2) == 2
         )
 
-        # not tile dy and X
-        # tilerModel.addConstraint(
-        #     tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=0) == N
-        # )
-        # tilerModel.addConstraint(
-        #     tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=1) == input_shape[1]
-        # )       
-        # tilerModel.addConstraint(
-        #     tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=2) == input_shape[2]
-        # )
-        # tilerModel.addConstraint(
-        #     tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=3) == input_shape[3]
-        # )   
-        # tilerModel.addConstraint(
-        #     tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=0) == N
-        # )
-        # tilerModel.addConstraint(
-        #     tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=1) == input_shape[1]
-        # )       
-        # tilerModel.addConstraint(
-        #     tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=2) == input_shape[2]
-        # )
-        # tilerModel.addConstraint(
-        #     tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=3) == input_shape[3]
-        # )   
+        return tilerModel
+
+    @staticmethod
+    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        dY_buffer_name = parseDict["dY"]
+        X_buffer_name = parseDict["X"]
+
+        input_shape = ctxt.lookup(X_buffer_name).shape  # [N, C, H, W]
+        N = input_shape[0]
+        C = input_shape[1]
+        H = input_shape[2]
+        W = input_shape[3]
+
+        # Force dY and X to not be tiled (must read full inputs)
+        # This ensures the tiler correctly accounts for memory usage
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=0) == N)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=1) == C)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=2) == H)
+        # tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=dY_buffer_name, dimIdx=3) == W)
+
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=0) == N)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=1) == C)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=2) == H)
+        # tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=X_buffer_name, dimIdx=3) == W)
 
         return tilerModel
 
@@ -110,30 +109,47 @@ class GroupNormGradXStatTileConstraint(TileConstraint):
         input_load_schedule = []
         output_load_schedule = []
 
-        # Pull shapes from op-repr (as in your reference)
+        # Pull shapes from op-repr
         num_groups = operatorRepresentation["num_groups"]
         N = operatorRepresentation["N"]
         C = operatorRepresentation["C"]
         H = operatorRepresentation["H"]
         W = operatorRepresentation["W"]
 
-        # Full input cubes (no tiling on inputs)
-        # X and dY are [N, C, H, W]
-        X_cube = HyperRectangle((0, 0, 0, 0), (N, C, H, W))
-        dY_cube = HyperRectangle((0, 0, 0, 0), (N, C, H, W))
+        # Get buffers
+        dY_buffer = ctxt.lookup(operatorRepresentation["dY"])
+        X_buffer = ctxt.lookup(operatorRepresentation["X"])
 
-        # gamma is [C]
+        # Extract tiled dimensions from the solution for dY
+        try:
+            dY_tile_shape = tilingSolution.tensorMemoryConstraints[operatorRepresentation["dY"]].memoryConstraints[targetMemLevel].shape
+        except Exception:
+            # Fallback to full shape if tiling info not available
+            dY_tile_shape = tuple(dY_buffer.shape)
+
+        # Get the tiled dimensions (N, C, H are constrained, W can be tiled)
+        N_tile = dY_tile_shape[0]
+        C_tile = dY_tile_shape[1]
+        H_tile = dY_tile_shape[2]
+        W_tile = dY_tile_shape[3]
+
+        # gamma is always [C] (no tiling)
         gamma_cube = HyperRectangle((0,), (C,))
 
-        # mean and inv_std are [N, num_groups]
-        grad_stat_cube = HyperRectangle((0, 0, 0), (N, num_groups, 2))
+        # stat is always [N, num_groups, 2] (no tiling on stat input)
         stat_cube = HyperRectangle((0, 0, 0), (N, num_groups, 2))
 
         for cube in output_cubes:
-            # output stat cube is [N, num_groups, 2]
-            # conservatively assume kernel reads full inputs for any output tile
-            # size here: number of X (or dY) elements read (example)
-            new_size = N * C * H * W
+            # X and dY cubes use tiled dimensions
+            # Since N, C, H are constrained to not tile, only W can vary
+            X_cube = HyperRectangle((0, 0, 0, 0), (N_tile, C_tile, H_tile, W_tile))
+            dY_cube = HyperRectangle((0, 0, 0, 0), (N_tile, C_tile, H_tile, W_tile))
+
+            # grad_stat output matches the output cube
+            grad_stat_cube = cube
+
+            # size: number of X (or dY) elements read per tile
+            new_size = N_tile * C_tile * H_tile * W_tile
             replacements["size"].append(new_size)
 
             input_load_schedule.append(
@@ -144,7 +160,7 @@ class GroupNormGradXStatTileConstraint(TileConstraint):
                     "stat": stat_cube,
                 }
             )
-            output_load_schedule.append({ "grad_stat": grad_stat_cube,})
+            output_load_schedule.append({"grad_stat": grad_stat_cube})
 
         tiling_schedule = TilingSchedule(
             input_base_offsets,
