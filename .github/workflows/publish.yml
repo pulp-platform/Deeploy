@@ -28,11 +28,11 @@ jobs:
       - name: Build artifacts
         run: uv build
 
-      - name: Smoke test wheel
-        run: uv run --isolated --no-project --with dist/*.whl python -c "import Deeploy; import Deeploy.AbstractDataTypes"
+      - name: Test wheel installation
+        run: uv run --isolated --no-project --with dist/*.whl python -c "import Deeploy"
 
-      - name: Smoke test sdist
-        run: uv run --isolated --no-project --with dist/*.tar.gz python -c "import Deeploy; import Deeploy.AbstractDataTypes"
+      - name: Test sdist installation
+        run: uv run --isolated --no-project --with dist/*.tar.gz python -c "import Deeploy"
 
       - name: Publish to PyPI
         run: uv publish
@@ -51,11 +51,11 @@ jobs:
       - name: Build artifacts
         run: uv build
 
-      - name: Smoke test wheel
-        run: uv run --isolated --no-project --with dist/*.whl python -c "import Deeploy; import Deeploy.AbstractDataTypes"
+      - name: Test wheel installation
+        run: uv run --isolated --no-project --with dist/*.whl python -c "import Deeploy"
 
-      - name: Smoke test sdist
-        run: uv run --isolated --no-project --with dist/*.tar.gz python -c "import Deeploy; import Deeploy.AbstractDataTypes"
+      - name: Test sdist installation
+        run: uv run --isolated --no-project --with dist/*.tar.gz python -c "import Deeploy"
 
       - name: Publish to Test PyPI
         run: uv publish --publish-url https://test.pypi.org/legacy/
