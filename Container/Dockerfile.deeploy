@@ -103,7 +103,6 @@ RUN mkdir -p /root/.cargo/bin/ && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && \
     rm get-pip.py && \
-    pip install nvidia-pyindex && \
     pip install toml-to-requirements && \
     toml-to-req --toml-file pyproject.toml && \
     pip install -r requirements.txt
