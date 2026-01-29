@@ -1,10 +1,10 @@
 diff --git a/Cargo.toml b/Cargo.toml
-index d406357..eb5ce8e 100644
+index d406357..f14c0f7 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -11,30 +11,32 @@ edition = "2018"
+@@ -11,30 +11,34 @@ edition = "2018"
  build = "build/build.rs"
-
+ 
  [dependencies]
 -anyhow = "1"
 -binread = "2.2.0"
@@ -25,35 +25,40 @@ index d406357..eb5ce8e 100644
  flexfloat = { path = "flexfloat" }
 -itertools = "0.9"
 -llvm-sys = "120"
-+itertools = "=0.9"
-+llvm-sys = "150"
- log = { version = "0.4", features = ["release_max_level_info"] }
+-log = { version = "0.4", features = ["release_max_level_info"] }
 -pest = "2.1.3"
 -pest_derive = "2.1.0"
 -ndarray = "0.13"
 -pretty_env_logger = "0.4"
-+pest = "=2.1.3"
-+pest_derive = "=2.1.0"
-+ndarray = "=0.13"
-+pretty_env_logger = "=0.4"
- regex = "~1.9.6"
+-regex = "~1.9.6"
 -rev_slice = "0.1.5"
-+rev_slice = "=0.1.5"
- serde = { version = "1.0.123", features = ["derive"] }
+-serde = { version = "1.0.123", features = ["derive"] }
 -serde_json = "1.0.63"
 -serde_yaml = "0.8"
 -termion = "2.0.3"
 -thiserror = "1.0.21"
 -to-binary = "0.4.0"
++itertools = "=0.9"
++llvm-sys = "=150"
++log = { version = "=0.4.17", features = ["release_max_level_info"] }
++pest = "=2.1.3"
++pest_derive = "=2.1.0"
++ndarray = "=0.13"
++pretty_env_logger = "=0.4"
++regex = "=1.9.6"
++rev_slice = "=0.1.5"
++serde = { version = "=1.0.123", features = ["derive"] }
 +serde_json = "=1.0.63"
 +serde_yaml = "=0.8"
 +termion = "=2.0.3"
 +thiserror = "=1.0.21"
 +to-binary = "=0.4.0"
-+libc = "0.2"
-
++libc = "=0.2"
++quote = "=1.0.41"
+ 
  [build-dependencies]
  cc = "1.0"
++cmake = "=0.1.50"
 diff --git a/build/runtime.rs b/build/runtime.rs
 index 04f80b8..c03f248 100644
 --- a/build/runtime.rs
@@ -69,16 +74,16 @@ index 04f80b8..c03f248 100644
          .status()
          .unwrap();
 diff --git a/src/engine.rs b/src/engine.rs
-index 216996b..e5abe38 100644
+index f32a539..a79a708 100644
 --- a/src/engine.rs
 +++ b/src/engine.rs
 @@ -281,7 +281,6 @@ impl Engine {
-
+ 
              LLVMPassManagerBuilderPopulateFunctionPassManager(builder, func_passes);
              LLVMAddAnalysisPasses(tm, module_passes);
 -            LLVMPassManagerBuilderPopulateLTOPassManager(builder, module_passes, 0, 1);
              LLVMPassManagerBuilderPopulateModulePassManager(builder, module_passes);
-
+ 
              // Create and run the function pass manager.
 diff --git a/src/tran.rs b/src/tran.rs
 index 1054744..ae5ae78 100644
@@ -90,9 +95,9 @@ index 1054744..ae5ae78 100644
  };
 +use libc;
  extern crate flexfloat;
-
+ 
 -static NONAME: &'static i8 = unsafe { std::mem::transmute("\0".as_ptr()) };
 +static NONAME: &'static libc::c_char = unsafe { std::mem::transmute("\0".as_ptr()) };
-
+ 
  /// Base address of the stream semantic regsiters
  static SSR_BASE: u64 = 0x204800;
