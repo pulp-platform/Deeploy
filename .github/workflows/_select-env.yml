@@ -34,7 +34,7 @@ jobs:
           elif [[ "${{ github.ref_name }}" == "main" ]]; then
             IMAGE="ghcr.io/pulp-platform/deeploy:main"
           else
-            IMAGE="ghcr.io/pulp-platform/deeploy:devel"
+            IMAGE="ghcr.io/victor-jung/deeploy:package-deployment"
           fi
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
 

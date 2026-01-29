@@ -4,7 +4,7 @@
 
 [project]
 name = "PULP-Deeploy"
-version = '0.2.1'
+version = "0.2.1"
 description = "Deeploy - DNN Compiler for Heterogeneous SoCs"
 authors = [
     { name="Victor Jung", email="jungvi@iis.ee.ethz.ch" },
@@ -22,7 +22,7 @@ dependencies = [
 'numpy<2.0.0',
 'onnx',
 'onnxruntime',
-'onnx-graphsurgeon==0.3.20',
+'onnx-graphsurgeon>=0.5.8',
 'mako',
 'argparse',
 'toml',
@@ -46,10 +46,3 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["Deeploy*"]
 exclude = ["DeeployTest*"]
-
-[[tool.uv.index]]
-name = "ngc"
-url = "https://pypi.ngc.nvidia.com/simple"
-
-[tool.uv.sources]
-onnx-graphsurgeon = { index = "ngc" }
