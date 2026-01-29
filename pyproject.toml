@@ -46,3 +46,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["Deeploy*"]
 exclude = ["DeeployTest*"]
+
+[[tool.uv.index]]
+name = "ngc"
+url = "https://pypi.ngc.nvidia.com/simple"
+
+[tool.uv.sources]
+onnx-graphsurgeon = { index = "ngc" }

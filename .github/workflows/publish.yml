@@ -1,0 +1,61 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  UV_EXTRA_INDEX_URL: https://pypi.ngc.nvidia.com
+
+jobs:
+  publish-pypi:
+    name: Publish to PyPI
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build artifacts
+        run: uv build
+
+      - name: Smoke test wheel
+        run: uv run --isolated --no-project --with dist/*.whl python -c "import Deeploy; import Deeploy.AbstractDataTypes"
+
+      - name: Smoke test sdist
+        run: uv run --isolated --no-project --with dist/*.tar.gz python -c "import Deeploy; import Deeploy.AbstractDataTypes"
+
+      - name: Publish to PyPI
+        run: uv publish
+
+  publish-test-pypi:
+    name: Publish to Test PyPI
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build artifacts
+        run: uv build
+
+      - name: Smoke test wheel
+        run: uv run --isolated --no-project --with dist/*.whl python -c "import Deeploy; import Deeploy.AbstractDataTypes"
+
+      - name: Smoke test sdist
+        run: uv run --isolated --no-project --with dist/*.tar.gz python -c "import Deeploy; import Deeploy.AbstractDataTypes"
+
+      - name: Publish to Test PyPI
+        run: uv publish --publish-url https://test.pypi.org/legacy/
