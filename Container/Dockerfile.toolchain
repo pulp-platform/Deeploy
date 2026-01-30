@@ -13,7 +13,6 @@ ENV TZ=Etc/UTC
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
 ENV CCACHE_DIR=/ccache
-ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Change the working directory
 WORKDIR /app
