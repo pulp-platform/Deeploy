@@ -51,17 +51,22 @@ CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
 XTENSOR_VERSION ?= 0.25.0
-BANSHEE_VERSION ?= 0.5.0-prebuilt
 
 OS  := $(shell uname -s)
 ARCH:= $(shell uname -m)
 
 ifeq ($(OS),Linux)
-  TARGET := x86_64-unknown-linux-gnu
+	ifeq ($(ARCH),x86_64)
+		TARGET := x86_64-unknown-linux-gnu
+	else ifeq ($(ARCH),aarch64)
+		TARGET := aarch64-unknown-linux-gnu
+	else
+		$(error unsupported Linux architecture $(ARCH))
+	endif
 else ifeq ($(OS),Darwin)
-  TARGET := aarch64-apple-darwin
+	TARGET := aarch64-apple-darwin
 else
-  $(error unsupported platform $(OS))
+	$(error unsupported platform $(OS))
 endif
 
 all: toolchain emulators docs echo-bash
@@ -516,7 +521,7 @@ ${BANSHEE_INSTALL_DIR}:
 	export LLVM_SYS_150_PREFIX=${LLVM_INSTALL_DIR} && \
 	mkdir -p ${BANSHEE_INSTALL_DIR} && cd ${BANSHEE_INSTALL_DIR} && \
 	curl -LO https://github.com/pulp-platform/banshee/releases/download/v0.5.0-prebuilt/banshee-0.5.0-$(TARGET).tar.gz && \
-	tar -xzf banshee-0.5.0-x86_64-unknown-linux-gnu.tar.gz --strip-components=1 -C .
+	tar -xzf banshee-0.5.0-$(TARGET).tar.gz --strip-components=1 -C .
 
 banshee: ${BANSHEE_INSTALL_DIR}
 
