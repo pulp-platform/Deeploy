@@ -467,23 +467,62 @@ class AddParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-
         ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
-
         return ret
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
         data_in_1 = ctxt.lookup(node.inputs[0].name)
         data_in_2 = ctxt.lookup(node.inputs[1].name)
         data_out = ctxt.lookup(node.outputs[0].name)
+
         self.operatorRepresentation['data_in_1'] = data_in_1.name
         self.operatorRepresentation['data_in_2'] = data_in_2.name
         self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = np.prod(data_in_1.shape)
+        self.operatorRepresentation['size'] = np.prod(data_out.shape)
+
+        # Check if broadcasting is needed
+        shape1 = list(data_in_1.shape)
+        shape2 = list(data_in_2.shape)
+        out_shape = list(data_out.shape)
+
+        need_broadcast = (shape1 != out_shape) or (shape2 != out_shape)
+        self.operatorRepresentation['need_broadcast'] = need_broadcast
+
+        if need_broadcast:
+            # Calculate strides for broadcasting
+            ndim = len(out_shape)
+
+            # Compute strides for input 1
+            strides1 = [1] * ndim
+            for i in range(ndim - 1, -1, -1):
+                if i < len(shape1) and shape1[i] == out_shape[i]:
+                    if i == ndim - 1:
+                        strides1[i] = 1
+                    else:
+                        strides1[i] = strides1[i + 1] * shape1[i + 1] if (
+                            i + 1 < len(shape1) and shape1[i + 1] == out_shape[i + 1]) else strides1[i + 1]
+                else:
+                    strides1[i] = 0  # Broadcast dimension
+
+            # Compute strides for input 2
+            strides2 = [1] * ndim
+            for i in range(ndim - 1, -1, -1):
+                if i < len(shape2) and shape2[i] == out_shape[i]:
+                    if i == ndim - 1:
+                        strides2[i] = 1
+                    else:
+                        strides2[i] = strides2[i + 1] * shape2[i + 1] if (
+                            i + 1 < len(shape2) and shape2[i + 1] == out_shape[i + 1]) else strides2[i + 1]
+                else:
+                    strides2[i] = 0  # Broadcast dimension
+
+            self.operatorRepresentation['ndim'] = ndim
+            self.operatorRepresentation['strides1'] = strides1
+            self.operatorRepresentation['strides2'] = strides2
+            self.operatorRepresentation['out_shape'] = out_shape
 
         return ctxt, True
 

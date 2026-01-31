@@ -709,3 +709,31 @@ class ConvTransposeLayer(ONNXLayer):
             numPx = opRep['dim_im_out_x']
 
         return numPx * opsPerPx
+
+
+class RMSNormLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        # RMSNorm: square, mean, sqrt, div, mul
+        size = self.mapper.parser.operatorRepresentation['size']
+        lastDimLength = self.mapper.parser.operatorRepresentation['lastDimLength']
+        batch_size = size // lastDimLength
+
+        # square + sum + mean + eps + sqrt + div + mul
+        ops = size + batch_size * lastDimLength + batch_size * 4 + size * 2
+        return ops
+
+
+class HardSwishLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        # HardSwish(x) = x * clip(x/6 + 0.5, 0, 1)
+        # Operations: div + add + clip + mul
+        size = self.mapper.parser.operatorRepresentation['size']
+        return size * 4
