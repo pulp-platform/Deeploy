@@ -23,8 +23,13 @@
 
 #include "snrt.h"
 
+#include "kernel/Add.h"
+#include "kernel/Div.h"
 #include "kernel/Gemm.h"
+#include "kernel/HardSwish.h"
 #include "kernel/MatMul.h"
+#include "kernel/Mul.h"
+#include "kernel/RMSNrom.h"
 #include "kernel/RQGemm.h"
 #include "kernel/RQMatMul.h"
 #include "kernel/Softmax.h"
