@@ -25,7 +25,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    testRunner = TestRunner(platform = "Snitch", simulator = args.simulator, tiling = True, argument_parser = parser)
+    testRunner = TestRunner(platform = "Snitch_tiled",
+                            simulator = args.simulator,
+                            tiling = True,
+                            argument_parser = parser)
 
     testRunner.cmake_args += f" -D NUM_CORES={args.cores}"
 
