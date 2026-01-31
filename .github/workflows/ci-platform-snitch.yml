@@ -35,4 +35,26 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      pytest-marker: "kernels"
+      test-names: |
+        Kernels/FP32/Softmax/Regular
+        Kernels/FP32/RMSNorm_fused
+        Kernels/FP32/MatMul
+        Kernels/FP32/Add/Regular
+        Kernels/FP32/Hardswish
+        Kernels/FP32/Div
+
+        Kernels/Integer/Add/Large
+        Kernels/Integer/Add/Regular
+
+        Kernels/Integer/Softmax/Large
+        Kernels/Integer/Softmax/Regular
+
+        Kernels/Integer/MatMul/Regular
+
+        Kernels/Integer/iNoNorm
+        Kernels/Integer/GEMM/Regular_RQPerRow
+        Kernels/Integer/Add/Regular_RQ
+        Kernels/Integer/GEMM/TransB_RQ
+      num-cores: 9
+      simulators: |
+        gvsoc
