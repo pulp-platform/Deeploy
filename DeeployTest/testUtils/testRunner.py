@@ -143,6 +143,11 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           action = 'store_true',
                           default = False,
                           help = 'Skip network generation\n')
+        self.add_argument('--skipbuild',
+                          dest = 'skipbuild',
+                          action = 'store_true',
+                          default = False,
+                          help = 'Skip network simulation\n')
         self.add_argument('--skipsim',
                           dest = 'skipsim',
                           action = 'store_true',
@@ -324,13 +329,14 @@ class TestRunner():
         self._dir_build = f"{self._dir_gen_root}/build"
         self._dir_gen, self._dir_test, self._name_test = getPaths(self._args.dir, self._dir_gen_root)
 
-        if "CMAKE" not in os.environ:
-            if self._args.verbose >= 1:
-                log.error(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
-            assert shutil.which(
-                "cmake"
-            ) is not None, "CMake not found. Please check that CMake is installed and available in your system’s PATH, or set the CMAKE environment variable to the full path of your preferred CMake executable."
-            os.environ["CMAKE"] = "cmake"
+        if self._args.skipbuild is False:
+            if "CMAKE" not in os.environ:
+                if self._args.verbose >= 1:
+                    log.error(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
+                assert shutil.which(
+                    "cmake"
+                ) is not None, "CMake not found. Please check that CMake is installed and available in your system’s PATH, or set the CMAKE environment variable to the full path of your preferred CMake executable."
+                os.environ["CMAKE"] = "cmake"
 
         print("Generation Directory: ", self._dir_gen)
         print("Test Directory      : ", self._dir_test)
@@ -342,9 +348,9 @@ class TestRunner():
         if self._args.skipgen is False:
             self.generate_test()
 
-        self.configure_cmake_project()
-
-        self.build_binary()
+        if self._args.skipbuild is False:
+            self.configure_cmake_project()
+            self.build_binary()
 
         if self._args.skipsim is False:
             self.run_simulation()
@@ -359,6 +365,9 @@ class TestRunner():
 
         if self._platform in ["Siracusa", "Siracusa_w_neureka"]:
             command += f" --cores={self._args.cores}"
+        
+        if self._platform in ["Magia"]:
+            command += f" --tiles={self._args.tiles}"
 
         command += self._argument_parser.generate_cmd_args()
 

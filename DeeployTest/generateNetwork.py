@@ -21,6 +21,7 @@ from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
 from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPPlatform
+from Deeploy.Targets.Magia.Platform import MagiaMeshEngine, MagiaPlatform
 
 
 def generateNetwork(args):
@@ -87,6 +88,10 @@ def generateNetwork(args):
     clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
     for cluster in clusters:
         cluster.n_cores = args.cores
+    
+    meshes = [engine for engine in platform.engines if isinstance(engine, MagiaMeshEngine)]
+    for mesh in meshes:
+        mesh.n_tiles = args.tiles
 
     inputTypes = {}
     inputOffsets = {}
@@ -166,34 +171,36 @@ if __name__ == '__main__':
                         dest = 'debug',
                         action = 'store_true',
                         default = False,
-                        help = 'Enable debugging mode\n')
+                        help = 'Enable debugging mode.\n')
     parser.add_argument('--profileUntiled',
                         action = 'store_true',
                         dest = 'profileUntiled',
                         default = False,
-                        help = 'Profile Untiled for L2\n')
+                        help = 'Profile Untiled for L2.\n')
     parser.add_argument('--input-type-map',
                         nargs = '*',
                         default = [],
                         type = str,
                         help = '(Optional) mapping of input names to data types. '
-                        'If not specified, types are inferred from the input data. '
-                        'Example: --input-type-map input_0=int8_t input_1=float32_t ...')
+                        'If not specified, types are inferred from the input data.'
+                        'Example: --input-type-map input_0=int8_t input_1=float32_t ...\n')
     parser.add_argument('--input-offset-map',
                         nargs = '*',
                         default = [],
                         type = str,
                         help = '(Optional) mapping of input names to offsets. '
                         'If not specified, offsets are set to 0. '
-                        'Example: --input-offset-map input_0=0 input_1=128 ...')
+                        'Example: --input-offset-map input_0=0 input_1=128 ...\n')
     parser.add_argument('--shouldFail', action = 'store_true')
-    parser.add_argument(
-        "--cores",
-        type = int,
-        default = 1,
-        help =
-        "Number of cores on which the network is run. Currently, required for im2col buffer sizing on Siracusa. Default: 1.",
-    )
+    parser.add_argument("--cores",
+                        type = int,
+                        default = 1,
+                        help = 'Number of cores on which the network is run.' 
+                        'Currently, required for im2col buffer sizing on Siracusa. Default: 1.\n')
+    parser.add_argument("--tiles",
+                        type = int,
+                        default = 1,
+                        help = 'Number of tiles on which the network is run (mesh based architectures only).\n')
     parser.set_defaults(shouldFail = False)
 
     args = parser.parse_args()

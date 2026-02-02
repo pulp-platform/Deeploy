@@ -10,6 +10,7 @@ import numpy as np
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
+from Deeploy.Targets.Magia.Platform import MagiaPlatform
 
 _TEXT_ALIGN = 30
 
@@ -119,12 +120,17 @@ def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
     retStr += """
     #ifndef __DEEPLOY_HEADER__
     #define __DEEPLOY_HEADER__
-    #include <stdio.h>
     #include <stdint.h>
-    #include <stdlib.h>
     """
+
+    if not isinstance(deployer.Platform, MagiaPlatform):
+        retStr += """ 
+        #include <stdio.h>
+        #include <stdlib.h>
+        """
+    
     retStr += deployer.generateIncludeString()
-    if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
+    if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper, MagiaPlatform)):
         retStr += """
         void RunNetwork();
         void InitNetwork();
@@ -148,15 +154,15 @@ def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
 def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: CodeGenVerbosity) -> str:
     retStr = ""
 
-    retStr += """#include <stdio.h>
-    #include <stdlib.h>
-    #include <math.h>
-    """
-    retStr += deployer.generateIncludeString()
+    if not isinstance(deployer.Platform, MagiaPlatform):
+        retStr += """#include <stdio.h>
+        #include <stdlib.h>
+        #include <math.h>
+        """
+        retStr += deployer.generateIncludeString()
+    
     retStr += """
-
     #include "Network.h"
-
     """
 
     retStr += deployer.generateBufferInitializationCode()
@@ -168,7 +174,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         retStr += """
         void RunNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
         """
-    elif isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
+    elif isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper, MagiaPlatform)):
         retStr += """
         void RunNetwork(){
         """
@@ -180,7 +186,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         retStr += deployer.generateInferenceInitializationCode()
 
     retStr += deployer.generateFunction(verbosityCfg)
-    if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
+    if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper, MagiaPlatform)):
         retStr += """
         }
 

@@ -18,20 +18,22 @@ from Deeploy.Targets.GAP9.Deployer import GAP9Deployer
 from Deeploy.Targets.GAP9.Platform import GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
 from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericPlatform
+from Deeploy.Targets.Magia.Deployer import MagiaDeployer
+from Deeploy.Targets.Magia.Platform import MagiaOptimizer, MagiaPlatform
 from Deeploy.Targets.MemPool.Deployer import MemPoolDeployer
 from Deeploy.Targets.MemPool.Platform import MemPoolOptimizer, MemPoolPlatform
 from Deeploy.Targets.Neureka.Deployer import NeurekaDeployer
 from Deeploy.Targets.Neureka.Platform import MemoryNeurekaPlatform, MemoryNeurekaPlatformWrapper, NeurekaOptimizer, \
     NeurekaPlatform
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
-from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform
+from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform 
 from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "Magia"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -75,6 +77,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Chimera":
         Platform = ChimeraPlatform()
+
+    elif platformName == "Magia":
+        Platform = MagiaPlatform()
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -272,6 +277,22 @@ def mapDeployer(platform: DeploymentPlatform,
                                    name = name,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir)
+
+    elif isinstance(platform, (MagiaPlatform)):
+        if loweringOptimizer is None:
+            loweringOptimizer = MagiaOptimizer 
+
+        if default_channels_first is None:
+            default_channels_first = False
+        
+        deployer = MagiaDeployer(graph,
+                                 platform,
+                                 inputTypes,
+                                 loweringOptimizer,
+                                 scheduler,
+                                 name = name,
+                                 default_channels_first = default_channels_first,
+                                 deeployStateDir = deeployStateDir)
 
     else:
         raise RuntimeError(f"Deployer for platform {platform} is not implemented")
