@@ -3103,6 +3103,15 @@ class NetworkContainer():
 
         if not os.path.isabs(absoluteOnnxPath) or not os.path.isabs(absoluteDataPath):
             raise OSError(f"Error exporting the context to: {absoluteOnnxPath}")
+        
+        # VJUNG: ONNX-Graphsurgeon needs tensors to be in float32 for proper export
+        constTensors = [
+            tensor
+            for tensor in self.graph.tensors().values()
+            if isinstance(tensor, gs.Constant)
+        ]
+        for tensor in constTensors:
+            tensor.values = tensor.values.astype(np.float32)
 
         model = gs.export_onnx(self.graph)
 
