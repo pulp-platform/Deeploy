@@ -149,11 +149,11 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           default = False,
                           help = 'Skip network simulation\n')
         self.add_argument('--profileUntiled',
-                  '--profile-untiled',
-                  dest = 'profileUntiled',
-                  action = 'store_true',
-                  default = False,
-                  help = 'Enable untiled profiling (Siracusa only)\n')
+                          '--profile-untiled',
+                          dest = 'profileUntiled',
+                          action = 'store_true',
+                          default = False,
+                          help = 'Enable untiled profiling (Siracusa only)\n')
         self.add_argument('--toolchain',
                           metavar = '<LLVM|GCC>',
                           dest = 'toolchain',
