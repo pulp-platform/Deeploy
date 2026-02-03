@@ -3108,7 +3108,6 @@ class NetworkContainer():
         constTensors = [tensor for tensor in self.graph.tensors().values() if isinstance(tensor, gs.Constant)]
         for tensor in constTensors:
             if tensor.dtype != tensor.export_dtype:
-                print(f"Converting {tensor.dtype} into {tensor.export_dtype}")
                 tensor.values = tensor.values.astype(tensor.export_dtype)
 
         model = gs.export_onnx(self.graph)
