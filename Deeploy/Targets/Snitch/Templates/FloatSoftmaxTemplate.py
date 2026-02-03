@@ -25,10 +25,10 @@ class FloatSoftmaxTemplate(NodeTemplate):
 
 
 FloatSoftmaxTemplateStr = r"""
-    int32_t batch_size = ${size} / ${lastDimLength};
-    int32_t compute_num = 1; //snrt_cluster_compute_core_num();
-    int32_t ldI = compute_num * ${input_samples};
-    int32_t batch_offset = ${seq_len} * ${input_samples};
+    uint32_t batch_size = ${size} / ${lastDimLength};
+    uint32_t compute_num = 1; //snrt_cluster_compute_core_num();
+    uint32_t ldI = compute_num * ${input_samples};
+    uint32_t batch_offset = ${seq_len} * ${input_samples};
 
     // JUNGVI: This implementation is broken and has memory leak.
     if (snrt_hartid() == 0){
