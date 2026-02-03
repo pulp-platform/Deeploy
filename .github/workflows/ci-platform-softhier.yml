@@ -35,5 +35,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-names: |
-        Kernels/Integer/Add/Regular
+      pytest-marker: "kernels"

@@ -52,7 +52,7 @@ class Tiler():
     _MINIMALLOC_OUTPUT_FILENAME = "output_minimalloc"
 
     # Initialize with the list of TemplateTCFbinding
-    def __init__(self, memoryHierarchy: MemoryHierarchy):
+    def __init__(self, memoryHierarchy: MemoryHierarchy, testName: Optional[str] = None, workDir: Optional[str] = None):
 
         self.memoryHierarchy = memoryHierarchy
         self.tilerModel: Optional[TilerModel] = None
@@ -65,6 +65,23 @@ class Tiler():
         self.visualizeMemoryAlloc: bool = False
         self.memoryAllocStrategy: Literal["TetrisRandom", "TetrisCo-Opt", "MiniMalloc"] = "TetrisRandom"
         self.searchStrategy: Literal["min", "max", "random-max"] = "random-max"
+
+        if workDir is not None:
+            os.makedirs(workDir, exist_ok = True)
+            minimalloc_base = os.path.join(workDir, self._MINIMALLOC_INPUT_FILENAME)
+            minimalloc_output_base = os.path.join(workDir, self._MINIMALLOC_OUTPUT_FILENAME)
+        else:
+            minimalloc_base = self._MINIMALLOC_INPUT_FILENAME
+            minimalloc_output_base = self._MINIMALLOC_OUTPUT_FILENAME
+
+        if testName is not None:
+            # VJUNG: Sanitize path
+            safe_test_name = testName.replace("/", "_").replace("\\", "_")
+            self._minimalloc_input = f"{minimalloc_base}_{safe_test_name}"
+            self._minimalloc_output = f"{minimalloc_output_base}_{safe_test_name}"
+        else:
+            self._minimalloc_input = minimalloc_base
+            self._minimalloc_output = minimalloc_output_base
 
     @property
     def worstCaseBufferSize(self):
@@ -238,7 +255,7 @@ class Tiler():
 
     def minimalloc(self, memoryMap, ctxt, nodeMemoryConstraint, capacity: int, memoryLevel: str):
 
-        with open(f"{self._MINIMALLOC_INPUT_FILENAME}.csv", mode = "w", newline = "") as file:
+        with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
             writer = csv.writer(file, lineterminator = "\n")
             writer.writerow(["id", "lower", "upper", "size"])
             for memoryBlock in memoryMap:
@@ -272,8 +289,8 @@ class Tiler():
             raise KeyError("MINIMALLOC_INSTALL_DIR symbol not found!")
 
         minimallocOutput = subprocess.run([
-            f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}",
-            f"--input={self._MINIMALLOC_INPUT_FILENAME}.csv", f"--output={self._MINIMALLOC_OUTPUT_FILENAME}.csv"
+            f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}", f"--input={self._minimalloc_input}.csv",
+            f"--output={self._minimalloc_output}.csv"
         ],
                                           capture_output = True,
                                           text = True)
@@ -284,7 +301,7 @@ class Tiler():
             )
             raise subprocess.CalledProcessError(minimallocOutput.returncode, " ".join(minimallocOutput.args))
 
-        with open(f"{self._MINIMALLOC_OUTPUT_FILENAME}.csv", mode = "r", newline = "") as file:
+        with open(f"{self._minimalloc_output}.csv", mode = "r", newline = "") as file:
             reader = csv.reader(file)
             header = next(reader)
             for row in reader:
@@ -944,11 +961,15 @@ class Tiler():
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
 
-    def __init__(self, deployer: Union[MemoryLevelAwareDeployer, MemoryDeployerWrapper], tilerCls: Type[Tiler] = Tiler):
+    def __init__(self,
+                 deployer: Union[MemoryLevelAwareDeployer, MemoryDeployerWrapper],
+                 tilerCls: Type[Tiler] = Tiler,
+                 testName: Optional[str] = None,
+                 workDir: Optional[str] = None):
         super().__init__(deployer)
         assert isinstance(self.Platform, (MemoryPlatform, MemoryPlatformWrapper)), \
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"
-        self.tiler = tilerCls(self.Platform.memoryHierarchy)
+        self.tiler = tilerCls(self.Platform.memoryHierarchy, testName = testName, workDir = workDir)
 
     @property
     def worstCaseBufferSize(self):

@@ -26,10 +26,11 @@ dependencies = [
 'mako',
 'argparse',
 'toml',
-'pytest',
 'ortools',
 'plotly',
-'coloredlogs'
+'coloredlogs',
+'pytest',
+'pytest-xdist',
 ]
 
 [project.urls]
