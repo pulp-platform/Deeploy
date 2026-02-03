@@ -27,6 +27,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help = "Skip simulation step (only generate and build)",
     )
     parser.addoption(
+        "--profile-untiled",
+        action = "store_true",
+        default = False,
+        help = "Enable profiling for untiled Siracusa runs",
+    )
+    parser.addoption(
         "--toolchain",
         action = "store",
         default = "LLVM",
@@ -129,6 +135,12 @@ def skipgen(request):
 def skipsim(request):
     """Return whether to skip simulation."""
     return request.config.getoption("--skipsim")
+
+
+@pytest.fixture
+def profile_untiled(request):
+    """Return whether untiled profiling is enabled."""
+    return request.config.getoption("--profile-untiled")
 
 
 @pytest.fixture

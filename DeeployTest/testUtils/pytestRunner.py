@@ -47,6 +47,7 @@ def create_test_config(
     profile_tiling: bool = False,
     plot_mem_alloc: bool = False,
     randomized_mem_scheduler: bool = False,
+    profile_untiled: bool = False,
     gen_args: Optional[List[str]] = None,
 ) -> DeeployTestConfig:
 
@@ -89,6 +90,9 @@ def create_test_config(
             gen_args_list.append("--plotMemAlloc")
         if randomized_mem_scheduler:
             gen_args_list.append("--randomizedMemoryScheduler")
+
+    if profile_untiled and not tiling and platform == "Siracusa":
+        gen_args_list.append("--profileUntiled")
 
     config = DeeployTestConfig(
         test_name = test_name_clean,

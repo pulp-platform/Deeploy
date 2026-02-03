@@ -244,7 +244,8 @@ def test_mempool_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
 @pytest.mark.siracusa
 @pytest.mark.kernels
 @pytest.mark.parametrize("test_name", SIRACUSA_KERNEL_TESTS, ids = SIRACUSA_KERNEL_TESTS)
-def test_siracusa_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+def test_siracusa_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim,
+                          profile_untiled) -> None:
     config = create_test_config(
         test_name = test_name,
         platform = "Siracusa",
@@ -255,6 +256,7 @@ def test_siracusa_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir,
         cmake_args = cmake_args,
         tiling = False,
         cores = SIRACUSA_DEFAULT_CORES,
+        profile_untiled = profile_untiled,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -262,7 +264,8 @@ def test_siracusa_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir,
 @pytest.mark.siracusa
 @pytest.mark.models
 @pytest.mark.parametrize("test_name", SIRACUSA_MODEL_TESTS, ids = SIRACUSA_MODEL_TESTS)
-def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim,
+                         profile_untiled) -> None:
     config = create_test_config(
         test_name = test_name,
         platform = "Siracusa",
@@ -273,6 +276,7 @@ def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
         cmake_args = cmake_args,
         tiling = False,
         cores = SIRACUSA_DEFAULT_CORES,
+        profile_untiled = profile_untiled,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 

@@ -88,6 +88,12 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           action = 'store_true',
                           default = False,
                           help = 'Skip simulation (build only)\n')
+        self.add_argument('--profileUntiled',
+                  '--profile-untiled',
+                  dest = 'profileUntiled',
+                  action = 'store_true',
+                  default = False,
+                  help = 'Enable untiled profiling (Siracusa only)\n')
         self.add_argument('--toolchain',
                           metavar = '<LLVM|GCC>',
                           dest = 'toolchain',
@@ -225,6 +231,9 @@ def create_config_from_args(args: argparse.Namespace,
             gen_args_list.append(f"--searchStrategy={args.searchStrategy}")
         if hasattr(args, 'plotMemAlloc') and args.plotMemAlloc:
             gen_args_list.append("--plotMemAlloc")
+
+    if not tiling and getattr(args, 'profileUntiled', False):
+        gen_args_list.append("--profileUntiled")
 
     config = DeeployTestConfig(
         test_name = test_name,
