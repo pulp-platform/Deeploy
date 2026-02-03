@@ -19,8 +19,8 @@ if(TOOLCHAIN STREQUAL GCC)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, Generic, Snitch, Snitch_tiled)")
-set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open Generic Snitch Snitch_tiled)
+set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, Generic, Snitch)")
+set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open Generic Snitch)
 
 if(platform STREQUAL MemPool)
   message(STATUS "Building for platform 'MemPool'")
@@ -36,8 +36,6 @@ elseif(platform STREQUAL Generic)
   message(STATUS "Building for platform 'Generic'")
 elseif(platform STREQUAL Snitch)
   message(STATUS "Building for platform 'Snitch'")
-elseif(platform STREQUAL Snitch_tiled)
-  message(STATUS "Building for platform 'Snitch_tiled'")
 elseif(platform STREQUAL SoftHier)
   message(STATUS "Building for platform 'SoftHier'")
 elseif(platform STREQUAL Chimera)
@@ -213,7 +211,7 @@ if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka OR platfor
 
 endif()
 
-if(platform STREQUAL Snitch OR platform STREQUAL Snitch_tiled)
+if(platform STREQUAL Snitch)
 
   if(TOOLCHAIN STREQUAL LLVM)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/snitch/toolchain_llvm.cmake)

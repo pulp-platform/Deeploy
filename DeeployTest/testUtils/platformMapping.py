@@ -24,12 +24,12 @@ from Deeploy.Targets.Neureka.Platform import MemoryNeurekaPlatform, MemoryNeurek
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform
 from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
-from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform, SnitchTiledPlatform
+from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Snitch_tiled", "Chimera"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -64,9 +64,6 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Snitch":
         Platform = SnitchPlatform()
-
-    elif platformName == "Snitch_tiled":
-        Platform = SnitchTiledPlatform()
 
     elif platformName == "SoftHier":
         Platform = SoftHierPlatform()
@@ -220,7 +217,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                 default_channels_first = default_channels_first,
                                 deeployStateDir = deeployStateDir)
 
-    elif isinstance(platform, (SnitchPlatform, SnitchTiledPlatform)):
+    elif isinstance(platform, (SnitchPlatform)):
         if loweringOptimizer is None:
             loweringOptimizer = SnitchOptimizer
 
