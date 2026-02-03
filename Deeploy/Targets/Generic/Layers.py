@@ -712,6 +712,21 @@ class ConvTransposeLayer(ONNXLayer):
 
 
 class RMSNormLayer(ONNXLayer):
+    """Layer support for the ONNX RMSNormalization operator.
+
+    Supported opset: 23
+
+    It is computed as follows:
+        - XSquared = Mul(X, X)
+        - XSquaredMean = ReduceMean<axes=normalized_axes>(XSquared)
+        - MeanSquareEpsilon = Add(XSquaredMean, epsilon)
+        - RMS = Sqrt(MeanSquareEpsilon)
+        - Normalized = Div(X, RMS)
+        - Y = Mul(Normalized, Scale)
+
+    For more details, this is the official ONNX documentation:
+    https://onnx.ai/onnx/operators/onnx__RMSNormalization.html#rmsnormalization-23
+    """
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
