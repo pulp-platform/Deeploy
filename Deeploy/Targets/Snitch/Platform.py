@@ -9,9 +9,8 @@ import numpy as np
 from Deeploy.AbstractDataTypes import Pointer, PointerClass, VoidType
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicConcatBindings, BasicGatherBindings, BasicLayerNormBindings, \
-    BasicMatMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding, \
-    BasicTransposeBindings
+from Deeploy.Targets.Generic.Bindings import BasicLayerNormBindings, BasicPad1DBindings, BasicPad2DBindings, \
+    BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, DivLayer, GatherLayer, GEMMLayer, HardSwishLayer, \
     LayerNormLayer, MatMulLayer, MulLayer, PadLayer, ReshapeLayer, RMSNormLayer, RQGEMMLayer, RQIntegerDivLayer, \
     SoftmaxLayer, TransposeLayer, iNoNormLayer
@@ -22,49 +21,41 @@ from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateT
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass, GEMMRequantMergePass, \
     IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
-from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
-from Deeploy.Targets.Snitch.Bindings import BasicDivBindings, BasicHardSwishBindings, BasicMulBindings, \
-    BasicRMSNormBindings, SnitchAddBindings, SnitchGemmBindings, SnitchiNoNormBindings, SnitchiSoftmaxBindings, \
-    SnitchRQAddBindings, SnitchRqGemmBindings
 from Deeploy.Targets.Snitch.Parsers import HardSwishParser, SnitchDivParser, SnitchGEMMParser, SnitchMulParser, \
     SnitchRMSNormParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
+from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConcatTilingReadyBindings, \
+    SnitchDivTilingReadyBindings, SnitchGatherTilingReadyBindings, SnitchGemmTilingReadyBindings, \
+    SnitchHardSwishTilingReadyBindings, SnitchiNoNormTilingReadyBindings, SnitchiSoftmaxTilingReadyBindings, \
+    SnitchMatMulTilingReadyBindings, SnitchMulTilingReadyBindings, SnitchReshapeTilingReadyBindings, \
+    SnitchRMSNormTilingReadyBindings, SnitchRQAddTilingReadyBindings, SnitchRqGemmTilingReadyBindings, \
+    SnitchTransposeTilingReadyBindings
 
-# =============================================================================
-# Mappers for UNTILED mode (using BasicBindings with BasicTransformer)
-# These are used by generateNetwork.py (testRunner_snitch.py)
-# =============================================================================
-GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
+# Mappers without tiling-ready equivalents
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
-UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
-ReshapeMapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
-TransposeMapper = NodeMapper(TransposeParser(), BasicTransposeBindings)
-ConcatMapper = NodeMapper(ConcatParser(), BasicConcatBindings)
-
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
-
-# These use TiledTransformer but work in both modes (original upstream behavior)
-GemmMapper = NodeMapper(SnitchGEMMParser(), SnitchGemmBindings)
-RqGemmMapper = NodeMapper(SnitchRQGEMMParser(), SnitchRqGemmBindings)
-iSoftmaxMapper = NodeMapper(iSoftmaxParser(), SnitchiSoftmaxBindings)
-SoftmaxMapper = NodeMapper(SoftmaxParser(), SnitchiSoftmaxBindings)
-iNoNormMapper = NodeMapper(iNoNormParser(), SnitchiNoNormBindings)
 iLayerNormMapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
-RQAddMapper = NodeMapper(RQAddParser(), SnitchRQAddBindings)
-AddMapper = NodeMapper(AddParser(), SnitchAddBindings)
 
-# New operators for microLlama - using BasicBindings for untiled mode
-RMSNormMapper = NodeMapper(SnitchRMSNormParser(), BasicRMSNormBindings)
-HardSwishMapper = NodeMapper(HardSwishParser(), BasicHardSwishBindings)
-MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
-DivMapper = NodeMapper(SnitchDivParser(), BasicDivBindings)
-MulMapper = NodeMapper(SnitchMulParser(), BasicMulBindings)
+# All other mappers use TilingReadyBindings (works for both tiled and untiled)
+GatherMapper = NodeMapper(GatherParser(), SnitchGatherTilingReadyBindings)
+UnsqueezeMapper = NodeMapper(UnsqueezeParser(), SnitchReshapeTilingReadyBindings)
+ReshapeMapper = NodeMapper(ReshapeParser(), SnitchReshapeTilingReadyBindings)
+TransposeMapper = NodeMapper(TransposeParser(), SnitchTransposeTilingReadyBindings)
+ConcatMapper = NodeMapper(ConcatParser(), SnitchConcatTilingReadyBindings)
+MatMulMapper = NodeMapper(MatMulParser(), SnitchMatMulTilingReadyBindings)
+GemmMapper = NodeMapper(SnitchGEMMParser(), SnitchGemmTilingReadyBindings)
+RqGemmMapper = NodeMapper(SnitchRQGEMMParser(), SnitchRqGemmTilingReadyBindings)
+iSoftmaxMapper = NodeMapper(iSoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
+SoftmaxMapper = NodeMapper(SoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
+iNoNormMapper = NodeMapper(iNoNormParser(), SnitchiNoNormTilingReadyBindings)
+RQAddMapper = NodeMapper(RQAddParser(), SnitchRQAddTilingReadyBindings)
+AddMapper = NodeMapper(AddParser(), SnitchAddTileReadyBindings)
+RMSNormMapper = NodeMapper(SnitchRMSNormParser(), SnitchRMSNormTilingReadyBindings)
+HardSwishMapper = NodeMapper(HardSwishParser(), SnitchHardSwishTilingReadyBindings)
+DivMapper = NodeMapper(SnitchDivParser(), SnitchDivTilingReadyBindings)
+MulMapper = NodeMapper(SnitchMulParser(), SnitchMulTilingReadyBindings)
 
-# =============================================================================
-# SnitchMapping - for UNTILED mode (generateNetwork.py)
-# Uses BasicBindings for new operators, TiledTransformer bindings for original ops
-# =============================================================================
 SnitchMapping = {
     'RQIntegerDiv': RQIntegerDivLayer([RQIntegerDivMapper]),
     'Gather': GatherLayer([GatherMapper]),
@@ -86,65 +77,6 @@ SnitchMapping = {
     'Reshape': ReshapeLayer([ReshapeMapper]),
     'Transpose': TransposeLayer([TransposeMapper]),
     'Concat': ConcatLayer([ConcatMapper]),
-}
-
-# =============================================================================
-# Import TilingReadyBindings for TILED mode (testMVP.py)
-# These will be used by TilerDeployerWrapper
-# =============================================================================
-from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConcatTilingReadyBindings, \
-    SnitchDivTilingReadyBindings, SnitchGatherTilingReadyBindings, SnitchGemmTilingReadyBindings, \
-    SnitchHardSwishTilingReadyBindings, SnitchiNoNormTilingReadyBindings, SnitchiSoftmaxTilingReadyBindings, \
-    SnitchMatMulTilingReadyBindings, SnitchMulTilingReadyBindings, SnitchReshapeTilingReadyBindings, \
-    SnitchRMSNormTilingReadyBindings, SnitchRQAddTilingReadyBindings, SnitchRqGemmTilingReadyBindings, \
-    SnitchTransposeTilingReadyBindings
-
-# =============================================================================
-# Tiled Mappers - for TILED mode (testMVP.py via TilerDeployerWrapper)
-# =============================================================================
-TiledGatherMapper = NodeMapper(GatherParser(), SnitchGatherTilingReadyBindings)
-TiledUnsqueezeMapper = NodeMapper(UnsqueezeParser(), SnitchReshapeTilingReadyBindings)
-TiledReshapeMapper = NodeMapper(ReshapeParser(), SnitchReshapeTilingReadyBindings)
-TiledTransposeMapper = NodeMapper(TransposeParser(), SnitchTransposeTilingReadyBindings)
-TiledConcatMapper = NodeMapper(ConcatParser(), SnitchConcatTilingReadyBindings)
-TiledMatMulMapper = NodeMapper(MatMulParser(), SnitchMatMulTilingReadyBindings)
-TiledRMSNormMapper = NodeMapper(SnitchRMSNormParser(), SnitchRMSNormTilingReadyBindings)
-TiledHardSwishMapper = NodeMapper(HardSwishParser(), SnitchHardSwishTilingReadyBindings)
-TiledDivMapper = NodeMapper(SnitchDivParser(), SnitchDivTilingReadyBindings)
-TiledMulMapper = NodeMapper(SnitchMulParser(), SnitchMulTilingReadyBindings)
-TiledGemmMapper = NodeMapper(SnitchGEMMParser(), SnitchGemmTilingReadyBindings)
-TiledRqGemmMapper = NodeMapper(SnitchRQGEMMParser(), SnitchRqGemmTilingReadyBindings)
-TilediSoftmaxMapper = NodeMapper(iSoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
-TiledSoftmaxMapper = NodeMapper(SoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
-TilediNoNormMapper = NodeMapper(iNoNormParser(), SnitchiNoNormTilingReadyBindings)
-TiledRQAddMapper = NodeMapper(RQAddParser(), SnitchRQAddTilingReadyBindings)
-TiledAddMapper = NodeMapper(AddParser(), SnitchAddTileReadyBindings)
-
-# =============================================================================
-# SnitchTiledMapping - for TILED mode (testMVP.py)
-# Uses TilingReadyBindings for all operators
-# =============================================================================
-SnitchTiledMapping = {
-    'RQIntegerDiv': RQIntegerDivLayer([RQIntegerDivMapper]),
-    'Gather': GatherLayer([TiledGatherMapper]),
-    'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
-    'Unsqueeze': ReshapeLayer([TiledUnsqueezeMapper]),
-    'MatMul': MatMulLayer([TiledMatMulMapper]),
-    'Gemm': GEMMLayer([TiledGemmMapper]),
-    'RQGemm': RQGEMMLayer([TiledRqGemmMapper]),
-    'iSoftmax': SoftmaxLayer([TilediSoftmaxMapper]),
-    'Softmax': SoftmaxLayer([TiledSoftmaxMapper]),
-    'iNoNorm': iNoNormLayer([TilediNoNormMapper]),
-    'iLayerNorm': LayerNormLayer([iLayerNormMapper]),
-    'RequantizedAdd': AddLayer([TiledRQAddMapper]),
-    'Add': AddLayer([TiledAddMapper]),
-    'RMSNorm': RMSNormLayer([TiledRMSNormMapper]),
-    'HardSwish': HardSwishLayer([TiledHardSwishMapper]),
-    'Div': DivLayer([TiledDivMapper]),
-    'Mul': MulLayer([TiledMulMapper]),
-    'Reshape': ReshapeLayer([TiledReshapeMapper]),
-    'Transpose': TransposeLayer([TiledTransposeMapper]),
-    'Concat': ConcatLayer([TiledConcatMapper]),
 }
 
 
@@ -252,24 +184,6 @@ class SnitchPlatform(DeploymentPlatform):
 
     def __init__(self,
                  engines = [SnitchClusterEngine("SnitchCluster")],
-                 variableBuffer = SnitchVariableBuffer,
-                 constantBuffer = SnitchConstantBuffer,
-                 structBuffer = SnitchStructBuffer,
-                 transientBuffer = SnitchTransientBuffer,
-                 includeList: List[str] = _includeList):
-        super().__init__(engines, variableBuffer, constantBuffer, structBuffer, transientBuffer)
-
-
-class SnitchTiledClusterEngine(DeploymentEngine):
-
-    def __init__(self, name: str, Mapping = SnitchTiledMapping, initCode = "", includeList = _includeList) -> None:
-        super().__init__(name, Mapping, initCode, includeList)
-
-
-class SnitchTiledPlatform(DeploymentPlatform):
-
-    def __init__(self,
-                 engines = [SnitchTiledClusterEngine("SnitchCluster")],
                  variableBuffer = SnitchVariableBuffer,
                  constantBuffer = SnitchConstantBuffer,
                  structBuffer = SnitchStructBuffer,
