@@ -52,7 +52,9 @@ jobs:
 
           {"name":"Kernels/Integer/iNoNorm","L1":[5000,10000]},
           {"name":"Kernels/Integer/Add/Regular_RQ","L1":[5000,10000]},
-          {"name":"Kernels/Integer/GEMM/Regular_RQPerRow","L1":[2000,5000]}
+          {"name":"Kernels/Integer/GEMM/Regular_RQPerRow","L1":[2000,5000]},
+
+          {"name":"Models/microLlama/microLlama_fp32_1","L1":[10000,20000]}
         ]
       simulators: |
         gvsoc
