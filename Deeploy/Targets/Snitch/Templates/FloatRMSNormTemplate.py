@@ -18,8 +18,16 @@ class FloatRMSNormTemplate(NodeTemplate):
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
 
         data_in = ctxt.lookup(operatorRepresentation["data_in"])
+        input_shape = list(data_in.shape)
+
+        axis = operatorRepresentation.get("axis", -1)
+        if axis < 0:
+            axis = len(input_shape) + axis
+
         operatorRepresentation["lastDimLength"] = data_in.shape[-1]
-        operatorRepresentation["size"] = int(np.prod(data_in.shape))
+        operatorRepresentation["size"] = int(np.prod(input_shape))
+        operatorRepresentation["inputSize"] = int(np.prod(input_shape))
+        operatorRepresentation["NormalizedAxesSize"] = int(np.prod(input_shape[axis:]))
 
         return ctxt, operatorRepresentation, []
 
