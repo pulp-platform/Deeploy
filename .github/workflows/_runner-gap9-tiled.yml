@@ -14,40 +14,12 @@ name: _runner-gap9-tiled
       docker-image:
         required: true
         type: string
-      test-name:
+      pytest-markers:
         required: true
-        type: string
-      num-cores:
-        required: false
-        default: 8
-        type: number
-      L1:
-        required: false
-        default: "[64000]"
-        type: string
-      default-memory-level:
-        required: false
-        default: "L2"
-        type: string
-      double-buffer:
-        required: false
-        default: false
-        type: boolean
-      memory-allocation-strategy:
-        required: false
-        default: "MiniMalloc"
-        type: string
-      search-strategy:
-        required: false
-        default: "random-max"
         type: string
 
 jobs:
   test-runner-gap9-tiled:
-    strategy:
-      fail-fast: false
-      matrix:
-        L1: ${{ fromJSON(inputs.L1) }}
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
@@ -63,8 +35,8 @@ jobs:
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
           pip install -e . || true
           deactivate
-      - name: Setup ccache
-        uses: actions/cache@v4
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
         with:
           path: /app/.ccache
           key: ccache-ci
@@ -77,6 +49,6 @@ jobs:
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          python testRunner_tiled_gap9.py -t Tests/${{ inputs.test-name }} --cores=${{ inputs.num-cores }} --l1 ${{ matrix.L1 }} --defaultMemLevel=${{ inputs.default-memory-level }} ${{ inputs.double-buffer && '--doublebuffer' || '' }} --memAllocStrategy=${{ inputs.memory-allocation-strategy }} --searchStrategy=${{ inputs.search-strategy }}
+          pytest test_platforms.py -v -m "${{ inputs.pytest-markers }}"
           deactivate
         shell: bash

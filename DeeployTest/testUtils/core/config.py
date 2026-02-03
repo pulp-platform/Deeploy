@@ -19,6 +19,7 @@ class DeeployTestConfig:
     build_dir: str
     toolchain: str = "LLVM"
     toolchain_install_dir: Optional[str] = None
+    gvsoc_install_dir: Optional[str] = None
     cmake_args: List[str] = None
     gen_args: List[str] = None
     verbose: int = 0
@@ -31,3 +32,5 @@ class DeeployTestConfig:
             self.gen_args = []
         if self.toolchain_install_dir is None:
             self.toolchain_install_dir = os.environ.get('LLVM_INSTALL_DIR')
+        if self.gvsoc_install_dir is None:
+            self.gvsoc_install_dir = os.environ.get('GVSOC_INSTALL_DIR')

@@ -27,181 +27,36 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+      docker_image_deeploy: 'ghcr.io/runwangdl/deeploy:gap9'
 
   gap9-kernels-tiled-singlebuffer-L2:
     needs: select-env
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data:
-          - name: "testMatMul"
-            L1: [64000, 32000, 16000]
-          - name: "test2DRequantizedConv"
-            L1: [8000, 6000, 4000]
-          - name: "test2DRequantizedStriddedPaddedConv"
-            L1: [600]
-          - name: "testRequantizedDWConv"
-            L1: [2561]
-          - name: "iSoftmax"
-            L1: [800, 500, 300]
-          - name: "testConcat"
-            L1: [32000, 16000, 8000]
-          - name: "Hardswish"
-            L1: [750]
-          - name: "RQHardswish"
-            L1: [750]
-          - name: "testFloatGEMM"
-            L1: [8000]
-          - name: "testFloat2DConvolution"
-            L1: [1600]
-          - name: "testFloat2DConvolutionBias"
-            L1: [6600]
-          - name: "testFloat2DConvolutionZeroBias"
-            L1: [6600]
-          - name: "testFloat2DDWConvolution"
-            L1: [7200]
-          - name: "testFloat2DDWConvolutionBias"
-            L1: [7200]
-          - name: "testFloat2DDWConvolutionZeroBias"
-            L1: [7200]
-          - name: "testFloatLayerNorm"
-            L1: [2000]
-          - name: "testFloatMaxPool"
-            L1: [2000]
-          - name: "testFloatMatmul"
-            L1: [2000]
-          - name: "testFloatRelu"
-            L1: [2000]
-          - name: "testFloatReshapeWithSkipConnection"
-            L1: [1400]
-          - name: "testFloatSoftmax"
-            L1: [4000]
-          - name: "testFloatTranspose"
-            L1: [2000]
-          - name: "testFloatMul"
-            L1: [2000]
-          - name: "testRQGEMMwBatch"
-            L1: [20000]
-          - name: "testMatMulBatch"
-            L1: [20000]
     uses: ./.github/workflows/_runner-gap9-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: 8
-      L1: ${{ toJson(matrix.test-data.L1) }}
+      pytest-markers: "gap9_tiled and kernels and singlebuffer and l2"
 
   gap9-kernels-tiled-doublebuffer-L2:
     needs: select-env
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data:
-          - name: "testMatMul"
-            L1: [64000, 32000, 16000]
-          - name: "test2DRequantizedConv"
-            L1: [8000, 6000, 5000]
-          - name: "testRequantizedDWConv"
-            L1: [5121]
-          - name: "iSoftmax"
-            L1: [1600, 1000, 600]
-          - name: "testConcat"
-            L1: [64000, 32000, 16000]
-          - name: "Hardswish"
-            L1: [750]
-          - name: "RQHardswish"
-            L1: [800]
-          - name: "testFloatGEMM"
-            L1: [8000]
-          - name: "testFloat2DConvolution"
-            L1: [2000]
-          - name: "testFloat2DConvolutionBias"
-            L1: [8800]
-          - name: "testFloat2DConvolutionZeroBias"
-            L1: [8800]
-          - name: "testFloat2DDWConvolution"
-            L1: [9800]
-          - name: "testFloat2DDWConvolutionBias"
-            L1: [10000]
-          - name: "testFloat2DDWConvolutionZeroBias"
-            L1: [9800]
-          - name: "testFloatLayerNorm"
-            L1: [2000]
-          - name: "testFloatMaxPool"
-            L1: [5000]
-          - name: "testFloatMatmul"
-            L1: [5000]
-          - name: "testFloatRelu"
-            L1: [20]
-          - name: "testFloatReshapeWithSkipConnection"
-            L1: [2600]
-          - name: "testFloatSoftmax"
-            L1: [8000]
-          - name: "testFloatTranspose"
-            L1: [2000]
-          - name: "testFloatMul"
-            L1: [2000]
     uses: ./.github/workflows/_runner-gap9-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: 8
-      L1: ${{ toJson(matrix.test-data.L1) }}
-      double-buffer: true
+      pytest-markers: "gap9_tiled and kernels and doublebuffer and l2"
 
   gap9-models-tiled-singlebuffer-L2:
     needs: select-env
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data:
-          - name: "simpleRegression"
-            L1: [45000, 30000, 15000]
-          - name: "miniMobileNet"
-            L1: [60000, 12000, 6000, 3000]
-          - name: "miniMobileNetv2"
-            L1: [60000, 16000, 12000, 8000]
-          - name: "Attention"
-            L1: [60000, 10000, 5000]
-          - name: "MLPerf/KeywordSpotting"
-            L1: [64000]
-          - name: "MLPerf/ImageClassification"
-            L1: [64000]
-          - name: "MLPerf/AnomalyDetection"
-            L1: [64000]
-        num-cores: [8]
     uses: ./.github/workflows/_runner-gap9-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
+      pytest-markers: "gap9_tiled and models and singlebuffer and l2"
 
   gap9-models-tiled-doublebuffer-L2:
     needs: select-env
-    strategy:
-      fail-fast: false
-      matrix:
-        test-data:
-          - name: "simpleRegression"
-            L1: [60000, 45000, 30000]
-          - name: "miniMobileNet"
-            L1: [60000, 24000, 12000, 6000]
-          - name: "miniMobileNetv2"
-            L1: [60000, 32000, 24000, 16000]
-          - name: "Attention"
-            L1: [60000, 20000, 10000, 5000]
-        num-cores: [8]
-        double-buffer: [true]
     uses: ./.github/workflows/_runner-gap9-tiled.yml
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-name: ${{ matrix.test-data.name }}
-      num-cores: ${{ matrix.num-cores }}
-      L1: ${{ toJson(matrix.test-data.L1) }}
-      double-buffer: ${{ matrix.double-buffer }}
+      pytest-markers: "gap9_tiled and models and doublebuffer and l2"

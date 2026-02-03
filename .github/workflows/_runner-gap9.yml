@@ -14,12 +14,9 @@ name: _runner-gap9
       docker-image:
         required: true
         type: string
-      test-names:
+      pytest-marker:
         required: true
         type: string
-      num-cores:
-        required: true
-        type: number
 
 jobs:
   test-runner-gap9:
@@ -38,14 +35,13 @@ jobs:
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
           pip install -e . || true
           deactivate
-      - name: Setup ccache
-        uses: actions/cache@v4
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
         with:
           path: /app/.ccache
           key: ccache-ci
       - name: Run Test
         run: |
-          testNames="${{ inputs.test-names }}"
           source /app/install/gap9-sdk/.gap9-venv/bin/activate
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
           export GVSOC_INSTALL_DIR=/app/install/gap9-sdk/install/workstation
@@ -53,11 +49,6 @@ jobs:
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          echo "$testNames" | while IFS= read -r testName; do
-            if [[ -n "$testName" ]]; then
-              echo "Running test: $testName"
-              python testRunner_gap9.py -t Tests/$testName
-            fi
-          done
+          pytest test_platforms.py -v -n 4 -m "gap9 and ${{ inputs.pytest-marker }}"
           deactivate
         shell: bash

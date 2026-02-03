@@ -27,7 +27,7 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+      docker_image_deeploy: 'ghcr.io/runwangdl/deeploy:gap9'
 
   gap9-kernels:
     needs: select-env
@@ -35,45 +35,7 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-names: |
-        Adder
-        MultIO
-        test1DPad
-        test2DPad
-        testMatMul
-        testMatMulAdd
-        testRequantizedDWConv
-        test2DRequantizedConv
-        iSoftmax
-        testConcat
-        trueIntegerDivSandwich
-        Hardswish
-        RQHardswish
-        testBacktracking
-        testFloatAdder
-        testFloatGEMM
-
-        testFloat2DConvolution
-        testFloat2DConvolutionBias
-        testFloat2DConvolutionZeroBias
-
-        testFloat2DDWConvolution
-        testFloat2DDWConvolutionBias
-        testFloat2DDWConvolutionZeroBias
-
-        testFloatLayerNorm
-        testFloatRelu
-        testFloatMaxPool
-        testFloatMatmul
-        testFloatSoftmax
-        testFloatTranspose
-        testFloatMul
-        Quant
-        Dequant
-        testFloatReduceSum
-        testFloatReshapeWithSkipConnection
-        QuantizedLinear
-      num-cores: 8
+      pytest-marker: "kernels"
 
   gap9-models:
     needs: select-env
@@ -81,12 +43,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-names: |
-        simpleRegression
-        miniMobileNet
-        miniMobileNetv2
-        Attention
-        MLPerf/KeywordSpotting
-        MLPerf/ImageClassification
-        MLPerf/AnomalyDetection
-      num-cores: 8
+      pytest-marker: "models"
