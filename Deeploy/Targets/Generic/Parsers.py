@@ -499,27 +499,31 @@ class AddParser(NodeParser):
             # Calculate strides for broadcasting
             ndim = len(out_shape)
 
+            # Pad shapes from the left to match ndim (ONNX broadcasts from right)
+            padded_shape1 = [1] * (ndim - len(shape1)) + shape1
+            padded_shape2 = [1] * (ndim - len(shape2)) + shape2
+
             # Compute strides for input 1
             strides1 = [1] * ndim
             for i in range(ndim - 1, -1, -1):
-                if i < len(shape1) and shape1[i] == out_shape[i]:
+                if padded_shape1[i] == out_shape[i]:
                     if i == ndim - 1:
                         strides1[i] = 1
                     else:
-                        strides1[i] = strides1[i + 1] * shape1[i + 1] if (
-                            i + 1 < len(shape1) and shape1[i + 1] == out_shape[i + 1]) else strides1[i + 1]
+                        strides1[i] = strides1[i + 1] * padded_shape1[i + 1] if (
+                            padded_shape1[i + 1] == out_shape[i + 1]) else strides1[i + 1]
                 else:
                     strides1[i] = 0  # Broadcast dimension
 
             # Compute strides for input 2
             strides2 = [1] * ndim
             for i in range(ndim - 1, -1, -1):
-                if i < len(shape2) and shape2[i] == out_shape[i]:
+                if padded_shape2[i] == out_shape[i]:
                     if i == ndim - 1:
                         strides2[i] = 1
                     else:
-                        strides2[i] = strides2[i + 1] * shape2[i + 1] if (
-                            i + 1 < len(shape2) and shape2[i + 1] == out_shape[i + 1]) else strides2[i + 1]
+                        strides2[i] = strides2[i + 1] * padded_shape2[i + 1] if (
+                            padded_shape2[i + 1] == out_shape[i + 1]) else strides2[i + 1]
                 else:
                     strides2[i] = 0  # Broadcast dimension
 
