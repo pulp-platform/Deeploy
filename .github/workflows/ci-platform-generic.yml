@@ -35,47 +35,7 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-names: |
-        Adder
-        MultIO
-        test1DConvolution
-        test2DConvolution
-        test1DDWConvolution
-        test2DDWConvolution
-        test1DPad
-        test2DPad
-        testGEMM
-        testMatMul
-        testMatMulAdd
-        testMaxPool
-        testRQConv
-        testRQMatMul
-        testReduceSum
-        testReduceMean
-        testSlice
-        testRequantizedDWConv
-        test2DRequantizedConv
-        iSoftmax
-        testFloatAdder
-        testFloatGEMM
-        testFloat2DConvolution
-        testFloat2DConvolutionBias
-        testFloat2DConvolutionZeroBias
-        testFloatLayerNorm
-        testFloatDiv
-        testFloat2DDWConvolution
-        testFloat2DDWConvolutionBias
-        testFloat2DDWConvolutionZeroBias
-        testFloatRelu
-        testFloatMaxPool
-        testFloatMatmul
-        testFloatReshapeWithSkipConnection
-        testFloatSoftmax
-        testFloatTranspose
-        testFloatMul
-        Quant
-        Dequant
-        QuantizedLinear
+      pytest-marker: "kernels"
 
   generic-models:
     needs: select-env
@@ -83,17 +43,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-names: |
-        simpleRegression
-        WaveFormer
-        simpleCNN
-        ICCT
-        ICCT_ITA
-        ICCT_8
-        ICCT_ITA_8
-        miniMobileNet
-        miniMobileNetv2
-        CCT/CCT_1_16_16_8
-        CCT/CCT_2_32_32_128_Opset20
-        testFloatDemoTinyViT
-        Autoencoder1D
+      pytest-marker: "models"

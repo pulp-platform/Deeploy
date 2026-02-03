@@ -58,6 +58,18 @@ class GELULayer(ONNXLayer):
         return mul1 + neg + exp + add + div + mul2
 
 
+class GELUGradLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 9
+        gelu_grad_ops = size * ops_per_element
+        return gelu_grad_ops
+
+
 class iHardswishLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
@@ -225,6 +237,18 @@ class RQMatMulLayer(MatMulLayer):
         matmul = super().computeOps()
         rqs = self.mapper.parser.operatorRepresentation['size'] * 3
         return matmul + rqs
+
+
+class PowLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SqrtLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
 
 
 class DivLayer(ONNXLayer):
@@ -436,6 +460,12 @@ class LayerNormLayer(ONNXLayer):
         compSqrt = self.mapper.parser.operatorRepresentation['size']
         compDiv = self.mapper.parser.operatorRepresentation['size']
         return compAverage + compNormalize + compSqr + compSum + compSqrt + compDiv
+
+
+class LayerNormGradLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
 
 
 class TransposeLayer(ONNXLayer):

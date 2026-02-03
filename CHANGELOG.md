@@ -4,6 +4,11 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ## Unreleased (Planned Release Target: v0.2.1)
 
 ### List of Pull Requests
+- PyTest Migration [#144](https://github.com/pulp-platform/Deeploy/pull/144)
+- Update submodule `pulp-nn-mixed` [#145](https://github.com/pulp-platform/Deeploy/pull/145)
+- Improve Profiling [#138](https://github.com/pulp-platform/Deeploy/pull/138)
+- FP32 ReduceMean operator improvement [#137](https://github.com/pulp-platform/Deeploy/pull/137)
+- Support for RMSNorm (Pow and Sqrt operators) [#136](https://github.com/pulp-platform/Deeploy/pull/136)
 - Demo TinyViT compatibility with tiled Siracusa [#124](https://github.com/pulp-platform/Deeploy/pull/124)
 - TinyViT on non-tiled Siracusa [#117](https://github.com/pulp-platform/Deeploy/pull/117)
 - Support Fully Asynchronous DMAs [#114](https://github.com/pulp-platform/Deeploy/pull/114)
@@ -26,6 +31,18 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix bias hoisting in generic GEMM with no bias [#126](https://github.com/pulp-platform/Deeploy/pull/126)
 
 ### Added
+- `pytest` and `pytest-xdist` as dependencies of Deeploy.
+- A `pytest.ini` for the global configuration of PyTest for the project.
+- `conftest.py` to define CLI args for PyTest for the whole project, it also defines a set of global fixtures and markers.
+- `pytestRunner.py` contains helper functions and fixtures for the whole project.
+- `test_platforms.py` lists the E2E tests and sorts them into marked categories (per platform and per kernel/model).
+- Each platform has a test config file where a list or a dict describes the tests.
+- Support for unknown number of data dimensions in the tiler
+- Parallelization support for the FP32 ReduceMean operator on PULPOpen
+- Extensive testing for the ReduceMean operator
+- Pass to remove ReduceMean operators that don't change data content, but only its shape
+- Support for RMSNorm operation via operator decomposition.
+- Added `Pow` (Power) and `Sqrt` (Square Root) operation support (Parsers, Layers, Bindings, Templates, and FP32 Kernels) for the Generic platform.
 - Support for input tiling for PULP FP regular and DW conv 2D.
 - CI tests for tiled Siracusa FP regular and DW conv 2D, with and without bias, for skip connections, and for the demo version of TinyViT.
 - Documentation for PULP FP regular and DW conv 2D and MatMul tile constraints.
@@ -73,8 +90,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added new waiting-strategy logic with fine-grained `PerTensorWaitingStrategy`
 - PULPClusterEngine now accepts a `n_cores` parameter to set the number of cores used
 - annotateNCores method to PULPDeployer that adds an `n_cores` key to all PULPClusterEngine templates' operatorRepresentations
+- Calculate non-kernel overhead and show total time spent during profiling
 
 ### Changed
+- Each CI workflow has been simplified to call the pytest suite with certain markers.
+- Structure of Tests subdir for improved ordering
+- Structure of .gitignore file for improved ordering
 - Decreased L1 maximal memory limit for CI pipeline tests where compatible thanks to the implementation of Conv2D input tiling support.
 - Reduced size of reshape & skip connection test, for non-tiled Siracusa memory compatibility.
 - Replaced platform-specific tags (`*-amd64`, `*-arm64`) with direct digest references in `Noelware/docker-manifest-action`.
@@ -113,8 +134,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added missing shape annotation to the testTypeInferenceDifferentTypes
 - Refactored DMA code generation (`SnitchDma`, `Mchan`) to correctly overlap transfers and compute in double-buffering mode
 - changed `_mapNode` to `_selectEngine` which reduces the responsibility of that function to, as the name states, just engine selection
+- Print kernel profiling information for all memory levels
 
 ### Fixed
+- `nvidia-pyindex` was broken as it now tries to build the wheel to respect the new policy on packages using `pyproject`. Instead of installing this package, we just add the `https://pypi.ngc.nvidia.com` channel to the pip config file.
+- Pin versions of broken dependencies of Banshee.
+- Fixed ReduceMean parallelization and tiling issues described in Issue [#134](https://github.com/pulp-platform/Deeploy/issues/134).
 - Fixed PULP FP32 regular and DW Conv2D, and MatMul tile constraints.
 - Fixed type casting for tiling code generation.
 - Fixed bug in buffer name identification in code generation for tests with L3 default memory level.

@@ -14,13 +14,7 @@ name: _runner-snitch
       docker-image:
         required: true
         type: string
-      test-names:
-        required: true
-        type: string
-      num-cores:
-        required: true
-        type: number
-      simulators:
+      pytest-marker:
         required: true
         type: string
 
@@ -42,21 +36,10 @@ jobs:
         with:
           path: /app/.ccache
           key: ccache-ci
-      - name: Run Test
+      - name: Run Test # VJUNG: Run tests with 4 parallel threads as GitHub action VM has 4 cores.
         run: |
-          testNames="${{ inputs.test-names }}"
-          simulators="${{inputs.simulators}}"
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          echo "$simulators" | while IFS= read -r simulator; do
-            if [[ -n "$simulator" ]]; then
-              echo "$testNames" | while IFS= read -r testName; do
-                if [[ -n "$testName" ]]; then
-                  echo "Running test $testName using $simulator"
-                  python testRunner_snitch.py -t Tests/$testName --simulator=$simulator --cores=${{ inputs.num-cores }}
-                fi
-              done
-            fi
-          done
+          pytest test_platforms.py -v -n 4 -m "snitch and ${{ inputs.pytest-marker }}"
         shell: bash

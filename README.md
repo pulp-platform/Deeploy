@@ -55,14 +55,16 @@ pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
 Congratulations, you installed Deeploy and its dependencies! Now, to test your installation let's run one simple test on each platform with the following commands:
 ```
 cd DeeployTest
-python testRunner_generic.py -t Tests/Adder
-python testRunner_cortexm.py -t Tests/Adder
-python testRunner_mempool.py -t Tests/Adder
-python testRunner_snitch.py -t Tests/Adder/
-python testRunner_siracusa.py -t Tests/Adder --cores=8
-python testRunner_snitch.py -t Tests/Adder --cores=9
-python testRunner_softhier.py -t Tests/Adder --toolchain=GCC
-python testRunner_chimera.py -t Tests/Adder
+python deeployRunner_generic.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_cortexm.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_mempool.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_snitch.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_tiled_snitch.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_siracusa.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_tiled_siracusa.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_tiled_siracusa_w_neureka.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_softhier.py -t ./Tests/Kernels/Integer/Add/Regular --toolchain=GCC
+python deeployRunner_chimera.py -t ./Tests/Kernels/Integer/Add/Regular
 ```
 
 For the experimental support of GAP9, please refer to the [GAP9.md](GAP9.md) file.
@@ -73,9 +75,9 @@ docker start -i deeploy_main
 cd Deeploy
 ```
 
-You can find the ONNX file in `DeeployTest/Tests/Adder`, to visualize it, you can use [Netron](https://netron.app/). You can also find the generated code for the platform X in `TEST_X` in `DeeployTest` and you should notice that the generated code for the `Adder` test is very simple. However, this gets more complex when you add tiling. Let's generate the code for a single layer but using tiling this time:
+You can find the ONNX file in `DeeployTest/Tests/Kernels/Integer/Add/Regular`, to visualize it, you can use [Netron](https://netron.app/). You can also find the generated code for the platform X in `TEST_X` in `DeeployTest` and you should notice that the generated code for the `Add` test is very simple. However, this gets more complex when you add tiling. Let's generate the code for a single layer but using tiling this time:
 ```
-python testRunner_tiled_siracusa.py -t Tests/testMatMul --cores=8 --l1=16000
+python deeployRunner_tiled_siracusa.py -t Tests/Kernels/Integer/MatMul/Regular --cores=8 --l1=16000
 ```
 Now you can open the generated code in `DeeployTest/TEST_SIRACUSA/Tests/testMatMul/Network.c` and see how we executed a tiled layer.
 

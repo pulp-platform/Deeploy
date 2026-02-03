@@ -79,14 +79,27 @@ class ProfilingPrototypeMixIn(ABC):
 
     _printLoopSetup = NodeTemplate("""
     StopTimer();
+    printf("===== Profiling ${nodeName} =====\\n");
     for (int ${profileIdxVar} = ((*${tileIdxPtr} > 0) ? ${numTiles}[(*${tileIdxPtr} - 1)] : 0);
         ${profileIdxVar} < ${numTiles}[*${tileIdxPtr}];
         ${profileIdxVar}++){
     """)
 
-    _printCycleDifference = NodeTemplate(r"""
-    printf("%s%u] %s%u%s", ${prefixStr}, ${profileIdxVar}, "${flavorStr}", \
-    ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
+    _measurementDeclaration = NodeTemplate("""
+    uint32_t ${measurement} = ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}];
+    """)
+
+    _printCycleDifference = NodeTemplate("""
+    printf("%s%u] %s%6u%s", ${prefixStr}, ${profileIdxVar}, "${flavorStr}", \
+    ${measurement}, ${suffixStr});
+    """)
+
+    _printCycleContribution = NodeTemplate("""
+    uint32_t total = ${measurementInput} + ${measurementKernel} + ${measurementOutput};
+    uint32_t dma = ${measurementInput} + ${measurementOutput};
+    float overhead_percentage = (total == 0) ? 0 : dma * 100.0f / total;
+    float kernel_percentage = (total == 0) ? 0 : ${measurementKernel} * 100.0f / total;
+    printf("%s%u] Total      :%6u cycles (%2.1f%% Kernel + %2.1f%% Overhead, %u + %u)\\n", ${prefixStr}, ${profileIdxVar}, total, kernel_percentage, overhead_percentage    , ${measurementKernel}, dma);
     """)
 
     _printLoopTeardown = NodeTemplate("""
@@ -152,12 +165,36 @@ class ProfilingPrototypeMixIn(ABC):
         })
 
         executionBlock.addRight(
+            cls._measurementDeclaration, {
+                "measurement": f"{nodeName}_ingress_dma_wait_measurement",
+                "measurementsStart": f"{nodeName}_ingress_dma_wait_start_measurements",
+                "measurementsEnd": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "profileIdxVar": profileIdxVar,
+            })
+
+        if metaInfo.kernelLevelTiling:
+            executionBlock.addRight(
+                cls._measurementDeclaration, {
+                    "measurement": f"{nodeName}_kernel_measurement",
+                    "measurementsStart": f"{nodeName}_kernel_start_measurements",
+                    "measurementsEnd": f"{nodeName}_kernel_end_measurements",
+                    "profileIdxVar": profileIdxVar,
+                })
+
+        executionBlock.addRight(
+            cls._measurementDeclaration, {
+                "measurement": f"{nodeName}_egress_dma_wait_measurement",
+                "measurementsStart": f"{nodeName}_egress_dma_wait_start_measurements",
+                "measurementsEnd": f"{nodeName}_egress_dma_wait_end_measurements",
+                "profileIdxVar": profileIdxVar,
+            })
+
+        executionBlock.addRight(
             cls._printCycleDifference, {
                 "prefixStr": f"{nodeName}_prefix",
                 "suffixStr": f"{nodeName}_suffix",
-                "flavorStr": "Input DMA took ",
-                "measurementsStart": f"{nodeName}_ingress_dma_wait_start_measurements",
-                "measurementsEnd": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "flavorStr": "Pre-Kernel :",
+                "measurement": f"{nodeName}_ingress_dma_wait_measurement",
                 "profileIdxVar": profileIdxVar,
             })
 
@@ -166,9 +203,8 @@ class ProfilingPrototypeMixIn(ABC):
                 cls._printCycleDifference, {
                     "prefixStr": f"{nodeName}_prefix",
                     "suffixStr": f"{nodeName}_suffix",
-                    "flavorStr": "Kernel took ",
-                    "measurementsStart": f"{nodeName}_kernel_start_measurements",
-                    "measurementsEnd": f"{nodeName}_kernel_end_measurements",
+                    "flavorStr": "Kernel     :",
+                    "measurement": f"{nodeName}_kernel_measurement",
                     "profileIdxVar": profileIdxVar,
                 })
 
@@ -176,11 +212,22 @@ class ProfilingPrototypeMixIn(ABC):
             cls._printCycleDifference, {
                 "prefixStr": f"{nodeName}_prefix",
                 "suffixStr": f"{nodeName}_suffix",
-                "flavorStr": "Output DMA took ",
-                "measurementsStart": f"{nodeName}_egress_dma_wait_start_measurements",
-                "measurementsEnd": f"{nodeName}_egress_dma_wait_end_measurements",
+                "flavorStr": "Post-Kernel:",
+                "measurement": f"{nodeName}_egress_dma_wait_measurement",
                 "profileIdxVar": profileIdxVar,
             })
+
+        # Total Time: Input + Kernel + Output
+        # Overhead: (Input + Output) / Total
+        if metaInfo.kernelLevelTiling:
+            executionBlock.addRight(
+                cls._printCycleContribution, {
+                    "prefixStr": f"{nodeName}_prefix",
+                    "measurementInput": f"{nodeName}_ingress_dma_wait_measurement",
+                    "measurementKernel": f"{nodeName}_kernel_measurement",
+                    "measurementOutput": f"{nodeName}_egress_dma_wait_measurement",
+                    "profileIdxVar": profileIdxVar,
+                })
 
         executionBlock.addRight(cls._printLoopTeardown, {})
 

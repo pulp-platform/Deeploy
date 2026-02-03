@@ -107,6 +107,9 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY Container/amd64.list ./
 
+# Add nvidia channel to the pip configuration
+RUN mkdir -p /etc && printf "[global]\nextra-index-url = https://pypi.ngc.nvidia.com\n" > /etc/pip.conf
+
 # Install dependencies
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -125,15 +128,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     python3 \
     python3.10-venv \
     python3.10-distutils \
-    python3-pip \
-    zsh \
-    nano \
-    sudo \
-    gdb-multiarch \
-    device-tree-compiler \
-    libsndfile1-dev && \
-    pip install nvidia-pyindex && \
-    pip install --upgrade pip setuptools wheel && \
+    gcc && \
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py && \
+    rm get-pip.py && \
     pip install toml-to-requirements && \
     toml-to-req --toml-file pyproject.toml && \
     pip install -r requirements.txt && \

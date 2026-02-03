@@ -35,18 +35,7 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-names: |
-        Adder
-        MultIO
-        test1DPad
-        test2DPad
-        testMatMul
-        testMatMulAdd
-        testMaxPool
-        testRQConv
-        testReduceSum
-        testReduceMean
-        testSlice
+      pytest-marker: "kernels"
 
   cortexm-models:
     needs: select-env
@@ -54,6 +43,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      test-names: |
-        simpleRegression
-        WaveFormer
+      pytest-marker: "models"

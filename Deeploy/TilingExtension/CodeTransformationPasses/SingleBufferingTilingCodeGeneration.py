@@ -117,17 +117,13 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
 
-        metaInfo = TilingMetaInfo(
-            nodeName = operatorRepresentation['nodeName'] + f"_{self.externalMemory}",
-            nodeOps = operatorRepresentation['nodeOps'],
-            numTiles = operatorRepresentation['numTiles'],
-            totalNumTiles = len(tilingSchedule.outputLoadSchedule),
-            tileIdxPtr = operatorRepresentation['tileIdxPtr'],
-            tileIdxVar = "TILING_I",
-            # TODO: The kernelLevelTiling field is used in profiling to know we are generating code around the kernel.
-            #       The current implementation does this by checking whether we are at the lowest memory level,
-            #       which is hardcoded by the value "L1". Change this to be memory level agnostic.
-            kernelLevelTiling = self.localMemory == "L1")
+        metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'] + f"_{self.externalMemory}",
+                                  nodeOps = operatorRepresentation['nodeOps'],
+                                  numTiles = operatorRepresentation['numTiles'],
+                                  totalNumTiles = len(tilingSchedule.outputLoadSchedule),
+                                  tileIdxPtr = operatorRepresentation['tileIdxPtr'],
+                                  tileIdxVar = "TILING_I",
+                                  kernelLevelTiling = True)
 
         executionBlock = self.generateAllTilingCode(executionBlock, metaInfo, ingressDMAStatements, egressDMAStatements,
                                                     openLoopStatements, closeLoopStatements, setupStatements,

@@ -20,7 +20,10 @@ ${closureName}(&${closureStructArgName});
 _closureTemplate = NodeTemplate("""
 static void ${closureName}(void* ${closureName}_args){
 // CLOSURE ARG CAST
+% if len(closureStructArgs.value) > 0:
 ${closureStructArgs.typeName}* args = (${closureStructArgs.typeName}*) ${closureStructArgName};
+% endif
+
 % for argName, argType in closureStructArgs.value.items():
 ${argType.typeName} ${argName} = args->${argName};
 % endfor

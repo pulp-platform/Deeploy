@@ -8,7 +8,7 @@ from typing import Tuple
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import NetworkContext, NodeParser, VariableBuffer
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
 
 
 class ConcatParser(NodeParser):
@@ -529,9 +529,14 @@ class ReduceMeanParser(ReduceParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        if len(node.inputs) == 2:
-            # Float node, requiring 2 inputs (ONNX opset version >= 18)
-            wellFormed = all(['keepdims' in node.attrs, len(node.inputs) == 2, len(node.outputs) == 1])
+        if 1 <= len(node.inputs) and ("axes" not in node.attrs):
+            # Float node, requiring 1 or 2 inputs (ONNX opset version >= 18).
+            # "axes" input is optional.
+            # If axes is not provided, then reduction will happen over all dimensions.
+            #
+            # WARNING: noop_with_empty_axes attribute not handled
+
+            wellFormed = all(['keepdims' in node.attrs, 1 <= len(node.inputs) <= 2, len(node.outputs) == 1])
 
             if wellFormed:
                 self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
@@ -546,23 +551,47 @@ class ReduceMeanParser(ReduceParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        if len(node.inputs) == 2:
+        if 1 <= len(node.inputs) and ("axes" not in node.attrs):
+            # Extract context information for Float ReduceMean node (ONNX opset version >= 18)
             data_in = ctxt.lookup(node.inputs[0].name)
             data_out = ctxt.lookup(node.outputs[0].name)
 
-            axes = ctxt.lookup(node.inputs[1].name)
+            # Extract axes as numpy sorted array
+            # If not provided, according to ONNX specification, reduction will happen over all dimensions
+            if len(node.inputs) == 2:
+                axes = ctxt.lookup(node.inputs[1].name)
 
+                # Mark the axes variable to be excluded from the context, since only used in the template, as part of the operator representation
+                axes._live = False
+                axes._deploy = False
+
+                # Sort axes
+                axes = axes.values
+                axes.sort()
+            else:
+                axes = np.array(list(range(len(data_in.shape))))
+
+            # Remove axes reduced over singleton dimensions
+            # Keep first axis if only singleton dimensions are reduced
+            nonSingletonAxes = []
+            for axis in axes:
+                if data_in.shape[axis] != 1:
+                    nonSingletonAxes.append(axis)
+            if len(nonSingletonAxes) == 0:
+                nonSingletonAxes.append(axes[0])
+            axes = np.array(nonSingletonAxes)
+
+            # Update operator representation
             self.operatorRepresentation['data_in'] = data_in.name
             self.operatorRepresentation['data_out'] = data_out.name
+
             self.operatorRepresentation['data_in_shape'] = data_in.shape
             self.operatorRepresentation['data_out_shape'] = data_out.shape
-            self.operatorRepresentation['size'] = np.prod(data_in.shape)
-            self.operatorRepresentation['axisLength'] = data_in.shape[axes.values[0]]
-            self.operatorRepresentation['axes'] = axes.values
 
-            # Mark the axes variable to be excluded from the context, since only used in the template, as part of the operator representation
-            axes._live = False
-            axes._deploy = False
+            self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+            self.operatorRepresentation['axes'] = axes
+            self.operatorRepresentation['axisLength'] = data_in.shape[axes[0]]
 
             return ctxt, True
         else:
@@ -766,6 +795,33 @@ class GELUParser(NodeParser):
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True
+
+
+class GELUGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        upstream_grad = ctxt.lookup(node.inputs[0].name)
+        gelu_input = ctxt.lookup(node.inputs[1].name)
+        gelu_grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['grad_in'] = upstream_grad.name
+        self.operatorRepresentation['data_in'] = gelu_input.name
+        self.operatorRepresentation['grad_out'] = gelu_grad.name
+        self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
 
         return ctxt, True
 
@@ -1647,6 +1703,36 @@ class LayerNormParser(iLayerNormParser):
         return ctxt, True
 
 
+class LayerNormGradParser(iLayerNormParser):
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 4, len(node.outputs) == 1])
+
+        if ret:
+            self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        inputs = ['grad_in', 'data_in', 'weight', 'bias']
+        outputs = ['grad_out']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
+        self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
+
+        return ctxt, True
+
+
 class MatMulParser(NodeParser):
 
     def __init__(self, noBiasHoisting = True):
@@ -1960,6 +2046,32 @@ class IntegerDivParser(NodeParser):
                 self.operatorRepresentation['denomStep'] = np.prod(
                     ctxt.lookup(self.operatorRepresentation['B']).shape[idx:])
                 break
+
+        return ctxt, True
+
+
+class PowParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return node.op == 'Pow' and len(node.inputs) == 2 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        # Lookup both inputs (data and exponent)
+        data_in = ctxt.lookup(node.inputs[0].name)
+        exponent_tensor = ctxt.lookup(node.inputs[1].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['exponent'] = exponent_tensor.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
 
         return ctxt, True
 
@@ -2747,3 +2859,26 @@ class ConvTranspose1DParser(ConvTransposeParser):
                 "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
             return newCtxt, True
         return ctxt, False
+
+
+class SqrtParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return node.op == 'Sqrt' and len(node.inputs) == 1 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+
+        return ctxt, True

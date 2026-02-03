@@ -14,12 +14,10 @@ name: _runner-siracusa
       docker-image:
         required: true
         type: string
-      test-names:
+      pytest-marker:
         required: true
         type: string
-      num-cores:
-        required: true
-        type: number
+        description: "Pytest marker for test selection (e.g., 'kernels', 'models')"
 
 jobs:
   test-runner-siracusa:
@@ -41,14 +39,10 @@ jobs:
           key: ccache-ci
       - name: Run Test
         run: |
-          testNames="${{ inputs.test-names }}"
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          echo "$testNames" | while IFS= read -r testName; do
-            if [[ -n "$testName" ]]; then
-              echo "Running test: $testName"
-              python testRunner_siracusa.py -t Tests/$testName --cores=${{ inputs.num-cores }}
-            fi
-          done
+
+          # Run tests using pytest markers
+          pytest test_platforms.py -v -n 4 -m "siracusa and ${{ inputs.pytest-marker }}"
         shell: bash
