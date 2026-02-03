@@ -87,6 +87,14 @@ class SnitchRMSNormParser(NodeParser):
             return False
         eps = node.attrs.get('eps', node.attrs.get('epsilon', 1e-6))
         self.operatorRepresentation['eps'] = f"{float(eps):.10e}f"
+
+        stash_type = node.attrs.get('stash_type', 1)
+        if stash_type != 1:
+            raise ValueError(f"RMSNorm: only stash_type=1 (FP32) is supported, got {stash_type}")
+
+        axis = node.attrs.get('axis', -1)
+        self.operatorRepresentation['axis'] = axis
+
         return True
 
     def parseNodeCtxt(self,
@@ -103,10 +111,21 @@ class SnitchRMSNormParser(NodeParser):
         self.operatorRepresentation['input_shape'] = list(data_in.shape)
         self.operatorRepresentation['weight_shape'] = list(weight.shape)
         self.operatorRepresentation['output_shape'] = list(data_out.shape)
-        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
-        self.operatorRepresentation['lastDimLength'] = int(data_in.shape[-1])
         self.operatorRepresentation['input_ndim'] = len(data_in.shape)
         self.operatorRepresentation['weight_ndim'] = len(weight.shape)
+
+        input_shape = list(data_in.shape)
+        axis = self.operatorRepresentation['axis']
+        if axis < 0:
+            axis = len(input_shape) + axis
+
+        self.operatorRepresentation['inputSize'] = int(np.prod(input_shape))
+        self.operatorRepresentation['NormalizedAxesSize'] = int(np.prod(input_shape[axis:]))
+        self.operatorRepresentation['scale'] = node.inputs[1].values
+
+        # Keep old keys for C template compatibility
+        self.operatorRepresentation['size'] = int(np.prod(input_shape))
+        self.operatorRepresentation['lastDimLength'] = int(input_shape[-1])
 
         return ctxt, True
 

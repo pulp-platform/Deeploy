@@ -70,8 +70,12 @@ class iRMSNormParser(NodeParser):
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
+        input_shape = list(ctxt.lookup(node.inputs[0].name).shape)
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['lastDimLength'] = input_shape[-1]
+        self.operatorRepresentation['inputSize'] = int(np.prod(input_shape))
+        self.operatorRepresentation['NormalizedAxesSize'] = int(input_shape[-1])
+        self.operatorRepresentation['scale'] = node.inputs[1].values
 
         return ctxt, True
 
