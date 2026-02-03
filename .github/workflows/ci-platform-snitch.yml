@@ -55,6 +55,8 @@ jobs:
         Kernels/Integer/GEMM/Regular_RQPerRow
         Kernels/Integer/Add/Regular_RQ
         Kernels/Integer/GEMM/TransB_RQ
+
+        Models/microLlama/microLlama_fp32_1
       num-cores: 9
       simulators: |
         gvsoc
