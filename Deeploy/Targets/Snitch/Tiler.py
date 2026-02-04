@@ -9,11 +9,23 @@ from Deeploy.Targets.Generic.TileConstraints.iRMSNormTileConstraint import iRMSN
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GatherTileConstraint import GatherTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMulTileConstraint
-from Deeploy.Targets.Snitch.Bindings import SnitchAddBindings, SnitchConcatBindings, SnitchDivBindings, \
-    SnitchGatherBindings, SnitchGemmBindings, SnitchHardSwishBindings, SnitchiNoNormBindings, SnitchiSoftmaxBindings, \
-    SnitchMatMulBindings, SnitchMulBindings, SnitchReshapeBindings, SnitchRMSNormBindings, SnitchRQAddBindings, \
-    SnitchRqGemmBindings, SnitchTransposeBindings
-from Deeploy.Targets.Snitch.TileConstraints import iNoNormTileConstraint, iSoftmaxTileConstraint
+from Deeploy.Targets.Snitch.Bindings import SnitchAddBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchConcatBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchDivBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchGatherBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchGemmBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchHardSwishBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchiNoNormBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchiSoftmaxBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchMatMulBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchMulBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchReshapeBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchRMSNormBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchRQAddBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchRqGemmBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchTransposeBindings
+from Deeploy.Targets.Snitch.TileConstraints import iNoNormTileConstraint
+from Deeploy.Targets.Snitch.TileConstraints import iSoftmaxTileConstraint
 from Deeploy.Targets.Snitch.TileConstraints.FloatDivTileConstraint import FloatDivTileConstraint
 from Deeploy.Targets.Snitch.TileConstraints.FloatMulTileConstraint import FloatMulTileConstraint
 from Deeploy.Targets.Snitch.TileConstraints.GemmTileConstraint import GemmTileConstraint

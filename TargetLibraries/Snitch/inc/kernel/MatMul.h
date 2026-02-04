@@ -68,12 +68,10 @@ void MatMul_offset_unrolled_2x2_parallel_s8_rv32im(
     int32_t A_offset, int32_t B_offset, int32_t output_offset);
 
 // Mapper Functions
-static inline void __attribute__((always_inline))
-MatMul_parallel_s8(int8_t const *__restrict__ pSrcA,
-                   int8_t const *__restrict__ pSrcB,
-                   int32_t *__restrict__ pDstC, uint32_t M, uint32_t N,
-                   uint32_t P, int32_t A_offset, int32_t B_offset,
-                   int32_t output_offset) {
+static inline void __attribute__((always_inline)) MatMul_parallel_s8(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int32_t *__restrict__ pDstC, uint32_t M, uint32_t N, uint32_t P,
+    int32_t A_offset, int32_t B_offset, int32_t output_offset) {
   MatMul_parallel_s8_rv32im(pSrcA, pSrcB, pDstC, M, N, P, A_offset, B_offset,
                             output_offset);
 }

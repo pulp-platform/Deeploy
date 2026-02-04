@@ -9,10 +9,17 @@ import onnx_graphsurgeon as gs
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    NCHWtoNHWCPass, RemoveGlobalOutputReshapePass, TransposeMatmulInputsPass
-from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, TransposeConstOptPass, \
-    TransposeMergePass, TransposeSplitPass
+    NCHWtoNHWCPass
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
+    RemoveGlobalOutputReshapePass
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
+    TransposeMatmulInputsPass
+from Deeploy.DeeployTypes import DeploymentPlatform
+from Deeploy.DeeployTypes import TopologyOptimizer
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeConstOptPass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeSplitPass
 
 
 class SnitchDeployer(SignPropDeployer):

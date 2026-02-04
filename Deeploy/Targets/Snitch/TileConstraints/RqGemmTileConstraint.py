@@ -6,12 +6,16 @@ from typing import Dict, List, Tuple
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import uint32_t
-from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
+from Deeploy.DeeployTypes import NetworkContext
+from Deeploy.DeeployTypes import OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
-from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
-    VariableReplacementScheme
+from Deeploy.TilingExtension.TilerModel import PerformanceHint
+from Deeploy.TilingExtension.TilerModel import TilerModel
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle
+from Deeploy.TilingExtension.TilingCodegen import HyperRectangle
+from Deeploy.TilingExtension.TilingCodegen import TilingSchedule
+from Deeploy.TilingExtension.TilingCodegen import VariableReplacementScheme
 
 
 class RqGemmTileConstraint(TileConstraint):

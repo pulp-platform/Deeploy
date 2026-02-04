@@ -6,7 +6,9 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
+from Deeploy.DeeployTypes import NetworkContext
+from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.DeeployTypes import OperatorRepresentation
 
 
 class FloatHardSwishTemplate(NodeTemplate):

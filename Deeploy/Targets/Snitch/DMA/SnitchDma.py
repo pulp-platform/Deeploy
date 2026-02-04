@@ -4,8 +4,14 @@
 
 from typing import Dict, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, PerTensorWaitingStrategy
+from Deeploy.DeeployTypes import NetworkContext
+from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.DeeployTypes import OperatorRepresentation
+from Deeploy.DeeployTypes import VariableBuffer
+from Deeploy.TilingExtension.AsyncDma import AsyncDma
+from Deeploy.TilingExtension.AsyncDma import DmaDirection
+from Deeploy.TilingExtension.AsyncDma import Future
+from Deeploy.TilingExtension.AsyncDma import PerTensorWaitingStrategy
 
 
 class SnitchBarrierFuture(Future):
