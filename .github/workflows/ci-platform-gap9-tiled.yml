@@ -17,7 +17,7 @@ name: CI • GAP9 (Tiled)
       docker_image_deeploy:
         description: "Deeploy Image to use"
         required: false
-        default: "ghcr.io/runwangdl/deeploy:gap9"
+        default: "ghcr.io/pulp-platform/deeploy-gap9:latest"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,7 +27,7 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: 'ghcr.io/runwangdl/deeploy:gap9'
+      docker_image_deeploy: 'ghcr.io/pulp-platform/deeploy-gap9:latest'
 
   gap9-kernels-tiled-singlebuffer-L2:
     needs: select-env
