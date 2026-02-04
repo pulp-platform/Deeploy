@@ -43,21 +43,50 @@ set(PULPNNVERSION XPULPV2)
 set(PULPNNBITWIDTH 32)
 add_compile_definitions(NUM_CORES=${NUM_CORES})
 
-# RW: Create symlink to PULPOpen third_party if it doesn't exist
-if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/third_party)
-  file(CREATE_LINK
-    ${CMAKE_CURRENT_LIST_DIR}/../PULPOpen/third_party
-    ${CMAKE_CURRENT_LIST_DIR}/third_party
-    SYMBOLIC)
-  message(STATUS "[Deeploy GAP9] Created symlink: third_party -> ../PULPOpen/third_party")
+# Option to use prebuilt pulp-nn library (default: ON for faster builds)
+option(USE_PREBUILT_PULPNN "Use prebuilt pulp-nn-mixed library" ON)
+
+if(USE_PREBUILT_PULPNN)
+  # Use prebuilt pulp-nn library
+  set(PREBUILT_PULPNN_DIR ${CMAKE_CURRENT_LIST_DIR}/prebuilt)
+
+  if(EXISTS ${PREBUILT_PULPNN_DIR}/libpulp-nn-mixed.a)
+    message(STATUS "[Deeploy GAP9] Using prebuilt pulp-nn-mixed library")
+
+    # Create imported target for prebuilt library
+    add_library(pulp-nn-mixed STATIC IMPORTED)
+    set_target_properties(pulp-nn-mixed PROPERTIES
+      IMPORTED_LOCATION ${PREBUILT_PULPNN_DIR}/libpulp-nn-mixed.a
+      INTERFACE_INCLUDE_DIRECTORIES ${PREBUILT_PULPNN_DIR}/include
+    )
+  else()
+    message(WARNING "[Deeploy GAP9] Prebuilt pulp-nn library not found at ${PREBUILT_PULPNN_DIR}")
+    message(WARNING "[Deeploy GAP9] Falling back to building from source")
+    set(USE_PREBUILT_PULPNN OFF)
+  endif()
 endif()
 
-add_subdirectory(third_party/pulp-nn-mixed)
+if(NOT USE_PREBUILT_PULPNN)
+  # Build pulp-nn from source
+  message(STATUS "[Deeploy GAP9] Building pulp-nn-mixed from source")
 
-#RW: GCC not recognizing -Wno-typedef-redefinition defined in PULP-NN CMakelist
-target_compile_options(pulp-nn-mixed PRIVATE -Wno-error)
+  # RW: Create symlink to PULPOpen third_party if it doesn't exist
+  if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/third_party)
+    file(CREATE_LINK
+      ${CMAKE_CURRENT_LIST_DIR}/../PULPOpen/third_party
+      ${CMAKE_CURRENT_LIST_DIR}/third_party
+      SYMBOLIC)
+    message(STATUS "[Deeploy GAP9] Created symlink: third_party -> ../PULPOpen/third_party")
+  endif()
+
+  add_subdirectory(third_party/pulp-nn-mixed)
+
+  #RW: GCC not recognizing -Wno-typedef-redefinition defined in PULP-NN CMakelist
+  target_compile_options(pulp-nn-mixed PRIVATE -Wno-error)
+  target_link_libraries(pulp-nn-mixed PUBLIC pmsis)
+endif()
+
 target_link_libraries(deeploygap9 PUBLIC pulp-nn-mixed)
-target_link_libraries(pulp-nn-mixed PUBLIC pmsis)
 
 target_link_libraries(deeploygap9 PUBLIC m)
 
