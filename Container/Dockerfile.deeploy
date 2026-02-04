@@ -129,6 +129,3 @@ RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-require
 # Copy pre-built toolchains and emulators
 COPY --from=toolchain /app/install ./install
 COPY --from=toolchain /root/.cargo/bin/banshee /root/.cargo/bin/banshee
-
-# Remove unused files and clean up to reduce image size
-RUN rm cmake-* core-requirements.txt gapy-requirements.txt pyproject.toml requirements-dev.txt requirements.txt Makefile

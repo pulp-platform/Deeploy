@@ -243,8 +243,6 @@ class GAP9StructBuffer(StructBuffer):
     allocTemplate = BasicAllocateTemplate.referenceStructAllocateTemplate
     deallocTemplate = NodeTemplate("")
 
-
-# SCHEREMO: stdint is included before pulp_nn_kernels.h because it is supposed to be included in there, but isn't...
 _includeList = ["pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h"]
 
 

@@ -11,10 +11,6 @@ file(GLOB_RECURSE PULPOPEN_SOURCES "../PULPOpen/src/**")
 list(FILTER PULPOPEN_SOURCES EXCLUDE REGEX ".*dory_mem.*")
 list(APPEND SOURCES ${PULPOPEN_SOURCES})
 
-if(NOT DEFINED ENV{GAP_SDK_HOME})
-  message(FATAL_ERROR "Environment variable GAP_SDK_HOME not set.")
-endif()
-
 add_deeploy_library(deeploygap9 STATIC ${SOURCES})
 target_include_directories(deeploygap9
   PUBLIC
@@ -27,12 +23,10 @@ target_compile_options(deeploygap9 PUBLIC
   )
 
 target_compile_options(deeploygap9 PRIVATE
-  -Wno-implicit-function-declaration
   -Wno-sign-conversion
   -Wno-sign-compare
   -Wno-type-limits
   -Wno-attributes
-  -Wno-incompatible-pointer-types
 )
 
 target_link_libraries(deeploygap9 PUBLIC pmsis)
@@ -41,10 +35,16 @@ target_link_libraries(deeploygap9 PUBLIC pmsis)
 #RW: Set PULP-NN version and bitwidth for pulp-nn-mixed
 set(PULPNNVERSION XPULPV2)
 set(PULPNNBITWIDTH 32)
-add_compile_definitions(NUM_CORES=${NUM_CORES})
 
 # Option to use prebuilt pulp-nn library (default: ON for faster builds)
-option(USE_PREBUILT_PULPNN "Use prebuilt pulp-nn-mixed library" ON)
+option(USE_PREBUILT_PULPNN "Use prebuilt pulp-nn-mixed librar with 8 cores" ON)
+
+# Check if NUM_CORES matches prebuilt library requirement
+if(USE_PREBUILT_PULPNN AND NOT NUM_CORES EQUAL 8)
+  message(WARNING "[Deeploy GAP9] Prebuilt pulp-nn library is compiled for 8 cores, but NUM_CORES=${NUM_CORES}.")
+  message(WARNING "[Deeploy GAP9] Disabling prebuilt library and building from source instead.")
+  set(USE_PREBUILT_PULPNN OFF)
+endif()
 
 if(USE_PREBUILT_PULPNN)
   # Use prebuilt pulp-nn library
@@ -83,6 +83,7 @@ if(NOT USE_PREBUILT_PULPNN)
 
   #RW: GCC not recognizing -Wno-typedef-redefinition defined in PULP-NN CMakelist
   target_compile_options(pulp-nn-mixed PRIVATE -Wno-error)
+  target_compile_definitions(pulp-nn-mixed PUBLIC NUM_CORES=${NUM_CORES})
   target_link_libraries(pulp-nn-mixed PUBLIC pmsis)
 endif()
 

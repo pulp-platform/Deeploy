@@ -16,6 +16,8 @@ from test_gap9_tiled_config import L2_DOUBLEBUFFER_KERNELS as GAP9_L2_DOUBLEBUFF
 from test_gap9_tiled_config import L2_DOUBLEBUFFER_MODELS as GAP9_L2_DOUBLEBUFFER_MODELS
 from test_gap9_tiled_config import L2_SINGLEBUFFER_KERNELS as GAP9_L2_SINGLEBUFFER_KERNELS
 from test_gap9_tiled_config import L2_SINGLEBUFFER_MODELS as GAP9_L2_SINGLEBUFFER_MODELS
+from test_gap9_tiled_config import L3_DOUBLEBUFFER_MODELS as GAP9_L3_DOUBLEBUFFER_MODELS
+from test_gap9_tiled_config import L3_SINGLEBUFFER_MODELS as GAP9_L3_SINGLEBUFFER_MODELS
 from test_generic_config import KERNEL_TESTS as GENERIC_KERNEL_TESTS
 from test_generic_config import MODEL_TESTS as GENERIC_MODEL_TESTS
 from test_mempool_config import DEFAULT_NUM_THREADS as MEMPOOL_DEFAULT_NUM_THREADS
@@ -916,6 +918,72 @@ def test_gap9_tiled_models_l2_doublebuffer(test_params, deeploy_test_dir, toolch
         cores = GAP9_TILED_DEFAULT_CORES,
         l1 = l1,
         default_mem_level = "L2",
+        double_buffer = True,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.gap9_tiled
+@pytest.mark.models
+@pytest.mark.singlebuffer
+@pytest.mark.l3
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(GAP9_L3_SINGLEBUFFER_MODELS, "L3-singlebuffer"),
+    ids = param_id,
+)
+def test_gap9_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
+                                           skipsim) -> None:
+    test_name, l1, config_name = test_params
+
+    # Add GAP9-specific CMake args
+    gap9_cmake_args = cmake_args + [f"NUM_CORES={GAP9_TILED_DEFAULT_CORES}"]
+
+    config = create_test_config(
+        test_name = test_name,
+        platform = "GAP9",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = gap9_cmake_args,
+        tiling = True,
+        cores = GAP9_TILED_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.gap9_tiled
+@pytest.mark.models
+@pytest.mark.doublebuffer
+@pytest.mark.l3
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(GAP9_L3_DOUBLEBUFFER_MODELS, "L3-doublebuffer"),
+    ids = param_id,
+)
+def test_gap9_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
+                                           skipsim) -> None:
+    test_name, l1, config_name = test_params
+
+    # Add GAP9-specific CMake args
+    gap9_cmake_args = cmake_args + [f"NUM_CORES={GAP9_TILED_DEFAULT_CORES}"]
+
+    config = create_test_config(
+        test_name = test_name,
+        platform = "GAP9",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = gap9_cmake_args,
+        tiling = True,
+        cores = GAP9_TILED_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
         double_buffer = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)

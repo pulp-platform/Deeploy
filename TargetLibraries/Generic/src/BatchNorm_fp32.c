@@ -3,10 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "DeeployBasicMath.h"
-
-#ifdef DEEPLOY_GAP9_PLATFORM
 #include <math.h>
-#endif
 
 void BatchNorm_fp32(const float32_t *input, const float32_t *gamma,
                     const float32_t *beta, const float32_t *mean,

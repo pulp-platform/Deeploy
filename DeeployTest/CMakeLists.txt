@@ -67,7 +67,8 @@ elseif(platform STREQUAL GAP9)
   else()
     # L3 mode: Use flash with readfs files
     # Data will be loaded from external flash via readfs
-    message(STATUS "[Deeploy GAP9] L3 mode: Found ${CMAKE_MATCH_COUNT} hex file(s)")
+    list(LENGTH HEXLIST HEXCOUNT)
+    message(STATUS "[Deeploy GAP9] L3 mode: Found ${HEXCOUNT} hex file(s)")
     message(STATUS "==== HEXLIST ====")
     foreach(f ${HEXLIST})
       message(STATUS "  ${f}")

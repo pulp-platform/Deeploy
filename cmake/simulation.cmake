@@ -82,7 +82,7 @@ endfunction()
 # the GVSOC_EXTRA_FLAGS variable.
 macro(add_gvsoc_emulation name target)
 	if(NOT DEFINED GVSOC_INSTALL_DIR)
-		message(FATAL_ERROR "Environment variable GVSOC_INSTALL_DIR not set")
+		message(FATAL_ERROR "CMake variable GVSOC_INSTALL_DIR not set. Please specify it with -DGVSOC_INSTALL_DIR=<path>")
 	endif()
 	set(GVSOC_WORKDIR ${CMAKE_BINARY_DIR}/gvsoc_workdir)
 	make_directory(${GVSOC_WORKDIR})
