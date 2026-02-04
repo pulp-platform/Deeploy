@@ -21,7 +21,7 @@ KERNEL_TESTS = [
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias",
     "Kernels/FP32/GEMM/Regular",
     "Kernels/FP32/MatMul",
-    "Kernels/FP32/MaxPool",
+    "Kernels/FP32/MaxPool/Regular_2D",
     "Kernels/FP32/Mul",
     "Kernels/FP32/LayerNorm",
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean",

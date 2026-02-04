@@ -21,7 +21,7 @@ KERNEL_TESTS = [
     "Kernels/Integer/GEMM/Regular",
     "Kernels/Integer/MatMul/Add",
     "Kernels/Integer/MatMul/Regular",
-    "Kernels/Integer/MaxPool",
+    "Kernels/Integer/MaxPool/Regular_2D",
     "Kernels/Integer/Pad/Regular_1D",
     "Kernels/Integer/Pad/Regular_2D",
     "Kernels/Integer/ReduceMean",

@@ -10,7 +10,7 @@ KERNEL_TESTS = [
     "Kernels/Integer/Pad/Regular_2D",
     "Kernels/Integer/MatMul/Regular",
     "Kernels/Integer/MatMul/Add",
-    "Kernels/Integer/MaxPool",
+    "Kernels/Integer/MaxPool/Regular_2D",
     "Kernels/Integer/Conv/Regular_2D_RQ",
     "Kernels/Integer/ReduceSum",
     "Kernels/Integer/ReduceMean",

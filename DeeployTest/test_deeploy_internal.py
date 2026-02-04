@@ -148,7 +148,7 @@ class TestTilerExtension:
         "./Tests/Models/CNN_Linear2",
         "./Tests/Models/CNN_Linear1",
         "./Tests/Kernels/Integer/MatMul/Regular",
-        "./Tests/Kernels/Integer/MaxPool",
+        "./Tests/Kernels/Integer/MaxPool/Regular_2D",
     ])
     def test_tiler_basic(self, test_path):
         """Test that tiler can process various networks without L1 constraints."""
@@ -171,7 +171,7 @@ class TestTilerExtension:
         "./Tests/Models/CNN_Linear2",
         "./Tests/Models/CNN_Linear1",
         "./Tests/Kernels/Integer/MatMul/Regular",
-        "./Tests/Kernels/Integer/MaxPool",
+        "./Tests/Kernels/Integer/MaxPool/Regular_2D",
     ])
     def test_tiler_constrained_should_fail(self, test_path):
         """Test that tiler correctly fails when L1 memory is too small."""
@@ -200,7 +200,7 @@ class TestTilerExtension:
         "./Tests/Models/miniMobileNet",
         "./Tests/Models/miniMobileNetv2",
         "./Tests/Kernels/Integer/MatMul/Regular",
-        "./Tests/Kernels/Integer/MaxPool",
+        "./Tests/Kernels/Integer/MaxPool/Regular_2D",
     ])
     def test_tiler_double_buffer(self, test_path):
         """Test tiler with double buffering enabled."""
