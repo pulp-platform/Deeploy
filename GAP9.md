@@ -7,38 +7,36 @@ To use Deeploy with GAP9, a custom Docker container is required because the offi
 
 ### Build The Docker Container
 
-To use SSH keys for accessing private repositories during the Docker build process, you need to start the SSH agent and add your SSH private key before running the Docker build command. You can do this by executing the following commands in your terminal:
-```sh
-cd Container
-eval $(ssh-agent)
-
-# Add your SSH private key to the agent
-ssh-add ~/.ssh/id_ed25519
-```
+To use SSH keys for accessing private repositories during the Docker build process, make sure you have an SSH key pair set up on your local machine. By default, the Makefile uses the key located at `~/.ssh/id_ed25519`. If your key is located elsewhere, you can specify its path using the `SSH_PRIVATE_KEY` variable when invoking the make command.
 
 To build a local version of the Deeploy Docker image with GAP9 support using the upstream toolchain image, run:
 ```sh
+cd Container
+
 # Build the Deeploy image with the upstream toolchain image
-make deeploy DEEPOY_IMAGE=deeploy:gap9
+make deeploy-gap9 DEEPOY_GAP9_IMAGE=deeploy-gap9:latest
+
+# If you want to specify a custom SSH key path, use:
+make deeploy-gap9 DEEPOY_GAP9_IMAGE=deeploy-gap9:latest SSH_PRIVATE_KEY=/path/to/your/private/key
 ```
 
-Or, to build both the toolchain and Deeploy images locally, use:
+Or, to build the toolchain, Deeploy and GAP9 images locally, use:
 ```sh
-# To build the toolchain container
-make toolchain TOOLCHAIN_IMAGE=deeploy-toolchain:gap9 DEEPOY_IMAGE=deeploy:gap9
+cd Container
 
-# To build the Deeploy container with the local toolchain image
-make deeploy TOOLCHAIN_IMAGE=deeploy-toolchain:gap9 DEEPOY_IMAGE=deeploy:gap9
+# Build all images
+make all TOOLCHAIN_IMAGE=deeploy-toolchain:latest DEEPOY_IMAGE=deeploy:latest DEEPOY_GAP9_IMAGE=deeploy-gap9:latest
 ```
 
 ### Use The Docker Container
-Then you can create and start the container in interactive mode with:
+
+Once the image is built, you can create and start the container in interactive mode with:
 
 ```sh
-docker run -it --name deeploy_gap9 -v $(pwd):/app/Deeploy deeploy:gap9
+docker run -it --name deeploy_gap9 -v $(pwd):/app/Deeploy deeploy-gap9:latest
 ```
 
-Before running the test, you need to set some environment variables:
+Before running tests, you need to set up the GAP9 environment inside the container:
 ```sh
 source /app/install/gap9-sdk/.gap9-venv/bin/activate
 source /app/install/gap9-sdk/configs/gap9_evk_audio.sh
