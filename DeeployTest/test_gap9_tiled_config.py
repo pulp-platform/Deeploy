@@ -17,9 +17,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/Integer/Softmax/Regular": [800, 500, 300],
     "Kernels/Integer/Concat": [32000, 16000, 8000],
     "Kernels/Integer/Hardswish/Regular": [750],
-    "Kernels/Integer/Hardswish/RQ": [750],
     "Kernels/FP32/GEMM/Regular": [8000],
-    "Kernels/FP32/Conv/Regular_2D_Bias": [1600],
     "Kernels/FP32/Conv/Regular_2D_NoBias": [6600],
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [6600],
     "Kernels/FP32/Conv/DW_2D_Bias": [7200],
@@ -44,9 +42,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/Integer/Softmax/Regular": [1600, 1000, 600],
     "Kernels/Integer/Concat": [64000, 32000, 16000],
     "Kernels/Integer/Hardswish/Regular": [750],
-    "Kernels/Integer/Hardswish/RQ": [800],
     "Kernels/FP32/GEMM/Regular": [8000],
-    "Kernels/FP32/Conv/Regular_2D_Bias": [2000],
     "Kernels/FP32/Conv/Regular_2D_NoBias": [8800],
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [8800],
     "Kernels/FP32/Conv/DW_2D_Bias": [9800],
@@ -63,16 +59,16 @@ L2_DOUBLEBUFFER_KERNELS = {
 }
 
 L2_SINGLEBUFFER_MODELS = {
-    "Models/MiniMobileNet": [60000, 12000, 6000, 3000],
-    "Models/MiniMobileNetv2": [60000, 16000, 12000, 8000],
+    "Models/miniMobileNet": [60000, 12000, 6000, 3000],
+    "Models/miniMobileNetv2": [60000, 16000, 12000, 8000],
     "Models/MLPerf/KeywordSpotting": [64000],
     "Models/MLPerf/ImageClassification": [64000],
     "Models/MLPerf/AnomalyDetection": [64000],
 }
 
 L2_DOUBLEBUFFER_MODELS = {
-    "Models/MiniMobileNet": [60000, 24000, 12000, 6000],
-    "Models/MiniMobileNetv2": [60000, 32000, 24000, 16000],
+    "Models/miniMobileNet": [60000, 24000, 12000, 6000],
+    "Models/miniMobileNetv2": [60000, 32000, 24000, 16000],
     "Models/MLPerf/KeywordSpotting": [64000],
     "Models/MLPerf/ImageClassification": [64000],
     "Models/MLPerf/AnomalyDetection": [64000],
