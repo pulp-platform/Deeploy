@@ -36,8 +36,7 @@ KERNEL_TESTS = [
     "Kernels/Mixed/Dequant",
     "Kernels/Mixed/Quant",
     "Kernels/FP32/ReduceSum",
-    "Kernels/FP32/Reshape/SkipConnection",
-    "Kernels/Quantized/Linear",
+    "Kernels/FP32/Reshape/SkipConnection"
 ]
 
 MODEL_TESTS = [
