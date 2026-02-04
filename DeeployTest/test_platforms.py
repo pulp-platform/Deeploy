@@ -864,8 +864,8 @@ def test_gap9_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, toolc
     generate_test_params(GAP9_L2_SINGLEBUFFER_MODELS, "L2-singlebuffer"),
     ids = param_id,
 )
-def test_gap9_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
-                                           skipgen, skipsim) -> None:
+def test_gap9_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
+                                           skipsim) -> None:
     test_name, l1, config_name = test_params
 
     # Add GAP9-specific CMake args
@@ -897,8 +897,8 @@ def test_gap9_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, toolch
     generate_test_params(GAP9_L2_DOUBLEBUFFER_MODELS, "L2-doublebuffer"),
     ids = param_id,
 )
-def test_gap9_tiled_models_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
-                                           skipgen, skipsim) -> None:
+def test_gap9_tiled_models_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
+                                           skipsim) -> None:
     test_name, l1, config_name = test_params
 
     # Add GAP9-specific CMake args
