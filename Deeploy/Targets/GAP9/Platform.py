@@ -243,6 +243,7 @@ class GAP9StructBuffer(StructBuffer):
     allocTemplate = BasicAllocateTemplate.referenceStructAllocateTemplate
     deallocTemplate = NodeTemplate("")
 
+
 _includeList = ["pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h"]
 
 
