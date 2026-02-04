@@ -6,9 +6,6 @@
 set(GAP9_GVSOC_DEFINED TRUE)
 
 macro(add_gvsoc_emulation name target)
-    if(NOT DEFINED GVSOC_INSTALL_DIR)
-        message(FATAL_ERROR "CMake variable GVSOC_INSTALL_DIR not set. Please specify it with -DGVSOC_INSTALL_DIR=<path>")
-    endif()
 
     set(GVSOC_WORKDIR ${CMAKE_BINARY_DIR}/gvsoc_workdir)
     make_directory(${GVSOC_WORKDIR})
@@ -16,7 +13,7 @@ macro(add_gvsoc_emulation name target)
 
     # GAP9 SDK paths
     set(GAP9_SDK_HOME $ENV{GAP_SDK_HOME})
-    if(NOT DEFINED GAP9_SDK_HOME)
+    if(NOT GAP9_SDK_HOME)
         message(FATAL_ERROR "Environment variable GAP_SDK_HOME not set")
     endif()
 

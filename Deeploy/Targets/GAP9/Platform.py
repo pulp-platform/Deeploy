@@ -293,7 +293,7 @@ class MemoryGAP9Platform(MemoryPlatform):
 
 class MemoryGAP9PlatformWrapper(MemoryPlatformWrapper):
 
-    untiledOps = ["add"]
+    untiledOps = []
 
     def __init__(self, platform: GAP9Platform, memoryHierarchy: MemoryHierarchy, defaultTargetMemoryLevel: MemoryLevel):
         assert isinstance(platform, GAP9Platform), \
