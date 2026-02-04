@@ -18,9 +18,8 @@ from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, DivC
 from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
     SnitchSynchCoresPass
 from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
-from Deeploy.Targets.Generic.Templates import TransposeTemplate
 from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, FloatMatMulTemplate, GatherTemplate, \
-    MatMulTemplate, ReshapeTemplate, RQAddTemplate, iSoftmaxTemplate
+    MatMulTemplate, ReshapeTemplate, RQAddTemplate, TransposeTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Snitch.Templates.FloatAddTemplate import referenceTemplate as FloatAddTemplate
 from Deeploy.Targets.Snitch.Templates.FloatDivTemplate import referenceTemplate as FloatDivTemplate
 from Deeploy.Targets.Snitch.Templates.FloatHardSwishTemplate import referenceTemplate as FloatHardSwishTemplate
@@ -186,6 +185,16 @@ SnitchTransposeBindings = [
                 TiledTransformer),
     NodeBinding(TransposeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 TransposeTemplate.referenceTemplate, TiledTransformer)
+]
+
+# Transpose Bindings (Non-tiled, multi-core)
+BasicSnitchTransposeBindings = [
+    NodeBinding(TransposeChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), TransposeTemplate.referenceTemplate,
+                BasicTransformer),
+    NodeBinding(TransposeChecker([PointerClass(int32_t)], [PointerClass(int32_t)]), TransposeTemplate.referenceTemplate,
+                BasicTransformer),
+    NodeBinding(TransposeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                TransposeTemplate.referenceTemplate, BasicTransformer)
 ]
 
 # Reshape Bindings (Tiled)
