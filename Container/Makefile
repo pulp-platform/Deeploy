@@ -40,7 +40,7 @@ toolchain:
 	-f Dockerfile.toolchain \
 	-t $(TOOLCHAIN_IMAGE) ..
 
-# Build the final deploy image using the toolchain image
+# Build the final Deeploy image using the toolchain image
 deeploy:
 	DOCKER_BUILDKIT=1 docker build \
 	--ssh default \
@@ -48,7 +48,7 @@ deeploy:
 	--build-arg BASE_IMAGE=$(TOOLCHAIN_IMAGE) \
 	-t $(DEEPOY_IMAGE) ..
 
-# Build the GAP9 deploy image
+# Build the GAP9 Deeploy image
 deeploy-gap9:
 	eval $$(ssh-agent) && \
 	ssh-add $(SSH_PRIVATE_KEY) && \
