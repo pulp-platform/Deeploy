@@ -44,12 +44,12 @@ RUN --mount=type=cache,target=/ccache \
 # Install Bender
 RUN mkdir -p /app/install && \
 if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz /app/install && \
-    tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
+    wget -P /app/install https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
+    tar xzf /app/install/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install && \
     cp  /app/install/bender /bin; \
 elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    wget https://github.com/Xeratec/bender/releases/download/v0.28.3-rc1/bender-0.28.3-rc1-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz /app/install && \
-    tar xzf bender-0.28.3-rc1-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
+    wget -P /app/install https://github.com/Xeratec/bender/releases/download/v0.28.3-rc1/bender-0.28.3-rc1-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
+    tar xzf /app/install/bender-0.28.3-rc1-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install && \
     cp  /app/install/bender /bin; \
 fi
 
