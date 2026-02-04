@@ -5,7 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
-- 
+- Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 
 ### Added
 - 
@@ -159,6 +159,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Refactored DMA code generation (`SnitchDma`, `Mchan`) to correctly overlap transfers and compute in double-buffering mode
 - changed `_mapNode` to `_selectEngine` which reduces the responsibility of that function to, as the name states, just engine selection
 - Print kernel profiling information for all memory levels
+- Aligned CLI commands across the project
+- Fix test paths in Deeploy 101 tutorial
 
 ### Fixed
 - Update `install.md` to remove rust mention and fix test command.
@@ -190,6 +192,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 ### Removed
 - Delete outdated and unused `.gitlab-ci.yml` file
 - dory_dma.c and dory_dma.h
+- `testDMA.py` was an old test; we now have `test_dmas.py` instead.
 
 ## Release v0.2.0 (2025-07-08) [#103](https://github.com/pulp-platform/Deeploy/pull/103)
 This release containing major architectural changes, new platform support, enhanced simulation workflows, floating-point kernel support, training infrastructure for CCT models, memory allocation strategies, and documentation improvements.
