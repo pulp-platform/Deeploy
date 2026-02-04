@@ -9,8 +9,8 @@ import numpy as np
 from Deeploy.AbstractDataTypes import Pointer, PointerClass, VoidType
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicLayerNormBindings, BasicPad1DBindings, BasicPad2DBindings, \
-    BasicRQIntegerDivBinding
+from Deeploy.Targets.Generic.Bindings import BasicConcatBindings, BasicGatherBindings, BasicLayerNormBindings, \
+    BasicMatMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, DivLayer, GatherLayer, GEMMLayer, HardSwishLayer, \
     LayerNormLayer, MatMulLayer, MulLayer, PadLayer, ReshapeLayer, RMSNormLayer, RQGEMMLayer, RQIntegerDivLayer, \
     SoftmaxLayer, TransposeLayer, iNoNormLayer
@@ -21,6 +21,10 @@ from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateT
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass, GEMMRequantMergePass, \
     IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
+from Deeploy.Targets.Snitch.Bindings import BasicDivBindings, BasicHardSwishBindings, BasicMulBindings, \
+    BasicRMSNormBindings, BasicSnitchTransposeBindings, SnitchAddBindings, SnitchGemmBindings, \
+    SnitchiNoNormBindings, SnitchiSoftmaxBindings, SnitchRQAddBindings, SnitchRqGemmBindings
 from Deeploy.Targets.Snitch.Parsers import HardSwishParser, SnitchDivParser, SnitchGEMMParser, SnitchMulParser, \
     SnitchRMSNormParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
@@ -34,6 +38,11 @@ from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConca
 # Mappers without tiling-ready equivalents
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
+UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
+ReshapeMapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
+TransposeMapper = NodeMapper(TransposeParser(), BasicSnitchTransposeBindings)
+ConcatMapper = NodeMapper(ConcatParser(), BasicConcatBindings)
+
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
 iLayerNormMapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
 
