@@ -6,34 +6,104 @@ from typing import List, Type
 
 import numpy as np
 
-from Deeploy.AbstractDataTypes import Pointer, PointerClass, VoidType
-from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
-    StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicConcatBindings, BasicGatherBindings, BasicLayerNormBindings, \
-    BasicMatMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, DivLayer, GatherLayer, GEMMLayer, HardSwishLayer, \
-    LayerNormLayer, MatMulLayer, MulLayer, PadLayer, ReshapeLayer, RMSNormLayer, RQGEMMLayer, RQIntegerDivLayer, \
-    SoftmaxLayer, TransposeLayer, iNoNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, GatherParser, MatMulParser, Pad1DParser, Pad2DParser, \
-    ReshapeParser, RQAddParser, RQIntegerDivParser, SoftmaxParser, TransposeParser, UnsqueezeParser, iLayerNormParser, \
-    iNoNormParser, iSoftmaxParser
+from Deeploy.AbstractDataTypes import Pointer
+from Deeploy.AbstractDataTypes import PointerClass
+from Deeploy.AbstractDataTypes import VoidType
+from Deeploy.DeeployTypes import ConstantBuffer
+from Deeploy.DeeployTypes import DeploymentEngine
+from Deeploy.DeeployTypes import DeploymentPlatform
+from Deeploy.DeeployTypes import NodeMapper
+from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.DeeployTypes import StructBuffer
+from Deeploy.DeeployTypes import TopologyOptimizer
+from Deeploy.DeeployTypes import TransientBuffer
+from Deeploy.DeeployTypes import VariableBuffer
+from Deeploy.Targets.Generic.Bindings import BasicConcatBindings
+from Deeploy.Targets.Generic.Bindings import BasicGatherBindings
+from Deeploy.Targets.Generic.Bindings import BasicLayerNormBindings
+from Deeploy.Targets.Generic.Bindings import BasicMatMulBindings
+from Deeploy.Targets.Generic.Bindings import BasicPad1DBindings
+from Deeploy.Targets.Generic.Bindings import BasicPad2DBindings
+from Deeploy.Targets.Generic.Bindings import BasicReshapeBindings
+from Deeploy.Targets.Generic.Bindings import BasicRQIntegerDivBinding
+from Deeploy.Targets.Generic.Layers import AddLayer
+from Deeploy.Targets.Generic.Layers import ConcatLayer
+from Deeploy.Targets.Generic.Layers import DivLayer
+from Deeploy.Targets.Generic.Layers import GatherLayer
+from Deeploy.Targets.Generic.Layers import GEMMLayer
+from Deeploy.Targets.Generic.Layers import HardSwishLayer
+from Deeploy.Targets.Generic.Layers import iNoNormLayer
+from Deeploy.Targets.Generic.Layers import LayerNormLayer
+from Deeploy.Targets.Generic.Layers import MatMulLayer
+from Deeploy.Targets.Generic.Layers import MulLayer
+from Deeploy.Targets.Generic.Layers import PadLayer
+from Deeploy.Targets.Generic.Layers import ReshapeLayer
+from Deeploy.Targets.Generic.Layers import RMSNormLayer
+from Deeploy.Targets.Generic.Layers import RQGEMMLayer
+from Deeploy.Targets.Generic.Layers import RQIntegerDivLayer
+from Deeploy.Targets.Generic.Layers import SoftmaxLayer
+from Deeploy.Targets.Generic.Layers import TransposeLayer
+from Deeploy.Targets.Generic.Parsers import AddParser
+from Deeploy.Targets.Generic.Parsers import ConcatParser
+from Deeploy.Targets.Generic.Parsers import GatherParser
+from Deeploy.Targets.Generic.Parsers import iLayerNormParser
+from Deeploy.Targets.Generic.Parsers import iNoNormParser
+from Deeploy.Targets.Generic.Parsers import iSoftmaxParser
+from Deeploy.Targets.Generic.Parsers import MatMulParser
+from Deeploy.Targets.Generic.Parsers import Pad1DParser
+from Deeploy.Targets.Generic.Parsers import Pad2DParser
+from Deeploy.Targets.Generic.Parsers import ReshapeParser
+from Deeploy.Targets.Generic.Parsers import RQAddParser
+from Deeploy.Targets.Generic.Parsers import RQIntegerDivParser
+from Deeploy.Targets.Generic.Parsers import SoftmaxParser
+from Deeploy.Targets.Generic.Parsers import TransposeParser
+from Deeploy.Targets.Generic.Parsers import UnsqueezeParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass, GEMMRequantMergePass, \
-    IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
-    SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import GEMMRequantMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import iGELURequantMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import iHardswishRequantMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import IntegerDivRequantMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import MergeConstAddAndRequantPass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import MergeTrueIntegerDivRequantShiftPass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import RQSSplitPass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import SkipEmptyConcatPass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import SkipUnityRequantPass
 from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
-from Deeploy.Targets.Snitch.Bindings import BasicDivBindings, BasicHardSwishBindings, BasicMulBindings, \
-    BasicRMSNormBindings, BasicSnitchTransposeBindings, SnitchAddBindings, SnitchGemmBindings, \
-    SnitchiNoNormBindings, SnitchiSoftmaxBindings, SnitchRQAddBindings, SnitchRqGemmBindings
-from Deeploy.Targets.Snitch.Parsers import HardSwishParser, SnitchDivParser, SnitchGEMMParser, SnitchMulParser, \
-    SnitchRMSNormParser, SnitchRQGEMMParser
-from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
-from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConcatTilingReadyBindings, \
-    SnitchDivTilingReadyBindings, SnitchGatherTilingReadyBindings, SnitchGemmTilingReadyBindings, \
-    SnitchHardSwishTilingReadyBindings, SnitchiNoNormTilingReadyBindings, SnitchiSoftmaxTilingReadyBindings, \
-    SnitchMatMulTilingReadyBindings, SnitchMulTilingReadyBindings, SnitchReshapeTilingReadyBindings, \
-    SnitchRMSNormTilingReadyBindings, SnitchRQAddTilingReadyBindings, SnitchRqGemmTilingReadyBindings, \
-    SnitchTransposeTilingReadyBindings
+from Deeploy.Targets.Snitch.Bindings import BasicDivBindings
+from Deeploy.Targets.Snitch.Bindings import BasicHardSwishBindings
+from Deeploy.Targets.Snitch.Bindings import BasicMulBindings
+from Deeploy.Targets.Snitch.Bindings import BasicRMSNormBindings
+from Deeploy.Targets.Snitch.Bindings import BasicSnitchTransposeBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchAddBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchGemmBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchiNoNormBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchiSoftmaxBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchRQAddBindings
+from Deeploy.Targets.Snitch.Bindings import SnitchRqGemmBindings
+from Deeploy.Targets.Snitch.Parsers import HardSwishParser
+from Deeploy.Targets.Snitch.Parsers import SnitchDivParser
+from Deeploy.Targets.Snitch.Parsers import SnitchGEMMParser
+from Deeploy.Targets.Snitch.Parsers import SnitchMulParser
+from Deeploy.Targets.Snitch.Parsers import SnitchRMSNormParser
+from Deeploy.Targets.Snitch.Parsers import SnitchRQGEMMParser
+from Deeploy.Targets.Snitch.Templates import AllocateTemplate
+from Deeploy.Targets.Snitch.Templates import FreeTemplate
+from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchConcatTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchDivTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchGatherTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchGemmTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchHardSwishTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchiNoNormTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchiSoftmaxTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchMatMulTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchMulTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchReshapeTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchRMSNormTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchRQAddTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchRqGemmTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchTransposeTilingReadyBindings
 
 # Mappers without tiling-ready equivalents
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)

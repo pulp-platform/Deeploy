@@ -4,8 +4,12 @@
 
 from typing import Literal, Tuple
 
-from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, \
-    NodeTemplate, _NoVerbosity
+from Deeploy.DeeployTypes import _NoVerbosity
+from Deeploy.DeeployTypes import CodeGenVerbosity
+from Deeploy.DeeployTypes import CodeTransformationPass
+from Deeploy.DeeployTypes import ExecutionBlock
+from Deeploy.DeeployTypes import NetworkContext
+from Deeploy.DeeployTypes import NodeTemplate
 
 
 class SnitchCoreFilterPass(CodeTransformationPass):

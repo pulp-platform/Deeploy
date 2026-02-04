@@ -5,21 +5,46 @@
 from functools import partial
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
-from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
-    MemoryManagementGeneration
-from Deeploy.CommonExtensions.DataTypes import float32_t, int8_t, int32_t, uint8_t
-from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
+from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration
+from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import MemoryAwareClosureGeneration
+from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration
+from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import MemoryManagementGeneration
+from Deeploy.CommonExtensions.DataTypes import float32_t
+from Deeploy.CommonExtensions.DataTypes import int8_t
+from Deeploy.CommonExtensions.DataTypes import int32_t
+from Deeploy.CommonExtensions.DataTypes import uint8_t
+from Deeploy.DeeployTypes import CodeTransformation
+from Deeploy.DeeployTypes import NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import ConcatTemplate, iNoNormTemplate
-from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, DivChecker, GatherChecker, GEMMChecker, \
-    HardSwishChecker, MatMulChecker, MulChecker, ReshapeChecker, RMSNormChecker, RQAddChecker, SoftmaxChecker, \
-    TransposeChecker, iNoNormChecker
-from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
-    SnitchSynchCoresPass
+from Deeploy.Targets.Generic.Templates import ConcatTemplate
+from Deeploy.Targets.Generic.Templates import iNoNormTemplate
+from Deeploy.Targets.Generic.TypeCheckers import AddChecker
+from Deeploy.Targets.Generic.TypeCheckers import ConcatChecker
+from Deeploy.Targets.Generic.TypeCheckers import DivChecker
+from Deeploy.Targets.Generic.TypeCheckers import GatherChecker
+from Deeploy.Targets.Generic.TypeCheckers import GEMMChecker
+from Deeploy.Targets.Generic.TypeCheckers import HardSwishChecker
+from Deeploy.Targets.Generic.TypeCheckers import iNoNormChecker
+from Deeploy.Targets.Generic.TypeCheckers import MatMulChecker
+from Deeploy.Targets.Generic.TypeCheckers import MulChecker
+from Deeploy.Targets.Generic.TypeCheckers import ReshapeChecker
+from Deeploy.Targets.Generic.TypeCheckers import RMSNormChecker
+from Deeploy.Targets.Generic.TypeCheckers import RQAddChecker
+from Deeploy.Targets.Generic.TypeCheckers import SoftmaxChecker
+from Deeploy.Targets.Generic.TypeCheckers import TransposeChecker
+from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling
+from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchCoreFilterPass
+from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchSynchCoresPass
 from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
-from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, FloatMatMulTemplate, GatherTemplate, \
-    MatMulTemplate, ReshapeTemplate, RQAddTemplate, TransposeTemplate, iSoftmaxTemplate
+from Deeploy.Targets.Snitch.Templates import AddTemplate
+from Deeploy.Targets.Snitch.Templates import FloatGemmTemplate
+from Deeploy.Targets.Snitch.Templates import FloatMatMulTemplate
+from Deeploy.Targets.Snitch.Templates import GatherTemplate
+from Deeploy.Targets.Snitch.Templates import iSoftmaxTemplate
+from Deeploy.Targets.Snitch.Templates import MatMulTemplate
+from Deeploy.Targets.Snitch.Templates import ReshapeTemplate
+from Deeploy.Targets.Snitch.Templates import RQAddTemplate
+from Deeploy.Targets.Snitch.Templates import TransposeTemplate
 from Deeploy.Targets.Snitch.Templates.FloatAddTemplate import referenceTemplate as FloatAddTemplate
 from Deeploy.Targets.Snitch.Templates.FloatDivTemplate import referenceTemplate as FloatDivTemplate
 from Deeploy.Targets.Snitch.Templates.FloatHardSwishTemplate import referenceTemplate as FloatHardSwishTemplate
@@ -28,8 +53,8 @@ from Deeploy.Targets.Snitch.Templates.FloatRMSNormTemplate import referenceTempl
 from Deeploy.Targets.Snitch.Templates.FloatSoftmaxTemplate import FloatSoftmax_Template
 from Deeploy.Targets.Snitch.Templates.GemmTemplate import SnitchGemm_Template
 from Deeploy.Targets.Snitch.Templates.RqGemmTemplate import SnitchRqGemm_Template
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
-    TilingVariableReplacementUpdate
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacementUpdate
 
 TilingCallClosure = partial(ClosureGeneration, closureSuffix = "_tiling_closure")
 MemoryAwareFunctionCallClosure = partial(MemoryAwareClosureGeneration,

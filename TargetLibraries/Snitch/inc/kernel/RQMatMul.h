@@ -75,14 +75,12 @@ void RQMatMul_offset_unrolled_2x2_parallel_s8_rv32im(
     int32_t output_offset);
 
 // Mapper Functions
-static inline void __attribute__((always_inline))
-RQMatMul_parallel_s8(int8_t const *__restrict__ pSrcA,
-                     int8_t const *__restrict__ pSrcB,
-                     int8_t *__restrict__ pDstC, uint32_t M, uint32_t N,
-                     uint32_t P, int32_t *mul, int32_t *add, int32_t log2D,
-                     bool rounding, bool per_row_quant, int32_t A_offset,
-                     int32_t B_offset, int32_t output_offset, int8_t output_min,
-                     int8_t output_max) {
+static inline void __attribute__((always_inline)) RQMatMul_parallel_s8(
+    int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
+    int8_t *__restrict__ pDstC, uint32_t M, uint32_t N, uint32_t P,
+    int32_t *mul, int32_t *add, int32_t log2D, bool rounding,
+    bool per_row_quant, int32_t A_offset, int32_t B_offset,
+    int32_t output_offset, int8_t output_min, int8_t output_max) {
   RQMatMul_parallel_s8_rv32im(pSrcA, pSrcB, pDstC, M, N, P, mul, add, log2D,
                               rounding, per_row_quant, A_offset, B_offset,
                               output_offset, output_min, output_max);

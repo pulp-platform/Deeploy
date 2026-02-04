@@ -7,8 +7,13 @@ from typing import Tuple
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import NetworkContext, NodeParser
-from Deeploy.Targets.Generic.Parsers import AddParser, DivParser, GEMMParser, MulParser, RQGEMMParser
+from Deeploy.DeeployTypes import NetworkContext
+from Deeploy.DeeployTypes import NodeParser
+from Deeploy.Targets.Generic.Parsers import AddParser
+from Deeploy.Targets.Generic.Parsers import DivParser
+from Deeploy.Targets.Generic.Parsers import GEMMParser
+from Deeploy.Targets.Generic.Parsers import MulParser
+from Deeploy.Targets.Generic.Parsers import RQGEMMParser
 
 
 class SnitchGEMMParser(GEMMParser):
