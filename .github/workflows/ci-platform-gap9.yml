@@ -27,7 +27,7 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: 'ghcr.io/pulp-platform/deeploy-gap9:latest'
+      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || (github.repository == 'pulp-platform/Deeploy' && 'ghcr.io/pulp-platform/deeploy-gap9:latest' || 'ghcr.io/runwangdl/deeploy:gap9') }}
 
   gap9-kernels:
     needs: select-env
