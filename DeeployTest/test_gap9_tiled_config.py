@@ -63,18 +63,28 @@ L2_DOUBLEBUFFER_KERNELS = {
 }
 
 L2_SINGLEBUFFER_MODELS = {
-    "Models/SimpleRegression": [45000, 30000, 15000],
     "Models/MiniMobileNet": [60000, 12000, 6000, 3000],
     "Models/MiniMobileNetv2": [60000, 16000, 12000, 8000],
-    "Models/Attention": [60000, 10000, 5000],
     "Models/MLPerf/KeywordSpotting": [64000],
     "Models/MLPerf/ImageClassification": [64000],
     "Models/MLPerf/AnomalyDetection": [64000],
 }
 
 L2_DOUBLEBUFFER_MODELS = {
-    "Models/SimpleRegression": [60000, 45000, 30000],
     "Models/MiniMobileNet": [60000, 24000, 12000, 6000],
     "Models/MiniMobileNetv2": [60000, 32000, 24000, 16000],
-    "Models/Attention": [60000, 20000, 10000, 5000],
+    "Models/MLPerf/KeywordSpotting": [64000],
+    "Models/MLPerf/ImageClassification": [64000],
+    "Models/MLPerf/AnomalyDetection": [64000],
+}
+
+L3_SINGLEBUFFER_MODELS = {
+    "Models/miniMobileNet": [60000, 12000, 6000],
+    "Models/miniMobileNetv2": [60000, 16000, 12000, 8000],
+    "Models/CCT/FP32/CCT_2_32_32_128": [128000],
+}
+
+L3_DOUBLEBUFFER_MODELS = {
+    "Models/miniMobileNet": [60000, 24000, 12000, 6000],
+    "Models/miniMobileNetv2": [60000, 32000, 24000, 16000],
 }

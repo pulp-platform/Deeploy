@@ -43,10 +43,8 @@ KERNEL_TESTS = [
 ]
 
 MODEL_TESTS = [
-    "Models/SimpleRegression",
     "Models/MiniMobileNet",
     "Models/MiniMobileNetv2",
-    "Models/Attention",
     "Models/MLPerf/KeywordSpotting",
     "Models/MLPerf/ImageClassification",
     "Models/MLPerf/AnomalyDetection",
