@@ -34,15 +34,15 @@ cd Deeploy
 pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
 ```
 
-From the `DeeployTest` folder, you can use the `testRunner` to compile ONNXs and execute the output code using the appropriate simulators.
+From the `DeeployTest` folder, you can use the `deeployRunner` to compile ONNXs and execute the output code using the appropriate simulators.
 
 To validate your installation, you can run a simple Add node on each platform:
 ```
-python testRunner_generic.py -t Tests/IntKernels/Add/Regular
-python testRunner_cortexm.py -t Tests/IntKernels/Add/Regular
-python testRunner_mempool.py -t Tests/IntKernels/Add/Regular
-python testRunner_snitch.py -t Tests/IntKernels/Add/Regular/
-python testRunner_siracusa.py -t Tests/IntKernels/Add/Regular --cores=8
+python deeployRunner_generic.py -t Tests/Kernels/Integer/Add/Regular
+python deeployRunner_cortexm.py -t Tests/Kernels/Integer/Add/Regular
+python deeployRunner_mempool.py -t Tests/Kernels/Integer/Add/Regular
+python deeployRunner_snitch.py -t Tests/Kernels/Integer/Add/Regular
+python deeployRunner_siracusa.py -t Tests/Kernels/Integer/Add/Regular --cores=8
 ```
 Once all these basic tests are passed, we can jump into the basics of Deeploy.
 
@@ -57,7 +57,7 @@ Hence, Deeploy's inputs are:
 
 Deeploy is shipped with a comprehensive testing framework conveniently named DeeployTest. This testing framework contains Test Runners for end-to-end testing of your network on a given platform. More specifically, a Test Runner compiles a given ONNX file, builds the project, feeds the inputs into the compiled neural network, and compares the output with the golden values to ensure correctness.
 
-If you followed this tutorial correctly, you already used Test Runners (e.g., `testRunner_siracusa.py`) to validate the Deeploy installation! We will dive into the details of the Test Runners CLI very soon, but first, let's look at the tools and libraries used downstream in Deeploy.
+If you followed this tutorial correctly, you already used Test Runners (e.g., `deeployRunner_siracusa.py`) to validate the Deeploy installation! We will dive into the details of the Test Runners CLI very soon, but first, let's look at the tools and libraries used downstream in Deeploy.
 
 The figure below gives an overview of the deployment stack. As you can see, there are several steps to take before actually running the application. For the build system (*e.g.,* the tool to organize compilation and linking), we use [CMake](https://cmake.org/). The default C compiler shipped with Deeploy is [LLVM 15](https://llvm.org/), but it supports GCC, given that you provide a local installation. To generate the Application Binary, we link the Network Code with the necessary Kernel Libraries and a Standard C Library (here [Picolibc](https://github.com/picolibc/picolibc)). Then, we feed this Application Binary to the appropriate simulator; from there, you can verify the correctness and benchmark the application.
 
@@ -67,9 +67,9 @@ The figure below gives an overview of the deployment stack. As you can see, ther
 
 You can visualize the ONNX graphs using [Netron](https://netron.app/). Either use the web interface or install the python package with `pip install netron`.
 
-> ✅ **Task:** Visualize the ONNX graph of the `IntKernels/Add/Regular`, `Models/MobileNetv2`, and `Others/Transformer`
+> ✅ **Task:** Visualize the ONNX graph of the `Tests/Kernels/Integer/Add/Regular`, `Tests/Models/MobileNetv2`, and `Tests/Models/Transformer`
 
-The ONNX graphs are in `DeeployTest/Tests/<TestName>/network.onnx`. The networks are increasing in complexity, `IntKernels/Add/Regular` is a single node network for unit testing, while `Models/MobileNetv2` is a simple sequential network mostly made of convolutions. Finally, the `Others/Transformer` network showcases a typical transformer block used in Encoder and Decoder networks. If you want to peek at a complex network, you can visualize `Models/microLlama/microLlama128`.
+The ONNX graphs are in `DeeployTest/Tests/<TestName>/network.onnx`. The networks are increasing in complexity, `IntKernels/Add/Regular` is a single node network for unit testing, while `Tests/Models/MobileNetv2` is a simple sequential network mostly made of convolutions. Finally, the `Tests/Models/Transformer` network showcases a typical transformer block used in Encoder and Decoder networks. If you want to peek at a complex network, you can visualize `Models/microLlama/microLlama128`.
 
 Now that we understand Deeploy's input, let's check the output-generated code!
 
@@ -77,15 +77,15 @@ Now that we understand Deeploy's input, let's check the output-generated code!
 
 The generated code is located in the following directory: `DeeployTest/TEST_<PlatformName>/Tests`, and the `Network.c` file is the interesting one.
 
-The generated code is trivial for the `IntKernels/Add/Regular` graph; we simply use the template for the `Add` node of the Generic platform. You can find the template declaration in `Deeploy/Targets/Generic/Templates/AddTemplate.py`.
+The generated code is trivial for the `Tests/Kernels/Integer/Add/Regular` graph; we simply use the template for the `Add` node of the Generic platform. You can find the template declaration in `Deeploy/Targets/Generic/Templates/AddTemplate.py`.
 
-Now, if you want to look at something a bit more complex, run `python testRunner_generic.py  -t ./Tests/Models/miniMobileNetv2` (from `DeeployTest`) and look at the generated code. There are two interesting points you can notice:
+Now, if you want to look at something a bit more complex, run `python deeployRunner_generic.py  -t ./Tests/Models/miniMobileNetv2` (from `DeeployTest`) and look at the generated code. There are two interesting points you can notice:
 - We hoist the constants at the top of the file.
-- In the `RunNetwork` function, we sequentially have node templates to execute the operands and malloc/free to manage the memory. You can open the ONNX graph of `Models/miniMobileNetv2` on the side to try to match the nodes of the graph with their generated code.
+- In the `RunNetwork` function, we sequentially have node templates to execute the operands and malloc/free to manage the memory. You can open the ONNX graph of `Tests/Models/miniMobileNetv2` on the side to try to match the nodes of the graph with their generated code.
 
 > ✅ **Task:** Visualize the effect of passes on the ONNX graph for the Siracusa platform.
 
-Deeploy applies passes on the ONNX graph to transform its topology and optimize its execution. Let's visualize the effect of the passes used in the Siracusa Platform. First, let's execute our `miniMobileNetv2` on Siracusa with `python testRunner_siracusa.py  -t ./Tests/Models/miniMobileNetv2`. You can find the original ONNX graph at `DeeployTest/Tests/Models/miniMobileNetv2/network.onnx`, and the transformed ONNX graph at `DeeployTest/TEST_SIRACUSA/Tests/Models/miniMobileNetv2/deeployStates/backend_post_binding.onnx`. Open both ONNX graphs side by side to compare them.
+Deeploy applies passes on the ONNX graph to transform its topology and optimize its execution. Let's visualize the effect of the passes used in the Siracusa Platform. First, let's execute our `miniMobileNetv2` on Siracusa with `python deeployRunner_siracusa.py  -t ./Tests/Models/miniMobileNetv2`. You can find the original ONNX graph at `Tests/Models/miniMobileNetv2/network.onnx`, and the transformed ONNX graph at `TEST_SIRACUSA/Tests/Models/miniMobileNetv2/deeployStates/backend_post_binding.onnx`. Open both ONNX graphs side by side to compare them.
 
 You can notice the effect of two passes on the graph:
 - One pass fuses the `Conv` and `RequantShift` nodes. This is a common technique named [Operator Fusion](https://medium.com/data-science/how-pytorch-2-0-accelerates-deep-learning-with-operator-fusion-and-cpu-gpu-code-generation-35132a85bd26) and used in many DNN compilers.
@@ -135,12 +135,12 @@ Now that you understand the hardware and the kind of workload we want to execute
 
 > ✅ **Task:** Measure and compare the runtime of the `microLlama128` model using 1 and 8 cores. Compute the speedup ratio; why is it not 8?
 
-*Hint:* `python testRunner_siracusa.py --help` will list and explain the available flags.
+*Hint:* `python deeployRunner_siracusa.py --help` will list and explain the available flags.
 
 <details>
  <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
 
- > If you run `python testRunner_siracusa.py -t Tests/Models/microLlama/microLlama128 --cores=1` and then `python testRunner_siracusa.py -t Tests/Models/microLlama/microLlama128 --cores=8`, you should measure a runtime of ~16,1M cycles for 1 core and 3.1M cycles for 8 cores.
+ > If you run `python deeployRunner_siracusa.py -t Tests/Models/microLlama/microLlama128 --cores=1` and then `python deeployRunner_siracusa.py -t Tests/Models/microLlama/microLlama128 --cores=8`, you should measure a runtime of ~16,1M cycles for 1 core and 3.1M cycles for 8 cores.
  >
  > The speedup ratio is obtained via $\frac{\text{Runtime 1 cores}}{\text{Runtime 8 cores}} = 5.2$. Hence, using 8 cores instead of 1 leads to a 5.2 times speedup.
  >
@@ -149,22 +149,22 @@ Now that you understand the hardware and the kind of workload we want to execute
 
 ### Tiling Basics
 
-It's due time to talk about data movement now! We use all 8 cluster cores, which is great, but where do these cores fetch the data from? By default, when using `testRunner_siracusa.py`, all data is in L2; there is no tiling, and cores read and write data directly to/from L2. As the L2 memory is "further away" from the cluster, load/store takes several cycles, which is non-optimal.
+It's due time to talk about data movement now! We use all 8 cluster cores, which is great, but where do these cores fetch the data from? By default, when using `deeployRunner_siracusa.py`, all data is in L2; there is no tiling, and cores read and write data directly to/from L2. As the L2 memory is "further away" from the cluster, load/store takes several cycles, which is non-optimal.
 
 What we really want is to use the L1 memory, which provides 1 cycle latency load/store! But as the capacity is relatively small (256KB), we need to **tile our layers**. Tiling operands for an accelerator featuring only scratchpad memories is not trivial (unlike in architectures with data caches). For each layer, the compiler has to decide on tile size, a tiling schedule, a buffering strategy (single buffer, double buffer, etc...), and a memory allocation strategy. Then, the compiler must generate the code to configure and launch each transfer and place barriers accordingly to maximize concurrency.
 
 The good news is that Deeploy can already do that! So, let's generate and run some tiled code to see the impact of tiling on the runtime.
 
-> ✅ **Task:** Get familiar with the CLI arguments of `testRunner_tiled_siracusa.py`, then run `microLlama64_parallel` with different configurations. Find one "bad" and one "good" configuration, and explain why.
+> ✅ **Task:** Get familiar with the CLI arguments of `deeployRunner_tiled_siracusa.py`, then run `microLlama64_parallel` with different configurations. Find one "bad" and one "good" configuration, and explain why.
 
 *Hint:* Use the `--help` flag to list and explain the available flags.
 
 <details>
  <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
 
- > Bad configuration: `python testRunner_tiled_siracusa.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 8000 --defaultMemLevel=L2` -> Runtime: 47.5 MCycles
+ > Bad configuration: `python deeployRunner_tiled_siracusa.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 8000 --defaultMemLevel=L2` -> Runtime: 47.5 MCycles
  >
- > Good configuration `python testRunner_tiled_siracusa.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 64000 --defaultMemLevel=L2`: -> Runtime: 35.3 MCycles
+ > Good configuration `python deeployRunner_tiled_siracusa.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 64000 --defaultMemLevel=L2`: -> Runtime: 35.3 MCycles
  >
  > Justification: As the size of the L1 memory gets smaller, tiles also get smaller and smaller. Smaller tiles usually mean that it's harder to keep the core properly utilized.
 
@@ -185,7 +185,7 @@ With this profiling trace, you can clearly measure the overhead of DMA transfers
 
 ### Using the NPU and the Neural Memory Subsystem (NMS)
 
-To use the NPU, you can use the `testRunner_tiled_siracusa_w_neureka.py`. The Linear layers will automatically be executed by the NPU. To enable the NMS, use the `--neureka-wmem` flag. When the NMS is enabled, the constant tensors used by the accelerator will be placed in the Weight Memory.
+To use the NPU, you can use the `deeployRunner_tiled_siracusa_w_neureka.py`. The Linear layers will automatically be executed by the NPU. To enable the NMS, use the `--neureka-wmem` flag. When the NMS is enabled, the constant tensors used by the accelerator will be placed in the Weight Memory.
 
 > ✅ **Task:** Execute Micro Llama in parallel and autoregressive mode using the NPU, derive the speedup at the model level and at the layer level compared to execution without NPU.
 
@@ -199,7 +199,7 @@ To use the NPU, you can use the `testRunner_tiled_siracusa_w_neureka.py`. The Li
  > The runtime in parallel mode with NPU is obtained with:
  >
  >`
- python testRunner_tiled_siracusa_w_neureka.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 64000 --defaultMemLevel=L2
+ python deeployRunner_tiled_siracusa_w_neureka.py -t Tests/Models/microLlama/microLlama64_parallel --cores=8 --l1 64000 --defaultMemLevel=L2
  `
  >
  > And returns 28.6 MCycles of runtime. The runtime without NPU was measured above and is 35.3 MCycles. Hence, the speedup is ~1.23 times.

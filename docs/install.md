@@ -76,5 +76,5 @@ For example, you can run
 
 ```
 cd DeeployTest
-python testRunner_generic.py -t ./Tests/Kernels/Integer/Add/Regular
+python deeployRunner_generic.py -t Tests/Models/CNN_Linear1
 ```
