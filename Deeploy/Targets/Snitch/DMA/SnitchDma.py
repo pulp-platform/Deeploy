@@ -4,14 +4,8 @@
 
 from typing import Dict, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.DeeployTypes import NodeTemplate
-from Deeploy.DeeployTypes import OperatorRepresentation
-from Deeploy.DeeployTypes import VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma
-from Deeploy.TilingExtension.AsyncDma import DmaDirection
-from Deeploy.TilingExtension.AsyncDma import Future
-from Deeploy.TilingExtension.AsyncDma import PerTensorWaitingStrategy
+from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, PerTensorWaitingStrategy
 
 
 class SnitchBarrierFuture(Future):
@@ -37,7 +31,7 @@ class SnitchDma(AsyncDma):
 
     _transferTemplates = {
         2:
-            NodeTemplate("""
+        NodeTemplate("""
             if (snrt_is_dm_core()) {
                 ${future} = snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});
                 // WIESEP: Hack as otherwise the last commited DMA transaction ID can never be resolved.
