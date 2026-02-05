@@ -42,7 +42,7 @@ RUN --mount=type=cache,target=/ccache \
     ccache -s
 
 # Install Bender
-RUN mkdir -p /app/install && \
+RUN mkdir -p /app/install/bender && \
 if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
     wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
     tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install/bender; \
