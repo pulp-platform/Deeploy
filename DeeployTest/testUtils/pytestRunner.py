@@ -21,7 +21,7 @@ __all__ = [
 def get_worker_id() -> str:
     """
     Get the pytest-xdist worker ID for parallel test execution.
-    
+
     Returns:
         Worker ID string (e.g., 'gw0', 'gw1', 'master' for non-parallel)
     """
@@ -114,7 +114,7 @@ def create_test_config(
 def run_and_assert_test(test_name: str, config: DeeployTestConfig, skipgen: bool, skipsim: bool) -> None:
     """
     Shared helper function to run a test and assert its results.
-        
+
     Raises:
         AssertionError: If test fails or has errors
     """

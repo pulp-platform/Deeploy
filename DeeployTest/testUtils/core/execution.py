@@ -17,7 +17,7 @@ from .output_parser import TestResult, parse_test_output
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
     """
     Generate network code from ONNX model.
-        
+
     Raises:
         RuntimeError: If network generation fails
     """
@@ -151,7 +151,7 @@ def build_binary(config: DeeployTestConfig) -> None:
 def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     """
     Run simulation and parse output.
-        
+
     Raises:
         RuntimeError: If simulation cannot be executed
     """

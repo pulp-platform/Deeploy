@@ -316,7 +316,7 @@ def main(default_platform: Optional[str] = None,
          parser_setup_callback = None):
     """
     Main entry point for Deeploy test runners.
-    
+
     Args:
         default_platform: Default platform if not specified via -p
         default_simulator: Default simulator if not specified via -s
