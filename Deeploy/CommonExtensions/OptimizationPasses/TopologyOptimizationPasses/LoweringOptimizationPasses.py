@@ -488,7 +488,9 @@ def _remove_global_output_reshape_fun(graph: gs.Graph, match: Match, name: str):
     node = next(iter((match.nodes_map.values())))
 
     isGlobalOutput = len(node.outputs[0].outputs) == 0
-    if isGlobalOutput:
+    # Don't delete if the input is also a global input (i.e., single-node graph)
+    isGlobalInput = node.inputs[0] in graph.inputs
+    if isGlobalOutput and not isGlobalInput:
         graph.deleteNode(node)
 
     return graph
