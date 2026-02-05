@@ -83,6 +83,11 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           action = 'store_true',
                           default = False,
                           help = 'Skip network generation (reuse existing generated code)\n')
+        self.add_argument('--skipbuild',
+                          dest = 'skipbuild',
+                          action = 'store_true',
+                          default = False,
+                          help = 'Skip network simulation\n')
         self.add_argument('--skipsim',
                           dest = 'skipsim',
                           action = 'store_true',
@@ -348,6 +353,7 @@ def main(default_platform: Optional[str] = None,
         "snitch": "Snitch",
         "chimera": "Chimera",
         "softhier": "SoftHier",
+        "magia": "Magia",
     }
 
     if args.platform:
@@ -388,6 +394,7 @@ def main(default_platform: Optional[str] = None,
             "Snitch": "gvsoc",
             "Chimera": "gvsoc",
             "SoftHier": "gvsoc",
+            "Magia": "none",
         }
         simulator = simulator_map.get(platform, "host")
         log.info(f"No simulator specified, using default for {platform}: {simulator}")
@@ -410,7 +417,7 @@ def main(default_platform: Optional[str] = None,
     print_configuration(config)
 
     try:
-        result = run_complete_test(config, skipgen = args.skipgen, skipsim = args.skipsim)
+        result = run_complete_test(config, skipgen = args.skipgen, skipbuild = args.skipbuild, skipsim = args.skipsim)
 
         print_colored_result(result, config.test_name)
 

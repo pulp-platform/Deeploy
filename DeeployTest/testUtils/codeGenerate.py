@@ -8,9 +8,9 @@ from typing import List, Tuple
 import numpy as np
 
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
+from Deeploy.Targets.Magia.Platform import MagiaPlatform
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
-from Deeploy.Targets.Magia.Platform import MagiaPlatform
 
 _TEXT_ALIGN = 30
 
@@ -128,7 +128,7 @@ def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
         #include <stdio.h>
         #include <stdlib.h>
         """
-    
+
     retStr += deployer.generateIncludeString()
     if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper, MagiaPlatform)):
         retStr += """
@@ -160,7 +160,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         #include <math.h>
         """
         retStr += deployer.generateIncludeString()
-    
+
     retStr += """
     #include "Network.h"
     """

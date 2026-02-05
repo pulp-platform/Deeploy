@@ -11,6 +11,7 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
 
+
 class MagiaDeployer(SignPropDeployer):
 
     def __init__(self,

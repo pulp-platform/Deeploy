@@ -365,7 +365,7 @@ class TestRunner():
 
         if self._platform in ["Siracusa", "Siracusa_w_neureka"]:
             command += f" --cores={self._args.cores}"
-        
+
         if self._platform in ["Magia"]:
             command += f" --tiles={self._args.tiles}"
 

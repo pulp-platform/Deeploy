@@ -7,19 +7,16 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NetworkContext, NodeMapper, \
     NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-
-from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings
-from Deeploy.Targets.Generic.Parsers import AddParser
 from Deeploy.Targets.Generic.Layers import AddLayer
-
+from Deeploy.Targets.Generic.Parsers import AddParser
+from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Magia.Templates import AllocateTemplate, FreeTemplate
 
 AddMapper = NodeMapper(AddParser(), BasicAddBindings)
 
-MagiaMapping = {
-    'Add': AddLayer([AddMapper])
-}
+MagiaMapping = {'Add': AddLayer([AddMapper])}
+
 
 class MagiaVariableBuffer(VariableBuffer):
 
@@ -41,6 +38,7 @@ class MagiaVariableBuffer(VariableBuffer):
             "_memoryLevel": memoryLevel
         }
 
+
 class MagiaTransientBuffer(TransientBuffer):
 
     initTemplate = AllocateTemplate.magiaInitTemplate
@@ -54,11 +52,8 @@ class MagiaTransientBuffer(TransientBuffer):
         else:
             memoryLevel = None
 
-        return {"type": self._type, 
-                "name": self.name, 
-                "size": self.size, 
-                "_memoryLevel": memoryLevel
-        }
+        return {"type": self._type, "name": self.name, "size": self.size, "_memoryLevel": memoryLevel}
+
 
 class MagiaConstantBuffer(ConstantBuffer):
 
@@ -78,6 +73,7 @@ class MagiaConstantBuffer(ConstantBuffer):
 
         return operatorRepresentation
 
+
 class MagiaStructBuffer(StructBuffer):
 
     initTemplate = BasicAllocateTemplate.referenceStructInitTemplate
@@ -91,10 +87,7 @@ MagiaOptimizer = TopologyOptimizer(
     ],
     name = "MagiaOptimizer")
 
-
-_includeList = [
-    "tile.h", "idma.h", "redmule.h", "eventunit.h"
-]
+_includeList = ["tile.h", "idma.h", "redmule.h", "eventunit.h"]
 
 
 class MagiaMeshEngine(DeploymentEngine):
@@ -107,6 +100,7 @@ class MagiaMeshEngine(DeploymentEngine):
                  n_tiles: int = 4) -> None:
         super().__init__(name, Mapping, initCode, includeList)
         self.n_tiles = n_tiles
+
 
 class MagiaPlatform(DeploymentPlatform):
 

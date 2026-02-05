@@ -207,7 +207,10 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     return test_result
 
 
-def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim: bool = False) -> TestResult:
+def run_complete_test(config: DeeployTestConfig,
+                      skipgen: bool = False,
+                      skipbuild: bool = False,
+                      skipsim: bool = False) -> TestResult:
     """
     Run a complete test: generate, configure, build, and simulate.
     """
@@ -216,11 +219,14 @@ def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim:
     # Step 1: Generate network
     generate_network(config, skip = skipgen)
 
-    # Step 2: Configure CMake
-    configure_cmake(config)
+    if skipbuild:
+        log.info(f"Skipping cmake configuration and binary building for {config.test_name}")
+    else:
+        # Step 2: Configure CMake
+        configure_cmake(config)
 
-    # Step 3: Build binary
-    build_binary(config)
+        # Step 3: Build binary
+        build_binary(config)
 
     # Step 4: Run simulation
     result = run_simulation(config, skip = skipsim)

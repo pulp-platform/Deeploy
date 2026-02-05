@@ -26,7 +26,7 @@ from Deeploy.Targets.Neureka.Deployer import NeurekaDeployer
 from Deeploy.Targets.Neureka.Platform import MemoryNeurekaPlatform, MemoryNeurekaPlatformWrapper, NeurekaOptimizer, \
     NeurekaPlatform
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
-from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform 
+from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPOptimizer, PULPPlatform
 from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
@@ -280,11 +280,11 @@ def mapDeployer(platform: DeploymentPlatform,
 
     elif isinstance(platform, (MagiaPlatform)):
         if loweringOptimizer is None:
-            loweringOptimizer = MagiaOptimizer 
+            loweringOptimizer = MagiaOptimizer
 
         if default_channels_first is None:
             default_channels_first = False
-        
+
         deployer = MagiaDeployer(graph,
                                  platform,
                                  inputTypes,

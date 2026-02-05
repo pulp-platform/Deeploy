@@ -20,8 +20,8 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Debu
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
-from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPPlatform
 from Deeploy.Targets.Magia.Platform import MagiaMeshEngine, MagiaPlatform
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPPlatform
 
 
 def generateNetwork(args):
@@ -88,7 +88,7 @@ def generateNetwork(args):
     clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
     for cluster in clusters:
         cluster.n_cores = args.cores
-    
+
     meshes = [engine for engine in platform.engines if isinstance(engine, MagiaMeshEngine)]
     for mesh in meshes:
         mesh.n_tiles = args.tiles
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     parser.add_argument("--cores",
                         type = int,
                         default = 1,
-                        help = 'Number of cores on which the network is run.' 
+                        help = 'Number of cores on which the network is run.'
                         'Currently, required for im2col buffer sizing on Siracusa. Default: 1.\n')
     parser.add_argument("--tiles",
                         type = int,
