@@ -30,8 +30,8 @@ class iSoftmaxTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         for idx in range(shapeLen):
-            outputDim = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=idx)
-            inputDim = tilerModel.getTensorDimVar(tensorName=inputBufferName, dimIdx=idx)
+            outputDim = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = idx)
+            inputDim = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = idx)
             tilerModel.addConstraint(outputDim == inputDim)
 
         return tilerModel
@@ -43,7 +43,7 @@ class iSoftmaxTileConstraint(TileConstraint):
 
         lastDimLength = inputBuffer.shape[-1]
         lastDimIdx = len(inputBuffer.shape) - 1
-        lastDimVar = tilerModel.getTensorDimVar(tensorName=inputBufferName, dimIdx=lastDimIdx)
+        lastDimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = lastDimIdx)
 
         tilerModel.addConstraint(lastDimVar == lastDimLength)
 

@@ -9,8 +9,8 @@ import numpy as np
 from Deeploy.AbstractDataTypes import Pointer, PointerClass, VoidType
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicConcatBindings, BasicGatherBindings, BasicLayerNormBindings, \
-    BasicMatMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
+from Deeploy.Targets.Generic.Bindings import BasicConcatBindings, BasicLayerNormBindings, BasicPad1DBindings, \
+    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, DivLayer, GatherLayer, GEMMLayer, HardSwishLayer, \
     LayerNormLayer, MatMulLayer, MulLayer, PadLayer, ReshapeLayer, RMSNormLayer, RQGEMMLayer, RQIntegerDivLayer, \
     SoftmaxLayer, TransposeLayer, iNoNormLayer
@@ -22,9 +22,7 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequant
     IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
-from Deeploy.Targets.Snitch.Bindings import BasicDivBindings, BasicHardSwishBindings, BasicMulBindings, \
-    BasicRMSNormBindings, BasicSnitchTransposeBindings, SnitchAddBindings, SnitchGemmBindings, SnitchiNoNormBindings, \
-    SnitchiSoftmaxBindings, SnitchRQAddBindings, SnitchRqGemmBindings
+from Deeploy.Targets.Snitch.Bindings import BasicSnitchTransposeBindings
 from Deeploy.Targets.Snitch.Parsers import HardSwishParser, SnitchAddParser, SnitchDivParser, SnitchGEMMParser, \
     SnitchMulParser, SnitchRMSNormParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
@@ -135,7 +133,7 @@ class SnitchConstantBuffer(ConstantBuffer):
     allocTemplate = AllocateTemplate.snitchL2GlobalAllocateTemplate
     deallocTemplate = FreeTemplate.snitchL2GlobalTemplate
 
-    def __init__(self, name: str = '', shape=[1], values=[0]):
+    def __init__(self, name: str = '', shape = [1], values = [0]):
         super().__init__(name, shape, values)
         # Initialize _type with a default value to prevent AttributeError
         # The actual type will be set later via annotateType
@@ -163,9 +161,9 @@ class SnitchStructBuffer(StructBuffer):
 
 SnitchOptimizer = TopologyOptimizer([
     SkipEmptyConcatPass(),
-    SkipUnityRequantPass(previous_op_regex="Concat", num_inputs=2),
-    SkipUnityRequantPass(previous_op_regex="Reshape|Transpose", num_inputs=1),
-    SkipUnityRequantPass(previous_op_regex="Reshape|Transpose", num_inputs=1),
+    SkipUnityRequantPass(previous_op_regex = "Concat", num_inputs = 2),
+    SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),
+    SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),
     RQSSplitPass(),
     MergeTrueIntegerDivRequantShiftPass(),
     IntegerDivRequantMergePass(),
@@ -175,7 +173,7 @@ SnitchOptimizer = TopologyOptimizer([
     AddRequantMergePass(),
     GEMMRequantMergePass(),
 ],
-                                    name="SnitchOptimizer")
+                                    name = "SnitchOptimizer")
 
 _includeList = [
     "snrt.h",
@@ -185,17 +183,17 @@ _includeList = [
 
 class SnitchClusterEngine(DeploymentEngine):
 
-    def __init__(self, name: str, Mapping=SnitchMapping, initCode="", includeList=_includeList) -> None:
+    def __init__(self, name: str, Mapping = SnitchMapping, initCode = "", includeList = _includeList) -> None:
         super().__init__(name, Mapping, initCode, includeList)
 
 
 class SnitchPlatform(DeploymentPlatform):
 
     def __init__(self,
-                 engines=[SnitchClusterEngine("SnitchCluster")],
-                 variableBuffer=SnitchVariableBuffer,
-                 constantBuffer=SnitchConstantBuffer,
-                 structBuffer=SnitchStructBuffer,
-                 transientBuffer=SnitchTransientBuffer,
+                 engines = [SnitchClusterEngine("SnitchCluster")],
+                 variableBuffer = SnitchVariableBuffer,
+                 constantBuffer = SnitchConstantBuffer,
+                 structBuffer = SnitchStructBuffer,
+                 transientBuffer = SnitchTransientBuffer,
                  includeList: List[str] = _includeList):
         super().__init__(engines, variableBuffer, constantBuffer, structBuffer, transientBuffer)

@@ -6,11 +6,13 @@
 
 #include "DeeploySnitchMath.h"
 
-void __attribute__((noinline)) snitch_nn_add_i8_i8_i8(
-    int8_t *pIn1, int8_t *pIn2, int8_t *pOut, int32_t in1_mul, int32_t in1_add,
-    uint16_t in1_shift, int32_t in2_mul, int32_t in2_add, uint16_t in2_shift,
-    int32_t out_mul, int32_t out_add, uint16_t out_shift, uint16_t dim_im_in_x,
-    uint16_t dim_im_in_y, uint16_t ch_im_in, int out_requant_flag) {
+void __attribute__((noinline))
+snitch_nn_add_i8_i8_i8(int8_t *pIn1, int8_t *pIn2, int8_t *pOut,
+                       int32_t in1_mul, int32_t in1_add, uint16_t in1_shift,
+                       int32_t in2_mul, int32_t in2_add, uint16_t in2_shift,
+                       int32_t out_mul, int32_t out_add, uint16_t out_shift,
+                       uint16_t dim_im_in_x, uint16_t dim_im_in_y,
+                       uint16_t ch_im_in, int out_requant_flag) {
   int core_id = snrt_global_compute_core_idx();
   int n_cores = snrt_global_compute_core_num();
 

@@ -20,9 +20,9 @@ class GemmTileConstraint(TileConstraint):
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
         # Get to-be-tiled tensor's buffers
-        bufferA = ctxt.lookup(name=parseDict['A'])
-        bufferB = ctxt.lookup(name=parseDict['B'])
-        bufferY = ctxt.lookup(name=parseDict['data_out'])
+        bufferA = ctxt.lookup(name = parseDict['A'])
+        bufferB = ctxt.lookup(name = parseDict['B'])
+        bufferY = ctxt.lookup(name = parseDict['data_out'])
 
         # Add I/O dimensions to the model as variables
         for bufferName in [bufferA.name, bufferB.name, bufferY.name]:
@@ -33,35 +33,35 @@ class GemmTileConstraint(TileConstraint):
             heightIdxA, widthIdxA = dimCountA - 2, dimCountA - 1
         else:
             heightIdxA, widthIdxA = dimCountA - 1, dimCountA - 2
-        AHeightDimVar = tilerModel.getTensorDimVar(tensorName=bufferA.name, dimIdx=heightIdxA)
-        AWidthDimVar = tilerModel.getTensorDimVar(tensorName=bufferA.name, dimIdx=widthIdxA)
+        AHeightDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = heightIdxA)
+        AWidthDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = widthIdxA)
 
         dimCountB = len(bufferB.shape)
         if parseDict['transB'] == 0:
             heightIdxB, widthIdxB = dimCountB - 2, dimCountB - 1
         else:
             heightIdxB, widthIdxB = dimCountB - 1, dimCountB - 2
-        BHeightDimVar = tilerModel.getTensorDimVar(tensorName=bufferB.name, dimIdx=heightIdxB)
-        BWidthDimVar = tilerModel.getTensorDimVar(tensorName=bufferB.name, dimIdx=widthIdxB)
+        BHeightDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = heightIdxB)
+        BWidthDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = widthIdxB)
 
         dimCountY = len(bufferY.shape)
         heightIdxY, widthIdxY = dimCountY - 2, dimCountY - 1
-        YHeightDimVar = tilerModel.getTensorDimVar(tensorName=bufferY.name, dimIdx=heightIdxY)
-        YWidthDimVar = tilerModel.getTensorDimVar(tensorName=bufferY.name, dimIdx=widthIdxY)
+        YHeightDimVar = tilerModel.getTensorDimVar(tensorName = bufferY.name, dimIdx = heightIdxY)
+        YWidthDimVar = tilerModel.getTensorDimVar(tensorName = bufferY.name, dimIdx = widthIdxY)
 
         tilerModel.addConstraint(YHeightDimVar == AHeightDimVar)
         tilerModel.addConstraint(YWidthDimVar == BWidthDimVar)
         tilerModel.addConstraint(AWidthDimVar == BHeightDimVar)
 
         if 'C' in parseDict:
-            bufferC = ctxt.lookup(name=parseDict['C'])
+            bufferC = ctxt.lookup(name = parseDict['C'])
 
             tilerModel.addTensorDimToModel(ctxt, bufferC.name)
 
             dimCountC = len(bufferC.shape)
             heightIdxC, widthIdxC = dimCountC - 2, dimCountC - 1
-            CHeightDimVar = tilerModel.getTensorDimVar(tensorName=bufferC.name, dimIdx=heightIdxC)
-            CWidthDimVar = tilerModel.getTensorDimVar(tensorName=bufferC.name, dimIdx=widthIdxC)
+            CHeightDimVar = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = heightIdxC)
+            CWidthDimVar = tilerModel.getTensorDimVar(tensorName = bufferC.name, dimIdx = widthIdxC)
 
             tilerModel.addConstraint(CHeightDimVar == YHeightDimVar)
             tilerModel.addConstraint(CWidthDimVar == YWidthDimVar)
@@ -70,21 +70,21 @@ class GemmTileConstraint(TileConstraint):
 
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        bufferA = ctxt.lookup(name=parseDict['A'])
-        bufferY = ctxt.lookup(name=parseDict['data_out'])
+        bufferA = ctxt.lookup(name = parseDict['A'])
+        bufferY = ctxt.lookup(name = parseDict['data_out'])
 
         dimCountA = len(bufferA.shape)
         if parseDict['transA'] == 0:
             heightIdxA, widthIdxA = dimCountA - 2, dimCountA - 1
         else:
             heightIdxA, widthIdxA = dimCountA - 1, dimCountA - 2
-        AHeightDimVar = tilerModel.getTensorDimVar(tensorName=bufferA.name, dimIdx=heightIdxA)
-        AWidthDimVar = tilerModel.getTensorDimVar(tensorName=bufferA.name, dimIdx=widthIdxA)
+        AHeightDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = heightIdxA)
+        AWidthDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = widthIdxA)
 
         dimCountY = len(bufferY.shape)
         heightIdxY, widthIdxY = dimCountY - 2, dimCountY - 1
-        YHeightDimVar = tilerModel.getTensorDimVar(tensorName=bufferY.name, dimIdx=heightIdxY)
-        YWidthDimVar = tilerModel.getTensorDimVar(tensorName=bufferY.name, dimIdx=widthIdxY)
+        YHeightDimVar = tilerModel.getTensorDimVar(tensorName = bufferY.name, dimIdx = heightIdxY)
+        YWidthDimVar = tilerModel.getTensorDimVar(tensorName = bufferY.name, dimIdx = widthIdxY)
 
         # Full inner dimension
         tilerModel.addConstraint(AWidthDimVar == AWidthDimVar.Max())
@@ -95,7 +95,7 @@ class GemmTileConstraint(TileConstraint):
                                                       "M",
                                                       YHeightDimVar,
                                                       8,
-                                                      strategy=PerformanceHint(priority=1))
+                                                      strategy = PerformanceHint(priority = 1))
 
         return tilerModel
 

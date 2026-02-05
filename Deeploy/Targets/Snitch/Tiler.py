@@ -21,42 +21,43 @@ from Deeploy.Targets.Snitch.TileConstraints.ReshapeTileConstraint import Reshape
 from Deeploy.Targets.Snitch.TileConstraints.RqGemmTileConstraint import RqGemmTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
-SnitchiSoftmaxTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchiSoftmaxBindings,
-                                                            tileConstraint=iSoftmaxTileConstraint())
-SnitchiNoNormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchiNoNormBindings,
-                                                           tileConstraint=iNoNormTileConstraint())
-SnitchRQAddTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchRQAddBindings,
-                                                         tileConstraint=AddTileConstraint())
-SnitchGemmTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchGemmBindings,
-                                                        tileConstraint=GemmTileConstraint())
-SnitchRqGemmTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchRqGemmBindings,
-                                                          tileConstraint=RqGemmTileConstraint())
+SnitchiSoftmaxTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchiSoftmaxBindings,
+                                                            tileConstraint = iSoftmaxTileConstraint())
+SnitchiNoNormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchiNoNormBindings,
+                                                           tileConstraint = iNoNormTileConstraint())
+SnitchRQAddTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchRQAddBindings,
+                                                         tileConstraint = AddTileConstraint())
+SnitchGemmTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchGemmBindings,
+                                                        tileConstraint = GemmTileConstraint())
+SnitchRqGemmTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchRqGemmBindings,
+                                                          tileConstraint = RqGemmTileConstraint())
 
-SnitchAddTileReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchAddBindings, tileConstraint=AddTileConstraint())
+SnitchAddTileReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchAddBindings,
+                                                     tileConstraint = AddTileConstraint())
 
-SnitchRMSNormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchRMSNormBindings,
-                                                           tileConstraint=iRMSNormTileConstraint())
+SnitchRMSNormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchRMSNormBindings,
+                                                           tileConstraint = iRMSNormTileConstraint())
 
-SnitchHardSwishTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchHardSwishBindings,
-                                                             tileConstraint=iHardswishTileConstraint())
+SnitchHardSwishTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchHardSwishBindings,
+                                                             tileConstraint = iHardswishTileConstraint())
 
-SnitchDivTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchDivBindings,
-                                                       tileConstraint=FloatDivTileConstraint())
+SnitchDivTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchDivBindings,
+                                                       tileConstraint = FloatDivTileConstraint())
 
-SnitchMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchMulBindings,
-                                                       tileConstraint=FloatMulTileConstraint())
+SnitchMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchMulBindings,
+                                                       tileConstraint = FloatMulTileConstraint())
 
-SnitchMatMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchMatMulBindings,
-                                                          tileConstraint=MatMulTileConstraint())
+SnitchMatMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchMatMulBindings,
+                                                          tileConstraint = MatMulTileConstraint())
 
-SnitchConcatTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchConcatBindings,
-                                                          tileConstraint=ConcatTileConstraint())
+SnitchConcatTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchConcatBindings,
+                                                          tileConstraint = ConcatTileConstraint())
 
-SnitchTransposeTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchTransposeBindings,
-                                                             tileConstraint=TransposeTileConstraint())
+SnitchTransposeTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchTransposeBindings,
+                                                             tileConstraint = TransposeTileConstraint())
 
-SnitchReshapeTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchReshapeBindings,
-                                                           tileConstraint=ReshapeTileConstraint())
+SnitchReshapeTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchReshapeBindings,
+                                                           tileConstraint = ReshapeTileConstraint())
 
-SnitchGatherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings=SnitchGatherBindings,
-                                                          tileConstraint=GatherTileConstraint())
+SnitchGatherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchGatherBindings,
+                                                          tileConstraint = GatherTileConstraint())
