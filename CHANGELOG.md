@@ -1,7 +1,25 @@
 # Changelog
 This file contains the changelog for the Deeploy project. The changelog is divided into sections based on the version of the project. Each section contains a list of pull requests, features, changes, fixes, and removals that were made in that version.
 
-## Unreleased (Planned Release Target: v0.2.1)
+## Unreleased (Planned Release Target: v0.2.2)
+
+
+### List of Pull Requests
+- 
+
+### Added
+- 
+
+### Changed
+- 
+
+### Fixed
+- 
+
+### Removed
+- 
+
+## Release v0.2.1 (2026-02-05) [#158](https://github.com/pulp-platform/Deeploy/pull/158)
 
 ### List of Pull Requests
 - PyPi Package Deployment + Remove Banshee Dept [#154](https://github.com/pulp-platform/Deeploy/pull/154)
