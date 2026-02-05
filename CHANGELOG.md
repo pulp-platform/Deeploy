@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Improve Docstring and Debugging [#160](https://github.com/pulp-platform/Deeploy/pull/160)
 - Add GAP9 Container Support [#163](https://github.com/pulp-platform/Deeploy/pull/163)
 - Extend Codeowners [#164](https://github.com/pulp-platform/Deeploy/pull/164)
 - Support for MaxPool1D and RQSConv1D for PULPOpen [#146](https://github.com/pulp-platform/Deeploy/pull/146)
@@ -13,6 +14,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 
 ### Added
+- Add many missing docstrings
+- Add `__repr__()` function for `_ReferenceBuffer` class
 - GAP9 Container Support with ARM64 architecture support
 - `zsh` and `oh-my-zsh` plugin installation in containers
 - Shell Format pre-commit hook
@@ -20,6 +23,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 
 ### Changed
+- Move `MemoryAwareClosureGeneration` pass to `MemoryLevelExtension`
+- Move `MemoryAwarePrint*` passes to `MemoryLevelExtension`
+- Make `sizeInBytes` a class property instead of a function
+- Move `AnnotateNeurekaWeightMemoryLevel` to `Neureka` specific folder
 - Cleaned up Docker flow to use a temporary build folder
 - Switch CI to use pre-commit for linting
 - Update `pulp-nnx` and `pulp-nn-mixed` submodules to their latest versions
