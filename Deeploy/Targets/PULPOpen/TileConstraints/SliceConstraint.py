@@ -113,36 +113,25 @@ class SliceTileConstraint(TileConstraint):
         # Prepare replacement lists for the elements inside the operator representation,
         # for the cubes to be computed further down in this function
 
-        # ~~~~~ SEE ISSUE #134: https://github.com/pulp-platform/Deeploy/issues/134 ~~~~~
-        # Freeze tiling input and output tiling for now
+        # Build replacementTypes based on the actual number of dimensions
+        data_in_shape_type = [PointerClass(uint16_t) for _ in range(len(operatorRepresentation['data_in_shape']))]
+        data_out_shape_type = [PointerClass(uint16_t) for _ in range(len(operatorRepresentation['data_out_shape']))]
+
         replacements = {
-            # "data_in_shape": [],
-            # "data_out_shape": [],
-            # "starts": [[
-            #     0,
-            # ] * len(operatorRepresentation['axes'])] * len(outputCubes),
-            # "ends": [],
+            "data_in_shape": [],
+            "data_out_shape": [],
+            "starts": [],
+            "ends": [],
             "data_in_size": [],
         }
 
         replacementTypes = {
-            # "data_in_shape": [
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t)
-            # ],
-            # "data_out_shape": [
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t)
-            # ],
-            # "starts": PointerClass(uint16_t),
-            # "ends": PointerClass(uint16_t),
+            "data_in_shape": data_in_shape_type,
+            "data_out_shape": data_out_shape_type,
+            "starts": PointerClass(uint16_t),
+            "ends": PointerClass(uint16_t),
             "data_in_size": PointerClass(uint16_t),
         }
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Prepare loading schedule lists
         inputLoadSchedule = []
@@ -152,20 +141,18 @@ class SliceTileConstraint(TileConstraint):
             # Compute input cube
             in_cube = SliceTileConstraint.computeInputCubeFromOutputCube(out_cube, parseDict = operatorRepresentation)
 
-            # Compute new ends for replacement
+            # Compute new starts and ends for replacement
+            new_starts = list()
             new_ends = list()
             for ax in operatorRepresentation['axes']:
+                new_starts.append(in_cube.offset[ax])
                 new_ends.append(in_cube.offset[ax] + in_cube.dims[ax])
 
-            # Append replacement elements
-
-            # ~~~~~ SEE ISSUE #134: https://github.com/pulp-platform/Deeploy/issues/134 ~~~~~
-            # Freeze tiling input and output tiling for now
-            # replacements["data_in_shape"].append(list(in_cube.dims).copy())
-            # replacements["data_out_shape"].append(list(out_cube.dims).copy())
-            # replacements["ends"].append(new_ends)
-            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+            # Append replacement elements (using tuples so they can be hashed by minimizeVariableReplacement)
+            replacements["data_in_shape"].append(tuple(in_cube.dims))
+            replacements["data_out_shape"].append(tuple(out_cube.dims))
+            replacements["starts"].append(tuple(new_starts))
+            replacements["ends"].append(tuple(new_ends))
             replacements["data_in_size"].append(int(np.prod(in_cube.dims)))
 
             # Append new cubes
