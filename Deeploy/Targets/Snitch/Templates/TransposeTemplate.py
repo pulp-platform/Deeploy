@@ -4,10 +4,7 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import _Template
-from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.DeeployTypes import NodeTemplate
-from Deeploy.DeeployTypes import OperatorRepresentation
+from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, _Template
 
 # Two-stage header: <%text>${</%text> escapes produce ${dimLen_N} template variables
 # that survive the first render and get resolved during the second render

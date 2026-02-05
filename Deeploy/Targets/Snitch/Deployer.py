@@ -9,17 +9,10 @@ import onnx_graphsurgeon as gs
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    NCHWtoNHWCPass
-from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    RemoveGlobalOutputReshapePass
-from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    TransposeMatmulInputsPass
-from Deeploy.DeeployTypes import DeploymentPlatform
-from Deeploy.DeeployTypes import TopologyOptimizer
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeConstOptPass
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeMergePass
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeSplitPass
+    NCHWtoNHWCPass, RemoveGlobalOutputReshapePass, TransposeMatmulInputsPass
+from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, TransposeConstOptPass, \
+    TransposeMergePass, TransposeSplitPass
 
 
 class SnitchDeployer(SignPropDeployer):
@@ -31,18 +24,18 @@ class SnitchDeployer(SignPropDeployer):
                  loweringOptimizer: TopologyOptimizer,
                  scheduler: Callable = lambda x: x,
                  name: str = 'DeeployNetwork',
-                 default_channels_first = False,
+                 default_channels_first=False,
                  deeployStateDir: str = "DeeployStateDir",
-                 inputOffsets = {}):
+                 inputOffsets={}):
         super().__init__(graph,
                          deploymentPlatform,
                          inputTypes,
                          loweringOptimizer,
                          scheduler,
                          name,
-                         default_channels_first = default_channels_first,
-                         deeployStateDir = deeployStateDir,
-                         inputOffsets = inputOffsets)
+                         default_channels_first=default_channels_first,
+                         deeployStateDir=deeployStateDir,
+                         inputOffsets=inputOffsets)
 
         self.loweringOptimizer.passes += [
             TransposeMatmulInputsPass(),

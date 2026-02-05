@@ -2,9 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.AbstractDataTypes import Struct
-from Deeploy.AbstractDataTypes import VoidType
+from Deeploy.AbstractDataTypes import PointerClass, Struct, VoidType
 from Deeploy.CommonExtensions.DataTypes import uint16_t
 
 

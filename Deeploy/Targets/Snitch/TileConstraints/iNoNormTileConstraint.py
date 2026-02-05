@@ -8,14 +8,11 @@ import numpy as np
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import uint32_t
-from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.DeeployTypes import OperatorRepresentation
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle
-from Deeploy.TilingExtension.TilingCodegen import TilingSchedule
-from Deeploy.TilingExtension.TilingCodegen import VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
 
 
 class iNoNormTileConstraint(TileConstraint):
@@ -37,16 +34,15 @@ class iNoNormTileConstraint(TileConstraint):
         weigthsBufferShapeLen = len(ctxt.lookup(weightsBufferName).shape)
         biasBufferShapeLen = len(ctxt.lookup(biasBufferName).shape)
 
-        weightsLastDimVar = tilerModel.getTensorDimVar(tensorName = weightsBufferName,
-                                                       dimIdx = weigthsBufferShapeLen - 1)
-        biasLastDimVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = biasBufferShapeLen - 1)
+        weightsLastDimVar = tilerModel.getTensorDimVar(tensorName=weightsBufferName, dimIdx=weigthsBufferShapeLen - 1)
+        biasLastDimVar = tilerModel.getTensorDimVar(tensorName=biasBufferName, dimIdx=biasBufferShapeLen - 1)
 
         tilerModel.addConstraint(biasLastDimVar == weightsLastDimVar)
 
         for dim in range(len(inputShape)):
-            inputDimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = dim)
-            weightDimVar = tilerModel.getTensorDimVar(tensorName = weightsBufferName, dimIdx = dim)
-            outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
+            inputDimVar = tilerModel.getTensorDimVar(tensorName=inputBufferName, dimIdx=dim)
+            weightDimVar = tilerModel.getTensorDimVar(tensorName=weightsBufferName, dimIdx=dim)
+            outputDimVar = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=dim)
             tilerModel.addConstraint(inputDimVar == outputDimVar)
             tilerModel.addConstraint(weightDimVar == outputDimVar)
 

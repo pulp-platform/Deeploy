@@ -8,15 +8,12 @@ import numpy as np
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import uint16_t
-from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.DeeployTypes import OperatorRepresentation
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle
-from Deeploy.TilingExtension.TilingCodegen import HyperRectangle
-from Deeploy.TilingExtension.TilingCodegen import TilingSchedule
-from Deeploy.TilingExtension.TilingCodegen import VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
 
 
 class FloatMulTileConstraint(TileConstraint):
@@ -50,22 +47,22 @@ class FloatMulTileConstraint(TileConstraint):
                 tilerModel.addTensorDimToModel(ctxt, inputBuffer2Name)
                 # Constrain scalar to remain untiled (size 1)
                 for dim in range(len(input2Shape)):
-                    input2DimVar = tilerModel.getTensorDimVar(tensorName = inputBuffer2Name, dimIdx = dim)
+                    input2DimVar = tilerModel.getTensorDimVar(tensorName=inputBuffer2Name, dimIdx=dim)
                     tilerModel.addConstraint(input2DimVar == input2Shape[dim])
 
             # Input1 and output must have same dimensions
             for dim in range(len(input1Shape)):
-                inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
-                outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
+                inputDim1Var = tilerModel.getTensorDimVar(tensorName=inputBuffer1Name, dimIdx=dim)
+                outputDimVar = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=dim)
                 tilerModel.addConstraint(inputDim1Var == outputDimVar)
         else:
             # Element-wise: both inputs must have same shape
             tilerModel.addTensorDimToModel(ctxt, inputBuffer2Name)
 
             for dim in range(len(input1Shape)):
-                inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
-                inputDim2Var = tilerModel.getTensorDimVar(tensorName = inputBuffer2Name, dimIdx = dim)
-                outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
+                inputDim1Var = tilerModel.getTensorDimVar(tensorName=inputBuffer1Name, dimIdx=dim)
+                inputDim2Var = tilerModel.getTensorDimVar(tensorName=inputBuffer2Name, dimIdx=dim)
+                outputDimVar = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=dim)
 
                 tilerModel.addConstraint(inputDim1Var == inputDim2Var)
                 tilerModel.addConstraint(inputDim1Var == outputDimVar)

@@ -4,9 +4,7 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.DeeployTypes import NodeTemplate
-from Deeploy.DeeployTypes import OperatorRepresentation
+from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
 class _SnitchAddTemplate(NodeTemplate):
