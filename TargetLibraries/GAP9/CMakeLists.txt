@@ -70,7 +70,7 @@ if(NOT USE_PREBUILT_PULPNN)
   # Build pulp-nn from source
   message(STATUS "[Deeploy GAP9] Building pulp-nn-mixed from source")
 
-  add_subdirectory(../third_party/pulp-nn-mixed)
+  add_subdirectory(../third_party/pulp-nn-mixed ${CMAKE_CURRENT_BINARY_DIR}/pulp-nn-mixed)
 
   #RW: GCC not recognizing -Wno-typedef-redefinition defined in PULP-NN CMakelist
   target_compile_options(pulp-nn-mixed PRIVATE -Wno-error)
