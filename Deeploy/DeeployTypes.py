@@ -3105,9 +3105,16 @@ class NetworkContainer():
             raise OSError(f"Error exporting the context to: {absoluteOnnxPath}")
 
         # VJUNG: ONNX-Graphsurgeon needs tensors to be in their export types
+<<<<<<< HEAD
         constTensors = [tensor for tensor in self.graph.tensors().values() if isinstance(tensor, gs.Constant)]
         for tensor in constTensors:
             if tensor.dtype != tensor.export_dtype:
+=======
+        # Added hasattr check for compatibility with different onnx-graphsurgeon versions
+        constTensors = [tensor for tensor in self.graph.tensors().values() if isinstance(tensor, gs.Constant)]
+        for tensor in constTensors:
+            if hasattr(tensor, 'export_dtype') and tensor.dtype != tensor.export_dtype:
+>>>>>>> 937e3cb3 (refactor: restore Snitch framework code to origin/devel)
                 tensor.values = tensor.values.astype(tensor.export_dtype)
 
         model = gs.export_onnx(self.graph)

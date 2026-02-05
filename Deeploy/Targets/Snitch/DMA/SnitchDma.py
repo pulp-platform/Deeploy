@@ -31,7 +31,7 @@ class SnitchDma(AsyncDma):
 
     _transferTemplates = {
         2:
-        NodeTemplate("""
+            NodeTemplate("""
             if (snrt_is_dm_core()) {
                 ${future} = snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});
                 // WIESEP: Hack as otherwise the last commited DMA transaction ID can never be resolved.

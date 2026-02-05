@@ -31,11 +31,11 @@ from Deeploy.Targets.Snitch.Templates.RqGemmTemplate import SnitchRqGemm_Templat
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
     TilingVariableReplacementUpdate
 
-TilingCallClosure = partial(ClosureGeneration, closureSuffix="_tiling_closure")
+TilingCallClosure = partial(ClosureGeneration, closureSuffix = "_tiling_closure")
 MemoryAwareFunctionCallClosure = partial(MemoryAwareClosureGeneration,
-                                         closureSuffix="_closure",
-                                         startRegion="L2",
-                                         endRegion="L1")
+                                         closureSuffix = "_closure",
+                                         startRegion = "L2",
+                                         endRegion = "L1")
 
 BasicTransformer = CodeTransformation(
     [SnitchSynchCoresPass(),
@@ -46,14 +46,13 @@ BasicTransformer = CodeTransformation(
 TiledTransformer = CodeTransformation([
     SnitchCoreFilterPass("compute"),
     TilingVariableReplacement("L1"),
-    TilingCallClosure(writeback=False),
+    TilingCallClosure(writeback = False),
     SnitchSynchCoresPass(),
     TilingVariableReplacementUpdate("L1"),
     SnitchClusterTiling("L2", "L1", SnitchDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
-    MemoryAwareFunctionCallClosure(writeback=False, generateStruct=True),
-    MemoryManagementGeneration("L2"),
+    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
     MemoryManagementGeneration()
 ])
 

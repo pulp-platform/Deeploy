@@ -24,18 +24,18 @@ class SnitchDeployer(SignPropDeployer):
                  loweringOptimizer: TopologyOptimizer,
                  scheduler: Callable = lambda x: x,
                  name: str = 'DeeployNetwork',
-                 default_channels_first=False,
+                 default_channels_first = False,
                  deeployStateDir: str = "DeeployStateDir",
-                 inputOffsets={}):
+                 inputOffsets = {}):
         super().__init__(graph,
                          deploymentPlatform,
                          inputTypes,
                          loweringOptimizer,
                          scheduler,
                          name,
-                         default_channels_first=default_channels_first,
-                         deeployStateDir=deeployStateDir,
-                         inputOffsets=inputOffsets)
+                         default_channels_first = default_channels_first,
+                         deeployStateDir = deeployStateDir,
+                         inputOffsets = inputOffsets)
 
         self.loweringOptimizer.passes += [
             TransposeMatmulInputsPass(),

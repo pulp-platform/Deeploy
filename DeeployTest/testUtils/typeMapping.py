@@ -48,11 +48,7 @@ def inferMinimalType(values: np.ndarray, default: Type[BaseType] = int8_t) -> Ty
         print(f"Warning: Empty input array for type inference for {values}!")
         return default
 
-    # First check the numpy dtype - if it's a float type, use float even if values are integer-like
-    # This handles cases like [0.0, 0.0] which would otherwise be incorrectly typed as uint8_t
-    if np.issubdtype(values.dtype, np.floating):
-        return minimalFloatType(values)
-    elif isInteger(values):
+    if isInteger(values):
         return minimalIntegerType(values)
     else:
         return minimalFloatType(values)

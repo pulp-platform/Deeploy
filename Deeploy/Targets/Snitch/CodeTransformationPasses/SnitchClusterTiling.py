@@ -23,31 +23,15 @@ class SnitchClusterTilingDB(DoubleBufferingTilingCodeGeneration):
 
 class ProfilingSnitchClusterTilingSB(SingleBufferingTilingCodeGeneration, ProfilingSingleBufferingTilingMixIn):
     _printCycleDifference = NodeTemplate(r"""
-    printf("%s%u][Core %d] %s%6u%s", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), "${flavorStr}", \
-    ${measurement}, ${suffixStr});
-    """)
-
-    _printCycleContribution = NodeTemplate(r"""
-    uint32_t total = ${measurementInput} + ${measurementKernel} + ${measurementOutput};
-    uint32_t dma = ${measurementInput} + ${measurementOutput};
-    float overhead_percentage = (total == 0) ? 0 : dma * 100.0f / total;
-    float kernel_percentage = (total == 0) ? 0 : ${measurementKernel} * 100.0f / total;
-    printf("%s%u][Core %d] Total      :%6u cycles (%2.1f%% Kernel + %2.1f%% Overhead, %u + %u)\n", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), total, kernel_percentage, overhead_percentage, ${measurementKernel}, dma);
+    printf("%s%u][Core %d] %s%u%s", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), "${flavorStr}", \
+    ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
     """)
 
 
 class ProfilingSnitchClusterTilingDB(DoubleBufferingTilingCodeGeneration, ProfilingDoubleBufferingTilingMixIn):
     _printCycleDifference = NodeTemplate(r"""
-    printf("%s%u][Core %d] %s%6u%s", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), "${flavorStr}", \
-    ${measurement}, ${suffixStr});
-    """)
-
-    _printCycleContribution = NodeTemplate(r"""
-    uint32_t total = ${measurementInput} + ${measurementKernel} + ${measurementOutput};
-    uint32_t dma = ${measurementInput} + ${measurementOutput};
-    float overhead_percentage = (total == 0) ? 0 : dma * 100.0f / total;
-    float kernel_percentage = (total == 0) ? 0 : ${measurementKernel} * 100.0f / total;
-    printf("%s%u][Core %d] Total      :%6u cycles (%2.1f%% Kernel + %2.1f%% Overhead, %u + %u)\n", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), total, kernel_percentage, overhead_percentage, ${measurementKernel}, dma);
+    printf("%s%u][Core %d] %s%u%s", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), "${flavorStr}", \
+    ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
     """)
 
 
