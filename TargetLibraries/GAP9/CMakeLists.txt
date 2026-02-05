@@ -70,16 +70,7 @@ if(NOT USE_PREBUILT_PULPNN)
   # Build pulp-nn from source
   message(STATUS "[Deeploy GAP9] Building pulp-nn-mixed from source")
 
-  # RW: Create symlink to PULPOpen third_party if it doesn't exist
-  if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/third_party)
-    file(CREATE_LINK
-      ${CMAKE_CURRENT_LIST_DIR}/../PULPOpen/third_party
-      ${CMAKE_CURRENT_LIST_DIR}/third_party
-      SYMBOLIC)
-    message(STATUS "[Deeploy GAP9] Created symlink: third_party -> ../PULPOpen/third_party")
-  endif()
-
-  add_subdirectory(third_party/pulp-nn-mixed)
+  add_subdirectory(../third_party/pulp-nn-mixed)
 
   #RW: GCC not recognizing -Wno-typedef-redefinition defined in PULP-NN CMakelist
   target_compile_options(pulp-nn-mixed PRIVATE -Wno-error)

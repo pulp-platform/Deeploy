@@ -51,7 +51,4 @@ DeeployTest/Tests/**/*.json
 DeeployTest/Tests/**/generateTest.py
 DeeployTest/out.txt
 
-# CMake-generated symlinks
-TargetLibraries/GAP9/third_party
-
 CHANGELOG_GEN.md

@@ -13,14 +13,7 @@
 int deeploy_log(const char *__restrict fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  int ret;
-
-#if defined(AM_PART_APOLLO4B) | defined(DAM_PART_APOLLO3)
-  ret = am_util_stdio_vprintf(fmt, args);
-#else
-  ret = vprintf(fmt, args);
-#endif
-
+  int ret = vprintf(fmt, args);
   va_end(args);
   return ret;
 }

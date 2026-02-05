@@ -19,6 +19,7 @@ name: CI • GAP9
         required: false
         default: "ghcr.io/pulp-platform/deeploy-gap9:latest"
 
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -27,7 +28,7 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || (github.repository == 'pulp-platform/Deeploy' && 'ghcr.io/pulp-platform/deeploy-gap9:latest' || 'ghcr.io/runwangdl/deeploy:gap9') }}
+      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || (github.repository == 'pulp-platform/Deeploy' && 'ghcr.io/pulp-platform/deeploy-gap9:latest') }}
 
   gap9-kernels:
     needs: select-env

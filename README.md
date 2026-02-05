@@ -67,8 +67,6 @@ python deeployRunner_softhier.py -t ./Tests/Kernels/Integer/Add/Regular --toolch
 python deeployRunner_chimera.py -t ./Tests/Kernels/Integer/Add/Regular
 ```
 
-For the experimental support of GAP9, please refer to the [GAP9.md](GAP9.md) file.
-
 To restart and connect to the container, run:
 ```
 docker start -i deeploy_main

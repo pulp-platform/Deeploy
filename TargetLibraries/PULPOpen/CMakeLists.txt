@@ -39,7 +39,7 @@ target_compile_options(deeploypulp PRIVATE
 target_include_directories(deeploypulp PUBLIC ${PULP_SDK_INCLUDES})
 target_compile_options(deeploypulp PUBLIC ${PULP_SDK_COMPILE_FLAGS})
 
-add_subdirectory(third_party/pulp-nn-mixed)
+add_subdirectory(../third_party/pulp-nn-mixed)
 target_include_directories(pulp-nn-mixed PUBLIC ${PULP_SDK_INCLUDES})
 target_compile_options(pulp-nn-mixed PUBLIC ${PULP_SDK_COMPILE_FLAGS})
 
@@ -54,7 +54,7 @@ if (platform IN_LIST PULP_NNX_PLATFORMS)
   else()
     message(FATAL_ERROR "Missing accelerator flags for platform ${platform}")
   endif()
-  add_subdirectory(third_party/pulp-nnx)
+  add_subdirectory(../third_party/pulp-nnx)
   target_include_directories(pulp-nnx PUBLIC ${PULP_SDK_INCLUDES})
   target_compile_options(pulp-nnx PUBLIC ${PULP_SDK_COMPILE_FLAGS})
     target_compile_options(pulp-nnx PRIVATE
