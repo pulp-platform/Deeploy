@@ -521,7 +521,9 @@ class _ReferenceBuffer(VariableBuffer):
 
 
 class NetworkContext():
-    """The global context of the compiler. This object holds all the typing inferred in the type-checking passes within the respective buffers. It holds all hoisted transient buffers, struct buffers, and global definitions. The context is the source of truth for all code generation in the backend.
+    """The global context of the compiler. This object holds all the typing inferred in the type-checking passes within
+    the respective buffers. It holds all hoisted transient buffers, struct buffers, and global definitions.
+    The context is the source of truth for all code generation in the backend.
     """
 
     def __init__(self,
@@ -559,8 +561,8 @@ class NetworkContext():
         Raises
         ------
         Exception
-            Raises an Exception if aliases are circular
-
+            Raises an Exception if aliases are circular, i.e. there
+            is no underlying VariableBuffer
         """
         seenAliases: Set[str] = set()
         alias = self.lookup(name)
@@ -586,8 +588,8 @@ class NetworkContext():
         Raises
         ------
         Exception
-            Raises an Exception if references are circular
-
+            Raises an Exception if references are circular, i.e. there
+            is no underlying VariableBuffer
         """
         seenRefs = set()
         while isinstance(ref, _ReferenceBuffer):
@@ -937,7 +939,7 @@ class NetworkContext():
         reference : VariableBuffer
             Referenced VariableBuffer
         shape: Tuple[int, ...]
-            Shape of the _ReferenceBuffer
+            Shape of the reference
         offset: Union[int, str, VariableBuffer]
             Offset from the reference
         override_type: Optional[Type[BaseType]]
@@ -947,7 +949,6 @@ class NetworkContext():
         -------
         _ReferenceBuffer
             Returns the newly registered _ReferenceBuffer
-
         """
         ref = _ReferenceBuffer(name, reference, shape, offset)
         if override_type is not None:
