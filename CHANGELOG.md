@@ -1,9 +1,28 @@
 # Changelog
 This file contains the changelog for the Deeploy project. The changelog is divided into sections based on the version of the project. Each section contains a list of pull requests, features, changes, fixes, and removals that were made in that version.
 
-## Unreleased (Planned Release Target: v0.2.1)
+## Unreleased (Planned Release Target: v0.2.2)
+
 
 ### List of Pull Requests
+- 
+
+### Added
+- 
+
+### Changed
+- 
+
+### Fixed
+- 
+
+### Removed
+- 
+
+## Release v0.2.1 (2026-02-05) [#158](https://github.com/pulp-platform/Deeploy/pull/158)
+
+### List of Pull Requests
+- PyPi Package Deployment + Remove Banshee Dept [#154](https://github.com/pulp-platform/Deeploy/pull/154)
 - PyTest Migration [#144](https://github.com/pulp-platform/Deeploy/pull/144)
 - Update submodule `pulp-nn-mixed` [#145](https://github.com/pulp-platform/Deeploy/pull/145)
 - Improve Profiling [#138](https://github.com/pulp-platform/Deeploy/pull/138)
@@ -32,6 +51,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 ### Added
 - **GAP9 Platform Support**: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
+- The `publish.yml` action to build a branch and push it to PyPi. The action is automatically triggered when a tag with the "v*" format is emitted. 
+- I created a release of [Banshee](https://github.com/pulp-platform/banshee/releases/tag/v0.5.0-prebuilt) so we don't need to rebuild it over and over. The `Makefile` now pulls that release depending on the platform.
+- I bumped the onnx-graphsurgeon version such that we don't need to use NVIDIA's PyPi index anymore.
+- `_export_graph` assigns their export type to the tensors before export.
 - `pytest` and `pytest-xdist` as dependencies of Deeploy.
 - A `pytest.ini` for the global configuration of PyTest for the project.
 - `conftest.py` to define CLI args for PyTest for the whole project, it also defines a set of global fixtures and markers.
@@ -95,6 +118,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 ### Changed
 - PULP-NN moved to TargetLibraries third-party folder
+- Rename package name from `PULP-Deeploy` to `deeploy-pulp`.
 - Each CI workflow has been simplified to call the pytest suite with certain markers.
 - Structure of Tests subdir for improved ordering
 - Structure of .gitignore file for improved ordering
@@ -139,6 +163,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Print kernel profiling information for all memory levels
 
 ### Fixed
+- Update `install.md` to remove rust mention and fix test command.
+- Update `README.md` to remove reference to NVIDIA's PyPi index.
 - `nvidia-pyindex` was broken as it now tries to build the wheel to respect the new policy on packages using `pyproject`. Instead of installing this package, we just add the `https://pypi.ngc.nvidia.com` channel to the pip config file.
 - Pin versions of broken dependencies of Banshee.
 - Fixed ReduceMean parallelization and tiling issues described in Issue [#134](https://github.com/pulp-platform/Deeploy/issues/134).

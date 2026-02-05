@@ -42,7 +42,6 @@ CMAKE ?= cmake
 LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
-BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
@@ -53,7 +52,22 @@ XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
 XTENSOR_VERSION ?= 0.25.0
 
-RUSTUP_CARGO ?= $$(rustup which cargo)
+OS  := $(shell uname -s)
+ARCH:= $(shell uname -m)
+
+ifeq ($(OS),Linux)
+	ifeq ($(ARCH),x86_64)
+		TARGET := x86_64-unknown-linux-gnu
+	else ifeq ($(ARCH),aarch64)
+		TARGET := aarch64-unknown-linux-gnu
+	else
+		$(error unsupported Linux architecture $(ARCH))
+	endif
+else ifeq ($(OS),Darwin)
+	TARGET := aarch64-apple-darwin
+else
+	$(error unsupported platform $(OS))
+endif
 
 all: toolchain emulators docs echo-bash
 
@@ -503,11 +517,11 @@ ${TOOLCHAIN_DIR}/banshee:
 	git submodule update --init --recursive && \
 	git apply ${TOOLCHAIN_DIR}/banshee.patch
 
-${BANSHEE_INSTALL_DIR}: ${TOOLCHAIN_DIR}/banshee
+${BANSHEE_INSTALL_DIR}:
 	export LLVM_SYS_150_PREFIX=${LLVM_INSTALL_DIR} && \
-	cd ${TOOLCHAIN_DIR}/banshee/ && \
-	${RUSTUP_CARGO} clean && \
-	${RUSTUP_CARGO} install --path . -f
+	mkdir -p ${BANSHEE_INSTALL_DIR} && cd ${BANSHEE_INSTALL_DIR} && \
+	curl -LO https://github.com/pulp-platform/banshee/releases/download/v0.5.0-prebuilt/banshee-0.5.0-$(TARGET).tar.gz && \
+	tar -xzf banshee-0.5.0-$(TARGET).tar.gz --strip-components=1 -C .
 
 banshee: ${BANSHEE_INSTALL_DIR}
 
