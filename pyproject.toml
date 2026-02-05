@@ -1,6 +1,10 @@
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 [project]
-name = "PULP-Deeploy"
-version = '0.2.0'
+name = "deeploy-pulp"
+version = "0.2.1"
 description = "Deeploy - DNN Compiler for Heterogeneous SoCs"
 authors = [
     { name="Victor Jung", email="jungvi@iis.ee.ethz.ch" },
@@ -18,13 +22,15 @@ dependencies = [
 'numpy<2.0.0',
 'onnx',
 'onnxruntime',
-'onnx-graphsurgeon==0.3.20',
+'onnx-graphsurgeon>=0.5.8',
 'mako',
 'argparse',
 'toml',
-'pytest',
 'ortools',
 'plotly',
+'coloredlogs',
+'pytest',
+'pytest-xdist',
 ]
 
 [project.urls]

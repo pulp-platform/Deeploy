@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ########## Stage 1: Large image to build toolchains and emulator ##########
 FROM ubuntu:22.04 AS toolchain
 
@@ -9,7 +13,6 @@ ENV TZ=Etc/UTC
 ENV CC="ccache gcc"
 ENV CXX="ccache g++"
 ENV CCACHE_DIR=/ccache
-ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Change the working directory
 WORKDIR /app
@@ -63,14 +66,6 @@ fi
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && \
     rm get-pip.py
-
-# Build Rust tools
-RUN apt remove cargo -y && \
-    apt autoremove -y && \
-    curl https://sh.rustup.rs -sSf | bash -s -- -y && \
-    rustup install 1.63.0 && \
-    rustup default 1.63.0 && \
-    rustup component add rust-src
 
 # Install meson
 RUN pip install meson

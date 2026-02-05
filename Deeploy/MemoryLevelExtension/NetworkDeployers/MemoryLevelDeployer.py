@@ -1,29 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: MemoryLevelAnnotation.py
-#
-# Last edited: 04.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author:
-# Moritz Scherer, ETH Zurich
-# Victor Jung, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from types import MappingProxyType
 from typing import Any, Callable, Dict, List, Tuple, Type, Union
@@ -34,8 +11,9 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper import NetworkDeployerWrapper
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, DeploymentEngine, DeploymentPlatform, \
-    NetworkContext, NetworkDeployer, NetworkOptimizationPass, NetworkOptimizer, ONNXLayer, Schedule, StructBuffer, \
+    NetworkContext, NetworkDeployer, NetworkOptimizationPass, NetworkOptimizer, Schedule, StructBuffer, \
     TopologyOptimizer, TransientBuffer, VariableBuffer, _NoVerbosity
+from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel
 
@@ -97,7 +75,37 @@ class TargetMemoryLevelMapping:
         return self._mapping[nodeName, tensorName]
 
 
-class MemoryLevelAwareDeployer(NetworkDeployer):
+class MemorySummaryMixin:
+
+    def _printMemorySummary(self):
+        log.info("")
+        log.info("Memory Usage Report:")
+        log.info(f"  {'Level':<14} {'Capacity (bytes)':>10} {'Total':>10} (    Static + Dynamic   ) (Usage )")
+        log.info("  " + "-" * 78)
+
+        for level, dynamicSize in self.worstCaseBufferSize.items():
+            staticSize = 0
+            for _buffer in self.ctxt.globalObjects.values():
+                # We do not count structs for now, since they are not properly modeled
+                if isinstance(_buffer, ConstantBuffer) and getattr(_buffer, "_deploy", False):
+                    if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level in ("None", None):
+                        staticSize += _buffer.sizeInBytes()
+
+            total = staticSize + dynamicSize
+            memLevels = self.Platform.memoryHierarchy.memoryLevels
+            memLevel = memLevels.get(level, None)
+            if memLevel is None or getattr(memLevel, "size", None) is None:
+                log.info(f"  {str(level):<20} {'N/A':>10} {total:10,d} "
+                         f"({staticSize:10,d} + {dynamicSize:10,d}) "
+                         f"({'N/A':>5})")
+            else:
+                capacity = memLevel.size
+                log.info(f"  {str(level):<20} {capacity:10,} {total:10,d} "
+                         f"({staticSize:10,d} + {dynamicSize:10,d}) "
+                         f"({total / capacity * 100:5.1f}%)")
+
+
+class MemoryLevelAwareDeployer(NetworkDeployer, MemorySummaryMixin):
 
     def __init__(self,
                  graph: gs.Graph,
@@ -120,23 +128,11 @@ class MemoryLevelAwareDeployer(NetworkDeployer):
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
 
-    def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
-                   default_channels_first: bool) -> Tuple[NetworkContext, bool]:
-
-        newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
-
-        if not parsePass:
-            return ctxt, False
-
-        newCtxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(newCtxt, self.graph)
-        newCtxt, LayerBindSuccess = node.typeCheck(newCtxt)
-
-        if not LayerBindSuccess:
-            return ctxt, False
-
-        return newCtxt, True
-
     def bind(self):
+        log.info("- Perform Memory Level Annotation")
+        # LMACAN: Annotate before bind because during binding (specifically alignToContext) templates
+        #         may expect the memoryLevel annotation already.
+        self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
         ret = super().bind()
         if not ret:
@@ -152,7 +148,7 @@ class MemoryLevelAwareDeployer(NetworkDeployer):
         super().codeTransform(verbose)
 
 
-class MemoryLevelAwareSignPropDeployer(SignPropDeployer):
+class MemoryLevelAwareSignPropDeployer(SignPropDeployer, MemorySummaryMixin):
 
     def __init__(self,
                  graph: gs.Graph,
@@ -176,23 +172,11 @@ class MemoryLevelAwareSignPropDeployer(SignPropDeployer):
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
 
-    def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
-                   default_channels_first: bool) -> Tuple[NetworkContext, bool]:
-
-        newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
-
-        if not parsePass:
-            return ctxt, False
-
-        newCtxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(newCtxt, self.graph)
-        newCtxt, LayerBindSuccess = node.typeCheck(newCtxt)
-
-        if not LayerBindSuccess:
-            return ctxt, False
-
-        return newCtxt, True
-
     def bind(self):
+        log.info("- Perform Memory Level Annotation")
+        # LMACAN: Annotate before bind because during binding (specifically alignToContext) templates
+        #         may expect the memoryLevel annotation already.
+        self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
         ret = super().bind()
         if not ret:
@@ -208,7 +192,7 @@ class MemoryLevelAwareSignPropDeployer(SignPropDeployer):
         super().codeTransform(verbose)
 
 
-class MemoryDeployerWrapper(NetworkDeployerWrapper):
+class MemoryDeployerWrapper(NetworkDeployerWrapper, MemorySummaryMixin):
 
     def __init__(self, deployer: NetworkDeployer, memoryLevelAnnotationPasses: List[NetworkOptimizationPass] = []):
         super().__init__(deployer)
@@ -223,23 +207,11 @@ class MemoryDeployerWrapper(NetworkDeployerWrapper):
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"
         return TargetMemoryLevelMapping(self.graph, self.Platform, self.ctxt)
 
-    def _parseNode(self, node: ONNXLayer, ctxt: NetworkContext,
-                   default_channels_first: bool) -> Tuple[NetworkContext, bool]:
-
-        newCtxt, parsePass = node.parse(ctxt.copy(), default_channels_first)
-
-        if not parsePass:
-            return ctxt, False
-
-        newCtxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(newCtxt, self.graph)
-        newCtxt, LayerBindSuccess = node.typeCheck(newCtxt)
-
-        if not LayerBindSuccess:
-            return ctxt, False
-
-        return newCtxt, True
-
     def bind(self):
+        log.info("- Perform Memory Level Annotation")
+        # LMACAN: Annotate before bind because during binding (specifically alignToContext) templates
+        #         may expect the memoryLevel annotation already.
+        self.ctxt, self.graph = self.memoryLevelAnnotationOptimizer.optimize(self.ctxt, self.graph)
 
         ret = super().bind()
         if not ret:

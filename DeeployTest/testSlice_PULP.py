@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: testSlice_PULP.py
-#
-# Last edited: 15.06.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import argparse
 import os
@@ -30,12 +9,12 @@ import subprocess
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-from testUtils.codeGenerate import generateTestInputsHeader, generateTestNetworkHeader, \
-    generateTestNetworkImplementation, generateTestOutputsHeader
+from testUtils.codeGenerate import generateTestNetwork
 from testUtils.platformMapping import mapDeployer, setupMemoryPlatform
 from testUtils.testRunner import escapeAnsi
-from testUtils.typeMapping import inferInputType
+from testUtils.typeMapping import inferTypeAndOffset
 
+from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.Targets.PULPOpen.Platform import PULPPlatform
@@ -62,11 +41,11 @@ if __name__ == "__main__":
 
     signProp = False
 
-    onnx_graph = onnx.load_model('./Tests/testSlice/network.onnx')
+    onnx_graph = onnx.load_model('./Tests/Kernels/Integer/Slice/network.onnx')
     graph = gs.import_onnx(onnx_graph)
 
-    inputs = np.load('./Tests/testSlice/inputs.npz')
-    outputs = np.load(f'./Tests/testSlice/outputs.npz')
+    inputs = np.load('./Tests/Kernels/Integer/Slice/inputs.npz')
+    outputs = np.load(f'./Tests/Kernels/Integer/Slice/outputs.npz')
     tensors = graph.tensors()
 
     # Load as int64 and infer types later
@@ -86,7 +65,7 @@ if __name__ == "__main__":
     platform = PULPPlatform()
 
     for index, num in enumerate(test_inputs):
-        _type, offset = inferInputType(num, signProp)[0]
+        _type, offset = inferTypeAndOffset(num, signProp)
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
 
@@ -100,9 +79,9 @@ if __name__ == "__main__":
     deployer.frontEnd()
     deployer.parse(deployer.default_channels_first)
 
-    deployer.ctxt.lookup('onnx::Slice_5')._memoryLevel = "L1"
-    deployer.ctxt.lookup('onnx::Slice_5').allocTemplate = pulpL1AllocateTemplate
-    deployer.ctxt.lookup('onnx::Slice_5').deallocTemplate = pulpL1FreeTemplate
+    deployer.ctxt.lookup('onnxSlice_5_tensor')._memoryLevel = "L1"
+    deployer.ctxt.lookup('onnxSlice_5_tensor').allocTemplate = pulpL1AllocateTemplate
+    deployer.ctxt.lookup('onnxSlice_5_tensor').deallocTemplate = pulpL1FreeTemplate
 
     deployer.midEnd()
 
@@ -110,46 +89,29 @@ if __name__ == "__main__":
     deployer.prepared = True
     deployer.generateInferenceCode()
 
-    # Create input and output vectors
-    os.makedirs('TEST_SIRACUSA/Tests/testSlice', exist_ok = True)
+    # Offset the values if signprop
+    if signProp:
+        test_inputs = [value - inputOffsets[f"input_{i}"] for i, value in enumerate(test_inputs)]
 
-    testInputStr = generateTestInputsHeader(deployer, test_inputs, inputTypes, inputOffsets)
-    f = open('TEST_SIRACUSA/Tests/testSlice/testinputs.h', "w")
-    f.write(testInputStr)
-    f.close()
+        for i, values in enumerate(test_outputs):
+            buffer = deployer.ctxt.lookup(f"output_{i}")
+            isFloat = buffer._type.referencedType.typeName == "float32_t"
+            if not isFloat and not buffer._signed:
+                values -= buffer.nLevels // 2
 
-    testOutputStr = generateTestOutputsHeader(deployer, test_outputs, signProp, False)
-    f = open('TEST_SIRACUSA/Tests/testSlice/testoutputs.h', "w")
-    f.write(testOutputStr)
-    f.close()
-
-    # Generate code for Network
-    testNetworkHeaderStr = generateTestNetworkHeader(deployer, platform)
-    f = open('TEST_SIRACUSA/Tests/testSlice/Network.h', "w")
-    f.write(testNetworkHeaderStr)
-    f.close()
-
-    testNetworkImplementationStr = generateTestNetworkImplementation(deployer, platform)
-    f = open('TEST_SIRACUSA/Tests/testSlice/Network.c', "w")
-    f.write(testNetworkImplementationStr)
-    f.close()
-
-    clang_format = "{BasedOnStyle: llvm, IndentWidth: 2, ColumnLimit: 160}"
-    os.system(f'clang-format -i --style="{clang_format}" TEST_SIRACUSA/Tests/testSlice/Network.c')
-    os.system(f'clang-format -i --style="{clang_format}" TEST_SIRACUSA/Tests/testSlice/Network.h')
-    os.system(f'clang-format -i --style="{clang_format}" TEST_SIRACUSA/Tests/testSlice/testoutputs.h')
-    os.system(f'clang-format -i --style="{clang_format}" TEST_SIRACUSA/Tests/testSlice/testinputs.h')
+    generateTestNetwork(deployer, test_inputs, test_outputs, 'TEST_SIRACUSA/Tests/Kernels/Integer/Slice', _NoVerbosity)
 
     os.system(
-        f"$CMAKE -DTOOLCHAIN={args.toolchain} -DTOOLCHAIN_INSTALL_DIR={_TOOLCHAIN_DIR}  -DTESTNAME=testSlice -DGENERATED_SOURCE=TEST_SIRACUSA/Tests/testSlice -Dplatform=Siracusa -B TEST_SIRACUSA/build -DNUM_CORES=1 .."
+        f"$CMAKE -DTOOLCHAIN={args.toolchain} -DTOOLCHAIN_INSTALL_DIR={_TOOLCHAIN_DIR}  -DTESTNAME=Slice -DGENERATED_SOURCE=TEST_SIRACUSA/Tests/Kernels/Integer/Slice -Dplatform=Siracusa -B TEST_SIRACUSA/build -DNUM_CORES=1 .."
     )
-    process = subprocess.Popen(["$CMAKE --build TEST_SIRACUSA/build --target gvsoc_testSlice"],
+    process = subprocess.Popen(["$CMAKE --build TEST_SIRACUSA/build --target gvsoc_Slice"],
                                stdout = subprocess.PIPE,
                                stderr = subprocess.STDOUT,
                                shell = True,
                                encoding = 'utf-8')
     fileHandle = open('out.txt', 'a')
-    fileHandle.write(f"################## Testing Tests/testSlice on SIRACUSA Platform ##################\n")
+    fileHandle.write(
+        f"################## Testing Tests/Kernels/Integer/Slice on SIRACUSA Platform ##################\n")
 
     result = ""
     while True:
@@ -166,4 +128,4 @@ if __name__ == "__main__":
     fileHandle.close()
 
     if not "Errors: 0 out of " in result:
-        raise RuntimeError(f"Found an error in Tests/testSlice")
+        raise RuntimeError(f"Found an error in Tests/Kernels/Integer/Slice")

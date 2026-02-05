@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: _runner-siracusa
+
+"on":
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      pytest-marker:
+        required: true
+        type: string
+        description: "Pytest marker for test selection (e.g., 'kernels', 'models')"
+
+jobs:
+  test-runner-siracusa:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: /app/.ccache
+          key: ccache-ci
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+
+          # Run tests using pytest markers
+          pytest test_platforms.py -v -n 4 -m "siracusa and ${{ inputs.pytest-marker }}"
+        shell: bash

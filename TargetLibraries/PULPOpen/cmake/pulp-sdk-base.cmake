@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(PULP_SDK_HOME $ENV{PULP_SDK_HOME})
 
 set(PULP_SDK_BASE_C_SOURCE

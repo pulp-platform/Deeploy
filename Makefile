@@ -1,30 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: Makefile
-#
-# Created: 30.06.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Authors:
-# - Moritz Scherer, ETH Zurich
-# - Victor Jung, ETH Zurich
-# - Philip Wiese, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 SHELL = /usr/bin/env bash
 ROOT_DIR := $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
@@ -66,7 +42,6 @@ CMAKE ?= cmake
 LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
-BANSHEE_COMMIT_HASH ?= 0e105921e77796e83d01c2aa4f4cadfa2005b4d9
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
@@ -77,7 +52,22 @@ XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
 XTENSOR_VERSION ?= 0.25.0
 
-RUSTUP_CARGO ?= $$(rustup which cargo)
+OS  := $(shell uname -s)
+ARCH:= $(shell uname -m)
+
+ifeq ($(OS),Linux)
+	ifeq ($(ARCH),x86_64)
+		TARGET := x86_64-unknown-linux-gnu
+	else ifeq ($(ARCH),aarch64)
+		TARGET := aarch64-unknown-linux-gnu
+	else
+		$(error unsupported Linux architecture $(ARCH))
+	endif
+else ifeq ($(OS),Darwin)
+	TARGET := aarch64-apple-darwin
+else
+	$(error unsupported platform $(OS))
+endif
 
 all: toolchain emulators docs echo-bash
 
@@ -460,7 +450,7 @@ ${TOOLCHAIN_DIR}/softhier:
 	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include/flex_alloc.h && \
 	rm ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include/flex_runtime.h && \
 	mv ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory_deeploy.ld ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/flex_memory.ld && \
-	cp ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/deeploy_include/* ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include      
+	cp ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/deeploy_include/* ${TOOLCHAIN_DIR}/softhier/soft_hier/flex_cluster_sdk/runtime/include
 
 ${SOFTHIER_INSTALL_DIR}: ${TOOLCHAIN_DIR}/softhier
 	cp -r ${TOOLCHAIN_DIR}/softhier ${SOFTHIER_INSTALL_DIR} && \
@@ -527,11 +517,11 @@ ${TOOLCHAIN_DIR}/banshee:
 	git submodule update --init --recursive && \
 	git apply ${TOOLCHAIN_DIR}/banshee.patch
 
-${BANSHEE_INSTALL_DIR}: ${TOOLCHAIN_DIR}/banshee
+${BANSHEE_INSTALL_DIR}:
 	export LLVM_SYS_150_PREFIX=${LLVM_INSTALL_DIR} && \
-	cd ${TOOLCHAIN_DIR}/banshee/ && \
-	${RUSTUP_CARGO} clean && \
-	${RUSTUP_CARGO} install --path . -f
+	mkdir -p ${BANSHEE_INSTALL_DIR} && cd ${BANSHEE_INSTALL_DIR} && \
+	curl -LO https://github.com/pulp-platform/banshee/releases/download/v0.5.0-prebuilt/banshee-0.5.0-$(TARGET).tar.gz && \
+	tar -xzf banshee-0.5.0-$(TARGET).tar.gz --strip-components=1 -C .
 
 banshee: ${BANSHEE_INSTALL_DIR}
 
@@ -566,10 +556,28 @@ chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
 .PHONY: docs clean-docs format
 
 format:
-	python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
-	autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" ./
-	yapf -ipr -e "third_party/" -e "install/" -e "toolchain/" .
-	isort --sg "**/third_party/*"  --sg "install/*" --sg "toolchain/*" ./
+	@echo "Formatting all relevant files..."
+	@echo " - Format Python Files"
+	@yapf -ipr -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
+	@echo " - Format Python Imports"
+	@isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./
+	@autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
+	@echo " - Format C/C++ Files"
+	@python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
+
+lint:
+	@echo "Linting all relevant files..."
+	@echo " - Lint License Headers"
+	@scripts/reuse_skip_wrapper.py $$(git ls-files '*.py' '*.c' '*.h' '*.html' '*.rst' '*.yml' '*.yaml')
+	@echo " - Lint Python Files"
+	@yapf -rpd -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
+	@echo " - Lint Python Imports"
+	@isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
+	@autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
+	@echo " - Lint C/C++ Files"
+	@python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
+	@echo " - Lint YAML files"
+	@yamllint .
 
 docs:
 	make -C docs html

@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: CI • Siracusa (Tiled)
+
+"on":
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*.*.*"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "Deeploy Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy:devel"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select-env:
+    uses: ./.github/workflows/_select-env.yml
+    with:
+      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+
+  # Kernel tests - L2 singlebuffer
+  siracusa-kernels-tiled-l2-singlebuffer:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "kernels and l2 and singlebuffer"
+
+  # Kernel tests - L2 doublebuffer
+  siracusa-kernels-tiled-l2-doublebuffer:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "kernels and l2 and doublebuffer"
+
+  # Model tests - L2 singlebuffer
+  siracusa-models-tiled-l2-singlebuffer:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "models and l2 and singlebuffer"
+
+  # Model tests - L2 doublebuffer
+  siracusa-models-tiled-l2-doublebuffer:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "models and l2 and doublebuffer"
+
+  # Model tests - L3 singlebuffer
+  siracusa-models-tiled-l3-singlebuffer:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "models and l3 and singlebuffer"
+
+  # Model tests - L3 doublebuffer
+  siracusa-models-tiled-l3-doublebuffer:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "models and l3 and doublebuffer"

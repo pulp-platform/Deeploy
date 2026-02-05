@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
 Deeploy Documentation
 =====================
 
@@ -20,3 +24,4 @@ Deeploy is developed as part of the PULP project, a joint effort between ETH Zur
    tutorials/overview
    structure
    apidocs
+   releasing

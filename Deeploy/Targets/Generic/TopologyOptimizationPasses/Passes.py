@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: BasicPasses.py
-#
-# Last edited: 28.04.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import copy
 from collections import OrderedDict
@@ -697,8 +676,8 @@ def _split_transposes_fun(graph: gs.Graph, match: Match, name: str):
     inputNode.outputs = [postSplitOutput]
 
     for node in originalNode.outputs.copy():
-        nodeName = node.name + f"_transpose_in"
-        varName = node.name + f"_transpose_in_var"
+        nodeName = f"{t1.name}_{node.name}_transpose_in"
+        varName = f"{t1.name}_{node.name}_transpose_in_var"
         newOutput = gs.Variable(name = varName, dtype = np.float32, shape = t1.outputs[0].shape)
 
         transposeNode = gs.Node(name = nodeName,

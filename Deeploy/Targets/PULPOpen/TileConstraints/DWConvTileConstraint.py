@@ -1,28 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: ConvTileConstraint.py
-#
-# Last edited: 09.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-# - Moritz Scherer, scheremo@iis.ee.ethz.ch, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import Dict, List, Tuple, Union
 
@@ -39,7 +17,7 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
     VariableReplacementScheme
 
 
-class DWConv2DTileConstraint(TileConstraint):
+class RQDWConv2DTileConstraint(TileConstraint):
 
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -255,3 +233,24 @@ class DWConv2DTileConstraint(TileConstraint):
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
 
         return variableReplacementSchedule, tilingSchedule
+
+
+class DWConv2DTileConstraint(Conv2DTileConstraint):
+
+    @staticmethod
+    def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        # Inherit from regular Conv2D policy constraints
+        tilerModel = Conv2DTileConstraint.addPolicyConstraint(tilerModel, parseDict, ctxt)
+
+        # Add constraint for relationship between in and out number of channels
+        # TODO: Fix DW kernel to include group info and support channel tiling
+        inputBufferName = parseDict['data_in']
+        outputBufferName = parseDict['data_out']
+
+        inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 3)
+        outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = 3)
+
+        tilerModel.addConstraint((inputChannelVar == parseDict['ch_im_in']))
+        tilerModel.addConstraint((outputChannelVar == parseDict['ch_im_out']))
+
+        return tilerModel

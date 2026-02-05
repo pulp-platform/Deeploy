@@ -1,13 +1,13 @@
 Describe the intent of your PR here.
 
 ## Added
-- 
+-
 
 ## Changed
-- 
+-
 
 ## Fixed
-- 
+-
 
 ## PR Merge Checklist
 

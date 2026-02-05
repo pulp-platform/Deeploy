@@ -1,7 +1,6 @@
 # Contribution Guide
 
 We encourage submitting your issues and work in pull requests against the `devel` branch. Please understand that we are trying to maintain a consistent minimal quality standard.
-Any and all pull requests you submit can only be accepted under the Apache 2.0 License.
 
 ## Overview
 
@@ -42,23 +41,15 @@ Additionally, add the title and link to the pull request in the list of pull req
 
 Deeploy mainly consists of code implemented in C, Makefile, and Python. To facilitate efficient collaboration among users and contributors, it is important to maintain a consistent coding style. To achieve this, it is strongly recommend to use autoformatting tools with the provided configuration files. Additionally, the Continuous Integration (CI) system checks the adherence to the style guide for each pushed commit. Currently configuration for C using `clang-format` and for Python using `yapf` and `isort` are provided.
 
-To recursively format all Python files run:
-```bash
-autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "*/third_party/**" .
-yapf -ipr .
-isort .
-```
-
-And for C files:
-```bash
-python scripts/run_clang_format.py -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -ir --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format ./
-```
-
-Note that third party applications should not be formatted. You can alternatively also run:
+You can format all relevant files by running:
 ```bash
 make format
 ```
-to format all C and Python files.
+
+Alternatively, to only lint the files without modifying them, you can run:
+```bash
+make lint
+```
 
 ### Pre-commit
 
@@ -81,3 +72,7 @@ pre-commit uninstall
 ```
 
 _Note:_ This configures only the python formatting git hooks. The c formatting is not supported at the moment.
+
+## Licensing
+
+Any and all pull requests you submit can only be accepted under the Apache 2.0 License. Every file needs to have an SPDX license header. We use the [reuse-tool](https://github.com/fsfe/reuse-tool) to check for the license header. You can use the same tool to add the license by calling it with the `annotate` command.

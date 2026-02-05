@@ -1,29 +1,8 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: TilerModel.py
-#
-# Last edited: 25.06.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-# - Moritz Scherer, scheremo@iis.ee.ethz.ch, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+import logging
 from dataclasses import dataclass
 from pprint import pformat
 from typing import Dict, List, Literal, Optional, Tuple, Union
@@ -32,6 +11,7 @@ import numpy as np
 from ortools.constraint_solver.pywrapcp import IntExpr, IntVar, SolutionCollector, Solver
 
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
+from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryLevel
 
 _COPYIDXSUFFIX = "_copyIdx_"
@@ -124,6 +104,10 @@ class TilerModel():
                       constraintExpression: IntExpr,
                       memoryLevel: Optional[MemoryLevel] = None,
                       strategy: Optional[AddConstraintStrategy] = None):
+        # Skip TrueConstraints
+        if constraintExpression.DebugString() == "TrueConstraint()":
+            return
+
         if isinstance(strategy, PerformanceHint):
             if memoryLevel is None:
                 self._performanceConstraints.append((strategy.priority, constraintExpression))
@@ -163,7 +147,9 @@ class TilerModel():
         '''
         tensor = ctxt.lookup(tensorName)
 
-        for idx, dim in enumerate(tensor.shape):
+        for idx, dim in enumerate([
+                tensor.shape,
+        ] if isinstance(tensor.shape, int) else tensor.shape):
 
             varName = f"{tensor.name}_dim_{idx}" + self._getSuffix(copyIdx)
 
@@ -186,7 +172,9 @@ class TilerModel():
 
         tensorDimProductExpr = 1
 
-        for idx, _ in enumerate(tensor.shape):
+        for idx, _ in enumerate([
+                tensor.shape,
+        ] if isinstance(tensor.shape, int) else tensor.shape):
 
             varNameIdx = f"{tensor.name}_dim_{idx}" + self._getSuffix(copyIdx)
             tensorDimProductExpr *= self._variables[varNameIdx]
@@ -404,9 +392,13 @@ class TilerModel():
 
         timeLimit = self._model.TimeLimit(_SOLVERTIMEOUT)
 
-        log = self._model.SearchLog(1000000)
+        log.debug(" - Solve Constraint Model")
 
-        _ = self._model.Solve(decisionBuilder, [objective, collector, log, timeLimit])
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            searchLog = self._model.SearchLog(1000000)
+            _ = self._model.Solve(decisionBuilder, [objective, collector, searchLog, timeLimit])
+        else:
+            _ = self._model.Solve(decisionBuilder, [objective, collector, None, timeLimit])
 
         assert collector.SolutionCount() > 0, "Error in Tiler: No solution found"
 

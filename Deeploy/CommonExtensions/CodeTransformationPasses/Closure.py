@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: Closure.py
-#
-# Last edited: 12.06.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import Dict, Optional, Tuple, Type, Union
 
@@ -41,7 +20,10 @@ ${closureName}(&${closureStructArgName});
 _closureTemplate = NodeTemplate("""
 static void ${closureName}(void* ${closureName}_args){
 // CLOSURE ARG CAST
+% if len(closureStructArgs.value) > 0:
 ${closureStructArgs.typeName}* args = (${closureStructArgs.typeName}*) ${closureStructArgName};
+% endif
+
 % for argName, argType in closureStructArgs.value.items():
 ${argType.typeName} ${argName} = args->${argName};
 % endfor
@@ -85,7 +67,8 @@ class ClosureExecutionBlock(ExecutionBlock):
 
 class ClosureGeneration(CodeTransformationPass, IntrospectiveCodeTransformationMixIn):
 
-    closureStructArgs: Struct
+    closureStructArgType: Dict[str, Type[Union[Pointer, Immediate, Struct]]]
+    closureStructArgs: Dict[str, Union[Pointer, Immediate, Struct]]
 
     def __init__(self,
                  closureCallTemplate: NodeTemplate = _closureCallTemplate,
@@ -109,7 +92,7 @@ class ClosureGeneration(CodeTransformationPass, IntrospectiveCodeTransformationM
         closureStruct: Dict[str, Union[Pointer, Immediate, Struct]] = {}
         makoDynamicReferences = self.extractDynamicReferences(ctxt, executionBlock, True)
 
-        for arg in list(dict.fromkeys(makoDynamicReferences)):
+        for arg in makoDynamicReferences:
             ref = ctxt.lookup(arg)
             if isinstance(ref, TransientBuffer):
                 closureStructArgsType[ctxt._mangle(arg)] = PointerClass(VoidType)
@@ -175,7 +158,8 @@ class ClosureGeneration(CodeTransformationPass, IntrospectiveCodeTransformationM
               executionBlock: ExecutionBlock,
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
-        self.closureName = name + self.closureSuffix
+        # Prepend underscore to avoid name issues when beginning with problematic characters (like numbers)
+        self.closureName = "_" + name + self.closureSuffix
         self.functionCall = executionBlock.generate(ctxt)
         self._generateClosureStruct(ctxt, executionBlock)
         ctxt = self._generateClosureCtxt(ctxt, name)
@@ -202,7 +186,7 @@ class MemoryAwareClosureGeneration(ClosureGeneration):
         # Add closure struct info to operatorRepresentation
         closureStructArgsType = {}
         closureStruct = {}
-        makoDynamicReferences = self.extractDynamicReferences(ctxt, executionBlock, True)
+        makoDynamicReferences = self.extractDynamicReferences(ctxt, executionBlock, unrollStructs = True)
 
         filteredMakoDynamicReferences = []
 

@@ -1,34 +1,8 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: MemoryLevel.py
-#
-# Last edited: 04.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Victor Jung, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-from typing import Dict, List, Optional, Sequence, Tuple
-
-import onnx_graphsurgeon as gs
-
-from Deeploy.DeeployTypes import CodeTransformation, NetworkContext, NodeBinding, NodeTemplate, NodeTypeChecker, \
-    OperatorRepresentation
+from typing import Dict, List, Optional
 
 
 class MemoryLevel():
@@ -130,58 +104,3 @@ class MemoryHierarchy():
         if self._defaultMemoryLevel is None:
             raise ValueError('defaultMemoryLevel level not set!')
         return self._defaultMemoryLevel
-
-
-class NodeMemoryLevelChecker():
-
-    def __init__(self, inputMemoryLevels: Sequence[Optional[str]], outputMemoryLevels: Sequence[Optional[str]]):
-        self.inputMemoryLevels = inputMemoryLevels
-        self.outputMemoryLevels = outputMemoryLevels
-
-    def _memEq(self, memoryLevel: str, annotatedMemoryLevel: str) -> bool:
-        if memoryLevel is None:
-            return True
-        else:
-            return memoryLevel == annotatedMemoryLevel
-
-    def _checkMemoryLevels(self, ctxt: NetworkContext, memoryLevels: Sequence[str],
-                           tensors: Sequence[gs.Tensor]) -> bool:
-        buffers = [ctxt.lookup(tensor.name) for tensor in tensors]
-        if not all(hasattr(buffer, "_memoryLevel") for buffer in buffers):
-            return False
-
-        annotatedMemoryLevels = [buffer._memoryLevel for buffer in buffers]
-        if all(
-                self._memEq(memoryLevel, annotatedMemoryLevel)
-                for memoryLevel, annotatedMemoryLevel in zip(memoryLevels, annotatedMemoryLevels)):
-            return True
-        else:
-            return False
-
-    def check(self, ctxt: NetworkContext, node: gs.Node, operatorRepresentation) -> Tuple[NetworkContext, bool]:
-        if self._checkMemoryLevels(ctxt, self.inputMemoryLevels, node.inputs) and self._checkMemoryLevels(
-                ctxt, self.outputMemoryLevels, node.outputs):
-            return ctxt, True
-        else:
-            return ctxt, False
-
-
-class MemoryAwareNodeBinding(NodeBinding):
-
-    def __init__(self, typeChecker: NodeTypeChecker, memoryLevelChecker: NodeMemoryLevelChecker, template: NodeTemplate,
-                 codeTransformer: CodeTransformation):
-        super().__init__(typeChecker, template, codeTransformer)
-        self.memoryLevelChecker = memoryLevelChecker
-
-    def typeCheck(self, ctxt: NetworkContext, node: gs.Node,
-                  operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, bool]:
-        newCtxt, ret = self.memoryLevelChecker.check(ctxt, node, operatorRepresentation)
-        if ret:
-            return super().typeCheck(newCtxt, node, operatorRepresentation)
-
-        return ctxt, False
-
-
-def memoryAwareNodeBindingExtension(binding: NodeBinding,
-                                    memoryLevelChecker: NodeMemoryLevelChecker) -> MemoryAwareNodeBinding:
-    return MemoryAwareNodeBinding(binding.typeChecker, memoryLevelChecker, binding.template, binding.codeTransformer)

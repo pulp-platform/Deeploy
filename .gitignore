@@ -1,31 +1,42 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Editor and OS files
 *~
-__pycache__
-build
-dist
-**/*.egg*
+*#
 *.vscode
 .DS_Store
+
+# Python
+__pycache__
+.venv/*
+.mypy_cache
+.ipynb_checkpoints/
+**/*.egg*
+*.pkl
+*.data
+
+# Build artifacts
+build
+dist
+install/
+compile_commands.json
+toolchain/**/*/
+
+# Node
+package.json
+package-lock.json
+node_modules
+
+# Documentation
+docs/_autosummary
+docs/_build
 *.html
 !docs/_templates/*
 *.csv
-.ipynb_checkpoints/
-*#
-install/
-*.pkl
-*.data
-*#
-toolchain/**/*/
-package.json
-package-lock.json
-.mypy_cache
-node_modules
 
-compile_commands.json
-
-docs/_autosummary
-docs/_build
-
-
+# DeeployTest
 DeeployTest/TestFiles/
 DeeployTest/Tests/**/*.txt
 DeeployTest/**/BUILD/*

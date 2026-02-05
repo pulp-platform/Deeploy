@@ -1,29 +1,7 @@
-/* =====================================================================
- * Title:        deeploytest.c
- * Description:
- *
- * $Date:        26.12.2021
- *
- * ===================================================================== */
 /*
- * Copyright (C) 2020 ETH Zurich and University of Bologna.
- *
- * Author: Moritz Scherer, ETH Zurich
- * Author: Run Wang, ETH Zurich
+ * SPDX-FileCopyrightText: 2020 ETH Zurich and University of Bologna
  *
  * SPDX-License-Identifier: Apache-2.0
- *
- * Licensed under the Apache License, Version 2.0 (the License); you may
- * not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an AS IS BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 #include "CycleCounter.h"
@@ -41,9 +19,9 @@ struct pi_device cluster_dev;
 typedef struct {
   void *expected;
   void *actual;
-  int num_elements;
-  int output_buf_index;
-  int *err_count;
+  uint32_t num_elements;
+  uint32_t output_buf_index;
+  uint32_t *err_count;
 } FloatCompareArgs;
 
 void CompareFloatOnCluster(void *args) {
@@ -52,13 +30,13 @@ void CompareFloatOnCluster(void *args) {
     FloatCompareArgs *compare_args = (FloatCompareArgs *)args;
     float *expected = (float *)compare_args->expected;
     float *actual = (float *)compare_args->actual;
-    int num_elements = compare_args->num_elements;
-    int output_buf_index = compare_args->output_buf_index;
-    int *err_count = compare_args->err_count;
+    uint32_t num_elements = compare_args->num_elements;
+    uint32_t output_buf_index = compare_args->output_buf_index;
+    uint32_t *err_count = compare_args->err_count;
 
-    int local_err_count = 0;
+    uint32_t local_err_count = 0;
 
-    for (int i = 0; i < num_elements; i++) {
+    for (uint32_t i = 0; i < num_elements; i++) {
       float expected_val = expected[i];
       float actual_val = actual[i];
       float diff = expected_val - actual_val;
@@ -77,7 +55,7 @@ void CompareFloatOnCluster(void *args) {
   }
 }
 
-void main(void) {
+int main(void) {
 #ifndef CI
   printf("HELLO WORLD:\r\n");
 #endif
@@ -87,7 +65,7 @@ void main(void) {
   conf.id = 0;
   pi_open_from_conf(&cluster_dev, &conf);
   if (pi_cluster_open(&cluster_dev))
-    return;
+    return -1;
 
   mem_init();
 #ifndef NOFLASH
@@ -106,8 +84,8 @@ void main(void) {
 #ifndef CI
   printf("Initialized\r\n");
 #endif
-  for (int buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
-    if (DeeployNetwork_inputs[buf] >= 0x10000000) {
+  for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
+    if ((uint32_t)DeeployNetwork_inputs[buf] >= 0x10000000) {
       memcpy(DeeployNetwork_inputs[buf], testInputVector[buf],
              DeeployNetwork_inputs_bytes[buf]);
     }
@@ -116,7 +94,7 @@ void main(void) {
 #ifndef CI
   printf("Input copied\r\n");
 #endif
-  // RunNetwork(0, 1);
+
   pi_cluster_task(&cluster_task, RunNetwork, NULL);
   cluster_task.stack_size = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
@@ -136,11 +114,11 @@ void main(void) {
   FloatCompareArgs float_compare_args;
   uint32_t float_error_count = 0;
 
-  for (int buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
+  for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
     tot_tested += DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE);
 
-    if (DeeployNetwork_outputs[buf] < 0x1000000) {
-      compbuf = pi_l2_malloc(DeeployNetwork_outputs_bytes[buf]);
+    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
+      compbuf = pi_l2_malloc((int)DeeployNetwork_outputs_bytes[buf]);
       ram_read(compbuf, DeeployNetwork_outputs[buf],
                DeeployNetwork_outputs_bytes[buf]);
     } else {
@@ -165,11 +143,12 @@ void main(void) {
       tot_err += float_error_count;
     } else {
 
-      for (int i = 0;
+      for (uint32_t i = 0;
            i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
         OUTPUTTYPE expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
         OUTPUTTYPE actual = ((OUTPUTTYPE *)compbuf)[i];
-        OUTPUTTYPE diff = expected - actual;
+        int32_t error = expected - actual;
+        OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
 
         if (diff) {
           tot_err += 1;
@@ -179,11 +158,13 @@ void main(void) {
         }
       }
     }
-    if (DeeployNetwork_outputs[buf] < 0x1000000) {
-      pi_l2_free(compbuf, DeeployNetwork_outputs_bytes[buf]);
+    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
+      pi_l2_free(compbuf, (int)DeeployNetwork_outputs_bytes[buf]);
     }
   }
 
   printf("Runtime: %u cycles\r\n", getCycles());
   printf("Errors: %u out of %u \r\n", tot_err, tot_tested);
+
+  return (int)tot_err;
 }

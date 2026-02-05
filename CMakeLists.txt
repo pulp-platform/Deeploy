@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 cmake_minimum_required(VERSION 3.12)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -106,7 +110,7 @@ if(platform STREQUAL SoftHier)
   if(TOOLCHAIN STREQUAL GCC)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/toolchain_gcc.cmake)
   endif()
-  
+
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/softhier/softhier_gvsoc.cmake)
 
   project(deeploy LANGUAGES C ASM)

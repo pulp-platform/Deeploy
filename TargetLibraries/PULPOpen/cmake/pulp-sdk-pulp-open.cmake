@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 include(cmake/pulp-sdk-base.cmake)
 
 set(PULP_SDK_HOME $ENV{PULP_SDK_HOME})

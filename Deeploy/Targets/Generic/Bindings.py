@@ -1,30 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: BasicBindings.py
-#
-# Last edited: 05.05.2025
-#
-# Copyright (C) 2025, ETH Zurich and University of Bologna.
-#
-# Authors:
-# - Moritz Scherer, ETH Zurich
-# - Philip Wiese, ETH Zurich
-# - Calin Diaconu, University of Bologna
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import itertools
 
@@ -35,19 +11,20 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
     int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, ConvTemplate, DebugPrintTemplate, \
-    DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, FloatConvTemplate, FloatDivTemplate, \
-    FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
-    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
-    FloatSoftmaxTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
-    MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
+from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
+    ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
+    FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
+    FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, \
+    FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, \
+    GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, \
+    MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
     RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, \
     iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
-from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DebugPrintChecker, \
-    DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, LayerNormChecker, \
-    MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReduceSumChecker, \
-    ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, SoftmaxChecker, \
-    TransposeChecker
+from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
+    DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
+    LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, \
+    ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, \
+    SoftmaxChecker, TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -77,8 +54,14 @@ BasicAddBindings = [
                 FloatAddTemplate.referenceTemplate, BasicTransformer)
 ]
 
-BasicConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
-                                 ConvTemplate.reference1DTemplate, BasicTransformer)
+BasicConv1DBindings = [
+    NodeBinding(ConvChecker(
+        [PointerClass(type), PointerClass(type), PointerClass(type)], [PointerClass(type)]),
+                FloatConvTemplate.reference1DTemplate, BasicTransformer) for type in FloatDataTypes
+] + [
+    NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
+                ConvTemplate.reference1DTemplate, BasicTransformer)
+]
 
 BasicDWConv1DBinding = NodeBinding(ConvChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                                    DWConvTemplate.reference1DTemplate, BasicTransformer)
@@ -135,6 +118,16 @@ BasicGEMMBindings = [
         BasicTransformer)
 ]
 
+BasicPowBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatPowTemplate.referenceTemplate, BasicTransformer),
+]
+
+BasicSqrtBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatSqrtTemplate.referenceTemplate,
+                BasicTransformer),
+]
+
 BasicDivBindings = [
     NodeBinding(DivChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
                 IntegerDivTemplate.referenceTemplate, BasicTransformer)
@@ -171,6 +164,11 @@ BasicMatMulBindings = [
                 FloatMatMulTemplate.referenceTemplate, BasicTransformer)
 ]
 
+BasicMaxPool1DBindings = [
+    NodeBinding(MaxPoolChecker([PointerClass(type)], [PointerClass(type)]), FloatMaxPoolTemplate.reference1DTemplate,
+                BasicTransformer) for type in FloatDataTypes
+]
+
 BasicMaxPool2DBindings = [
     NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), MaxPoolTemplate.referenceTemplate,
                 BasicTransformer)
@@ -191,7 +189,11 @@ BasicMulBindings = [
 BasicPad1DBindings = [
     NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference1DTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
+] + [
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), FloatPadTemplate.reference1DTemplate,
+                BasicTransformer) for type in FloatDataTypes
 ]
+
 BasicPad2DBindings = [
     NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference2DTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
@@ -206,10 +208,15 @@ BasicReduceMeanBindings = [
     NodeBinding(ReduceMeanChecker([PointerClass(type)], [PointerClass(type)]), ReduceMeanTemplate.referenceTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
+    # ONNX OPSET < 18
     NodeBinding(ReduceMeanChecker([PointerClass(float_type), PointerClass(integer_type)], [PointerClass(float_type)]),
                 FloatReduceMeanTemplate.referenceTemplate, BasicTransformer)
     for integer_type in SignedIntegerDataTypes
     for float_type in FloatDataTypes
+] + [
+    # ONNX OPSET >= 18
+    NodeBinding(ReduceMeanChecker([PointerClass(float_type)], [PointerClass(float_type)]),
+                FloatReduceMeanTemplate.referenceTemplate, BasicTransformer) for float_type in FloatDataTypes
 ]
 
 BasicReduceSumBindings = [
@@ -289,4 +296,31 @@ BasicDequantBindings = [
 ] + [
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 BasicTransformer),
+]
+
+BasicBatchNormBindings = [
+    NodeBinding(
+        BatchNormChecker(
+            [PointerClass(type),
+             PointerClass(type),
+             PointerClass(type),
+             PointerClass(type),
+             PointerClass(type)], [PointerClass(type)]), BatchNormalizationTemplate.referenceTemplate, BasicTransformer)
+    for type in FloatDataTypes
+]
+
+BasicConvTransposeBindings = [
+    NodeBinding(
+        ConvChecker(
+            [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
+            [PointerClass(type)]),
+        ConvTransposeTemplate.referenceTemplate,
+        BasicTransformer) for type in FloatDataTypes
+] + [
+    NodeBinding(
+        ConvChecker(
+            [PointerClass(type), PointerClass(type)],  # input, weight
+            [PointerClass(type)]),
+        ConvTransposeTemplate.referenceTemplate,
+        BasicTransformer) for type in FloatDataTypes
 ]

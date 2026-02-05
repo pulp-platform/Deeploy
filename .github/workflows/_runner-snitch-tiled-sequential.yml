@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: _runner-snitch-tiled-sequential
+
+"on":
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      pytest-marker:
+        required: true
+        type: string
+
+jobs:
+  test-runner-snitch-tiled:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test # VJUNG: Run tests with 4 parallel threads as GitHub action VM has 4 cores.
+        run: |
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          pytest test_platforms.py -v -n 4 -m "snitch_tiled and ${{ inputs.pytest-marker }}"
+        shell: bash

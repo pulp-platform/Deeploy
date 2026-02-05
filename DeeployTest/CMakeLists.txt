@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 include_directories(${GENERATED_SOURCE})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

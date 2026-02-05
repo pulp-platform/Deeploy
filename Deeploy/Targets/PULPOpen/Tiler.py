@@ -1,34 +1,9 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: PULPTiler.py
-#
-# Last edited: 09.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Moritz Scherer, scheremo@iis.ee.ethz.ch, ETH Zurich
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import copy
 
-from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import MemoryPassthroughGeneration
-from Deeploy.DeeployTypes import CodeTransformation
-from Deeploy.Targets.Generic.Bindings import BasicReshapeBindings
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -39,25 +14,32 @@ from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiG
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
-from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
-    PULPFloatGELUBinding, PULPFloatGEMMBindings, PULPGatherBindings, PULPiHardswishBindings, PULPiRMSNormBindings, \
-    PULPiRQSGELUBindings, PULPLayernormBinding, PULPMatMulBindings, PULPMaxPool2DBindings, PULPMulBindings, \
-    PULPReduceSumBindings, PULPReluBinding, PULPRQAddBindings, PULPRQSBindings, PULPRQSConv2DBindings, \
-    PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, \
-    PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, \
-    PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
+    PULPFloatDWConv2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
+    PULPGatherBindings, PULPiHardswishBindings, PULPiRMSNormBindings, PULPiRQSGELUBindings, PULPLayernormBinding, \
+    PULPLayernormGradBinding, PULPMatMulBindings, PULPMaxPool2DBindings, PULPMulBindings, PULPReduceMeanBindings, \
+    PULPReduceSumBindings, PULPReluBinding, PULPReshapeBindings, PULPRQAddBindings, PULPRQSBindings, \
+    PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, PULPRQSiHardswishBindings, \
+    PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, PULPSoftmaxBindings, \
+    PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, \
+    PULPTransposeBindings, PULPUniformRQSBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
+    RQDWConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GatherTileConstraint import GatherTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint import FloatGEMMTileConstraint, GEMMTileConstraint, \
-    MatrixVecTileConstraint, TallGEMMTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint import iSoftmaxTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint import LayernormTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.GeluTileConstraint import GeluGradTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint import FloatGEMMTileConstraint, GEMMTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint import SoftmaxGradTileConstraint, \
+    iSoftmaxTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint import LayernormGradTileConstraint, \
+    LayernormTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMulTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint import MaxPoolCTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.ReduceMeanConstraint import ReduceMeanTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint import ReduceSumTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import RequantShiftTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
@@ -66,10 +48,13 @@ PULPRQSConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQ
                                                            tileConstraint = RQConv2DTileConstraint())
 
 PULPRQSDWConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSDWConv2DBindings,
-                                                             tileConstraint = DWConv2DTileConstraint())
+                                                             tileConstraint = RQDWConv2DTileConstraint())
 
 PULPConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConv2DBindings,
                                                         tileConstraint = Conv2DTileConstraint())
+
+PULPDWConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConv2DBindings,
+                                                          tileConstraint = DWConv2DTileConstraint())
 
 PULPRQSGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSGEMMBindings,
                                                          tileConstraint = GEMMTileConstraint())
@@ -78,10 +63,10 @@ PULPFPGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloat
                                                         tileConstraint = FloatGEMMTileConstraint())
 
 PULPRQSMatrixVecTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSMatrixVecBindings,
-                                                              tileConstraint = MatrixVecTileConstraint())
+                                                              tileConstraint = GEMMTileConstraint())
 
 PULPRQSTallGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSTallGEMMBindings,
-                                                             tileConstraint = TallGEMMTileConstraint())
+                                                             tileConstraint = GEMMTileConstraint())
 
 PULPMatMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMatMulBindings,
                                                         tileConstraint = MatMulTileConstraint())
@@ -95,9 +80,7 @@ PULPiHardswishTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPi
 PULPRQSiHardswishTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSiHardswishBindings,
                                                                tileConstraint = RQSiHardswishTileConstraint())
 
-_BasicFlattenBindings = copy.deepcopy(BasicReshapeBindings)
-for binding in _BasicFlattenBindings:
-    binding.codeTransformer = CodeTransformation([MemoryPassthroughGeneration("L.*"), MemoryPassthroughGeneration()])
+_BasicFlattenBindings = copy.deepcopy(PULPReshapeBindings)
 
 PULPFlattenTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = _BasicFlattenBindings,
                                                          tileConstraint = NOPTileConstraint())
@@ -138,8 +121,14 @@ PULPReluTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPReluBi
 PULPLayernormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPLayernormBinding],
                                                            tileConstraint = LayernormTileConstraint())
 
+PULPLayernormGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPLayernormGradBinding],
+                                                               tileConstraint = LayernormGradTileConstraint())
+
 PULPFPGELUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPFloatGELUBinding],
                                                         tileConstraint = UnaryTileConstraint())
+
+PULPFPGELUGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPFloatGELUGradBinding],
+                                                            tileConstraint = GeluGradTileConstraint())
 
 PULPGatherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPGatherBindings,
                                                         tileConstraint = GatherTileConstraint())
@@ -151,10 +140,16 @@ PULPSoftmaxCrossEntropyGradTilingReadyBindings = TilingReadyNodeBindings(
     nodeBindings = PULPSoftmaxCrossEntropyLossGradBindings, tileConstraint = SoftmaxCrossEntropyGradTileConstraint())
 
 PULPSoftmaxGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSoftmaxGradBindings,
-                                                             tileConstraint = UntiledTileConstraint())
+                                                             tileConstraint = SoftmaxGradTileConstraint())
 
 PULPReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceSumBindings,
-                                                           tileConstraint = UntiledTileConstraint())
+                                                           tileConstraint = ReduceSumTileConstraint())
 
 PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindings,
                                                      tileConstraint = SGDTileConstraint())
+
+PULPSliceTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSliceBindings,
+                                                       tileConstraint = SliceTileConstraint())
+
+PULPReduceMeanTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceMeanBindings,
+                                                            tileConstraint = ReduceMeanTileConstraint())

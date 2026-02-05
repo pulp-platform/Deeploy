@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 macro(add_deeploy_library name)
     add_library(${ARGV})
     add_custom_command(

@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: _runner-softhier
+
+"on":
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      pytest-marker:
+        required: true
+        type: string
+
+jobs:
+  test-runner-softhier:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: pip install -e .
+      - name: Run Test # VJUNG: Run tests with 4 parallel threads as GitHub action VM has 4 cores.
+        run: |
+          export SOFTHIER_INSTALL_DIR=/app/install/softhier
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          pytest test_platforms.py -v -n 4 -m "softhier and ${{ inputs.pytest-marker }}" --toolchain=GCC --toolchain-install-dir=$SOFTHIER_INSTALL_DIR/third_party/toolchain/install
+        shell: bash

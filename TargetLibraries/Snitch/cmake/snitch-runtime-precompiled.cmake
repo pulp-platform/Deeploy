@@ -1,3 +1,7 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
 set(SNITCH_RUNTIME_BASE_INCLUDE
   ${SNITCH_RUNTIME_HOME}/src
   ${SNITCH_RUNTIME_HOME}/api

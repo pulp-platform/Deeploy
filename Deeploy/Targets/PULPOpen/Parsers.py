@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: PULPParsers.py
-#
-# Last edited: 10.03.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import math
 from typing import Tuple
@@ -29,8 +8,8 @@ from typing import Tuple
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.Targets.Generic.Parsers import Conv2DParser, GEMMParser, RQSConv1DParser, RQSConv2DParser, \
-    RQSParserInterface
+from Deeploy.Targets.Generic.Parsers import Conv2DParser, GEMMParser, ReduceMeanParser, RQSConv1DParser, \
+    RQSConv2DParser, RQSParserInterface
 
 
 class PULPConv2DParser(RQSConv2DParser):
@@ -93,24 +72,24 @@ class PULPFPConv2DParser(Conv2DParser):
         wellFormed = super().parseNode(node)
         if wellFormed:
             ret = all([
-                # Make sure padding is square
+                # Current PULP kernel only supports grouping of 1
                 self.operatorRepresentation['group'] == 1,
+
+                # Make sure padding is square
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
-                len(node.inputs) == 2
+
+                # Check number of inputs
+                # 2 inputs if no bias, 3 if layer has bias
+                len(node.inputs) in [2, 3],
             ])
 
-            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
-            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
-            self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
-            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][1])
+            # Extract additional attributes
             self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
             self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
             self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
-            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
-            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
 
             return ret
         return False
@@ -123,7 +102,82 @@ class PULPFPConv2DParser(Conv2DParser):
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
         if ret:
+            # Set inputs names
+            inputs = ['data_in', 'weight']
+
+            # Handle bias, if present
+            if len(node.inputs) == 2:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
+            else:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
+
+            for idx, inputNode in enumerate(node.inputs):
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+
             return newCtxt, True
+
+        return ctxt, False
+
+
+class PULPFPDWConv2DParser(Conv2DParser):
+
+    def __init__(self, noBiasHoisting = True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> (bool):
+        # Parse root conv 2D information
+        wellFormed = super().parseNode(node)
+
+        if wellFormed:
+            # Check if the node is a depthwise convolution
+            ret = all([
+                # Make sure padding is square
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
+                self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+
+                # Check number of inputs
+                # 2 inputs if no bias, 3 if layer has bias
+                len(node.inputs) in [2, 3],
+            ])
+
+            # Extract additional attributes
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+
+            return ret
+        return False
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        # Parse node context for 2D conv
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+            # Define input names
+            inputs = ['data_in', 'weight']
+
+            # Handle bias, if present
+            if len(node.inputs) == 2:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
+            else:
+                inputs.append("bias")
+                self.operatorRepresentation["has_bias"] = "true"
+
+            # Map input nodes to operator representation
+            for idx, inputNode in enumerate(node.inputs):
+                self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+
+            # Check if DW
+            if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
+                return newCtxt, True
 
         return ctxt, False
 
@@ -408,3 +462,26 @@ class PULPTallGEMMParser(PULPGEMMParser):
             return ctxt, False
 
         return newCtxt, True
+
+
+class PULPReduceMeanParser(ReduceMeanParser):
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        # Inherit the generic ReduceMean parsing
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+            # Add to operator representation the non-reduced dimensions for tiling purposes
+            originalInputShape = newCtxt.lookup(self.operatorRepresentation['data_in']).shape
+            reducedAxes = self.operatorRepresentation['axes']
+
+            for ax in range(len(originalInputShape)):
+                if ax not in reducedAxes:
+                    self.operatorRepresentation['dim_in_' + str(ax)] = originalInputShape[ax]
+
+            return newCtxt, True
+        else:
+            return ctxt, False

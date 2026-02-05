@@ -1,9 +1,13 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 file(GLOB_RECURSE SOURCES
   "src/**"
 )
 
 if(NOT DEFINED ENV{PULP_SDK_HOME})
-  message(FATAL_ERROR "Environemnt variable PULP_SDK_HOME not set.")
+  message(FATAL_ERROR "Environment variable PULP_SDK_HOME not set.")
 endif()
 
 if(platform STREQUAL "Siracusa" OR platform STREQUAL "Siracusa_w_neureka")
@@ -25,6 +29,11 @@ target_compile_options(deeploypulp PRIVATE
   -Wno-implicit-int-conversion
   -Wno-sign-conversion
   -Wno-sign-compare
+  -Wno-typedef-redefinition
+  -Wno-unused-parameter
+  -Wno-unused-function
+  -Wno-unused-variable
+  -Wno-uninitialized
 )
 
 target_include_directories(deeploypulp PUBLIC ${PULP_SDK_INCLUDES})
@@ -48,5 +57,12 @@ if (platform IN_LIST PULP_NNX_PLATFORMS)
   add_subdirectory(third_party/pulp-nnx)
   target_include_directories(pulp-nnx PUBLIC ${PULP_SDK_INCLUDES})
   target_compile_options(pulp-nnx PUBLIC ${PULP_SDK_COMPILE_FLAGS})
+    target_compile_options(pulp-nnx PRIVATE
+    -Wno-implicit-int-conversion
+    -Wno-sign-conversion
+    -Wno-typedef-redefinition
+    -Wno-unused-parameter
+    -Wno-incompatible-pointer-types-discards-qualifiers
+    )
   target_link_libraries(deeploypulp INTERFACE pulp-nnx)
 endif()

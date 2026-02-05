@@ -1,5 +1,11 @@
-#ifndef __DEEPLOY_MATH_GEMM_KERNEL_HEADER_
-#define __DEEPLOY_MATH_GEMM_KERNEL_HEADER_
+/*
+ * SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#ifndef __DEEPLOY_MATH_GEMMFP32_KERNEL_HEADER_
+#define __DEEPLOY_MATH_GEMMFP32_KERNEL_HEADER_
 
 #include "DeeploySnitchMath.h"
 
@@ -48,4 +54,4 @@ void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, float32_t *A,
                    uint32_t ldC, float32_t *Y, uint32_t BETA,
                    uint32_t setup_SSR);
 
-#endif //__DEEPLOY_MATH_GEMM_KERNEL_HEADER_
+#endif //__DEEPLOY_MATH_GEMMFP32_KERNEL_HEADER_

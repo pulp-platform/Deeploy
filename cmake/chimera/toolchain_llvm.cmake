@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(TOOLCHAIN_PREFIX ${TOOLCHAIN_INSTALL_DIR}/bin)
 
 set(CMAKE_SYSTEM_NAME Generic)
@@ -13,7 +17,7 @@ set(CMAKE_LINKER ${TOOLCHAIN_PREFIX}/ld.lld)
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 
 # Enable WHOLE_ARCHIVE feature
-set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE 
+set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE
 "-Wl,--whole-archive <LIBRARY> -Wl,--no-whole-archive"
 )
 set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE_SUPPORTED True)

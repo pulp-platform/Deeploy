@@ -1,37 +1,17 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: TilingCodegen.py
-#
-# Last edited: 11.10.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Tuple, Type
+from typing import Dict, Generator, List, Sequence, Tuple, Type
 
 import numpy as np
 
 from Deeploy.AbstractDataTypes import Pointer
-from Deeploy.TilingExtension.MemoryConstraints import MemoryConstraint, NodeMemoryConstraint
+from Deeploy.DeeployTypes import OperatorRepresentation, VariableBuffer
+from Deeploy.TilingExtension.MemoryConstraints import MemoryConstraint
 
 
 @dataclass
@@ -51,8 +31,8 @@ class HyperRectangle():
         assert len(offset) == len(
             dims), f"HyperRectangle offset and dims for mismatching dimensions {offset} and {dims}"
 
-        self.offset = offset
-        self.dims = dims
+        self.offset = tuple(offset) if not isinstance(offset, tuple) else offset
+        self.dims = tuple(dims) if not isinstance(dims, tuple) else dims
 
 
 @dataclass
@@ -194,177 +174,117 @@ def minimizeVariableReplacement(
     return VariableReplacementScheme(newPerTileRep, newRepTypes), operatorRepresentation
 
 
-def minimizeRectangleDims(hyperRectangle: HyperRectangle,
-                          referenceBuffer: VariableBuffer) -> Tuple[HyperRectangle, HyperRectangle]:
-
-    rectDims = hyperRectangle.dims
-    rectOffset = hyperRectangle.offset
-    shape = referenceBuffer.shape
-    newDims: List[int] = []
-    newOffset: List[int] = []
-
-    newBaseline = []
-
-    reversedRectOffset = list(reversed(rectOffset))
+def minimizeRectangle(rect: HyperRectangle, referenceShape: Sequence[int]) -> Tuple[HyperRectangle, Tuple[int, ...]]:
+    minRectShape: List[int] = []
+    minRectOffset: List[int] = []
+    minReferenceShape: List[int] = []
 
     # SCHEREMO: Collapse dimensions right to left
-    acc = 0
-    for idx, (tileDim, bufDim) in enumerate(zip(reversed(rectDims), reversed(shape))):
-
-        if tileDim == bufDim:
-            assert reversedRectOffset[idx] == 0, "Can't not tile a dimension and have an offset, tf"
-
-        # SCHEREMO: Collapse if equal
-        if tileDim == bufDim and acc != 0:
-            acc *= tileDim
-        elif tileDim == bufDim and acc == 0:
-            acc = tileDim
-        elif tileDim != bufDim and acc != 0:
-            newDims.insert(0, acc * tileDim)
-            newBaseline.insert(0, acc * bufDim)
-            newOffset.insert(0, acc * reversedRectOffset[idx])
-            acc = 0
+    currentCollapsedDim = 1
+    for rectDim, rectOffset, referenceDim in zip(reversed(rect.dims), reversed(rect.offset), reversed(referenceShape)):
+        if rectDim == referenceDim:
+            assert rectOffset == 0, f"Rectangle offset should be zero when the dimensions are the same. Received rectangle {rect} and reference shape {referenceShape}"
+            currentCollapsedDim *= rectDim
         else:
-            newDims.insert(0, tileDim)
-            newBaseline.insert(0, bufDim)
-            newOffset.insert(0, reversedRectOffset[idx])
+            minRectShape.insert(0, currentCollapsedDim * rectDim)
+            minReferenceShape.insert(0, currentCollapsedDim * referenceDim)
+            minRectOffset.insert(0, currentCollapsedDim * rectOffset)
+            currentCollapsedDim = 1
 
-    if acc > 1:
-        newDims.insert(0, acc)
-        newBaseline.insert(0, acc)
-        newOffset.insert(0, acc * reversedRectOffset[idx])
+    if currentCollapsedDim > 1 or len(minRectShape) == 0:
+        minRectShape.insert(0, currentCollapsedDim)
+        minReferenceShape.insert(0, currentCollapsedDim)
+        minRectOffset.insert(0, currentCollapsedDim * rect.offset[0])
 
-    # JUNGVI: If the function collapsed all dimensions of the tensor, set it to dim 1 and offset 0
-    if len(newDims) == 0:
-        newDims = [1]
-        newBaseline = [1]
-        newOffset = [0]
-
-    newRect = HyperRectangle(tuple(newOffset), tuple(newDims))
-    newBaseline = HyperRectangle(tuple([0] * len(newOffset)), tuple(newBaseline))
-
-    return newRect, newBaseline
+    return HyperRectangle(tuple(minRectOffset), tuple(minRectShape)), tuple(minReferenceShape)
 
 
-def calculateRectangleOffset(hyperRectangle: HyperRectangle, referenceBuffer: VariableBuffer) -> int:
-
-    minimalRect, baselineRect = minimizeRectangleDims(hyperRectangle, referenceBuffer)
-
-    offsetMult = [1]
-    for dim in reversed(baselineRect.dims[1:]):
-        offsetMult.insert(0, dim * np.prod(offsetMult))
-
-    accOffset = 0
-    for offsetIdx, mult in zip(minimalRect.offset, offsetMult):
-        accOffset += offsetIdx * mult
-
-    return int(accOffset * (referenceBuffer._type.referencedType.typeWidth // 8))
+def padShape(shape: Tuple[int, ...], rank: int) -> Tuple[int, ...]:
+    assert rank >= len(
+        shape), f"Cannot pad to rank smaller then shape's. Received rank: {rank}, shape rank: {len(shape)}"
+    ret = tuple([1] * (rank - len(shape))) + shape
+    assert len(ret) == rank
+    return ret
 
 
-def extractTilingTransfer(tilingSolution: NodeMemoryConstraint, targetMemLevel: str,
-                          tensorName: str) -> Optional[MemoryTransfer]:
-
-    for name, constraint in tilingSolution.tensorMemoryConstraints.items():
-        if not name == tensorName:
-            continue
-
-        sourceIdx = 0
-
-        for idx, memConstraint in enumerate(constraint.memoryConstraints.values()):
-            if memConstraint.memoryLevel != targetMemLevel:
-                continue
-
-            sourceIdx = idx
-            targetIdx = idx - 1
-
-            if sourceIdx == 0:
-                return None
-
-            return MemoryTransfer(
-                list(constraint.memoryConstraints.values())[targetIdx],
-                list(constraint.memoryConstraints.values())[sourceIdx])
-
-    raise RuntimeError(f"{tensorName} not found in tilingSolution!")
+def padOffset(offset: Tuple[int, ...], rank: int) -> Tuple[int, ...]:
+    assert rank >= len(
+        offset), f"Cannot pad to rank smaller then offset's. Received rank: {rank}, offset rank: {len(offset)}"
+    ret = tuple([0] * (rank - len(offset))) + offset
+    assert len(ret) == rank
+    return ret
 
 
-def computeHyperRectangleList(memTrans: MemoryTransfer) -> List[HyperRectangle]:
+def padStride(stride: Tuple[int, ...], rank: int, paddingStride: int) -> Tuple[int, ...]:
+    assert rank >= len(
+        stride), f"Cannot pad to rank smaller then stride's. Received rank: {rank}, stride rank: {len(stride)}"
+    ret = tuple([paddingStride] * (rank - len(stride))) + stride
+    assert len(ret) == rank
+    return ret
 
-    def nextElement(idxVec: List[int], targetVector: List[int]) -> Optional[List[int]]:
-        nextIdx = []
 
-        countUp = True
-        for vecIdx, maxIdx in zip(reversed(idxVec), reversed(targetVector)):
-            if countUp:
-                if vecIdx == maxIdx:
-                    nextIdx.append(1)
+def stridesFromShape(shape: Sequence[int]) -> Tuple[int, ...]:
+    strides = [1] * len(shape)
+    for idx, dim in enumerate(reversed(shape[1:])):
+        strides[idx + 1] = strides[idx] * dim
+    return tuple(reversed(strides))
+
+
+def calculateFlatOffset(offsets: Sequence[int], strides: Sequence[int]) -> int:
+    assert len(offsets) == len(strides), \
+        f"Offsets and strides have to have the same number of dimensions. Length offsets: {len(offsets)}, strides: {len(strides)}"
+    return sum(offset * stride for offset, stride in zip(offsets, strides))
+
+
+def calculateFlatOffsetInBytes(tile: HyperRectangle, referenceBuffer: VariableBuffer) -> int:
+    return int(
+        calculateFlatOffset(tile.offset, stridesFromShape(referenceBuffer.shape)) *
+        (referenceBuffer._type.referencedType.typeWidth // 8))
+
+
+def computeTileHyperRectangles(memoryTransfer: MemoryTransfer) -> List[HyperRectangle]:
+    assert memoryTransfer.source.shape is not None, "Source transfer shape cannot be undefined!"
+    assert memoryTransfer.destination.shape is not None, "Destination transfer shape cannot be undefined!"
+
+    assert len(memoryTransfer.source.shape) == len(memoryTransfer.destination.shape), \
+    f"Source and target of memory transfer {memoryTransfer} don't have the same number of dimensions!"
+
+    largeShape = memoryTransfer.source.shape
+    smallShape = memoryTransfer.destination.shape
+
+    for dimIdx, (dimSizeSmall, dimSizeLarge) in enumerate(zip(smallShape, largeShape)):
+        assert dimSizeSmall <= dimSizeLarge, f"smallShape[{dimIdx}] should not be bigger then largeShape[{dimIdx}]. ({dimSizeSmall} > {dimSizeLarge})"
+
+    def nextTileIndex(tileIndexEnd: List[int]) -> Generator[List[int]]:
+        tileCount = np.prod(tileIndexEnd)
+        tileIndex = [0] * len(tileIndexEnd)
+        for _ in range(tileCount):
+            yield tileIndex
+            for dimIdx, (idx, end) in enumerate(zip(tileIndex, tileIndexEnd)):
+                if idx + 1 < end:
+                    tileIndex[dimIdx] = idx + 1
+                    break
                 else:
-                    nextIdx.append(vecIdx + 1)
-                    countUp = False
-            else:
-                nextIdx.append(vecIdx)
+                    tileIndex[dimIdx] = 0
 
-        nextIdx.reverse()
+    tileHyperRectangles = []
 
-        if countUp:
-            return None
+    tileIndexEnd = [
+        int(np.ceil(dimSizeLarge / dimSizeSmall)) for dimSizeLarge, dimSizeSmall in zip(largeShape, smallShape)
+    ]
+    for tileIndex in nextTileIndex(tileIndexEnd):
+        tileOffset = tuple(dimIdx * dimSizeSmall for dimIdx, dimSizeSmall in zip(tileIndex, smallShape))
+        for dimIdx, (dimOffset, dimSizeLarge) in enumerate(zip(tileOffset, largeShape)):
+            assert dimOffset >= 0, f"tileOffset[{dimIdx}] shoud not be smaller then zero ({dimOffset} < 0)"
+            assert dimOffset < dimSizeLarge, f"tileOffset[{dimIdx}] should not be bigger or equal then largeShape[{dimIdx}] ({dimOffset} >= {dimSizeLarge})"
 
-        return nextIdx
+        tileSize = tuple(
+            min(dimSizeSmall, dimSizeLarge - dimOffset)
+            for dimSizeSmall, dimSizeLarge, dimOffset in zip(smallShape, largeShape, tileOffset))
+        for dimIdx, (dimSize, dimSizeSmall) in enumerate(zip(tileSize, smallShape)):
+            assert dimSize > 0, f"tileOffset[{dimIdx}] shoud not be smaller or equal then zero ({dimSize} <= 0)"
+            assert dimSize <= dimSizeSmall, f"tileSize[{dimIdx}] should not be bigger then smallShape[{dimIdx}] ({dimSize} > {dimSizeSmall})"
 
-    def calculateCost(idxVec: Iterable[int], smallShape: Tuple[int]) -> List[int]:
-        outVec = []
-        for idx, step in zip(idxVec, smallShape):
-            outVec.append((idx - 1) * step)
+        tileHyperRectangles.append(HyperRectangle(tileOffset, tileSize))
 
-        return outVec
-
-    def calculateDim(idxVec: List[int], numTiles: List[int], smallShape: Tuple[int],
-                     largeShape: Tuple[int]) -> List[int]:
-
-        dimVec = []
-
-        for idx, (vecIdx, maxIdx) in enumerate(zip(idxVec, numTiles)):
-            if vecIdx != maxIdx:
-                dimVec.append(smallShape[idx])
-                continue
-            if largeShape[idx] % smallShape[idx] == 0:
-                dimVec.append(smallShape[idx])
-                continue
-            dimVec.append(largeShape[idx] % smallShape[idx])
-
-        return dimVec
-
-    src = memTrans.source
-    dst = memTrans.destination
-
-    largeShape = src.shape
-    smallShape = dst.shape
-
-    assert largeShape is not None, "Transfer shapes cannot be undefined!"
-    assert smallShape is not None, "Transfer shapes cannot be undefined!"
-
-    assert len(smallShape) == len(
-        largeShape), f"Source and target of memory transfer {memTrans} don't have the same number of dimensions!"
-    for idx, (dim1, dim2) in enumerate(zip(smallShape, largeShape)):
-        assert dim1 <= dim2, f"Large shape is smaller in dimension {idx}"
-
-    totNumTiles = 1
-    numTiles: List[int] = []
-
-    for (dim1, dim2) in zip(smallShape, largeShape):
-        totNumTiles *= np.ceil(dim2 / dim1)
-        numTiles.append(int(np.ceil(dim2 / dim1)))
-
-    cubeList: List[HyperRectangle] = []
-    idxVec = [1] * len(smallShape)
-
-    for i in range(int(totNumTiles)):
-        offsetVec = calculateCost(idxVec, smallShape)
-        dimVec = calculateDim(idxVec, numTiles, smallShape, largeShape)
-        cubeList.append(HyperRectangle(tuple(offsetVec), tuple(dimVec)))
-
-        nextVec = nextElement(idxVec, numTiles)
-        if nextVec is None:
-            break
-        idxVec = nextVec
-
-    return cubeList
+    return tileHyperRectangles

@@ -1,31 +1,8 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: TilingPrototypes.py
-#
-# Last edited: 17.04.2024
-#
-# Copyright (C) 2024, ETH Zurich and University of Bologna.
-#
-# Authors:
-# - Moritz Scherer, ETH Zurich
-# - Victor Jung, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 from typing import List, Literal
 
@@ -36,61 +13,19 @@ from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NodeTemplate
 class TilingMetaInfo:
     nodeName: str
     nodeOps: int
-    numTiles: int
+    numTiles: str
+    totalNumTiles: int
+    tileIdxPtr: str
     tileIdxVar: str
     kernelLevelTiling: bool
-
-
-_CodeSegmentType = List[CodeSnippet]
-
-_measureCycles = NodeTemplate("""
-${nodeName}_${measurementName}_measurements[${tileIdx}] = getCycles();
-""")
-
-_measurementArrayDeclaration = NodeTemplate("""
-uint32_t ${nodeName}_${measurementName}_measurements[${numTiles}];
-""")
-
-_printPrefixAndSufixDeclaration = NodeTemplate("""
-const static char ${nodeName}_prefix[] = "[${nodeName}][${buffering}][${nodeOps} ops][Tile ";
-const static char ${nodeName}_suffix[] = " cycles \\n";
-""")
-
-_measureConditionSetup = NodeTemplate("""
-if(${cond}){
-""")
-
-_measureConditionEnd = NodeTemplate("""
-}
-""")
-
-_printLoopSetup = NodeTemplate("""
-StopTimer(); 
-<%
-current_level_num = nodeName[-1]
-lower_level_num = str(int(current_level_num) - 1)                            
-%>
-for (int printLoopIdx = DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_numTiles[*DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_tileIdxPtr -1];
-    printLoopIdx < DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_numTiles[*DeeployNetwork_TILING_REPLACED_L${lower_level_num}_${nodeName[:-3]}_tileIdxPtr]; 
-    printLoopIdx++){
-""")
-_printCycleDifference = NodeTemplate(r"""
-printf("%s%u] %s%u%s", ${nodeName}_prefix,${tileIdx},"${flavorStr}", \
-${nodeName}_${endMeasurementName}_measurements[${tileIdx}] - ${nodeName}_${startMeasurementName}_measurements[${tileIdx}],${nodeName}_suffix);
-""")
-
-_printLoopTeardown = NodeTemplate("""
-}
-StartTimer();
-""")
 
 
 class PrototypeTilingMixIn(ABC):
 
     @classmethod
     def generateSetupAndTeardownCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                                     setupStatements: _CodeSegmentType,
-                                     teardownStatements: _CodeSegmentType) -> ExecutionBlock:
+                                     setupStatements: List[CodeSnippet],
+                                     teardownStatements: List[CodeSnippet]) -> ExecutionBlock:
 
         for transaction in reversed(setupStatements):
             executionBlock.addLeft(transaction.template, transaction.operatorRepresentation)
@@ -102,53 +37,83 @@ class PrototypeTilingMixIn(ABC):
 
     @classmethod
     def generateLoopCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                         openLoopStatements: _CodeSegmentType, closeLoopStatements: _CodeSegmentType) -> ExecutionBlock:
+                         openLoopStatements: List[CodeSnippet], ingressDMAStatements: List[CodeSnippet],
+                         egressDMAStatements: List[CodeSnippet],
+                         closeLoopStatements: List[CodeSnippet]) -> ExecutionBlock:
 
-        for transaction in reversed(openLoopStatements):
+        for transaction in reversed(openLoopStatements + ingressDMAStatements):
             executionBlock.addLeft(transaction.template, transaction.operatorRepresentation)
 
-        for transaction in closeLoopStatements:
+        for transaction in egressDMAStatements + closeLoopStatements:
             executionBlock.addRight(transaction.template, transaction.operatorRepresentation)
 
         return executionBlock
 
     @classmethod
     def generateAllTilingCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                              ingressDMATransferCalls: _CodeSegmentType, ingressDMAWaitStatements: _CodeSegmentType,
-                              ingressDMAUpdates: _CodeSegmentType, egressDMATransferCalls: _CodeSegmentType,
-                              egressDMAWaitStatements: _CodeSegmentType, egressDMAUpdates: _CodeSegmentType,
-                              variableUpdates: _CodeSegmentType, openLoopStatements: _CodeSegmentType,
-                              closeLoopStatements: _CodeSegmentType, setupStatements: _CodeSegmentType,
-                              teardownStatements: _CodeSegmentType) -> ExecutionBlock:
+                              ingressDMAStatements: List[CodeSnippet], egressDMAStatements: List[CodeSnippet],
+                              openLoopStatements: List[CodeSnippet], closeLoopStatements: List[CodeSnippet],
+                              setupStatements: List[CodeSnippet],
+                              teardownStatements: List[CodeSnippet]) -> ExecutionBlock:
 
-        if not hasattr(cls, "generateInnerCode"):
-            raise Exception("You need to mix in a code gen strategy!")
+        executionBlock = cls.generateLoopCode(executionBlock, metaInfo, openLoopStatements, ingressDMAStatements,
+                                              egressDMAStatements, closeLoopStatements)
 
-        newExecutionBlock = cls.generateInnerCode(executionBlock, metaInfo, ingressDMATransferCalls,
-                                                  ingressDMAWaitStatements, ingressDMAUpdates, egressDMATransferCalls,
-                                                  egressDMAWaitStatements, egressDMAUpdates, variableUpdates)
-
-        newExecutionBlock = cls.generateLoopCode(newExecutionBlock, metaInfo, openLoopStatements, closeLoopStatements)
-
-        newExecutionBlock = cls.generateSetupAndTeardownCode(newExecutionBlock, metaInfo, setupStatements,
-                                                             teardownStatements)
-
-        return newExecutionBlock
-
-
-class TilingCodeGenMixin(ABC):
-
-    @abstractmethod
-    def generateInnerCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                          ingressDMATransferCalls: _CodeSegmentType, ingressDMAWaitStatements: _CodeSegmentType,
-                          ingressDMAUpdates: _CodeSegmentType, egressDMATransferCalls: _CodeSegmentType,
-                          egressDMAWaitStatements: _CodeSegmentType, egressDMAUpdates: _CodeSegmentType,
-                          variableUpdates: _CodeSegmentType) -> ExecutionBlock:
+        executionBlock = cls.generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements, teardownStatements)
 
         return executionBlock
 
 
 class ProfilingPrototypeMixIn(ABC):
+    _measureCycles = NodeTemplate("""
+    ${measurements}[${tileIdxVar}] = getCycles();
+    """)
+
+    _measurementArrayDeclaration = NodeTemplate("""
+    uint32_t ${measurements}[${totalNumTiles}];
+    """)
+
+    _stringDeclaration = NodeTemplate("""
+    const static char ${name}[] = "${string}";
+    """)
+
+    _printLoopSetup = NodeTemplate("""
+    StopTimer();
+    printf("===== Profiling ${nodeName} =====\\n");
+    for (int ${profileIdxVar} = ((*${tileIdxPtr} > 0) ? ${numTiles}[(*${tileIdxPtr} - 1)] : 0);
+        ${profileIdxVar} < ${numTiles}[*${tileIdxPtr}];
+        ${profileIdxVar}++){
+    """)
+
+    _measurementDeclaration = NodeTemplate("""
+    uint32_t ${measurement} = ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}];
+    """)
+
+    _printCycleDifference = NodeTemplate("""
+    printf("%s%u] %s%6u%s", ${prefixStr}, ${profileIdxVar}, "${flavorStr}", \
+    ${measurement}, ${suffixStr});
+    """)
+
+    _printCycleContribution = NodeTemplate("""
+    uint32_t total = ${measurementInput} + ${measurementKernel} + ${measurementOutput};
+    uint32_t dma = ${measurementInput} + ${measurementOutput};
+    float overhead_percentage = (total == 0) ? 0 : dma * 100.0f / total;
+    float kernel_percentage = (total == 0) ? 0 : ${measurementKernel} * 100.0f / total;
+    printf("%s%u] Total      :%6u cycles (%2.1f%% Kernel + %2.1f%% Overhead, %u + %u)\\n", ${prefixStr}, ${profileIdxVar}, total, kernel_percentage, overhead_percentage    , ${measurementKernel}, dma);
+    """)
+
+    _printLoopTeardown = NodeTemplate("""
+    }
+    StartTimer();
+    """)
+
+    _measureConditionSetup = NodeTemplate("""
+    if(${cond}){
+    """)
+
+    _measureConditionEnd = NodeTemplate("""
+    }
+    """)
 
     @classmethod
     def measurementArrayDeclaration(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
@@ -156,26 +121,30 @@ class ProfilingPrototypeMixIn(ABC):
 
         nodeName = metaInfo.nodeName
         numTiles = metaInfo.numTiles
+        totalNumTiles = metaInfo.totalNumTiles
         nodeOps = metaInfo.nodeOps
 
-        measurementNameList = [
+        measurementsList = [
             "ingress_dma_wait_start", "ingress_dma_wait_end", "egress_dma_wait_start", "egress_dma_wait_end"
         ]
 
         if metaInfo.kernelLevelTiling:
-            measurementNameList = ["kernel_start", "kernel_end"] + measurementNameList
+            measurementsList = ["kernel_start", "kernel_end"] + measurementsList
 
-        for measurementName in measurementNameList:
-            executionBlock.addLeft(_measurementArrayDeclaration, {
-                "nodeName": nodeName,
-                "measurementName": measurementName,
-                "numTiles": numTiles
+        for measurements in measurementsList:
+            executionBlock.addLeft(cls._measurementArrayDeclaration, {
+                "measurements": f"{nodeName}_{measurements}_measurements",
+                "totalNumTiles": totalNumTiles
             })
 
-        executionBlock.addLeft(_printPrefixAndSufixDeclaration, {
-            "nodeName": nodeName,
-            "nodeOps": nodeOps,
-            "buffering": bufferingStr
+        executionBlock.addLeft(cls._stringDeclaration, {
+            "name": f"{nodeName}_prefix",
+            "string": f"[{nodeName}][{bufferingStr}][{nodeOps} ops][Tile ",
+        })
+
+        executionBlock.addLeft(cls._stringDeclaration, {
+            "name": f"{nodeName}_suffix",
+            "string": " cycles \\n",
         })
 
         return executionBlock
@@ -185,36 +154,82 @@ class ProfilingPrototypeMixIn(ABC):
 
         numTiles = metaInfo.numTiles
         nodeName = metaInfo.nodeName
+        tileIdxPtr = metaInfo.tileIdxPtr
+        profileIdxVar = "PROFILING_I"
 
-        executionBlock.addRight(_printLoopSetup, {"numTiles": numTiles, "nodeName": nodeName})
+        executionBlock.addRight(cls._printLoopSetup, {
+            "numTiles": numTiles,
+            "nodeName": nodeName,
+            "profileIdxVar": profileIdxVar,
+            "tileIdxPtr": tileIdxPtr,
+        })
 
         executionBlock.addRight(
-            _printCycleDifference, {
-                "nodeName": nodeName,
-                "flavorStr": "Input DMA took ",
-                "startMeasurementName": "ingress_dma_wait_start",
-                "endMeasurementName": "ingress_dma_wait_end",
-                "tileIdx": "printLoopIdx"
+            cls._measurementDeclaration, {
+                "measurement": f"{nodeName}_ingress_dma_wait_measurement",
+                "measurementsStart": f"{nodeName}_ingress_dma_wait_start_measurements",
+                "measurementsEnd": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "profileIdxVar": profileIdxVar,
             })
+
         if metaInfo.kernelLevelTiling:
             executionBlock.addRight(
-                _printCycleDifference, {
-                    "nodeName": nodeName,
-                    "flavorStr": "Kernel took ",
-                    "startMeasurementName": "kernel_start",
-                    "endMeasurementName": "kernel_end",
-                    "tileIdx": "printLoopIdx"
+                cls._measurementDeclaration, {
+                    "measurement": f"{nodeName}_kernel_measurement",
+                    "measurementsStart": f"{nodeName}_kernel_start_measurements",
+                    "measurementsEnd": f"{nodeName}_kernel_end_measurements",
+                    "profileIdxVar": profileIdxVar,
                 })
+
         executionBlock.addRight(
-            _printCycleDifference, {
-                "nodeName": nodeName,
-                "flavorStr": "Output DMA took ",
-                "startMeasurementName": "egress_dma_wait_start",
-                "endMeasurementName": "egress_dma_wait_end",
-                "tileIdx": "printLoopIdx"
+            cls._measurementDeclaration, {
+                "measurement": f"{nodeName}_egress_dma_wait_measurement",
+                "measurementsStart": f"{nodeName}_egress_dma_wait_start_measurements",
+                "measurementsEnd": f"{nodeName}_egress_dma_wait_end_measurements",
+                "profileIdxVar": profileIdxVar,
             })
 
-        executionBlock.addRight(_printLoopTeardown, {})
+        executionBlock.addRight(
+            cls._printCycleDifference, {
+                "prefixStr": f"{nodeName}_prefix",
+                "suffixStr": f"{nodeName}_suffix",
+                "flavorStr": "Pre-Kernel :",
+                "measurement": f"{nodeName}_ingress_dma_wait_measurement",
+                "profileIdxVar": profileIdxVar,
+            })
+
+        if metaInfo.kernelLevelTiling:
+            executionBlock.addRight(
+                cls._printCycleDifference, {
+                    "prefixStr": f"{nodeName}_prefix",
+                    "suffixStr": f"{nodeName}_suffix",
+                    "flavorStr": "Kernel     :",
+                    "measurement": f"{nodeName}_kernel_measurement",
+                    "profileIdxVar": profileIdxVar,
+                })
+
+        executionBlock.addRight(
+            cls._printCycleDifference, {
+                "prefixStr": f"{nodeName}_prefix",
+                "suffixStr": f"{nodeName}_suffix",
+                "flavorStr": "Post-Kernel:",
+                "measurement": f"{nodeName}_egress_dma_wait_measurement",
+                "profileIdxVar": profileIdxVar,
+            })
+
+        # Total Time: Input + Kernel + Output
+        # Overhead: (Input + Output) / Total
+        if metaInfo.kernelLevelTiling:
+            executionBlock.addRight(
+                cls._printCycleContribution, {
+                    "prefixStr": f"{nodeName}_prefix",
+                    "measurementInput": f"{nodeName}_ingress_dma_wait_measurement",
+                    "measurementKernel": f"{nodeName}_kernel_measurement",
+                    "measurementOutput": f"{nodeName}_egress_dma_wait_measurement",
+                    "profileIdxVar": profileIdxVar,
+                })
+
+        executionBlock.addRight(cls._printLoopTeardown, {})
 
         return executionBlock
 
@@ -224,231 +239,13 @@ class ProfilingPrototypeMixIn(ABC):
         tileIdxVar = metaInfo.tileIdxVar
 
         if metaInfo.kernelLevelTiling:
-            executionBlock.addLeft(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "kernel_start",
-                "tileIdx": tileIdxVar
+            executionBlock.addLeft(cls._measureCycles, {
+                "measurements": f"{nodeName}_kernel_start_measurements",
+                "tileIdxVar": tileIdxVar
             })
-            executionBlock.addRight(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "kernel_end",
-                "tileIdx": tileIdxVar
+            executionBlock.addRight(cls._measureCycles, {
+                "measurements": f"{nodeName}_kernel_end_measurements",
+                "tileIdxVar": tileIdxVar
             })
-
-        return executionBlock
-
-
-class SingleBufferingTilingMixIn(PrototypeTilingMixIn, TilingCodeGenMixin):
-
-    @classmethod
-    def generateInnerCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                          ingressDMATransferCalls: _CodeSegmentType, ingressDMAWaitStatements: _CodeSegmentType,
-                          ingressDMAUpdates: _CodeSegmentType, egressDMATransferCalls: _CodeSegmentType,
-                          egressDMAWaitStatements: _CodeSegmentType, egressDMAUpdates: _CodeSegmentType,
-                          variableUpdates: _CodeSegmentType) -> ExecutionBlock:
-
-        # Structure:
-        # Update DMA Structs
-        # Transfer in tiles (async)
-        # Update tile variables
-        # Wait for tiles
-
-        # Kernel execution
-
-        # Update DMA Structs
-        # Transfer out tiles (async)
-        # Wait for out transfers
-
-        for transaction in reversed(ingressDMAUpdates + ingressDMATransferCalls + variableUpdates +
-                                    ingressDMAWaitStatements):
-            executionBlock.addLeft(transaction.template, transaction.operatorRepresentation)
-
-        for transaction in (egressDMAUpdates + egressDMATransferCalls + egressDMAWaitStatements):
-            executionBlock.addRight(transaction.template, transaction.operatorRepresentation)
-
-        return executionBlock
-
-
-class ProfilingSingleBufferingTilingMixIn(SingleBufferingTilingMixIn, ProfilingPrototypeMixIn):
-
-    @classmethod
-    def generateSetupAndTeardownCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                                     setupStatements: _CodeSegmentType,
-                                     teardownStatements: _CodeSegmentType) -> ExecutionBlock:
-
-        executionBlock = super().generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements,
-                                                              teardownStatements)
-
-        executionBlock = cls.measurementArrayDeclaration(executionBlock, metaInfo, bufferingStr = "SB")
-
-        executionBlock = cls.injectPrintCycleDiff(executionBlock, metaInfo)
-
-        return executionBlock
-
-    @classmethod
-    def generateInnerCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                          ingressDMATransferCalls: _CodeSegmentType, ingressDMAWaitStatements: _CodeSegmentType,
-                          ingressDMAUpdates: _CodeSegmentType, egressDMATransferCalls: _CodeSegmentType,
-                          egressDMAWaitStatements: _CodeSegmentType, egressDMAUpdates: _CodeSegmentType,
-                          variableUpdates: _CodeSegmentType) -> ExecutionBlock:
-
-        nodeName = metaInfo.nodeName
-        tileIdxVar = metaInfo.tileIdxVar
-
-        executionBlock = cls.kernelProfilingWrap(executionBlock, metaInfo)
-
-        _ingressDMAWaitStatements = []
-        _ingressDMAWaitStatements.append(
-            CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "ingress_dma_wait_start",
-                "tileIdx": tileIdxVar
-            }))
-        _ingressDMAWaitStatements += ingressDMAWaitStatements
-        _ingressDMAWaitStatements.append(
-            CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "ingress_dma_wait_end",
-                "tileIdx": tileIdxVar
-            }))
-
-        _egressDMAWaitStatements = []
-        _egressDMAWaitStatements.append(
-            CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "egress_dma_wait_start",
-                "tileIdx": tileIdxVar
-            }))
-        _egressDMAWaitStatements += egressDMAWaitStatements
-        _egressDMAWaitStatements.append(
-            CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "egress_dma_wait_end",
-                "tileIdx": tileIdxVar
-            }))
-
-        executionBlock = super().generateInnerCode(executionBlock, metaInfo, ingressDMATransferCalls,
-                                                   _ingressDMAWaitStatements, ingressDMAUpdates, egressDMATransferCalls,
-                                                   _egressDMAWaitStatements, egressDMAUpdates, variableUpdates)
-
-        return executionBlock
-
-
-class DoubleBufferingTilingMixIn(PrototypeTilingMixIn, TilingCodeGenMixin):
-
-    @classmethod
-    def generateInnerCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                          ingressDMATransferCalls: _CodeSegmentType, ingressDMAWaitStatements: _CodeSegmentType,
-                          ingressDMAUpdates: _CodeSegmentType, egressDMATransferCalls: _CodeSegmentType,
-                          egressDMAWaitStatements: _CodeSegmentType, egressDMAUpdates: _CodeSegmentType,
-                          variableUpdates: _CodeSegmentType) -> ExecutionBlock:
-
-        # Structure:
-
-        # Update input DMA Structs
-        # Update tile variables
-        # Wait for current input tiles
-        # Transfer in next input tiles (async)
-        # Update output DMA Structs
-        # Wait for current output tiles
-
-        # Kernel execution
-
-        # Transfer out tiles (async)
-
-        for transaction in reversed(ingressDMAWaitStatements + ingressDMAUpdates + ingressDMATransferCalls +
-                                    variableUpdates + egressDMAWaitStatements + egressDMAUpdates):
-            executionBlock.addLeft(transaction.template, transaction.operatorRepresentation)
-
-        for transaction in egressDMATransferCalls:
-            executionBlock.addRight(transaction.template, transaction.operatorRepresentation)
-
-        return executionBlock
-
-
-class ProfilingDoubleBufferingTilingMixIn(DoubleBufferingTilingMixIn, ProfilingPrototypeMixIn):
-
-    @classmethod
-    def generateSetupAndTeardownCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                                     setupStatements: _CodeSegmentType,
-                                     teardownStatements: _CodeSegmentType) -> ExecutionBlock:
-
-        nodeName = metaInfo.nodeName
-        numTiles = metaInfo.numTiles
-
-        executionBlock.addLeft(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "ingress_dma_wait_start",
-            "tileIdx": 0
-        })
-
-        executionBlock = cls.measurementArrayDeclaration(executionBlock, metaInfo, bufferingStr = "DB")
-
-        executionBlock.addRight(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "egress_dma_wait_start",
-            "tileIdx": numTiles - 1
-        })
-        executionBlock = super().generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements,
-                                                              teardownStatements)
-        executionBlock.addRight(_measureCycles, {
-            "nodeName": nodeName,
-            "measurementName": "egress_dma_wait_end",
-            "tileIdx": numTiles - 1
-        })
-
-        executionBlock = cls.injectPrintCycleDiff(executionBlock, metaInfo)
-
-        return executionBlock
-
-    @classmethod
-    def generateInnerCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                          ingressDMATransferCalls: _CodeSegmentType, ingressDMAWaitStatements: _CodeSegmentType,
-                          ingressDMAUpdates: _CodeSegmentType, egressDMATransferCalls: _CodeSegmentType,
-                          egressDMAWaitStatements: _CodeSegmentType, egressDMAUpdates: _CodeSegmentType,
-                          variableUpdates: _CodeSegmentType) -> ExecutionBlock:
-
-        nodeName = metaInfo.nodeName
-        tileIdxVar = metaInfo.tileIdxVar
-
-        executionBlock = cls.kernelProfilingWrap(executionBlock, metaInfo)
-
-        _ingressDMAWaitStatements = []
-        _ingressDMAWaitStatements.append(CodeSnippet(_measureConditionSetup, {"cond": f"{tileIdxVar} > 0"}))
-        _ingressDMAWaitStatements.append(
-            CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "ingress_dma_wait_start",
-                "tileIdx": tileIdxVar
-            }))
-        _ingressDMAWaitStatements.append(CodeSnippet(_measureConditionEnd, {}))
-        _ingressDMAWaitStatements += ingressDMAWaitStatements
-        _ingressDMAWaitStatements.append(
-            CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "ingress_dma_wait_end",
-                "tileIdx": tileIdxVar
-            }))
-
-        _egressDMAWaitStatements = []
-        _egressDMAWaitStatements.append(CodeSnippet(_measureConditionSetup, {"cond": f"{tileIdxVar} > 0"}))
-        _egressDMAWaitStatements.append(
-            CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "egress_dma_wait_start",
-                "tileIdx": f"{tileIdxVar} - 1"
-            }))
-        _egressDMAWaitStatements += egressDMAWaitStatements
-        _egressDMAWaitStatements.append(
-            CodeSnippet(_measureCycles, {
-                "nodeName": nodeName,
-                "measurementName": "egress_dma_wait_end",
-                "tileIdx": f"{tileIdxVar} - 1"
-            }))
-        _egressDMAWaitStatements.append(CodeSnippet(_measureConditionEnd, {}))
-
-        executionBlock = super().generateInnerCode(executionBlock, metaInfo, ingressDMATransferCalls,
-                                                   _ingressDMAWaitStatements, ingressDMAUpdates, egressDMATransferCalls,
-                                                   _egressDMAWaitStatements, egressDMAUpdates, variableUpdates)
 
         return executionBlock

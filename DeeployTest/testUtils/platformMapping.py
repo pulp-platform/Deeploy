@@ -1,32 +1,12 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: platformMapping.py
-#
-# Last edited: 23.05.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Type, Union
 
 import onnx_graphsurgeon as gs
 
+from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
@@ -111,7 +91,7 @@ def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHie
 
 def mapDeployer(platform: DeploymentPlatform,
                 graph: gs.Graph,
-                inputTypes: Dict[str, type],
+                inputTypes: Dict[str, Type[Pointer]],
                 loweringOptimizer: Optional[TopologyOptimizer] = None,
                 scheduler: Optional[Callable] = None,
                 name: Optional[str] = None,

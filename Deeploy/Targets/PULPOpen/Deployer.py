@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: PULPDeployer.py
-#
-# Last edited: 08.03.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import Callable, Dict, List, Type
 
@@ -36,6 +15,7 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Lowe
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, TransposeConstOptPass, \
     TransposeMergePass, TransposeNoPermOptPass, TransposeSplitPass
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import RQAddTransposeSquashPass
 
 _L3AllocTemplate = NodeTemplate("""
@@ -84,7 +64,15 @@ class PULPDeployer(SignPropDeployer):
 
         self.extNameCount = 0
 
-    def bind(self):
+    def annotateNCores(self) -> None:
+        for layer in self.layerBinding.values():
+            node = layer.node
+            engine = self._selectEngine(node)
+            opRepr = layer.mapper.parser.operatorRepresentation
+            if isinstance(engine, PULPClusterEngine):
+                opRepr["n_cores"] = engine.n_cores
+
+    def bind(self) -> bool:
         # SCHEREMO: THIS IS A STOP GAP SOLUTION. DONT REUSE. I MEAN IT. I WILL FIND YOU.
         # SCHEREMO: The BindingOptimizationPass system is fairly fragile;
         # it was designed this way because implementing further topology optimizations after
@@ -92,11 +80,16 @@ class PULPDeployer(SignPropDeployer):
         # but if there is only very few cases, this solution is okay.
         autoTransposePass = AutoTransposeMergePass()
         #self.ctxt, self.layerBinding = autoTransposePass.apply(self.ctxt, self.graph, self.layerBinding)
+
+        # LMACAN: THIS IS A STOP GAP SOLUTION. DONT REUSE. I MEAN IT. I WILL FIND YOU.
+        self.annotateNCores()
+
         # SCHEREMO: THIS IS A STOP GAP SOLUTION. DONT REUSE. I MEAN IT. I WILL FIND YOU.
-        ret = super().bind()
-        if ret:
-            self.ctxt.hoistGlobalDefinition("cluster_dev", "extern struct pi_device cluster_dev;")
-        return ret
+        if not super().bind():
+            return False
+
+        self.ctxt.hoistGlobalDefinition("cluster_dev", "extern struct pi_device cluster_dev;")
+        return True
 
     def _l3ConstBuffer(self) -> List[VariableBuffer]:
         return [

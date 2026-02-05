@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
-# File: AbstractDataTypes.py
-#
-# Last edited: 25.04.2023
-#
-# Copyright (C) 2023, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from __future__ import annotations
 
@@ -41,6 +20,8 @@ _StructType = TypeVar("Struct", bound = "Struct")
 
 _DeeployType = TypeVar("_DeeployType", _PointerType, _ImmediateType, _StructType)
 _PythonType = TypeVar("_PythonType", str, int, float, Dict[str, "_PythonType"], Iterable["_PythonType"])
+
+from Deeploy.Logging import DEFAULT_LOGGER as log
 
 
 class _ClassPropertyDescriptor(object):
@@ -209,6 +190,10 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
         else:
             return 0
 
+    @_classproperty
+    def nLevels(cls) -> int:
+        return cls.typeMax - cls.typeMin + 1
+
     @classmethod
     def partialOrderUpcast(cls, otherCls: Type[Immediate]) -> bool:
         if issubclass(otherCls, IntegerImmediate):
@@ -233,6 +218,10 @@ class IntegerImmediate(Immediate[Union[int, Iterable[int]], _ImmediateType]):
         if _min < cls.typeMin:
             return False
         return True
+
+    @classmethod
+    def fitsNumLevels(cls, nLevels: int) -> bool:
+        return nLevels <= cls.nLevels
 
 
 class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
@@ -267,8 +256,8 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
     @classmethod
     def checkValue(cls, value: Union[float, Iterable[float], np.ndarray], ctxt: Optional[_NetworkContext] = None):
         """
-        This method tries to manually cast standard python's standard immediate float precision values 
-        (64 bits) to an arbitrary FP representation and check if the new representation is close enough 
+        This method tries to manually cast standard python's standard immediate float precision values
+        (64 bits) to an arbitrary FP representation and check if the new representation is close enough
         to the original value.
         """
         _val_list = []
@@ -329,7 +318,7 @@ class Pointer(BaseType[Optional[str], _PointerType]):
             return False
 
         if value is None or value == "NULL":
-            print("WARNING: Setting pointer value to NULL - Referenced data is invalid!")
+            log.warning("Setting pointer value to NULL - Referenced data is invalid!")
             return True
 
         reference = ctxt.lookup(value)
@@ -352,6 +341,10 @@ class Pointer(BaseType[Optional[str], _PointerType]):
         else:
             value = _value
         return cls.checkValue(value, ctxt)
+
+    @classmethod
+    def fitsNumLevels(cls, nLevels: int) -> bool:
+        return cls.referencedType.fitsNumLevels(nLevels)
 
     def __init__(self, _value: Union[Optional[str], Pointer], ctxt: Optional[_NetworkContext] = None):
         """Initializes a pointer to a registered object in the NetworkContext

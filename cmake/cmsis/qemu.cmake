@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(TARGET_CPU "cortex-m4" CACHE STRING "Target CPU")
 set(CPU cortex-m4)
 set(FPU fpv4-sp-d16)

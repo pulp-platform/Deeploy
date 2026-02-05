@@ -1,29 +1,7 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: iRMSNormTileConstraint.py
-#
-# Last edited: 21.02.2024
-#
-# Copyright (C) 2024, ETH Zurich and University of Bologna.
-#
-# Author: Moritz Scherer, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-import copy
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -34,7 +12,8 @@ from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
 
 
 class iRMSNormTileConstraint(TileConstraint):
@@ -75,7 +54,6 @@ class iRMSNormTileConstraint(TileConstraint):
         addrNames = ['data_in', 'weight', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
-
         replacements = {"size": []}
         replacementTypes = {"size": PointerClass(uint16_t)}
 
@@ -87,9 +65,7 @@ class iRMSNormTileConstraint(TileConstraint):
         outputLoadSchedule = []
 
         for cube in outputCubes:
-
-            weightCube = copy.deepcopy(cube)
-            weightCube.dims = (cube.dims[-1],)
+            weightCube = HyperRectangle((cube.offset[-1],), (cube.dims[-1],))
             inputLoadSchedule.append({"data_in": cube, "weight": weightCube})
 
         for out in outputCubes:

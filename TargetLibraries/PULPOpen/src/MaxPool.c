@@ -1,30 +1,7 @@
-/* =====================================================================
- * Title:        MaxPool.c
- * Description:
- *
- * Date:         05.06.2025
- *
- * ===================================================================== */
-
 /*
- * Copyright (C) 2022 ETH Zurich and University of Bologna.
- *
- * Authors:
- * - Run Wang, ETH Zurich
+ * SPDX-FileCopyrightText: 2022 ETH Zurich and University of Bologna
  *
  * SPDX-License-Identifier: Apache-2.0
- *
- * Licensed under the Apache License, Version 2.0 (the License); you may
- * not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an AS IS BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 #include "DeeployPULPMath.h"
@@ -38,7 +15,7 @@ void PULP_MaxPool2d_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
                                   uint32_t pad_left, uint32_t pad_right) {
 
   int8_t core_id = pi_core_id();
-  int8_t log2Core = log2(NUM_CORES);
+  int8_t log2Core = LOG2(NUM_CORES);
 
   uint16_t ch_chunk = (C >> log2Core) + ((C & (NUM_CORES - 1)) != 0);
   uint16_t ch_start = MIN(ch_chunk * core_id, C);

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 macro(add_gvsoc_emulation name)
   set(BINARY_PATH ${CMAKE_BINARY_DIR}/bin/${name})
 

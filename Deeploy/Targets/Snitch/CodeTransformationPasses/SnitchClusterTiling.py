@@ -1,49 +1,58 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
-# File: SnitchClusterTiling.py
-#
-# Last edited: 31.05.2024
-#
-# Copyright (C) 2024, ETH Zurich and University of Bologna.
-#
-# Author:
-# - Victor Jung, jungvi@iis.ee.ethz.ch, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from typing import Tuple
 
-from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, _NoVerbosity
+from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, ExecutionBlock, NetworkContext, \
+    NodeTemplate, _NoVerbosity
+from Deeploy.TilingExtension.AsyncDma import AsyncDma
+from Deeploy.TilingExtension.CodeTransformationPasses.DoubleBufferingTilingCodeGeneration import \
+    DoubleBufferingTilingCodeGeneration, ProfilingDoubleBufferingTilingMixIn
+from Deeploy.TilingExtension.CodeTransformationPasses.SingleBufferingTilingCodeGeneration import \
+    ProfilingSingleBufferingTilingMixIn, SingleBufferingTilingCodeGeneration
 
-from .SnitchClusterTilingSB import SnitchClusterTilingGenerationSB
+
+class SnitchClusterTilingSB(SingleBufferingTilingCodeGeneration):
+    pass
+
+
+class SnitchClusterTilingDB(DoubleBufferingTilingCodeGeneration):
+    pass
+
+
+class ProfilingSnitchClusterTilingSB(SingleBufferingTilingCodeGeneration, ProfilingSingleBufferingTilingMixIn):
+    _printCycleDifference = NodeTemplate(r"""
+    printf("%s%u][Core %d] %s%u%s", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), "${flavorStr}", \
+    ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
+    """)
+
+
+class ProfilingSnitchClusterTilingDB(DoubleBufferingTilingCodeGeneration, ProfilingDoubleBufferingTilingMixIn):
+    _printCycleDifference = NodeTemplate(r"""
+    printf("%s%u][Core %d] %s%u%s", ${prefixStr}, ${profileIdxVar}, snrt_global_core_idx(), "${flavorStr}", \
+    ${measurementsEnd}[${profileIdxVar}] - ${measurementsStart}[${profileIdxVar}], ${suffixStr});
+    """)
 
 
 class SnitchClusterTiling(CodeTransformationPass):
 
-    def __init__(self, targetMemLevel: str):
-        self.SB = SnitchClusterTilingGenerationSB(targetMemLevel)
+    def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
+        self.SB = SnitchClusterTilingSB(externalMemory, localMemory, dma)
+        self.profilingSB = ProfilingSnitchClusterTilingSB(externalMemory, localMemory, dma)
+
+        self.DB = SnitchClusterTilingDB(externalMemory, localMemory, dma)
+        self.profilingDB = ProfilingSnitchClusterTilingDB(externalMemory, localMemory, dma)
 
     def apply(self,
               ctxt: NetworkContext,
               executionBlock: ExecutionBlock,
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
-
         if verbose.tilingProfiling:
-            raise NotImplementedError("Profiling not implemented for L2")
-            # ctxt, executionBlock = self.profilingSB.apply(ctxt, executionBlock, name)
+            ctxt, executionBlock = self.profilingSB.apply(ctxt, executionBlock, name)
+            ctxt, executionBlock = self.profilingDB.apply(ctxt, executionBlock, name)
         else:
             ctxt, executionBlock = self.SB.apply(ctxt, executionBlock, name)
+            ctxt, executionBlock = self.DB.apply(ctxt, executionBlock, name)
         return ctxt, executionBlock

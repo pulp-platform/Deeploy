@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 set(ProjectId ${TESTNAME})
 
 file(GLOB_RECURSE SOURCES

@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2022 ETH Zurich and University of Bologna
 #
-# File: testRunner.py
-#
-# Last edited: 17.03.2023
-#
-# Copyright (C) 2022, ETH Zurich and University of Bologna.
-#
-# Author: Philip Wiese, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import argparse
 import codecs
@@ -31,23 +10,17 @@ import shutil
 import subprocess
 from typing import Literal, Tuple
 
+import coloredlogs
+
+from Deeploy.Logging import DEFAULT_FMT
+from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.Logging import DETAILED_FILE_LOG_FORMAT, FAILURE_MARK, SUCCESS_MARK
+
 
 # Source: https://stackoverflow.com/a/38662876
 def escapeAnsi(line):
     ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
     return ansi_escape.sub('', line)
-
-
-def prRed(skk):
-    print("\033[91m{}\033[00m".format(skk))
-
-
-def prGreen(skk):
-    print("\033[92m{}\033[00m".format(skk))
-
-
-def prBlue(skk):
-    print("\033[94m{}\033[00m".format(skk))
 
 
 def getPaths(path_test: str, gendir_name: str) -> Tuple[str, str]:
@@ -121,6 +94,16 @@ class TestGeneratorArgumentParser(argparse.ArgumentParser):
 
     def parse_args(self, args = None, namespace = None) -> argparse.Namespace:
         self.args = super().parse_args(args, namespace)
+
+        # Install logger based on verbosity level
+        if self.args.verbose > 2:
+            coloredlogs.install(level = 'DEBUG', logger = log, fmt = DETAILED_FILE_LOG_FORMAT)
+        elif self.args.verbose > 1:
+            coloredlogs.install(level = 'DEBUG', logger = log, fmt = DEFAULT_FMT)
+        elif self.args.verbose > 0:
+            coloredlogs.install(level = 'INFO', logger = log, fmt = DEFAULT_FMT)
+        else:
+            coloredlogs.install(level = 'WARNING', logger = log, fmt = DEFAULT_FMT)
         return self.args
 
 
@@ -165,6 +148,12 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           action = 'store_true',
                           default = False,
                           help = 'Skip network simulation\n')
+        self.add_argument('--profileUntiled',
+                          '--profile-untiled',
+                          dest = 'profileUntiled',
+                          action = 'store_true',
+                          default = False,
+                          help = 'Enable untiled profiling (Siracusa only)\n')
         self.add_argument('--toolchain',
                           metavar = '<LLVM|GCC>',
                           dest = 'toolchain',
@@ -177,6 +166,20 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           type = str,
                           default = os.environ.get('LLVM_INSTALL_DIR'),
                           help = 'Pick compiler install dir\n')
+        self.add_argument('--input-type-map',
+                          nargs = '*',
+                          default = [],
+                          type = str,
+                          help = '(Optional) mapping of input names to data types. '
+                          'If not specified, types are inferred from the input data. '
+                          'Example: --input-type-map input_0=int8_t input_1=float32_t ...')
+        self.add_argument('--input-offset-map',
+                          nargs = '*',
+                          default = [],
+                          type = str,
+                          help = '(Optional) mapping of input names to offsets. '
+                          'If not specified, offsets are set to 0. '
+                          'Example: --input-offset-map input_0=0 input_1=128 ...')
 
         if self.tiling_arguments:
             self.add_argument('--defaultMemLevel',
@@ -224,7 +227,7 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                         """)
             self.add_argument(
                 '--plotMemAlloc',
-                action = 'store_false',
+                action = 'store_true',
                 help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
 
         self.args = None
@@ -239,11 +242,15 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
 
         command = ""
         if self.args.verbose:
-            command += " -v"
+            command += " -" + "v" * self.args.verbose
         if self.args.debug:
             command += " --debug"
         if hasattr(self.args, 'profileUntiled') and self.args.profileUntiled:
             command += " --profileUntiled"
+        if self.args.input_type_map:
+            command += " --input-type-map " + " ".join(self.args.input_type_map)
+        if self.args.input_offset_map:
+            command += " --input-offset-map " + " ".join(self.args.input_offset_map)
 
         if self.tiling_arguments:
             if self.args.defaultMemLevel:
@@ -304,13 +311,14 @@ class TestRunner():
         self.gen_args = gen_args
 
         self._dir_gen_root = f'TEST_{platform.upper()}'
+        assert self._args.toolchain_install_dir is not None, f"Environment variable LLVM_INSTALL_DIR is not set"
         self._dir_toolchain = os.path.normpath(self._args.toolchain_install_dir)
         self._dir_build = f"{self._dir_gen_root}/build"
         self._dir_gen, self._dir_test, self._name_test = getPaths(self._args.dir, self._dir_gen_root)
 
         if "CMAKE" not in os.environ:
             if self._args.verbose >= 1:
-                prRed(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
+                log.error(f"[TestRunner] CMAKE environment variable not set. Falling back to cmake")
             assert shutil.which(
                 "cmake"
             ) is not None, "CMake not found. Please check that CMake is installed and available in your system’s PATH, or set the CMAKE environment variable to the full path of your preferred CMake executable."
@@ -321,7 +329,7 @@ class TestRunner():
         print("Test Name           : ", self._name_test)
 
     def run(self,):
-        prRed(f"################## Testing {self._dir_test} on {self._platform} Platform ##################")
+        log.info(f"################## Testing {self._dir_test} on {self._platform} Platform ##################")
 
         if self._args.skipgen is False:
             self.generate_test()
@@ -340,10 +348,13 @@ class TestRunner():
             generation_script = "generateNetwork.py"
 
         command = f"python {generation_script} -d {self._dir_gen} -t {self._dir_test} -p {self._platform} {self.gen_args}"
+
+        if self._platform in ["Siracusa", "Siracusa_w_neureka"]:
+            command += f" --cores={self._args.cores}"
+
         command += self._argument_parser.generate_cmd_args()
 
-        if self._args.verbose >= 2:
-            prBlue(f"[TestRunner] Generation Command: {command}")
+        log.debug(f"[TestRunner] Generation Command: {command}")
 
         err = os.system(command)
         if err != 0:
@@ -366,8 +377,8 @@ class TestRunner():
 
         if self._args.verbose >= 3:
             command = "VERBOSE=1 " + command
-        if self._args.verbose >= 2:
-            prBlue(f"[TestRunner] Cmake Command: {command}")
+
+        log.debug(f"[TestRunner] Cmake Command: {command}")
 
         err = os.system(command)
         if err != 0:
@@ -378,8 +389,8 @@ class TestRunner():
 
         if self._args.verbose >= 3:
             command = "VERBOSE=1 " + command
-        if self._args.verbose >= 2:
-            prBlue(f"[TestRunner] Building Command: {command}")
+
+        log.debug(f"[TestRunner] Building Command: {command}")
 
         err = os.system(command)
         if err != 0:
@@ -405,8 +416,7 @@ class TestRunner():
             if self._args.verbose >= 3:
                 command = "BANSHEE_LOG=debug " + command
 
-        if self._args.verbose >= 2:
-            prBlue(f"[TestRunner] Simulation Command: {command}")
+        log.debug(f"[TestRunner] Simulation Command: {command}")
 
         process = subprocess.Popen([command],
                                    stdout = subprocess.PIPE,
@@ -432,7 +442,7 @@ class TestRunner():
         fileHandle.close()
 
         if "Errors: 0 out of " not in result:
-            prRed(f"❌ Found errors in {self._dir_test}")
+            log.error(f"{FAILURE_MARK} Found errors in {self._dir_test}")
             raise RuntimeError(f"Found an error in {self._dir_test}")
         else:
-            prGreen(f"✅ No errors found in in {self._dir_test}")
+            log.info(f"{SUCCESS_MARK} No errors found in in {self._dir_test}")

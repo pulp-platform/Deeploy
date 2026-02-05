@@ -1,27 +1,6 @@
-# ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 ETH Zurich and University of Bologna
 #
-# File: SoftmaxCrossEntropyTemplate.py
-#
-# Last edited: 09.03.2025
-#
-# Copyright (C) 2021, ETH Zurich and University of Bologna.
-#
-# Author: Run Wang, ETH Zurich
-#
-# ----------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an AS IS BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from Deeploy.DeeployTypes import NodeTemplate
 
@@ -35,12 +14,12 @@ BEGIN_SINGLE_CORE
                 max_logit = ${logits}[i * ${num_classes} + j];
             }
         }
-        
+
         float32_t sum_exp = 0.0f;
         for (uint32_t j = 0; j < ${num_classes}; j++) {
             sum_exp += expf(${logits}[i * ${num_classes} + j] - max_logit);
         }
-        
+
         for (uint32_t j = 0; j < ${num_classes}; j++) {
             // log_prob = logit - max_logit - log(sum_exp)
             ${log_prob}[i * ${num_classes} + j] = ${logits}[i * ${num_classes} + j] - max_logit - logf(sum_exp);
@@ -63,6 +42,6 @@ BEGIN_SINGLE_CORE
             }
         }
     }
-    
+
 END_SINGLE_CORE
 """)

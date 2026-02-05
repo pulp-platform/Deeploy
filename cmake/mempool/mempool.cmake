@@ -1,7 +1,10 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 #############################
 ##  Address configuration  ##
 #############################
-
 # Boot address (in dec)
 set(boot_addr  2684354560   CACHE STRING "Boot address (in dec)") # A0000000
 
