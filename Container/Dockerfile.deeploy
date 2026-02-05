@@ -8,7 +8,7 @@ FROM ${BASE_IMAGE} AS toolchain
 
 # Intermediate Stage
 ARG DEBIAN_FRONTEND=noninteractive
-ARG BENDER_VERSION=0.28.1
+ARG BENDER_VERSION=0.29.1
 ARG UBUNTU_VERSION=22.04
 ARG TARGETPLATFORM
 
@@ -44,13 +44,11 @@ RUN --mount=type=cache,target=/ccache \
 # Install Bender
 RUN mkdir -p /app/install && \
 if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    wget -P /app/install https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
-    tar xzf /app/install/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install && \
-    cp  /app/install/bender /bin; \
+    wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
+    tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install/bender; \
 elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    wget -P /app/install https://github.com/Xeratec/bender/releases/download/v0.28.3-rc1/bender-0.28.3-rc1-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
-    tar xzf /app/install/bender-0.28.3-rc1-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install && \
-    cp  /app/install/bender /bin; \
+    wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
+    tar xzf bender-${BENDER_VERSION}-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install/bender; \
 fi
 
 # Compile Snitch Runtime
@@ -82,7 +80,8 @@ ENV BANSHEE_INSTALL_DIR=/app/install/banshee
 ENV SOFTHIER_INSTALL_DIR=/app/install/softhier
 ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
 ENV MEMPOOL_HOME=/app/install/mempool
-ENV PATH=/app/install/qemu/bin:/app/install/banshee:$PATH
+ENV BENDER_INSTALL_DIR=/app/install/bender
+ENV PATH=/app/install/qemu/bin:/app/install/banshee:/app/install/bender:$PATH 
 
 WORKDIR /app
 

@@ -5,7 +5,7 @@
 # Deeploy: DNN Compiler for Heterogeneous SoCs
 </div>
 
-[![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
+![PyPI](https://img.shields.io/pypi/v/deeploy-pulp)[![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
 )](https://pulp-platform.github.io/Deeploy/)
 [![CI](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-deeploy.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-deeploy.yml)
 [![Deeploy Docker](https://github.com/pulp-platform/Deeploy/actions/workflows/docker-build-deeploy.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/docker-build-deeploy.yml)
