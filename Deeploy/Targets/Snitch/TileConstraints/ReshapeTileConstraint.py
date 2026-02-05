@@ -40,7 +40,7 @@ class ReshapeTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
             for idx, shapeDim in enumerate(_buffer.shape):
-                tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName=bufferName, dimIdx=idx) <= shapeDim)
+                tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = bufferName, dimIdx = idx) <= shapeDim)
 
         # Constrain total elements to be equal
         inputBuffer = ctxt.lookup(inputBufferName)

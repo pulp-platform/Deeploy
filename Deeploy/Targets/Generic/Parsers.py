@@ -514,8 +514,9 @@ class AddParser(NodeParser):
                     if i == ndim - 1:
                         strides1[i] = 1
                     else:
-                        strides1[i] = strides1[i + 1] * padded_shape1[i + 1] if (
-                            padded_shape1[i + 1] == out_shape[i + 1]) else strides1[i + 1]
+                        strides1[i] = strides1[i + 1] * padded_shape1[i + 1] if (padded_shape1[i + 1]
+                                                                                 == out_shape[i + 1]) else strides1[i +
+                                                                                                                    1]
                 else:
                     strides1[i] = 0  # Broadcast dimension
 
@@ -526,8 +527,9 @@ class AddParser(NodeParser):
                     if i == ndim - 1:
                         strides2[i] = 1
                     else:
-                        strides2[i] = strides2[i + 1] * padded_shape2[i + 1] if (
-                            padded_shape2[i + 1] == out_shape[i + 1]) else strides2[i + 1]
+                        strides2[i] = strides2[i + 1] * padded_shape2[i + 1] if (padded_shape2[i + 1]
+                                                                                 == out_shape[i + 1]) else strides2[i +
+                                                                                                                    1]
                 else:
                     strides2[i] = 0  # Broadcast dimension
 

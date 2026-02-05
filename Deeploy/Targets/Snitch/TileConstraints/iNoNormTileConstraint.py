@@ -34,15 +34,16 @@ class iNoNormTileConstraint(TileConstraint):
         weigthsBufferShapeLen = len(ctxt.lookup(weightsBufferName).shape)
         biasBufferShapeLen = len(ctxt.lookup(biasBufferName).shape)
 
-        weightsLastDimVar = tilerModel.getTensorDimVar(tensorName=weightsBufferName, dimIdx=weigthsBufferShapeLen - 1)
-        biasLastDimVar = tilerModel.getTensorDimVar(tensorName=biasBufferName, dimIdx=biasBufferShapeLen - 1)
+        weightsLastDimVar = tilerModel.getTensorDimVar(tensorName = weightsBufferName,
+                                                       dimIdx = weigthsBufferShapeLen - 1)
+        biasLastDimVar = tilerModel.getTensorDimVar(tensorName = biasBufferName, dimIdx = biasBufferShapeLen - 1)
 
         tilerModel.addConstraint(biasLastDimVar == weightsLastDimVar)
 
         for dim in range(len(inputShape)):
-            inputDimVar = tilerModel.getTensorDimVar(tensorName=inputBufferName, dimIdx=dim)
-            weightDimVar = tilerModel.getTensorDimVar(tensorName=weightsBufferName, dimIdx=dim)
-            outputDimVar = tilerModel.getTensorDimVar(tensorName=outputBufferName, dimIdx=dim)
+            inputDimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = dim)
+            weightDimVar = tilerModel.getTensorDimVar(tensorName = weightsBufferName, dimIdx = dim)
+            outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
             tilerModel.addConstraint(inputDimVar == outputDimVar)
             tilerModel.addConstraint(weightDimVar == outputDimVar)
 

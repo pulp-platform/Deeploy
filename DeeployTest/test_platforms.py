@@ -147,79 +147,79 @@ PLATFORM_CONFIGS = {
 
 @pytest.mark.generic
 @pytest.mark.kernels
-@pytest.mark.parametrize("test_name", GENERIC_KERNEL_TESTS, ids=GENERIC_KERNEL_TESTS)
+@pytest.mark.parametrize("test_name", GENERIC_KERNEL_TESTS, ids = GENERIC_KERNEL_TESTS)
 def test_generic_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["generic"]
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.generic
 @pytest.mark.models
-@pytest.mark.parametrize("test_name", GENERIC_MODEL_TESTS, ids=GENERIC_MODEL_TESTS)
+@pytest.mark.parametrize("test_name", GENERIC_MODEL_TESTS, ids = GENERIC_MODEL_TESTS)
 def test_generic_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["generic"]
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.cortexm
 @pytest.mark.kernels
-@pytest.mark.parametrize("test_name", CORTEXM_KERNEL_TESTS, ids=CORTEXM_KERNEL_TESTS)
+@pytest.mark.parametrize("test_name", CORTEXM_KERNEL_TESTS, ids = CORTEXM_KERNEL_TESTS)
 def test_cortexm_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["cortexm"]
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.cortexm
 @pytest.mark.models
-@pytest.mark.parametrize("test_name", CORTEXM_MODEL_TESTS, ids=CORTEXM_MODEL_TESTS)
+@pytest.mark.parametrize("test_name", CORTEXM_MODEL_TESTS, ids = CORTEXM_MODEL_TESTS)
 def test_cortexm_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["cortexm"]
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.mempool
 @pytest.mark.kernels
-@pytest.mark.parametrize("test_name", MEMPOOL_KERNEL_TESTS, ids=MEMPOOL_KERNEL_TESTS)
+@pytest.mark.parametrize("test_name", MEMPOOL_KERNEL_TESTS, ids = MEMPOOL_KERNEL_TESTS)
 def test_mempool_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["mempool"]
 
@@ -227,21 +227,21 @@ def test_mempool_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
     mempool_cmake_args = cmake_args + [f"num_threads={platform_config['default_num_threads']}"]
 
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=mempool_cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = mempool_cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.mempool
 @pytest.mark.models
-@pytest.mark.parametrize("test_name", MEMPOOL_MODEL_TESTS, ids=MEMPOOL_MODEL_TESTS)
+@pytest.mark.parametrize("test_name", MEMPOOL_MODEL_TESTS, ids = MEMPOOL_MODEL_TESTS)
 def test_mempool_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["mempool"]
 
@@ -249,54 +249,54 @@ def test_mempool_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
     mempool_cmake_args = cmake_args + [f"num_threads={platform_config['default_num_threads']}"]
 
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=mempool_cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = mempool_cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.siracusa
 @pytest.mark.kernels
-@pytest.mark.parametrize("test_name", SIRACUSA_KERNEL_TESTS, ids=SIRACUSA_KERNEL_TESTS)
+@pytest.mark.parametrize("test_name", SIRACUSA_KERNEL_TESTS, ids = SIRACUSA_KERNEL_TESTS)
 def test_siracusa_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim,
                           profile_untiled) -> None:
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=False,
-        cores=SIRACUSA_DEFAULT_CORES,
-        profile_untiled=profile_untiled,
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
+        cores = SIRACUSA_DEFAULT_CORES,
+        profile_untiled = profile_untiled,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.siracusa
 @pytest.mark.models
-@pytest.mark.parametrize("test_name", SIRACUSA_MODEL_TESTS, ids=SIRACUSA_MODEL_TESTS)
+@pytest.mark.parametrize("test_name", SIRACUSA_MODEL_TESTS, ids = SIRACUSA_MODEL_TESTS)
 def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim,
                          profile_untiled) -> None:
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=False,
-        cores=SIRACUSA_DEFAULT_CORES,
-        profile_untiled=profile_untiled,
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
+        cores = SIRACUSA_DEFAULT_CORES,
+        profile_untiled = profile_untiled,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -308,24 +308,24 @@ def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(L2_SINGLEBUFFER_KERNELS, "L2-singlebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                 skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=SIRACUSA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L2",
-        double_buffer=False,
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = SIRACUSA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -337,24 +337,24 @@ def test_siracusa_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, t
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(L2_DOUBLEBUFFER_KERNELS, "L2-doublebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                 skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=SIRACUSA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L2",
-        double_buffer=True,
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = SIRACUSA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -366,24 +366,24 @@ def test_siracusa_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, t
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(L2_SINGLEBUFFER_MODELS, "L2-singlebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=SIRACUSA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L2",
-        double_buffer=False,
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = SIRACUSA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -395,24 +395,24 @@ def test_siracusa_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, to
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(L2_DOUBLEBUFFER_MODELS, "L2-doublebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_tiled_models_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=SIRACUSA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L2",
-        double_buffer=True,
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = SIRACUSA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -424,24 +424,24 @@ def test_siracusa_tiled_models_l2_doublebuffer(test_params, deeploy_test_dir, to
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(L3_SINGLEBUFFER_MODELS, "L3-singlebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=SIRACUSA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L3",
-        double_buffer=False,
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = SIRACUSA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -453,49 +453,49 @@ def test_siracusa_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, to
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(L3_DOUBLEBUFFER_MODELS, "L3-doublebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                                skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=SIRACUSA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L3",
-        double_buffer=True,
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = SIRACUSA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.chimera
 @pytest.mark.kernels
-@pytest.mark.parametrize("test_name", CHIMERA_KERNEL_TESTS, ids=CHIMERA_KERNEL_TESTS)
+@pytest.mark.parametrize("test_name", CHIMERA_KERNEL_TESTS, ids = CHIMERA_KERNEL_TESTS)
 def test_chimera_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["chimera"]
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.softhier
 @pytest.mark.kernels
-@pytest.mark.parametrize("test_name", SOFTHIER_KERNEL_TESTS, ids=SOFTHIER_KERNEL_TESTS)
+@pytest.mark.parametrize("test_name", SOFTHIER_KERNEL_TESTS, ids = SOFTHIER_KERNEL_TESTS)
 def test_softhier_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["softhier"]
 
@@ -503,21 +503,21 @@ def test_softhier_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir,
     softhier_cmake_args = cmake_args + [f"num_clusters={platform_config['default_num_clusters']}"]
 
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=softhier_cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = softhier_cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.snitch
 @pytest.mark.kernels
-@pytest.mark.parametrize("test_name", SNITCH_KERNEL_TESTS, ids=SNITCH_KERNEL_TESTS)
+@pytest.mark.parametrize("test_name", SNITCH_KERNEL_TESTS, ids = SNITCH_KERNEL_TESTS)
 def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["snitch"]
 
@@ -525,33 +525,33 @@ def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
     snitch_cmake_args = cmake_args + [f"NUM_CORES={platform_config['default_num_cores']}"]
 
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=snitch_cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = snitch_cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
 @pytest.mark.snitch
 @pytest.mark.models
-@pytest.mark.parametrize("test_name", SNITCH_MODEL_TESTS, ids=SNITCH_MODEL_TESTS)
+@pytest.mark.parametrize("test_name", SNITCH_MODEL_TESTS, ids = SNITCH_MODEL_TESTS)
 def test_snitch_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     platform_config = PLATFORM_CONFIGS["snitch"]
     snitch_cmake_args = cmake_args + [f"NUM_CORES={platform_config['default_num_cores']}"]
     config = create_test_config(
-        test_name=test_name,
-        platform=platform_config["platform"],
-        simulator=platform_config["simulator"],
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=snitch_cmake_args,
-        tiling=False,
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = snitch_cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -563,7 +563,7 @@ def test_snitch_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cm
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(SNITCH_L2_SINGLEBUFFER_KERNELS, "L2-singlebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                               skipgen, skipsim) -> None:
@@ -573,18 +573,18 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
     snitch_cmake_args = cmake_args + [f"NUM_CORES={SNITCH_DEFAULT_NUM_CORES}"]
 
     config = create_test_config(
-        test_name=test_name,
-        platform="Snitch",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=snitch_cmake_args,
-        tiling=True,
-        cores=SNITCH_DEFAULT_NUM_CORES,
-        l1=l1,
-        default_mem_level="L2",
-        double_buffer=False,
+        test_name = test_name,
+        platform = "Snitch",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = snitch_cmake_args,
+        tiling = True,
+        cores = SNITCH_DEFAULT_NUM_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -596,26 +596,26 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(SNITCH_L2_SINGLEBUFFER_MODELS, "L2-singlebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_snitch_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
                                              skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     snitch_cmake_args = cmake_args + [f"NUM_CORES={SNITCH_DEFAULT_NUM_CORES}"]
     config = create_test_config(
-        test_name=test_name,
-        platform="Snitch",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=snitch_cmake_args,
-        tiling=True,
-        cores=SNITCH_DEFAULT_NUM_CORES,
-        l1=l1,
-        l2=4000000,
-        default_mem_level="L2",
-        double_buffer=False,
+        test_name = test_name,
+        platform = "Snitch",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = snitch_cmake_args,
+        tiling = True,
+        cores = SNITCH_DEFAULT_NUM_CORES,
+        l1 = l1,
+        l2 = 4000000,
+        default_mem_level = "L2",
+        double_buffer = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -627,24 +627,24 @@ def test_snitch_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, tool
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(NEUREKA_L2_SINGLEBUFFER_KERNELS, "L2-singlebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_neureka_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                         cmake_args, skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa_w_neureka",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=NEUREKA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L2",
-        double_buffer=False,
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -656,24 +656,24 @@ def test_siracusa_neureka_tiled_kernels_l2_singlebuffer(test_params, deeploy_tes
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(NEUREKA_L2_DOUBLEBUFFER_KERNELS, "L2-doublebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_neureka_tiled_kernels_l2_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                         cmake_args, skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa_w_neureka",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=NEUREKA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L2",
-        double_buffer=True,
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -685,24 +685,24 @@ def test_siracusa_neureka_tiled_kernels_l2_doublebuffer(test_params, deeploy_tes
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(NEUREKA_L3_SINGLEBUFFER_MODELS, "L3-singlebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_neureka_tiled_models_l3_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                        cmake_args, skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa_w_neureka",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=NEUREKA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L3",
-        double_buffer=False,
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -714,24 +714,24 @@ def test_siracusa_neureka_tiled_models_l3_singlebuffer(test_params, deeploy_test
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(NEUREKA_L3_DOUBLEBUFFER_MODELS, "L3-doublebuffer"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_neureka_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                        cmake_args, skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa_w_neureka",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=NEUREKA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L3",
-        double_buffer=True,
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -744,25 +744,25 @@ def test_siracusa_neureka_tiled_models_l3_doublebuffer(test_params, deeploy_test
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(NEUREKA_L2_SINGLEBUFFER_KERNELS_WMEM, "L2-singlebuffer-wmem"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_neureka_tiled_kernels_l2_singlebuffer_wmem(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                              cmake_args, skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa_w_neureka",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=NEUREKA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L2",
-        double_buffer=False,
-        gen_args=["--neureka-wmem"],
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
+        gen_args = ["--neureka-wmem"],
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
@@ -775,25 +775,25 @@ def test_siracusa_neureka_tiled_kernels_l2_singlebuffer_wmem(test_params, deeplo
 @pytest.mark.parametrize(
     "test_params",
     generate_test_params(NEUREKA_L3_DOUBLEBUFFER_MODELS_WMEM, "L3-doublebuffer-wmem"),
-    ids=param_id,
+    ids = param_id,
 )
 def test_siracusa_neureka_tiled_models_l3_doublebuffer_wmem(test_params, deeploy_test_dir, toolchain, toolchain_dir,
                                                             cmake_args, skipgen, skipsim) -> None:
     test_name, l1, config_name = test_params
     config = create_test_config(
-        test_name=test_name,
-        platform="Siracusa_w_neureka",
-        simulator="gvsoc",
-        deeploy_test_dir=deeploy_test_dir,
-        toolchain=toolchain,
-        toolchain_dir=toolchain_dir,
-        cmake_args=cmake_args,
-        tiling=True,
-        cores=NEUREKA_DEFAULT_CORES,
-        l1=l1,
-        default_mem_level="L3",
-        double_buffer=True,
-        gen_args=["--neureka-wmem"],
+        test_name = test_name,
+        platform = "Siracusa_w_neureka",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = NEUREKA_DEFAULT_CORES,
+        l1 = l1,
+        default_mem_level = "L3",
+        double_buffer = True,
+        gen_args = ["--neureka-wmem"],
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
