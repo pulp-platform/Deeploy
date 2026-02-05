@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Use Pre-Commit in CI [#159](https://github.com/pulp-platform/Deeploy/pull/159)
 - Deeploy-GAP9 Platform [#143](https://github.com/pulp-platform/Deeploy/pull/143)
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 
@@ -12,11 +13,13 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 
 ### Changed
+- Switch CI to use pre-commit for linting
 - Update `pulp-nnx` and `pulp-nn-mixed` submodules to their latest versions
 - PULP-NN moved to TargetLibraries third-party folder
 - Aligned CLI commands across the project
 
 ### Fixed
+- Fix missing dependency in pre-commit-config
 - Fix test paths in Deeploy 101 tutorial
 
 ### Removed
