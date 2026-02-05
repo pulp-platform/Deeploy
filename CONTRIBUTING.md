@@ -36,42 +36,36 @@ Additionally, add the title and link to the pull request in the list of pull req
 - Remove the link to the precompiled LLVM 12 in the `deeployRunner` for Snitch and in the CI.
 [...]
 ```
-
 ## Style guide
 
-Deeploy mainly consists of code implemented in C, Makefile, and Python. To facilitate efficient collaboration among users and contributors, it is important to maintain a consistent coding style. To achieve this, it is strongly recommend to use autoformatting tools with the provided configuration files. Additionally, the Continuous Integration (CI) system checks the adherence to the style guide for each pushed commit. Currently configuration for C using `clang-format` and for Python using `yapf` and `isort` are provided.
+Deeploy mainly consists of code implemented in C, Makefile, and Python. To facilitate efficient collaboration among users and contributors, it is important to maintain a consistent coding style. We use [pre-commit](https://pre-commit.com) with autoformatting tools to maintain this consistency. Configuration is provided for C using `clang-format` and for Python using `yapf` and `isort`.
 
-You can format all relevant files by running:
-```bash
-make format
-```
+### Setting up pre-commit
 
-Alternatively, to only lint the files without modifying them, you can run:
-```bash
-make lint
-```
-
-### Pre-commit
-
-Additionally, we provide the [pre-commit](https://pre-commit.com) configuration file which you can use to install github hooks that execute the formatting commands on your changes.
-
-You will need to manually install pre-commit since it's not added as a dependency to the `pyproject.toml`:
+Install pre-commit (not included in `pyproject.toml`):
 ```bash
 pip install pre-commit
 ```
 
-The configuration sets the default stage for all the hooks to `pre-push` so to install the git hooks run:
+Install the git hooks configured to run at the `pre-push` stage:
 ```bash
 pre-commit install --hook-type pre-push
 ```
-The hooks will run before each push, making sure the pushed code can pass linting checks and not fail the CI on linting.
 
-If you change your mind and don't want the git hooks:
+The hooks will automatically format your code before each push, ensuring it passes linting checks and CI validation.
+
+To uninstall the git hooks:
 ```bash
 pre-commit uninstall
 ```
 
-_Note:_ This configures only the python formatting git hooks. The c formatting is not supported at the moment.
+You can also manually run formatting without pushing:
+```bash
+pre-commit run --all-files
+
+# Or by running the Makefile target:
+make format
+```
 
 ## Licensing
 

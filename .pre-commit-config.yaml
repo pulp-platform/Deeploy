@@ -28,6 +28,7 @@ repos:
       - id: reuse
         name: Check SPDX License Headers
         entry: scripts/reuse_skip_wrapper.py
+        additional_dependencies: ["reuse==6.2.0"]
         language: python
         stages: [pre-commit, pre-merge-commit, pre-push, manual]
         types: [text]

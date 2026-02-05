@@ -13,55 +13,32 @@ name: CI • Lint & Licenses
       - "v*.*.*"
   pull_request:
   workflow_dispatch:
-    inputs:
-      docker_image_deeploy:
-        description: "Deeploy Image to use"
-        required: false
-        default: "ghcr.io/pulp-platform/deeploy:devel"
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
-  select-env:
-    uses: ./.github/workflows/_select-env.yml
-    with:
-      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
-
   linting:
-    needs: select-env
-    runs-on: ${{ needs.select-env.outputs.runner }}
-    container:
-      image: ${{ needs.select-env.outputs.image }}
+    name: Run pre-commit
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-      - name: Build Deeploy
-        shell: bash
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
         run: |
-          pip install .
-          pip install -r requirements-dev.txt
-      - name: Format Python
-        shell: bash
+          python -m pip install --upgrade pip
+          pip install pre-commit
+
+      - name: Run pre-commit (all files)
         run: |
-          yapf -rpd -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
-      - name: Format Python Imports
-        shell: bash
-        run: |
-          isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
-          autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
-      - name: Format C
-        shell: bash
-        run: |
-          python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
-      - name: Format YAML
-        shell: bash
-        run: |
-          yamllint .
-      - name: Check Licenses
-        shell: bash
-        run: |
-          python scripts/reuse_skip_wrapper.py $(find . \( -name '*.py' -o -name '*.c' -o -name '*.h' -o -name '*.html' -o -name '*.rst' -o -name '*.yml' -o -name '*.yaml' \) -not -path "*toolchain*" -not -path "*third_party*" -not -path "*prebuilt*" -not -path "*.git/*" -not -path "*install/*" -type f)
+          # Show diffs on failure and run across the entire repository to ensure consistency
+          pre-commit run --show-diff-on-failure --all-files
+
+      - name: Show git status (debug)
+        if: ${{ always() }}
+        run: git status --porcelain || true
