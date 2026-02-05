@@ -14,9 +14,9 @@ from Deeploy.Targets.Generic.Bindings import BasicConcatBindings, BasicGatherBin
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, DivLayer, GatherLayer, GEMMLayer, HardSwishLayer, \
     LayerNormLayer, MatMulLayer, MulLayer, PadLayer, ReshapeLayer, RMSNormLayer, RQGEMMLayer, RQIntegerDivLayer, \
     SoftmaxLayer, TransposeLayer, iNoNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, GatherParser, MatMulParser, Pad1DParser, \
-    Pad2DParser, ReshapeParser, RQAddParser, RQIntegerDivParser, SoftmaxParser, TransposeParser, UnsqueezeParser, \
-    iLayerNormParser, iNoNormParser, iSoftmaxParser
+from Deeploy.Targets.Generic.Parsers import ConcatParser, GatherParser, MatMulParser, Pad1DParser, Pad2DParser, \
+    ReshapeParser, RQAddParser, RQIntegerDivParser, SoftmaxParser, TransposeParser, UnsqueezeParser, iLayerNormParser, \
+    iNoNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass, GEMMRequantMergePass, \
     IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
@@ -25,8 +25,8 @@ from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
 from Deeploy.Targets.Snitch.Bindings import BasicDivBindings, BasicHardSwishBindings, BasicMulBindings, \
     BasicRMSNormBindings, BasicSnitchTransposeBindings, SnitchAddBindings, SnitchGemmBindings, SnitchiNoNormBindings, \
     SnitchiSoftmaxBindings, SnitchRQAddBindings, SnitchRqGemmBindings
-from Deeploy.Targets.Snitch.Parsers import HardSwishParser, SnitchDivParser, SnitchGEMMParser, SnitchMulParser, \
-    SnitchRMSNormParser, SnitchRQGEMMParser
+from Deeploy.Targets.Snitch.Parsers import HardSwishParser, SnitchAddParser, SnitchDivParser, SnitchGEMMParser, \
+    SnitchMulParser, SnitchRMSNormParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConcatTilingReadyBindings, \
     SnitchDivTilingReadyBindings, SnitchGatherTilingReadyBindings, SnitchGemmTilingReadyBindings, \
@@ -59,7 +59,7 @@ iSoftmaxMapper = NodeMapper(iSoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
 SoftmaxMapper = NodeMapper(SoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
 iNoNormMapper = NodeMapper(iNoNormParser(), SnitchiNoNormTilingReadyBindings)
 RQAddMapper = NodeMapper(RQAddParser(), SnitchRQAddTilingReadyBindings)
-AddMapper = NodeMapper(AddParser(), SnitchAddTileReadyBindings)
+AddMapper = NodeMapper(SnitchAddParser(), SnitchAddTileReadyBindings)
 RMSNormMapper = NodeMapper(SnitchRMSNormParser(), SnitchRMSNormTilingReadyBindings)
 HardSwishMapper = NodeMapper(HardSwishParser(), SnitchHardSwishTilingReadyBindings)
 DivMapper = NodeMapper(SnitchDivParser(), SnitchDivTilingReadyBindings)
