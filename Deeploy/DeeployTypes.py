@@ -531,11 +531,11 @@ class NetworkContext():
                  constantBuffer: Type[ConstantBuffer],
                  structBuffer: Type[StructBuffer],
                  transientBuffer: Type[TransientBuffer],
-                 globalObjects = {},
-                 localObjects = {},
+                 globalObjects: Optional[OrderedDict] = None,
+                 localObjects: Optional[OrderedDict] = None,
                  name: str = 'DeeployNetwork'):
-        self.globalObjects = OrderedDict()
-        self.localObjects = OrderedDict()
+        self.globalObjects = globalObjects if globalObjects is not None else OrderedDict()
+        self.localObjects = localObjects if localObjects is not None else OrderedDict()
         self.VariableBuffer = variableBuffer
         self.ConstantBuffer = constantBuffer
         self.StructBuffer = structBuffer
