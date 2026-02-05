@@ -8,13 +8,13 @@ FROM ${BASE_IMAGE} AS toolchain
 
 # Intermediate Stage
 ARG DEBIAN_FRONTEND=noninteractive
-ARG BENDER_VERSION=0.28.1
+ARG BENDER_VERSION=0.29.1
 ARG UBUNTU_VERSION=22.04
 ARG TARGETPLATFORM
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
-ENV PATH="/root/.cargo/bin:/app/bender:${PATH}"
+ENV PATH="/app/install/bender:${PATH}"
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 
 WORKDIR /app
@@ -42,14 +42,13 @@ RUN --mount=type=cache,target=/ccache \
     ccache -s
 
 # Install Bender
-RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+RUN mkdir -p /app/install/bender && \
+if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
     wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
-    tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
-    cp  /app/bender /bin; \
+    tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install/bender; \
 elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    wget https://github.com/Xeratec/bender/releases/download/v0.28.3-rc1/bender-0.28.3-rc1-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
-    tar xzf bender-0.28.3-rc1-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
-    cp  /app/bender /bin; \
+    wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
+    tar xzf bender-${BENDER_VERSION}-arm64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz -C /app/install/bender; \
 fi
 
 # Compile Snitch Runtime
@@ -77,10 +76,12 @@ ENV SNITCH_HOME=/app/install/snitch_cluster
 ENV CHIMERA_SDK_HOME=/app/install/chimera-sdk
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 ENV GVSOC_INSTALL_DIR=/app/install/gvsoc
+ENV BANSHEE_INSTALL_DIR=/app/install/banshee
 ENV SOFTHIER_INSTALL_DIR=/app/install/softhier
 ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
 ENV MEMPOOL_HOME=/app/install/mempool
-ENV PATH=/root/.cargo/bin:/app/install/qemu/bin:/app/install/banshee:$PATH
+ENV BENDER_INSTALL_DIR=/app/install/bender
+ENV PATH=/app/install/qemu/bin:/app/install/banshee:/app/install/bender:$PATH 
 
 WORKDIR /app
 
@@ -90,8 +91,7 @@ COPY pyproject.toml ./
 RUN mkdir -p /etc && printf "[global]\nextra-index-url = https://pypi.ngc.nvidia.com\n" > /etc/pip.conf
 
 # Install dependencies
-RUN mkdir -p /root/.cargo/bin/ && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y git-lfs \
     wget \
     ccache \
@@ -128,4 +128,3 @@ RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-require
 
 # Copy pre-built toolchains and emulators
 COPY --from=toolchain /app/install ./install
-COPY --from=toolchain /root/.cargo/bin/banshee /root/.cargo/bin/banshee

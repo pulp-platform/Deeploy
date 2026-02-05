@@ -42,9 +42,13 @@ macro(print_simulation_config)
 endmacro()
 
 macro(add_banshee_simulation name)
+	if(NOT DEFINED ENV{BANSHEE_INSTALL_DIR})
+		message(FATAL_ERROR "Environment variable BANSHEE_INSTALL_DIR not set")
+	endif()
+	set(BANSHEE_EXECUTABLE "$ENV{BANSHEE_INSTALL_DIR}/banshee")
     add_custom_target(banshee_${name}
 	DEPENDS ${name}
-	COMMAND RUST_MIN_STACK=${banshee_stack_size} banshee
+	COMMAND RUST_MIN_STACK=${banshee_stack_size} ${BANSHEE_EXECUTABLE}
 	--num-cores=${num_threads}
 	--num-clusters=1
 	--latency

@@ -47,14 +47,6 @@ pip install -e .
 
 ## Testing Framework Installation
 
-Please make sure to use a Rust version that is compatible with LLVM 15, like 1.63.0:
-
-```
-sudo snap install rustup --classic
-rustup install 1.63.0
-rustup default 1.63.0
-```
-
 The Makefile expects the environemt variable `CMAKE` to be defined. In case you have no strong preferences, you may run
 
 ```
@@ -84,7 +76,5 @@ For example, you can run
 
 ```
 cd DeeployTest
-python testRunner_generic.py -t Tests/Others/SimpleRegression
+python testRunner_generic.py -t ./Tests/Kernels/Integer/Add/Regular
 ```
-
-to run the `simpleRegression` test on your workstation. Various other tests are available and compatibility between tests and platforms is tested in the `.gitlab-ci.yml` file.

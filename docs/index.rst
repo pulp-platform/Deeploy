@@ -24,3 +24,4 @@ Deeploy is developed as part of the PULP project, a joint effort between ETH Zur
    tutorials/overview
    structure
    apidocs
+   releasing
