@@ -10,54 +10,63 @@ from Deeploy.AbstractDataTypes import FloatImmediate, IntegerImmediate
 
 
 class int8_t(IntegerImmediate):
+    """8-bit signed integer type."""
     typeName = "int8_t"
     typeWidth = 8
     signed = True
 
 
 class int16_t(IntegerImmediate):
+    """16-bit signed integer type."""
     typeName = "int16_t"
     typeWidth = 16
     signed = True
 
 
 class int32_t(IntegerImmediate):
+    """32-bit signed integer type."""
     typeName = "int32_t"
     typeWidth = 32
     signed = True
 
 
 class int64_t(IntegerImmediate):
+    """64-bit signed integer type."""
     typeName = "int64_t"
     typeWidth = 64
     signed = True
 
 
 class uint8_t(IntegerImmediate):
+    """8-bit unsigned integer type."""
     typeName = "uint8_t"
     typeWidth = 8
     signed = False
 
 
 class uint16_t(IntegerImmediate):
+    """16-bit unsigned integer type."""
     typeName = "uint16_t"
     typeWidth = 16
     signed = False
 
 
 class uint32_t(IntegerImmediate):
+    """32-bit unsigned integer type."""
     typeName = "uint32_t"
     typeWidth = 32
     signed = False
 
 
 class uint64_t(IntegerImmediate):
+    """64-bit unsigned integer type."""
     typeName = "uint64_t"
     typeWidth = 64
     signed = False
 
 
 class bfloat16_t(FloatImmediate):
+    """16-bit bfloat float type with 7-bit mantissa and 8-bit exponent."""
     typeName = "bfloat16_t"
     typeWidth = 16
     typeMantissa = 7
@@ -65,6 +74,7 @@ class bfloat16_t(FloatImmediate):
 
 
 class float16_t(FloatImmediate):
+    """16-bit float type with 10-bit mantissa and 5-bit exponent."""
     typeName = "float16_t"
     typeWidth = 16
     typeMantissa = 10
@@ -72,6 +82,7 @@ class float16_t(FloatImmediate):
 
 
 class float32_t(FloatImmediate):
+    """32-bit float type with 23-bit mantissa and 8-bit exponent."""
     typeName = "float32_t"
     typeWidth = 32
     typeMantissa = 23
@@ -79,6 +90,7 @@ class float32_t(FloatImmediate):
 
 
 class float64_t(FloatImmediate):
+    """64-bit float type with 11-bit mantissa and 52-bit exponent."""
     typeName = "float64_t"
     typeWidth = 64
     typeMantissa = 52
@@ -96,6 +108,18 @@ FloatDataTypes: Tuple[Type[FloatImmediate], ...] = (bfloat16_t, float16_t, float
 
 
 def minimalIntegerType(value: Union[int, Iterable[int], npt.NDArray]) -> Type[IntegerImmediate]:
+    """Returns the minimal integer type that can represent all values in the given list.
+
+    Parameters
+    ----------
+    values : Union[int, Iterable[int]
+        The list of integer values to analyze.
+
+    Returns
+    -------
+    Type[IntegerImmediate]
+        The minimal integer type that can represent all values.
+    """
     # Sort data types by typeWidth and signedness (unsigned types go first)
     sorted_types = sorted(
         IntegerDataTypes,
@@ -110,6 +134,18 @@ def minimalIntegerType(value: Union[int, Iterable[int], npt.NDArray]) -> Type[In
 
 
 def minimalFloatType(value: Union[float, Iterable[float], npt.NDArray]) -> Type[FloatImmediate]:
+    """Returns the minimal float type that can represent all values in the given list.
+
+    Parameters
+    ----------
+    values : Union[float, Iterable[float]
+        The list of float values to analyze.
+
+    Returns
+    -------
+    Type[FloatImmediate]
+        The minimal float type that can represent all values.
+    """
     # Sort data types by typeWidth
     sorted_types = sorted(
         FloatDataTypes,

@@ -44,6 +44,51 @@ _deallocTemplate = NodeTemplate("")
 
 
 class Tiler():
+    """Tiler for a computation graphs with memory-aware optimization.
+
+    The Tiler class provides functionality for tiling operations to fit within
+    memory constraints of target hardware platforms. It performs memory allocation, constraint
+    solving, and scheduling to optimize execution within hierarchical memory systems.
+
+    Parameters
+    ----------
+    memoryHierarchy : MemoryHierarchy
+        The memory hierarchy specification defining available memory levels and their capacities.
+
+    Attributes
+    ----------
+    arenaName : str
+        Name prefix for memory arena buffers.
+    memorySchedulerClass : Type[MemoryScheduler]
+        Class type for memory scheduler instances.
+    memoryHierarchy : MemoryHierarchy
+        The memory hierarchy configuration.
+    tilerModel : Optional[TilerModel]
+        The constraint solver model for tiling optimization.
+    innerMemoryScheduler : MemoryScheduler
+        Scheduler for inner memory level allocation.
+    outerMemoryScheduler : MemoryScheduler
+        Scheduler for outer memory level allocation.
+    symbolicMemoryConstraints : Optional[List[PatternMemoryConstraints]]
+        Symbolic memory constraints for the tiling problem.
+    visualizeMemoryAlloc : bool
+        Flag to enable memory allocation visualization.
+    memoryAllocStrategy : {"TetrisRandom", "TetrisCo-Opt", "MiniMalloc"}
+        Strategy for memory allocation.
+    searchStrategy : {"min", "max", "random-max"}
+        Search strategy for constraint solving.
+
+    Examples
+    --------
+    >>> L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 1024000)
+    >>> L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = 512000)
+    >>> L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = 128000)
+    >>> memoryHierarchy = MemoryHierarchy([L3, L2, L1])
+    >>> memoryHierarchy.setDefaultMemoryLevel("L3")
+    >>> tiler = Tiler(hierarchy)
+    >>> tiler.memoryAllocStrategy = "MiniMalloc"
+    >>> solution = tiler.computeTilingSchedule(context)
+    """
 
     arenaName = "MEMORYARENA"
     memorySchedulerClass: Type[MemoryScheduler] = MemoryScheduler
@@ -53,6 +98,13 @@ class Tiler():
 
     # Initialize with the list of TemplateTCFbinding
     def __init__(self, memoryHierarchy: MemoryHierarchy, testName: Optional[str] = None, workDir: Optional[str] = None):
+        """Initialize the Tiler with a memory hierarchy.
+
+        Parameters
+        ----------
+        memoryHierarchy : MemoryHierarchy
+            The memory hierarchy specification defining available memory levels.
+        """
 
         self.memoryHierarchy = memoryHierarchy
         self.tilerModel: Optional[TilerModel] = None
@@ -85,10 +137,39 @@ class Tiler():
 
     @property
     def worstCaseBufferSize(self):
+        """Get the worst-case buffer sizes for each memory level.
+
+        Returns
+        -------
+        Dict[str, int]
+            Dictionary mapping memory level names to their worst-case buffer sizes in bytes.
+        """
         return self._worstCaseBufferSize
 
     def plotMemoryAlloc(self, memoryMap: Dict[str, List[List[MemoryBlock]]], ctxt: NetworkContext, deeployStateDir: str,
                         memoryHierarchy: MemoryHierarchy):
+        """Generate interactive visualization of memory allocation patterns.
+
+        Creates an HTML file with Plotly visualizations showing memory allocation
+        over time for each memory level in the hierarchy.
+
+        Parameters
+        ----------
+        memoryMap : Dict[str, List[List[MemoryBlock]]]
+            Memory allocation map containing blocks for each memory level and time step.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        deeployStateDir : str
+            Directory path where the visualization HTML file will be saved.
+        memoryHierarchy : MemoryHierarchy
+            Memory hierarchy configuration for the visualization.
+
+        Notes
+        -----
+        Generates a file named 'memory_alloc.html' in the specified directory.
+        Each memory level is visualized as a separate subplot showing buffer
+        lifetimes and address space usage.
+        """
 
         os.makedirs(os.path.abspath(deeployStateDir), exist_ok = True)
         memoryAllocPlotPath = os.path.abspath(os.path.join(deeployStateDir, f"memory_alloc.html"))
@@ -177,6 +258,29 @@ class Tiler():
 
     def _convertCtxtToStaticSchedule(self, ctxt: NetworkContext,
                                      memoryMap: Dict[str, List[List[MemoryBlock]]]) -> NetworkContext:
+        """Convert network context to use static memory allocation.
+
+        Transforms the network context to use statically allocated memory arenas
+        based on the computed memory map. Updates buffer allocation templates
+        to reference specific offsets within memory arenas.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            The network context to be updated.
+        memoryMap : Dict[str, List[List[MemoryBlock]]]
+            Memory allocation map containing blocks for each memory level.
+
+        Returns
+        -------
+        NetworkContext
+            Updated network context with static memory allocation.
+
+        Notes
+        -----
+        Creates memory arena buffers for each memory level and updates
+        individual buffer allocation templates to use offsets within these arenas.
+        """
 
         maxAddr: Dict[str, int] = {}
 
@@ -254,6 +358,41 @@ class Tiler():
         return ctxt
 
     def minimalloc(self, memoryMap, ctxt, nodeMemoryConstraint, capacity: int, memoryLevel: str):
+        """Perform memory allocation using the MiniMalloc external tool.
+
+        Interfaces with the external MiniMalloc memory allocator to compute
+        optimal memory allocation for the given memory blocks and constraints.
+
+        Parameters
+        ----------
+        memoryMap : List[MemoryBlock]
+            List of memory blocks to be allocated.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        nodeMemoryConstraint : Optional[NodeMemoryConstraint]
+            Memory constraints for the current node, if available.
+        capacity : int
+            Total memory capacity available for allocation.
+        memoryLevel : str
+            Name of the memory level being allocated.
+
+        Returns
+        -------
+        List[MemoryBlock]
+            Updated memory blocks with assigned address spaces.
+
+        Raises
+        ------
+        KeyError
+            If MINIMALLOC_INSTALL_DIR environment variable is not set.
+        subprocess.CalledProcessError
+            If the MiniMalloc tool fails to execute successfully.
+
+        Notes
+        -----
+        Requires the MiniMalloc tool to be installed and the MINIMALLOC_INSTALL_DIR
+        environment variable to be set to the installation directory.
+        """
 
         with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
             writer = csv.writer(file, lineterminator = "\n")
@@ -312,6 +451,31 @@ class Tiler():
         return memoryMap
 
     def computeTilingSchedule(self, ctxt: NetworkContext) -> TilingSolution:
+        """Compute the optimal tiling schedule for the network.
+
+        Solves the constraint optimization problem to find the best tiling
+        solution that satisfies memory and computational constraints.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Network context containing the computational graph and constraints.
+
+        Returns
+        -------
+        TilingSolution
+            The computed tiling solution with memory constraints for each pattern.
+
+        Raises
+        ------
+        AssertionError
+            If the tiler model or symbolic memory constraints are not initialized.
+
+        Notes
+        -----
+        This method requires that setupModel() has been called previously to
+        initialize the constraint model and symbolic memory constraints.
+        """
         assert self.tilerModel is not None and self.symbolicMemoryConstraints is not None, "Set up the model before trying to compute a schedule!"
         collector = self.tilerModel.trySolveModel()
         tilingSolution = self._getTilingSolution(self.tilerModel, ctxt, collector, self.symbolicMemoryConstraints)
@@ -323,6 +487,29 @@ class Tiler():
         return tilingSolution
 
     def computeMemoryMap(self, ctxt: NetworkContext, tilingSolution: TilingSolution) -> MemoryMap:
+        """Compute memory allocation map from the tiling solution.
+
+        Generates a concrete memory allocation map that assigns specific
+        memory addresses to each buffer based on the tiling solution.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        tilingSolution : TilingSolution
+            The computed tiling solution.
+
+        Returns
+        -------
+        MemoryMap
+            Dictionary mapping memory level names to lists of memory blocks
+            for each time step.
+
+        Notes
+        -----
+        The memory allocation strategy (TetrisRandom, TetrisCo-Opt, or MiniMalloc)
+        determines how the actual memory addresses are assigned.
+        """
         memoryMap = {}
 
         for key in self.innerMemoryScheduler.memoryMap.keys():
@@ -348,6 +535,30 @@ class Tiler():
 
     def annotateMemoryLevel(self, ctxt: NetworkContext, tilingSolution: TilingSolution,
                             memoryMap: Dict) -> NetworkContext:
+        """Annotate memory constraints with actual address space allocations.
+
+        Updates the memory constraints in the tiling solution with the actual
+        address spaces computed during memory allocation.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        tilingSolution : TilingSolution
+            The tiling solution to be annotated.
+        memoryMap : Dict[str, List[List[MemoryBlock]]]
+            Memory allocation map with assigned address spaces.
+
+        Returns
+        -------
+        NetworkContext
+            Updated network context (returned for consistency).
+
+        Notes
+        -----
+        This method modifies the tiling solution in-place by adding address
+        space information to memory constraints.
+        """
         for idx, pattern in enumerate(tilingSolution):
             for nodeIdx, nodeConstraint in enumerate(pattern.nodeConstraints):
                 for tensorConstraint in nodeConstraint.tensorMemoryConstraints.values():
@@ -373,6 +584,32 @@ class Tiler():
 
     def setupModel(self, ctxt: NetworkContext, schedule: Schedule, layerBinding: OrderedDict[str, ONNXLayer],
                    targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NetworkContext:
+        """Set up the constraint optimization model for tiling.
+
+        Initializes the tiler model with geometric constraints, memory constraints,
+        and optimization objectives based on the network schedule and layer bindings.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Network context containing the computational graph.
+        schedule : Schedule
+            Execution schedule defining the order of operations.
+        layerBinding : OrderedDict[str, ONNXLayer]
+            Mapping from node names to their layer implementations.
+        targetMemoryLevelMapping : TargetMemoryLevelMapping
+            Mapping defining which memory levels to use for each tensor.
+
+        Returns
+        -------
+        NetworkContext
+            The network context (returned for consistency).
+
+        Notes
+        -----
+        This method must be called before computeTilingSchedule() to initialize
+        the constraint model and symbolic memory constraints.
+        """
 
         wrapSchedule: List[SubGraph] = []
         for entry in schedule:
@@ -396,6 +633,37 @@ class Tiler():
     # SCHEREMO: Return a integer factor or IntVar variable for the multi Buffer coefficient given the tiling path, hop and tensorName.
     def multiBufferStrategy(self, tilerModel: TilerModel, ctxt: NetworkContext, pattern: SubGraph, path: List[str],
                             hop: str, tensorName: str) -> Union[int, IntVar]:
+        """Determine multi-buffering coefficient for a tensor in the tiling strategy.
+
+        Computes the buffering factor (e.g., double buffering = 2) for a given tensor
+        based on its type and usage pattern in the computation graph. This coefficient
+        is used to determine how many copies of the tensor should be kept in memory.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel, (unused)
+            The constraint solver model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        pattern : SubGraph, (unused)
+            The computation pattern being analyzed.
+        path : List[str], (unused)
+            Memory hierarchy path for the tensor.
+        hop : str, (unused)
+            Current memory level in the path.
+        tensorName : str
+            Name of the tensor to analyze.
+
+        Returns
+        -------
+        Union[int, IntVar]
+            Buffering coefficient (typically 1 for transient buffers, 2 for others).
+
+        Notes
+        -----
+        The multi-buffering strategy helps overlap computation with data movement
+        by maintaining multiple copies of buffers at different memory levels.
+        """
 
         varBuffer = ctxt.lookup(tensorName)
 
@@ -426,6 +694,30 @@ class Tiler():
 
     def propagateIOBufferStrategy(self, tileConstraintPattern: PatternMemoryConstraints, pattern: SubGraph,
                                   ctxt: NetworkContext) -> PatternMemoryConstraints:
+        """Propagate I/O buffer strategy across the tiling pattern.
+
+        Implements static n-tuple buffering strategy by propagating border tensor
+        constraints across all steps in the tiling pattern.
+
+        Parameters
+        ----------
+        tileConstraintPattern : PatternMemoryConstraints
+            Memory constraints for the tiling pattern.
+        pattern : SubGraph
+            The computation subgraph being tiled.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+
+        Returns
+        -------
+        PatternMemoryConstraints
+            Updated pattern memory constraints with propagated I/O buffer strategy.
+
+        Notes
+        -----
+        This method ensures that border tensors (inputs/outputs of the pattern)
+        maintain consistent memory allocation across all computation steps.
+        """
 
         borderTensorStep = NodeMemoryConstraint()
         for patternStep in tileConstraintPattern.nodeConstraints:
@@ -438,6 +730,37 @@ class Tiler():
 
     def _resolveTensorMemoryConstraint(self, tilerModel: TilerModel, ctxt: NetworkContext, collector: SolutionCollector,
                                        tensorConstraint: TensorMemoryConstraint) -> TensorMemoryConstraint:
+        """Resolve symbolic tensor memory constraints to concrete values.
+
+        Converts symbolic variables in tensor memory constraints to their
+        concrete values from the solver solution.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint solver model with the solution.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        collector : SolutionCollector
+            Solution collector from the constraint solver.
+        tensorConstraint : TensorMemoryConstraint
+            Symbolic tensor memory constraint to resolve.
+
+        Returns
+        -------
+        TensorMemoryConstraint
+            Tensor memory constraint with resolved concrete values.
+
+        Raises
+        ------
+        AssertionError
+            If the tiler model is not initialized.
+
+        Notes
+        -----
+        This method extracts the actual buffer sizes and shapes from the
+        solved constraint model and creates concrete memory constraints.
+        """
         assert self.tilerModel is not None, "Can't resolve tensor memory constraints, tilerModel is None!"
 
         tensorName = tensorConstraint.tensorName
@@ -472,6 +795,32 @@ class Tiler():
 
     def _getTilingSolution(self, tilerModel: TilerModel, ctxt: NetworkContext, collector: SolutionCollector,
                            allConstraints: List[PatternMemoryConstraints]) -> List[PatternMemoryConstraints]:
+        """Extract tiling solution from the solved constraint model.
+
+        Processes all pattern memory constraints and resolves symbolic variables
+        to create a concrete tiling solution.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The solved constraint model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        collector : SolutionCollector
+            Solution collector from the constraint solver.
+        allConstraints : List[PatternMemoryConstraints]
+            List of all symbolic pattern memory constraints.
+
+        Returns
+        -------
+        List[PatternMemoryConstraints]
+            Resolved tiling solution with concrete memory constraints.
+
+        Notes
+        -----
+        Only constraints that require resolution (multi-level or transient buffers)
+        are processed. Global single-level buffers are skipped.
+        """
 
         retList = []
 
@@ -502,6 +851,29 @@ class Tiler():
 
     def _setupTensorDimensionProducts(self, tilerModel: TilerModel, ctxt: NetworkContext,
                                       schedule: List[SubGraph]) -> TilerModel:
+        """Set up tensor dimension product variables in the tiler model.
+
+        Adds variables representing the number of elements in each tensor
+        to the constraint model for each pattern in the schedule.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model to update.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        schedule : List[SubGraph]
+            List of computation patterns in the schedule.
+
+        Returns
+        -------
+        TilerModel
+            Updated tiler model with tensor dimension variables.
+
+        Notes
+        -----
+        Only processes tensors that are marked for deployment in the context.
+        """
 
         for idx, pattern in enumerate(schedule):
             subGraph = gs.Graph(nodes = pattern)
@@ -517,6 +889,33 @@ class Tiler():
 
     def _setupGeometricConstraints(self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
                                    layerBinding: OrderedDict[str, ONNXLayer]) -> TilerModel:
+        """Set up geometric constraints for each layer in the schedule.
+
+        Adds geometric and policy constraints from each layer's tile constraint
+        specification to the tiler model.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model to update.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        schedule : List[SubGraph]
+            List of computation patterns in the schedule.
+        layerBinding : OrderedDict[str, ONNXLayer]
+            Mapping from node names to their layer implementations.
+
+        Returns
+        -------
+        TilerModel
+            Updated tiler model with geometric constraints.
+
+        Notes
+        -----
+        Each pattern is treated as a decoupled sub-problem with respect to
+        geometric constraints. Dimension variables are regenerated for each
+        tensor using the copyIdx mechanism.
+        """
 
         # SCHEREMO: Each pattern is a decoupled sub-problem w.r.t the geometric constraints.
         # We need to regenerate dimension variables for each tensor
@@ -542,6 +941,30 @@ class Tiler():
         return tilerModel
 
     def _setupHeuristics(self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph]) -> TilerModel:
+        """Set up optimization heuristics for the tiler model.
+
+        Adds optimization objectives to maximize memory usage efficiency
+        for each pattern in the schedule.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model to update.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        schedule : List[SubGraph]
+            List of computation patterns in the schedule.
+
+        Returns
+        -------
+        TilerModel
+            Updated tiler model with optimization objectives.
+
+        Notes
+        -----
+        Creates pattern-level memory size variables and adds maximization
+        objectives to encourage efficient memory utilization.
+        """
 
         for idx, pattern in enumerate(schedule):
 
@@ -581,6 +1004,34 @@ class Tiler():
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
             layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> Tuple[TilerModel, List[PatternMemoryConstraints]]:
+        """Set up memory constraints for the tiling optimization.
+
+        Generates memory constraints for both inner and outer memory levels,
+        considering the memory hierarchy and scheduling requirements.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model to update.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        schedule : List[SubGraph]
+            List of computation patterns in the schedule.
+        layerBinding : OrderedDict[str, ONNXLayer]
+            Mapping from node names to their layer implementations.
+        targetMemoryLevelMapping : TargetMemoryLevelMapping
+            Mapping defining which memory levels to use for each tensor.
+
+        Returns
+        -------
+        Tuple[TilerModel, List[PatternMemoryConstraints]]
+            Updated tiler model and list of all memory constraints.
+
+        Notes
+        -----
+        Sets up both outer (inter-pattern) and inner (intra-pattern) memory
+        constraints, considering the chosen memory allocation strategy.
+        """
 
         allMemoryConstraints = self._generateAllMemoryConstraints(tilerModel, ctxt, schedule, layerBinding,
                                                                   targetMemoryLevelMapping)
@@ -621,6 +1072,34 @@ class Tiler():
             self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
             layerBinding: OrderedDict[str, ONNXLayer],
             targetMemoryLevelMapping: TargetMemoryLevelMapping) -> List[PatternMemoryConstraints]:
+        """Generate all memory constraints combining dynamic and constant tensors.
+
+        Creates comprehensive memory constraints by combining dynamic tensor
+        constraints with constant tensor constraints for each pattern.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        schedule : List[SubGraph]
+            List of computation patterns in the schedule.
+        layerBinding : OrderedDict[str, ONNXLayer]
+            Mapping from node names to their layer implementations.
+        targetMemoryLevelMapping : TargetMemoryLevelMapping
+            Mapping defining which memory levels to use for each tensor.
+
+        Returns
+        -------
+        List[PatternMemoryConstraints]
+            Complete list of memory constraints for all patterns.
+
+        Notes
+        -----
+        Combines results from _generateMemoryConstraints to create the complete
+        constraint set including both variable and constant buffers.
+        """
 
         dynamicTensorConstraints, constantTensorConstraints = self._generateMemoryConstraints(
             tilerModel, ctxt, schedule, layerBinding, targetMemoryLevelMapping)
@@ -641,6 +1120,39 @@ class Tiler():
         self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
         layerBinding: OrderedDict[str, ONNXLayer], targetMemoryLevelMapping: TargetMemoryLevelMapping
     ) -> Tuple[List[PatternMemoryConstraints], NodeMemoryConstraint]:
+        """Generate memory constraints for variable and constant buffers.
+
+        Creates detailed memory constraints including outer/inner variable
+        buffer constraints, tiled tensor constraints, and constant buffer
+        constraints.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        schedule : List[SubGraph]
+            List of computation patterns in the schedule.
+        layerBinding : OrderedDict[str, ONNXLayer]
+            Mapping from node names to their layer implementations.
+        targetMemoryLevelMapping : TargetMemoryLevelMapping
+            Mapping defining which memory levels to use for each tensor.
+
+        Returns
+        -------
+        Tuple[List[PatternMemoryConstraints], NodeMemoryConstraint]
+            Tuple containing:
+            - List of pattern memory constraints for dynamic tensors
+            - Node memory constraint for constant buffers
+
+        Notes
+        -----
+        Generates three levels of constraints:
+        1. First-level: global buffers + higher-level tensors
+        2. Tiled tensor constraints with double buffering
+        3. In-place tensor constraints for unkilled tensors
+        """
 
         # SCHEREMO: Construct non-double-buffered constraints of local variable buffers
 
@@ -703,6 +1215,38 @@ class Tiler():
 
     def _generateTilePath(self, tilerModel: TilerModel, ctxt: NetworkContext,
                           tensorMemoryConstraint: TensorMemoryConstraint, pattern: SubGraph) -> TensorMemoryConstraint:
+        """Generate tiling path for a tensor across memory hierarchy levels.
+
+        Creates memory constraints for a tensor that needs to move between
+        different levels of the memory hierarchy, including multi-buffering.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        tensorMemoryConstraint : TensorMemoryConstraint
+            Original tensor memory constraint with multiple levels.
+        pattern : SubGraph
+            The computation pattern using this tensor.
+
+        Returns
+        -------
+        TensorMemoryConstraint
+            Updated tensor memory constraint with complete tiling path.
+
+        Raises
+        ------
+        AssertionError
+            If the tensor constraint doesn't have exactly 2 memory levels,
+            or if the multi-buffer factor is invalid.
+
+        Notes
+        -----
+        Uses breadth-first search to find the path between memory levels
+        and applies multi-buffering strategy at each intermediate level.
+        """
 
         assert len(tensorMemoryConstraint.memoryConstraints.keys()
                   ) == 2, "Can't generate a tile path for more than one hierarchy level!"
@@ -736,6 +1280,34 @@ class Tiler():
     def _generateIntermediateTilingSteps(self, tilerModel: TilerModel, ctxt: NetworkContext,
                                          sourceStep: NodeMemoryConstraint, destinationStep: NodeMemoryConstraint,
                                          pattern: SubGraph) -> NodeMemoryConstraint:
+        """Generate intermediate tiling steps between source and destination constraints.
+
+        Creates tiling constraints for tensors that need to move between different
+        memory levels within a computation pattern.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        sourceStep : NodeMemoryConstraint
+            Memory constraints for the source step.
+        destinationStep : NodeMemoryConstraint
+            Memory constraints for the destination step.
+        pattern : SubGraph
+            The computation pattern being analyzed.
+
+        Returns
+        -------
+        NodeMemoryConstraint
+            Memory constraints for intermediate tiling steps.
+
+        Notes
+        -----
+        Identifies tensors that require tiling (those with multiple memory
+        constraints) and generates appropriate tiling paths for them.
+        """
         tileConstraintStep = NodeMemoryConstraint()
 
         mergedStep = sourceStep + destinationStep
@@ -755,6 +1327,39 @@ class Tiler():
                                      sourceConstraints: List[PatternMemoryConstraints],
                                      destinationConstraints: List[PatternMemoryConstraints],
                                      schedule: List[SubGraph]) -> List[PatternMemoryConstraints]:
+        """Generate tiling path constraints for all patterns in the schedule.
+
+        Creates comprehensive tiling constraints by combining source and destination
+        constraints for each pattern and applying I/O buffer strategies.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        sourceConstraints : List[PatternMemoryConstraints]
+            Source memory constraints for each pattern.
+        destinationConstraints : List[PatternMemoryConstraints]
+            Destination memory constraints for each pattern.
+        schedule : List[SubGraph]
+            List of computation patterns in the schedule.
+
+        Returns
+        -------
+        List[PatternMemoryConstraints]
+            Complete tiling path constraints for all patterns.
+
+        Raises
+        ------
+        AssertionError
+            If source pattern constraints are not single-step.
+
+        Notes
+        -----
+        Assumes source patterns are constant and single-step since they
+        represent tensors that are live throughout the pattern execution.
+        """
 
         tileConstraints = []
 
@@ -781,6 +1386,26 @@ class Tiler():
         return tileConstraints
 
     def _generateBufferConstraints(self, ctxt: NetworkContext) -> NodeMemoryConstraint:
+        """Generate memory constraints for constant global buffers.
+
+        Creates memory constraints for all constant buffers that are marked
+        for deployment in the network context.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Network context containing buffer information.
+
+        Returns
+        -------
+        NodeMemoryConstraint
+            Memory constraints for all constant global buffers.
+
+        Notes
+        -----
+        Only processes constant buffers with _deploy flag set to True.
+        Each buffer is treated as an input tensor in the constraints.
+        """
 
         constantGlobalConstraint: NodeMemoryConstraint = NodeMemoryConstraint()
         constantGlobalBuffers = [
@@ -805,6 +1430,37 @@ class Tiler():
         self, tilerModel: TilerModel, ctxt: NetworkContext, schedule: List[SubGraph],
         layerBinding: OrderedDict[str, ONNXLayer], targetMemoryLevelMapping: TargetMemoryLevelMapping
     ) -> Tuple[List[PatternMemoryConstraints], List[PatternMemoryConstraints]]:
+        """Generate memory constraints for variable buffers using flow analysis.
+
+        Performs liveness analysis on the computation graph to determine
+        memory requirements for variable buffers at different points in execution.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        schedule : List[SubGraph]
+            List of computation patterns in the schedule.
+        layerBinding : OrderedDict[str, ONNXLayer]
+            Mapping from node names to their layer implementations.
+        targetMemoryLevelMapping : TargetMemoryLevelMapping
+            Mapping defining which memory levels to use for each tensor.
+
+        Returns
+        -------
+        Tuple[List[PatternMemoryConstraints], List[PatternMemoryConstraints]]
+            Tuple containing:
+            - Outer memory constraints (inter-pattern)
+            - Inner memory constraints (intra-pattern)
+
+        Notes
+        -----
+        Uses graph flow analysis to compute liveness information and generates
+        both outer (pattern-level) and inner (step-level) memory constraints.
+        Includes transient buffer constraints for each computation step.
+        """
 
         def deltaFlow(
                 patternFlow: List[GenericFlowState[TensorMemLevelTuple]]) -> GenericFlowState[TensorMemLevelTuple]:
@@ -877,6 +1533,35 @@ class Tiler():
     def _generatePatternStepTransientBufferConstraints(
             self, tilerModel: TilerModel, ctxt: NetworkContext, layerBinding: OrderedDict[str, ONNXLayer],
             step: gs.Node, targetMemoryLevelMapping: TargetMemoryLevelMapping) -> NodeMemoryConstraint:
+        """Generate memory constraints for transient buffers in a pattern step.
+
+        Computes memory requirements for temporary buffers needed during
+        the execution of a single computation step.
+
+        Parameters
+        ----------
+        tilerModel : TilerModel
+            The constraint model.
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        layerBinding : OrderedDict[str, ONNXLayer]
+            Mapping from node names to their layer implementations.
+        step : gs.Node
+            The computation node being analyzed.
+        targetMemoryLevelMapping : TargetMemoryLevelMapping
+            Mapping defining which memory levels to use for each tensor.
+
+        Returns
+        -------
+        NodeMemoryConstraint
+            Memory constraints for transient buffers in this step.
+
+        Notes
+        -----
+        Transient buffers are assumed to be allocated in the same memory
+        level as the main input of the computation step. Buffer sizes are
+        computed using the layer template's transient buffer size calculation.
+        """
 
         patternStepTransientBufferSizes = NodeMemoryConstraint()
 
@@ -907,6 +1592,26 @@ class Tiler():
         return patternStepTransientBufferSizes
 
     def assertLayerWiseTiling(self, schedule: List[List[gs.Node]]) -> bool:
+        """Assert that the schedule uses layer-wise tiling (one node per pattern).
+
+        Verifies that each pattern in the schedule contains exactly one node,
+        which is required for certain memory allocation strategies.
+
+        Parameters
+        ----------
+        schedule : List[List[gs.Node]]
+            The execution schedule to validate.
+
+        Returns
+        -------
+        bool
+            True if all patterns contain exactly one node, False otherwise.
+
+        Notes
+        -----
+        Layer-wise tiling is required when using the MiniMalloc memory
+        allocation strategy.
+        """
         for pattern in schedule:
             if len(pattern) > 1:
                 return False
@@ -914,12 +1619,55 @@ class Tiler():
         return True
 
     def assertUniformMemoryLevelAllocation(self, ctxt: NetworkContext, defaultMemoryLevel: str) -> bool:
+        """Assert that all local buffers are allocated to the default memory level.
+
+        Verifies that all local buffers in the network context are assigned
+        to the specified default memory level.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            Network context containing buffer information.
+        defaultMemoryLevel : str
+            Name of the default memory level to check against.
+
+        Returns
+        -------
+        bool
+            True if all local buffers use the default memory level, False otherwise.
+
+        Notes
+        -----
+        Uniform memory level allocation is required when using the MiniMalloc
+        memory allocation strategy.
+        """
         for buffer in ctxt.localObjects.values():
             if buffer._memoryLevel != defaultMemoryLevel:
                 return False
         return True
 
     def testTilingSolutionCorrectness(self, tilingSolution: TilingSolution) -> None:
+        """Test the correctness of a computed tiling solution.
+
+        Validates that buffer sizes in the tiling solution are properly
+        aligned according to memory alignment requirements.
+
+        Parameters
+        ----------
+        tilingSolution : TilingSolution
+            The tiling solution to validate.
+
+        Raises
+        ------
+        AssertionError
+            If any buffer is not properly aligned or if multi-buffer
+            coefficients are not integers.
+
+        Notes
+        -----
+        Checks that all allocated buffers meet the byte alignment requirements
+        specified in MemoryScheduler.byteAlignment.
+        """
         # LMACAN: Assert buffer sizes are word aligned as per comment in MemoryScheduler.py:MemoryScheduler._buildCostVector()
         byteAlignment = MemoryScheduler.byteAlignment
         for patternMemoryConstraint in tilingSolution:
@@ -934,6 +1682,32 @@ class Tiler():
 
     def testMemoryMapCorrectness(self, memoryMap: Dict[str, List[List[MemoryBlock]]], graph: gs.Graph,
                                  schedule: Schedule) -> None:
+        """Test the correctness of a computed memory map.
+
+        Validates that the memory map correctly represents buffer lifetimes
+        and ensures all required buffers are alive when needed.
+
+        Parameters
+        ----------
+        memoryMap : Dict[str, List[List[MemoryBlock]]]
+            The memory map to validate.
+        graph : gs.Graph
+            The computation graph.
+        schedule : Schedule
+            The execution schedule.
+
+        Raises
+        ------
+        AssertionError
+            If output buffers are not alive until the end, input buffers
+            are not alive at the beginning, or required buffers are not
+            alive during computation steps.
+
+        Notes
+        -----
+        Performs comprehensive validation of buffer lifetimes to ensure
+        the memory map is consistent with the computation requirements.
+        """
 
         memoryBlockMap = {
             memoryBlock.name: memoryBlock for levelMemoryMap in memoryMap.values() for memoryBlock in levelMemoryMap[-1]
@@ -960,12 +1734,48 @@ class Tiler():
 
 
 class TilerDeployerWrapper(NetworkDeployerWrapper):
+    """Wrapper for network deployers that adds tiling capabilities.
+
+    Extends NetworkDeployerWrapper to provide automatic tiling and memory
+    management for neural network deployment on memory-constrained hardware.
+
+    Parameters
+    ----------
+    deployer : Union[MemoryLevelAwareDeployer, MemoryDeployerWrapper]
+        The base deployer to wrap with tiling capabilities.
+    tilerCls : Type[Tiler], optional
+        The tiler class to use, by default Tiler.
+
+    Attributes
+    ----------
+    tiler : Tiler
+        The tiler instance used for memory optimization.
+
+    Raises
+    ------
+    AssertionError
+        If the platform is not a MemoryPlatform or MemoryPlatformWrapper.
+
+    Notes
+    -----
+    The wrapper automatically handles tiling setup, constraint solving,
+    and memory allocation during the binding process.
+    """
 
     def __init__(self,
                  deployer: Union[MemoryLevelAwareDeployer, MemoryDeployerWrapper],
                  tilerCls: Type[Tiler] = Tiler,
                  testName: Optional[str] = None,
                  workDir: Optional[str] = None):
+        """Initialize the tiler deployer wrapper.
+
+        Parameters
+        ----------
+        deployer : Union[MemoryLevelAwareDeployer, MemoryDeployerWrapper]
+            The base deployer to wrap.
+        tilerCls : Type[Tiler], optional
+            The tiler class to instantiate, by default Tiler.
+        """
         super().__init__(deployer)
         assert isinstance(self.Platform, (MemoryPlatform, MemoryPlatformWrapper)), \
             f"Platform should be a MemoryPlatform or MemoryPlatformWrapper! Got {type(self.Platform).__name__}"
@@ -973,9 +1783,56 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
 
     @property
     def worstCaseBufferSize(self):
+        """Get the worst-case buffer sizes including inputs and outputs.
+
+        Computes the total worst-case memory requirements including
+        both tiled buffers and input/output buffers.
+
+        Returns
+        -------
+        Dict[str, int]
+            Dictionary mapping memory level names to their total worst-case
+            buffer sizes in bytes.
+
+        Notes
+        -----
+        Extends the tiler's worst-case buffer size calculation by adding
+        the memory requirements of input and output buffers.
+        """
         return self.tiler.worstCaseBufferSize
 
     def tile(self, tilingSolution: Optional[TilingSolution] = None, memoryMap: Optional[MemoryMap] = None):
+        """Perform tiling and memory allocation for the network.
+
+        Executes the complete tiling process including constraint setup,
+        optimization, memory allocation, and code generation updates.
+
+        Parameters
+        ----------
+        tilingSolution : Optional[TilingSolution], optional
+            Pre-computed tiling solution to use instead of computing one.
+            If None, the solution will be computed automatically.
+        memoryMap : Optional[MemoryMap], optional
+            Pre-computed memory map to use instead of computing one.
+            If None, the memory map will be computed automatically.
+
+        Raises
+        ------
+        AssertionError
+            If only one of tilingSolution or memoryMap is provided,
+            if MiniMalloc is used with non-layer-wise tiling,
+            or if tensors are not uniformly allocated when using MiniMalloc.
+
+        Notes
+        -----
+        When using MiniMalloc memory allocation strategy, additional
+        constraints apply:
+        - Only layer-wise execution is supported
+        - All tensors must be in the default memory level
+
+        The method performs validation of the computed solutions and
+        updates the execution blocks with tiling information.
+        """
         assert (tilingSolution is None and memoryMap is None) or (tilingSolution is not None and memoryMap is not None), \
             "You need to provide both the manual tilingSolution and the memoryMap to override tiling."
 
@@ -1022,6 +1879,21 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
         # SCHEREMO: Code generation STUB
 
     def bind(self):
+        """Bind the network with automatic tiling.
+
+        Performs the complete binding process including layer binding
+        and automatic tiling optimization.
+
+        Returns
+        -------
+        bool
+            True if binding was successful, False otherwise.
+
+        Notes
+        -----
+        Calls the parent bind() method first, then performs tiling
+        if the initial binding was successful.
+        """
         if not super().bind():
             return False
 
@@ -1046,9 +1918,35 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
 
 
 def TilingReadyNodeBindings(nodeBindings: List[NodeBinding], tileConstraint: TileConstraint) -> List[NodeBinding]:
-    '''
-    Apply the TillingReadyNodeTemplate to the template of each NodeBinding.
-    '''
+    """Apply tiling constraints to a list of node bindings.
+
+    Creates deep copies of the provided node bindings and attaches the
+    specified tile constraint to each binding's template.
+
+    Parameters
+    ----------
+    nodeBindings : List[NodeBinding]
+        List of node bindings to make tiling-ready.
+    tileConstraint : TileConstraint
+        The tile constraint to attach to each binding.
+
+    Returns
+    -------
+    List[NodeBinding]
+        List of node bindings with tiling constraints attached.
+
+    Notes
+    -----
+    The function creates deep copies to avoid modifying the original
+    node bindings. Each template in the copied bindings gets the
+    tileConstraint attribute set.
+
+    Examples
+    --------
+    >>> bindings = [binding1, binding2, binding3]
+    >>> constraint = MyTileConstraint()
+    >>> tiling_bindings = TilingReadyNodeBindings(bindings, constraint)
+    """
     nodeBindingsCopy = copy.deepcopy(nodeBindings)  #.copy()
     for binding in nodeBindingsCopy:
         binding.template.tileConstraint = tileConstraint
