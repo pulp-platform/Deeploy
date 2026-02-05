@@ -104,6 +104,10 @@ class Tiler():
         ----------
         memoryHierarchy : MemoryHierarchy
             The memory hierarchy specification defining available memory levels.
+        testName : Optional[str], optional
+            Optional name for the test case, used for file naming. Defaults to None.
+        workDir : Optional[str], optional
+            Optional working directory for temporary files. Defaults to None.
         """
 
         self.memoryHierarchy = memoryHierarchy
@@ -1775,6 +1779,10 @@ class TilerDeployerWrapper(NetworkDeployerWrapper):
             The base deployer to wrap.
         tilerCls : Type[Tiler], optional
             The tiler class to instantiate, by default Tiler.
+        testName : Optional[str], optional
+            Optional name for the test case, used for file naming. Defaults to None.
+        workDir : Optional[str], optional
+            Optional working directory for temporary files. Defaults to None.
         """
         super().__init__(deployer)
         assert isinstance(self.Platform, (MemoryPlatform, MemoryPlatformWrapper)), \
