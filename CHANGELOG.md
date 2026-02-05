@@ -31,6 +31,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix bias hoisting in generic GEMM with no bias [#126](https://github.com/pulp-platform/Deeploy/pull/126)
 
 ### Added
+- **GAP9 Platform Support**: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 - `pytest` and `pytest-xdist` as dependencies of Deeploy.
 - A `pytest.ini` for the global configuration of PyTest for the project.
 - `conftest.py` to define CLI args for PyTest for the whole project, it also defines a set of global fixtures and markers.
@@ -93,6 +94,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Calculate non-kernel overhead and show total time spent during profiling
 
 ### Changed
+- PULP-NN moved to TargetLibraries third-party folder
 - Each CI workflow has been simplified to call the pytest suite with certain markers.
 - Structure of Tests subdir for improved ordering
 - Structure of .gitignore file for improved ordering
