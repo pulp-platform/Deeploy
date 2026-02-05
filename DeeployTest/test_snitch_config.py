@@ -21,4 +21,6 @@ KERNEL_TESTS = [
     "Kernels/Integer/GEMM/TransB_RQ",
 ]
 
-MODEL_TESTS = []
+MODEL_TESTS = [
+    "Models/microLlama/microLlama_fp32_1",
+]
