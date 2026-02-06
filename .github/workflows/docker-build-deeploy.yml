@@ -19,8 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       docker_tag: ${{ steps.generate_tag.outputs.docker_tag }}
+      docker_release_tag: ${{ steps.detect_release_tag.outputs.release_tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up environment variables
         run: |
@@ -35,6 +38,16 @@ jobs:
             echo "docker_tag=${{ env.TAG_NAME }}" >> $GITHUB_OUTPUT
           else
             echo "docker_tag=${{ env.BRANCH_NAME }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Detect release tag on HEAD
+        id: detect_release_tag
+        run: |
+          TAG_ON_HEAD=$(git tag --points-at HEAD | head -n 1 || true)
+          if [[ -n "$TAG_ON_HEAD" && "$IS_TAG" != "tag" ]]; then
+            echo "release_tag=$TAG_ON_HEAD" >> $GITHUB_OUTPUT
+          else
+            echo "release_tag=" >> $GITHUB_OUTPUT
           fi
 
   build-deeploy:
@@ -132,13 +145,29 @@ jobs:
         env:
           OWNER: "${{ github.repository_owner }}"
 
+      - name: Prepare manifest tags
+        id: manifest_tags
+        run: |
+          OWNER_LC_VALUE=${OWNER,,}
+          {
+            echo "tags<<'EOF'"
+            echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:latest,"
+            echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${DOCKER_TAG},"
+            if [[ -n "${RELEASE_TAG}" ]]; then
+              echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${RELEASE_TAG},"
+            fi
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+        env:
+          OWNER: ${{ github.repository_owner }}
+          DOCKER_TAG: ${{ needs.prepare.outputs.docker_tag }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.docker_release_tag }}
+
       - name: Merge Deeploy Images
         uses: Noelware/docker-manifest-action@v1
         with:
           inputs: |
             ghcr.io/${{ env.OWNER_LC }}/deeploy@${{ needs.build-deeploy.outputs.digest-amd64 }},
             ghcr.io/${{ env.OWNER_LC }}/deeploy@${{ needs.build-deeploy.outputs.digest-arm64 }}
-          tags: |
-            ghcr.io/${{ env.OWNER_LC }}/deeploy:latest,
-            ghcr.io/${{ env.OWNER_LC }}/deeploy:${{ needs.prepare.outputs.docker_tag }}
+          tags: ${{ steps.manifest_tags.outputs.tags }}
           push: true
