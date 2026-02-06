@@ -166,6 +166,12 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                           type = str,
                           default = os.environ.get('LLVM_INSTALL_DIR'),
                           help = 'Pick compiler install dir\n')
+        self.add_argument('--gvsoc_install_dir',
+                          metavar = '<dir>',
+                          dest = 'gvsoc_install_dir',
+                          type = str,
+                          default = os.environ.get('GVSOC_INSTALL_DIR'),
+                          help = 'Pick gvsoc install dir\n')
         self.add_argument('--input-type-map',
                           nargs = '*',
                           default = [],
@@ -312,7 +318,9 @@ class TestRunner():
 
         self._dir_gen_root = f'TEST_{platform.upper()}'
         assert self._args.toolchain_install_dir is not None, f"Environment variable LLVM_INSTALL_DIR is not set"
+        assert self._args.gvsoc_install_dir is not None, f"Environment variable GVSOC_INSTALL_DIR is not set"
         self._dir_toolchain = os.path.normpath(self._args.toolchain_install_dir)
+        self._dir_gvsoc = os.path.normpath(self._args.gvsoc_install_dir)
         self._dir_build = f"{self._dir_gen_root}/build"
         self._dir_gen, self._dir_test, self._name_test = getPaths(self._args.dir, self._dir_gen_root)
 
@@ -373,10 +381,10 @@ class TestRunner():
         else:
             self.cmake_args += " -D gvsoc_simulation=OFF"
 
-        command = f"$CMAKE -D TOOLCHAIN={self._args.toolchain} -D TOOLCHAIN_INSTALL_DIR={self._dir_toolchain} -D GENERATED_SOURCE={self._dir_gen} -D platform={self._platform} {self.cmake_args} -B {self._dir_build} -D TESTNAME={self._name_test} .."
+        command = f"$CMAKE -D TOOLCHAIN={self._args.toolchain} -D GVSOC_INSTALL_DIR={self._dir_gvsoc} -D TOOLCHAIN_INSTALL_DIR={self._dir_toolchain} -D GENERATED_SOURCE={self._dir_gen} -D platform={self._platform} {self.cmake_args} -B {self._dir_build} -D TESTNAME={self._name_test} .."
 
         if self._args.verbose >= 3:
-            command = "VERBOSE=1 " + command
+            command = "VERBOSE=1 " + command + " --log-level debug"
 
         log.debug(f"[TestRunner] Cmake Command: {command}")
 
@@ -385,10 +393,14 @@ class TestRunner():
             raise RuntimeError(f"Configuring cMake project failed on {self._dir_test}")
 
     def build_binary(self):
-        command = f"$CMAKE --build {self._dir_build} --target {self._name_test}"
-
+        command = "$CMAKE"
         if self._args.verbose >= 3:
             command = "VERBOSE=1 " + command
+
+        if self._platform == 'GAP9':
+            command += f" --build {self._dir_build} --target {self._name_test} image"
+        else:
+            command += f" --build {self._dir_build} --target {self._name_test}"
 
         log.debug(f"[TestRunner] Building Command: {command}")
 

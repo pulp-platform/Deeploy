@@ -6,6 +6,7 @@
 
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
+#include <math.h>
 
 void PULPSoftmax_u8_u8(uint8_t *data_in, uint8_t *data_out,
                        uint32_t *lastDimBuffer, uint32_t size,

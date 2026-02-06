@@ -5,12 +5,15 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Deeploy-GAP9 Platform [#143](https://github.com/pulp-platform/Deeploy/pull/143)
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 
 ### Added
-- 
+- Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 
 ### Changed
+- Update `pulp-nnx` and `pulp-nn-mixed` submodules to their latest versions
+- PULP-NN moved to TargetLibraries third-party folder
 - Aligned CLI commands across the project
 
 ### Fixed
@@ -50,7 +53,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix bias hoisting in generic GEMM with no bias [#126](https://github.com/pulp-platform/Deeploy/pull/126)
 
 ### Added
-- The `publish.yml` action to build a branch and push it to PyPi. The action is automatically triggered when a tag with the "v*" format is emitted. 
+- The `publish.yml` action to build a branch and push it to PyPi. The action is automatically triggered when a tag with the "v*" format is emitted.
 - I created a release of [Banshee](https://github.com/pulp-platform/banshee/releases/tag/v0.5.0-prebuilt) so we don't need to rebuild it over and over. The `Makefile` now pulls that release depending on the platform.
 - I bumped the onnx-graphsurgeon version such that we don't need to use NVIDIA's PyPi index anymore.
 - `_export_graph` assigns their export type to the tensors before export.

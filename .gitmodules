@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [submodule "pulp-nn-mixed"]
-	path = TargetLibraries/PULPOpen/third_party/pulp-nn-mixed
+	path = TargetLibraries/third_party/pulp-nn-mixed
 	url = https://github.com/pulp-platform/pulp-nn-mixed.git
 [submodule "pulp-nnx"]
-	path = TargetLibraries/PULPOpen/third_party/pulp-nnx
+	path = TargetLibraries/third_party/pulp-nnx
 	url = https://github.com/pulp-platform/pulp-nnx.git
 [submodule "CMSIS-NN"]
 	path = TargetLibraries/CMSIS/third_party/CMSIS-NN

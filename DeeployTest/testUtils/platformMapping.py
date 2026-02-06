@@ -14,6 +14,8 @@ from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
 from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
 from Deeploy.Targets.CortexM.Platform import CMSISOptimizer, CMSISPlatform
+from Deeploy.Targets.GAP9.Deployer import GAP9Deployer
+from Deeploy.Targets.GAP9.Platform import GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
 from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericPlatform
 from Deeploy.Targets.MemPool.Deployer import MemPoolDeployer
@@ -29,7 +31,7 @@ from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -59,6 +61,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
     elif platformName == "Siracusa" or platformName == "PULPOpen":
         Platform = PULPPlatform()
 
+    elif platformName == "GAP9":
+        Platform = GAP9Platform()
+
     elif platformName == "Siracusa_w_neureka":
         Platform = NeurekaPlatform()
 
@@ -85,6 +90,8 @@ def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHie
         weightMemoryLevel = memoryHierarchy.memoryLevels["WeightMemory_SRAM"] \
             if "WeightMemory_SRAM" in memoryHierarchy.memoryLevels else None
         return MemoryNeurekaPlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel, weightMemoryLevel)
+    if isinstance(platform, GAP9Platform):
+        return MemoryGAP9PlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel)
     else:
         return MemoryPlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel)
 
@@ -199,6 +206,23 @@ def mapDeployer(platform: DeploymentPlatform,
                                    name = name,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir)
+
+    elif isinstance(platform, (GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper)):
+
+        if loweringOptimizer is None:
+            loweringOptimizer = PULPOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = GAP9Deployer(graph,
+                                platform,
+                                inputTypes,
+                                loweringOptimizer,
+                                scheduler,
+                                name = name,
+                                default_channels_first = default_channels_first,
+                                deeployStateDir = deeployStateDir)
 
     elif isinstance(platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
 

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.19)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -14,13 +14,14 @@ set(CMAKE_C_COMPILER_LAUNCHER "ccache")
 set(CMAKE_CXX_COMPILER_LAUNCHER "ccache")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 if(TOOLCHAIN STREQUAL GCC)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, Generic, Snitch)")
-set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open Generic Snitch)
+set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, GAP9, Generic, Snitch)")
+set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open GAP9 Generic Snitch)
 
 if(platform STREQUAL MemPool)
   message(STATUS "Building for platform 'MemPool'")
@@ -32,6 +33,11 @@ elseif(platform STREQUAL Siracusa_w_neureka)
   message(STATUS "Building for platform 'Siracusa_w_neureka'")
 elseif(platform STREQUAL PULPOpen)
   message(STATUS "Building for platform 'PULP-Open'")
+elseif(platform STREQUAL GAP9)
+  message(STATUS "Building for platform 'GAP9'")
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set(ENV{KCONFIG_CONFIG} DeeployTest/Platforms/GAP9/sdk.config)
+  include($ENV{GAP_SDK_HOME}/utils/cmake/setup.cmake)
 elseif(platform STREQUAL Generic)
   message(STATUS "Building for platform 'Generic'")
 elseif(platform STREQUAL Snitch)
@@ -46,8 +52,13 @@ endif()
 
 # Import useful functions / macros
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/Util.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/common.cmake)
+# Only if not GAP9
+if(NOT platform STREQUAL GAP9)
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/common.cmake)
+endif()
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/simulation.cmake)
+
+add_library(deeploylib INTERFACE)
 
 message(STATUS "============================= Project Configuration ============================")
 message(STATUS "[Deeploy]     platform               = " ${platform})
@@ -208,6 +219,27 @@ if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka OR platfor
 
   add_subdirectory(DeeployTest)
   target_link_libraries(deeploylib INTERFACE deeploybasic deeploypulp)
+
+endif()
+
+if(platform STREQUAL GAP9)
+  project(${TESTNAME} LANGUAGES C ASM)
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/gap9/gap9_gvsoc.cmake)
+  add_compile_options(
+    -Wno-error=unknown-pragmas
+  )
+
+  add_compile_definitions(
+    DEEPLOY_GAP9_PLATFORM
+  )
+
+  add_subdirectory(TargetLibraries/Generic)
+  add_subdirectory(DeeployTest)
+  setupos(${TESTNAME})
+  add_subdirectory(TargetLibraries/GAP9)
+  target_include_directories(deeploygap9 PUBLIC TargetLibraries/Generic/inc)
+
+  target_link_libraries(deeploylib INTERFACE deeploybasic deeploygap9)
 
 endif()
 

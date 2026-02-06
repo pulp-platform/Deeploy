@@ -1,0 +1,23 @@
+/*
+ * SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "DeeployGAP9Math.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+// Overwrite weak function from DeeployBasicLibs
+int deeploy_log(const char *__restrict fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  int ret = vprintf(fmt, args);
+  va_end(args);
+  return ret;
+}
+
+void *deeploy_malloc(const size_t size) { return malloc(size); }
+
+void deeploy_free(void *const ptr) { free(ptr); }
