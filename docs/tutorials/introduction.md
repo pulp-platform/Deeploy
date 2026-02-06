@@ -31,7 +31,7 @@ docker run -it --name deeploy_main -v $(pwd):/app/Deeploy ghcr.io/pulp-platform/
 Install Deeploy inside the container:
 ```
 cd Deeploy
-pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
+pip install -e .
 ```
 
 From the `DeeployTest` folder, you can use the `deeployRunner` to compile ONNXs and execute the output code using the appropriate simulators.
