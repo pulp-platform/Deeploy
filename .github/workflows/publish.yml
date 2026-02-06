@@ -14,9 +14,6 @@ permissions:
   contents: read
   id-token: write
 
-env:
-  UV_EXTRA_INDEX_URL: https://pypi.ngc.nvidia.com
-
 jobs:
   publish-pypi:
     name: Publish to PyPI
