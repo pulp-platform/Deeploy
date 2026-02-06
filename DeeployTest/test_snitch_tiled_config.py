@@ -11,11 +11,16 @@ DEFAULT_NUM_CORES = 9
 # L2 single-buffer tests with different L1 sizes
 # Format: {test_name: [L1_sizes]}
 L2_SINGLEBUFFER_KERNELS = {
-    "Kernels/Integer/Add/Large": [5000, 10000],
-    "Kernels/Integer/Softmax/Large": [5000, 10000],
+    "Kernels/FP32/Div": [2000, 5000, 10000],
+    "Kernels/FP32/Hardswish": [2000, 5000, 10000],
+    "Kernels/FP32/Mul": [2000, 5000, 10000],
+    "Kernels/FP32/RMSNorm/separate_ops": [2000, 5000, 10000],
+    "Kernels/FP32/RMSNorm/single_fused_op": [2000, 5000, 10000],
     "Kernels/FP32/Softmax/Regular": [2000, 5000, 10000],
     "Kernels/FP32/GEMM/Regular": [2000, 5000, 10000],
     "Kernels/FP32/GEMM/TransB": [2000, 5000, 10000],
+    "Kernels/Integer/Add/Large": [5000, 10000],
+    "Kernels/Integer/Softmax/Large": [5000, 10000],
     "Kernels/Integer/iNoNorm": [5000, 10000],
     "Kernels/Integer/Add/Regular_RQ": [5000, 10000],
     "Kernels/Integer/GEMM/Regular_RQPerRow": [2000, 5000],
