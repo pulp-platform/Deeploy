@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TileConstraints.iRMSNormTileConstraint.iRMSNormTileConstraint
+=====================================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TileConstraints.iRMSNormTileConstraint
+
+.. autoclass:: iRMSNormTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~iRMSNormTileConstraint.__init__
+      ~iRMSNormTileConstraint.addGeometricalConstraint
+      ~iRMSNormTileConstraint.addPolicyConstraint
+      ~iRMSNormTileConstraint.constructSymbolicNodeRep
+      ~iRMSNormTileConstraint.extractBaseAddr
+      ~iRMSNormTileConstraint.getBaseAddr
+      ~iRMSNormTileConstraint.sanitizeTilingSchedule
+      ~iRMSNormTileConstraint.serializeTilingSolution
+      ~iRMSNormTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

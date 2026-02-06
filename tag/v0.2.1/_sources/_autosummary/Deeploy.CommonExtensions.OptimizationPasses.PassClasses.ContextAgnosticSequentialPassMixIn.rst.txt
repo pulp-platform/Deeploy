@@ -1,0 +1,31 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.OptimizationPasses.PassClasses.ContextAgnosticSequentialPassMixIn
+==========================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.PassClasses
+
+.. autoclass:: ContextAgnosticSequentialPassMixIn
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ContextAgnosticSequentialPassMixIn.__init__
+      ~ContextAgnosticSequentialPassMixIn.apply
+      ~ContextAgnosticSequentialPassMixIn.retarget
+      ~ContextAgnosticSequentialPassMixIn.run_pass
+   
+   
+
+   
+   
+   

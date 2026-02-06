@@ -1,0 +1,37 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint
+============================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint
+
+.. autoclass:: SliceTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SliceTileConstraint.__init__
+      ~SliceTileConstraint.addGeometricalConstraint
+      ~SliceTileConstraint.addPolicyConstraint
+      ~SliceTileConstraint.computeInputCubeFromOutputCube
+      ~SliceTileConstraint.constructSymbolicNodeRep
+      ~SliceTileConstraint.extractBaseAddr
+      ~SliceTileConstraint.getBaseAddr
+      ~SliceTileConstraint.sanitizeTilingSchedule
+      ~SliceTileConstraint.serializeTilingSolution
+      ~SliceTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

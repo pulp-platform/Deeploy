@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.TileConstraints.RqGemmTileConstraint.RqGemmTileConstraint
+================================================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.TileConstraints.RqGemmTileConstraint
+
+.. autoclass:: RqGemmTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RqGemmTileConstraint.__init__
+      ~RqGemmTileConstraint.addGeometricalConstraint
+      ~RqGemmTileConstraint.addPolicyConstraint
+      ~RqGemmTileConstraint.constructSymbolicNodeRep
+      ~RqGemmTileConstraint.extractBaseAddr
+      ~RqGemmTileConstraint.getBaseAddr
+      ~RqGemmTileConstraint.sanitizeTilingSchedule
+      ~RqGemmTileConstraint.serializeTilingSolution
+      ~RqGemmTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

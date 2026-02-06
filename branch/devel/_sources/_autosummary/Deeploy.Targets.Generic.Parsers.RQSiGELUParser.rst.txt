@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.RQSiGELUParser
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: RQSiGELUParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQSiGELUParser.__init__
+      ~RQSiGELUParser.parse
+      ~RQSiGELUParser.parseInputs
+      ~RQSiGELUParser.parseNode
+      ~RQSiGELUParser.parseNodeCtxt
+      ~RQSiGELUParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQSiGELUParser.operatorRepresentation
+   
+   

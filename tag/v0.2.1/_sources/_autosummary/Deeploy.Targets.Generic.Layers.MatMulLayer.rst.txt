@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.MatMulLayer
+==========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: MatMulLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MatMulLayer.__init__
+      ~MatMulLayer.bind
+      ~MatMulLayer.broadcast
+      ~MatMulLayer.codeTransform
+      ~MatMulLayer.computeOps
+      ~MatMulLayer.computeShapes
+      ~MatMulLayer.discardCurrentMapper
+      ~MatMulLayer.generate
+      ~MatMulLayer.parse
+      ~MatMulLayer.resetDiscardedMappers
+      ~MatMulLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MatMulLayer.maps
+      ~MatMulLayer.mapper
+      ~MatMulLayer.discardedMappers
+      ~MatMulLayer.node
+   
+   

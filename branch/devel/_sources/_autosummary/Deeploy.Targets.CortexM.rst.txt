@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM
+=======================
+
+.. automodule:: Deeploy.Targets.CortexM
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   Bindings
+   DataTypes
+   Deployer
+   Layers
+   Parsers
+   Platform
+   Templates
+   TopologyOptimizationPasses
+   TypeCheckers
+

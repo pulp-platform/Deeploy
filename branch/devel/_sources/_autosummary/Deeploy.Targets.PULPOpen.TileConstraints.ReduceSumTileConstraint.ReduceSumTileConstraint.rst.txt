@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint.ReduceSumTileConstraint
+========================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint
+
+.. autoclass:: ReduceSumTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ReduceSumTileConstraint.__init__
+      ~ReduceSumTileConstraint.addGeometricalConstraint
+      ~ReduceSumTileConstraint.addPolicyConstraint
+      ~ReduceSumTileConstraint.constructSymbolicNodeRep
+      ~ReduceSumTileConstraint.extractBaseAddr
+      ~ReduceSumTileConstraint.getBaseAddr
+      ~ReduceSumTileConstraint.sanitizeTilingSchedule
+      ~ReduceSumTileConstraint.serializeTilingSolution
+      ~ReduceSumTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

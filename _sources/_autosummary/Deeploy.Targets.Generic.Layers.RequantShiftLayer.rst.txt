@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.RequantShiftLayer
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: RequantShiftLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RequantShiftLayer.__init__
+      ~RequantShiftLayer.bind
+      ~RequantShiftLayer.broadcast
+      ~RequantShiftLayer.codeTransform
+      ~RequantShiftLayer.computeOps
+      ~RequantShiftLayer.computeShapes
+      ~RequantShiftLayer.discardCurrentMapper
+      ~RequantShiftLayer.generate
+      ~RequantShiftLayer.parse
+      ~RequantShiftLayer.resetDiscardedMappers
+      ~RequantShiftLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RequantShiftLayer.maps
+      ~RequantShiftLayer.mapper
+      ~RequantShiftLayer.discardedMappers
+      ~RequantShiftLayer.node
+   
+   

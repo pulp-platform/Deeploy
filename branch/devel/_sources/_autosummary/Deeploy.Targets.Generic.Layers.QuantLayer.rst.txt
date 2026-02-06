@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.QuantLayer
+=========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: QuantLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~QuantLayer.__init__
+      ~QuantLayer.bind
+      ~QuantLayer.broadcast
+      ~QuantLayer.codeTransform
+      ~QuantLayer.computeOps
+      ~QuantLayer.computeShapes
+      ~QuantLayer.discardCurrentMapper
+      ~QuantLayer.generate
+      ~QuantLayer.parse
+      ~QuantLayer.resetDiscardedMappers
+      ~QuantLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QuantLayer.maps
+      ~QuantLayer.mapper
+      ~QuantLayer.discardedMappers
+      ~QuantLayer.node
+   
+   

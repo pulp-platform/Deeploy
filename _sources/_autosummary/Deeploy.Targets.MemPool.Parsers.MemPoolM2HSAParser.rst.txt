@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.MemPool.Parsers.MemPoolM2HSAParser
+==================================================
+
+.. currentmodule:: Deeploy.Targets.MemPool.Parsers
+
+.. autoclass:: MemPoolM2HSAParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemPoolM2HSAParser.__init__
+      ~MemPoolM2HSAParser.parse
+      ~MemPoolM2HSAParser.parseInputs
+      ~MemPoolM2HSAParser.parseNode
+      ~MemPoolM2HSAParser.parseNodeCtxt
+      ~MemPoolM2HSAParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemPoolM2HSAParser.operatorRepresentation
+   
+   

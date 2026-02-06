@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.PassClasses.contextaware
+====================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.PassClasses
+
+.. autofunction:: contextaware

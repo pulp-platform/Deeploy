@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.iNoNormParser
+=============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: iNoNormParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~iNoNormParser.__init__
+      ~iNoNormParser.parse
+      ~iNoNormParser.parseInputs
+      ~iNoNormParser.parseNode
+      ~iNoNormParser.parseNodeCtxt
+      ~iNoNormParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~iNoNormParser.operatorRepresentation
+   
+   

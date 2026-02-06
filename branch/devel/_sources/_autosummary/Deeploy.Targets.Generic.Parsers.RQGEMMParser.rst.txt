@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.RQGEMMParser
+============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: RQGEMMParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQGEMMParser.__init__
+      ~RQGEMMParser.parse
+      ~RQGEMMParser.parseInputs
+      ~RQGEMMParser.parseNode
+      ~RQGEMMParser.parseNodeCtxt
+      ~RQGEMMParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQGEMMParser.operatorRepresentation
+   
+   

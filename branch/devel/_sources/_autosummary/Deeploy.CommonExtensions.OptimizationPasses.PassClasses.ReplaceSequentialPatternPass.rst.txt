@@ -1,0 +1,32 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.OptimizationPasses.PassClasses.ReplaceSequentialPatternPass
+====================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.PassClasses
+
+.. autoclass:: ReplaceSequentialPatternPass
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ReplaceSequentialPatternPass.__init__
+      ~ReplaceSequentialPatternPass.named_subpasses
+      ~ReplaceSequentialPatternPass.register_subpass
+      ~ReplaceSequentialPatternPass.remove_subpass
+      ~ReplaceSequentialPatternPass.setup_passes
+   
+   
+
+   
+   
+   

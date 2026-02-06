@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.TilingExtension.AsyncDma.AsyncDma" href="Deeploy.TilingExtension.AsyncDma.AsyncDma.html" />
+    <link rel="prev" title="Deeploy.TilingExtension.AsyncDma" href="Deeploy.TilingExtension.AsyncDma.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.TilingExtension.AsyncDma.html">Deeploy.TilingExtension.AsyncDma</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.CodeTransformationPasses.html">Deeploy.TilingExtension.CodeTransformationPasses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.GenericFlow.html">Deeploy.TilingExtension.GenericFlow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.HtmlTemplates.html">Deeploy.TilingExtension.HtmlTemplates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraintFlows.html">Deeploy.TilingExtension.MemoryConstraintFlows</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.html">Deeploy.TilingExtension.MemoryConstraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.html">Deeploy.TilingExtension.MemoryScheduler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.TileConstraint.html">Deeploy.TilingExtension.TileConstraint</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.TilerExtension.html">Deeploy.TilingExtension.TilerExtension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.TilerModel.html">Deeploy.TilingExtension.TilerModel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.TilingCodegen.html">Deeploy.TilingExtension.TilingCodegen</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.TilingExtension.AsyncDma.html">Deeploy.TilingExtension.AsyncDma</a></li>
+      <li class="breadcrumb-item active">Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-tilingextension-asyncdma-anydimasyncdmatransferadapter">
+<h1>Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter<a class="headerlink" href="#deeploy-tilingextension-asyncdma-anydimasyncdmatransferadapter" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.TilingExtension.AsyncDma.</span></span><span class="sig-name descname"><span class="pre">AnydimAsyncDmaTransferAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.TilingExtension.AsyncDma.AsyncDma.html#Deeploy.TilingExtension.AsyncDma.AsyncDma" title="Deeploy.TilingExtension.AsyncDma.AsyncDma"><span class="pre">AsyncDma</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.TilingExtension.AsyncDma.AsyncDma.html#Deeploy.TilingExtension.AsyncDma.AsyncDma" title="Deeploy.TilingExtension.AsyncDma.AsyncDma"><span class="pre">AsyncDma</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.__init__" title="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(dma)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">getFuture</span></code>(tensorName, direction)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nearestSupportedTransferRank</span></code>(transfer_rank)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer</span></code>(ctxt, externalBuffer, localBuffer, ...)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">offsetPtrTemplate</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">NestedForLoopOpenTemplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeTemplate</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.alignToContext">
+<span class="sig-name descname"><span class="pre">alignToContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.alignToContext" title="Link to this definition"></a></dt>
+<dd><p>Helper method to extract Mako template expressions used in the backend’s code generation step. Also hoists transient buffers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext. Modifying is allowed within this method.</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – Current node representation. Modifying is allowed within this method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of the updated NetworkContext, operatorRepresentation and a list of
+the names of hoisted transient buffers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, OperatorRepresentation, List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.computeTransientBuffersSize">
+<span class="sig-name descname"><span class="pre">computeTransientBuffersSize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">IntVar</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.computeTransientBuffersSize" title="Link to this definition"></a></dt>
+<dd><p>Computes the size of transient buffers hoisted by this template given expressions for each variable added by the operator’s parser.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The parser’s node representation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns a list of tuples containing the hoisted buffer’s
+name and either a symbolic expression or an integer
+representing its size.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Tuple[str, Union[int, IntVar]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.generate" title="Link to this definition"></a></dt>
+<dd><p>Generated the operator’s C implementation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>operatorRepresentation</strong> (<em>The parser's node representation</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns the operator’s C implementation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – Raises an error whenever an expression in the
+    <cite>NodeTemplate</cite>’s templateString is not matched against the
+    available expressions in the <cite>operatorRepresentation</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.hoistTransientBuffers">
+<span class="sig-name descname"><span class="pre">hoistTransientBuffers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.hoistTransientBuffers" title="Link to this definition"></a></dt>
+<dd><p>Registers the transient buffers required by this template. If tiling is applied, this method is called AFTER tiling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The parser’s node representation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple containing the updated <cite>NetworkContext</cite> object,
+updated node representation and a list of names of all
+hoisted <cite>TransientBuffers</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, OperatorRepresentation, List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.internalSize">
+<span class="sig-name descname"><span class="pre">internalSize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopOpenTemplate.internalSize" title="Link to this definition"></a></dt>
+<dd><p>Return the byte size of internal memory buffers used by this template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>byte size of all transient internal buffers</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">NestedForLoopCloseTemplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeTemplate</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.alignToContext">
+<span class="sig-name descname"><span class="pre">alignToContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.alignToContext" title="Link to this definition"></a></dt>
+<dd><p>Helper method to extract Mako template expressions used in the backend’s code generation step. Also hoists transient buffers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext. Modifying is allowed within this method.</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – Current node representation. Modifying is allowed within this method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of the updated NetworkContext, operatorRepresentation and a list of
+the names of hoisted transient buffers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, OperatorRepresentation, List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.computeTransientBuffersSize">
+<span class="sig-name descname"><span class="pre">computeTransientBuffersSize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">IntVar</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.computeTransientBuffersSize" title="Link to this definition"></a></dt>
+<dd><p>Computes the size of transient buffers hoisted by this template given expressions for each variable added by the operator’s parser.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The parser’s node representation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns a list of tuples containing the hoisted buffer’s
+name and either a symbolic expression or an integer
+representing its size.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Tuple[str, Union[int, IntVar]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.generate" title="Link to this definition"></a></dt>
+<dd><p>Generated the operator’s C implementation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>operatorRepresentation</strong> (<em>The parser's node representation</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns the operator’s C implementation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – Raises an error whenever an expression in the
+    <cite>NodeTemplate</cite>’s templateString is not matched against the
+    available expressions in the <cite>operatorRepresentation</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.hoistTransientBuffers">
+<span class="sig-name descname"><span class="pre">hoistTransientBuffers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.hoistTransientBuffers" title="Link to this definition"></a></dt>
+<dd><p>Registers the transient buffers required by this template. If tiling is applied, this method is called AFTER tiling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The parser’s node representation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple containing the updated <cite>NetworkContext</cite> object,
+updated node representation and a list of names of all
+hoisted <cite>TransientBuffers</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, OperatorRepresentation, List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.internalSize">
+<span class="sig-name descname"><span class="pre">internalSize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.NestedForLoopCloseTemplate.internalSize" title="Link to this definition"></a></dt>
+<dd><p>Return the byte size of internal memory buffers used by this template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>byte size of all transient internal buffers</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">OffsetCalculationTemplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeTemplate</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.alignToContext">
+<span class="sig-name descname"><span class="pre">alignToContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.alignToContext" title="Link to this definition"></a></dt>
+<dd><p>Helper method to extract Mako template expressions used in the backend’s code generation step. Also hoists transient buffers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext. Modifying is allowed within this method.</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – Current node representation. Modifying is allowed within this method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of the updated NetworkContext, operatorRepresentation and a list of
+the names of hoisted transient buffers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, OperatorRepresentation, List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.computeTransientBuffersSize">
+<span class="sig-name descname"><span class="pre">computeTransientBuffersSize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">IntVar</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.computeTransientBuffersSize" title="Link to this definition"></a></dt>
+<dd><p>Computes the size of transient buffers hoisted by this template given expressions for each variable added by the operator’s parser.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The parser’s node representation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns a list of tuples containing the hoisted buffer’s
+name and either a symbolic expression or an integer
+representing its size.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Tuple[str, Union[int, IntVar]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.generate" title="Link to this definition"></a></dt>
+<dd><p>Generated the operator’s C implementation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>operatorRepresentation</strong> (<em>The parser's node representation</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns the operator’s C implementation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – Raises an error whenever an expression in the
+    <cite>NodeTemplate</cite>’s templateString is not matched against the
+    available expressions in the <cite>operatorRepresentation</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.hoistTransientBuffers">
+<span class="sig-name descname"><span class="pre">hoistTransientBuffers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.hoistTransientBuffers" title="Link to this definition"></a></dt>
+<dd><p>Registers the transient buffers required by this template. If tiling is applied, this method is called AFTER tiling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The parser’s node representation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple containing the updated <cite>NetworkContext</cite> object,
+updated node representation and a list of names of all
+hoisted <cite>TransientBuffers</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, OperatorRepresentation, List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.internalSize">
+<span class="sig-name descname"><span class="pre">internalSize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.AsyncDma.AnydimAsyncDmaTransferAdapter.OffsetCalculationTemplate.internalSize" title="Link to this definition"></a></dt>
+<dd><p>Return the byte size of internal memory buffers used by this template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>byte size of all transient internal buffers</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.TilingExtension.AsyncDma.html" class="btn btn-neutral float-left" title="Deeploy.TilingExtension.AsyncDma" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.TilingExtension.AsyncDma.AsyncDma.html" class="btn btn-neutral float-right" title="Deeploy.TilingExtension.AsyncDma.AsyncDma" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

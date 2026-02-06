@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.AsyncDma.BlockingDmaFromAsyncDmaAdapter
+===============================================================
+
+.. currentmodule:: Deeploy.TilingExtension.AsyncDma
+
+.. autoclass:: BlockingDmaFromAsyncDmaAdapter
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~BlockingDmaFromAsyncDmaAdapter.__init__
+      ~BlockingDmaFromAsyncDmaAdapter.checkTransfer
+      ~BlockingDmaFromAsyncDmaAdapter.getFuture
+      ~BlockingDmaFromAsyncDmaAdapter.supportedTransferRanks
+      ~BlockingDmaFromAsyncDmaAdapter.transfer
+      ~BlockingDmaFromAsyncDmaAdapter.transferOpRepr
+   
+   
+
+   
+   
+   

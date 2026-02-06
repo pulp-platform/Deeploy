@@ -1,0 +1,37 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.TilerModel
+==================================
+
+.. automodule:: Deeploy.TilingExtension.TilerModel
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      AddConstraintStrategy
+      PerformanceHint
+      TilerModel
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.MemPool.Platform.MemPoolStructBuffer
+====================================================
+
+.. currentmodule:: Deeploy.Targets.MemPool.Platform
+
+.. autoclass:: MemPoolStructBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemPoolStructBuffer.__init__
+      ~MemPoolStructBuffer.alloc
+      ~MemPoolStructBuffer.dealloc
+      ~MemPoolStructBuffer.fromNode
+      ~MemPoolStructBuffer.has_live_aliases
+      ~MemPoolStructBuffer.init
+      ~MemPoolStructBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemPoolStructBuffer.allocTemplate
+      ~MemPoolStructBuffer.deallocTemplate
+      ~MemPoolStructBuffer.initTemplate
+      ~MemPoolStructBuffer.name
+      ~MemPoolStructBuffer.shape
+   
+   

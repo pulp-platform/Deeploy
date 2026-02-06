@@ -1,0 +1,38 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.AbstractDataTypes.BaseType
+==================================
+
+.. currentmodule:: Deeploy.AbstractDataTypes
+
+.. autoclass:: BaseType
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~BaseType.__init__
+      ~BaseType.checkPromotion
+      ~BaseType.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BaseType.value
+      ~BaseType.typeName
+      ~BaseType.typeWidth
+   
+   

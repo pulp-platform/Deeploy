@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.UniformRequantShiftParser
+=========================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: UniformRequantShiftParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~UniformRequantShiftParser.__init__
+      ~UniformRequantShiftParser.parse
+      ~UniformRequantShiftParser.parseInputs
+      ~UniformRequantShiftParser.parseNode
+      ~UniformRequantShiftParser.parseNodeCtxt
+      ~UniformRequantShiftParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~UniformRequantShiftParser.operatorRepresentation
+   
+   

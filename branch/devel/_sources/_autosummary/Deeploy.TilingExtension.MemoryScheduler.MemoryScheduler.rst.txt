@@ -1,0 +1,45 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler
+=======================================================
+
+.. currentmodule:: Deeploy.TilingExtension.MemoryScheduler
+
+.. autoclass:: MemoryScheduler
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryScheduler.__init__
+      ~MemoryScheduler.annotateSolution
+      ~MemoryScheduler.constraintTileBuffersWithOverlappingLifetime
+      ~MemoryScheduler.getBlockVector
+      ~MemoryScheduler.getConstantTensorOffset
+      ~MemoryScheduler.getCost
+      ~MemoryScheduler.getHVector
+      ~MemoryScheduler.getPMatrix
+      ~MemoryScheduler.getSymbolicCostName
+      ~MemoryScheduler.heuristicPermutation
+      ~MemoryScheduler.overlap
+      ~MemoryScheduler.scheduleMemoryConstraints
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryScheduler.byteAlignment
+   
+   

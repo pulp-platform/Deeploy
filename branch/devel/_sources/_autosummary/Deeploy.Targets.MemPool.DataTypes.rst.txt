@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.MemPool.DataTypes
+=================================
+
+.. automodule:: Deeploy.Targets.MemPool.DataTypes
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      MemPoolStructDataTypes
+      ita_quant_t
+   
+   
+
+   
+   
+   
+
+
+

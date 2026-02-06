@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SoftmaxGradLayer
+===============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SoftmaxGradLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SoftmaxGradLayer.__init__
+      ~SoftmaxGradLayer.bind
+      ~SoftmaxGradLayer.broadcast
+      ~SoftmaxGradLayer.codeTransform
+      ~SoftmaxGradLayer.computeOps
+      ~SoftmaxGradLayer.computeShapes
+      ~SoftmaxGradLayer.discardCurrentMapper
+      ~SoftmaxGradLayer.generate
+      ~SoftmaxGradLayer.parse
+      ~SoftmaxGradLayer.resetDiscardedMappers
+      ~SoftmaxGradLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SoftmaxGradLayer.maps
+      ~SoftmaxGradLayer.mapper
+      ~SoftmaxGradLayer.discardedMappers
+      ~SoftmaxGradLayer.node
+   
+   

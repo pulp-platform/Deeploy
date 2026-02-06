@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka
+=======================
+
+.. automodule:: Deeploy.Targets.Neureka
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   Bindings
+   Deployer
+   Engine
+   Parsers
+   Platform
+   Templates
+   TileConstraints
+   Tiler
+   TopologyOptimizationPasses
+

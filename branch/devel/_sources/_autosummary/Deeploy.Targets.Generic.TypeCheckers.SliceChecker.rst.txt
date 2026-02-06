@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.SliceChecker
+=================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: SliceChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SliceChecker.__init__
+      ~SliceChecker.annotateDict
+      ~SliceChecker.checkOutputType
+      ~SliceChecker.signature
+      ~SliceChecker.typeCheck
+      ~SliceChecker.typeCheckNodeInputs
+      ~SliceChecker.typeInferGlobalCtxt
+      ~SliceChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SliceChecker.typeDict
+   
+   

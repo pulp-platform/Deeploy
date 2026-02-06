@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement.TilingVariableReplacementUpdate
+==========================================================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement
+
+.. autoclass:: TilingVariableReplacementUpdate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TilingVariableReplacementUpdate.__init__
+      ~TilingVariableReplacementUpdate.apply
+      ~TilingVariableReplacementUpdate.dereferenceVars
+      ~TilingVariableReplacementUpdate.extractDynamicReferences
+      ~TilingVariableReplacementUpdate.indexVars
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TilingVariableReplacementUpdate.parseTreeDict
+      ~TilingVariableReplacementUpdate.prefix
+   
+   

@@ -1,0 +1,35 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.TopologyOptimizationPasses.Passes.ConvEngineDiscolorationPass
+=====================================================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.TopologyOptimizationPasses.Passes
+
+.. autoclass:: ConvEngineDiscolorationPass
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ConvEngineDiscolorationPass.__init__
+      ~ConvEngineDiscolorationPass.apply
+      ~ConvEngineDiscolorationPass.named_subpasses
+      ~ConvEngineDiscolorationPass.register_subpass
+      ~ConvEngineDiscolorationPass.remove_subpass
+      ~ConvEngineDiscolorationPass.retarget
+      ~ConvEngineDiscolorationPass.run_pass
+      ~ConvEngineDiscolorationPass.setup_passes
+   
+   
+
+   
+   
+   

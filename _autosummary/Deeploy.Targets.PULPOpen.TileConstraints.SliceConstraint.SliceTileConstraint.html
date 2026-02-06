@@ -1,0 +1,263 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint" href="Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint.html" />
+    <link rel="prev" title="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint" href="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.CortexM.html">Deeploy.Targets.CortexM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.MemPool.html">Deeploy.Targets.MemPool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Neureka.html">Deeploy.Targets.Neureka</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.Targets.PULPOpen.html">Deeploy.Targets.PULPOpen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Snitch.html">Deeploy.Targets.Snitch</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.PULPOpen.html">Deeploy.Targets.PULPOpen</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.PULPOpen.TileConstraints.html">Deeploy.Targets.PULPOpen.TileConstraints</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.html">Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint</a></li>
+      <li class="breadcrumb-item active">Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-targets-pulpopen-tileconstraints-sliceconstraint-slicetileconstraint">
+<h1>Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint<a class="headerlink" href="#deeploy-targets-pulpopen-tileconstraints-sliceconstraint-slicetileconstraint" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.</span></span><span class="sig-name descname"><span class="pre">SliceTileConstraint</span></span><a class="headerlink" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="Deeploy.TilingExtension.TileConstraint.TileConstraint.html#Deeploy.TilingExtension.TileConstraint.TileConstraint" title="Deeploy.TilingExtension.TileConstraint.TileConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">TileConstraint</span></code></a></p>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.__init__" title="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.addGeometricalConstraint" title="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.addGeometricalConstraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">addGeometricalConstraint</span></code></a>(tilerModel, ...)</p></td>
+<td><p>Override this function to add your geometric constraints.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.addPolicyConstraint" title="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.addPolicyConstraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">addPolicyConstraint</span></code></a>(tilerModel, parseDict, ctxt)</p></td>
+<td><p>Override this function to add your custom constraints to your node.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">computeInputCubeFromOutputCube</span></code>(outputCube, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">constructSymbolicNodeRep</span></code>(tilerModel, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">extractBaseAddr</span></code>(tilingSolution, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">getBaseAddr</span></code>(tilingSolution, targetMemLevel, name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sanitizeTilingSchedule</span></code>(tilingSchedule)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.serializeTilingSolution" title="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.serializeTilingSolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">serializeTilingSolution</span></code></a>(tilingSolution, ...)</p></td>
+<td><p>Compute the required input tiles as a sequence of HyperRectangles</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">wrapTilingSolution</span></code>(tilingSolution, ...)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.addGeometricalConstraint">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">addGeometricalConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tilerModel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.TilingExtension.TilerModel.TilerModel.html#Deeploy.TilingExtension.TilerModel.TilerModel" title="Deeploy.TilingExtension.TilerModel.TilerModel"><span class="pre">TilerModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parseDict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.TilingExtension.TilerModel.TilerModel.html#Deeploy.TilingExtension.TilerModel.TilerModel" title="Deeploy.TilingExtension.TilerModel.TilerModel"><span class="pre">TilerModel</span></a></span></span><a class="headerlink" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.addGeometricalConstraint" title="Link to this definition"></a></dt>
+<dd><p>Override this function to add your geometric constraints.
+Each dimension of the output tensors should be determinable through a linear equation that utilizes the dimensions of the input tensors and the attributes of the nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.serializeTilingSolution">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">serializeTilingSolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tilingSolution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint.html#Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint" title="Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint"><span class="pre">NodeMemoryConstraint</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">absoluteOutputCubes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.TilingCodegen.AbsoluteHyperRectangle.html#Deeploy.TilingExtension.TilingCodegen.AbsoluteHyperRectangle" title="Deeploy.TilingExtension.TilingCodegen.AbsoluteHyperRectangle"><span class="pre">AbsoluteHyperRectangle</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetMemLevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.TilingCodegen.VariableReplacementScheme.html#Deeploy.TilingExtension.TilingCodegen.VariableReplacementScheme" title="Deeploy.TilingExtension.TilingCodegen.VariableReplacementScheme"><span class="pre">VariableReplacementScheme</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.TilingExtension.TilingCodegen.TilingSchedule.html#Deeploy.TilingExtension.TilingCodegen.TilingSchedule" title="Deeploy.TilingExtension.TilingCodegen.TilingSchedule"><span class="pre">TilingSchedule</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.serializeTilingSolution" title="Link to this definition"></a></dt>
+<dd><p>Compute the required input tiles as a sequence of HyperRectangles</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tilingSolution</strong> (<a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint.html#Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint" title="Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint"><em>NodeMemoryConstraint</em></a>) – The final tiling solution computed in the midend</p></li>
+<li><p><strong>absoluteOutputCubes</strong> (<em>List</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.TilingCodegen.AbsoluteHyperRectangle.html#Deeploy.TilingExtension.TilingCodegen.AbsoluteHyperRectangle" title="Deeploy.TilingExtension.TilingCodegen.AbsoluteHyperRectangle"><em>AbsoluteHyperRectangle</em></a><em>]</em>) – A list of HyperRectangles that represent tiles of the
+operator’s outputs with absolute offsets</p></li>
+<li><p><strong>targetMemLevel</strong> (<em>str</em>) – The name of the MemoryLevel registered within the
+Platform’s MemoryHierarchy where tiles should be
+transferred into (e.g.: L2, L1,… )</p></li>
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – The current NetworkContext</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>Dict</em>) – The operator’s node representation dictionary</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Return a VariableReplacementScheme to express which
+expressions within the target template might have to be
+replaced due to tiling. Also return a TilingSchedule to
+define one input HyperRectangle tuple for each output tile</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.TilingExtension.TilingCodegen.VariableReplacementScheme.html#Deeploy.TilingExtension.TilingCodegen.VariableReplacementScheme" title="Deeploy.TilingExtension.TilingCodegen.VariableReplacementScheme">VariableReplacementScheme</a>, <a class="reference internal" href="Deeploy.TilingExtension.TilingCodegen.TilingSchedule.html#Deeploy.TilingExtension.TilingCodegen.TilingSchedule" title="Deeploy.TilingExtension.TilingCodegen.TilingSchedule">TilingSchedule</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – Raises an exception unless overridden in the calling class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.addPolicyConstraint">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">addPolicyConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tilerModel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.TilingExtension.TilerModel.TilerModel.html#Deeploy.TilingExtension.TilerModel.TilerModel" title="Deeploy.TilingExtension.TilerModel.TilerModel"><span class="pre">TilerModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parseDict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.TilingExtension.TilerModel.TilerModel.html#Deeploy.TilingExtension.TilerModel.TilerModel" title="Deeploy.TilingExtension.TilerModel.TilerModel"><span class="pre">TilerModel</span></a></span></span><a class="headerlink" href="#Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.SliceTileConstraint.addPolicyConstraint" title="Link to this definition"></a></dt>
+<dd><p>Override this function to add your custom constraints to your node.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint.html" class="btn btn-neutral float-left" title="Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint.html" class="btn btn-neutral float-right" title="Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.GatherLayer
+==========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: GatherLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GatherLayer.__init__
+      ~GatherLayer.bind
+      ~GatherLayer.broadcast
+      ~GatherLayer.codeTransform
+      ~GatherLayer.computeOps
+      ~GatherLayer.computeShapes
+      ~GatherLayer.discardCurrentMapper
+      ~GatherLayer.generate
+      ~GatherLayer.parse
+      ~GatherLayer.resetDiscardedMappers
+      ~GatherLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GatherLayer.maps
+      ~GatherLayer.mapper
+      ~GatherLayer.discardedMappers
+      ~GatherLayer.node
+   
+   

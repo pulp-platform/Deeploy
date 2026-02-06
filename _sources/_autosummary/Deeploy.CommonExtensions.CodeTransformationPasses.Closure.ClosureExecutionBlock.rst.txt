@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses.Closure.ClosureExecutionBlock
+===============================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.CodeTransformationPasses.Closure
+
+.. autoclass:: ClosureExecutionBlock
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ClosureExecutionBlock.__init__
+      ~ClosureExecutionBlock.addLeft
+      ~ClosureExecutionBlock.addRight
+      ~ClosureExecutionBlock.generate
+      ~ClosureExecutionBlock.hoisting
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ClosureExecutionBlock.baseBlock
+      ~ClosureExecutionBlock.codeSnippets
+      ~ClosureExecutionBlock.patternMemoryConstraint
+   
+   

@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.NodeMapper
+===============================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: NodeMapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NodeMapper.__init__
+      ~NodeMapper.bind
+      ~NodeMapper.bindingsExhausted
+      ~NodeMapper.discardCurrentBinder
+      ~NodeMapper.generate
+      ~NodeMapper.resetDiscardedBindings
+      ~NodeMapper.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NodeMapper.parser
+      ~NodeMapper.bindings
+      ~NodeMapper.binder
+      ~NodeMapper.bound
+      ~NodeMapper.discardedBindings
+   
+   

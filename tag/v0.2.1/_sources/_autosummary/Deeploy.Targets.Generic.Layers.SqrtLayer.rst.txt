@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SqrtLayer
+========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SqrtLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SqrtLayer.__init__
+      ~SqrtLayer.bind
+      ~SqrtLayer.broadcast
+      ~SqrtLayer.codeTransform
+      ~SqrtLayer.computeOps
+      ~SqrtLayer.computeShapes
+      ~SqrtLayer.discardCurrentMapper
+      ~SqrtLayer.generate
+      ~SqrtLayer.parse
+      ~SqrtLayer.resetDiscardedMappers
+      ~SqrtLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SqrtLayer.maps
+      ~SqrtLayer.mapper
+      ~SqrtLayer.discardedMappers
+      ~SqrtLayer.node
+   
+   

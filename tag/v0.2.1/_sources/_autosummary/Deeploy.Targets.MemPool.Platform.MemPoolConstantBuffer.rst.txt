@@ -1,0 +1,45 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.MemPool.Platform.MemPoolConstantBuffer
+======================================================
+
+.. currentmodule:: Deeploy.Targets.MemPool.Platform
+
+.. autoclass:: MemPoolConstantBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemPoolConstantBuffer.__init__
+      ~MemPoolConstantBuffer.alloc
+      ~MemPoolConstantBuffer.dealloc
+      ~MemPoolConstantBuffer.fromNode
+      ~MemPoolConstantBuffer.has_live_aliases
+      ~MemPoolConstantBuffer.init
+      ~MemPoolConstantBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemPoolConstantBuffer.allocTemplate
+      ~MemPoolConstantBuffer.deallocTemplate
+      ~MemPoolConstantBuffer.initTemplate
+      ~MemPoolConstantBuffer.values
+      ~MemPoolConstantBuffer.name
+      ~MemPoolConstantBuffer.shape
+   
+   

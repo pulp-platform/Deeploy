@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.RQMatMulParser
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: RQMatMulParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQMatMulParser.__init__
+      ~RQMatMulParser.parse
+      ~RQMatMulParser.parseInputs
+      ~RQMatMulParser.parseNode
+      ~RQMatMulParser.parseNodeCtxt
+      ~RQMatMulParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQMatMulParser.operatorRepresentation
+   
+   

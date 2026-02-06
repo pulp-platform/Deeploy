@@ -1,0 +1,54 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.TilingCodegen
+=====================================
+
+.. automodule:: Deeploy.TilingExtension.TilingCodegen
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      calculateFlatOffset
+      calculateFlatOffsetInBytes
+      computeTileHyperRectangles
+      minimizeRectangle
+      minimizeVariableReplacement
+      padOffset
+      padShape
+      padStride
+      stridesFromShape
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      AbsoluteHyperRectangle
+      HyperRectangle
+      MemoryTransfer
+      TilingSchedule
+      VariableReplacementScheme
+   
+   
+
+   
+   
+   
+
+
+

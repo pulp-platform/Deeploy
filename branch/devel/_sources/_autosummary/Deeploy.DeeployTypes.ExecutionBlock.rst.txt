@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.ExecutionBlock
+===================================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: ExecutionBlock
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ExecutionBlock.__init__
+      ~ExecutionBlock.addLeft
+      ~ExecutionBlock.addRight
+      ~ExecutionBlock.generate
+      ~ExecutionBlock.hoisting
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ExecutionBlock.codeSnippets
+      ~ExecutionBlock.patternMemoryConstraint
+   
+   

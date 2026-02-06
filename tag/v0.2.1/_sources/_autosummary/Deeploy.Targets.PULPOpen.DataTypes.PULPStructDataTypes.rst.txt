@@ -1,0 +1,28 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.DataTypes.PULPStructDataTypes
+======================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.DataTypes
+
+.. autoclass:: PULPStructDataTypes
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPStructDataTypes.__init__
+   
+   
+
+   
+   
+   

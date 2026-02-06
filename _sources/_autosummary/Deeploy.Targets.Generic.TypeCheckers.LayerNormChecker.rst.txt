@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.LayerNormChecker
+=====================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: LayerNormChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~LayerNormChecker.__init__
+      ~LayerNormChecker.annotateDict
+      ~LayerNormChecker.checkOutputType
+      ~LayerNormChecker.signature
+      ~LayerNormChecker.typeCheck
+      ~LayerNormChecker.typeCheckNodeInputs
+      ~LayerNormChecker.typeInferGlobalCtxt
+      ~LayerNormChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~LayerNormChecker.typeDict
+   
+   

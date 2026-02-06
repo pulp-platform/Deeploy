@@ -1,0 +1,43 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding
+============================================================
+
+.. currentmodule:: Deeploy.FutureExtension.Bindings.FutureBinding
+
+.. autoclass:: FutureBinding
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~FutureBinding.__init__
+      ~FutureBinding.assignStateReferenceElement
+      ~FutureBinding.bind
+      ~FutureBinding.codeTransform
+      ~FutureBinding.earlyBinding
+      ~FutureBinding.generate
+      ~FutureBinding.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~FutureBinding.executionBlock
+      ~FutureBinding.nodeName
+      ~FutureBinding.typeChecker
+      ~FutureBinding.template
+   
+   

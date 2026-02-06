@@ -1,0 +1,35 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Templates.MaxPool2DTemplate
+====================================================
+
+.. automodule:: Deeploy.Targets.PULPOpen.Templates.MaxPool2DTemplate
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      PULPMaxPoolTemplate
+   
+   
+
+   
+   
+   
+
+
+

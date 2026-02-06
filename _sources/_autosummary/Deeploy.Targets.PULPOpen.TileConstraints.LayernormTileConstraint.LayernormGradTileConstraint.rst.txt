@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint.LayernormGradTileConstraint
+============================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint
+
+.. autoclass:: LayernormGradTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~LayernormGradTileConstraint.__init__
+      ~LayernormGradTileConstraint.addGeometricalConstraint
+      ~LayernormGradTileConstraint.addPolicyConstraint
+      ~LayernormGradTileConstraint.constructSymbolicNodeRep
+      ~LayernormGradTileConstraint.extractBaseAddr
+      ~LayernormGradTileConstraint.getBaseAddr
+      ~LayernormGradTileConstraint.sanitizeTilingSchedule
+      ~LayernormGradTileConstraint.serializeTilingSolution
+      ~LayernormGradTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

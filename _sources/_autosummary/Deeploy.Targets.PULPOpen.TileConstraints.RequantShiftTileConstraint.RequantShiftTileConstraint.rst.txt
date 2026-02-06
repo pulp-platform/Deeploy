@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint.RequantShiftTileConstraint
+==============================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint
+
+.. autoclass:: RequantShiftTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RequantShiftTileConstraint.__init__
+      ~RequantShiftTileConstraint.addGeometricalConstraint
+      ~RequantShiftTileConstraint.addPolicyConstraint
+      ~RequantShiftTileConstraint.constructSymbolicNodeRep
+      ~RequantShiftTileConstraint.extractBaseAddr
+      ~RequantShiftTileConstraint.getBaseAddr
+      ~RequantShiftTileConstraint.sanitizeTilingSchedule
+      ~RequantShiftTileConstraint.serializeTilingSolution
+      ~RequantShiftTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

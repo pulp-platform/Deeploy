@@ -1,0 +1,43 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.AsyncDma
+================================
+
+.. automodule:: Deeploy.TilingExtension.AsyncDma
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      AnydimAsyncDmaTransferAdapter
+      AsyncDma
+      AsyncDmaWaitingStrategy
+      BarrierWaitingStrategy
+      BlockingDmaFromAsyncDmaAdapter
+      DirectionWaitingStrategy
+      EmptyFuture
+      Future
+      PerTensorWaitingStrategy
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.ITAPartialMaxParser
+===================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: ITAPartialMaxParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ITAPartialMaxParser.__init__
+      ~ITAPartialMaxParser.parse
+      ~ITAPartialMaxParser.parseInputs
+      ~ITAPartialMaxParser.parseNode
+      ~ITAPartialMaxParser.parseNodeCtxt
+      ~ITAPartialMaxParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ITAPartialMaxParser.operatorRepresentation
+   
+   

@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.NodeParser
+===============================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: NodeParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NodeParser.__init__
+      ~NodeParser.parse
+      ~NodeParser.parseInputs
+      ~NodeParser.parseNode
+      ~NodeParser.parseNodeCtxt
+      ~NodeParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NodeParser.operatorRepresentation
+   
+   

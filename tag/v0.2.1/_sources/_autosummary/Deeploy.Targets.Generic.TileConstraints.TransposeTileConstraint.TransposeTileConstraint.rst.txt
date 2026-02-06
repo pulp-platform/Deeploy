@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint.TransposeTileConstraint
+=======================================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint
+
+.. autoclass:: TransposeTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TransposeTileConstraint.__init__
+      ~TransposeTileConstraint.addGeometricalConstraint
+      ~TransposeTileConstraint.addPolicyConstraint
+      ~TransposeTileConstraint.constructSymbolicNodeRep
+      ~TransposeTileConstraint.extractBaseAddr
+      ~TransposeTileConstraint.getBaseAddr
+      ~TransposeTileConstraint.sanitizeTilingSchedule
+      ~TransposeTileConstraint.serializeTilingSolution
+      ~TransposeTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

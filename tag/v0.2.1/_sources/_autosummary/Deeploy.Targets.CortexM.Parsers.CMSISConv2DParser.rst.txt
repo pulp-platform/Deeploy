@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Parsers.CMSISConv2DParser
+=================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.Parsers
+
+.. autoclass:: CMSISConv2DParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CMSISConv2DParser.__init__
+      ~CMSISConv2DParser.parse
+      ~CMSISConv2DParser.parseInputs
+      ~CMSISConv2DParser.parseNode
+      ~CMSISConv2DParser.parseNodeCtxt
+      ~CMSISConv2DParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CMSISConv2DParser.operatorRepresentation
+   
+   

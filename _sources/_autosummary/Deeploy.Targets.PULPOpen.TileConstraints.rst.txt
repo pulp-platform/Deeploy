@@ -1,0 +1,50 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints
+========================================
+
+.. automodule:: Deeploy.Targets.PULPOpen.TileConstraints
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   ConvTileConstraint
+   DWConvTileConstraint
+   GEMMTileConstraint
+   GatherTileConstraint
+   GeluTileConstraint
+   LayernormTileConstraint
+   MatMulTileConstraint
+   MaxPoolTileConstraint
+   ReduceMeanConstraint
+   ReduceSumTileConstraint
+   RequantShiftTileConstraint
+   SGDTileConstraint
+   SliceConstraint
+   SoftmaxCrossEntropyTileConstraint
+   iSoftmaxTileConstraint
+

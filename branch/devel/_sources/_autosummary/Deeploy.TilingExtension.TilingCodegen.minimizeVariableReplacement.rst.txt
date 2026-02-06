@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.minimizeVariableReplacement
+=================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: minimizeVariableReplacement

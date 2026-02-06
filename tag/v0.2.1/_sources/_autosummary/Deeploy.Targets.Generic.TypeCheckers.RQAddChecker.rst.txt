@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.RQAddChecker
+=================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: RQAddChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQAddChecker.__init__
+      ~RQAddChecker.annotateDict
+      ~RQAddChecker.checkOutputType
+      ~RQAddChecker.signature
+      ~RQAddChecker.typeCheck
+      ~RQAddChecker.typeCheckNodeInputs
+      ~RQAddChecker.typeInferGlobalCtxt
+      ~RQAddChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQAddChecker.typeDict
+   
+   

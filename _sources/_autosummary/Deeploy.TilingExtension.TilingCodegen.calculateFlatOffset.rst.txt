@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.calculateFlatOffset
+=========================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: calculateFlatOffset

@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.DataTypes.float32\_t
+=============================================
+
+.. currentmodule:: Deeploy.CommonExtensions.DataTypes
+
+.. autoclass:: float32_t
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~float32_t.__init__
+      ~float32_t.checkPromotion
+      ~float32_t.checkValue
+      ~float32_t.partialOrderUpcast
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~float32_t.value
+      ~float32_t.typeExponent
+      ~float32_t.typeExponentMax
+      ~float32_t.typeExponentOffset
+      ~float32_t.typeMantissa
+      ~float32_t.typeMin
+      ~float32_t.typeName
+      ~float32_t.typeWidth
+   
+   

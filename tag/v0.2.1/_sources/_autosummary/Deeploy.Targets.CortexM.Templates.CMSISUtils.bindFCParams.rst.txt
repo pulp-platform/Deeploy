@@ -1,0 +1,6 @@
+Deeploy.Targets.CortexM.Templates.CMSISUtils.bindFCParams
+=========================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.Templates.CMSISUtils
+
+.. autofunction:: bindFCParams

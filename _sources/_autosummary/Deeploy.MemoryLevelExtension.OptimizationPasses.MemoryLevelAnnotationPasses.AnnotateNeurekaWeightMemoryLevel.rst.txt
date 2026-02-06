@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses.AnnotateNeurekaWeightMemoryLevel
+============================================================================================================
+
+.. currentmodule:: Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses
+
+.. autoclass:: AnnotateNeurekaWeightMemoryLevel
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~AnnotateNeurekaWeightMemoryLevel.__init__
+      ~AnnotateNeurekaWeightMemoryLevel.apply
+      ~AnnotateNeurekaWeightMemoryLevel.named_subpasses
+      ~AnnotateNeurekaWeightMemoryLevel.register_subpass
+      ~AnnotateNeurekaWeightMemoryLevel.remove_subpass
+      ~AnnotateNeurekaWeightMemoryLevel.setup_passes
+   
+   
+
+   
+   
+   

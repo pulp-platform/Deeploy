@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Templates
+=================================
+
+.. automodule:: Deeploy.Targets.CortexM.Templates
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   AddTemplate
+   CLCATemplate
+   CMSISUtils
+   ConvTemplate
+   DWConvTemplate
+   GEMMTemplate
+   LinearAttentionTemplate
+   MHSATemplate
+   MaxPool2DTemplate
+

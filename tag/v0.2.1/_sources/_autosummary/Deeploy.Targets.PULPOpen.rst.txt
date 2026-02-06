@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen
+========================
+
+.. automodule:: Deeploy.Targets.PULPOpen
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   Bindings
+   CodeTransformationPasses
+   DataTypes
+   Deployer
+   Layers
+   Parsers
+   Platform
+   Templates
+   TileConstraints
+   Tiler
+   TopologyOptimizationPasses
+   TypeCheckers
+

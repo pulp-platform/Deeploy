@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.ConcatLayer
+==========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: ConcatLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ConcatLayer.__init__
+      ~ConcatLayer.bind
+      ~ConcatLayer.broadcast
+      ~ConcatLayer.codeTransform
+      ~ConcatLayer.computeOps
+      ~ConcatLayer.computeShapes
+      ~ConcatLayer.discardCurrentMapper
+      ~ConcatLayer.generate
+      ~ConcatLayer.parse
+      ~ConcatLayer.resetDiscardedMappers
+      ~ConcatLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ConcatLayer.maps
+      ~ConcatLayer.mapper
+      ~ConcatLayer.discardedMappers
+      ~ConcatLayer.node
+   
+   

@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint.SoftmaxCrossEntropyTileConstraint
+============================================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint
+
+.. autoclass:: SoftmaxCrossEntropyTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyTileConstraint.__init__
+      ~SoftmaxCrossEntropyTileConstraint.addGeometricalConstraint
+      ~SoftmaxCrossEntropyTileConstraint.addPolicyConstraint
+      ~SoftmaxCrossEntropyTileConstraint.constructSymbolicNodeRep
+      ~SoftmaxCrossEntropyTileConstraint.extractBaseAddr
+      ~SoftmaxCrossEntropyTileConstraint.getBaseAddr
+      ~SoftmaxCrossEntropyTileConstraint.sanitizeTilingSchedule
+      ~SoftmaxCrossEntropyTileConstraint.serializeTilingSolution
+      ~SoftmaxCrossEntropyTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyTileConstraint.dataIn1Name
+      ~SoftmaxCrossEntropyTileConstraint.dataIn2Name
+      ~SoftmaxCrossEntropyTileConstraint.dataOutName
+   
+   

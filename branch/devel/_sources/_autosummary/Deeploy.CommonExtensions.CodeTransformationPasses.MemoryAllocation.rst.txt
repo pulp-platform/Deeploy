@@ -1,0 +1,37 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation
+==================================================================
+
+.. automodule:: Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      ArgumentStructGeneration
+      MemoryManagementGeneration
+      MemoryPassthroughGeneration
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,565 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.DeeployTypes.NetworkContainer &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.DeeployTypes.NetworkContext" href="Deeploy.DeeployTypes.NetworkContext.html" />
+    <link rel="prev" title="Deeploy.DeeployTypes.GlobalDefinition" href="Deeploy.DeeployTypes.GlobalDefinition.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.CodeGenVerbosity.html">Deeploy.DeeployTypes.CodeGenVerbosity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.CodeSnippet.html">Deeploy.DeeployTypes.CodeSnippet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.CodeTransformation.html">Deeploy.DeeployTypes.CodeTransformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.CodeTransformationPass.html">Deeploy.DeeployTypes.CodeTransformationPass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.ConstantBuffer.html">Deeploy.DeeployTypes.ConstantBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.DeploymentEngine.html">Deeploy.DeeployTypes.DeploymentEngine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.DeploymentPlatform.html">Deeploy.DeeployTypes.DeploymentPlatform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.ExecutionBlock.html">Deeploy.DeeployTypes.ExecutionBlock</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.GlobalDefinition.html">Deeploy.DeeployTypes.GlobalDefinition</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Deeploy.DeeployTypes.NetworkContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html">Deeploy.DeeployTypes.NetworkContext</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkDeployer.html">Deeploy.DeeployTypes.NetworkDeployer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkOptimizationPass.html">Deeploy.DeeployTypes.NetworkOptimizationPass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkOptimizer.html">Deeploy.DeeployTypes.NetworkOptimizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeBinding.html">Deeploy.DeeployTypes.NodeBinding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeMapper.html">Deeploy.DeeployTypes.NodeMapper</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeParser.html">Deeploy.DeeployTypes.NodeParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html">Deeploy.DeeployTypes.NodeTemplate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTypeChecker.html">Deeploy.DeeployTypes.NodeTypeChecker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.ONNXLayer.html">Deeploy.DeeployTypes.ONNXLayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.StructBuffer.html">Deeploy.DeeployTypes.StructBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.TopologyOptimizationPass.html">Deeploy.DeeployTypes.TopologyOptimizationPass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.TopologyOptimizer.html">Deeploy.DeeployTypes.TopologyOptimizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.TransientBuffer.html">Deeploy.DeeployTypes.TransientBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html">Deeploy.DeeployTypes.VariableBuffer</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+      <li class="breadcrumb-item active">Deeploy.DeeployTypes.NetworkContainer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.DeeployTypes.NetworkContainer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-deeploytypes-networkcontainer">
+<h1>Deeploy.DeeployTypes.NetworkContainer<a class="headerlink" href="#deeploy-deeploytypes-networkcontainer" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.DeeployTypes.</span></span><span class="sig-name descname"><span class="pre">NetworkContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">graph:</span> <span class="pre">~onnx_graphsurgeon.ir.graph.Graph,</span> <span class="pre">platform:</span> <span class="pre">~Deeploy.DeeployTypes.DeploymentPlatform,</span> <span class="pre">inputTypes:</span> <span class="pre">~typing.Dict[str,</span> <span class="pre">~typing.Type[~Deeploy.AbstractDataTypes.Pointer]],</span> <span class="pre">scheduler:</span> <span class="pre">~typing.Callable[[~onnx_graphsurgeon.ir.graph.Graph],</span> <span class="pre">~typing.List[~typing.List[~onnx_graphsurgeon.ir.node.Node]]</span> <span class="pre">|</span> <span class="pre">~typing.List[~onnx_graphsurgeon.ir.node.Node]]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">NetworkContainer.&lt;lambda&gt;&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'DeeployNetwork',</span> <span class="pre">deeployStateDir:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'DeeployState'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Deeploy abstraction for containing the information needed to describe a complete neural network to be deployed</p>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">graph:</span> <span class="pre">~onnx_graphsurgeon.ir.graph.Graph,</span> <span class="pre">platform:</span> <span class="pre">~Deeploy.DeeployTypes.DeploymentPlatform,</span> <span class="pre">inputTypes:</span> <span class="pre">~typing.Dict[str,</span> <span class="pre">~typing.Type[~Deeploy.AbstractDataTypes.Pointer]],</span> <span class="pre">scheduler:</span> <span class="pre">~typing.Callable[[~onnx_graphsurgeon.ir.graph.Graph],</span> <span class="pre">~typing.List[~typing.List[~onnx_graphsurgeon.ir.node.Node]]</span> <span class="pre">|</span> <span class="pre">~typing.List[~onnx_graphsurgeon.ir.node.Node]]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">NetworkContainer.&lt;lambda&gt;&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'DeeployNetwork',</span> <span class="pre">deeployStateDir:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'DeeployState'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a new NetworkContainer and its NetworkContext</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> (<em>gs.Graph</em>) – Neural network graph to be deployed</p></li>
+<li><p><strong>platform</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.DeploymentPlatform.html#Deeploy.DeeployTypes.DeploymentPlatform" title="Deeploy.DeeployTypes.DeploymentPlatform"><em>DeploymentPlatform</em></a>) – DeploymentPlatform being targetted</p></li>
+<li><p><strong>inputTypes</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Type</em><em>[</em><a class="reference internal" href="Deeploy.AbstractDataTypes.Pointer.html#Deeploy.AbstractDataTypes.Pointer" title="Deeploy.AbstractDataTypes.Pointer"><em>Pointer</em></a><em>]</em><em>]</em>) – DataType for each global network input</p></li>
+<li><p><strong>scheduler</strong> (<em>Callable</em><em>[</em><em>[</em><em>gs.Graph</em><em>]</em><em>, </em><em>Schedule</em><em>]</em>) – Callable that ingests the graph and returns a list of
+operators to execute</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Prefix to use in deployment to uniquify tensor names</p></li>
+<li><p><strong>deeployStateDir</strong> (<em>str</em>) – Path to a directory to dump intermediate outputs</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.__init__" title="Deeploy.DeeployTypes.NetworkContainer.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(graph, platform, inputTypes, ...)</p></td>
+<td><p>Initializes a new NetworkContainer and its NetworkContext</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.bind" title="Deeploy.DeeployTypes.NetworkContainer.bind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind</span></code></a>()</p></td>
+<td><p>Bind the entire network layer-by-layer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.codeTransform" title="Deeploy.DeeployTypes.NetworkContainer.codeTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">codeTransform</span></code></a>([verbose])</p></td>
+<td><p>Apply code transformations on every layer's execution block</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.exportDeeployState" title="Deeploy.DeeployTypes.NetworkContainer.exportDeeployState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportDeeployState</span></code></a>(folderPath, fileName)</p></td>
+<td><p>Export compressed network context and neural network graph</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateBufferAllocationCode" title="Deeploy.DeeployTypes.NetworkContainer.generateBufferAllocationCode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateBufferAllocationCode</span></code></a>()</p></td>
+<td><p>Generates code to allocate space for the global input and output buffer of the network</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateBufferDeAllocationCode" title="Deeploy.DeeployTypes.NetworkContainer.generateBufferDeAllocationCode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateBufferDeAllocationCode</span></code></a>()</p></td>
+<td><p>Generates code to deallocate all global buffers</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateBufferInitializationCode" title="Deeploy.DeeployTypes.NetworkContainer.generateBufferInitializationCode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateBufferInitializationCode</span></code></a>()</p></td>
+<td><p>Generates code for all forward-declaration of buffers used during inference</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateEngineInitializationCode" title="Deeploy.DeeployTypes.NetworkContainer.generateEngineInitializationCode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateEngineInitializationCode</span></code></a>()</p></td>
+<td><p>Generate initialization code for all compute engines</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateGlobalDefinitionCode" title="Deeploy.DeeployTypes.NetworkContainer.generateGlobalDefinitionCode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateGlobalDefinitionCode</span></code></a>()</p></td>
+<td><p>Generate all global definition code for inference</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateIOBufferInitializationCode" title="Deeploy.DeeployTypes.NetworkContainer.generateIOBufferInitializationCode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateIOBufferInitializationCode</span></code></a>()</p></td>
+<td><p>Generate initialization code for global network inputs and outputs</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateIncludeString" title="Deeploy.DeeployTypes.NetworkContainer.generateIncludeString"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateIncludeString</span></code></a>()</p></td>
+<td><p>Generate code to include platform-dependent includes</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateInferenceCode" title="Deeploy.DeeployTypes.NetworkContainer.generateInferenceCode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateInferenceCode</span></code></a>()</p></td>
+<td><p>Generate the actual inference function for the entire network</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.generateInferenceInitializationCode" title="Deeploy.DeeployTypes.NetworkContainer.generateInferenceInitializationCode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generateInferenceInitializationCode</span></code></a>()</p></td>
+<td><p>Generate initialization code, including static memory allocation and other setup tasks</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.importDeeployState" title="Deeploy.DeeployTypes.NetworkContainer.importDeeployState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">importDeeployState</span></code></a>(folderPath, fileName)</p></td>
+<td><p>Override this container's graph and context with loaded compressed artifacts</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.inputs" title="Deeploy.DeeployTypes.NetworkContainer.inputs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inputs</span></code></a>()</p></td>
+<td><p>Return a list of all VariableBuffers that are also global inputs of the network</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.numberOfOps" title="Deeploy.DeeployTypes.NetworkContainer.numberOfOps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numberOfOps</span></code></a>(verbose)</p></td>
+<td><p>Returns the total number of operations per network inference</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.outputs" title="Deeploy.DeeployTypes.NetworkContainer.outputs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></a>()</p></td>
+<td><p>Return a list of all VariableBuffers that are also global outputs of the network</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.parse" title="Deeploy.DeeployTypes.NetworkContainer.parse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse</span></code></a>([default_channels_first])</p></td>
+<td><p>Parses the full network by iteratively exploring mapping and binding options with backtracking</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContainer.worstCaseBufferSize" title="Deeploy.DeeployTypes.NetworkContainer.worstCaseBufferSize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">worstCaseBufferSize</span></code></a></p></td>
+<td><p>Return the worst-case buffer size occupied by the network implementaiton</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.inputs" title="Link to this definition"></a></dt>
+<dd><p>Return a list of all VariableBuffers that are also global inputs of the network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Global inputs</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer">VariableBuffer</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.outputs" title="Link to this definition"></a></dt>
+<dd><p>Return a list of all VariableBuffers that are also global outputs of the network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Global outputs</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer">VariableBuffer</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.codeTransform">
+<span class="sig-name descname"><span class="pre">codeTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.CodeGenVerbosity.html#Deeploy.DeeployTypes.CodeGenVerbosity" title="Deeploy.DeeployTypes.CodeGenVerbosity"><span class="pre">CodeGenVerbosity</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">CodeGenVerbosity(tilingProfiling=None,</span> <span class="pre">untiledProfiling=None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.codeTransform" title="Link to this definition"></a></dt>
+<dd><p>Apply code transformations on every layer’s execution block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.CodeGenVerbosity.html#Deeploy.DeeployTypes.CodeGenVerbosity" title="Deeploy.DeeployTypes.CodeGenVerbosity"><em>CodeGenVerbosity</em></a>) – Control code generation verbosity</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – Raises a RuntimeError if the entire network is not bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.parse">
+<span class="sig-name descname"><span class="pre">parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_channels_first</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.parse" title="Link to this definition"></a></dt>
+<dd><p>Parses the full network by iteratively exploring mapping and binding options with backtracking</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>default_channels_first</strong> (<em>bool</em>) – Whether the default data layout is CxHxW or HxWxC</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns a boolean to indicate whether parsing was
+successful</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – Raises a RuntimeError if backtracking was exhausted
+    without finding a mapping solution</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.bind">
+<span class="sig-name descname"><span class="pre">bind</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.bind" title="Link to this definition"></a></dt>
+<dd><p>Bind the entire network layer-by-layer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return true if binding was successful</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – Raises a RuntimeError if the network has not been parsed
+    of there exists no valid binding</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateInferenceCode">
+<span class="sig-name descname"><span class="pre">generateInferenceCode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateInferenceCode" title="Link to this definition"></a></dt>
+<dd><p>Generate the actual inference function for the entire network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The full inference method</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – Raises a RuntimeError if network is not parsed and bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateGlobalDefinitionCode">
+<span class="sig-name descname"><span class="pre">generateGlobalDefinitionCode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateGlobalDefinitionCode" title="Link to this definition"></a></dt>
+<dd><p>Generate all global definition code for inference</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Global Definition code</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – Raises a RuntimeError if network is not parsed and bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateInferenceInitializationCode">
+<span class="sig-name descname"><span class="pre">generateInferenceInitializationCode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateInferenceInitializationCode" title="Link to this definition"></a></dt>
+<dd><p>Generate initialization code, including static memory allocation and other setup tasks</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initialization code</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – Raises a RuntimeError if network is not parsed and bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateIOBufferInitializationCode">
+<span class="sig-name descname"><span class="pre">generateIOBufferInitializationCode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateIOBufferInitializationCode" title="Link to this definition"></a></dt>
+<dd><p>Generate initialization code for global network inputs and outputs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initialization code</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – Raises a RuntimeError if network is not parsed and bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.worstCaseBufferSize">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">worstCaseBufferSize</span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.worstCaseBufferSize" title="Link to this definition"></a></dt>
+<dd><p>Return the worst-case buffer size occupied by the network implementaiton</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateBufferInitializationCode">
+<span class="sig-name descname"><span class="pre">generateBufferInitializationCode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateBufferInitializationCode" title="Link to this definition"></a></dt>
+<dd><p>Generates code for all forward-declaration of buffers used during inference</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Returns forward-declaration code</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – Raises a RuntimeError if network is not parsed and bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateBufferAllocationCode">
+<span class="sig-name descname"><span class="pre">generateBufferAllocationCode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateBufferAllocationCode" title="Link to this definition"></a></dt>
+<dd><p>Generates code to allocate space for the global input and output buffer of the network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Allocation code for global IO buffers</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – Raises a RuntimeError if network is not parsed and bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateBufferDeAllocationCode">
+<span class="sig-name descname"><span class="pre">generateBufferDeAllocationCode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateBufferDeAllocationCode" title="Link to this definition"></a></dt>
+<dd><p>Generates code to deallocate all global buffers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Code to deallocate buffers</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – Raises a RuntimeError if network is not parsed and bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateIncludeString">
+<span class="sig-name descname"><span class="pre">generateIncludeString</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateIncludeString" title="Link to this definition"></a></dt>
+<dd><p>Generate code to include platform-dependent includes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Include code</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.generateEngineInitializationCode">
+<span class="sig-name descname"><span class="pre">generateEngineInitializationCode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.generateEngineInitializationCode" title="Link to this definition"></a></dt>
+<dd><p>Generate initialization code for all compute engines</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initialization code for all engines</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.numberOfOps">
+<span class="sig-name descname"><span class="pre">numberOfOps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.numberOfOps" title="Link to this definition"></a></dt>
+<dd><p>Returns the total number of operations per network inference</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> (<em>bool</em>) – Control whether the number of operations are printed to
+STDOUT for each operator</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of operations (1 MAC = 2 Ops) per network inference</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – Raises a RuntimeError if network is not parsed and bound</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.exportDeeployState">
+<span class="sig-name descname"><span class="pre">exportDeeployState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folderPath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.exportDeeployState" title="Link to this definition"></a></dt>
+<dd><p>Export compressed network context and neural network graph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folderPath</strong> (<em>str</em>) – path to directory where to save context and graph</p></li>
+<li><p><strong>fileName</strong> (<em>str</em>) – prefix to use when saving artifacts</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContainer.importDeeployState">
+<span class="sig-name descname"><span class="pre">importDeeployState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folderPath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContainer.importDeeployState" title="Link to this definition"></a></dt>
+<dd><p>Override this container’s graph and context with loaded compressed artifacts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folderPath</strong> (<em>str</em>) – Path to the artifact directory</p></li>
+<li><p><strong>fileName</strong> (<em>str</em>) – prefix of the saved artifacts</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.DeeployTypes.GlobalDefinition.html" class="btn btn-neutral float-left" title="Deeploy.DeeployTypes.GlobalDefinition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.DeeployTypes.NetworkContext.html" class="btn btn-neutral float-right" title="Deeploy.DeeployTypes.NetworkContext" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

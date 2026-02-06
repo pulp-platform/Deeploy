@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.RQMatMulLayer
+============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: RQMatMulLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQMatMulLayer.__init__
+      ~RQMatMulLayer.bind
+      ~RQMatMulLayer.broadcast
+      ~RQMatMulLayer.codeTransform
+      ~RQMatMulLayer.computeOps
+      ~RQMatMulLayer.computeShapes
+      ~RQMatMulLayer.discardCurrentMapper
+      ~RQMatMulLayer.generate
+      ~RQMatMulLayer.parse
+      ~RQMatMulLayer.resetDiscardedMappers
+      ~RQMatMulLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQMatMulLayer.maps
+      ~RQMatMulLayer.mapper
+      ~RQMatMulLayer.discardedMappers
+      ~RQMatMulLayer.node
+   
+   

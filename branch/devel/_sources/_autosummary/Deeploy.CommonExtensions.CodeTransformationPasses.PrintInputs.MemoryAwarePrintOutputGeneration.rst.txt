@@ -1,0 +1,38 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.MemoryAwarePrintOutputGeneration
+==============================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs
+
+.. autoclass:: MemoryAwarePrintOutputGeneration
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryAwarePrintOutputGeneration.__init__
+      ~MemoryAwarePrintOutputGeneration.apply
+      ~MemoryAwarePrintOutputGeneration.dereferenceVars
+      ~MemoryAwarePrintOutputGeneration.extractDynamicReferences
+      ~MemoryAwarePrintOutputGeneration.indexVars
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryAwarePrintOutputGeneration.parseTreeDict
+   
+   

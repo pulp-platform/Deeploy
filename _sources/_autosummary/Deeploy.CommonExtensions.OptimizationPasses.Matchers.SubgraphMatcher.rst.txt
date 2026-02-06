@@ -1,0 +1,30 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.OptimizationPasses.Matchers.SubgraphMatcher
+====================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.Matchers
+
+.. autoclass:: SubgraphMatcher
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SubgraphMatcher.__init__
+      ~SubgraphMatcher.is_op_match
+      ~SubgraphMatcher.match
+   
+   
+
+   
+   
+   

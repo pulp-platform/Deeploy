@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.RequantShiftChecker
+========================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: RequantShiftChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RequantShiftChecker.__init__
+      ~RequantShiftChecker.annotateDict
+      ~RequantShiftChecker.checkOutputType
+      ~RequantShiftChecker.signature
+      ~RequantShiftChecker.typeCheck
+      ~RequantShiftChecker.typeCheckNodeInputs
+      ~RequantShiftChecker.typeInferGlobalCtxt
+      ~RequantShiftChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RequantShiftChecker.typeDict
+   
+   

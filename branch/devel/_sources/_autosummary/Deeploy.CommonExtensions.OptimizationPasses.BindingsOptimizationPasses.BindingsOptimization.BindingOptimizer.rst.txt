@@ -1,0 +1,29 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.BindingsOptimization.BindingOptimizer
+============================================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.BindingsOptimization
+
+.. autoclass:: BindingOptimizer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~BindingOptimizer.__init__
+      ~BindingOptimizer.optimize
+   
+   
+
+   
+   
+   

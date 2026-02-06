@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Templates.ClosureTemplate.ClosureTemplate
+=================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Templates.ClosureTemplate
+
+.. autoclass:: ClosureTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ClosureTemplate.__init__
+      ~ClosureTemplate.alignToContext
+      ~ClosureTemplate.clear
+      ~ClosureTemplate.computeTransientBuffersSize
+      ~ClosureTemplate.copy
+      ~ClosureTemplate.fromkeys
+      ~ClosureTemplate.generate
+      ~ClosureTemplate.get
+      ~ClosureTemplate.hoistTransientBuffers
+      ~ClosureTemplate.internalSize
+      ~ClosureTemplate.items
+      ~ClosureTemplate.keys
+      ~ClosureTemplate.pop
+      ~ClosureTemplate.popitem
+      ~ClosureTemplate.setdefault
+      ~ClosureTemplate.update
+      ~ClosureTemplate.values
+   
+   
+
+   
+   
+   

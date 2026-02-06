@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration.transposeListOfLists
+==========================================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration
+
+.. autofunction:: transposeListOfLists

@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.PadLayer
+=======================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: PadLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PadLayer.__init__
+      ~PadLayer.bind
+      ~PadLayer.broadcast
+      ~PadLayer.codeTransform
+      ~PadLayer.computeOps
+      ~PadLayer.computeShapes
+      ~PadLayer.discardCurrentMapper
+      ~PadLayer.generate
+      ~PadLayer.parse
+      ~PadLayer.resetDiscardedMappers
+      ~PadLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PadLayer.maps
+      ~PadLayer.mapper
+      ~PadLayer.discardedMappers
+      ~PadLayer.node
+   
+   

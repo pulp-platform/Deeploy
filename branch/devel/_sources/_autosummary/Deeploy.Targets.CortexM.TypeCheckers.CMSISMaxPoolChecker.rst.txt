@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.TypeCheckers.CMSISMaxPoolChecker
+========================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.TypeCheckers
+
+.. autoclass:: CMSISMaxPoolChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CMSISMaxPoolChecker.__init__
+      ~CMSISMaxPoolChecker.annotateDict
+      ~CMSISMaxPoolChecker.checkOutputType
+      ~CMSISMaxPoolChecker.signature
+      ~CMSISMaxPoolChecker.typeCheck
+      ~CMSISMaxPoolChecker.typeCheckNodeInputs
+      ~CMSISMaxPoolChecker.typeInferGlobalCtxt
+      ~CMSISMaxPoolChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CMSISMaxPoolChecker.typeDict
+   
+   

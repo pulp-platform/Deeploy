@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.GatherTileConstraint.GatherTileConstraint
+==================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.GatherTileConstraint
+
+.. autoclass:: GatherTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GatherTileConstraint.__init__
+      ~GatherTileConstraint.addGeometricalConstraint
+      ~GatherTileConstraint.addPolicyConstraint
+      ~GatherTileConstraint.constructSymbolicNodeRep
+      ~GatherTileConstraint.extractBaseAddr
+      ~GatherTileConstraint.getBaseAddr
+      ~GatherTileConstraint.sanitizeTilingSchedule
+      ~GatherTileConstraint.serializeTilingSolution
+      ~GatherTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

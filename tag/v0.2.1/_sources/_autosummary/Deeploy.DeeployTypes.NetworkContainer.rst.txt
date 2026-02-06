@@ -1,0 +1,51 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.NetworkContainer
+=====================================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: NetworkContainer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NetworkContainer.__init__
+      ~NetworkContainer.bind
+      ~NetworkContainer.codeTransform
+      ~NetworkContainer.exportDeeployState
+      ~NetworkContainer.generateBufferAllocationCode
+      ~NetworkContainer.generateBufferDeAllocationCode
+      ~NetworkContainer.generateBufferInitializationCode
+      ~NetworkContainer.generateEngineInitializationCode
+      ~NetworkContainer.generateGlobalDefinitionCode
+      ~NetworkContainer.generateIOBufferInitializationCode
+      ~NetworkContainer.generateIncludeString
+      ~NetworkContainer.generateInferenceCode
+      ~NetworkContainer.generateInferenceInitializationCode
+      ~NetworkContainer.importDeeployState
+      ~NetworkContainer.inputs
+      ~NetworkContainer.numberOfOps
+      ~NetworkContainer.outputs
+      ~NetworkContainer.parse
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NetworkContainer.worstCaseBufferSize
+   
+   

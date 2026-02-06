@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Platform.CMSISTransientBuffer
+=====================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.Platform
+
+.. autoclass:: CMSISTransientBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CMSISTransientBuffer.__init__
+      ~CMSISTransientBuffer.alloc
+      ~CMSISTransientBuffer.dealloc
+      ~CMSISTransientBuffer.fromNode
+      ~CMSISTransientBuffer.has_live_aliases
+      ~CMSISTransientBuffer.init
+      ~CMSISTransientBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CMSISTransientBuffer.allocTemplate
+      ~CMSISTransientBuffer.deallocTemplate
+      ~CMSISTransientBuffer.initTemplate
+      ~CMSISTransientBuffer.name
+      ~CMSISTransientBuffer.shape
+   
+   

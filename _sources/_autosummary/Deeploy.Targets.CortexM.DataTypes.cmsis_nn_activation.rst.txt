@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.DataTypes.cmsis\_nn\_activation
+=======================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.DataTypes
+
+.. autoclass:: cmsis_nn_activation
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~cmsis_nn_activation.__init__
+      ~cmsis_nn_activation.checkPromotion
+      ~cmsis_nn_activation.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~cmsis_nn_activation.value
+      ~cmsis_nn_activation.structTypeDict
+      ~cmsis_nn_activation.typeName
+      ~cmsis_nn_activation.typeWidth
+   
+   

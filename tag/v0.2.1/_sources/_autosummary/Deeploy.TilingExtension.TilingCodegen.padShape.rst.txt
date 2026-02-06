@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.padShape
+==============================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: padShape

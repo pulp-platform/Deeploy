@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.MatMulChecker
+==================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: MatMulChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MatMulChecker.__init__
+      ~MatMulChecker.annotateDict
+      ~MatMulChecker.checkOutputType
+      ~MatMulChecker.signature
+      ~MatMulChecker.typeCheck
+      ~MatMulChecker.typeCheckNodeInputs
+      ~MatMulChecker.typeInferGlobalCtxt
+      ~MatMulChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MatMulChecker.typeDict
+   
+   

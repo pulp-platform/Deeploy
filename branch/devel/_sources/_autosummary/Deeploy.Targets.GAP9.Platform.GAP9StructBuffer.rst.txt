@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.GAP9.Platform.GAP9StructBuffer
+==============================================
+
+.. currentmodule:: Deeploy.Targets.GAP9.Platform
+
+.. autoclass:: GAP9StructBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GAP9StructBuffer.__init__
+      ~GAP9StructBuffer.alloc
+      ~GAP9StructBuffer.dealloc
+      ~GAP9StructBuffer.fromNode
+      ~GAP9StructBuffer.has_live_aliases
+      ~GAP9StructBuffer.init
+      ~GAP9StructBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GAP9StructBuffer.allocTemplate
+      ~GAP9StructBuffer.deallocTemplate
+      ~GAP9StructBuffer.initTemplate
+      ~GAP9StructBuffer.name
+      ~GAP9StructBuffer.shape
+   
+   

@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.NetworkContext
+===================================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: NetworkContext
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NetworkContext.__init__
+      ~NetworkContext.add
+      ~NetworkContext.addUser
+      ~NetworkContext.annotateType
+      ~NetworkContext.copy
+      ~NetworkContext.dealiasBuffer
+      ~NetworkContext.exportNetworkContext
+      ~NetworkContext.hoistConstant
+      ~NetworkContext.hoistConstantAndReference
+      ~NetworkContext.hoistGlobalDefinition
+      ~NetworkContext.hoistReference
+      ~NetworkContext.hoistStruct
+      ~NetworkContext.hoistTransientBuffer
+      ~NetworkContext.importNetworkContext
+      ~NetworkContext.is_buffer
+      ~NetworkContext.is_global
+      ~NetworkContext.is_local
+      ~NetworkContext.is_object
+      ~NetworkContext.lookup
+      ~NetworkContext.unravelReference
+   
+   
+
+   
+   
+   

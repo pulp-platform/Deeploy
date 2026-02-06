@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.bindingUtils.editAttribute
+=================================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.bindingUtils
+
+.. autofunction:: editAttribute

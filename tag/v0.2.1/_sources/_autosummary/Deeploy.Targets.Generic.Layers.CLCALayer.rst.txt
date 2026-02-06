@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.CLCALayer
+========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: CLCALayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CLCALayer.__init__
+      ~CLCALayer.bind
+      ~CLCALayer.broadcast
+      ~CLCALayer.codeTransform
+      ~CLCALayer.computeOps
+      ~CLCALayer.computeShapes
+      ~CLCALayer.discardCurrentMapper
+      ~CLCALayer.generate
+      ~CLCALayer.parse
+      ~CLCALayer.resetDiscardedMappers
+      ~CLCALayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CLCALayer.maps
+      ~CLCALayer.mapper
+      ~CLCALayer.discardedMappers
+      ~CLCALayer.node
+   
+   

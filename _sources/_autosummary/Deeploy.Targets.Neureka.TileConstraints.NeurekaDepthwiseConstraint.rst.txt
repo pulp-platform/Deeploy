@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.TileConstraints.NeurekaDepthwiseConstraint
+==================================================================
+
+.. automodule:: Deeploy.Targets.Neureka.TileConstraints.NeurekaDepthwiseConstraint
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      NeurekaDWConv2DTileConstraint
+      NeurekaRQSDWConv2DTileConstraint
+   
+   
+
+   
+   
+   
+
+
+

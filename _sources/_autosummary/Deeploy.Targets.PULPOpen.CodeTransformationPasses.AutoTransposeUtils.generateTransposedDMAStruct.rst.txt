@@ -1,0 +1,6 @@
+Deeploy.Targets.PULPOpen.CodeTransformationPasses.AutoTransposeUtils.generateTransposedDMAStruct
+================================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.CodeTransformationPasses.AutoTransposeUtils
+
+.. autofunction:: generateTransposedDMAStruct

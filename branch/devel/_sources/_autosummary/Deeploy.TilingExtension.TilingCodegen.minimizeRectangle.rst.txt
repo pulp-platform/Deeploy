@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.minimizeRectangle
+=======================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: minimizeRectangle

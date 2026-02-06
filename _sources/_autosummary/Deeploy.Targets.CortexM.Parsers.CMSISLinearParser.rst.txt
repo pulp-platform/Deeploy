@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Parsers.CMSISLinearParser
+=================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.Parsers
+
+.. autoclass:: CMSISLinearParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CMSISLinearParser.__init__
+      ~CMSISLinearParser.parse
+      ~CMSISLinearParser.parseInputs
+      ~CMSISLinearParser.parseNode
+      ~CMSISLinearParser.parseNodeCtxt
+      ~CMSISLinearParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CMSISLinearParser.operatorRepresentation
+   
+   

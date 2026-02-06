@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Templates.FloatSoftmaxTemplate.FloatSoftmaxTemplate
+==========================================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Templates.FloatSoftmaxTemplate
+
+.. autoclass:: FloatSoftmaxTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~FloatSoftmaxTemplate.__init__
+      ~FloatSoftmaxTemplate.alignToContext
+      ~FloatSoftmaxTemplate.computeTransientBuffersSize
+      ~FloatSoftmaxTemplate.generate
+      ~FloatSoftmaxTemplate.hoistTransientBuffers
+      ~FloatSoftmaxTemplate.internalSize
+   
+   
+
+   
+   
+   

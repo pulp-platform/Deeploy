@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.DataTypes.pi\_cl\_ram\_req\_t
+======================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.DataTypes
+
+.. autoclass:: pi_cl_ram_req_t
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~pi_cl_ram_req_t.__init__
+      ~pi_cl_ram_req_t.checkPromotion
+      ~pi_cl_ram_req_t.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~pi_cl_ram_req_t.value
+      ~pi_cl_ram_req_t.structTypeDict
+      ~pi_cl_ram_req_t.typeName
+      ~pi_cl_ram_req_t.typeWidth
+   
+   

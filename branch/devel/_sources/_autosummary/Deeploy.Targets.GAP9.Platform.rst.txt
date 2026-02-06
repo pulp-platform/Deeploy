@@ -1,0 +1,42 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.GAP9.Platform
+=============================
+
+.. automodule:: Deeploy.Targets.GAP9.Platform
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      GAP9ClusterEngine
+      GAP9ConstantBuffer
+      GAP9Platform
+      GAP9StructBuffer
+      GAP9TransientBuffer
+      GAP9VariableBuffer
+      MemoryGAP9Platform
+      MemoryGAP9PlatformWrapper
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.HardswishChecker
+=====================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: HardswishChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~HardswishChecker.__init__
+      ~HardswishChecker.annotateDict
+      ~HardswishChecker.checkOutputType
+      ~HardswishChecker.signature
+      ~HardswishChecker.typeCheck
+      ~HardswishChecker.typeCheckNodeInputs
+      ~HardswishChecker.typeInferGlobalCtxt
+      ~HardswishChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~HardswishChecker.typeDict
+   
+   

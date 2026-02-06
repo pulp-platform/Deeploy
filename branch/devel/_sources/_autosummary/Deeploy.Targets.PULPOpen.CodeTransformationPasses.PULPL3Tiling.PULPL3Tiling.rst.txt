@@ -1,0 +1,29 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling.PULPL3Tiling
+===========================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling
+
+.. autoclass:: PULPL3Tiling
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPL3Tiling.__init__
+      ~PULPL3Tiling.apply
+   
+   
+
+   
+   
+   
