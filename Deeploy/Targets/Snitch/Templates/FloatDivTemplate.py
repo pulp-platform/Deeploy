@@ -32,14 +32,14 @@ class FloatDivTemplate(NodeTemplate):
 
 # Template for element-wise division
 FloatDivTemplateStr = r"""
-Div_fp32(${input1}, ${input2}, ${output}, ${size});
+Div_fp32(${A}, ${B}, ${C}, ${size});
 """
 
 # Template for scalar broadcasting (optimized)
 FloatDivScalarTemplateStr = r"""
 {
-    float32_t scalar = ${input2}[0];
-    Div_fp32_scalar(${input1}, scalar, ${output}, ${size});
+    float32_t scalar = ${B}[0];
+    Div_fp32_scalar(${A}, scalar, ${C}, ${size});
 }
 """
 

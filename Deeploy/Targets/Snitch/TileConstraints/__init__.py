@@ -7,4 +7,3 @@ from .FloatDivTileConstraint import *
 from .FloatMulTileConstraint import *
 from .iNoNormTileConstraint import *
 from .iSoftmaxTileConstraint import *
-from .ReshapeTileConstraint import *
