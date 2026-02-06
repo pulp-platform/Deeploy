@@ -17,11 +17,15 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
 
 
 class FloatDivTileConstraint(TileConstraint):
-    """Tile constraint for FP32 Div operation supporting scalar broadcasting."""
+    """Tile constraint for FP32 Div operation with ONNX broadcasting support.
 
-    dataIn1Name = "input1"
-    dataIn2Name = "input2"
-    dataOutName = "output"
+    Supports general NumPy-style broadcasting: both inputs can have any
+    dimension, including scalar, partial broadcasting, and full element-wise.
+    """
+
+    dataIn1Name = "A"
+    dataIn2Name = "B"
+    dataOutName = "C"
 
     @classmethod
     def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -30,42 +34,41 @@ class FloatDivTileConstraint(TileConstraint):
         inputBuffer2Name = parseDict[cls.dataIn2Name]
         outputBufferName = parseDict[cls.dataOutName]
 
-        input1Shape = ctxt.lookup(inputBuffer1Name).shape
-        input2Shape = ctxt.lookup(inputBuffer2Name).shape
+        input1Shape = list(ctxt.lookup(inputBuffer1Name).shape)
+        input2Shape = list(ctxt.lookup(inputBuffer2Name).shape)
+        outputShape = list(ctxt.lookup(outputBufferName).shape)
 
-        # Add tensor dimensions to model
+        # Add all tensors to model
         tilerModel.addTensorDimToModel(ctxt, inputBuffer1Name)
+        tilerModel.addTensorDimToModel(ctxt, inputBuffer2Name)
         tilerModel.addTensorDimToModel(ctxt, outputBufferName)
 
-        # Check if input2 is scalar (total size == 1)
-        is_scalar = np.prod(input2Shape) == 1
+        outNdim = len(outputShape)
 
-        if is_scalar:
-            # Scalar broadcasting: input2 is a scalar, don't tile it
-            # Only add input2 dimensions if it has more than 0 dims
-            if len(input2Shape) > 0:
-                tilerModel.addTensorDimToModel(ctxt, inputBuffer2Name)
-                # Constrain scalar to remain untiled (size 1)
-                for dim in range(len(input2Shape)):
-                    input2DimVar = tilerModel.getTensorDimVar(tensorName = inputBuffer2Name, dimIdx = dim)
-                    tilerModel.addConstraint(input2DimVar == input2Shape[dim])
+        # Pad input shapes from the left to match output ndim (ONNX broadcasting)
+        padded1 = [1] * (outNdim - len(input1Shape)) + input1Shape
+        padded2 = [1] * (outNdim - len(input2Shape)) + input2Shape
 
-            # Input1 and output must have same dimensions
-            for dim in range(len(input1Shape)):
-                inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
-                outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
-                tilerModel.addConstraint(inputDim1Var == outputDimVar)
-        else:
-            # Element-wise: both inputs must have same shape
-            tilerModel.addTensorDimToModel(ctxt, inputBuffer2Name)
+        for outDim in range(outNdim):
+            outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = outDim)
 
-            for dim in range(len(input1Shape)):
-                inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
-                inputDim2Var = tilerModel.getTensorDimVar(tensorName = inputBuffer2Name, dimIdx = dim)
-                outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
+            # Input 1: map output dim to actual tensor dim
+            in1ActualDim = outDim - (outNdim - len(input1Shape))
+            if in1ActualDim >= 0:
+                in1DimVar = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = in1ActualDim)
+                if padded1[outDim] == 1:
+                    tilerModel.addConstraint(in1DimVar == 1)
+                else:
+                    tilerModel.addConstraint(in1DimVar == outputDimVar)
 
-                tilerModel.addConstraint(inputDim1Var == inputDim2Var)
-                tilerModel.addConstraint(inputDim1Var == outputDimVar)
+            # Input 2: map output dim to actual tensor dim
+            in2ActualDim = outDim - (outNdim - len(input2Shape))
+            if in2ActualDim >= 0:
+                in2DimVar = tilerModel.getTensorDimVar(tensorName = inputBuffer2Name, dimIdx = in2ActualDim)
+                if padded2[outDim] == 1:
+                    tilerModel.addConstraint(in2DimVar == 1)
+                else:
+                    tilerModel.addConstraint(in2DimVar == outputDimVar)
 
         return tilerModel
 
@@ -83,25 +86,38 @@ class FloatDivTileConstraint(TileConstraint):
         replacements = {"size": []}
         replacementTypes = {"size": PointerClass(uint16_t)}
 
-        # Check if scalar broadcasting
-        input2Name = operatorRepresentation[cls.dataIn2Name]
-        input2Shape = ctxt.lookup(input2Name).shape
-        is_scalar = np.prod(input2Shape) == 1
+        input1Shape = list(ctxt.lookup(operatorRepresentation[cls.dataIn1Name]).shape)
+        input2Shape = list(ctxt.lookup(operatorRepresentation[cls.dataIn2Name]).shape)
+        outputShape = list(ctxt.lookup(operatorRepresentation[cls.dataOutName]).shape)
 
-        for cube in outputCubes:
-            newSize = np.prod(cube.dims)
-            replacements["size"].append(newSize)
+        outNdim = len(outputShape)
+        padded1 = [1] * (outNdim - len(input1Shape)) + input1Shape
+        padded2 = [1] * (outNdim - len(input2Shape)) + input2Shape
+
+        def _deriveInputCube(outputCube, inputShape, paddedShape):
+            """Derive an input HyperRectangle from an output cube, respecting broadcasting."""
+            offset = []
+            dims = []
+            for outDim in range(outNdim):
+                actualDim = outDim - (outNdim - len(inputShape))
+                if actualDim >= 0:
+                    if paddedShape[outDim] == 1:
+                        offset.append(0)
+                        dims.append(1)
+                    else:
+                        offset.append(outputCube.offset[outDim])
+                        dims.append(outputCube.dims[outDim])
+            return HyperRectangle(tuple(offset), tuple(dims))
 
         inputLoadSchedule = []
         outputLoadSchedule = []
 
         for cube in outputCubes:
-            if is_scalar:
-                # For scalar, load the entire scalar tensor (size 1)
-                scalarCube = HyperRectangle(tuple([0] * len(input2Shape)), tuple(input2Shape))
-                inputLoadSchedule.append({cls.dataIn1Name: cube, cls.dataIn2Name: scalarCube})
-            else:
-                inputLoadSchedule.append({cls.dataIn1Name: cube, cls.dataIn2Name: cube})
+            replacements["size"].append(np.prod(cube.dims))
+
+            in1Cube = _deriveInputCube(cube, input1Shape, padded1)
+            in2Cube = _deriveInputCube(cube, input2Shape, padded2)
+            inputLoadSchedule.append({cls.dataIn1Name: in1Cube, cls.dataIn2Name: in2Cube})
 
         for out in outputCubes:
             outputLoadSchedule.append({cls.dataOutName: out})

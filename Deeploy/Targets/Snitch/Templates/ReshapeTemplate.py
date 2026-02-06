@@ -6,37 +6,20 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation, VariableBuffer
+from Deeploy.Targets.Generic.Templates.ReshapeTemplate import _ReshapeTemplate
 
 
-class _SnitchReshapeTemplate(NodeTemplate):
-
-    def __init__(self, templateStr):
-        super().__init__(templateStr)
+class _SnitchReshapeTemplate(_ReshapeTemplate):
 
     def alignToContext(self, ctxt: NetworkContext,
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
 
-        # Mark 'indices' as not deployed (for Gather-like ops)
-        if 'indices' in operatorRepresentation.keys():
-            ctxt.globalObjects[operatorRepresentation['indices']]._deploy = False
-            ctxt.globalObjects[operatorRepresentation['indices']]._live = False
+        ctxt, operatorRepresentation, _ = super().alignToContext(ctxt, operatorRepresentation)
 
-        # Mark "shape" as not deployed
-        if "shape" in operatorRepresentation.keys():
-            ctxt.globalObjects[operatorRepresentation["shape"]]._deploy = False
-            ctxt.globalObjects[operatorRepresentation["shape"]]._live = False
-
+        # Calculate size for multi-core parallel copy
         bufferIn = ctxt.lookup(operatorRepresentation['data_in'])
         assert isinstance(bufferIn, VariableBuffer)
-        bufferOut = ctxt.lookup(operatorRepresentation['data_out'])
-        assert isinstance(bufferOut, VariableBuffer)
-
-        # Link aliases to each buffer (for zero-copy when possible)
-        bufferIn.aliases.add(bufferOut.name)
-        bufferOut.aliases.add(bufferIn.name)
-
-        # Calculate size for data copy
         operatorRepresentation['size'] = int(np.prod(bufferIn.shape))
 
         return ctxt, operatorRepresentation, []

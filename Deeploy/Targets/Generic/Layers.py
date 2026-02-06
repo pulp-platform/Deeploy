@@ -732,13 +732,19 @@ class RMSNormLayer(ONNXLayer):
         super().__init__(maps)
 
     def computeOps(self):
-        # RMSNorm: square, mean, sqrt, div, mul
-        size = self.mapper.parser.operatorRepresentation['size']
-        lastDimLength = self.mapper.parser.operatorRepresentation['lastDimLength']
-        batch_size = size // lastDimLength
+        inputSize = self.mapper.parser.operatorRepresentation['inputSize']
+        NormalizedAxesSize = self.mapper.parser.operatorRepresentation['NormalizedAxesSize']
+        scale = self.mapper.parser.operatorRepresentation['scale']
 
-        # square + sum + mean + eps + sqrt + div + mul
-        ops = size + batch_size * lastDimLength + batch_size * 4 + size * 2
+        # a. XSquared = Mul(X, X) => inputSize ops
+        # b. XSquaredMean = ReduceMean<axes=normalized_axes>(XSquared)
+        #    => inputSize ops (additions) + (inputSize - NormalizedAxesSize) ops (divisions)
+        # c. MeanSquareEpsilon = Add(XSquaredMean, epsilon) => (inputSize - NormalizedAxesSize) ops
+        # d. RMS = Sqrt(MeanSquareEpsilon) => (inputSize - NormalizedAxesSize) ops
+        # e. Normalized = Div(X, RMS) => inputSize ops
+        # f. Y = Mul(Normalized, Scale) => 0 if all(Scale == 1.0), else inputSize ops
+        scale_ops = 0 if (scale == 1.0).all() else inputSize
+        ops = 5 * inputSize - 3 * NormalizedAxesSize + scale_ops
         return ops
 
 
