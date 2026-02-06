@@ -39,11 +39,6 @@ def parseDataType(name: str) -> type:
 
 
 def isInteger(x: npt.NDArray) -> bool:
-    # If all values are zero, respect the original numpy dtype (ambiguous case)
-    if np.all(x == 0):
-        return np.issubdtype(x.dtype, np.integer)
-    # If any value has non-zero fractional part, it's float
-    # Otherwise (all values are integers like 1.0, 2.0), it's integer
     return np.abs((x.astype(int) - x)).max() <= 0.001
 
 
