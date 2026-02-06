@@ -41,7 +41,7 @@ jobs:
           {"name":"Kernels/Integer/Softmax/Large","L1":[5000,10000]},
 
           {"name":"Kernels/FP32/Softmax/Regular","L1":[2000,5000,10000]},
-          {"name":"Kernels/FP32/RMSNorm_fused","L1":[2000,5000,10000]},
+          {"name":"Kernels/FP32/RMSNorm/single_fused_op","L1":[2000,5000,10000]},
           {"name":"Kernels/FP32/MatMul","L1":[2000,5000,10000]},
           {"name":"Kernels/FP32/Add/Regular","L1":[2000,5000,10000]},
           {"name":"Kernels/FP32/Hardswish","L1":[2000,5000,10000]},
@@ -54,7 +54,7 @@ jobs:
           {"name":"Kernels/Integer/Add/Regular_RQ","L1":[5000,10000]},
           {"name":"Kernels/Integer/GEMM/Regular_RQPerRow","L1":[2000,5000]},
 
-          {"name":"Models/microLlama/microLlama_fp32_1","L1":[10000,20000]}
+          {"name":"Models/microLlama/FP32/microLlama1","L1":[10000,20000]}
         ]
       simulators: |
         gvsoc

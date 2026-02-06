@@ -22,5 +22,5 @@ KERNEL_TESTS = [
 ]
 
 MODEL_TESTS = [
-    "Models/microLlama/microLlama_fp32_1",
+    "Models/microLlama/FP32/microLlama1",
 ]

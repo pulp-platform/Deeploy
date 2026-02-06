@@ -22,7 +22,7 @@ L2_SINGLEBUFFER_KERNELS = {
 }
 
 L2_SINGLEBUFFER_MODELS = {
-    "Models/microLlama/microLlama_fp32_1": [10000, 20000],
+    "Models/microLlama/FP32/microLlama1": [10000, 20000],
 }
 
 # Currently no double-buffer configurations in CI
