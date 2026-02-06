@@ -42,7 +42,7 @@ jobs:
       - name: Build Deeploy
         shell: bash
         run: |
-          pip install . --extra-index-url=https://pypi.ngc.nvidia.com
+          pip install .
           pip install -r requirements-dev.txt
       - name: Format Python
         shell: bash
@@ -64,4 +64,4 @@ jobs:
       - name: Check Licenses
         shell: bash
         run: |
-          python scripts/reuse_skip_wrapper.py $(find . \( -name '*.py' -o -name '*.c' -o -name '*.h' -o -name '*.html' -o -name '*.rst' -o -name '*.yml' -o -name '*.yaml' \) -not -path "*toolchain*" -not -path "*third_party*" -not -path "*.git/*" -not -path "*install/*" -type f)
+          python scripts/reuse_skip_wrapper.py $(find . \( -name '*.py' -o -name '*.c' -o -name '*.h' -o -name '*.html' -o -name '*.rst' -o -name '*.yml' -o -name '*.yaml' \) -not -path "*toolchain*" -not -path "*third_party*" -not -path "*prebuilt*" -not -path "*.git/*" -not -path "*install/*" -type f)
