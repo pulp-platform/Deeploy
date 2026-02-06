@@ -11,12 +11,20 @@ from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import A
 from Deeploy.CommonExtensions.DataTypes import float32_t, int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import iNoNormTemplate
-from Deeploy.Targets.Generic.TypeCheckers import AddChecker, GEMMChecker, RQAddChecker, SoftmaxChecker, iNoNormChecker
+from Deeploy.Targets.Generic.Templates import ConcatTemplate, iNoNormTemplate
+from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, DivChecker, GatherChecker, GEMMChecker, \
+    HardSwishChecker, MatMulChecker, MulChecker, ReshapeChecker, RMSNormChecker, RQAddChecker, SoftmaxChecker, \
+    TransposeChecker, iNoNormChecker
 from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
     SnitchSynchCoresPass
 from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
-from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, RQAddTemplate, iSoftmaxTemplate
+from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, FloatMatMulTemplate, GatherTemplate, \
+    ReshapeTemplate, RQAddTemplate, TransposeTemplate, iSoftmaxTemplate
+from Deeploy.Targets.Snitch.Templates.FloatAddTemplate import referenceTemplate as FloatAddTemplate
+from Deeploy.Targets.Snitch.Templates.FloatDivTemplate import referenceTemplate as FloatDivTemplate
+from Deeploy.Targets.Snitch.Templates.FloatHardSwishTemplate import referenceTemplate as FloatHardSwishTemplate
+from Deeploy.Targets.Snitch.Templates.FloatMulTemplate import referenceTemplate as FloatMulTemplate
+from Deeploy.Targets.Snitch.Templates.FloatRMSNormTemplate import referenceTemplate as FloatRMSNormTemplate
 from Deeploy.Targets.Snitch.Templates.FloatSoftmaxTemplate import FloatSoftmax_Template
 from Deeploy.Targets.Snitch.Templates.GemmTemplate import SnitchGemm_Template
 from Deeploy.Targets.Snitch.Templates.RqGemmTemplate import SnitchRqGemm_Template
@@ -44,7 +52,9 @@ TiledTransformer = CodeTransformation([
     SnitchClusterTiling("L2", "L1", SnitchDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
+    TilingVariableReplacement("L2"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
+    MemoryManagementGeneration("L2"),
     MemoryManagementGeneration()
 ])
 
@@ -69,7 +79,18 @@ SnitchRQAddBindings = [
 SnitchAddBindings = [
     NodeBinding(AddChecker([PointerClass(_type), PointerClass(_type)], [PointerClass(int32_t)]),
                 AddTemplate.referenceTemplate, TiledTransformer) for _type in [int8_t]
+] + [
+    # fp32 support
+    NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAddTemplate, TiledTransformer)
 ]
+
+# Basic (non-tiled) FP32 Add Bindings
+BasicAddBindings = [
+    NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAddTemplate, BasicTransformer)
+]
+
 SnitchGemmBindings = [
     NodeBinding(
         GEMMChecker([PointerClass(int8_t), PointerClass(int8_t),
@@ -89,4 +110,88 @@ SnitchRqGemmBindings = [
             PointerClass(int32_t),
             PointerClass(int32_t)
         ], [PointerClass(int8_t)]), SnitchRqGemm_Template, TiledTransformer)
+]
+
+# RMSNorm Bindings (Tiled)
+SnitchRMSNormBindings = [
+    NodeBinding(RMSNormChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatRMSNormTemplate, TiledTransformer)
+]
+
+# RMSNorm Bindings (Non-tiled)
+BasicRMSNormBindings = [
+    NodeBinding(RMSNormChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatRMSNormTemplate, BasicTransformer)
+]
+
+# HardSwish Bindings (Tiled)
+SnitchHardSwishBindings = [
+    NodeBinding(HardSwishChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatHardSwishTemplate,
+                TiledTransformer)
+]
+
+# HardSwish Bindings (Non-tiled)
+BasicHardSwishBindings = [
+    NodeBinding(HardSwishChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatHardSwishTemplate,
+                BasicTransformer)
+]
+
+# Div Bindings (Tiled)
+SnitchDivBindings = [
+    NodeBinding(DivChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatDivTemplate, TiledTransformer)
+]
+
+# Div Bindings (Non-tiled)
+BasicDivBindings = [
+    NodeBinding(DivChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatDivTemplate, BasicTransformer)
+]
+
+# Mul Bindings (Tiled)
+SnitchMulBindings = [
+    NodeBinding(MulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatMulTemplate, TiledTransformer)
+]
+
+# Mul Bindings (Non-tiled)
+BasicMulBindings = [
+    NodeBinding(MulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatMulTemplate, BasicTransformer)
+]
+
+# MatMul Bindings (Tiled)
+SnitchMatMulBindings = [
+    NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatMatMulTemplate.referenceTemplate, TiledTransformer)
+]
+
+# Concat Bindings (Tiled)
+SnitchConcatBindings = [
+    NodeBinding(ConcatChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                ConcatTemplate.referenceTemplate, TiledTransformer)
+]
+
+# Transpose Bindings (Tiled)
+SnitchTransposeBindings = [
+    NodeBinding(TransposeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                TransposeTemplate.referenceTemplate, TiledTransformer)
+]
+
+# Transpose Bindings (Non-tiled, multi-core)
+BasicSnitchTransposeBindings = [
+    NodeBinding(TransposeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                TransposeTemplate.referenceTemplate, BasicTransformer)
+]
+
+# Reshape Bindings (Tiled)
+SnitchReshapeBindings = [
+    NodeBinding(ReshapeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), ReshapeTemplate.referenceTemplate,
+                TiledTransformer)
+]
+
+# Gather Bindings (Tiled)
+SnitchGatherBindings = [
+    NodeBinding(GatherChecker([PointerClass(float32_t), PointerClass(int32_t)], [PointerClass(float32_t)]),
+                GatherTemplate.referenceTemplate, TiledTransformer)
 ]

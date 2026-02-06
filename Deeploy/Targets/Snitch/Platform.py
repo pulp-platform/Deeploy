@@ -2,45 +2,66 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List
+from typing import List, Type
 
 import numpy as np
 
+from Deeploy.AbstractDataTypes import Pointer, PointerClass, VoidType
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicGatherBindings, BasicLayerNormBindings, BasicMatMulBindings, \
-    BasicPad1DBindings, BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, GatherLayer, GEMMLayer, LayerNormLayer, MatMulLayer, PadLayer, \
-    ReshapeLayer, RQGEMMLayer, RQIntegerDivLayer, SoftmaxLayer, iNoNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, GatherParser, MatMulParser, Pad1DParser, Pad2DParser, \
-    RQAddParser, RQIntegerDivParser, SoftmaxParser, UnsqueezeParser, iLayerNormParser, iNoNormParser, iSoftmaxParser
+from Deeploy.Targets.Generic.Bindings import BasicConcatBindings, BasicLayerNormBindings, BasicPad1DBindings, \
+    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
+from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, DivLayer, GatherLayer, GEMMLayer, HardSwishLayer, \
+    LayerNormLayer, MatMulLayer, MulLayer, PadLayer, ReshapeLayer, RMSNormLayer, RQGEMMLayer, RQIntegerDivLayer, \
+    SoftmaxLayer, TransposeLayer, iNoNormLayer
+from Deeploy.Targets.Generic.Parsers import ConcatParser, GatherParser, MatMulParser, Pad1DParser, Pad2DParser, \
+    ReshapeParser, RQAddParser, RQIntegerDivParser, SoftmaxParser, TransposeParser, UnsqueezeParser, iLayerNormParser, \
+    iNoNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequantMergePass, GEMMRequantMergePass, \
     IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
-from Deeploy.Targets.Snitch.Parsers import SnitchGEMMParser, SnitchRQGEMMParser
+from Deeploy.Targets.Snitch.Bindings import BasicSnitchTransposeBindings
+from Deeploy.Targets.Snitch.Parsers import HardSwishParser, SnitchAddParser, SnitchDivParser, SnitchGEMMParser, \
+    SnitchMulParser, SnitchRMSNormParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
-from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchGemmTilingReadyBindings, \
-    SnitchiNoNormTilingReadyBindings, SnitchiSoftmaxTilingReadyBindings, SnitchRQAddTilingReadyBindings, \
-    SnitchRqGemmTilingReadyBindings
+from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConcatTilingReadyBindings, \
+    SnitchDivTilingReadyBindings, SnitchGatherTilingReadyBindings, SnitchGemmTilingReadyBindings, \
+    SnitchHardSwishTilingReadyBindings, SnitchiNoNormTilingReadyBindings, SnitchiSoftmaxTilingReadyBindings, \
+    SnitchMatMulTilingReadyBindings, SnitchMulTilingReadyBindings, SnitchReshapeTilingReadyBindings, \
+    SnitchRMSNormTilingReadyBindings, SnitchRQAddTilingReadyBindings, SnitchRqGemmTilingReadyBindings, \
+    SnitchTransposeTilingReadyBindings
 
-GatherMapper = NodeMapper(GatherParser(), BasicGatherBindings)
+# Mappers without tiling-ready equivalents
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
 UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
+ReshapeMapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
+TransposeMapper = NodeMapper(TransposeParser(), BasicSnitchTransposeBindings)
+ConcatMapper = NodeMapper(ConcatParser(), BasicConcatBindings)
 
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
+iLayerNormMapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
 
-MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
+# All other mappers use TilingReadyBindings (works for both tiled and untiled)
+GatherMapper = NodeMapper(GatherParser(), SnitchGatherTilingReadyBindings)
+UnsqueezeMapper = NodeMapper(UnsqueezeParser(), SnitchReshapeTilingReadyBindings)
+ReshapeMapper = NodeMapper(ReshapeParser(), SnitchReshapeTilingReadyBindings)
+TransposeMapper = NodeMapper(TransposeParser(), SnitchTransposeTilingReadyBindings)
+ConcatMapper = NodeMapper(ConcatParser(), SnitchConcatTilingReadyBindings)
+MatMulMapper = NodeMapper(MatMulParser(), SnitchMatMulTilingReadyBindings)
 GemmMapper = NodeMapper(SnitchGEMMParser(), SnitchGemmTilingReadyBindings)
 RqGemmMapper = NodeMapper(SnitchRQGEMMParser(), SnitchRqGemmTilingReadyBindings)
 iSoftmaxMapper = NodeMapper(iSoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
 SoftmaxMapper = NodeMapper(SoftmaxParser(), SnitchiSoftmaxTilingReadyBindings)
 iNoNormMapper = NodeMapper(iNoNormParser(), SnitchiNoNormTilingReadyBindings)
-iLayerNormMapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
 RQAddMapper = NodeMapper(RQAddParser(), SnitchRQAddTilingReadyBindings)
-AddMapper = NodeMapper(AddParser(), SnitchAddTileReadyBindings)
+AddMapper = NodeMapper(SnitchAddParser(), SnitchAddTileReadyBindings)
+RMSNormMapper = NodeMapper(SnitchRMSNormParser(), SnitchRMSNormTilingReadyBindings)
+HardSwishMapper = NodeMapper(HardSwishParser(), SnitchHardSwishTilingReadyBindings)
+DivMapper = NodeMapper(SnitchDivParser(), SnitchDivTilingReadyBindings)
+MulMapper = NodeMapper(SnitchMulParser(), SnitchMulTilingReadyBindings)
 
 SnitchMapping = {
     'RQIntegerDiv': RQIntegerDivLayer([RQIntegerDivMapper]),
@@ -56,6 +77,13 @@ SnitchMapping = {
     'iLayerNorm': LayerNormLayer([iLayerNormMapper]),
     'RequantizedAdd': AddLayer([RQAddMapper]),
     'Add': AddLayer([AddMapper]),
+    'RMSNorm': RMSNormLayer([RMSNormMapper]),
+    'HardSwish': HardSwishLayer([HardSwishMapper]),
+    'Div': DivLayer([DivMapper]),
+    'Mul': MulLayer([MulMapper]),
+    'Reshape': ReshapeLayer([ReshapeMapper]),
+    'Transpose': TransposeLayer([TransposeMapper]),
+    'Concat': ConcatLayer([ConcatMapper]),
 }
 
 
@@ -104,6 +132,12 @@ class SnitchConstantBuffer(ConstantBuffer):
     initTemplate = AllocateTemplate.snitchGenericGlobalInitTemplate
     allocTemplate = AllocateTemplate.snitchL2GlobalAllocateTemplate
     deallocTemplate = FreeTemplate.snitchL2GlobalTemplate
+
+    def __init__(self, name: str = '', shape = [1], values = [0]):
+        super().__init__(name, shape, values)
+        # Initialize _type with a default value to prevent AttributeError
+        # The actual type will be set later via annotateType
+        self._type: Type[Pointer] = PointerClass(VoidType)
 
     def _bufferRepresentation(self):
         operatorRepresentation = super()._bufferRepresentation()

@@ -39,6 +39,7 @@ from test_snitch_config import DEFAULT_NUM_CORES as SNITCH_DEFAULT_NUM_CORES
 from test_snitch_config import KERNEL_TESTS as SNITCH_KERNEL_TESTS
 from test_snitch_config import MODEL_TESTS as SNITCH_MODEL_TESTS
 from test_snitch_tiled_config import L2_SINGLEBUFFER_KERNELS as SNITCH_L2_SINGLEBUFFER_KERNELS
+from test_snitch_tiled_config import L2_SINGLEBUFFER_MODELS as SNITCH_L2_SINGLEBUFFER_MODELS
 from test_softhier_config import DEFAULT_NUM_CLUSTERS as SOFTHIER_DEFAULT_NUM_CLUSTERS
 from test_softhier_config import KERNEL_TESTS as SOFTHIER_KERNEL_TESTS
 from test_softhier_config import MODEL_TESTS as SOFTHIER_MODEL_TESTS
@@ -536,6 +537,25 @@ def test_snitch_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, c
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
 
+@pytest.mark.snitch
+@pytest.mark.models
+@pytest.mark.parametrize("test_name", SNITCH_MODEL_TESTS, ids = SNITCH_MODEL_TESTS)
+def test_snitch_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    platform_config = PLATFORM_CONFIGS["snitch"]
+    snitch_cmake_args = cmake_args + [f"NUM_CORES={platform_config['default_num_cores']}"]
+    config = create_test_config(
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = snitch_cmake_args,
+        tiling = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
 @pytest.mark.snitch_tiled
 @pytest.mark.kernels
 @pytest.mark.singlebuffer
@@ -563,6 +583,37 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
         tiling = True,
         cores = SNITCH_DEFAULT_NUM_CORES,
         l1 = l1,
+        default_mem_level = "L2",
+        double_buffer = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.snitch_tiled
+@pytest.mark.models
+@pytest.mark.singlebuffer
+@pytest.mark.l2
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(SNITCH_L2_SINGLEBUFFER_MODELS, "L2-singlebuffer"),
+    ids = param_id,
+)
+def test_snitch_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                             skipgen, skipsim) -> None:
+    test_name, l1, config_name = test_params
+    snitch_cmake_args = cmake_args + [f"NUM_CORES={SNITCH_DEFAULT_NUM_CORES}"]
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Snitch",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = snitch_cmake_args,
+        tiling = True,
+        cores = SNITCH_DEFAULT_NUM_CORES,
+        l1 = l1,
+        l2 = 4000000,
         default_mem_level = "L2",
         double_buffer = False,
     )

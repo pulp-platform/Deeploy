@@ -283,6 +283,9 @@ DummyBinding = NodeBinding(DummyChecker([PointerClass(int8_t)], [PointerClass(in
 BasicConcatBindings = [
     NodeBinding(ConcatChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
                 ConcatTemplate.referenceTemplate, BasicTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ConcatChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                ConcatTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicQuantBindings = [

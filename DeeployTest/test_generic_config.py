@@ -20,7 +20,7 @@ KERNEL_TESTS = [
     "Kernels/FP32/MaxPool",
     "Kernels/FP32/Mul",
     "Kernels/FP32/LayerNorm",
-    "Kernels/FP32/RMSNorm",
+    "Kernels/FP32/RMSNorm/separate_ops",
     "Kernels/FP32/Pow/Scalar",
     "Kernels/FP32/Pow/Vector",
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean",

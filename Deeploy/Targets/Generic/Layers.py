@@ -709,3 +709,52 @@ class ConvTransposeLayer(ONNXLayer):
             numPx = opRep['dim_im_out_x']
 
         return numPx * opsPerPx
+
+
+class RMSNormLayer(ONNXLayer):
+    """Layer support for the ONNX RMSNormalization operator.
+
+    Supported opset: 23
+
+    It is computed as follows:
+        - XSquared = Mul(X, X)
+        - XSquaredMean = ReduceMean<axes=normalized_axes>(XSquared)
+        - MeanSquareEpsilon = Add(XSquaredMean, epsilon)
+        - RMS = Sqrt(MeanSquareEpsilon)
+        - Normalized = Div(X, RMS)
+        - Y = Mul(Normalized, Scale)
+
+    For more details, this is the official ONNX documentation:
+    https://onnx.ai/onnx/operators/onnx__RMSNormalization.html#rmsnormalization-23
+    """
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        inputSize = self.mapper.parser.operatorRepresentation['inputSize']
+        NormalizedAxesSize = self.mapper.parser.operatorRepresentation['NormalizedAxesSize']
+        scale = self.mapper.parser.operatorRepresentation['scale']
+
+        # a. XSquared = Mul(X, X) => inputSize ops
+        # b. XSquaredMean = ReduceMean<axes=normalized_axes>(XSquared)
+        #    => inputSize ops (additions) + (inputSize - NormalizedAxesSize) ops (divisions)
+        # c. MeanSquareEpsilon = Add(XSquaredMean, epsilon) => (inputSize - NormalizedAxesSize) ops
+        # d. RMS = Sqrt(MeanSquareEpsilon) => (inputSize - NormalizedAxesSize) ops
+        # e. Normalized = Div(X, RMS) => inputSize ops
+        # f. Y = Mul(Normalized, Scale) => 0 if all(Scale == 1.0), else inputSize ops
+        scale_ops = 0 if (scale == 1.0).all() else inputSize
+        ops = 5 * inputSize - 3 * NormalizedAxesSize + scale_ops
+        return ops
+
+
+class HardSwishLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        # HardSwish(x) = x * clip(x/6 + 0.5, 0, 1)
+        # Operations: div + add + clip + mul
+        size = self.mapper.parser.operatorRepresentation['size']
+        return size * 4

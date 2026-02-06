@@ -3107,7 +3107,7 @@ class NetworkContainer():
         # VJUNG: ONNX-Graphsurgeon needs tensors to be in their export types
         constTensors = [tensor for tensor in self.graph.tensors().values() if isinstance(tensor, gs.Constant)]
         for tensor in constTensors:
-            if tensor.dtype != tensor.export_dtype:
+            if hasattr(tensor, 'export_dtype') and tensor.dtype != tensor.export_dtype:
                 tensor.values = tensor.values.astype(tensor.export_dtype)
 
         model = gs.export_onnx(self.graph)

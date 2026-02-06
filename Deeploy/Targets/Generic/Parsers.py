@@ -55,6 +55,10 @@ class iRMSNormParser(NodeParser):
             self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'])
             self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['D']))
 
+            stash_type = node.attrs.get('stash_type', 1)
+            if stash_type != 1:
+                raise ValueError(f"iRMSNorm: only stash_type=1 (FP32) is supported, got {stash_type}")
+
         return ret
 
     def parseNodeCtxt(self,
@@ -70,8 +74,19 @@ class iRMSNormParser(NodeParser):
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
+        input_shape = list(ctxt.lookup(node.inputs[0].name).shape)
+
+        axis = node.attrs.get('axis', -1)
+        if axis < 0:
+            axis = len(input_shape) + axis
+
+        self.operatorRepresentation['inputSize'] = int(np.prod(input_shape))
+        self.operatorRepresentation['NormalizedAxesSize'] = int(np.prod(input_shape[axis:]))
+        self.operatorRepresentation['scale'] = node.inputs[1].values
+
+        # Keep old keys for C template compatibility
+        self.operatorRepresentation['size'] = int(np.prod(input_shape))
+        self.operatorRepresentation['lastDimLength'] = int(input_shape[-1])
 
         return ctxt, True
 
@@ -467,23 +482,55 @@ class AddParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-
         ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
-
         return ret
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
         data_in_1 = ctxt.lookup(node.inputs[0].name)
         data_in_2 = ctxt.lookup(node.inputs[1].name)
         data_out = ctxt.lookup(node.outputs[0].name)
+
         self.operatorRepresentation['data_in_1'] = data_in_1.name
         self.operatorRepresentation['data_in_2'] = data_in_2.name
         self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = np.prod(data_in_1.shape)
+        self.operatorRepresentation['size'] = np.prod(data_out.shape)
+
+        # Check if broadcasting is needed
+        shape1 = list(data_in_1.shape)
+        shape2 = list(data_in_2.shape)
+        out_shape = list(data_out.shape)
+
+        need_broadcast = (shape1 != out_shape) or (shape2 != out_shape)
+        self.operatorRepresentation['need_broadcast'] = need_broadcast
+
+        if need_broadcast:
+            ndim = len(out_shape)
+
+            # Pad shapes from the left to match ndim (ONNX broadcasts from right)
+            padded_shape1 = [1] * (ndim - len(shape1)) + shape1
+            padded_shape2 = [1] * (ndim - len(shape2)) + shape2
+
+            def _calc_strides(padded_shape, out_shape):
+                strides = []
+                stride = 1
+                for i in range(ndim - 1, -1, -1):
+                    if padded_shape[i] == 1 and out_shape[i] > 1:
+                        strides.insert(0, 0)
+                    else:
+                        strides.insert(0, stride)
+                    stride *= padded_shape[i] if padded_shape[i] > 1 else 1
+                return strides
+
+            strides1 = _calc_strides(padded_shape1, out_shape)
+            strides2 = _calc_strides(padded_shape2, out_shape)
+
+            self.operatorRepresentation['ndim'] = ndim
+            self.operatorRepresentation['strides1'] = strides1
+            self.operatorRepresentation['strides2'] = strides2
+            self.operatorRepresentation['out_shape'] = out_shape
 
         return ctxt, True
 
@@ -2092,15 +2139,15 @@ class DivParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ["input1", "input2"]
-        outputs = ["output"]
+        inputs = ["A", "B"]
+        outputs = ["C"]
         for idx, inputNode in enumerate(node.inputs):
             if idx < len(inputs):
                 self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(self.operatorRepresentation['input1']).shape)
+        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(self.operatorRepresentation['A']).shape)
 
         return ctxt, True
 
