@@ -87,9 +87,6 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 
-# Add nvidia channel to the pip configuration
-RUN mkdir -p /etc && printf "[global]\nextra-index-url = https://pypi.ngc.nvidia.com\n" > /etc/pip.conf
-
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y git-lfs \

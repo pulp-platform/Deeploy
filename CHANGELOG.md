@@ -5,19 +5,19 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
-- 
+- Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 
 ### Added
 - 
 
 ### Changed
-- 
+- Aligned CLI commands across the project
 
 ### Fixed
-- 
+- Fix test paths in Deeploy 101 tutorial
 
 ### Removed
-- 
+- `testDMA.py` was an old test; we now have `test_dmas.py` instead.
 
 ## Release v0.2.1 (2026-02-05) [#158](https://github.com/pulp-platform/Deeploy/pull/158)
 

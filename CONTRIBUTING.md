@@ -33,7 +33,7 @@ Additionally, add the title and link to the pull request in the list of pull req
 [...]
 
 ### Removed
-- Remove the link to the precompiled LLVM 12 in the `testRunner` for Snitch and in the CI.
+- Remove the link to the precompiled LLVM 12 in the `deeployRunner` for Snitch and in the CI.
 [...]
 ```
 
