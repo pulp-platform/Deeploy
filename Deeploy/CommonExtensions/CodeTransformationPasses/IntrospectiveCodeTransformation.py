@@ -17,15 +17,62 @@ _NULL: str = "NULL"
 
 
 class IntrospectiveCodeTransformationMixIn():
+    """A mix-in class providing introspective code transformation capabilities for template-based code generation.
+
+    This class enables analysis and manipulation of template code by parsing it into an abstract syntax tree (AST),
+    allowing for dynamic transformations such as variable indexing, dereferencing, and extraction of dynamic references.
+    It is designed to work with template objects and their parse trees, supporting advanced code introspection and
+    modification tasks commonly required in code generation frameworks.
+
+    Key Features
+    ------------
+    - Parse template source code into a tree structure for introspection.
+    - Programmatically index or dereference variables within templates.
+    - Extract dynamic references (e.g., buffers, tensors) used in code blocks.
+    - Support for unrolling struct references and distinguishing between local/global context.
+    - Efficient caching of parse trees for repeated template analysis.
+
+    Intended Usage
+    --------------
+    This mix-in is intended to be used with classes that manage code templates, enabling them to inspect and transform
+    template code at runtime. It is particularly useful in scenarios where code generation must adapt dynamically to
+    context or user input, such as in neural network frameworks or domain-specific languages.
+    """
 
     parseTreeDict: Dict[int, TemplateNode] = {}
 
     @staticmethod
     def _generateParseTree(template: Template) -> TemplateNode:
+        """Generate the parse tree for the given template.
+
+        Parameters
+        ----------
+        template : Template
+            The template to parse.
+
+        Returns
+        -------
+        TemplateNode
+            The root node of the parse tree.
+        """
         return Lexer(template._source).parse()
 
     @staticmethod
     def _reconstructCode(template: Template, node: TemplateNode) -> Template:
+        """Reconstruct the template from the parse tree.
+
+        Parameters
+        ----------
+        template : Template
+            The template to modify.
+        node : TemplateNode
+            The parse tree node to use.
+
+        Returns
+        -------
+        Template
+            The modified template.
+        """
         lexer = Lexer(template._source)
         source = codegen.compile(
             node,
@@ -43,6 +90,8 @@ class IntrospectiveCodeTransformationMixIn():
         )
         module = types.ModuleType(template.module_id)
         code = compile(source, template.module_id, "exec")
+
+        # Execute the compiled code in the module's namespace
         exec(code, module.__dict__, module.__dict__)
 
         template._code = code
@@ -52,6 +101,22 @@ class IntrospectiveCodeTransformationMixIn():
 
     @staticmethod
     def _indexPointer(parseTree: TemplateNode, ptrName: str, index: str) -> TemplateNode:
+        """Index a pointer in the parse tree.
+
+        Parameters
+        ----------
+        parseTree : TemplateNode
+            The parse tree to modify.
+        ptrName : str
+            The name of the pointer to index.
+        index : str
+            The index to use.
+
+        Returns
+        -------
+        TemplateNode
+            The modified parse tree.
+        """
         indexes = [i for i, node in enumerate(parseTree.nodes) if isinstance(node, Expression) and node.text == ptrName]
 
         for offset, idx in enumerate(indexes):
@@ -66,6 +131,19 @@ class IntrospectiveCodeTransformationMixIn():
 
     @staticmethod
     def indexVars(template: Template, varNames: List[str], index: str) -> None:
+        """Index the specified variables in the given template.
+
+        Modifies the template in place by indexing the specified variable names.
+
+        Parameters
+        ----------
+        template : Template
+            The template to modify.
+        varNames : List[str]
+            The variable names to index.
+        index : str
+            The index to use.
+        """
         if len(varNames) == 0:
             return
         parseTree = IntrospectiveCodeTransformationMixIn._generateParseTree(template)
@@ -75,6 +153,20 @@ class IntrospectiveCodeTransformationMixIn():
 
     @staticmethod
     def _dereferencePointer(parseTree: TemplateNode, ptrName: str) -> TemplateNode:
+        """Dereference a pointer in the parse tree.
+
+        Parameters
+        ----------
+        parseTree : TemplateNode
+            The parse tree to modify.
+        ptrName : str
+            The name of the pointer to dereference.
+
+        Returns
+        -------
+        TemplateNode
+            The modified parse tree with dereferenced pointers.
+        """
         indexes = [i for i, node in enumerate(parseTree.nodes) if isinstance(node, Expression) and node.text == ptrName]
 
         for offset, idx in enumerate(indexes):
@@ -85,6 +177,18 @@ class IntrospectiveCodeTransformationMixIn():
 
     @staticmethod
     def dereferenceVars(template: Template, varNames: List[str]) -> None:
+        """Dereference the specified variables in the given template.
+
+        This function modifies the provided template in place by dereferencing
+        the variables listed in `varNames`. The template is modified in place.
+
+        Parameters
+        ----------
+        template : Template
+            The template object to be modified.
+        varNames : list of str
+            List of variable names to dereference within the template.
+        """
         if len(varNames) == 0:
             return
         parseTree = IntrospectiveCodeTransformationMixIn._generateParseTree(template)
@@ -97,6 +201,24 @@ class IntrospectiveCodeTransformationMixIn():
                                  executionBlock: ExecutionBlock = None,
                                  unrollStructs = False,
                                  includeGlobalReferences = False):
+        """Extract all dynamic references from the given execution block.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            The network context.
+        executionBlock : ExecutionBlock, optional
+            The execution block.
+        unrollStructs : bool, optional
+            Whether to unroll structs.
+        includeGlobalReferences : bool, optional
+            Whether to include global references.
+
+        Returns
+        -------
+        List[str]
+            A list of dynamic references.
+        """
 
         makoDynamicReferences = []
         for codeSnippet in executionBlock.codeSnippets:
@@ -113,7 +235,20 @@ class IntrospectiveCodeTransformationMixIn():
 
     @staticmethod
     def _fixCtxtOrdering(ctxt: NetworkContext, nameList: List[str]) -> List[str]:
+        """Fix the ordering of context names based on their appearance in the context.
 
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            The network context.
+        nameList : List[str]
+            The list of context names to order.
+
+        Returns
+        -------
+        List[str]
+            The ordered list of context names.
+        """
         orderList = [*ctxt.globalObjects.keys(), *ctxt.localObjects.keys()]
         _nameList = sorted(nameList.copy(), key = lambda key: orderList.index(key))
 
@@ -125,6 +260,26 @@ class IntrospectiveCodeTransformationMixIn():
                                    template: Template,
                                    unrollStructs = False,
                                    includeGlobalReferences = False):
+        """Extract dynamic expressions from the given template.
+
+        Parameters
+        ----------
+        ctxt : NetworkContext
+            The network context.
+        operatorRepresentation : OperatorRepresentation
+            The operator representation mapping expressions to their representations.
+        template : Template
+            The template to extract expressions from.
+        unrollStructs : bool, optional
+            Whether to recursively unroll struct references. Defaults to False.
+        includeGlobalReferences : bool, optional
+            Whether to include global references in the result. Defaults to False.
+
+        Returns
+        -------
+        List[str]
+            A list of dynamic expressions, including local (and optionally global) references.
+        """
         codeHash = hash(template._source)
 
         if codeHash in self.parseTreeDict.keys():
