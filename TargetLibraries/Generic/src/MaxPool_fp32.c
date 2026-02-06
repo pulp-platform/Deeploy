@@ -11,6 +11,9 @@ void MaxPool2d_fp32_fp32_NCHW(float32_t const *__restrict__ pSrcA, uint32_t C,
                               uint32_t SP, uint32_t SQ,
                               float32_t *__restrict__ pDstC) {
 
+  if (H < P || W < Q || SP == 0 || SQ == 0) {
+    return;
+  }
   uint32_t H_out = (H - P) / SP + 1;
   uint32_t W_out = (W - Q) / SQ + 1;
 
@@ -36,6 +39,30 @@ void MaxPool2d_fp32_fp32_NCHW(float32_t const *__restrict__ pSrcA, uint32_t C,
         }
         pDstC[c * H_out * W_out + h_out * W_out + w_out] = max;
       }
+    }
+  }
+}
+
+void MaxPool1d_fp32_fp32(float32_t const *__restrict__ pSrcA, uint32_t C,
+                         uint32_t W, uint32_t K, uint32_t S,
+                         float32_t *__restrict__ pDstC) {
+  if (W < K || S == 0) {
+    return;
+  }
+  uint32_t W_out = (W - K) / S + 1;
+  for (uint32_t c = 0; c < C; ++c) {
+    for (uint32_t w_out = 0; w_out < W_out; ++w_out) {
+      float32_t max = -inf;
+      for (uint32_t k = 0; k < K; ++k) {
+        uint32_t w_in = w_out * S + k;
+        if (w_in >= W)
+          continue;
+        float32_t tmp = pSrcA[c * W + w_in];
+        if (tmp > max) {
+          max = tmp;
+        }
+      }
+      pDstC[c * W_out + w_out] = max;
     }
   }
 }
