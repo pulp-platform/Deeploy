@@ -41,7 +41,7 @@ class NOPTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
             for idx, shapeDim in enumerate(_buffer.shape):
-                tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = bufferName, dimIdx = idx) == shapeDim)
+                tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = bufferName, dimIdx = idx) <= shapeDim)
 
         # Remove unused tensors from deployment
         for bufferName in pointer:
