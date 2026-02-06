@@ -42,7 +42,7 @@ jobs:
       - name: Build Deeploy
         shell: bash
         run: |
-          pip install . --extra-index-url=https://pypi.ngc.nvidia.com
+          pip install .
           pip install -r requirements-dev.txt
       - name: Format Python
         shell: bash
