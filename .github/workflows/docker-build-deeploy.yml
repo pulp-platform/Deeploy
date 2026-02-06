@@ -150,11 +150,13 @@ jobs:
         run: |
           OWNER_LC_VALUE=${OWNER,,}
           {
-            echo "tags<<'EOF'"
+            echo "tags<<EOF"
             echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:latest,"
-            echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${DOCKER_TAG},"
             if [[ -n "${RELEASE_TAG}" ]]; then
-              echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${RELEASE_TAG},"
+              echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${DOCKER_TAG},"
+              echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${RELEASE_TAG}"
+            else
+              echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${DOCKER_TAG}"
             fi
             echo "EOF"
           } >> $GITHUB_OUTPUT
