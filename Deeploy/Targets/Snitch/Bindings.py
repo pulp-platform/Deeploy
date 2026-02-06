@@ -52,7 +52,9 @@ TiledTransformer = CodeTransformation([
     SnitchClusterTiling("L2", "L1", SnitchDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
+    TilingVariableReplacement("L2"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
+    MemoryManagementGeneration("L2"),
     MemoryManagementGeneration()
 ])
 
