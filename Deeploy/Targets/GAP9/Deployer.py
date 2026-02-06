@@ -32,10 +32,10 @@ load_file_to_ram(${locPtr}, "${extName}.hex");
 class GAP9Deployer(PULPDeployer):
     """
     GAP9-specific deployer using cl_dma.h API.
-    
+
     This deployer uses GAP9-specific transformers that employ ClDma (cl_dma.h)
     instead of the low-level MCHAN API used by PULPDeployer.
-    
+
     The key differences from PULPDeployer:
     - DMA: Uses ClDma (PMSIS cl_dma.h) instead of MchanDma (MCHAN hardware API)
     - L3 RAM: Uses GAP9 APS256XXN OctaSPI RAM accessed via pi_cl_ram_* APIs
