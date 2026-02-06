@@ -73,7 +73,8 @@ def generateNetwork(args):
         test_inputs, test_outputs, graph = generateDebugConfig(inputs, outputs, activations, graph)
 
     else:
-        # Load as float64 and infer types later
+        # Load as float64 for uniform handling, but preserve original dtypes for type inference
+        test_input_original_dtypes = [inputs[x].dtype for x in inputs.files]
         test_inputs = [inputs[x].reshape(-1).astype(np.float64) for x in inputs.files]
         test_outputs = [outputs[x].reshape(-1).astype(np.float64) for x in outputs.files]
 
@@ -122,7 +123,8 @@ def generateNetwork(args):
 
             _type = PointerClass(_type)
         else:
-            _type, offset = inferTypeAndOffset(values, signProp)
+            original_dtype = test_input_original_dtypes[index] if index < len(test_input_original_dtypes) else None
+            _type, offset = inferTypeAndOffset(values, signProp, original_dtype = original_dtype)
 
         inputTypes[f"input_{index}"] = _type
         inputOffsets[f"input_{index}"] = offset
