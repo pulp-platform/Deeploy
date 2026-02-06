@@ -48,11 +48,11 @@ from testUtils.pytestRunner import create_test_config, run_and_assert_test
 def generate_test_params(test_dict, config_name):
     """
     Generate test parameters from a dictionary of test names to L1 values.
-    
+
     Args:
         test_dict: Dictionary mapping test_name -> list of L1 values
         config_name: Configuration name for test ID (e.g., "L2-singlebuffer")
-        
+
     Returns:
         List of (test_name, l1_value, config_name) tuples
     """

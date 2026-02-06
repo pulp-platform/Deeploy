@@ -47,7 +47,7 @@ from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 @pytest.fixture(autouse = True)
 def clear_deeploy_state():
     """Clear dynamically generated struct classes from AbstractDataTypes before each test.
-    
+
     This prevents state pollution between DMA tests where dynamically generated
     struct classes (like _memcpy_0_tiling_closure_args_t) persist and cause
     conflicts when tests with different configurations try to create new versions.
@@ -111,7 +111,7 @@ def setup_dma_deployer(dma_type: str, input_shape: tuple, tile_shape: tuple, nod
                        doublebuffer: bool, gen_dir: str):
     """
     Set up deployer for DMA testing with custom tiling.
-    
+
     Args:
         dma_type: DMA implementation ("MchanDma", "L3Dma", "SnitchDma")
         input_shape: Tensor shape to copy
@@ -120,7 +120,7 @@ def setup_dma_deployer(dma_type: str, input_shape: tuple, tile_shape: tuple, nod
         data_type: Data type (uint8_t, uint16_t, uint32_t)
         doublebuffer: Enable double buffering
         gen_dir: Generation directory
-        
+
     Returns:
         tuple: (deployer, test_inputs, test_outputs)
     """

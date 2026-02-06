@@ -81,7 +81,7 @@ ENV SOFTHIER_INSTALL_DIR=/app/install/softhier
 ENV MINIMALLOC_INSTALL_DIR=/app/install/minimalloc
 ENV MEMPOOL_HOME=/app/install/mempool
 ENV BENDER_INSTALL_DIR=/app/install/bender
-ENV PATH=/app/install/qemu/bin:/app/install/banshee:/app/install/bender:$PATH 
+ENV PATH=/app/install/qemu/bin:/app/install/banshee:/app/install/bender:$PATH
 
 WORKDIR /app
 
