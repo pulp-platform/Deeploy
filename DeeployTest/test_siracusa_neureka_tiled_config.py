@@ -31,7 +31,7 @@ L3_SINGLEBUFFER_MODELS = {
     "Models/miniMobileNet": [2000],
     "Kernels/Integer/Attention": [2500],
     "Models/Transformer": [15000],
-    "Models/microLlama/microLlama1": [10000],
+    "Models/microLlama/INT8/microLlama1": [10000],
 }
 
 # L3 double-buffer model tests
@@ -53,5 +53,5 @@ L2_SINGLEBUFFER_KERNELS_WMEM = {
 L3_DOUBLEBUFFER_MODELS_WMEM = {
     "Models/miniMobileNet": [2000],
     "Kernels/Integer/Attention": [3500],
-    "Models/microLlama/microLlama1": [10000],
+    "Models/microLlama/INT8/microLlama1": [10000],
 }

@@ -37,7 +37,7 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       test-names: |
         Kernels/FP32/Softmax/Regular
-        Kernels/FP32/RMSNorm_fused
+        Kernels/FP32/RMSNorm/single_fused_op
         Kernels/FP32/MatMul
         Kernels/FP32/Add/Regular
         Kernels/FP32/Hardswish
@@ -56,7 +56,7 @@ jobs:
         Kernels/Integer/Add/Regular_RQ
         Kernels/Integer/GEMM/TransB_RQ
 
-        Models/microLlama/microLlama_fp32_1
+        Models/microLlama/FP32/microLlama1
       num-cores: 9
       simulators: |
         gvsoc
