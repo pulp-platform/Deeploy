@@ -1,0 +1,88 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: Package • Publish to PyPi
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      publish_target:
+        description: "Select what to do when manually triggering the workflow"
+        required: false
+        default: build-only
+        type: choice
+        options:
+          - build-only
+          - test-pypi
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-package:
+    name: Build package artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build artifacts
+        run: uv build
+
+      - name: Test wheel installation
+        run: uv run --isolated --no-project --with dist/*.whl python -c "import Deeploy"
+
+      - name: Test sdist installation
+        run: uv run --isolated --no-project --with dist/*.tar.gz python -c "import Deeploy"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deeploy-dist
+          path: dist
+          if-no-files-found: error
+
+  publish-pypi:
+    name: Publish to PyPI
+    if: github.event_name == 'push'
+    needs: build-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deeploy-dist
+          path: dist
+
+      - name: Publish to PyPI
+        run: uv publish dist/*
+
+  publish-test-pypi:
+    name: Publish to Test PyPI
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_target == 'test-pypi'
+    needs: build-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deeploy-dist
+          path: dist
+
+      - name: Publish to Test PyPI
+        run: uv publish dist/* --publish-url https://test.pypi.org/legacy/
+
