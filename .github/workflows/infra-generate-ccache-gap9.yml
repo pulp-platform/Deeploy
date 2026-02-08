@@ -18,6 +18,7 @@ name: Infrastructure • Generate CCache GAP9
 
 jobs:
   generate-ccache-gap9:
+    if: github.repository == 'pulp-platform/Deeploy'
     runs-on: ubuntu-latest
     container:
       image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:latest' }}
