@@ -68,7 +68,9 @@ RUN apt-get update && \
         telnet \
         usbutils \
         libftdi-dev \
-        libusb-1.0-0-dev && \
+        libusb-1.0-0-dev \
+        bison \
+        flex && \
     rm -rf /var/lib/apt/lists/*
 
 

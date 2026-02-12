@@ -1,20 +1,18 @@
 diff --git a/.gitignore b/.gitignore
-index d6c5b54d8..170acc552 100644
+index 6e751e203..d9091f1b1 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -7,6 +7,7 @@ build
- BUILD*
- junit-reports/
- reports/
+@@ -57,3 +57,5 @@ gaptest_reports/
+ # Release script dry-run output
+ release_dry_run/
+ artifact.txt
++
 +.gap9-venv
- 
- 
- # SDK generated folders
 diff --git a/Makefile b/Makefile
-index b342800d6..54a5d70c5 100644
+index 1dbab3578..60467d1d6 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -131,7 +131,7 @@ openocd.checkout:
+@@ -119,7 +119,7 @@ openocd.checkout:
  	fi
  
  openocd.build: openocd.checkout
@@ -24,245 +22,33 @@ index b342800d6..54a5d70c5 100644
  
  openocd.checkout.gap9.5:
 diff --git a/configs/common.sh b/configs/common.sh
-index e594437e3..b7ba06a63 100644
+index bd1f6ffea..e63faefa0 100644
 --- a/configs/common.sh
 +++ b/configs/common.sh
-@@ -80,7 +80,7 @@ export PULP_CONFIGS_PATH=$INSTALL_DIR/configs
- export GVSOC_MODULES="${GAP_SDK_HOME}/gvsoc/gvsoc/models;${GAP_SDK_HOME}/gvsoc/gvsoc_gap"
- export PYTHONPATH="${GAP_SDK_HOME}/gvsoc/gvsoc_gap:$PYTHONPATH"
- if [ -d "$GAP_SDK_HOME/gvsoc/gvsoc_libs" ]; then
--    export CONFIG_GVSOC_SKIP_UDMA_BUILD=1
-+    export CONFIG_GVSOC_SKIP_UDMA_BUILD=0
+@@ -178,3 +178,5 @@ if [ -n "$GAP_SDK_CI_BUILD" -a -z "$GAP_SDK_CI_DISABLE_GITHUB_ENV" ]; then
  fi
- 
- # gaptest
-diff --git a/gvsoc/gvsoc_gap/gap/gap9/soc.py b/gvsoc/gvsoc_gap/gap/gap9/soc.py
-index e2877a2f9..e3fa337f0 100644
---- a/gvsoc/gvsoc_gap/gap/gap9/soc.py
-+++ b/gvsoc/gvsoc_gap/gap/gap9/soc.py
-@@ -440,22 +440,22 @@ class Soc(st.Component):
-         self.bind(udma, 'i2s1_ws_out', udma, 'sfu_ws_in_1')
-         self.bind(udma, 'i2s2_ws_out', udma, 'sfu_ws_in_2')
- 
--        self.bind(udma, 'sfu_stream_in_ready_0', udma, 'stream_in_ready_0')
--        self.bind(udma, 'sfu_stream_in_ready_1', udma, 'stream_in_ready_1')
--        self.bind(udma, 'sfu_stream_in_ready_2', udma, 'stream_in_ready_2')
--        self.bind(udma, 'sfu_stream_in_ready_3', udma, 'stream_in_ready_3')
--        self.bind(udma, 'sfu_stream_in_ready_4', udma, 'stream_in_ready_4')
--        self.bind(udma, 'sfu_stream_in_ready_5', udma, 'stream_in_ready_5')
--        self.bind(udma, 'sfu_stream_in_ready_6', udma, 'stream_in_ready_6')
--        self.bind(udma, 'sfu_stream_in_ready_7', udma, 'stream_in_ready_7')
--        self.bind(udma, 'sfu_stream_in_ready_8', udma, 'stream_in_ready_8')
--        self.bind(udma, 'sfu_stream_in_ready_9', udma, 'stream_in_ready_9')
--        self.bind(udma, 'sfu_stream_in_ready_10', udma, 'stream_in_ready_10')
--        self.bind(udma, 'sfu_stream_in_ready_11', udma, 'stream_in_ready_11')
--        self.bind(udma, 'sfu_stream_in_ready_12', udma, 'stream_in_ready_12')
--        self.bind(udma, 'sfu_stream_in_ready_13', udma, 'stream_in_ready_13')
--        self.bind(udma, 'sfu_stream_in_ready_14', udma, 'stream_in_ready_14')
--        self.bind(udma, 'sfu_stream_in_ready_15', udma, 'stream_in_ready_15')
-+        # self.bind(udma, 'sfu_stream_in_ready_0', udma, 'stream_in_ready_0')
-+        # self.bind(udma, 'sfu_stream_in_ready_1', udma, 'stream_in_ready_1')
-+        # self.bind(udma, 'sfu_stream_in_ready_2', udma, 'stream_in_ready_2')
-+        # self.bind(udma, 'sfu_stream_in_ready_3', udma, 'stream_in_ready_3')
-+        # self.bind(udma, 'sfu_stream_in_ready_4', udma, 'stream_in_ready_4')
-+        # self.bind(udma, 'sfu_stream_in_ready_5', udma, 'stream_in_ready_5')
-+        # self.bind(udma, 'sfu_stream_in_ready_6', udma, 'stream_in_ready_6')
-+        # self.bind(udma, 'sfu_stream_in_ready_7', udma, 'stream_in_ready_7')
-+        # self.bind(udma, 'sfu_stream_in_ready_8', udma, 'stream_in_ready_8')
-+        # self.bind(udma, 'sfu_stream_in_ready_9', udma, 'stream_in_ready_9')
-+        # self.bind(udma, 'sfu_stream_in_ready_10', udma, 'stream_in_ready_10')
-+        # self.bind(udma, 'sfu_stream_in_ready_11', udma, 'stream_in_ready_11')
-+        # self.bind(udma, 'sfu_stream_in_ready_12', udma, 'stream_in_ready_12')
-+        # self.bind(udma, 'sfu_stream_in_ready_13', udma, 'stream_in_ready_13')
-+        # self.bind(udma, 'sfu_stream_in_ready_14', udma, 'stream_in_ready_14')
-+        # self.bind(udma, 'sfu_stream_in_ready_15', udma, 'stream_in_ready_15')
- 
-         self.bind(udma, 'stream_in_data_0', udma, 'sfu_stream_in_data_0')
-         self.bind(udma, 'stream_in_data_1', udma, 'sfu_stream_in_data_1')
-@@ -491,22 +491,22 @@ class Soc(st.Component):
-         self.bind(udma, 'stream_out_ready_14', udma, 'sfu_stream_out_ready_14')
-         self.bind(udma, 'stream_out_ready_15', udma, 'sfu_stream_out_ready_15')
- 
--        self.bind(udma, 'sfu_stream_out_data_0', udma, 'stream_out_data_0')
--        self.bind(udma, 'sfu_stream_out_data_1', udma, 'stream_out_data_1')
--        self.bind(udma, 'sfu_stream_out_data_2', udma, 'stream_out_data_2')
--        self.bind(udma, 'sfu_stream_out_data_3', udma, 'stream_out_data_3')
--        self.bind(udma, 'sfu_stream_out_data_4', udma, 'stream_out_data_4')
--        self.bind(udma, 'sfu_stream_out_data_5', udma, 'stream_out_data_5')
--        self.bind(udma, 'sfu_stream_out_data_6', udma, 'stream_out_data_6')
--        self.bind(udma, 'sfu_stream_out_data_7', udma, 'stream_out_data_7')
--        self.bind(udma, 'sfu_stream_out_data_8', udma, 'stream_out_data_8')
--        self.bind(udma, 'sfu_stream_out_data_9', udma, 'stream_out_data_9')
--        self.bind(udma, 'sfu_stream_out_data_10', udma, 'stream_out_data_10')
--        self.bind(udma, 'sfu_stream_out_data_11', udma, 'stream_out_data_11')
--        self.bind(udma, 'sfu_stream_out_data_12', udma, 'stream_out_data_12')
--        self.bind(udma, 'sfu_stream_out_data_13', udma, 'stream_out_data_13')
--        self.bind(udma, 'sfu_stream_out_data_14', udma, 'stream_out_data_14')
--        self.bind(udma, 'sfu_stream_out_data_15', udma, 'stream_out_data_15')
-+        # self.bind(udma, 'sfu_stream_out_data_0', udma, 'stream_out_data_0')
-+        # self.bind(udma, 'sfu_stream_out_data_1', udma, 'stream_out_data_1')
-+        # self.bind(udma, 'sfu_stream_out_data_2', udma, 'stream_out_data_2')
-+        # self.bind(udma, 'sfu_stream_out_data_3', udma, 'stream_out_data_3')
-+        # self.bind(udma, 'sfu_stream_out_data_4', udma, 'stream_out_data_4')
-+        # self.bind(udma, 'sfu_stream_out_data_5', udma, 'stream_out_data_5')
-+        # self.bind(udma, 'sfu_stream_out_data_6', udma, 'stream_out_data_6')
-+        # self.bind(udma, 'sfu_stream_out_data_7', udma, 'stream_out_data_7')
-+        # self.bind(udma, 'sfu_stream_out_data_8', udma, 'stream_out_data_8')
-+        # self.bind(udma, 'sfu_stream_out_data_9', udma, 'stream_out_data_9')
-+        # self.bind(udma, 'sfu_stream_out_data_10', udma, 'stream_out_data_10')
-+        # self.bind(udma, 'sfu_stream_out_data_11', udma, 'stream_out_data_11')
-+        # self.bind(udma, 'sfu_stream_out_data_12', udma, 'stream_out_data_12')
-+        # self.bind(udma, 'sfu_stream_out_data_13', udma, 'stream_out_data_13')
-+        # self.bind(udma, 'sfu_stream_out_data_14', udma, 'stream_out_data_14')
-+        # self.bind(udma, 'sfu_stream_out_data_15', udma, 'stream_out_data_15')
- 
-         # Riscv bus watchpoint
-         if self.get_property('fc/riscv_fesvr_tohost_addr') is not None:
-diff --git a/gvsoc/gvsoc_gap/gap/udma/CMakeLists.txt b/gvsoc/gvsoc_gap/gap/udma/CMakeLists.txt
-index 00ea2162a..1abbe5c14 100644
---- a/gvsoc/gvsoc_gap/gap/udma/CMakeLists.txt
-+++ b/gvsoc/gvsoc_gap/gap/udma/CMakeLists.txt
-@@ -21,6 +21,7 @@ vp_model(NAME "gap.udma.udma_v4_gap9_v2_impl"
-     "i2c/v4/udma_i2c_ucode.cpp"
-     "hyper/udma_hyper_v3.cpp"
-     "mram/udma_mram_v2.cpp"
-+    "sfu/udma_sfu_v1_empty.cpp"
- )
- 
- vp_model_compile_definitions(NAME "gap.udma.udma_v4_gap9_v2_impl"
-@@ -34,6 +35,7 @@ vp_model_compile_definitions(NAME "gap.udma.udma_v4_gap9_v2_impl"
-     -DHAS_I2C
-     -DHAS_HYPER
-     -DHAS_MRAM
-+    -DHAS_EMPTY_SFU
- )
- 
- vp_model_include_directories(NAME "gap.udma.udma_v4_gap9_v2_impl"
-diff --git a/gvsoc/gvsoc_gap/gap/udma/sfu/udma_sfu_v1_empty.cpp b/gvsoc/gvsoc_gap/gap/udma/sfu/udma_sfu_v1_empty.cpp
-index 821fd25f8..52dd506e1 100644
---- a/gvsoc/gvsoc_gap/gap/udma/sfu/udma_sfu_v1_empty.cpp
-+++ b/gvsoc/gvsoc_gap/gap/udma/sfu/udma_sfu_v1_empty.cpp
-@@ -25,11 +25,101 @@
- 
- 
- 
--Sfu_periph_empty::Sfu_periph_empty(udma *top, int id, int itf_id) : Udma_periph(top, id)
-+Sfu_periph_empty::Sfu_periph_empty(udma *top, int id, int itf_id) : Udma_periph(top, "sfu" + std::to_string(itf_id), id)
- {
-     std::string itf_name = "sfu" + std::to_string(itf_id);
-     top->traces.new_trace(itf_name, &this->trace, vp::DEBUG);
-     top->new_master_port("sfu_irq", &this->irq);
-+    top->new_master_port("sfu_pdm_out_0", &this->irq);
-+    top->new_master_port("sfu_pdm_out_1", &this->irq);
-+    top->new_master_port("sfu_pdm_out_2", &this->irq);
-+    top->new_master_port("sfu_pdm_out_3", &this->irq);
-+    top->new_master_port("sfu_pdm_out_4", &this->irq);
-+    top->new_master_port("sfu_pdm_out_5", &this->irq);
+ # There must a newline here since the build version is appended in the release process
+ export GAP_SDK_VERSION=release-v5.21.1
 +
-+    top->new_master_port("sfu_pdm_in_0", &this->irq);
-+    top->new_master_port("sfu_pdm_in_1", &this->irq);
-+    top->new_master_port("sfu_pdm_in_2", &this->irq);
-+    top->new_master_port("sfu_pdm_in_3", &this->irq);
-+    top->new_master_port("sfu_pdm_in_4", &this->irq);
-+    top->new_master_port("sfu_pdm_in_5", &this->irq);
-+    top->new_master_port("sfu_pdm_in_6", &this->irq);
-+    top->new_master_port("sfu_pdm_in_7", &this->irq);
-+    top->new_master_port("sfu_pdm_in_8", &this->irq);
-+    top->new_master_port("sfu_pdm_in_9", &this->irq);
-+    top->new_master_port("sfu_pdm_in_10", &this->irq);
-+    top->new_master_port("sfu_pdm_in_11", &this->irq);
-+
-+    top->new_master_port("sfu_ws_in_0", &this->irq);
-+    top->new_master_port("sfu_ws_in_1", &this->irq);
-+    top->new_master_port("sfu_ws_in_2", &this->irq);
-+
-+
-+    // top->new_slave_port("sfu_stream_in_ready_0", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_1", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_2", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_3", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_4", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_5", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_6", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_7", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_8", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_9", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_10", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_11", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_12", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_13", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_14", &this->in);
-+    // top->new_slave_port("sfu_stream_in_ready_15", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_0", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_1", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_2", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_3", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_4", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_5", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_6", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_7", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_8", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_9", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_10", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_11", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_12", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_13", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_14", &this->in);
-+    // top->new_slave_port("sfu_stream_out_data_15", &this->in);
-+
-+    top->new_master_port("sfu_stream_in_data_0", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_1", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_2", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_3", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_4", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_5", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_6", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_7", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_8", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_9", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_10", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_11", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_12", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_13", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_14", &this->irq);
-+    top->new_master_port("sfu_stream_in_data_15", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_0", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_1", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_2", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_3", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_4", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_5", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_6", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_7", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_8", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_9", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_10", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_11", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_12", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_13", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_14", &this->irq);
-+    top->new_master_port("sfu_stream_out_ready_15", &this->irq);
- }
-  
- 
++export WITH_EMPTY_SFU=1
 diff --git a/install_python_deps.sh b/install_python_deps.sh
-index 4b0dbb728..8d5610678 100755
+index cac3e1885..578bb5f71 100755
 --- a/install_python_deps.sh
 +++ b/install_python_deps.sh
-@@ -60,7 +60,7 @@ then
-         pip3 install -r tools/nntool/tests/requirements.txt
+@@ -69,7 +69,7 @@ then
+         python -m pip install -r tools/nntool/tests/requirements.txt
      fi
  
--    pip3 install -r tools/audio-framework/requirements.txt
-+#     pip3 install -r tools/audio-framework/requirements.txt
-     pip3 install -r utils/gapy_v2/requirements.txt
-     pip3 install -r doc/requirements.txt
- fi
+-    python -m pip install -r tools/audio-framework/requirements.txt
++    # python -m pip install -r tools/audio-framework/requirements.txt
+     python -m pip install -r utils/gapy_v2/requirements.txt
+     python -m pip install -r doc/requirements.txt
+ 
 diff --git a/utils/cmake/at.cmake b/utils/cmake/at.cmake
-index 476b87c78..ee6449a1d 100644
+index e03d6b6d5..b7f0104d7 100644
 --- a/utils/cmake/at.cmake
 +++ b/utils/cmake/at.cmake
-@@ -909,7 +909,7 @@ macro(_at_model_setup_int)
+@@ -919,7 +919,7 @@ macro(_at_model_setup_int)
          OUTPUT ${PARAM_MODEL_EXE_PATH}
          DEPENDS ${PARAM_MODEL_PATH} ${_MODEL_GEN_SRCS} ${TILER_LIB}
          COMMAND ${CMAKE_COMMAND} -E make_directory ${_MODEL_EXE_DIR}
@@ -272,78 +58,24 @@ index 476b87c78..ee6449a1d 100644
  
      # global compile model target
 diff --git a/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py b/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
-index a7b191322..b0c5c5e77 100644
+index 62ee5cac2..d872073f7 100644
 --- a/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
 +++ b/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
-@@ -159,7 +159,7 @@ class Openocd():
-         if self.args.openocd_tools is None:
-             raise RuntimeError("Argument --openocd-tools is missing")
- 
--    def connect(self, use_existing_port=6666):
-+    def connect(self, telnet_port=None, telnet_host='localhost'):
-         """Connect to target.
- 
-         This will launch OpenOCD with the telnet proxy and connect to it so that this class
-@@ -169,10 +169,10 @@ class Openocd():
-         # To allow the execution of several gapy in parallel, we cannot use a fixed port.
-         # Iterate until we find an available one.
-         retry_nb = 0
--        if use_existing_port is not None:
-+        if telnet_port is not None:
-             success = True
--            port = use_existing_port
--            self.use_existing_port = use_existing_port
-+            port = telnet_port
-+            self.telnet_port = telnet_port
-         else:
-             success = False
-             while retry_nb < 30:
-@@ -208,7 +208,7 @@ class Openocd():
- 
-         # Now that OpenOCD was successfully launched with proxy openocd, launch a telnet.
-         if success is True:
--            self.telnet = pexpect.spawn(f'telnet localhost {port}', encoding='utf-8', echo=False)
-+            self.telnet = pexpect.spawn(f'telnet {telnet_host} {port}', encoding='utf-8', echo=False)
-             match = self.telnet.expect(['Open On-Chip Debugger'], timeout=None)
+@@ -342,7 +342,7 @@ class Openocd():
          else:
              raise RuntimeError('Failed to connect to openocd after 30 retries')
-@@ -472,6 +472,12 @@ class Runner():
-         parser.add_argument("--gdb-port", dest="gdb_port", default=3333, type=int,
-             help="GDB port")
  
-+        parser.add_argument("--telnet-port", dest="telnet_port", default=None, type=int,
-+            help="Telnet port")
-+
-+        parser.add_argument("--telnet-host", dest="telnet_host", default='localhost', type=str,
-+            help="Telnet host")
-+
-         parser.add_argument("--wsl", dest = "wsl", type=str, default=None,
-             help = "Launch command in wsl environment")
+-        self.telnet = pexpect.spawn(f'telnet localhost {port}', encoding='utf-8', echo=False)
++        self.telnet = pexpect.spawn(f'telnet host.docker.internal {port}', encoding='utf-8', echo=False)
+         match = self.telnet.expect(['Open On-Chip Debugger'], timeout=None)
  
-@@ -602,7 +608,7 @@ class Runner():
- 
-                         if ocd is None:
-                             ocd = Openocd(args)
--                            ocd.connect()
-+                            ocd.connect(args.telnet_port, args.telnet_host)
- 
-                         self.__flash_image(args, ocd, flash, base_addr, first_index, last)
- 
+     def write(self, addr: int, value: int):
 diff --git a/utils/openocd_tools/tcl/gap9revb.tcl b/utils/openocd_tools/tcl/gap9revb.tcl
-index 4a66dfa27..dea57196b 100644
+index 9e67f67c7..697483112 100644
 --- a/utils/openocd_tools/tcl/gap9revb.tcl
 +++ b/utils/openocd_tools/tcl/gap9revb.tcl
-@@ -3,7 +3,7 @@ adapter_khz     5000
- 
- config_reset 0x1
- 
--target create $_FC riscv -chain-position $_TAP_RISCV -coreid 0x9 
-+target create $_FC riscv -chain-position $_TAP_RISCV -coreid 0x9
- 
- gdb_report_data_abort enable
- gdb_report_register_access_error enable
-@@ -23,8 +23,8 @@ proc jtag_init {} {
-     gap_reset 0 100
+@@ -24,8 +24,8 @@ proc jtag_init {} {
+     #gap_reset 0 100
  
      # wait for jtag ready
 -    poll_confreg 0x1
@@ -351,9 +83,9 @@ index 4a66dfa27..dea57196b 100644
 +    # poll_confreg 0x1
 +    # echo "INIT: confreg polling done"
  
-     $::_FC arp_examine
-     echo "examine done"
-@@ -36,8 +36,8 @@ proc init_reset {mode} {
+     #UNCOMMENT IF YOU UNCOMMENT gap_init 1
+     #gap_start 1
+@@ -39,8 +39,8 @@ proc init_reset {mode} {
      #targets $::_FC
      gap_reset 1 100
      # wait for jtag ready
