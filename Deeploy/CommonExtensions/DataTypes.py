@@ -112,7 +112,7 @@ def minimalIntegerType(value: Union[int, Iterable[int], npt.NDArray]) -> Type[In
 
     Parameters
     ----------
-    values : Union[int, Iterable[int]
+    value : Union[int, Iterable[int], npt.NDArray]
         The list of integer values to analyze.
 
     Returns
@@ -138,7 +138,7 @@ def minimalFloatType(value: Union[float, Iterable[float], npt.NDArray]) -> Type[
 
     Parameters
     ----------
-    values : Union[float, Iterable[float]
+    value : Union[float, Iterable[float], npt.NDArray]
         The list of float values to analyze.
 
     Returns

@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #
-# File: PrintInput.py
+# File: PrintInputs.py
 #
 # Copyright (C) 2023, ETH Zurich and University of Bologna.
 #
