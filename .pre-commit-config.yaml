@@ -13,6 +13,7 @@ exclude: |
     | .*TEST_.*
     | .*TestFiles.*
     | .*runtime.*
+    | .*\.patch
     | .*prebuilt/.*
   )
 

@@ -1,0 +1,38 @@
+diff --git a/.gitignore b/.gitignore
+index d6c5b54d8..170acc552 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -7,6 +7,7 @@ build
+ BUILD*
+ junit-reports/
+ reports/
++.gap9-venv
+
+
+ # SDK generated folders
+diff --git a/install_python_deps.sh b/install_python_deps.sh
+index 4b0dbb728..8d5610678 100755
+--- a/install_python_deps.sh
++++ b/install_python_deps.sh
+@@ -60,7 +60,7 @@ then
+         pip3 install -r tools/nntool/tests/requirements.txt
+     fi
+
+-    pip3 install -r tools/audio-framework/requirements.txt
++#     pip3 install -r tools/audio-framework/requirements.txt
+     pip3 install -r utils/gapy_v2/requirements.txt
+     pip3 install -r doc/requirements.txt
+ fi
+diff --git a/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py b/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
+index a7b191322..4adaede16 100644
+--- a/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
++++ b/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
+@@ -208,7 +208,7 @@ class Openocd():
+
+         # Now that OpenOCD was successfully launched with proxy openocd, launch a telnet.
+         if success is True:
+-            self.telnet = pexpect.spawn(f'telnet localhost {port}', encoding='utf-8', echo=False)
++            self.telnet = pexpect.spawn(f'telnet host.docker.internal {port}', encoding='utf-8', echo=False)
+             match = self.telnet.expect(['Open On-Chip Debugger'], timeout=None)
+         else:
+             raise RuntimeError('Failed to connect to openocd after 30 retries')

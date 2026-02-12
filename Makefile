@@ -24,6 +24,9 @@ PICOLIBC_RV32IMA_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
 PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
 PICOLIBC_RV32IMF_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imf
 
+GCC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gcc
+GAP_RISCV_GCC_INSTALL_DIR ?= ${GCC_INSTALL_DIR}/gap9
+
 CHIMERA_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/chimera-sdk
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
@@ -36,6 +39,7 @@ MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
 XTL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtl
 XSIMD_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xsimd
 XTENSOR_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtensor
+GAP9_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gap9-sdk
 
 CMAKE ?= cmake
 
@@ -51,6 +55,9 @@ CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
 XTENSOR_VERSION ?= 0.25.0
+GAP9_SDK_COMMIT_HASH ?= 897955d7ab326bd31684429eb16a2e485ab89afb # dev-v5.19.2
+# GAP9_SDK_COMMIT_HASH ?= dfabdddd0e78b9b750a0eb46eee85d5a2c9ae853 # dev-v5.20.4
+GAP_SDK_URL ?= 'git@iis-git.ee.ethz.ch:wiesep/gap9_sdk.git'
 
 OS  := $(shell uname -s)
 ARCH:= $(shell uname -m)
@@ -77,6 +84,8 @@ echo-bash:
 	@echo "The following symbols need to be exported for Deeploy to work properly:"
 	@echo "export MINIMALLOC_INSTALL_DIR=${MINIMALLOC_INSTALL_DIR}"
 	@echo "export PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
+	@echo "export GAP_SDK_HOME=${GAP9_SDK_INSTALL_DIR}"
+	@echo "export GAP_RISCV_GCC_TOOLCHAIN=${GAP_RISCV_GCC_INSTALL_DIR}"
 	@echo "export CHIMERA_SDK_HOME=${CHIMERA_SDK_INSTALL_DIR}"
 	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
 	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
@@ -97,9 +106,11 @@ emulators: snitch_runtime pulp-sdk qemu banshee mempool
 
 ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/pulp-platform/llvm-project.git \
-	 -b main && \
-	cd ${TOOLCHAIN_DIR}/llvm-project && git checkout ${LLVM_COMMIT_HASH} && \
+	git init llvm-project && \
+	cd ${TOOLCHAIN_DIR}/llvm-project && \
+	git remote add origin https://github.com/pulp-platform/llvm-project.git && \
+	git fetch --depth=1 origin ${LLVM_COMMIT_HASH} && \
+	git checkout ${LLVM_COMMIT_HASH} && \
 	git submodule update --init --recursive
 
 ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
@@ -409,6 +420,26 @@ ${PULP_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/pulp-sdk
 	cp -r ${TOOLCHAIN_DIR}/pulp-sdk/ ${PULP_SDK_INSTALL_DIR}/../
 
 pulp-sdk: ${PULP_SDK_INSTALL_DIR}
+
+${TOOLCHAIN_DIR}/gap9-toolchain:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/GreenWaves-Technologies/gap_riscv_toolchain_ubuntu.git --depth 1 -b master gap9-toolchain
+
+${GAP_RISCV_GCC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gap9-toolchain
+	cd ${TOOLCHAIN_DIR}/gap9-toolchain  && \
+	mkdir -p ${GAP_RISCV_GCC_INSTALL_DIR} && \
+	./install.sh ${GAP_RISCV_GCC_INSTALL_DIR}
+
+gap9-toolchain: ${GAP_RISCV_GCC_INSTALL_DIR}
+
+.PHONY: gap9-sdk
+gap9-sdk:
+	@echo "Cloning and building GAP9 SDK..."
+	GAP9_SDK_INSTALL_DIR=${GAP9_SDK_INSTALL_DIR} \
+	GAP9_SDK_COMMIT_HASH=${GAP9_SDK_COMMIT_HASH} \
+	GAP_SDK_URL=${GAP_SDK_URL} \
+	ROOT_DIR=${ROOT_DIR} \
+	bash ${ROOT_DIR}/scripts/gap9-build_sdk.sh
 
 ${TOOLCHAIN_DIR}/snitch_cluster:
 	cd ${TOOLCHAIN_DIR} && \

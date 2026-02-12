@@ -1,0 +1,121 @@
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+ARG DEEPOY_IMAGE=ghcr.io/pulp-platform/deeploy:latest
+FROM ${DEEPOY_IMAGE} AS deeploy
+
+ARG TARGETPLATFORM
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
+ENV GAP_SDK_HOME=/app/install/gap9-sdk
+ENV GAP9_SDK_INSTALL_DIR=/app/install/gap9-sdk
+ENV GAP_RISCV_GCC_INSTALL_DIR=/app/install/gcc/gap9
+
+WORKDIR /app/build
+
+# Install SSH keys to access private repositories
+RUN mkdir -p -m 0700 ~/.ssh && \
+    ssh-keyscan iis-git.ee.ethz.ch >> ~/.ssh/known_hosts && \
+    ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+COPY toolchain/*.patch toolchain/
+COPY Makefile ./
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y  \
+        git-lfs \
+        ccache \
+        ninja-build \
+        pkg-config \
+        ibglib2.0-dev \
+        libpixman-1-dev \
+        python3 \
+        python3-pip \
+        python3-dev \
+        python-is-python3 \
+        python3.10-venv \
+        python3.10-distutils \
+        curl \
+        protobuf-compiler \
+        libftdi-dev \
+        libftdi1 \
+        doxygen \
+        libsdl2-dev \
+        scons \
+        gtkwave \
+        libsndfile1-dev \
+        rsync \
+        autoconf \
+        automake \
+        texinfo \
+        libtool \
+        libsdl2-ttf-dev \
+        gcc \
+        wget \
+        clang-format \
+        g++ \
+        sudo \
+        device-tree-compiler \
+        zsh \
+        nano \
+        sudo \
+        gdb-multiarch \
+        ssh \
+        gcc-x86-64-linux-gnu \
+        telnet \
+        usbutils \
+        libftdi-dev \
+        libusb-1.0-0-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+
+COPY Container/gap9-amd64.list Container/gap9-sources.list ./
+# Install AMD64 libraries on ARM64 for GCC GAP9 compiler support
+RUN <<CMD_EOF
+if [ -z "$TARGETPLATFORM" ]; then
+    echo "Error: TARGETPLATFORM is not set. Please build with --platform=linux/amd64 or --platform=linux/arm64."
+    exit 1
+elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then
+    echo "Configuring for ARM64 platform"
+    cp gap9-amd64.list /etc/apt/sources.list.d/ && \
+    cp gap9-sources.list /etc/apt/sources.list && \
+    dpkg --add-architecture amd64 && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libc6:amd64 libstdc++6:amd64 zlib1g:amd64 \
+        libmpc3:amd64 libmpfr6:amd64 libgmp10:amd64 && \
+    ldconfig; \
+elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then
+    echo "Configuring for AMD64 platform"
+    # No additional configuration needed for AMD64
+else
+    echo "Error: Unsupported TARGETPLATFORM value: $TARGETPLATFORM. Supported values are linux/amd64 and linux/arm64."
+    exit 1
+fi
+apt clean
+CMD_EOF
+
+RUN --mount=type=cache,target=/ccache \
+    ccache -z && make gap9-toolchain
+
+COPY Container/gap9-amd64.patch Container/gap9-arm64.patch  ./
+COPY scripts/gap9-build_sdk.sh ./scripts/
+RUN --mount=type=ssh \
+    --mount=type=cache,target=/ccache \
+    --mount=type=cache,target=/root/.cache/pip \
+    ccache -z && \
+    make gap9-sdk && \
+    ccache -s && \
+    rm -rf /app/install/gap9-sdk/build && \
+    rm -rf /app/install/gap9-sdk/.git && \
+    rm -rf /app/install/gap9-sdk/nn_menu && \
+    find /app/install/gap9-sdk -name "*.o" -delete && \
+    find /app/install/gap9-sdk -name "*.a" -not -path "*/lib/*" -delete
+
+
+# Remove unused files and clean up to reduce image size
+WORKDIR /app
+RUN rm -rf /app/build
