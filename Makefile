@@ -55,9 +55,7 @@ CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
 XTENSOR_VERSION ?= 0.25.0
-# GAP9_SDK_COMMIT_HASH ?= 897955d7ab326bd31684429eb16a2e485ab89afb # dev-v5.19.2
-# GAP9_SDK_COMMIT_HASH ?= dfabdddd0e78b9b750a0eb46eee85d5a2c9ae853 # dev-v5.20.4
-# GAP_SDK_URL ?= 'git@iis-git.ee.ethz.ch:wiesep/gap9_sdk.git'
+
 # GAP9_SDK_COMMIT_HASH ?= 1796873cec9ca1feb352a6fe980b627df979bdd1 # v5.21.1
 GAP9_SDK_COMMIT_HASH ?= 8c42b65338e554ac73c749f94ecddd23a9ee5490 # v5.21.1-staging-1
 GAP_SDK_URL ?= 'git@github.com:pulp-platform/gap-sdk.git'
