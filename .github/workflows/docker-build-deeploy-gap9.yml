@@ -96,6 +96,11 @@ jobs:
         env:
           OWNER: "${{ github.repository_owner }}"
 
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Build and push final Deeploy image
         id: build
         uses: docker/build-push-action@v6
@@ -108,6 +113,7 @@ jobs:
           push: true
           build-args: |
             DEEPLOY_IMAGE=${{ github.event.inputs.docker_image_deeploy }}
+          ssh: default
           outputs: type=image,name=ghcr.io/${{ env.OWNER_LC }}/deeploy-gap9,annotation-index=true,name-canonical=true,push=true
 
       - name: Extract image digest
@@ -142,14 +148,3 @@ jobs:
             ghcr.io/${{ env.OWNER_LC }}/deeploy-gap9:latest,
             ghcr.io/${{ env.OWNER_LC }}/deeploy-gap9:${{ needs.prepare.outputs.docker_tag }}
           push: true
-
-      - name: Set package visibility to internal
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.packages.updatePackageVersionVisibility({
-              package_type: 'container',
-              package_name: 'deeploy-gap9',
-              visibility: 'internal',
-              org: context.repo.owner
-            });
