@@ -6,6 +6,7 @@
 
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
+#include <math.h>
 
 void PULP_DW_Conv2d_Im2Col_fp32_fp32_fp32_HWC(
     const float32_t *__restrict__ pSrcA, uint32_t H, uint32_t W, uint32_t C,

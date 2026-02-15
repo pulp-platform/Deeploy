@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: Infrastructure • Generate CCache GAP9
+
+"on":
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "Deeploy GAP9 Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy-gap9:latest"
+  schedule:
+    # Runs the workflow on the default branch every day at 2AM CET to keep the cache fresh
+    - cron: "0 2 * * *"
+
+jobs:
+  generate-ccache-gap9:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:latest' }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: |
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          pip install -e . || true
+          deactivate
+
+      - name: Generate CCache for GAP9
+        run: |
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          export GVSOC_INSTALL_DIR=/app/install/gap9-sdk/install/workstation
+          export GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          pytest 'test_platforms.py::test_gap9_kernels[Kernels/Integer/Add/Regular]' --skipsim
+          pytest 'test_platforms.py::test_gap9_tiled_kernels_l2_singlebuffer[Kernels/Integer/Add/Large-5000-L2-singlebuffer]' --skipsim
+          deactivate
+
+      - name: Clean and Upload CCache
+        uses: actions/cache@v4
+        with:
+          path: /app/.ccache
+          key: ccache-gap9

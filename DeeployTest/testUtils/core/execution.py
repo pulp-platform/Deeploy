@@ -17,7 +17,7 @@ from .output_parser import TestResult, parse_test_output
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
     """
     Generate network code from ONNX model.
-        
+
     Raises:
         RuntimeError: If network generation fails
     """
@@ -83,6 +83,10 @@ def configure_cmake(config: DeeployTestConfig) -> None:
         f"-B{config.build_dir}",
     ]
 
+    # Add GVSOC_INSTALL_DIR if available
+    if config.gvsoc_install_dir:
+        cmd.append(f"-DGVSOC_INSTALL_DIR={config.gvsoc_install_dir}")
+
     for arg in config.cmake_args:
         if not arg.startswith("-D"):
             arg = "-D" + arg
@@ -127,6 +131,10 @@ def build_binary(config: DeeployTestConfig) -> None:
         config.test_name,
     ]
 
+    # GAP9 requires the 'image' target to generate MRAM .bin files for GVSOC
+    if config.platform == 'GAP9':
+        cmd.append("image")
+
     env = os.environ.copy()
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
@@ -143,7 +151,7 @@ def build_binary(config: DeeployTestConfig) -> None:
 def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     """
     Run simulation and parse output.
-        
+
     Raises:
         RuntimeError: If simulation cannot be executed
     """

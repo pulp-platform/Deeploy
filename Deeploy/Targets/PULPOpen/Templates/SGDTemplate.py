@@ -31,7 +31,7 @@ for (; i+5 < ${nodeName}_chunk_stop; i+=6) {
     temp_mul[3] = learning_rate * ref_${grad}[i+3];
     temp_mul[4] = learning_rate * ref_${grad}[i+4];
     temp_mul[5] = learning_rate * ref_${grad}[i+5];
-    
+
     // Unrolled subtraction operations
     ref_${weight_updated}[i] = ref_${weight}[i] - temp_mul[0];
     ref_${weight_updated}[i+1] = ref_${weight}[i+1] - temp_mul[1];
