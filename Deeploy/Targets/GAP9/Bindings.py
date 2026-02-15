@@ -328,6 +328,9 @@ GAP9TransposeBindings = [
 GAP9ConcatBindings = [
     NodeBinding(ConcatChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
                 ConcatTemplate.referenceTemplate, GAP9ClusterTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ConcatChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                ConcatTemplate.referenceTemplate, GAP9ClusterTransformer)
 ]
 
 GAP9iRMSNormBindings = [
