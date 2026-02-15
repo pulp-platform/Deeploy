@@ -245,6 +245,7 @@ def create_config_from_args(args: argparse.Namespace,
         build_dir = build_dir,
         toolchain = args.toolchain,
         toolchain_install_dir = args.toolchain_install_dir,
+        gvsoc_install_dir = getattr(args, 'gvsoc_install_dir', None),
         cmake_args = cmake_args_list,
         gen_args = gen_args_list,
         verbose = args.verbose,
@@ -315,7 +316,7 @@ def main(default_platform: Optional[str] = None,
          parser_setup_callback = None):
     """
     Main entry point for Deeploy test runners.
-    
+
     Args:
         default_platform: Default platform if not specified via -p
         default_simulator: Default simulator if not specified via -s

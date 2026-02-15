@@ -556,28 +556,8 @@ chimera-sdk: ${CHIMERA_SDK_INSTALL_DIR}
 .PHONY: docs clean-docs format
 
 format:
-	@echo "Formatting all relevant files..."
-	@echo " - Format Python Files"
-	@yapf -ipr -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
-	@echo " - Format Python Imports"
-	@isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./
-	@autoflake -i -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
-	@echo " - Format C/C++ Files"
-	@python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format -ir ./ scripts
-
-lint:
-	@echo "Linting all relevant files..."
-	@echo " - Lint License Headers"
-	@scripts/reuse_skip_wrapper.py $$(git ls-files '*.py' '*.c' '*.h' '*.html' '*.rst' '*.yml' '*.yaml')
-	@echo " - Lint Python Files"
-	@yapf -rpd -e "*/TEST_*/" -e "*/third_party/" -e "install/" -e "toolchain/" .
-	@echo " - Lint Python Imports"
-	@isort --quiet --sg "**/TEST_*/*" --sg "**/third_party/*" --sg "install/*" --sg "toolchain/*" ./ -c
-	@autoflake --quiet -c -r --remove-all-unused-imports --ignore-init-module-imports --exclude "**/third_party/*,**/install/*,**/toolchain/*" .
-	@echo " - Lint C/C++ Files"
-	@python scripts/run_clang_format.py -e "*/TEST_*/*" -e "*/third_party/*" -e "*/install/*" -e "*/toolchain/*" -r --clang-format-executable=${LLVM_INSTALL_DIR}/bin/clang-format . scripts
-	@echo " - Lint YAML files"
-	@yamllint .
+	@echo "Formatting code..."
+	@pre-commit run --all-files
 
 docs:
 	make -C docs html
