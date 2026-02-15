@@ -102,7 +102,7 @@ ForkTransformer = CodeTransformation([
     PULPSynchCoresPass(),
     ForkClosure(writeback = False, generateStruct = True),
     TilingVariableReplacementUpdate("L1"),
-    PULPClusterTiling("L2", "L1", MchanDma()),
+    PULPClusterTiling("L2", "L1", MchanDma(), usePerfCounters=True),  # Enable perf counters
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
@@ -120,7 +120,7 @@ ClusterTransformer = CodeTransformation([
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacementUpdate("L1"),
-    PULPClusterTiling("L2", "L1", MchanDma()),
+    PULPClusterTiling("L2", "L1", MchanDma(), usePerfCounters=True),  # Enable perf counters
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
