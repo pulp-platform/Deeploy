@@ -20,6 +20,7 @@ echo "Preparing GAP9 SDK in: ${GAP9_SDK_INSTALL_DIR}"
 
 if [ -d "${GAP9_SDK_INSTALL_DIR}/.git" ]; then
 	echo "Directory ${GAP9_SDK_INSTALL_DIR} already exists and looks like a git repo. Updating remote URL and fetching latest changes..."
+	cd "${GAP9_SDK_INSTALL_DIR}"
 	git remote set-url origin "${GAP_SDK_URL}" || true
 else
 	echo "Cloning GAP9 SDK..."
@@ -62,7 +63,7 @@ echo "Sourcing GAP9 SDK environment"
 
 echo "Invoking make install_dependency cmake_sdk.build"
 set -e # Enable strict error handling for the build process
-make install_dependency cmake_sdk.build openocd.all
+make install_dependency cmake_sdk.build openocd.all autotiler.all
 set +e # Disable strict error handling to allow deactivation even if build fails
 
 deactivate

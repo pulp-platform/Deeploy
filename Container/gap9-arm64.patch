@@ -44,19 +44,6 @@ index cac3e1885..578bb5f71 100755
      python -m pip install -r utils/gapy_v2/requirements.txt
      python -m pip install -r doc/requirements.txt
  
-diff --git a/utils/cmake/at.cmake b/utils/cmake/at.cmake
-index e03d6b6d5..b7f0104d7 100644
---- a/utils/cmake/at.cmake
-+++ b/utils/cmake/at.cmake
-@@ -919,7 +919,7 @@ macro(_at_model_setup_int)
-         OUTPUT ${PARAM_MODEL_EXE_PATH}
-         DEPENDS ${PARAM_MODEL_PATH} ${_MODEL_GEN_SRCS} ${TILER_LIB}
-         COMMAND ${CMAKE_COMMAND} -E make_directory ${_MODEL_EXE_DIR}
--        COMMAND gcc -g -o ${PARAM_MODEL_EXE_PATH} ${_MODEL_GEN_INCS} ${PARAM_MODEL_PATH} ${_MODEL_GEN_SRCS} ${_MODEL_GEN_LIBS} ${SDL2_LDFLAGS} -lm ${PARAM_MODEL_EXTRA_COMPILE_FLAGS}
-+        COMMAND x86_64-linux-gnu-gcc -g -o ${PARAM_MODEL_EXE_PATH} ${_MODEL_GEN_INCS} ${PARAM_MODEL_PATH} ${_MODEL_GEN_SRCS} ${_MODEL_GEN_LIBS} ${SDL2_LDFLAGS} -lm ${PARAM_MODEL_EXTRA_COMPILE_FLAGS}
-     )
- 
-     # global compile model target
 diff --git a/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py b/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
 index 62ee5cac2..d872073f7 100644
 --- a/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
