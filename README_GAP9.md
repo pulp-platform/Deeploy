@@ -14,10 +14,10 @@ To build a local version of the Deeploy Docker image with GAP9 support using the
 cd Container
 
 # Build the Deeploy image with the upstream toolchain image
-make deeploy-gap9 DEEPOY_GAP9_IMAGE=deeploy-gap9:latest
+make deeploy-gap9 DEEPLOY_GAP9_IMAGE=deeploy-gap9:latest
 
 # If you want to specify a custom SSH key path, use:
-make deeploy-gap9 DEEPOY_GAP9_IMAGE=deeploy-gap9:latest SSH_PRIVATE_KEY=/path/to/your/private/key
+make deeploy-gap9 DEEPLOY_GAP9_IMAGE=deeploy-gap9:latest SSH_PRIVATE_KEY=/path/to/your/private/key
 ```
 
 Or, to build the toolchain, Deeploy and GAP9 images locally, use:
@@ -25,10 +25,10 @@ Or, to build the toolchain, Deeploy and GAP9 images locally, use:
 cd Container
 
 # To build the Deeploy container with the local toolchain image
-make deeploy TOOLCHAIN_IMAGE=deeploy-toolchain:gap9 DEEPOY_IMAGE=deeploy:gap9
+make deeploy TOOLCHAIN_IMAGE=deeploy-toolchain:gap9 DEEPLOY_IMAGE=deeploy:gap9
 
 # To build the Deeploy GAP9 container with the local toolchain image
-make deeploy-gap9 TOOLCHAIN_IMAGE=deeploy-toolchain:gap9 DEEPOY_IMAGE=deeploy:gap9 DEEPOY_GAP9_IMAGE=deeploy-gap9:latest
+make deeploy-gap9 TOOLCHAIN_IMAGE=deeploy-toolchain:gap9 DEEPLOY_IMAGE=deeploy:gap9 DEEPLOY_GAP9_IMAGE=deeploy-gap9:latest
 ```
 
 ### Use The Docker Container

@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-ARG DEEPOY_IMAGE=ghcr.io/pulp-platform/deeploy:latest
-FROM ${DEEPOY_IMAGE} AS deeploy
+ARG DEEPLOY_IMAGE=ghcr.io/pulp-platform/deeploy:latest
+FROM ${DEEPLOY_IMAGE} AS deeploy
 
 ARG TARGETPLATFORM
 ARG DEBIAN_FRONTEND=noninteractive
