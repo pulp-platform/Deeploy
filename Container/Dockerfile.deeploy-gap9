@@ -73,33 +73,6 @@ RUN apt-get update && \
         flex && \
     rm -rf /var/lib/apt/lists/*
 
-
-COPY Container/gap9-amd64.list Container/gap9-sources.list ./
-# Install AMD64 libraries on ARM64 for GCC GAP9 compiler support
-RUN <<CMD_EOF
-if [ -z "$TARGETPLATFORM" ]; then
-    echo "Error: TARGETPLATFORM is not set. Please build with --platform=linux/amd64 or --platform=linux/arm64."
-    exit 1
-elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then
-    echo "Configuring for ARM64 platform"
-    cp gap9-amd64.list /etc/apt/sources.list.d/ && \
-    cp gap9-sources.list /etc/apt/sources.list && \
-    dpkg --add-architecture amd64 && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        libc6:amd64 libstdc++6:amd64 zlib1g:amd64 \
-        libmpc3:amd64 libmpfr6:amd64 libgmp10:amd64 && \
-    ldconfig; \
-elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then
-    echo "Configuring for AMD64 platform"
-    # No additional configuration needed for AMD64
-else
-    echo "Error: Unsupported TARGETPLATFORM value: $TARGETPLATFORM. Supported values are linux/amd64 and linux/arm64."
-    exit 1
-fi
-apt clean
-CMD_EOF
-
 RUN --mount=type=cache,target=/ccache \
     ccache -z && make gap9-toolchain
 

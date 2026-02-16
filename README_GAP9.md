@@ -43,12 +43,13 @@ Before running tests, you need to set up the GAP9 environment inside the contain
 ```sh
 source /app/install/gap9-sdk/.gap9-venv/bin/activate
 source /app/install/gap9-sdk/configs/gap9_evk_audio.sh
+export GVSOC_INSTALL_DIR=/app/install/gap9-sdk/install/workstation
 ```
 Install Deeploy inside the container in editable mode:
 
 ```sh
 cd /app/Deeploy
-pip install -e . --extra-index-url=https://pypi.ngc.nvidia.com
+pip install -e .
 ```
 
 ```sh
