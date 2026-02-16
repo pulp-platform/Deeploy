@@ -36,7 +36,7 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
     FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
-    FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, \
+    FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, \
     MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
@@ -227,7 +227,7 @@ GAP9RQSGEMMBindings = GAP9RQSGEMM_8_Binding
 
 GAP9MaxPool2DBindings = [
     NodeBinding(PULPMaxPoolChecker([PointerClass(type)], [PointerClass(type)]),
-                MaxPool2DTemplate.PULPMaxPool2D_8_Template, GAP9Transformer) for type in [int8_t, uint8_t]
+                MaxPoolTemplate.PULPMaxPool2D_8_Template, GAP9Transformer) for type in [int8_t, uint8_t]
 ] + [
     NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMaxPoolTemplate.referenceTemplate, GAP9Transformer)

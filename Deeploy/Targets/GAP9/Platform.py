@@ -37,8 +37,8 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantPars
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
     TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
-    PULPDMASliceBindings, PULPDWConv1DBinding, PULPReduceMeanBindings, PULPSliceBindings
+from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
+    PULPDWConv1DBinding, PULPReduceMeanBindings, PULPRQSConv1DBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
@@ -63,7 +63,7 @@ GAP9_ReduceSumMapper = NodeMapper(ReduceSumParser(), GAP9ReduceSumTilingReadyBin
 GAP9_MatMulMapper = NodeMapper(MatMulParser(), GAP9MatMulTilingReadyBindings)
 GAP9_RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
 GAP9_RQGELU_int8_Mapper = NodeMapper(RQSiGELUParser(), GAP9iRQSGELUTilingReadyBindings)
-GAP9_Conv1DMapper = NodeMapper(PULPConv1DParser(), [PULPConv1DBinding])
+GAP9_Conv1DMapper = NodeMapper(PULPConv1DParser(), PULPRQSConv1DBindings)
 GAP9_DWConv1DMapper = NodeMapper(PULPDWConv1DParser(), [PULPDWConv1DBinding])
 GAP9_FPConv2DMapper = NodeMapper(PULPFPConv2DParser(), GAP9Conv2DTilingReadyBindings)
 GAP9_Conv2DMapper = NodeMapper(PULPConv2DParser(), GAP9RQSConv2DTilingReadyBindings)

@@ -43,7 +43,6 @@
 #include "kernel/Layernorm.h"
 #include "kernel/MatMul.h"
 #include "kernel/MaxPool.h"
-#include "kernel/MaxPool1d.h"
 #include "kernel/Pow.h"
 #include "kernel/RMSNorm.h"
 #include "kernel/RQDiv.h"

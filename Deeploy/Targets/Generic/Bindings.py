@@ -165,12 +165,15 @@ BasicMatMulBindings = [
 ]
 
 BasicMaxPool1DBindings = [
+    NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), MaxPoolTemplate.reference1DTemplate,
+                BasicTransformer)
+] + [
     NodeBinding(MaxPoolChecker([PointerClass(type)], [PointerClass(type)]), FloatMaxPoolTemplate.reference1DTemplate,
                 BasicTransformer) for type in FloatDataTypes
 ]
 
 BasicMaxPool2DBindings = [
-    NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), MaxPoolTemplate.referenceTemplate,
+    NodeBinding(MaxPoolChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), MaxPoolTemplate.reference2DTemplate,
                 BasicTransformer)
 ] + [
     NodeBinding(MaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),

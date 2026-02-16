@@ -5,11 +5,13 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Support for MaxPool1D and RQSConv1D for PULPOpen [#146](https://github.com/pulp-platform/Deeploy/pull/146)
 - Use Pre-Commit in CI [#159](https://github.com/pulp-platform/Deeploy/pull/159)
 - Deeploy-GAP9 Platform [#143](https://github.com/pulp-platform/Deeploy/pull/143)
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 
 ### Added
+- Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 
 ### Changed
@@ -19,6 +21,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Aligned CLI commands across the project
 
 ### Fixed
+- im2col buffer size in Conv1d template
 - Fix missing dependency in pre-commit-config
 - Fix test paths in Deeploy 101 tutorial
 

@@ -38,4 +38,13 @@ void MaxPool2d_fp32_fp32_NCHW(float32_t const *__restrict__ pSrcA, uint32_t C,
                               uint32_t H, uint32_t W, uint32_t P, uint32_t Q,
                               uint32_t SP, uint32_t SQ,
                               float32_t *__restrict__ pDstC);
+
+void MaxPool1d_s8_s8(int8_t const *__restrict__ pSrcA, uint32_t C, uint32_t L,
+                     uint32_t K, uint32_t S, int8_t *__restrict__ pDstC,
+                     int32_t input_offset, int32_t output_offset);
+
+void MaxPool1d_fp32_fp32(float32_t const *__restrict__ pSrcA, uint32_t C,
+                         uint32_t W, uint32_t K, uint32_t S,
+                         float32_t *__restrict__ pDstC);
+
 #endif //__DEEPLOY_BASIC_MATH_MAXPOOL_KERNEL_HEADER_
