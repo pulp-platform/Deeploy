@@ -224,7 +224,6 @@ cmd_setup_usbip_host() {
 		python3 -m venv "$PYUSBIP_DIR/.venv"
 
 		log_info "Installing pyusbip dependencies..."
-		# shellcheck disable=SC1091
 		. "$PYUSBIP_DIR/.venv/bin/activate"
 		pip install --upgrade pip
 		pip install libusb1
@@ -242,7 +241,6 @@ cmd_start_usbip_host() {
 	log_info "This process will run in the foreground. Press Ctrl+C to stop."
 
 	cd "$PYUSBIP_DIR" &&
-		# shellcheck disable=SC1091
 		. .venv/bin/activate &&
 		python pyusbip.py
 }

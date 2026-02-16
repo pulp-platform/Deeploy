@@ -14,7 +14,7 @@
 ROOT_DIR="${ROOT_DIR:-$(cd "$(dirname "$0")" && pwd)}"
 GAP9_SDK_INSTALL_DIR="${GAP9_SDK_INSTALL_DIR:?GAP9_SDK_INSTALL_DIR must be set}"
 GAP9_SDK_COMMIT_HASH="${GAP9_SDK_COMMIT_HASH:-897955d7ab326bd31684429eb16a2e485ab89afb}"
-GAP_SDK_URL="${GAP_SDK_URL:-'git@iis-git.ee.ethz.ch:wiesep/gap9_sdk.git'}"
+GAP_SDK_URL="${GAP_SDK_URL:-git@iis-git.ee.ethz.ch:wiesep/gap9_sdk.git}"
 
 echo "Preparing GAP9 SDK in: ${GAP9_SDK_INSTALL_DIR}"
 

@@ -3,7 +3,7 @@
 > ⚠️ **IMPORTANT NOTE**
 > This is a work in progress. The GAP9 support in Deeploy is experimental and may not be fully functional.
 
-To use Deeploy with GAP9, a custom Docker container is required because the official Deeploy Docker image does yet not include the necessary SDKs and dependencies for GAP9 development, because they are not publicly available.
+To use Deeploy with GAP9, a custom Docker container is required because the official Deeploy Docker image does not yet include the necessary SDKs and dependencies for GAP9 development, because they are not publicly available.
 
 ### Build The Docker Container
 
@@ -93,6 +93,26 @@ Terminal 2 (containers + attach device):
 - Use a custom image: `-i your-gap9-image:tag` or `GAP9_IMAGE=your-gap9-image:tag`
 - Set USB device IDs: `USBIP_VENDOR=15ba USBIP_PRODUCT=002b`
 - Change USB/IP host: `USBIP_HOST=host.docker.internal`
+
+#### Linux note: host.docker.internal workaround
+The GAP9 workflow spawns telnet using `host.docker.internal`. This hostname is provided by Docker Desktop only (macOS/Windows). On Linux, you must either add the host-gateway alias when starting Docker or override the host in the script, otherwise telnet connections will fail.
+
+Option 1 (Docker 20.10+): start Docker with the host-gateway alias so `host.docker.internal` resolves:
+```sh
+dockerd --add-host=host.docker.internal:host-gateway
+```
+
+Option 2 (recommended for Linux): run the script with a USB/IP host override:
+```sh
+USBIP_HOST=localhost ./scripts/gap9-run.sh start
+```
+
+Or use the script flag to set the host explicitly:
+```sh
+./scripts/gap9-run.sh -h localhost start
+```
+
+If you are on Linux and not using Docker Desktop, prefer the USBIP_HOST override (or `-h`) unless you already manage `dockerd` with the host-gateway alias.
 
 To stop everything:
 ```sh

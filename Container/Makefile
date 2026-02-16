@@ -63,4 +63,4 @@ all: toolchain deeploy deeploy-gap9
 
 # Clean all images (optional and dangerous)
 clean:
-	docker rmi $(TOOLCHAIN_IMAGE) $(DEELPOY_IMAGE) $(DEELPOY_GAP9_IMAGE) || true
+	docker rmi $(TOOLCHAIN_IMAGE) $(DEEPLOY_IMAGE) $(DEEPLOY_GAP9_IMAGE) || true
