@@ -90,7 +90,7 @@ class float32_t(FloatImmediate):
 
 
 class float64_t(FloatImmediate):
-    """64-bit float type with 11-bit mantissa and 52-bit exponent."""
+    """64-bit float type with 51-bit mantissa and 11-bit exponent."""
     typeName = "float64_t"
     typeWidth = 64
     typeMantissa = 52
