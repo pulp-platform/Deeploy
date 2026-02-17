@@ -25,9 +25,9 @@ class FloatDivTemplate(NodeTemplate):
         # not just assign self.templateStr. NodeTemplate.generate() uses
         # the pre-compiled self.template, not self.templateStr.
         if is_scalar:
-            self.template = MakoTemplate(FloatDivScalarTemplateStr, strict_undefined=True)
+            self.template = MakoTemplate(FloatDivScalarTemplateStr, strict_undefined = True)
         else:
-            self.template = MakoTemplate(FloatDivTemplateStr, strict_undefined=True)
+            self.template = MakoTemplate(FloatDivTemplateStr, strict_undefined = True)
 
         return ctxt, operatorRepresentation, []
 

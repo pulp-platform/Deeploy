@@ -6,12 +6,6 @@
 
 #include "DeeploySnitchMath.h"
 
-/*
- * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 void Add_fp32(float32_t *pIn1, float32_t *pIn2, float32_t *pOut,
               uint32_t size) {
 

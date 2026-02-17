@@ -6,8 +6,8 @@
 
 #include "DeeploySnitchMath.h"
 
-void Softmax_fp32(float32_t *input, float32_t *output, int32_t ldI,
-                  int32_t batch_offset, int32_t batch_size, int32_t seq_len,
+void Softmax_fp32(float32_t *input, float32_t *output, uint32_t ldI,
+                  uint32_t batch_offset, int32_t batch_size, int32_t seq_len,
                   int32_t input_samples) {
 
   float32_t max_core = 0.0; // max value of the current core

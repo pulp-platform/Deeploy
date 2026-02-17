@@ -6,7 +6,7 @@ from typing import List, Optional, Sequence, Type
 
 import numpy as np
 
-from Deeploy.AbstractDataTypes import Pointer
+from Deeploy.AbstractDataTypes import FloatImmediate, Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
 from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
 
@@ -409,7 +409,10 @@ class HardswishChecker(SignPropTypeChecker):
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(4 * self.input_types[0].referencedType.typeWidth)]
+        input_type = self.input_types[0].referencedType
+        if issubclass(input_type, FloatImmediate):
+            return [2**(input_type.typeWidth)]
+        return [2**(4 * input_type.typeWidth)]
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
@@ -632,18 +635,3 @@ class RMSNormChecker(SignPropTypeChecker):
             return [False]
 
 
-class HardSwishChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        if inputs[0]._signed:
-            return [True]
-        else:
-            return [False]

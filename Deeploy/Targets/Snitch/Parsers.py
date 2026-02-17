@@ -161,7 +161,7 @@ class SnitchRMSNormParser(NodeParser):
         return ctxt, True
 
 
-class HardSwishParser(NodeParser):
+class SnitchHardSwishParser(NodeParser):
 
     def __init__(self):
         super().__init__()

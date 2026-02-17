@@ -23,8 +23,8 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequant
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
 from Deeploy.Targets.Snitch.Bindings import BasicSnitchTransposeBindings
-from Deeploy.Targets.Snitch.Parsers import HardSwishParser, SnitchAddParser, SnitchDivParser, SnitchGEMMParser, \
-    SnitchMulParser, SnitchRMSNormParser, SnitchRQGEMMParser
+from Deeploy.Targets.Snitch.Parsers import SnitchAddParser, SnitchDivParser, SnitchGEMMParser, \
+    SnitchHardSwishParser, SnitchMulParser, SnitchRMSNormParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConcatTilingReadyBindings, \
     SnitchDivTilingReadyBindings, SnitchGatherTilingReadyBindings, SnitchGemmTilingReadyBindings, \
@@ -59,7 +59,7 @@ iNoNormMapper = NodeMapper(iNoNormParser(), SnitchiNoNormTilingReadyBindings)
 RQAddMapper = NodeMapper(RQAddParser(), SnitchRQAddTilingReadyBindings)
 AddMapper = NodeMapper(SnitchAddParser(), SnitchAddTileReadyBindings)
 RMSNormMapper = NodeMapper(SnitchRMSNormParser(), SnitchRMSNormTilingReadyBindings)
-HardSwishMapper = NodeMapper(HardSwishParser(), SnitchHardSwishTilingReadyBindings)
+HardSwishMapper = NodeMapper(SnitchHardSwishParser(), SnitchHardSwishTilingReadyBindings)
 DivMapper = NodeMapper(SnitchDivParser(), SnitchDivTilingReadyBindings)
 MulMapper = NodeMapper(SnitchMulParser(), SnitchMulTilingReadyBindings)
 
