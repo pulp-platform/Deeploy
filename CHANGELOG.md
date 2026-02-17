@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Add GAP9 Container Support [#163](https://github.com/pulp-platform/Deeploy/pull/163)
 - Extend Codeowners [#164](https://github.com/pulp-platform/Deeploy/pull/164)
 - Support for MaxPool1D and RQSConv1D for PULPOpen [#146](https://github.com/pulp-platform/Deeploy/pull/146)
 - Use Pre-Commit in CI [#159](https://github.com/pulp-platform/Deeploy/pull/159)
@@ -12,10 +13,14 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 
 ### Added
+- GAP9 Container Support with ARM64 architecture support
+- `zsh` and `oh-my-zsh` plugin installation in containers
+- Shell Format pre-commit hook
 - Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 
 ### Changed
+- Cleaned up Docker flow to use a temporary build folder
 - Switch CI to use pre-commit for linting
 - Update `pulp-nnx` and `pulp-nn-mixed` submodules to their latest versions
 - PULP-NN moved to TargetLibraries third-party folder
