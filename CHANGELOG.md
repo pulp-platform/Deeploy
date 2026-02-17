@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Extend Codeowners [#164](https://github.com/pulp-platform/Deeploy/pull/164)
 - Support for MaxPool1D and RQSConv1D for PULPOpen [#146](https://github.com/pulp-platform/Deeploy/pull/146)
 - Use Pre-Commit in CI [#159](https://github.com/pulp-platform/Deeploy/pull/159)
 - Deeploy-GAP9 Platform [#143](https://github.com/pulp-platform/Deeploy/pull/143)
@@ -19,6 +20,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Update `pulp-nnx` and `pulp-nn-mixed` submodules to their latest versions
 - PULP-NN moved to TargetLibraries third-party folder
 - Aligned CLI commands across the project
+- Added @runwangdl as a code owner
 
 ### Fixed
 - im2col buffer size in Conv1d template
