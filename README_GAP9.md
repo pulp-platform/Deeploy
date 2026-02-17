@@ -72,7 +72,7 @@ For board access, use the orchestration script in [scripts/gap9-run.sh](scripts/
 
 
 #### Start the board workflow (recommended)
-This launches a tmux session with two panes: one for the host USB/IP server and one for the GAP9 container.
+This launches a tmux session with three panes: one for the host USB/IP server, one for the GAP9 container and one terminal on the host to manage the USB/IP devices.
 
 ```sh
 ./scripts/gap9-run.sh start-tmux
@@ -87,34 +87,4 @@ Terminal 1 (host USB/IP server):
 Terminal 2 (containers + attach device):
 ```sh
 ./scripts/gap9-run.sh start
-```
-
-#### Common options and environment variables
-- Use a custom image: `-i your-gap9-image:tag` or `GAP9_IMAGE=your-gap9-image:tag`
-- Set USB device IDs: `USBIP_VENDOR=15ba USBIP_PRODUCT=002b`
-- Change USB/IP host: `USBIP_HOST=host.docker.internal`
-
-#### Linux note: host.docker.internal workaround
-The GAP9 workflow spawns telnet using `host.docker.internal`. This hostname is provided by Docker Desktop only (macOS/Windows). On Linux, you must either add the host-gateway alias when starting Docker or override the host in the script, otherwise telnet connections will fail.
-
-Option 1 (Docker 20.10+): start Docker with the host-gateway alias so `host.docker.internal` resolves:
-```sh
-dockerd --add-host=host.docker.internal:host-gateway
-```
-
-Option 2 (recommended for Linux): run the script with a USB/IP host override:
-```sh
-USBIP_HOST=localhost ./scripts/gap9-run.sh start
-```
-
-Or use the script flag to set the host explicitly:
-```sh
-./scripts/gap9-run.sh -h localhost start
-```
-
-If you are on Linux and not using Docker Desktop, prefer the USBIP_HOST override (or `-h`) unless you already manage `dockerd` with the host-gateway alias.
-
-To stop everything:
-```sh
-./scripts/gap9-run.sh stop
 ```

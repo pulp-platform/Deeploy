@@ -20,14 +20,14 @@ echo "Preparing GAP9 SDK in: ${GAP9_SDK_INSTALL_DIR}"
 
 if [ -d "${GAP9_SDK_INSTALL_DIR}/.git" ]; then
 	echo "Directory ${GAP9_SDK_INSTALL_DIR} already exists and looks like a git repo. Updating remote URL and fetching latest changes..."
-	cd "${GAP9_SDK_INSTALL_DIR}"
+	cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
 	git remote set-url origin "${GAP_SDK_URL}" || true
 else
 	echo "Cloning GAP9 SDK..."
 	git clone "${GAP_SDK_URL}" "${GAP9_SDK_INSTALL_DIR}"
 fi
 
-cd "${GAP9_SDK_INSTALL_DIR}"
+cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
 echo "Checking out commit ${GAP9_SDK_COMMIT_HASH} (stash and fetch if necessary)"
 git fetch --all --tags || true
 git stash || true

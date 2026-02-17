@@ -437,7 +437,7 @@ cmd_start_tmux() {
 	local script_path="$0"
 	local opts_escaped=""
 
-	for opt in "${opts[@]:-}"; do
+	for opt in ${opts[@]+"${opts[@]}"}; do
 		if [[ -n "$opt" ]]; then
 			printf -v opt '%q' "$opt"
 			opts_escaped+=" $opt"
@@ -495,7 +495,6 @@ cmd_stop_tmux() {
 # Main Script Logic
 #########################################################################
 
-# If no command provided, show help
 if [[ -z "$command" ]]; then
 	cmd_start_tmux
 	exit 0
