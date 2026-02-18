@@ -5,34 +5,63 @@
  */
 
 #include "DeeploySnitchMath.h"
+#include <math.h>
 
-void Softmax_fp32(float32_t *input, float32_t *output, uint32_t ldI,
-                  uint32_t batch_offset, int32_t batch_size, int32_t seq_len,
-                  int32_t input_samples) {
+/*
+ * Multi-core FP32 Softmax
+ *
+ * Computes softmax along the last dimension:
+ *   output[b][i] = exp(input[b][i] - max) / sum(exp(input[b][j] - max))
+ *
+ * Parallelizes across the batch dimension (size / lastDimLength rows).
+ *
+ * input:          Input tensor (float32)
+ * output:         Output tensor (float32)
+ * size:           Total number of elements
+ * lastDimLength:  Length of the last dimension (softmax axis)
+ */
+void Softmax_fp32(float32_t *input, float32_t *output, uint32_t size,
+                  uint32_t lastDimLength) {
 
-  float32_t max_core = 0.0; // max value of the current core
-  float32_t sum = 0.0;      // sum of the exp values of the current core
-  int32_t compute_id = snrt_global_compute_core_idx();
-  int32_t row_offset = compute_id * input_samples;
-  for (int32_t b = 0; b < batch_size; b++) {
-    for (int32_t s = 0; s < seq_len; s++) {
-      max_core = -INFINITY;
-      sum = 0.0;
-      for (int32_t i = 0; i < input_samples; i++) {
-        if (input[row_offset + b * batch_offset + s * ldI + i] > max_core) {
-          max_core = input[row_offset + b * batch_offset + s * ldI + i];
-        }
-      }
-      // compute the shifted value of the current row
-      for (int32_t i = 0; i < input_samples; i++) {
-        output[row_offset + b * batch_offset + s * ldI + i] =
-            expf(input[row_offset + b * batch_offset + s * ldI + i] - max_core);
-        sum += output[row_offset + b * batch_offset + s * ldI + i];
-      }
-      // compute the softmax value of the current row
-      for (int32_t i = 0; i < input_samples; i++) {
-        output[row_offset + b * batch_offset + s * ldI + i] /= sum;
-      }
+  uint32_t core_id = snrt_global_compute_core_idx();
+  uint32_t numThreads = snrt_global_compute_core_num();
+
+  uint32_t num_rows = size / lastDimLength;
+
+  uint32_t rows_per_core = num_rows / numThreads;
+  uint32_t remainder = num_rows % numThreads;
+
+  uint32_t start_row, num_rows_this_core;
+  if (core_id < remainder) {
+    num_rows_this_core = rows_per_core + 1;
+    start_row = core_id * num_rows_this_core;
+  } else {
+    num_rows_this_core = rows_per_core;
+    start_row = core_id * rows_per_core + remainder;
+  }
+
+  for (uint32_t r = start_row; r < start_row + num_rows_this_core; r++) {
+    float32_t *in_row = input + r * lastDimLength;
+    float32_t *out_row = output + r * lastDimLength;
+
+    // Find max for numerical stability
+    float32_t max_val = -INFINITY;
+    for (uint32_t i = 0; i < lastDimLength; i++) {
+      if (in_row[i] > max_val)
+        max_val = in_row[i];
+    }
+
+    // Compute exp and sum
+    float32_t sum = 0.0f;
+    for (uint32_t i = 0; i < lastDimLength; i++) {
+      out_row[i] = expf(in_row[i] - max_val);
+      sum += out_row[i];
+    }
+
+    // Normalize
+    float32_t inv_sum = 1.0f / sum;
+    for (uint32_t i = 0; i < lastDimLength; i++) {
+      out_row[i] *= inv_sum;
     }
   }
 }

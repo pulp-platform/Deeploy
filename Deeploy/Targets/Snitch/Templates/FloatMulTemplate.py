@@ -4,6 +4,8 @@
 
 from typing import Dict, List, Tuple
 
+from mako.template import Template as MakoTemplate
+
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
@@ -19,13 +21,13 @@ class FloatMulTemplate(NodeTemplate):
         # Check if scalar broadcasting
         is_scalar = operatorRepresentation.get('is_scalar', False)
 
-        # Dynamically select template based on is_scalar flag
+        # IMPORTANT: Must recompile self.template (Mako Template object),
+        # not just assign self.templateStr. NodeTemplate.generate() uses
+        # the pre-compiled self.template, not self.templateStr.
         if is_scalar:
-            # Use scalar broadcasting version
-            self.templateStr = FloatMulScalarTemplateStr
+            self.template = MakoTemplate(FloatMulScalarTemplateStr, strict_undefined = True)
         else:
-            # Use element-wise version
-            self.templateStr = FloatMulTemplateStr
+            self.template = MakoTemplate(FloatMulTemplateStr, strict_undefined = True)
 
         return ctxt, operatorRepresentation, []
 
