@@ -25,20 +25,22 @@ int main(void) {
   uint32_t const num_compute_cores = snrt_global_compute_core_num();
 #endif
 
+  // All cores call InitNetwork: allocations inside are DM-core guarded
+  // with barriers, so all cores must participate for barrier balance.
+#ifndef NOPRINT
+  if (snrt_is_dm_core()) {
+    printf("Initializing...\r\n");
+  }
+#endif
+  InitNetwork(core_id, 1);
+
   if (snrt_is_dm_core()) {
 #ifndef CI
     printf("Network running on %d of %d compute cores (+%d DM cores) on %d "
            "clusters\r\n",
            num_compute_cores, snrt_global_compute_core_num(),
            snrt_cluster_num() * snrt_cluster_dm_core_num(), snrt_cluster_num());
-#endif
 
-#ifndef NOPRINT
-    printf("Initializing...\r\n");
-#endif
-    InitNetwork(core_id, 1);
-
-#ifndef CI
     for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
       printf("testInputVector%d @ %p\r\n", buf, testInputVector[buf]);
       printf("DeeployNetwork_input_%d @ %p and %u elements\r\n", buf,

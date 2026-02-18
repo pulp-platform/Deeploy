@@ -22,7 +22,6 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequant
     IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
-from Deeploy.Targets.Snitch.Bindings import BasicSnitchTransposeBindings
 from Deeploy.Targets.Snitch.Parsers import SnitchAddParser, SnitchDivParser, SnitchGEMMParser, \
     SnitchHardSwishParser, SnitchMulParser, SnitchRMSNormParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
@@ -33,14 +32,8 @@ from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConca
     SnitchRMSNormTilingReadyBindings, SnitchRQAddTilingReadyBindings, SnitchRqGemmTilingReadyBindings, \
     SnitchTransposeTilingReadyBindings
 
-# Mappers without tiling-ready equivalents
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
 Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
-UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
-ReshapeMapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
-TransposeMapper = NodeMapper(TransposeParser(), BasicSnitchTransposeBindings)
-ConcatMapper = NodeMapper(ConcatParser(), BasicConcatBindings)
-
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
 iLayerNormMapper = NodeMapper(iLayerNormParser(), BasicLayerNormBindings)
 
@@ -90,7 +83,7 @@ SnitchMapping = {
 class SnitchVariableBuffer(VariableBuffer):
 
     initTemplate = AllocateTemplate.snitchL2InitTemplate
-    allocTemplate = AllocateTemplate.snitchGenericAllocate
+    allocTemplate = AllocateTemplate.snitchGenericGuardedAllocate
     deallocTemplate = FreeTemplate.snitchGenericFree
 
     def _bufferRepresentation(self):
@@ -111,7 +104,7 @@ class SnitchVariableBuffer(VariableBuffer):
 class SnitchTransientBuffer(TransientBuffer):
 
     initTemplate = AllocateTemplate.snitchL2InitTemplate
-    allocTemplate = AllocateTemplate.snitchGenericAllocate
+    allocTemplate = AllocateTemplate.snitchGenericGuardedAllocate
     deallocTemplate = FreeTemplate.snitchGenericFree
 
     # allocTemplate = AllocateTemplate.snitchL2AllocateTemplate

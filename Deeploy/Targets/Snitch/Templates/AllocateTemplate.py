@@ -55,3 +55,13 @@ ${name} = (${type.typeName}) snrt_l3alloc(sizeof(${type.referencedType.typeName}
 // ${name} with size ${size} allocated in L2!
 % endif
 """)
+
+snitchGenericGuardedAllocate = NodeTemplate("""
+% if _memoryLevel == "L1":
+if (snrt_is_dm_core()) { ${name} = (${type.typeName}) snrt_l1alloc(sizeof(${type.referencedType.typeName}) * ${size}); }
+snrt_cluster_hw_barrier();\n
+% else:
+if (snrt_is_dm_core()) { ${name} = (${type.typeName}) snrt_l3alloc(sizeof(${type.referencedType.typeName}) * ${size}); }
+snrt_cluster_hw_barrier();\n
+% endif
+""")
