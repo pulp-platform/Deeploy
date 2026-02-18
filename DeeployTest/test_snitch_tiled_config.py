@@ -14,7 +14,6 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Div": [2000, 5000, 10000],
     "Kernels/FP32/Hardswish": [2000, 5000, 10000],
     "Kernels/FP32/Mul": [2000, 5000, 10000],
-    "Kernels/FP32/RMSNorm/separate_ops": [2000, 5000, 10000],
     "Kernels/FP32/RMSNorm/single_fused_op": [2000, 5000, 10000],
     "Kernels/FP32/Softmax/Regular": [2000, 5000, 10000],
     "Kernels/FP32/GEMM/Regular": [2000, 5000, 10000],

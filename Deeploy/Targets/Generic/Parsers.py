@@ -11,6 +11,37 @@ import onnx_graphsurgeon as gs
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
 
 
+def compute_broadcast_strides(shape1, shape2, out_shape):
+    """Compute strides for ONNX/NumPy-style broadcasting.
+
+    Pads both input shapes from the left to match the output ndim,
+    then computes strides where broadcast dimensions (size 1) get stride 0.
+
+    Example:
+        shape1=[8,8,8], shape2=[8]
+        -> strides1=[64,8,1], strides2=[0,0,1]
+    """
+    ndim = len(out_shape)
+
+    pad1 = [1] * (ndim - len(shape1)) + shape1
+    pad2 = [1] * (ndim - len(shape2)) + shape2
+
+    def _calc_strides(padded_shape, out_shape):
+        strides = []
+        stride = 1
+        for i in range(ndim - 1, -1, -1):
+            if padded_shape[i] == 1 and out_shape[i] > 1:
+                strides.insert(0, 0)
+            else:
+                strides.insert(0, stride)
+            stride *= padded_shape[i] if padded_shape[i] > 1 else 1
+        return strides
+
+    strides1 = _calc_strides(pad1, out_shape)
+    strides2 = _calc_strides(pad2, out_shape)
+    return strides1, strides2
+
+
 class ConcatParser(NodeParser):
 
     def __init__(self):
@@ -511,27 +542,9 @@ class AddParser(NodeParser):
         self.operatorRepresentation['need_broadcast'] = need_broadcast
 
         if need_broadcast:
-            ndim = len(out_shape)
+            strides1, strides2 = compute_broadcast_strides(shape1, shape2, out_shape)
 
-            # Pad shapes from the left to match ndim (ONNX broadcasts from right)
-            padded_shape1 = [1] * (ndim - len(shape1)) + shape1
-            padded_shape2 = [1] * (ndim - len(shape2)) + shape2
-
-            def _calc_strides(padded_shape, out_shape):
-                strides = []
-                stride = 1
-                for i in range(ndim - 1, -1, -1):
-                    if padded_shape[i] == 1 and out_shape[i] > 1:
-                        strides.insert(0, 0)
-                    else:
-                        strides.insert(0, stride)
-                    stride *= padded_shape[i] if padded_shape[i] > 1 else 1
-                return strides
-
-            strides1 = _calc_strides(padded_shape1, out_shape)
-            strides2 = _calc_strides(padded_shape2, out_shape)
-
-            self.operatorRepresentation['ndim'] = ndim
+            self.operatorRepresentation['ndim'] = len(out_shape)
             self.operatorRepresentation['strides1'] = strides1
             self.operatorRepresentation['strides2'] = strides2
             self.operatorRepresentation['out_shape'] = out_shape

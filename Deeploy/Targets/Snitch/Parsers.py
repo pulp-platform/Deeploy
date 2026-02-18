@@ -11,37 +11,6 @@ from Deeploy.DeeployTypes import NetworkContext, NodeParser
 from Deeploy.Targets.Generic.Parsers import AddParser, DivParser, GEMMParser, MulParser, RQGEMMParser
 
 
-def compute_broadcast_strides(shape1, shape2, out_shape):
-    """Compute strides for ONNX/NumPy-style broadcasting.
-
-    Pads both input shapes from the left to match the output ndim,
-    then computes strides where broadcast dimensions (size 1) get stride 0.
-
-    Example:
-        shape1=[8,8,8], shape2=[8]
-        -> strides1=[64,8,1], strides2=[0,0,1]
-    """
-    ndim = len(out_shape)
-
-    pad1 = [1] * (ndim - len(shape1)) + shape1
-    pad2 = [1] * (ndim - len(shape2)) + shape2
-
-    def _calc_strides(padded_shape, out_shape):
-        strides = []
-        stride = 1
-        for i in range(ndim - 1, -1, -1):
-            if padded_shape[i] == 1 and out_shape[i] > 1:
-                strides.insert(0, 0)
-            else:
-                strides.insert(0, stride)
-            stride *= padded_shape[i] if padded_shape[i] > 1 else 1
-        return strides
-
-    strides1 = _calc_strides(pad1, out_shape)
-    strides2 = _calc_strides(pad2, out_shape)
-    return strides1, strides2
-
-
 class SnitchGEMMParser(GEMMParser):
 
     def parseNode(self, node: gs.Node) -> bool:
@@ -199,45 +168,13 @@ class SnitchHardSwishParser(NodeParser):
 
 
 class SnitchAddParser(AddParser):
-    """Inherits from GenericAddParser and adds broadcasting support."""
+    """Inherits from Generic AddParser which already handles broadcasting."""
 
-    def __init__(self):
-        super().__init__()
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        ctxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-        if not ret:
-            return ctxt, False
-
-        shape1 = list(ctxt.lookup(node.inputs[0].name).shape)
-        shape2 = list(ctxt.lookup(node.inputs[1].name).shape)
-        out_shape = list(ctxt.lookup(node.outputs[0].name).shape)
-
-        self.operatorRepresentation['size'] = int(np.prod(out_shape))
-        self.operatorRepresentation['shape1'] = shape1
-        self.operatorRepresentation['shape2'] = shape2
-        self.operatorRepresentation['out_shape'] = out_shape
-        self.operatorRepresentation['ndim'] = len(out_shape)
-
-        need_broadcast = (shape1 != shape2)
-        self.operatorRepresentation['need_broadcast'] = need_broadcast
-
-        if need_broadcast:
-            strides1, strides2 = compute_broadcast_strides(shape1, shape2, out_shape)
-            self.operatorRepresentation['strides1'] = strides1
-            self.operatorRepresentation['strides2'] = strides2
-
-        return ctxt, True
+    pass
 
 
 class SnitchDivParser(DivParser):
-    """Inherits from Generic DivParser and adds broadcasting support."""
-
-    def __init__(self):
-        super().__init__()
+    """Inherits from Generic DivParser and adds scalar detection."""
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -251,31 +188,16 @@ class SnitchDivParser(DivParser):
         shape2 = list(ctxt.lookup(node.inputs[1].name).shape)
         out_shape = list(ctxt.lookup(node.outputs[0].name).shape)
 
-        self.operatorRepresentation['shape1'] = shape1
-        self.operatorRepresentation['shape2'] = shape2
-        self.operatorRepresentation['out_shape'] = out_shape
-        self.operatorRepresentation['ndim'] = len(out_shape)
-        self.operatorRepresentation['size1'] = int(np.prod(shape1))
-        self.operatorRepresentation['size2'] = int(np.prod(shape2))
         self.operatorRepresentation['size'] = int(np.prod(out_shape))
-
-        need_broadcast = (shape1 != shape2)
-        self.operatorRepresentation['need_broadcast'] = need_broadcast
+        self.operatorRepresentation['input1_is_scalar'] = (np.prod(shape1) == 1)
+        self.operatorRepresentation['input2_is_scalar'] = (np.prod(shape2) == 1)
         self.operatorRepresentation['is_scalar'] = (np.prod(shape1) == 1 or np.prod(shape2) == 1)
-
-        if need_broadcast:
-            strides1, strides2 = compute_broadcast_strides(shape1, shape2, out_shape)
-            self.operatorRepresentation['strides1'] = strides1
-            self.operatorRepresentation['strides2'] = strides2
 
         return ctxt, True
 
 
 class SnitchMulParser(MulParser):
-    """Inherits from Generic MulParser and adds broadcasting support."""
-
-    def __init__(self):
-        super().__init__()
+    """Inherits from Generic MulParser and adds scalar detection."""
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -289,21 +211,9 @@ class SnitchMulParser(MulParser):
         shape2 = list(ctxt.lookup(node.inputs[1].name).shape)
         out_shape = list(ctxt.lookup(node.outputs[0].name).shape)
 
-        self.operatorRepresentation['shape1'] = shape1
-        self.operatorRepresentation['shape2'] = shape2
-        self.operatorRepresentation['out_shape'] = out_shape
-        self.operatorRepresentation['ndim'] = len(out_shape)
-        self.operatorRepresentation['size1'] = int(np.prod(shape1))
-        self.operatorRepresentation['size2'] = int(np.prod(shape2))
         self.operatorRepresentation['size'] = int(np.prod(out_shape))
-
-        need_broadcast = (shape1 != shape2)
-        self.operatorRepresentation['need_broadcast'] = need_broadcast
+        self.operatorRepresentation['input1_is_scalar'] = (np.prod(shape1) == 1)
+        self.operatorRepresentation['input2_is_scalar'] = (np.prod(shape2) == 1)
         self.operatorRepresentation['is_scalar'] = (np.prod(shape1) == 1 or np.prod(shape2) == 1)
-
-        if need_broadcast:
-            strides1, strides2 = compute_broadcast_strides(shape1, shape2, out_shape)
-            self.operatorRepresentation['strides1'] = strides1
-            self.operatorRepresentation['strides2'] = strides2
 
         return ctxt, True
