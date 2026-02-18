@@ -7,7 +7,7 @@ from functools import partial
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
-    MemoryManagementGeneration
+    MemoryManagementGeneration, MemoryPassthroughGeneration
 from Deeploy.CommonExtensions.DataTypes import float32_t, int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
@@ -41,6 +41,13 @@ BasicTransformer = CodeTransformation(
     [SnitchSynchCoresPass(),
      ArgumentStructGeneration(),
      MemoryManagementGeneration(),
+     FutureGeneration()])
+
+SkipTransformer = CodeTransformation(
+    [SnitchSynchCoresPass(),
+     ArgumentStructGeneration(),
+     MemoryPassthroughGeneration("L.*"),
+     MemoryPassthroughGeneration(),
      FutureGeneration()])
 
 TiledTransformer = CodeTransformation([
@@ -184,10 +191,10 @@ BasicSnitchTransposeBindings = [
                 TransposeTemplate.referenceTemplate, BasicTransformer)
 ]
 
-# Reshape Bindings (Tiled)
+# Reshape Bindings (pointer passthrough, no DMA needed)
 SnitchReshapeBindings = [
     NodeBinding(ReshapeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), ReshapeTemplate.referenceTemplate,
-                TiledTransformer)
+                SkipTransformer)
 ]
 
 # Gather Bindings (Tiled)
