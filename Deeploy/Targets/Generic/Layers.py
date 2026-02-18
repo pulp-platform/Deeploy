@@ -744,7 +744,7 @@ class RMSNormLayer(ONNXLayer):
         # e. Normalized = Div(X, RMS) => inputSize ops
         # f. Y = Mul(Normalized, Scale) => 0 if all(Scale == 1.0), else inputSize ops
         scale_ops = 0 if (scale == 1.0).all() else inputSize
-        ops = 5 * inputSize - 3 * NormalizedAxesSize + scale_ops
+        ops = 6 * inputSize - 3 * NormalizedAxesSize + scale_ops
         return ops
 
 
