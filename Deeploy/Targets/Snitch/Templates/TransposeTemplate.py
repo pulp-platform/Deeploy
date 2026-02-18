@@ -98,7 +98,6 @@ class SnitchTransposeTemplate(NodeTemplate):
 
 referenceTemplate = SnitchTransposeTemplate("""
 // Transpose ${data_in_shape} -> ${data_out_shape} (Name: ${nodeName}, Op: ${nodeOp})
-if (snrt_is_compute_core()) {
 ${tileHeader}
 % for idx, i in enumerate(perm):
 ${forLoops[idx]}
@@ -107,5 +106,4 @@ ${forLoops[idx]}
 % for idx, i in enumerate(perm):
 }
 % endfor
-}
 """)
