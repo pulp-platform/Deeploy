@@ -37,12 +37,6 @@ MemoryAwareFunctionCallClosure = partial(MemoryAwareClosureGeneration,
                                          startRegion = "L2",
                                          endRegion = "L1")
 
-BasicTransformer = CodeTransformation(
-    [SnitchSynchCoresPass(),
-     ArgumentStructGeneration(),
-     MemoryManagementGeneration(),
-     FutureGeneration()])
-
 SkipTransformer = CodeTransformation(
     [SnitchSynchCoresPass(),
      ArgumentStructGeneration(),
@@ -92,12 +86,6 @@ SnitchAddBindings = [
                 FloatAddTemplate, TiledTransformer)
 ]
 
-# Basic (non-tiled) FP32 Add Bindings
-BasicAddBindings = [
-    NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatAddTemplate, BasicTransformer)
-]
-
 SnitchGemmBindings = [
     NodeBinding(
         GEMMChecker([PointerClass(int8_t), PointerClass(int8_t),
@@ -119,52 +107,24 @@ SnitchRqGemmBindings = [
         ], [PointerClass(int8_t)]), SnitchRqGemm_Template, TiledTransformer)
 ]
 
-# RMSNorm Bindings (Tiled)
 SnitchRMSNormBindings = [
     NodeBinding(RMSNormChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatRMSNormTemplate, TiledTransformer)
 ]
 
-# RMSNorm Bindings (Non-tiled)
-BasicRMSNormBindings = [
-    NodeBinding(RMSNormChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatRMSNormTemplate, BasicTransformer)
-]
-
-# HardSwish Bindings (Tiled)
 SnitchHardSwishBindings = [
     NodeBinding(HardswishChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatHardSwishTemplate,
                 TiledTransformer)
 ]
 
-# HardSwish Bindings (Non-tiled)
-BasicHardSwishBindings = [
-    NodeBinding(HardswishChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatHardSwishTemplate,
-                BasicTransformer)
-]
-
-# Div Bindings (Tiled)
 SnitchDivBindings = [
     NodeBinding(DivChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatDivTemplate, TiledTransformer)
 ]
 
-# Div Bindings (Non-tiled)
-BasicDivBindings = [
-    NodeBinding(DivChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatDivTemplate, BasicTransformer)
-]
-
-# Mul Bindings (Tiled)
 SnitchMulBindings = [
     NodeBinding(MulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMulTemplate, TiledTransformer)
-]
-
-# Mul Bindings (Non-tiled)
-BasicMulBindings = [
-    NodeBinding(MulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatMulTemplate, BasicTransformer)
 ]
 
 # MatMul Bindings (Tiled)
@@ -179,16 +139,9 @@ SnitchConcatBindings = [
                 ConcatTemplate.referenceTemplate, TiledTransformer)
 ]
 
-# Transpose Bindings (Tiled)
 SnitchTransposeBindings = [
     NodeBinding(TransposeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 TransposeTemplate.referenceTemplate, TiledTransformer)
-]
-
-# Transpose Bindings (Non-tiled, multi-core)
-BasicSnitchTransposeBindings = [
-    NodeBinding(TransposeChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
-                TransposeTemplate.referenceTemplate, BasicTransformer)
 ]
 
 # Reshape Bindings (pointer passthrough, no DMA needed)
