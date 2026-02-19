@@ -20,7 +20,6 @@ class FloatRMSNormTemplate(NodeTemplate):
         data_in = ctxt.lookup(operatorRepresentation["data_in"])
         input_shape = list(data_in.shape)
 
-        # C template uses ${size} and ${lastDimLength}
         operatorRepresentation["size"] = int(np.prod(input_shape))
         operatorRepresentation["lastDimLength"] = operatorRepresentation["NormalizedAxesSize"]
 

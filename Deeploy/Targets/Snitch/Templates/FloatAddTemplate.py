@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
-# Deeploy/Targets/Snitch/Templates/FloatAddTemplate.py
 
 from typing import Dict, List, Tuple
 

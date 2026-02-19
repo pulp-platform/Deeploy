@@ -33,7 +33,6 @@ class FloatMulTemplate(NodeTemplate):
 
 
 # Template for element-wise multiplication
-# Note: MulParser uses A, B, C for input1, input2, output respectively
 FloatMulTemplateStr = r"""
 Mul_fp32(${A}, ${B}, ${C}, ${size});
 """
