@@ -26,6 +26,7 @@
 #include "kernel/Add.h"
 #include "kernel/Div.h"
 #include "kernel/Gemm.h"
+#include "kernel/Gemm_fp32.h"
 #include "kernel/HardSwish.h"
 #include "kernel/MatMul.h"
 #include "kernel/Mul.h"

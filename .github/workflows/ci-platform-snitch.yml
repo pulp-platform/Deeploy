@@ -35,4 +35,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      pytest-marker: "kernels or models"
+      pytest-marker: "(kernels or models)"
