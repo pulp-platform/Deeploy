@@ -12,9 +12,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#define BEGIN_SINGLE_CORE if (core_id == 0) {
+#define BEGIN_SINGLE_CORE if (snrt_cluster_core_idx() == 0) {
 #define END_SINGLE_CORE }
-#define SINGLE_CORE if (core_id == 0)
+#define SINGLE_CORE if (snrt_cluster_core_idx() == 0)
 
 #include "CycleCounter.h"
 #include "macros.h"
