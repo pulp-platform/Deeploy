@@ -9,8 +9,8 @@ import numpy as np
 from Deeploy.AbstractDataTypes import Pointer, PointerClass, VoidType
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicConcatBindings, BasicLayerNormBindings, BasicPad1DBindings, \
-    BasicPad2DBindings, BasicReshapeBindings, BasicRQIntegerDivBinding
+from Deeploy.Targets.Generic.Bindings import BasicLayerNormBindings, BasicPad1DBindings, BasicPad2DBindings, \
+    BasicReshapeBindings, BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, DivLayer, GatherLayer, GEMMLayer, HardSwishLayer, \
     LayerNormLayer, MatMulLayer, MulLayer, PadLayer, ReshapeLayer, RMSNormLayer, RQGEMMLayer, RQIntegerDivLayer, \
     SoftmaxLayer, TransposeLayer, iNoNormLayer

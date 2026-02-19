@@ -16,8 +16,13 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
     VariableReplacementScheme
 
 
-class FloatMulTileConstraint(TileConstraint):
-    """Tile constraint for FP32 Mul: supports scalar and element-wise cases."""
+class FloatScalarBOPTileConstraint(TileConstraint):
+    """Tile constraint for binary operators with scalar broadcasting support.
+
+    Extends BOPTileConstraint with scalar handling: when one input has size 1,
+    it is loaded in full (not tiled) while the other input and output are tiled together.
+    Used by FP32 Div and Mul operators.
+    """
 
     dataIn1Name = "A"
     dataIn2Name = "B"

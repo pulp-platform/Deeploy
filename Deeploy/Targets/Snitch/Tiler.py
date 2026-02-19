@@ -14,11 +14,8 @@ from Deeploy.Targets.Snitch.Bindings import SnitchAddBindings, SnitchConcatBindi
     SnitchGatherBindings, SnitchGemmBindings, SnitchHardSwishBindings, SnitchiNoNormBindings, SnitchiSoftmaxBindings, \
     SnitchMatMulBindings, SnitchMulBindings, SnitchReshapeBindings, SnitchRMSNormBindings, SnitchRQAddBindings, \
     SnitchRqGemmBindings, SnitchTransposeBindings
-from Deeploy.Targets.Snitch.TileConstraints import iNoNormTileConstraint, iSoftmaxTileConstraint
-from Deeploy.Targets.Snitch.TileConstraints.FloatDivTileConstraint import FloatDivTileConstraint
-from Deeploy.Targets.Snitch.TileConstraints.FloatMulTileConstraint import FloatMulTileConstraint
-from Deeploy.Targets.Snitch.TileConstraints.GemmTileConstraint import GemmTileConstraint
-from Deeploy.Targets.Snitch.TileConstraints.RqGemmTileConstraint import RqGemmTileConstraint
+from Deeploy.Targets.Snitch.TileConstraints import FloatScalarBOPTileConstraint, GemmTileConstraint, \
+    iNoNormTileConstraint, iSoftmaxTileConstraint, RqGemmTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 SnitchiSoftmaxTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchiSoftmaxBindings,
@@ -42,10 +39,10 @@ SnitchHardSwishTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = Snit
                                                              tileConstraint = iHardswishTileConstraint())
 
 SnitchDivTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchDivBindings,
-                                                       tileConstraint = FloatDivTileConstraint())
+                                                       tileConstraint = FloatScalarBOPTileConstraint())
 
 SnitchMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchMulBindings,
-                                                       tileConstraint = FloatMulTileConstraint())
+                                                       tileConstraint = FloatScalarBOPTileConstraint())
 
 SnitchMatMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchMatMulBindings,
                                                           tileConstraint = MatMulTileConstraint())

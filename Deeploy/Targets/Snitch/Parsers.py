@@ -7,7 +7,7 @@ from typing import Tuple
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import NetworkContext, NodeParser
+from Deeploy.DeeployTypes import NetworkContext
 from Deeploy.Targets.Generic.Parsers import AddParser, DivParser, GEMMParser, MulParser, RQGEMMParser, \
     iHardswishParser, iRMSNormParser
 
