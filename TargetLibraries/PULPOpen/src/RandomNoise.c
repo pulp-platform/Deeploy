@@ -171,14 +171,10 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
     float32_t sqrt3 = 1.73205080757f;
     float32_t scale = epsilon * sqrt3 * 2.0f; // factor 2: [-0.5,0.5] => [-1,1], sqrt(3): => Gaussian(0, 1) l2 norm.
     if (dir == 0) {scale *= -1.0f;}
-    printf("Applying... uniform perturbation with seed: %u\\n", seed);
-    fflush(stdout);
     for (uint32_t i = 0; i < size; i++) {
         float32_t u = UniformSample(&rng_state);
         pweights_dest[i] = pweights[i] + u * scale;
     }
-    printf("Applied!!! uniform perturbation with seed: %u\\n", seed);
-    fflush(stdout);
 }
 
 
@@ -189,7 +185,6 @@ void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t dir,
                             uint32_t size) {
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    float32_t sqrt3 = 1.73205080757f;
     float32_t scale = epsilon; // gaussian naturally has variance 1
     if (dir == 0) {scale *= -1.0f;}
     for (uint32_t i = 0; i < size; i++) {
