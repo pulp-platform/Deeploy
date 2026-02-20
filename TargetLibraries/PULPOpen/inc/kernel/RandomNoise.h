@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
  
-#ifndef __DEEPLOY_MATH_RANDOMNOISE_KERNEL_
-#define __DEEPLOY_MATH_RANDOMNOISE_KERNEL_
+#ifndef __DEEPLOY_MATH_RANDOMNOISE_KERNEL_HEADER_
+#define __DEEPLOY_MATH_RANDOMNOISE_KERNEL_HEADER_
 
 #include "DeeployPULPMath.h"
 
@@ -37,7 +37,7 @@ void ApplyTriangularPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size);
 
 // Applies uniform perturbation to the weights and applies rescaling to match Gaussian(0, 1) l2 norm.
-void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
+void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
                             float32_t *__restrict__ pweights_dest,
                             uint32_t seed,
                             float32_t epsilon,
@@ -96,4 +96,4 @@ void UpdateWeightsRademacher(float32_t *__restrict__ pweights,
 /* Xorshift32 implementation. Most basic software PRNG*/
 uint32_t Xorshift32(uint32_t state);
 
-#endif //__DEEPLOY_MATH_RANDOMNOISE_KERNEL_
+#endif //__DEEPLOY_MATH_RANDOMNOISE_KERNEL_HEADER_

@@ -17,13 +17,15 @@ from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, Gat
     GEMMLayer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, \
     ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
     RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, \
-    SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
+    SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer, PerturbNormalLayer, \
+    PerturbUniformLayer, PerturbEggrollLayer, PerturbRademacherLayer, PerturbTriangleLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUGradParser, GELUParser, GEMMParser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool2DParser, \
     MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, \
     RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
-    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
+    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, \
+    PerturbNormalParser, PerturbUniformParser, PerturbEggrollParser, PerturbRademacherParser, PerturbTriangleParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
@@ -48,7 +50,8 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings, \
-    PULPPerturbNormalTilingReadyBindings, PULPPerturbUniformTilingReadyBindings
+    PULPPerturbNormalTilingReadyBindings, PULPPerturbUniformTilingReadyBindings, \
+    PULPPerturbEggrollTilingReadyBindings, PULPPerturbRademacherTilingReadyBindings, PULPPerturbTriangleTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -93,6 +96,11 @@ SoftmaxGradMapper = NodeMapper(SoftmaxGradParser(), PULPSoftmaxGradTilingReadyBi
 Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), PULPSoftmaxTilingReadyBindings)
 PerturbNormalMapper = NodeMapper(PerturbNormalParser(), PULPPerturbNormalTilingReadyBindings)
 PerturbUniformMapper = NodeMapper(PerturbUniformParser(), PULPPerturbUniformTilingReadyBindings)
+PerturbEggrollMapper = NodeMapper(PerturbEggrollParser(), PULPPerturbEggrollTilingReadyBindings)
+PerturbRademacherMapper = NodeMapper(PerturbRademacherParser(), PULPPerturbRademacherTilingReadyBindings)
+PerturbTriangleMapper = NodeMapper(PerturbTriangleParser(), PULPPerturbTriangleTilingReadyBindings)
+
+
 
 ConcatMapper = NodeMapper(ConcatParser(), PULPConcatTilingReadyBindings)
 
@@ -151,7 +159,12 @@ PULPMapping = {
     'SoftmaxGrad': SoftmaxGradLayer([SoftmaxGradMapper]),
     'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossMapper]),
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
-    'SGD': SGDLayer([SGDMapper])
+    'SGD': SGDLayer([SGDMapper]),
+    'PerturbNormal': PerturbNormalLayer([PerturbNormalMapper]),
+    'PerturbUniform': PerturbUniformLayer([PerturbUniformMapper]),
+    'PerturbEggroll': PerturbEggrollLayer([PerturbEggrollMapper]),
+    'PerturbRademacher': PerturbRademacherLayer([PerturbRademacherMapper]),
+    'PerturbTriangle': PerturbTriangleLayer([PerturbTriangleMapper]),
 }
 
 

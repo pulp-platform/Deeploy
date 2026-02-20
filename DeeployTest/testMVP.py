@@ -309,4 +309,4 @@ if __name__ == '__main__':
                 if not buffer._signed:
                     values -= buffer.nLevels // 2
 
-        generateTestNetwork(deployer, test_inputs, test_outputs, args.dumpdir, verbosityCfg, args.run_mode)
+        generateTestNetwork(deployer, test_inputs, test_outputs, args.dumpdir, verbosityCfg)

@@ -245,7 +245,6 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         if node.op in ["Conv", "RequantizedConv"]:
             # In the case of Conv: [weights, opt. bias], RequantizedConv: [weights, mul, add, opt. shift]
             for tensor in node.inputs[1:]:
-                const_to_transform = tensor
 
                 # Standard case: The weight is a direct constant input.
                 if isinstance(tensor, gs.Constant):
@@ -264,10 +263,9 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
 
                 # If we found a constant, transpose it. The Perturb node will inherit the new layout.
                 if const_to_transform and isinstance(const_to_transform, gs.Constant):
-                     # Only apply layout transformation to multi-dimensional tensors (i.e., weights)
+                    # Only apply layout transformation to multi-dimensional tensors (i.e., weights)
                     if len(const_to_transform.shape) > 1:
                         _transformLayoutConst(const_to_transform, spatialDims, default_channels_first)
-                    # also transpose the output of the node...
                     if producer_node:
                         tensor.shape = tuple(const_to_transform.shape)
         node.attrs["channels_first"] = default_channels_first
