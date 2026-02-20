@@ -33,8 +33,8 @@ DOCKER_SHELL="/bin/zsh"
 
 # USB/IP device settings
 USBIP_HOST="host.docker.internal"
-USBIP_VENDOR="15ba"
-USBIP_PRODUCT="002b"
+USBIP_VENDOR="0403"
+USBIP_PRODUCT="6011"
 
 # SDK and cache directories
 WORK_DIR="."
@@ -305,16 +305,28 @@ cmd_attach_usbip() {
 	cmd_detach_usbip || true
 
 	log_info "Attaching USB device to usbip-devmgr..."
-	docker exec -it usbip-devmgr /bin/sh -lc 'nsenter -t1 -m sh -lc "
-        usbip list -r \"$USBIP_HOST\" || { echo \"usbip list failed\"; exit 1; }
-        BUSID=\$(usbip list -r \"$USBIP_HOST\" \
-            | grep \"$USBIP_VENDOR:$USBIP_PRODUCT\" \
-            | head -n1 \
-            | cut -d\":\" -f1 \
-            | xargs)
-        if [ -z \"\$BUSID\" ]; then
+	docker exec \
+        -e USBIP_HOST="$USBIP_HOST" \
+        -e USBIP_VENDOR="$USBIP_VENDOR" \
+        -e USBIP_PRODUCT="$USBIP_PRODUCT" \
+        usbip-devmgr /bin/sh -lc 'nsenter -t1 -m sh -lc "
+        if ! usbip list -r \"$USBIP_HOST\" 2>/dev/null; then
+            echo \"Error: Cannot connect to usbip server at $USBIP_HOST\"
             exit 1
         fi
+        
+        BUSID=\$(usbip list -r \"$USBIP_HOST\" 2>/dev/null \
+            | grep \"$USBIP_VENDOR:$USBIP_PRODUCT\" \
+            | head -n1 \
+            | awk \"{print \\\$1}\" \
+            | sed \"s/:$//\")
+        
+        if [ -z \"\$BUSID\" ]; then
+            echo \"Error: USB device $USBIP_VENDOR:$USBIP_PRODUCT not found\"
+            exit 1
+        fi
+        
+        echo \"Found device at bus ID: \$BUSID\"
         usbip attach -r \"$USBIP_HOST\" -b \"\$BUSID\"
     "'
 
