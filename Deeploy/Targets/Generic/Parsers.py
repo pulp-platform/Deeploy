@@ -2972,12 +2972,14 @@ class PerturbEggrollParser(NodeParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
+        a_out = ctxt.lookup(node.outputs[0].name)
+        b_out = ctxt.lookup(node.outputs[1].name)
         input_shape = data_in.shape
         if isinstance(data_in.shape, int):
             input_shape = tuple(input_shape, )
         self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['a_out'] = a_out.name
+        self.operatorRepresentation['b_out'] = b_out.name
         self.operatorRepresentation['seed'] = node.attrs['seed']
         self.operatorRepresentation['sizeA'] = input_shape[0]
         self.operatorRepresentation['sizeB'] = np.prod(input_shape[1:])
