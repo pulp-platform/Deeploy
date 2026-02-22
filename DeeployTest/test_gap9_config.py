@@ -9,7 +9,7 @@ KERNEL_TESTS = [
     "Kernels/Integer/Add/Regular", "Kernels/Integer/Add/MultIO", "Kernels/Integer/Pad/Regular_1D",
     "Kernels/Integer/Pad/Regular_2D", "Kernels/Integer/MatMul/Regular", "Kernels/Integer/MatMul/Add",
     "Kernels/Integer/Conv/DW_2D_RQ", "Kernels/Integer/Conv/Regular_2D_RQ", "Kernels/Integer/Softmax/Regular",
-    "Kernels/Integer/Concat", "Kernels/Integer/Hardswish/Regular", "Others/Backtracking", "Kernels/FP32/Add/Regular",
+    "Kernels/Integer/Concat", "Kernels/Integer/Hardswish/Regular", "Kernels/Integer/SILU", "Others/Backtracking", "Kernels/FP32/Add/Regular",
     "Kernels/FP32/GEMM/Regular", "Kernels/FP32/Conv/Regular_2D_Bias", "Kernels/FP32/Conv/Regular_2D_NoBias",
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias", "Kernels/FP32/Conv/DW_2D_Bias", "Kernels/FP32/Conv/DW_2D_NoBias",
     "Kernels/FP32/Conv/DW_2D_ZeroValuedBias", "Kernels/FP32/LayerNorm", "Kernels/FP32/ReLU",

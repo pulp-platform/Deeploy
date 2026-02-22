@@ -17,14 +17,14 @@ from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, Gat
     GEMMLayer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, \
     ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
     RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, \
-    SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
+    SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer, SILULayer, RQSILULayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUGradParser, GELUParser, GEMMParser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool1DParser, \
     MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluParser, \
     RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, \
     SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, \
     SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, \
-    iSoftmaxParser
+    iSoftmaxParser, SILUParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
@@ -41,7 +41,7 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPFPGELUGradTilingReadyBindings, PULPFPGELUTilingReadyBindings, PULPFPGEMMTilingReadyBindings, \
     PULPGatherTilingReadyBindings, PULPiHardswishTilingReadyBindings, PULPiRMSNormTilingReadyBindings, \
     PULPiRQSGELUTilingReadyBindings, PULPLayernormGradTilingReadyBindings, PULPLayernormTilingReadyBindings, \
-    PULPMatMulTilingReadyBindings, PULPMaxPool1DTilingReadyBindings, PULPMaxPool2DTilingReadyBindings, \
+     PULPMatMulTilingReadyBindings, PULPMaxPool1DTilingReadyBindings, PULPMaxPool2DTilingReadyBindings, \
     PULPMulTilingReadyBindings, PULPReduceMeanTilingReadyBindings, PULPReduceSumTilingReadyBindings, \
     PULPReluTilingReadyBindings, PULPRQAddTilingReadyBindings, PULPRQSConv1DTilingReadyBindings, \
     PULPRQSConv2DTilingReadyBindings, PULPRQSDWConv2DTilingReadyBindings, PULPRQSGEMMTilingReadyBindings, \
@@ -49,7 +49,7 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPRQSTilingReadyBindings, PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, \
     PULPSoftmaxCrossEntropyGradTilingReadyBindings, PULPSoftmaxCrossEntropyTilingReadyBindings, \
     PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, PULPTransposeTilingReadyBindings, \
-    PULPUniformRQSTilingReadyBindings
+    PULPUniformRQSTilingReadyBindings, PULPSILUTilingReadyBindings, PULPRQSILUTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -58,6 +58,8 @@ AddMapper = NodeMapper(AddParser(), PULPAddTilingReadyBindings)
 FlattenMapper = NodeMapper(FlattenParser(), PULPFlattenTilingReadyBindings)
 GELUMapper = NodeMapper(GELUParser(), PULPFPGELUTilingReadyBindings)
 GELUGradMapper = NodeMapper(GELUGradParser(), PULPFPGELUGradTilingReadyBindings)
+SILUMapper = NodeMapper(SILUParser(), PULPSILUTilingReadyBindings)
+RQSILUMapper = NodeMapper(SILUParser(), PULPRQSILUTilingReadyBindings)
 GatherMapper = NodeMapper(GatherParser(), PULPGatherTilingReadyBindings)
 MulMapper = NodeMapper(MulParser(), PULPMulTilingReadyBindings)
 Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
@@ -74,6 +76,8 @@ ReduceSumMapper = NodeMapper(ReduceSumParser(), PULPReduceSumTilingReadyBindings
 MatMulMapper = NodeMapper(MatMulParser(), PULPMatMulTilingReadyBindings)
 RQIntegerDivMapper = NodeMapper(RQIntegerDivParser(), [BasicRQIntegerDivBinding])
 RQGELU_int8_Mapper = NodeMapper(RQSiGELUParser(), PULPiRQSGELUTilingReadyBindings)
+SILUMapper = NodeMapper(SILUParser(), PULPSILUTilingReadyBindings)
+RQSILUMapper = NodeMapper(SILUParser(), PULPRQSILUTilingReadyBindings)
 
 Conv1DMapper = NodeMapper(PULPConv1DParser(), PULPRQSConv1DTilingReadyBindings)
 DWConv1DMapper = NodeMapper(PULPDWConv1DParser(), [PULPDWConv1DBinding])
@@ -118,6 +122,8 @@ PULPMapping = {
     'Gemm': GEMMLayer([FloatGEMMMapper, GEMMDequantMapper]),
     'Gelu': GELULayer([GELUMapper]),
     'GeluGrad': GELUGradLayer([GELUGradMapper]),
+    'SILU': SILULayer([SILUMapper]),
+    'RQSILU': RQSILULayer([RQSILUMapper]),
     'LayerNormalization': LayerNormLayer([LayerNormMapper]),
     'LayerNormalizationGrad': LayerNormGradLayer([LayerNormGradMapper]),
     'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPool2DMapper]),

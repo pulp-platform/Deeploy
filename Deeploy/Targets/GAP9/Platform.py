@@ -22,20 +22,21 @@ from Deeploy.Targets.GAP9.Tiler import GAP9AddTilingReadyBindings, GAP9ConcatTil
     GAP9RQSTallGEMMTilingReadyBindings, GAP9RQSTilingReadyBindings, GAP9SGDTilingReadyBindings, \
     GAP9SoftmaxCrossEntropyGradTilingReadyBindings, GAP9SoftmaxCrossEntropyTilingReadyBindings, \
     GAP9SoftmaxGradTilingReadyBindings, GAP9SoftmaxTilingReadyBindings, GAP9TransposeTilingReadyBindings, \
-    GAP9UniformRQSTilingReadyBindings
+    GAP9UniformRQSTilingReadyBindings, GAP9SILUTilingReadyBindings, GAP9RQSILUTilingReadyBindings
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
     LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
-    TransposeLayer, iHardswishLayer, iRMSNormLayer
+    TransposeLayer, iHardswishLayer, iRMSNormLayer, SILULayer, RQSILULayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUParser, GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, \
     QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, \
     RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
-    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
+    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, \
+    SILUParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
     PULPDWConv1DBinding, PULPReduceMeanBindings, PULPRQSConv1DBindings, PULPSliceBindings
@@ -49,6 +50,8 @@ GAP9_RQAddMapper = NodeMapper(RQAddParser(), GAP9RQAddTilingReadyBindings)
 GAP9_AddMapper = NodeMapper(AddParser(), GAP9AddTilingReadyBindings)
 GAP9_FlattenMapper = NodeMapper(FlattenParser(), GAP9FlattenTilingReadyBindings)
 GAP9_GELUMapper = NodeMapper(GELUParser(), GAP9FPGELUTilingReadyBindings)
+GAP9_SILUMapper = NodeMapper(SILUParser(), GAP9SILUTilingReadyBindings)
+GAP9_RQSILUMapper = NodeMapper(SILUParser(), GAP9RQSILUTilingReadyBindings)
 GAP9_GatherMapper = NodeMapper(GatherParser(), GAP9GatherTilingReadyBindings)
 GAP9_MulMapper = NodeMapper(MulParser(), GAP9MulTilingReadyBindings)
 GAP9_Pad1DMapper = NodeMapper(Pad1DParser(), BasicPad1DBindings)
@@ -106,6 +109,10 @@ GAP9Mapping = {
         GEMMLayer([GAP9_FloatGEMMMapper, GAP9_GEMMDequantMapper]),
     'Gelu':
         GELULayer([GAP9_GELUMapper]),
+    'SILU':
+        SILULayer([GAP9_SILUMapper]),
+    'RQSILU':
+        RQSILULayer([GAP9_RQSILUMapper]),
     'LayerNormalization':
         LayerNormLayer([GAP9_LayerNormMapper]),
     'MaxPool':

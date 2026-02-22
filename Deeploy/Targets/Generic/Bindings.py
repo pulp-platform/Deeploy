@@ -19,12 +19,12 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, \
     MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
     RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, \
-    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate, SILUTemplate, RQSILUTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
     LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, \
     ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, \
-    SoftmaxChecker, TransposeChecker
+    SoftmaxChecker, TransposeChecker, SILUChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -326,4 +326,14 @@ BasicConvTransposeBindings = [
             [PointerClass(type)]),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer) for type in FloatDataTypes
+]
+
+BasicSILUBindings = [
+    NodeBinding(SILUChecker([PointerClass(int8_t)], [PointerClass(int32_t)]), SILUTemplate.referenceTemplate,
+                BasicTransformer)
+] 
+
+BasicRQSILUBindings = [
+    NodeBinding(SILUChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int8_t)]), RQSILUTemplate.referenceTemplate,
+                BasicTransformer)
 ]

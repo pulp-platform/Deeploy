@@ -14,19 +14,19 @@ from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBin
     BasicPad1DBindings, BasicPad2DBindings, BasicPowBindings, BasicQuantBindings, BasicReduceMeanBindings, \
     BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, \
     BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, BasicSqrtBindings, BasicTransposeBindings, \
-    DummyBinding
+    BasicSILUBindings, BasicRQSILUBindings, DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, BatchNormalizationLayer, ConcatLayer, ConvLayer, \
     ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, GatherLayer, GELULayer, GEMMLayer, ITAMaxLayer, \
     LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, PowLayer, QuantLayer, ReduceMeanLayer, \
     ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SliceLayer, \
-    SoftmaxLayer, SqrtLayer, TransposeLayer
+    SoftmaxLayer, SqrtLayer, TransposeLayer, SILULayer, RQSILULayer
 from Deeploy.Targets.Generic.Parsers import AddParser, BatchNormParser, ConcatParser, ConvTranspose1DParser, \
     DebugParser, DequantParser, DivParser, DummyParser, FlattenParser, GatherParser, GELUParser, GenericConv1DParser, \
     GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, \
     IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, MatMulParser, MaxPool1DParser, MulParser, \
     Pad1DParser, Pad2DParser, PowParser, QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, \
     RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, SoftmaxParser, SqrtParser, \
-    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
+    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser, SILUParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
@@ -73,6 +73,8 @@ DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
 BatchNormalizationMapper = NodeMapper(BatchNormParser(), BasicBatchNormBindings)
 ConvTransposeMapper = NodeMapper(ConvTranspose1DParser(), BasicConvTransposeBindings)
 SliceMapper = NodeMapper(SliceParser(), BasicSliceBindings)
+SILUMapper = NodeMapper(SILUParser(), BasicSILUBindings)
+RQSILUMapper = NodeMapper(SILUParser(), BasicRQSILUBindings)
 
 # Dummy nodes are intended for development purposes only!
 # They should always generate compiler errors to not accidentally end up in production code
@@ -118,7 +120,10 @@ GenericMapping = {
     'Quant': QuantLayer([QuantMapper]),
     'Dequant': DequantLayer([DequantMapper]),
     'BatchNormalization': BatchNormalizationLayer([BatchNormalizationMapper]),
-    'ConvTranspose': ConvTransposeLayer([ConvTransposeMapper])
+    'ConvTranspose': ConvTransposeLayer([ConvTransposeMapper]),
+    'SILU': SILULayer([SILUMapper]),
+    'RQSILU': RQSILULayer([RQSILUMapper]),
+    
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel

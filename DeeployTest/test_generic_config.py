@@ -63,6 +63,7 @@ KERNEL_TESTS = [
     "Kernels/Integer/ReduceMean",
     "Kernels/Integer/ReduceSum",
     "Kernels/Integer/Slice",
+    "Kernels/Integer/SILU",
     # Special test from TinyViT model layers
     "Models/TinyViT/5M/Layers/FP32/ReduceMean",
     # Mixed Precision / Quantization

@@ -13,6 +13,7 @@ from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileCon
 from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiGELUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.SILUTileConstraint import SILUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
     PULPFloatDWConv2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
@@ -22,7 +23,7 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBinding
     PULPRQSBindings, PULPRQSConv1DBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
     PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, \
     PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, \
-    PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
+    PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings, PULPSILUBindings, PULPRQSILUBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv1DTileConstraint, \
     RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
@@ -136,6 +137,12 @@ PULPFPGELUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPFloa
 
 PULPFPGELUGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPFloatGELUGradBinding],
                                                             tileConstraint = GeluGradTileConstraint())
+
+PULPSILUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSILUBindings,
+                                                        tileConstraint = SILUTileConstraint())
+
+PULPRQSILUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSILUBindings,
+                                                         tileConstraint = SILUTileConstraint())
 
 PULPGatherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPGatherBindings,
                                                         tileConstraint = GatherTileConstraint())
