@@ -7,13 +7,6 @@
 #ifndef __DEEPLOY_BASIC_MATH_MACROS_HEADER_
 #define __DEEPLOY_BASIC_MATH_MACROS_HEADER_
 
-// Provide target-neutral defaults for section placement macros used by
-// PULP-targeted code. For Generic builds these should be empty so that
-// declarations like `PI_L1 int32_t foo[...]` compile as plain globals.
-#ifndef PI_L1
-#define PI_L1
-#endif
-
 #define MAX(a, b)                                                              \
   ({                                                                           \
     __typeof__(a) _a = (a);                                                    \

@@ -9,7 +9,7 @@
 
 #include "DeeployBasicMath.h"
 
-static int8_t RQSILU_lut_s8_s8[256] = {
+static PI_L1 int8_t RQSILU_lut_s8_s8[256] = {
        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,   -1,
