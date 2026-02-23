@@ -23,7 +23,7 @@ macro(add_board_deployment name target)
 
     if(NOT DEFINED GAP9_SDK_HOME)
         message(FATAL_ERROR "Environment variable GAP_SDK_HOME not set")
-    endif()    
+    endif()
     
     # Command to run on board
     set(GAPY_CMD 
@@ -42,8 +42,9 @@ macro(add_board_deployment name target)
         --flash-size=67108864
         --flash-property=${FSBL_BINARY}@mram:fsbl:binary
         --flash-property=${SSBL_BINARY}@mram:ssbl:binary
-        --flash-property=${DEEPLOY_BINARY}@mram:app:binary run
+        --flash-property=${DEEPLOY_BINARY}@mram:app:binary
         --py-stack
+        flash run
     )
 
     # Add readfs files if provided

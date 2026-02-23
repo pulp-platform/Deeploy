@@ -74,7 +74,8 @@ RUN apt-get update && \
 RUN --mount=type=cache,target=/ccache \
     ccache -z && make gap9-toolchain
 
-COPY Container/gap9-amd64.patch Container/gap9-arm64.patch  ./
+# JUNGVI: Should be only when building on arm64 arch
+COPY Container/gap9-amd64.patch Container/gap9-arm64.patch  ./ 
 COPY scripts/gap9-build_sdk.sh ./scripts/
 RUN --mount=type=ssh \
     --mount=type=cache,target=/ccache \
