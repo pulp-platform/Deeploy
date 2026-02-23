@@ -611,6 +611,7 @@ class BatchNormChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
 
+
 class SILUChecker(SignPropTypeChecker):  #same as GELU due to the same input-output quantization parameters
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):

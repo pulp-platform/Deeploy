@@ -710,6 +710,7 @@ class ConvTransposeLayer(ONNXLayer):
 
         return numPx * opsPerPx
 
+
 class SILULayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
@@ -720,7 +721,7 @@ class SILULayer(ONNXLayer):
         # Arithmetic operations per element = 0 (only a memory load + store).
         # To count memory accesses instead, return: size * 2
         return 0
-    
+
 
 class RQSILULayer(SILULayer):
 

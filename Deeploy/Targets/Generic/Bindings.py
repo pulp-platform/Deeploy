@@ -18,13 +18,13 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, \
     GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, \
     MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
-    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, \
-    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate, SILUTemplate, RQSILUTemplate
+    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, RQSILUTemplate, SILUTemplate, \
+    SliceTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
     LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, \
-    ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, \
-    SoftmaxChecker, TransposeChecker, SILUChecker
+    ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SILUChecker, \
+    SliceChecker, SoftmaxChecker, TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -331,9 +331,9 @@ BasicConvTransposeBindings = [
 BasicSILUBindings = [
     NodeBinding(SILUChecker([PointerClass(int8_t)], [PointerClass(int32_t)]), SILUTemplate.referenceTemplate,
                 BasicTransformer)
-] 
+]
 
 BasicRQSILUBindings = [
-    NodeBinding(SILUChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int8_t)]), RQSILUTemplate.referenceTemplate,
-                BasicTransformer)
+    NodeBinding(SILUChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int8_t)]),
+                RQSILUTemplate.referenceTemplate, BasicTransformer)
 ]

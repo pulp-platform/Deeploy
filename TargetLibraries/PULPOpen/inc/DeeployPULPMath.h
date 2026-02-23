@@ -28,14 +28,14 @@
 #include "kernel/Layernorm.h"
 #include "kernel/Matmul.h"
 #include "kernel/MaxPool.h"
+#include "kernel/RQSILU.h"
 #include "kernel/RQiHardswish.h"
 #include "kernel/RequantShift.h"
+#include "kernel/SILU.h"
 #include "kernel/Softmax.h"
 #include "kernel/UniformRequantShift.h"
 #include "kernel/gemv.h"
 #include "kernel/iRMSnorm.h"
-#include "kernel/SILU.h"
-#include "kernel/RQSILU.h"
 
 #define LOG2(x) (__builtin_pulp_fl1(x))
 

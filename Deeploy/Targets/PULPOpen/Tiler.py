@@ -12,8 +12,8 @@ from Deeploy.Targets.Generic.TileConstraints.MulTileConstraint import MulTileCon
 from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiGELUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
-from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.SILUTileConstraint import SILUTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
     PULPFloatDWConv2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
@@ -139,10 +139,10 @@ PULPFPGELUGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULP
                                                             tileConstraint = GeluGradTileConstraint())
 
 PULPSILUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSILUBindings,
-                                                        tileConstraint = SILUTileConstraint())
+                                                      tileConstraint = SILUTileConstraint())
 
 PULPRQSILUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSILUBindings,
-                                                         tileConstraint = SILUTileConstraint())
+                                                        tileConstraint = SILUTileConstraint())
 
 PULPGatherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPGatherBindings,
                                                         tileConstraint = GatherTileConstraint())

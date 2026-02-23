@@ -4,5 +4,6 @@
 
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 
+
 class SILUTileConstraint(UnaryTileConstraint):
     pass

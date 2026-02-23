@@ -2887,6 +2887,7 @@ class SqrtParser(NodeParser):
 
         return ctxt, True
 
+
 class SILUParser(NodeParser):
 
     def __init__(self):
@@ -2895,7 +2896,7 @@ class SILUParser(NodeParser):
     def parseNode(self, node: gs.Node) -> bool:
 
         ret = all([len(node.inputs) >= 1, len(node.outputs) == 1])
-        
+
         return ret
 
     def parseNodeCtxt(self,
