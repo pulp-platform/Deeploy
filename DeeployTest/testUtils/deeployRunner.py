@@ -395,7 +395,6 @@ def main(default_platform: Optional[str] = None,
     # Extract platform-specific CMake args from parsed args if available
     if platform_specific_cmake_args is None:
         platform_specific_cmake_args = []
-
     # Check for platform-specific arguments in args object and build CMake args
     if hasattr(args, 'cores'):
         platform_specific_cmake_args.append(f"-DNUM_CORES={args.cores}")
@@ -404,6 +403,9 @@ def main(default_platform: Optional[str] = None,
 
     if hasattr(args, 'num_clusters'):
         platform_specific_cmake_args.append(f"-DNUM_CLUSTERS={args.num_clusters}")
+
+    if platform == 'GAP9':
+        platform_specific_cmake_args.append("-D SIMULATOR=" + simulator)
 
     config = create_config_from_args(args, platform, simulator, tiling_enabled, platform_specific_cmake_args)
 
