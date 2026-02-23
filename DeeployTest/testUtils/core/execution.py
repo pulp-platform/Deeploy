@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -12,6 +13,7 @@ from Deeploy.Logging import DEFAULT_LOGGER as log
 
 from .config import DeeployTestConfig
 from .output_parser import TestResult, parse_test_output
+import threading
 
 
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
@@ -147,6 +149,10 @@ def build_binary(config: DeeployTestConfig) -> None:
         log.error(f"Build failed with return code {result.returncode}")
         raise RuntimeError(f"Build failed for {config.test_name}")
 
+# Source: https://stackoverflow.com/a/38662876
+def escapeAnsi(line):
+    ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
+    return ansi_escape.sub('', line)
 
 def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     """
@@ -191,15 +197,32 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, capture_output = True, text = True, env = env)
+    cmd_str = " ".join(cmd)
+    process = subprocess.Popen(cmd_str,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.STDOUT,
+                                shell = True,
+                                encoding = 'utf-8')
 
-    if result.stdout:
-        print(result.stdout, end = '')
-    if result.stderr:
-        print(result.stderr, end = '', file = sys.stderr)
+    fileHandle = open('out.txt', 'a', encoding = 'utf-8')
+    fileHandle.write(
+        f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
+
+    result = ""
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())
+            result += output
+            fileHandle.write(f"{escapeAnsi(output)}")
+
+    fileHandle.write("")
+    fileHandle.close()
 
     # Parse output for error count and cycles
-    test_result = parse_test_output(result.stdout, result.stderr)
+    test_result = parse_test_output(result, "")
 
     if not test_result.success and test_result.error_count == -1:
         log.warning(f"Could not parse error count from output")
