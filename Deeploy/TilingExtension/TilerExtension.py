@@ -951,7 +951,7 @@ class Tiler():
 
         # JUNGVI: Assert that at every computation step, the required buffers are alive somewhere in memory
         for stepIdx, pattern in enumerate(schedule):
-            node = pattern[0]
+            node = pattern if isinstance(pattern, gs.Node) else pattern[0]
             nodeIO = [node for node in node.inputs + node.outputs if not isinstance(node, gs.Constant)]
             for tensor in nodeIO:
                 lifetime = memoryBlockMap[tensor.name]._lifetime

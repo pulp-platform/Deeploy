@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import os
 import re
 import shutil
@@ -16,9 +17,44 @@ from .output_parser import TestResult, parse_test_output
 import threading
 
 
+def _augment_path(env: dict) -> dict:
+    """Prepend gvsoc/llvm bin dirs to PATH based on installed env vars.
+
+    The install dirs are already set as env vars (GVSOC_INSTALL_DIR,
+    LLVM_INSTALL_DIR) but their bin/ subdirectories may not be in PATH.
+    """
+    extra = []
+    for var in ('GVSOC_INSTALL_DIR', 'LLVM_INSTALL_DIR'):
+        install_dir = env.get(var, '')
+        if install_dir:
+            bin_dir = str(Path(install_dir) / 'bin')
+            current = env.get('PATH', '').split(':')
+            if bin_dir not in current:
+                extra.append(bin_dir)
+    if extra:
+        env['PATH'] = ':'.join(extra) + ':' + env.get('PATH', '')
+    return env
+
+
+def _resolve_optimizer_dir(config: DeeployTestConfig) -> str:
+    """Return the optimizer ONNX directory for this config.
+
+    Falls back to <test_dir>/../simplemlp_optimizer if not explicitly set.
+    """
+    if config.optimizer_dir:
+        return config.optimizer_dir
+    test_parent = Path(config.test_dir).parent
+    return str(test_parent / "simplemlp_optimizer")
+
+
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
     """
     Generate network code from ONNX model.
+
+    In training mode, generates both TrainingNetwork (fwd+bwd) and
+    OptimizerNetwork (SGD) into the same gen_dir.  Auto-detected training
+    parameters (n_steps, n_accum, num_data_inputs) are written to
+    gen_dir/training_meta.json and read back into config after codegen.
 
     Raises:
         RuntimeError: If network generation fails
@@ -29,31 +65,97 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
 
     script_dir = Path(__file__).parent.parent.parent
 
-    if config.tiling:
+    if config.training:
+        # --- Step 1: Training network (forward + backward + accumulation) ---
+        generation_script = script_dir / "generateTrainingNetwork.py"
+        cmd = [
+            sys.executable,
+            str(generation_script),
+            "-d", config.gen_dir,
+            "-t", config.test_dir,
+            "-p", config.platform,
+        ]
+        # Only pass values when explicitly set; otherwise let the script auto-detect
+        if config.n_train_steps is not None:
+            cmd.append(f"--n-steps={config.n_train_steps}")
+        if config.n_accum_steps is not None:
+            cmd.append(f"--n-accum={config.n_accum_steps}")
+        if config.training_num_data_inputs is not None:
+            cmd.append(f"--num-data-inputs={config.training_num_data_inputs}")
+
+        if config.verbose > 0:
+            cmd.append("-" + "v" * config.verbose)
+        if config.debug:
+            cmd.append("--debug")
+        cmd.extend(config.gen_args)
+
+        log.debug(f"[Execution] Training generation command: {' '.join(cmd)}")
+        result = subprocess.run(cmd, check=False)
+        if result.returncode != 0:
+            raise RuntimeError(f"Training network generation failed for {config.test_name}")
+
+        # Read back auto-detected values written by generateTrainingNetwork.py
+        meta_path = Path(config.gen_dir) / "training_meta.json"
+        if meta_path.exists():
+            with open(meta_path) as f:
+                meta = json.load(f)
+            config.n_train_steps = meta["n_train_steps"]
+            config.n_accum_steps = meta["n_accum_steps"]
+            config.training_num_data_inputs = meta["training_num_data_inputs"]
+            log.info(f"[Execution] Training meta: {meta}")
+
+        # --- Step 2: Optimizer network (SGD) ---
+        opt_dir = _resolve_optimizer_dir(config)
+        opt_script = script_dir / "generateOptimizerNetwork.py"
+
+        if not Path(opt_dir).exists():
+            log.warning(f"Optimizer directory not found: {opt_dir} — skipping optimizer codegen")
+        elif not opt_script.exists():
+            log.warning(f"generateOptimizerNetwork.py not found — skipping optimizer codegen")
+        else:
+            opt_cmd = [
+                sys.executable,
+                str(opt_script),
+                "-d", config.gen_dir,
+                "-t", opt_dir,
+                "-p", config.platform,
+            ]
+            for arg in config.gen_args:
+                if arg.startswith("--cores"):
+                    opt_cmd.append(arg)
+            if config.verbose > 0:
+                opt_cmd.append("-" + "v" * config.verbose)
+
+            log.debug(f"[Execution] Optimizer generation command: {' '.join(opt_cmd)}")
+            result = subprocess.run(opt_cmd, check=False)
+            if result.returncode != 0:
+                raise RuntimeError(f"Optimizer network generation failed for {config.test_name}")
+
+        return  # early return — training path complete
+
+    elif config.tiling:
         generation_script = script_dir / "testMVP.py"
+        cmd = [
+            sys.executable,
+            str(generation_script),
+            "-d", config.gen_dir,
+            "-t", config.test_dir,
+            "-p", config.platform,
+        ]
     else:
         generation_script = script_dir / "generateNetwork.py"
+        cmd = [
+            sys.executable,
+            str(generation_script),
+            "-d", config.gen_dir,
+            "-t", config.test_dir,
+            "-p", config.platform,
+        ]
 
-    cmd = [
-        "python",
-        str(generation_script),
-        "-d",
-        config.gen_dir,
-        "-t",
-        config.test_dir,
-        "-p",
-        config.platform,
-    ]
-
-    # Add verbosity flags
     if config.verbose > 0:
         cmd.append("-" + "v" * config.verbose)
-
-    # Add debug flag
     if config.debug:
         cmd.append("--debug")
-
-    # Add additional generation arguments
     cmd.extend(config.gen_args)
 
     log.debug(f"[Execution] Generation command: {' '.join(cmd)}")
@@ -74,7 +176,6 @@ def configure_cmake(config: DeeployTestConfig) -> None:
     if cmake_cmd == "cmake" and shutil.which("cmake") is None:
         raise RuntimeError("CMake not found. Please install CMake or set CMAKE environment variable")
 
-    # Build CMake command
     cmd = [
         cmake_cmd,
         f"-DTOOLCHAIN={config.toolchain}",
@@ -104,11 +205,20 @@ def configure_cmake(config: DeeployTestConfig) -> None:
     else:
         cmd.append("-Dgvsoc_simulation=OFF")
 
-    # Last argument is the source directory
+    if config.training:
+        cmd.append("-DTRAINING=ON")
+        # Only add cmake defines when the values are known (after codegen)
+        if config.n_train_steps is not None:
+            cmd.append(f"-DN_TRAIN_STEPS={config.n_train_steps}")
+        if config.n_accum_steps is not None:
+            cmd.append(f"-DN_ACCUM_STEPS={config.n_accum_steps}")
+        if config.training_num_data_inputs is not None:
+            cmd.append(f"-DTRAINING_NUM_DATA_INPUTS={config.training_num_data_inputs}")
+
     script_dir = Path(__file__).parent.parent.parent
     cmd.append(str(script_dir.parent))
 
-    env = os.environ.copy()
+    env = _augment_path(os.environ.copy())
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
 
@@ -138,6 +248,7 @@ def build_binary(config: DeeployTestConfig) -> None:
         cmd.append("image")
 
     env = os.environ.copy()
+    env = _augment_path(os.environ.copy())
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
 
@@ -168,32 +279,48 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     if config.simulator == 'none':
         raise RuntimeError("No simulator specified!")
 
-    if config.simulator == 'host':
-        # Run binary directly
-        binary_path = Path(config.build_dir) / "bin" / config.test_name
-        cmd = [str(binary_path)]
-    else:
-        # Run via CMake target
-        cmake_cmd = os.environ.get("CMAKE", "cmake")
-        cmd = [
-            cmake_cmd,
-            "--build",
-            config.build_dir,
-            "--target",
-            f"{config.simulator}_{config.test_name}",
-        ]
-
-    env = os.environ.copy()
+    env = _augment_path(os.environ.copy())
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
 
-    if config.simulator == 'banshee':
+    if config.simulator == 'host':
+        binary_path = Path(config.build_dir) / "bin" / config.test_name
+        cmd = [str(binary_path)]
+
+    elif config.simulator == 'gvsoc':
+        # Run gvsoc directly instead of through cmake to avoid USES_TERMINAL
+        # pipe buffering — cmake's USES_TERMINAL connects gvsoc to the real
+        # terminal, bypassing our pipe and causing apparent hangs.
+        gvsoc_exe = str(Path(env.get('GVSOC_INSTALL_DIR', '')) / 'bin' / 'gvsoc')
+        binary_path = str(Path(config.build_dir) / 'bin' / config.test_name)
+        workdir = str(Path(config.build_dir) / 'gvsoc_workdir')
+        os.makedirs(workdir, exist_ok=True)
+        # gvsoc target name is derived from cmake's add_gvsoc_emulation call.
+        # For Siracusa it is always "siracusa".
+        gvsoc_target = config.platform.lower().replace('_w_neureka', '')
+        cmd = [
+            gvsoc_exe,
+            f"--target={gvsoc_target}",
+            f"--binary={binary_path}",
+            f"--work-dir={workdir}",
+            "image", "flash", "run",
+        ]
+
+    elif config.simulator == 'banshee':
         if config.verbose == 1:
             env["BANSHEE_LOG"] = "warn"
         elif config.verbose == 2:
             env["BANSHEE_LOG"] = "info"
         elif config.verbose >= 3:
             env["BANSHEE_LOG"] = "debug"
+        cmake_cmd = os.environ.get("CMAKE", "cmake")
+        cmd = [cmake_cmd, "--build", config.build_dir, "--target",
+               f"{config.simulator}_{config.test_name}"]
+
+    else:
+        cmake_cmd = os.environ.get("CMAKE", "cmake")
+        cmd = [cmake_cmd, "--build", config.build_dir, "--target",
+               f"{config.simulator}_{config.test_name}"]
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
@@ -236,16 +363,9 @@ def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim:
     """
     log.info(f"################## Testing {config.test_name} on {config.platform} Platform ##################")
 
-    # Step 1: Generate network
     generate_network(config, skip = skipgen)
-
-    # Step 2: Configure CMake
     configure_cmake(config)
-
-    # Step 3: Build binary
     build_binary(config)
-
-    # Step 4: Run simulation
     result = run_simulation(config, skip = skipsim)
 
     return result
