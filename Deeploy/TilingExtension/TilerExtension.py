@@ -320,7 +320,6 @@ class Tiler():
             log.debug(" - Extract Memory Allocation")
             self.innerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
             self.outerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
-            print(tilingSolution)
         return tilingSolution
 
     def computeMemoryMap(self, ctxt: NetworkContext, tilingSolution: TilingSolution) -> MemoryMap:

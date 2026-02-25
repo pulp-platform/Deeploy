@@ -716,12 +716,6 @@ class SILULayer(ONNXLayer):
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
-    def computeOps(self):
-        # LUT-based SiLU: implemented via a 256-entry table lookup per element.
-        # Arithmetic operations per element = 0 (only a memory load + store).
-        # To count memory accesses instead, return: size * 2
-        return 0
-
 
 class RQSILULayer(SILULayer):
 
