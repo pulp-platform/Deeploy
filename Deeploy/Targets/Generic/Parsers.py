@@ -2613,7 +2613,8 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        # Accept 1 output (log_prob only) or 2 outputs (loss + log_prob)
+        ret = all([len(node.inputs) == 2, len(node.outputs) in (1, 2)])
 
         return ret
 
@@ -2624,7 +2625,15 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
 
         logits = ctxt.lookup(node.inputs[0].name)
         labels = ctxt.lookup(node.inputs[1].name)
-        log_prob = ctxt.lookup(node.outputs[0].name)
+        if len(node.outputs) == 2:
+            # Dual-output: outputs[0]=loss (scalar), outputs[1]=log_prob
+            loss = ctxt.lookup(node.outputs[0].name)
+            log_prob = ctxt.lookup(node.outputs[1].name)
+            self.operatorRepresentation['loss'] = loss.name
+        else:
+            # Single-output (legacy): outputs[0]=log_prob
+            log_prob = ctxt.lookup(node.outputs[0].name)
+            self.operatorRepresentation['loss'] = ''
         self.operatorRepresentation['logits'] = logits.name
         self.operatorRepresentation['labels'] = labels.name
         self.operatorRepresentation['log_prob'] = log_prob.name
@@ -2880,5 +2889,47 @@ class SqrtParser(NodeParser):
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+
+        return ctxt, True
+
+
+class InPlaceAccumulatorV2Parser(NodeParser):
+    """Parser for ORT InPlaceAccumulatorV2 operator (com.microsoft).
+
+    Semantics:
+        if lazy_reset_grad: out = gradient          (reset)
+        else:               out = buffer + gradient  (accumulate)
+
+    Inputs:
+        0: buffer          - current accumulation buffer (float tensor)
+        1: gradient        - new gradient to accumulate (float tensor, same shape)
+        2: lazy_reset_grad - reset flag; if true, overwrite; else add (bool[1])
+
+    Output:
+        0: output_buffer   - updated accumulation buffer (float tensor)
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        # Require exactly 3 inputs (buffer, gradient, lazy_reset_grad) and 1 output
+        return len(node.inputs) == 3 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        buffer = ctxt.lookup(node.inputs[0].name)
+        gradient = ctxt.lookup(node.inputs[1].name)
+        lazy_reset_grad = ctxt.lookup(node.inputs[2].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['accum_buffer'] = buffer.name
+        self.operatorRepresentation['gradient'] = gradient.name
+        self.operatorRepresentation['lazy_reset_grad'] = lazy_reset_grad.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = int(np.prod(buffer.shape))
 
         return ctxt, True

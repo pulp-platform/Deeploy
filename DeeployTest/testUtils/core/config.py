@@ -23,6 +23,14 @@ class DeeployTestConfig:
     gen_args: List[str] = None
     verbose: int = 0
     debug: bool = False
+    training: bool = False
+    # None means "auto-detect from ONNX graph / inputs.npz during codegen"
+    n_train_steps: Optional[int] = None
+    n_accum_steps: Optional[int] = None
+    training_num_data_inputs: Optional[int] = None
+    # Directory containing the optimizer ONNX (network.onnx with SGD nodes).
+    # If None, defaults to <test_dir>/../simplemlp_optimizer when training=True.
+    optimizer_dir: Optional[str] = None
 
     def __post_init__(self):
         if self.cmake_args is None:

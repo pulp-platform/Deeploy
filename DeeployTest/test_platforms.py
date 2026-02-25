@@ -3,6 +3,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
+from pathlib import Path
+from test_siracusa_train_config import DEFAULT_CORES as SIRACUSA_TRAIN_DEFAULT_CORES
+from test_siracusa_train_config import TRAINING_TESTS as SIRACUSA_TRAINING_TESTS
+from testUtils.pytestRunner import create_training_test_config
 # Import platform-specific test configurations
 from test_chimera_config import KERNEL_TESTS as CHIMERA_KERNEL_TESTS
 from test_chimera_config import MODEL_TESTS as CHIMERA_MODEL_TESTS
@@ -32,7 +36,7 @@ from test_snitch_tiled_config import L2_SINGLEBUFFER_KERNELS as SNITCH_L2_SINGLE
 from test_softhier_config import DEFAULT_NUM_CLUSTERS as SOFTHIER_DEFAULT_NUM_CLUSTERS
 from test_softhier_config import KERNEL_TESTS as SOFTHIER_KERNEL_TESTS
 from test_softhier_config import MODEL_TESTS as SOFTHIER_MODEL_TESTS
-from testUtils.pytestRunner import create_test_config, run_and_assert_test
+from testUtils.pytestRunner import create_test_config, get_worker_id, run_and_assert_test
 
 
 def generate_test_params(test_dict, config_name):
@@ -725,4 +729,59 @@ def test_siracusa_neureka_tiled_models_l3_doublebuffer_wmem(test_params, deeploy
         double_buffer = True,
         gen_args = ["--neureka-wmem"],
     )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa_train
+@pytest.mark.models
+@pytest.mark.parametrize("test_name", list(SIRACUSA_TRAINING_TESTS.keys()),
+                         ids = list(SIRACUSA_TRAINING_TESTS.keys()))
+def test_siracusa_train_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
+                               skipsim) -> None:
+    n_steps, n_accum, num_data = SIRACUSA_TRAINING_TESTS[test_name]
+
+    # simplemlp_train uses external path (not under DeeployTest/Tests/)
+    if test_name == "Models/SimpleMLP_Train":
+        ext_test_dir = "/app/Onnx4Deeploy/onnx/model/simplemlp_train"
+        platform = "Siracusa"
+        gen_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / "simplemlp_train")
+        worker_id = get_worker_id()
+        if worker_id == "master":
+            build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / "build_master")
+        else:
+            build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}")
+
+        from testUtils.core.config import DeeployTestConfig
+        config = DeeployTestConfig(
+            test_name = "simplemlp_train",
+            test_dir = ext_test_dir,
+            platform = platform,
+            simulator = "gvsoc",
+            tiling = False,
+            gen_dir = gen_dir,
+            build_dir = build_dir,
+            toolchain = toolchain,
+            toolchain_install_dir = toolchain_dir,
+            cmake_args = list(cmake_args) + [f"NUM_CORES={SIRACUSA_TRAIN_DEFAULT_CORES}"],
+            gen_args = [f"--cores={SIRACUSA_TRAIN_DEFAULT_CORES}"],
+            training = True,
+            n_train_steps = n_steps,
+            n_accum_steps = n_accum,
+            training_num_data_inputs = num_data,
+        )
+    else:
+        config = create_training_test_config(
+            test_name = test_name,
+            platform = "Siracusa",
+            simulator = "gvsoc",
+            deeploy_test_dir = deeploy_test_dir,
+            toolchain = toolchain,
+            toolchain_dir = toolchain_dir,
+            cmake_args = cmake_args,
+            cores = SIRACUSA_TRAIN_DEFAULT_CORES,
+            n_train_steps = n_steps,
+            n_accum_steps = n_accum,
+            training_num_data_inputs = num_data,
+        )
+
     run_and_assert_test(test_name, config, skipgen, skipsim)
