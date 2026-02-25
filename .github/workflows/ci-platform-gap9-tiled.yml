@@ -27,7 +27,7 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: "ghcr.io/FilippoCordella/deeploy:gap9"
+      docker_image_deeploy: "ghcr.io/filippocordella/deeploy:gap9"
 
   gap9-kernels-tiled-singlebuffer-L2:
     needs: select-env
