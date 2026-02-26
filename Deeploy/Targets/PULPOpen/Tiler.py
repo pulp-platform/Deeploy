@@ -21,9 +21,9 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBinding
     PULPLayernormGradBinding, PULPMatMulBindings, PULPMaxPool1DBindings, PULPMaxPool2DBindings, PULPMulBindings, \
     PULPReduceMeanBindings, PULPReduceSumBindings, PULPReluBinding, PULPReshapeBindings, PULPRQAddBindings, \
     PULPRQSBindings, PULPRQSConv1DBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
-    PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, \
-    PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, \
-    PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings, PULPSILUBindings, PULPRQSILUBindings
+    PULPRQSiHardswishBindings, PULPRQSILUBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, \
+    PULPSILUBindings, PULPSliceBindings, PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, \
+    PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv1DTileConstraint, \
     RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \

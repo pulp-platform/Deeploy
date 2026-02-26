@@ -20,7 +20,7 @@ jobs:
   generate-ccache-gap9:
     runs-on: ubuntu-latest
     container:
-      image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/filippocordell/deeploy-gap9:latest' }}
+      image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/filippocordella/deeploy:gap9' }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
