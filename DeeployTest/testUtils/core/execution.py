@@ -189,6 +189,10 @@ def configure_cmake(config: DeeployTestConfig) -> None:
         f"-B{config.build_dir}",
     ]
 
+    # Add GVSOC_INSTALL_DIR if available
+    if config.gvsoc_install_dir:
+        cmd.append(f"-DGVSOC_INSTALL_DIR={config.gvsoc_install_dir}")
+
     for arg in config.cmake_args:
         if not arg.startswith("-D"):
             arg = "-D" + arg
@@ -243,6 +247,11 @@ def build_binary(config: DeeployTestConfig) -> None:
     ]
 
     env = _augment_path(os.environ.copy())
+    # GAP9 requires the 'image' target to generate MRAM .bin files for GVSOC
+    if config.platform == 'GAP9':
+        cmd.append("image")
+
+    env = os.environ.copy()
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
 

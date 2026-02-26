@@ -6,6 +6,7 @@
 
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
+// #include "perf_utils.h"
 
 void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
                                    const float32_t *__restrict__ pSrcB,
@@ -16,6 +17,16 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
 
   int8_t core_id = pi_core_id();
   int8_t log2Core = LOG2(NUM_CORES);
+
+  //RW: Performance monitoring is currently disabled 
+  // perf_stats_t perf_start, perf_end, perf_total;
+
+  // // Initialize and start performance counters (only core 0)
+  // if (core_id == 0) {
+  //   perf_bench_init();
+  //   perf_bench_start();
+  //   perf_bench_read(&perf_start);
+  // }
 
   uint32_t M_chunk = (M >> log2Core) + ((M & (NUM_CORES - 1)) != 0);
   uint32_t M_start = MIN(core_id * M_chunk, M);
@@ -351,4 +362,16 @@ void PULP_Gemm_fp32_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
       }
     }
   }
+
+  // RW: Stop performance counters and print results (only core 0)
+  // if (core_id == 0) {
+  //   perf_bench_stop();
+  //   perf_bench_read(&perf_end);
+  //   perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+  //   char label[100];
+  //   snprintf(label, sizeof(label), "GEMM M=%u N=%u O=%u transA=%u transB=%u",
+  //            M, N, O, transA, transB);
+  //   perf_bench_print(label, &perf_total);
+  // }
 }

@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: _runner-gap9
+
+"on":
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      pytest-marker:
+        required: true
+        type: string
+
+jobs:
+  test-runner-gap9:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Deeploy
+        shell: bash
+        run: |
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          pip install -e . || true
+          deactivate
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: /app/.ccache
+          key: ccache-gap9
+      - name: Run Test
+        run: |
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          export GVSOC_INSTALL_DIR=/app/install/gap9-sdk/install/workstation
+          export GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          pytest test_platforms.py -v -n 4 -m "gap9 and ${{ inputs.pytest-marker }}"
+          deactivate
+        shell: bash

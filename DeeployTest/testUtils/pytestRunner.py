@@ -22,7 +22,7 @@ __all__ = [
 def get_worker_id() -> str:
     """
     Get the pytest-xdist worker ID for parallel test execution.
-    
+
     Returns:
         Worker ID string (e.g., 'gw0', 'gw1', 'master' for non-parallel)
     """

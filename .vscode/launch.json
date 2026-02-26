@@ -67,7 +67,7 @@
         },
         "labelTransform": {
           "text": "${fileDirname}",
-          "find" : "${workspaceFolder}/DeeployTest/Tests/",
+          "find": "${workspaceFolder}/DeeployTest/Tests/",
           "replace": ""
         },
         "valueTransform": {
