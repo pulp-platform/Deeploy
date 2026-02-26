@@ -33,8 +33,8 @@ DOCKER_SHELL="/bin/zsh"
 
 # USB/IP device settings
 USBIP_HOST="host.docker.internal"
-USBIP_VENDOR="15ba"
-USBIP_PRODUCT="002b"
+USBIP_VENDOR="0403"
+USBIP_PRODUCT="6011"
 
 # SDK and cache directories
 WORK_DIR="."

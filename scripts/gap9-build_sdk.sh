@@ -24,14 +24,14 @@ if [ -d "${GAP9_SDK_INSTALL_DIR}/.git" ]; then
 	git remote set-url origin "${GAP_SDK_URL}" || true
 else
 	echo "Cloning GAP9 SDK..."
-	git clone "${GAP_SDK_URL}" "${GAP9_SDK_INSTALL_DIR}"
+	GIT_LFS_SKIP_SMUDGE=1 git clone "${GAP_SDK_URL}" "${GAP9_SDK_INSTALL_DIR}"
 fi
 
 cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
 echo "Checking out commit ${GAP9_SDK_COMMIT_HASH} (stash and fetch if necessary)"
 git fetch --all --tags || true
 git stash || true
-git checkout "${GAP9_SDK_COMMIT_HASH}"
+GIT_LFS_SKIP_SMUDGE=1 git checkout "${GAP9_SDK_COMMIT_HASH}"
 git submodule update --init --recursive
 
 # Platform specific patch
