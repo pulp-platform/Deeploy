@@ -296,7 +296,8 @@ def generateTestNetwork(deployer: NetworkDeployer, test_inputs: List[np.ndarray]
 
 def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: List[List[np.ndarray]], n_steps: int,
                                      n_accum: int, grad_buf_start_idx: int = 0, num_grad_inputs: int = 0,
-                                     learning_rate: float = 0.001) -> str:
+                                     learning_rate: float = 0.001,
+                                     init_weights: List[np.ndarray] = None) -> str:
     """Generate testinputs.h for training tests.
 
     Parameters
@@ -395,6 +396,28 @@ def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: Lis
 
     # Emit the top-level vector of row pointers
     retStr += f"void** testDataVector[{total_mb}] = {{{', '.join(f'testDataRow{mb}' for mb in range(total_mb))}}};\n"
+
+    # Emit initial weight arrays (one per weight input, indices num_data..grad_buf_start_idx-1).
+    if init_weights:
+        retStr += "\n"
+        weight_entries = []
+        num_data = len(all_mb_data[0]) if all_mb_data else 0
+        for wi, arr in enumerate(init_weights):
+            buf_global_idx = num_data + wi
+            input_key = f"input_{buf_global_idx}"
+            if deployer.ctxt.is_buffer(input_key):
+                buffer = deployer.ctxt.lookup(input_key)
+                typeName = buffer._type.referencedType.typeName
+                typeWidth = buffer._type.referencedType.typeWidth
+            else:
+                typeName = "float32_t"
+                typeWidth = 32
+            values = arr.reshape(-1).astype(np.float32)
+            list_str = ", ".join([f'{float(x)}f' for x in values])
+            buf_name = f"testInitWeight_{wi}"
+            weight_entries.append(buf_name)
+            retStr += f"{typeName} {buf_name}[] = {{{list_str}}};\n"
+        retStr += f"void* testInitWeights[{len(weight_entries)}] = {{{', '.join(f'(void*){e}' for e in weight_entries)}}};\n"
 
     return retStr
 
@@ -554,7 +577,8 @@ void InitTrainingNetwork(__attribute__((unused)) uint32_t core_id, __attribute__
 def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[List[np.ndarray]], dumpdir: str,
                                 verbosityCfg: CodeGenVerbosity, n_steps: int = 1, n_accum: int = 1,
                                 num_data_inputs: int = 2, grad_buf_start_idx: int = 0, num_grad_inputs: int = 0,
-                                learning_rate: float = 0.001, reference_losses: List = None) -> None:
+                                learning_rate: float = 0.001, reference_losses: List = None,
+                                init_weights: List = None) -> None:
     """Generate all training test files: testinputs.h, testoutputs.h, TrainingNetwork.h, TrainingNetwork.c.
 
     Parameters
@@ -585,7 +609,7 @@ def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[Lis
 
     # testinputs.h
     testInputStr = generateTrainingTestInputsHeader(deployer, all_mb_data, n_steps, n_accum, grad_buf_start_idx,
-                                                    num_grad_inputs, learning_rate)
+                                                    num_grad_inputs, learning_rate, init_weights=init_weights)
     with open(f'{dumpdir}/testinputs.h', 'w') as f:
         f.write(testInputStr)
 
