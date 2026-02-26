@@ -724,7 +724,7 @@ class PerturbUniformLayer(ONNXLayer):
 
     def computeOps(self):
         return self.mapper.parser.operatorRepresentation['size']
-    
+
 class PerturbEggrollLayer(ONNXLayer):
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
@@ -745,4 +745,4 @@ class PerturbTriangleLayer(ONNXLayer):
 
     def computeOps(self):
         return self.mapper.parser.operatorRepresentation['size']
-    
+

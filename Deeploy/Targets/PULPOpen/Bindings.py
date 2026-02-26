@@ -467,7 +467,7 @@ PULPPerturbUniformBindings = [
 
 PULPPerturbEggrollBindings = [
     NodeBinding(
-        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        PerturbZOChecker([PointerClass(int32_t)], [PointerClass(float32_t)]),
         FloatPerturbEggrollTemplate.referenceTemplate,
         ForkTransformer)]
 
@@ -478,7 +478,7 @@ PULPPerturbRademacherBindings = [
         ForkTransformer)]
 
 PULPPerturbTriangleBindings = [
-    NodeBinding(
+    NodeBinding( 
         PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
         FloatPerturbTriangleTemplate.referenceTemplate,
         ForkTransformer)]

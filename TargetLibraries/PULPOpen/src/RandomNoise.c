@@ -200,7 +200,6 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t dir,
                             uint32_t size) {
     RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32 };
-    float32_t sqrt3 = 1.73205080757f;
     float32_t scale = epsilon; // rademacher naturally has variance 1
     if (dir == 0) {scale *= -1.0f;}
     for (uint32_t i = 0; i < size; i++) {
@@ -211,6 +210,7 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
 
 void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
                             uint32_t seed,
+                            float32_t epsilon,
                             uint32_t size) {
     // For compatibility with existing codegen templates. Currently maps to Rademacher noise.
     RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32};

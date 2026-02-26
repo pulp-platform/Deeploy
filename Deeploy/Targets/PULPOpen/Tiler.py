@@ -13,6 +13,7 @@ from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileCon
 from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiGELUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.EggrollTileConstraint import EggrollTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
     PULPFloatDWConv2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
@@ -162,7 +163,7 @@ PULPPerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = P
                                                                  tileConstraint = UnaryTileConstraint())
 
 PULPPerturbEggrollTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbEggrollBindings,
-                                                                tileConstraint = UnaryTileConstraint())
+                                                                tileConstraint = EggrollTileConstraint())
 
 PULPPerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbRademacherBindings,
                                                                  tileConstraint = UnaryTileConstraint())

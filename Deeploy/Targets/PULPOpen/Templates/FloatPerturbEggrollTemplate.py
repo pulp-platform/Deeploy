@@ -24,29 +24,20 @@ referenceTemplate = _FloatPerturbEggrollTemplate("""
 // Perturb Eggroll (Name: ${nodeName}, Op: ${nodeOp})
 uint8_t ${nodeName}_core_id = (uint8_t) pi_core_id();
 uint8_t ${nodeName}_log2Core = (uint8_t) log2(NUM_CORES);
-uint32_t ${nodeName}_chunk_a = (${sizeA} >> ${nodeName}_log2Core) + ((${sizeA} & (NUM_CORES-1))!=0);
-uint32_t ${nodeName}_chunk_start_a = (uint32_t) MIN(${nodeName}_chunk_a*${nodeName}_core_id, (uint32_t) ${sizeA});
-uint32_t ${nodeName}_chunk_stop_a = (uint32_t) MIN(${nodeName}_chunk_start_a + ${nodeName}_chunk_a, (uint32_t) ${sizeA});
-uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop_a - ${nodeName}_chunk_start_a;
+uint32_t ${nodeName}_chunk = (${size} >> ${nodeName}_log2Core) + ((${size} & (NUM_CORES-1))!=0);
+uint32_t ${nodeName}_chunk_start = (uint32_t) MIN(${nodeName}_chunk*${nodeName}_core_id, (uint32_t) ${size});
+uint32_t ${nodeName}_chunk_stop = (uint32_t) MIN(${nodeName}_chunk_start + ${nodeName}_chunk, (uint32_t) ${size});
+uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop - ${nodeName}_chunk_start;
 
-uint32_t ${nodeName}_chunk_b = ( ${sizeB} >> ${nodeName}_log2Core) + ((${sizeB} & (NUM_CORES-1))!=0);
-uint32_t ${nodeName}_chunk_start_b = (uint32_t) MIN(${nodeName}_chunk_b*${nodeName}_core_id, (uint32_t) ${sizeB});
-uint32_t ${nodeName}_chunk_stop_b = (uint32_t) MIN(${nodeName}_chunk_start_b + ${nodeName}_chunk_b, (uint32_t) ${sizeB});
-uint32_t ${nodeName}_local_size_b = ${nodeName}_chunk_stop_b - ${nodeName}_chunk_start_b;
 // pick large enough stride to minimize correlation between nodes.
 
 float32_t *${nodeName}data_out;
 
-uint32_t chunk_seed_a = seed + i*${nodeName}_chunk_start_a + (${node_id} * 104729);
-uint32_t chunk_seed_b = seed + i*${nodeName}_chunk_start_b + (${node_id} * 104730);
+uint32_t chunk_seed = seed + ${nodeName}_chunk_start + (${node_id} * 104729);
 
-GenEggrollPerturbation((float32_t *) & ${a_out}[${nodeName}_chunk_start_a],
-                        chunk_seed_a,
-                        ${nodeName}_local_size_a);
-}
-GenEggrollPerturbation((float32_t *) & ${b_out}[${nodeName}_chunk_start_b],
-                        chunk_seed_b,
-                        ${nodeName}_local_size_b);
-}
+GenEggrollPerturbation((float32_t *) & ${data_out}[${nodeName}_chunk_start],
+                        chunk_seed,
+                        ${eps}f,
+                        ${nodeName}_local_size);
 
 """)

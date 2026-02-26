@@ -96,6 +96,7 @@ void UpdateWeightsRademacher(float32_t *__restrict__ pweights,
 
 void GenEggrollPerturbation(float32_t * pdest,
                         uint32_t seed,
+                        float32_t epsilon,
                         uint32_t size);
 
 /* Xorshift32 implementation. Most basic software PRNG*/
