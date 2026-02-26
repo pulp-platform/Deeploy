@@ -66,7 +66,9 @@ if __name__ == '__main__':
                             dest = 'optimizer_dir',
                             default = None,
                             help = 'Directory containing the optimizer network.onnx '
-                                   '(default: auto-derived as <test_dir>/../simplemlp_optimizer)\n')
+                                   '(default: auto-derived from test_dir name by replacing '
+                                   "'_train' with '_optimizer', e.g. sleepconvit_train → "
+                                   'sleepconvit_optimizer)\n')
 
     parser = DeeployRunnerArgumentParser(tiling_arguments = False, platform_required = False)
     _setup_parser(parser)

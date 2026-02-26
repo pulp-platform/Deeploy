@@ -330,9 +330,9 @@ for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
 
   } /* end update_step loop */
 
-  printf("Training complete.\r\n");
-  printf("Total training cycles  : %u\r\n", training_cycles);
-  printf("Total optimizer cycles : %u\r\n", optimizer_cycles);
+  // printf("Training complete.\r\n");
+  // printf("Total training cycles  : %u\r\n", training_cycles);
+  // printf("Total optimizer cycles : %u\r\n", optimizer_cycles);
 
 
   /* ------------------------------------------------------------------

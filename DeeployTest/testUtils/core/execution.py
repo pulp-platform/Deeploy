@@ -37,12 +37,17 @@ def _augment_path(env: dict) -> dict:
 def _resolve_optimizer_dir(config: DeeployTestConfig) -> str:
     """Return the optimizer ONNX directory for this config.
 
-    Falls back to <test_dir>/../simplemlp_optimizer if not explicitly set.
+    Falls back to <test_dir>/../<model>_optimizer if not explicitly set,
+    where <model> is derived by replacing the '_train' suffix of the test
+    directory name with '_optimizer' (e.g. simplemlp_train → simplemlp_optimizer,
+    sleepconvit_train → sleepconvit_optimizer).
     """
     if config.optimizer_dir:
         return config.optimizer_dir
     test_parent = Path(config.test_dir).parent
-    return str(test_parent / "simplemlp_optimizer")
+    test_dir_name = Path(config.test_dir).name
+    optimizer_name = test_dir_name.replace("_train", "_optimizer")
+    return str(test_parent / optimizer_name)
 
 
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
