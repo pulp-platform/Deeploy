@@ -264,9 +264,20 @@ for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
 
   uint32_t reset_idx = DeeployNetwork_num_inputs - 1;
 
-//   /* ------------------------------------------------------------------
-//    * Training loop
-//    * ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------
+   * Copy initial weights into network input buffers.
+   * (InitTrainingNetwork only malloc's them; testInitWeights[] holds
+   *  the actual starting values from inputs.npz.)
+   * ------------------------------------------------------------------ */
+
+#if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
+  for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
+    uint32_t idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
+    if ((uint32_t)DeeployNetwork_inputs[idx] >= 0x10000000u) {
+      memcpy(DeeployNetwork_inputs[idx], testInitWeights[wi], DeeployNetwork_inputs_bytes[idx]);
+    }
+  }
+#endif
 
   printf("Starting training (%u optimizer steps x %u accum steps)...\r\n",
          (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS);

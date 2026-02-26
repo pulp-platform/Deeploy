@@ -38,9 +38,9 @@ def _load_reference_losses(train_dir: str) -> list:
 
     for key in outputs.files:
         if 'loss' in key.lower():
-            loss_val = float(np.array(outputs[key]).flatten()[0])
-            log.info(f"Reference loss loaded from outputs.npz['{key}']: {loss_val:.6f}")
-            return [loss_val]
+            vals = [float(v) for v in np.array(outputs[key]).flatten().tolist()]
+            log.info(f"Reference losses loaded from outputs.npz['{key}']: {vals}")
+            return vals
 
     log.warning("No 'loss' key found in outputs.npz — loss comparison skipped")
     return None
@@ -212,6 +212,12 @@ def generateTrainingNetwork(args):
         grad_buf_start_idx = -1
     num_grad_inputs = len(grad_acc_set)
 
+    # Initial weight arrays: npz_base[num_data .. grad_buf_start_idx-1]
+    if grad_buf_start_idx > num_data:
+        init_weights = list(npz_base[num_data:grad_buf_start_idx])
+    else:
+        init_weights = []
+
     # 9. Load reference loss from outputs.npz.
     reference_losses = _load_reference_losses(args.dir)
 
@@ -228,7 +234,8 @@ def generateTrainingNetwork(args):
                                 grad_buf_start_idx=grad_buf_start_idx,
                                 num_grad_inputs=num_grad_inputs,
                                 learning_rate=args.learning_rate,
-                                reference_losses=reference_losses)
+                                reference_losses=reference_losses,
+                                init_weights=init_weights)
 
     # 11. Write resolved config for execution.py to pick up after subprocess call.
     meta = {
