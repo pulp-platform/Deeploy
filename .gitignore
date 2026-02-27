@@ -52,3 +52,5 @@ DeeployTest/Tests/**/generateTest.py
 DeeployTest/out.txt
 
 CHANGELOG_GEN.md
+TargetLibraries/PULPOpen/third_party/pulp-nn-mixed/
+TargetLibraries/PULPOpen/third_party/pulp-nnx/

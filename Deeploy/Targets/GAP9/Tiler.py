@@ -15,9 +15,9 @@ from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9ConcatBindings, G
     GAP9iHardswishBindings, GAP9iRMSNormBindings, GAP9iRQSGELUBindings, GAP9LayernormBinding, GAP9MatMulBindings, \
     GAP9MaxPool2DBindings, GAP9MulBindings, GAP9ReduceSumBindings, GAP9ReluBinding, GAP9ReshapeBindings, \
     GAP9RQAddBindings, GAP9RQSBindings, GAP9RQSConv2DBindings, GAP9RQSDWConv2DBindings, GAP9RQSGEMMBindings, \
-    GAP9RQSiHardswishBindings, GAP9RQSMatrixVecBindings, GAP9RQSTallGEMMBindings, GAP9SGDBindings, \
-    GAP9SoftmaxBindings, GAP9SoftmaxCrossEntropyLossBindings, GAP9SoftmaxCrossEntropyLossGradBindings, \
-    GAP9SoftmaxGradBindings, GAP9TransposeBindings, GAP9UniformRQSBindings
+    GAP9RQSiHardswishBindings, GAP9RQSILUBindings, GAP9RQSMatrixVecBindings, GAP9RQSTallGEMMBindings, GAP9SGDBindings, \
+    GAP9SILUBindings, GAP9SoftmaxBindings, GAP9SoftmaxCrossEntropyLossBindings, \
+    GAP9SoftmaxCrossEntropyLossGradBindings, GAP9SoftmaxGradBindings, GAP9TransposeBindings, GAP9UniformRQSBindings
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -26,6 +26,7 @@ from Deeploy.Targets.Generic.TileConstraints.MulTileConstraint import MulTileCon
 from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiGELUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.SILUTileConstraint import SILUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
@@ -142,3 +143,9 @@ GAP9ReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9Re
 
 GAP9SGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9SGDBindings,
                                                      tileConstraint = SGDTileConstraint())
+
+GAP9SILUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9SILUBindings,
+                                                      tileConstraint = SILUTileConstraint())
+
+GAP9RQSILUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9RQSILUBindings,
+                                                        tileConstraint = SILUTileConstraint())

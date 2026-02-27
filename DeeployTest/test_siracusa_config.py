@@ -55,6 +55,7 @@ KERNEL_TESTS = [
     "Kernels/Integer/Pad/Regular_1D",
     "Kernels/Integer/Pad/Regular_2D",
     "Kernels/Integer/RMSNorm",
+    "Kernels/Integer/SILU",
     "Models/TinyViT/5M/Layers/FP32/ReduceMean",
     "Others/Backtracking",
     "Kernels/Mixed/Dequant",

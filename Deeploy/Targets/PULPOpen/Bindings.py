@@ -15,11 +15,11 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
-    GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
+    GatherTemplate, QuantTemplate, RQSiGELUTemplate, RQSILUTemplate, SILUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
     QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    SILUChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -444,6 +444,16 @@ PULPFloatGELUGradBinding = NodeBinding(
 PULPGatherBindings = [
     NodeBinding(GatherChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
                 GatherTemplate.referenceTemplate, ForkTransformer) for type in IntegerDataTypes
+]
+
+PULPSILUBindings = [
+    NodeBinding(SILUChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
+                SILUTemplate.referenceTemplate, ForkTransformer)  #See with ClusterTransformer also
+]
+
+PULPRQSILUBindings = [
+    NodeBinding(SILUChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int8_t)]),
+                RQSILUTemplate.referenceTemplate, ForkTransformer)
 ]
 
 BasicQuantBindings = [

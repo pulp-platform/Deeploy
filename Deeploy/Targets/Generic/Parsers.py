@@ -2886,3 +2886,28 @@ class SqrtParser(NodeParser):
         self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
 
         return ctxt, True
+
+
+class SILUParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) >= 1, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True

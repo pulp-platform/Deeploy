@@ -22,11 +22,12 @@ from Deeploy.Targets.GAP9.DMA.L3Dma import gap9L3DmaHack
 from Deeploy.Targets.GAP9.DMA.MchanDma import GAP9MchanDma
 # Import templates from PULPOpen and Generic
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, \
-    FloatReduceSumTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
+    FloatReduceSumTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, RQSILUTemplate, SILUTemplate, \
+    SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
     QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    SILUChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.Bindings import ForkClosure, L3MemoryAwareFunctionCallClosure, \
     MemoryAwareForkTransformer, MemoryAwareFunctionCallClosure, TilingCallClosure
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -379,6 +380,16 @@ GAP9LayernormBinding = NodeBinding(
 GAP9FloatGELUBinding = NodeBinding(
     GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
     FloatGELUTemplate.referenceTemplate, GAP9Transformer)
+
+GAP9SILUBindings = [
+    NodeBinding(SILUChecker([PointerClass(int8_t)], [PointerClass(int32_t)]), SILUTemplate.referenceTemplate,
+                GAP9Transformer)
+]
+
+GAP9RQSILUBindings = [
+    NodeBinding(SILUChecker([PointerClass(int8_t)], [PointerClass(int8_t)]), RQSILUTemplate.referenceTemplate,
+                GAP9Transformer)
+]
 
 GAP9GatherBindings = [
     NodeBinding(GatherChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
