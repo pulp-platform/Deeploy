@@ -19,8 +19,12 @@ class iDMAChannelFuture(Future):
 class iDMA(AsyncDma):
 
     _transferTemplates = {
-        1: NodeTemplate(" pulp_idma_transfer_1d_and_wait(${direction}, ${ext}, ${loc}, ${size_1d}); ")
-        # 2: NodeTemplate("mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});"),
+        1:
+            NodeTemplate("pulp_idma_transfer_1d_and_wait(${direction}, ${ext}, ${loc}, ${length}); "),
+        2:
+            NodeTemplate(
+                "pulp_idma_transfer_2d_and_wait(${direction}, ${ext}, ${loc}, ${length}, ${strideExt}, ${strideLoc}, ${num_reps});"
+            )
     }
     _waitingStrategy = DirectionWaitingStrategy(iDMAChannelFuture, "channel_id")
 
@@ -32,14 +36,25 @@ class iDMA(AsyncDma):
                       direction: DmaDirection) -> None:
         super().checkTransfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction)
 
+        # Here are some assertions on the iDMA transfer parameters
         transferRank = len(shape)
-        assert strideExt[
-            -1] == 1, "Mchan supports only contigous transfers of the innermost dimension for external memory"
+
+        assert transferRank == 1 or transferRank == 2, "Only 1D and 2D transfers are supported for now"
+
         if transferRank == 1:
-            assert strideLoc[0] == 1, "Mchan supports only contigous transfers for local memory"
-        else:
-            assert strideLoc[0] == shape[1] and strideLoc[
-                1] == 1, "Mchan supports only contigous transfers for local memory"
+            length = shape[0]
+        elif transferRank == 2:
+            length = shape[1]
+
+        iDMA_transfer_size = math.prod(shape)
+
+        assert iDMA_transfer_size <= 2**16, (
+            "iDMA transfer size should be representable with 16 bits, "
+            f"current number of bits required is {math.ceil(math.log2(iDMA_transfer_size))}")
+
+        if transferRank == 2:
+            assert strideExt[0] >= length, "External stride must be at least equal to the length"
+            assert strideLoc[0] >= length, "Local stride must be at least equal to the length"
 
     def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
                        strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
@@ -49,21 +64,15 @@ class iDMA(AsyncDma):
 
         transferRank = len(shape)
         operatorRepresentation["direction"] = 1 if direction == "ExternalToLocal" else 0
-        mchanFlags = 0
-        mchanFlags += (1 << 0) if direction == "ExternalToLocal" else 0  # direction
-        mchanFlags += (1 << 1)  # increment addresses
-        mchanFlags += (1 << 2) if transferRank == 2 else 0  # 2d transfer
-        mchanFlags += (1 << 3)  # event enable
 
-        mchanTransferSize = math.prod(shape)
-        assert mchanTransferSize <= 2**17, (
-            "The Dma transfer size for mchan should be representable with 17 bits, "
-            f"current number of bits required is {math.ceil(math.log2(mchanTransferSize))}")
+        iDMA_transfer_size = math.prod(shape)
 
-        operatorRepresentation["cmd"] = (mchanFlags << 17) + mchanTransferSize
-        operatorRepresentation["size_1d"] = shape[0]
-        # if transferRank == 2:
-        #     operatorRepresentation["size_1d"] = shape[1]
-        #     operatorRepresentation["stride_2d"] = strideExt[0]
+        if transferRank == 1:
+            operatorRepresentation["length"] = shape[0]
+        elif transferRank == 2:
+            operatorRepresentation["length"] = shape[1]
+            operatorRepresentation["strideExt"] = strideExt[0]
+            operatorRepresentation["strideLoc"] = strideLoc[0]
+            operatorRepresentation["num_reps"] = iDMA_transfer_size // shape[1]
 
         return operatorRepresentation
