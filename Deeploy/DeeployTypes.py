@@ -1309,6 +1309,10 @@ class NodeTypeChecker():
                         reference._instance = _type(inputNode.name, ctxt)
                 else:
                     retCheck &= reference._type.referencedType == _type.referencedType
+            
+            # if node.name == "GradientAccumulator1_InPlaceAccumulatorV2_backward" and retCheck == False:
+            #     import IPython; IPython.embed()
+        
         return retCheck
 
     def typeInferGlobalCtxt(self, ctxt: NetworkContext, node: gs.Node) -> NetworkContext:

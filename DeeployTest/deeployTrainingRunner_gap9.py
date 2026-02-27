@@ -3,14 +3,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 """
-Standalone runner for Siracusa training tests (forward + backward + optimizer).
+Standalone runner for GAP9 training tests (forward + backward + optimizer).
 
 Usage example (minimal — all training params auto-detected):
-    python deeployTrainingRunner_siracusa.py \\
+    python deeployTrainingRunner_gap9.py \\
         -t /app/Onnx4Deeploy/onnx/model/simplemlp_train
 
 Usage example (explicit):
-    python deeployTrainingRunner_siracusa.py \\
+    python deeployTrainingRunner_gap9.py \\
         -t /app/Onnx4Deeploy/onnx/model/simplemlp_train \\
         --n-steps 2 --n-accum 2 --cores 8
 """
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     _setup_parser(parser)
     args = parser.parse_args()
 
-    platform = 'Siracusa'
+    platform = 'GAP9'
     simulator = args.simulator if args.simulator else 'gvsoc'
 
     base_dir = Path(__file__).resolve().parent
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'master')
     build_dir = str(base_dir / f'TEST_{platform.upper()}' / f'build_{worker_id}')
 
-    cmake_args = [f'-DNUM_CORES={args.cores}']
+    # cmake_args = [f'-DNUM_CORES={args.cores}', '-D SIMULATOR=' + simulator]
     if args.cmake:
         cmake_args.extend(args.cmake)
 

@@ -287,7 +287,8 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         binary_path = Path(config.build_dir) / "bin" / config.test_name
         cmd = [str(binary_path)]
 
-    elif config.simulator == 'gvsoc':
+    elif config.simulator == 'gvsoc' and config.platform != 'GAP9':
+        # VJUNG: Is this really necessary?
         # Run gvsoc directly instead of through cmake to avoid USES_TERMINAL
         # pipe buffering — cmake's USES_TERMINAL connects gvsoc to the real
         # terminal, bypassing our pipe and causing apparent hangs.

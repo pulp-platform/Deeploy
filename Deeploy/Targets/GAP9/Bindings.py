@@ -26,7 +26,7 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, Dequa
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
     QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, InPlaceAccumulatorV2Checker
 from Deeploy.Targets.PULPOpen.Bindings import ForkClosure, L3MemoryAwareFunctionCallClosure, \
     MemoryAwareForkTransformer, MemoryAwareFunctionCallClosure, TilingCallClosure
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -39,7 +39,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, \
     MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate
+    iRMSNormTemplate, iSoftmaxTemplate, FloatInPlaceAccumulatorV2Template
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -396,4 +396,18 @@ GAP9DequantBindings = [
 ] + [
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 GAP9Transformer),
+]
+
+GAP9InPlaceAccumulatorV2Bindings = [
+    NodeBinding(
+        InPlaceAccumulatorV2Checker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(uint8_t)], [PointerClass(float32_t)]),
+        FloatInPlaceAccumulatorV2Template.referenceTemplate, GAP9Transformer)
+]
+
+GAP9SoftmaxCrossEntropyLossDualOutputBindings = [
+    NodeBinding(
+        SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)],
+                                       [PointerClass(float32_t), PointerClass(float32_t)]),
+        SoftmaxCrossEntropyLossTemplate.referenceDualOutputTemplate, GAP9Transformer) for type in IntegerDataTypes
 ]
