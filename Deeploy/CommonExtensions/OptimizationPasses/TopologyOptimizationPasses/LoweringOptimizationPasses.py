@@ -247,7 +247,7 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
             for tensor in node.inputs[1:]:
                 # Standard case: The weight is a direct constant input.
                 if isinstance(tensor, gs.Constant):
-                    _transformLayoutConst(const_to_transform, spatialDims, default_channels_first)
+                    _transformLayoutConst(tensor, spatialDims, default_channels_first)
 
                 # MeZO case: The weight is produced by a Perturb node.
                 elif isinstance(tensor, gs.Variable):
