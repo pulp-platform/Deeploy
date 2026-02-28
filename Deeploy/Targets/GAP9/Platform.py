@@ -22,20 +22,23 @@ from Deeploy.Targets.GAP9.Tiler import GAP9AddTilingReadyBindings, GAP9ConcatTil
     GAP9RQSTallGEMMTilingReadyBindings, GAP9RQSTilingReadyBindings, GAP9SGDTilingReadyBindings, \
     GAP9SoftmaxCrossEntropyGradTilingReadyBindings, GAP9SoftmaxCrossEntropyTilingReadyBindings, \
     GAP9SoftmaxGradTilingReadyBindings, GAP9SoftmaxTilingReadyBindings, GAP9TransposeTilingReadyBindings, \
-    GAP9UniformRQSTilingReadyBindings
+    GAP9UniformRQSTilingReadyBindings, GAP9PerturbNormalTilingReadyBindings, GAP9PerturbUniformTilingReadyBindings, \
+    GAP9PerturbEggrollTilingReadyBindings, GAP9PerturbRademacherTilingReadyBindings, GAP9PerturbTriangleTilingReadyBindings
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
     LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
-    TransposeLayer, iHardswishLayer, iRMSNormLayer
+    TransposeLayer, iHardswishLayer, iRMSNormLayer, PerturbEggrollLayer, PerturbNormalLayer, PerturbRademacherLayer,\
+    PerturbTriangleLayer, PerturbUniformLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUParser, GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, \
     QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, \
     RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
-    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
+    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, \
+    PerturbEggrollParser, PerturbNormalParser, PerturbRademacherParser, PerturbTriangleParser, PerturbUniformParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
     PULPDMASliceBindings, PULPDWConv1DBinding, PULPReduceMeanBindings, PULPSliceBindings
@@ -93,6 +96,11 @@ GAP9_SGDMapper = NodeMapper(SGDParser(), GAP9SGDTilingReadyBindings)
 GAP9_QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
 GAP9_DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
 GAP9_GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
+GAP9_PerturbNormalMapper = NodeMapper(PerturbNormalParser(), GAP9PerturbNormalTilingReadyBindings)
+GAP9_PerturbUniformMapper = NodeMapper(PerturbUniformParser(), GAP9PerturbUniformTilingReadyBindings)
+GAP9_PerturbEggrollMapper = NodeMapper(PerturbEggrollParser(), GAP9PerturbEggrollTilingReadyBindings)
+GAP9_PerturbRademacherMapper = NodeMapper(PerturbRademacherParser(), GAP9PerturbRademacherTilingReadyBindings)
+GAP9_PerturbTriangleMapper = NodeMapper(PerturbTriangleParser(), GAP9PerturbTriangleTilingReadyBindings)
 
 # GAP9-specific mapping using ClDma
 GAP9Mapping = {
@@ -171,7 +179,17 @@ GAP9Mapping = {
     'SoftmaxCrossEntropyLossGrad':
         SoftmaxCrossEntropyLossGradLayer([GAP9_SoftmaxCrossEntropyLossGradMapper]),
     'SGD':
-        SGDLayer([GAP9_SGDMapper])
+        SGDLayer([GAP9_SGDMapper]),
+    'PerturbNormal': 
+        PerturbNormalLayer([GAP9_PerturbNormalMapper]),
+    'PerturbUniform': 
+        PerturbUniformLayer([GAP9_PerturbUniformMapper]),
+    'PerturbEggroll': 
+        PerturbEggrollLayer([GAP9_PerturbEggrollMapper]),
+    'PerturbRademacher': 
+        PerturbRademacherLayer([GAP9_PerturbRademacherMapper]),
+    'PerturbTriangle': 
+        PerturbTriangleLayer([GAP9_PerturbTriangleMapper]),
 }
 
 

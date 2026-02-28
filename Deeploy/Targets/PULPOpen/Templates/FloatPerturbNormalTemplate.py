@@ -36,9 +36,9 @@ ApplyGaussianPerturbation(
     (const float32_t *) &${data_in}[${nodeName}_chunk_start],
     (float32_t *) &${data_out}[${nodeName}_chunk_start],
     chunk_seed,
-    ${eps}f,
     perturbation_sign, // globally defined in DeedeployTest main
-    ${nodeName}_local_size
+    ${nodeName}_local_size,
+    ${eps}f,
 );
 """
 )

@@ -17,7 +17,8 @@ from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9ConcatBindings, G
     GAP9RQAddBindings, GAP9RQSBindings, GAP9RQSConv2DBindings, GAP9RQSDWConv2DBindings, GAP9RQSGEMMBindings, \
     GAP9RQSiHardswishBindings, GAP9RQSMatrixVecBindings, GAP9RQSTallGEMMBindings, GAP9SGDBindings, \
     GAP9SoftmaxBindings, GAP9SoftmaxCrossEntropyLossBindings, GAP9SoftmaxCrossEntropyLossGradBindings, \
-    GAP9SoftmaxGradBindings, GAP9TransposeBindings, GAP9UniformRQSBindings
+    GAP9SoftmaxGradBindings, GAP9TransposeBindings, GAP9UniformRQSBindings, GAP9PerturbNormalBindings, \
+    GAP9PerturbUniformBindings, GAP9PerturbEggrollBindings, GAP9PerturbRademacherBindings, GAP9PerturbTriangleBindings
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -27,6 +28,7 @@ from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileCon
 from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiGELUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.EggrollTileConstraint import EggrollTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
@@ -142,3 +144,18 @@ GAP9ReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9Re
 
 GAP9SGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9SGDBindings,
                                                      tileConstraint = SGDTileConstraint())
+
+GAP9PerturbNormalTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9PerturbNormalBindings,
+                                                                tileConstraint = UnaryTileConstraint())
+
+GAP9PerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9PerturbUniformBindings,
+                                                                 tileConstraint = UnaryTileConstraint())
+
+GAP9PerturbEggrollTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9PerturbEggrollBindings,
+                                                                tileConstraint = EggrollTileConstraint())
+
+GAP9PerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9PerturbRademacherBindings,
+                                                                 tileConstraint = UnaryTileConstraint())
+
+GAP9PerturbTriangleTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9PerturbTriangleBindings,
+                                                                tileConstraint = UnaryTileConstraint())

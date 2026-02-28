@@ -29,15 +29,9 @@ uint32_t ${nodeName}_chunk_start = (uint32_t) MIN(${nodeName}_chunk*${nodeName}_
 uint32_t ${nodeName}_chunk_stop = (uint32_t) MIN(${nodeName}_chunk_start + ${nodeName}_chunk, (uint32_t) ${size});
 uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop - ${nodeName}_chunk_start;
 
-// pick large enough stride to minimize correlation between nodes.
+uint32_t chunk_seed = seed +  (${nodeName}_chunk_start * ${node_id}) + (${node_id} * 104729);
 
-float32_t *${nodeName}data_out;
-
-uint32_t chunk_seed = seed + ${nodeName}_chunk_start + (${node_id} * 104729);
-
-GenEggrollPerturbation((float32_t *) & ${data_out}[${nodeName}_chunk_start],
+GenEggrollPerturbation((float32_t *) &${data_out}[${nodeName}_chunk_start],
                         chunk_seed,
-                        ${eps}f,
                         ${nodeName}_local_size);
-
 """)

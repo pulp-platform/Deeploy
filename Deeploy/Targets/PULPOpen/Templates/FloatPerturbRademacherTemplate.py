@@ -35,8 +35,8 @@ for (; i < ${nodeName}_chunk_stop; i++) {
     ApplyRademacherPerturbation((const float32_t *)  &${data_in}[i],
                                 (float32_t *) &${data_out}[i],
                                 chunk_seed,
-                                ${eps}f,
                                 perturbation_sign, // globally defined in DeedeployTest main
-                                ${nodeName}_local_size);
+                                ${nodeName}_local_size,
+                                ${eps}f);
 }
 """)
