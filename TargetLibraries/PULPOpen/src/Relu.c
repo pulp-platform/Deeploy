@@ -22,6 +22,5 @@ void PULP_Relu_fp32_fp32(float32_t *input, float32_t *output, uint32_t size) {
 
   for (int32_t i = 0; i < local_size; i++) {
     local_output[i] = MAX(local_input[i], 0.0f);
-    printf("output[%u] = %f\n", start + i, local_output[i]);
   }
 }

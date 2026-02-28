@@ -5,6 +5,7 @@
  */
 
 #include "DeeployPULPMath.h"
+#include "pmsis.h"
 #include <math.h>
 
 // TODO: 1) loop unrolling for ILP perf
@@ -42,28 +43,19 @@ float32_t GaussianSample(uint32_t *state) {
     // mutate state to avoid same seed for u2.
     *state = Xorshift32(*state);
     float32_t u2 = (float32_t)(*state) / (float32_t)0xFFFFFFFF; // in [0,1]
-    return sqrtf(-2.0f * logf(u1)) * cosf(2.0f * PI_F * u2);
+    return sqrtf(-2.0f * logf(u1)) * cosf(2.0f * (float32_t)PI_F * u2);
 }
 
 /* ---------------- Ziggurat method for Gaussian sampling ---------------- */
 // This implementation is adapted from the public domain Ziggurat algorithm
 // by Marsaglia and Tsang.
 
-#define ZIGGURAT_TABLE_SIZE 128
-#define ZIGGURAT_R 3.442619855899
-#define ZIGGURAT_V 9.91256303526217e-3
-
-static uint32_t kn[ZIGGURAT_TABLE_SIZE];
-static float32_t wn[ZIGGURAT_TABLE_SIZE];
-static float32_t fn[ZIGGURAT_TABLE_SIZE];
-static int ziggurat_tables_initialized = 0;
-
 void build_ziggurat_tables() {
     if (ziggurat_tables_initialized) return;
 
-    float32_t dn = ZIGGURAT_R;
+    float32_t dn = (float32_t) ZIGGURAT_R;
     float32_t tn = dn;
-    float32_t vn = ZIGGURAT_V;
+    float32_t vn = (float32_t) ZIGGURAT_V;
 
     // Set up the tables
     float32_t q = vn / expf(-0.5f * dn * dn);
@@ -76,7 +68,7 @@ void build_ziggurat_tables() {
     fn[0] = 1.0f;
     fn[ZIGGURAT_TABLE_SIZE - 1] = expf(-0.5f * dn * dn);
 
-    for (int i = ZIGGURAT_TABLE_SIZE - 2; i >= 1; i--) {
+    for (uint32_t i = ZIGGURAT_TABLE_SIZE - 2; i >= 1; i--) {
         dn = sqrtf(-2.0f * logf(vn / dn + expf(-0.5f * dn * dn)));
         kn[i + 1] = (uint32_t)((dn / tn) * (float32_t)0xFFFFFFFF);
         tn = dn;
@@ -102,7 +94,7 @@ float32_t GaussianZigguratSample(uint32_t *state) {
         iz = hz & (ZIGGURAT_TABLE_SIZE - 1);
 
         // Quick acceptance path
-        if ((uint32_t)abs(hz) < kn[iz]) {
+        if ((uint32_t)((hz < 0) ? -hz : hz) < kn[iz])  {
             return (float32_t)hz * wn[iz];
         }
 
@@ -148,9 +140,10 @@ float32_t RademacherSample(RademacherRNG *rng) {
 void ApplyTriangularPerturbation(const float32_t *__restrict__ pweights,
                             float32_t *__restrict__ pweights_dest,
                             uint32_t seed,
-                            float32_t epsilon,
                             uint32_t dir,
-                            uint32_t size) {
+                            uint32_t size,
+                            float32_t epsilon) 
+{
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     float32_t sqrt6 = 2.44948974278f;
     float32_t scale = epsilon * sqrt6; // sqrt(6): => variance 1
@@ -164,9 +157,11 @@ void ApplyTriangularPerturbation(const float32_t *__restrict__ pweights,
 void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
                             float32_t *__restrict__ pweights_dest,
                             uint32_t seed,
-                            float32_t epsilon,
                             uint32_t dir,
-                            uint32_t size) {
+                            uint32_t size,
+                            float32_t epsilon)
+{
+    printf("ApplyUniformPerturbation:epsilon=%f, size=%u \n", epsilon, size);
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     float32_t sqrt3 = 1.73205080757f;
     float32_t scale = epsilon * sqrt3 * 2.0f; // factor 2: [-0.5,0.5] => [-1,1], sqrt(3): => Gaussian(0, 1) l2 norm.
@@ -177,13 +172,12 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
     }
 }
 
-
 void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
                             float32_t *__restrict__ pweights_dest,
                             uint32_t seed,
-                            float32_t epsilon,
                             uint32_t dir,
-                            uint32_t size) {
+                            uint32_t size,
+                            float32_t epsilon) {
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     float32_t scale = epsilon; // gaussian naturally has variance 1
     if (dir == 0) {scale *= -1.0f;}
@@ -196,9 +190,9 @@ void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
 void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             float32_t *__restrict__ pweights_dest,
                             uint32_t seed,
-                            float32_t epsilon,
                             uint32_t dir,
-                            uint32_t size) {
+                            uint32_t size,
+                            float32_t epsilon) {
     RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32 };
     float32_t scale = epsilon; // rademacher naturally has variance 1
     if (dir == 0) {scale *= -1.0f;}
@@ -210,71 +204,78 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
 
 void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
                             uint32_t seed,
-                            float32_t epsilon,
-                            uint32_t size) {
+                            uint32_t size,
+                            float32_t epsilon)
+{
     // For compatibility with existing codegen templates. Currently maps to Rademacher noise.
-    RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32};
-    float32_t scale = epsilon; // rademacher naturally has variance 1
+    // RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32};
+    // float32_t scale = 0.01f; // rademacher naturally has variance 1
+    // for (uint32_t i = 0; i < size; i++) {
+    //     float32_t u = RademacherSample(&rng_state);
+    //     p_dest[i] = u;
+    // }
+    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+    float32_t u = 0.0f;
     for (uint32_t i = 0; i < size; i++) {
-        float32_t u = RademacherSample(&rng_state);
-        p_dest[i] = u;
+        p_dest[i] = UniformSample(&rng_state);
     }
+
 }
 
 /* --------------------------- Update functions ---------------------------------- */
 
-void UpdateWeightsTriangle(float32_t *__restrict__ pweights,
-                            float32_t loss,
-                            uint32_t seed,
-                            float32_t epsilon,
-                            float32_t lr,
-                            uint32_t size) {
-    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    float32_t sqrt6 = 2.44948974278f;
-    const float32_t scale = sqrt6; // sqrt(6): => Gaussian(0, 1) l2 norm.
-    for (uint32_t i = 0; i < size; i++) {
-        float32_t tr = TriangularSample(&rng_state);
-        pweights[i] = pweights[i] - lr * loss/(2.0f * epsilon) * tr * scale;
-    }
-}
+// void UpdateWeightsTriangle(float32_t *__restrict__ pweights,
+//                             float32_t loss,
+//                             uint32_t seed,
+//                             float32_t epsilon,
+//                             float32_t lr,
+//                             uint32_t size) {
+//     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+//     float32_t sqrt6 = 2.44948974278f;
+//     const float32_t scale = sqrt6; // sqrt(6): => Gaussian(0, 1) l2 norm.
+//     for (uint32_t i = 0; i < size; i++) {
+//         float32_t tr = TriangularSample(&rng_state);
+//         pweights[i] = pweights[i] - lr * loss/(2.0f * epsilon) * tr * scale;
+//     }
+// }
 
-void UpdateWeightsUniform(float32_t *__restrict__ pweights,
-                            float32_t loss,
-                            uint32_t seed,
-                            float32_t epsilon,
-                            float32_t lr,
-                            uint32_t size) {
-    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    float32_t sqrt3 = 1.73205080757f;
-    const float32_t scale = sqrt3 * 2.0f; // factor 2: [-0.5,0.5] => [-1,1], sqrt(3): => variance 1
-    for (uint32_t i = 0; i < size; i++) {
-        float32_t u = UniformSample(&rng_state);
-        pweights[i] = pweights[i] - lr * loss/(2.0f * epsilon) * u * scale;
-    }
-}
+// void UpdateWeightsUniform(float32_t *__restrict__ pweights,
+//                             float32_t loss,
+//                             uint32_t seed,
+//                             float32_t epsilon,
+//                             float32_t lr,
+//                             uint32_t size) {
+//     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+//     float32_t sqrt3 = 1.73205080757f;
+//     const float32_t scale = sqrt3 * 2.0f; // factor 2: [-0.5,0.5] => [-1,1], sqrt(3): => variance 1
+//     for (uint32_t i = 0; i < size; i++) {
+//         float32_t u = UniformSample(&rng_state);
+//         pweights[i] = pweights[i] - lr * loss/(2.0f * epsilon) * u * scale;
+//     }
+// }
 
-void UpdateWeightsGaussian(float32_t *__restrict__ pweights,
-                            float32_t loss,
-                            uint32_t seed,
-                            float32_t epsilon,
-                            float32_t lr,
-                            uint32_t size) {
-    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    for (uint32_t i = 0; i < size; i++) {
-        float32_t u = GaussianSample(&rng_state);
-        pweights[i] = pweights[i] - lr * loss/(2.0f * epsilon) * u;
-    }
-}
+// void UpdateWeightsGaussian(float32_t *__restrict__ pweights,
+//                             float32_t loss,
+//                             uint32_t seed,
+//                             float32_t epsilon,
+//                             float32_t lr,
+//                             uint32_t size) {
+//     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+//     for (uint32_t i = 0; i < size; i++) {
+//         float32_t u = GaussianSample(&rng_state);
+//         pweights[i] = pweights[i] - lr * loss/(2.0f * epsilon) * u;
+//     }
+// }
 
-void UpdateWeightsRademacher(float32_t *__restrict__ pweights,
-                            float32_t loss,
-                            uint32_t seed,
-                            float32_t epsilon,
-                            float32_t lr,
-                            uint32_t size) {
-    RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32 };
-    for (uint32_t i = 0; i < size; i++) {
-        float32_t u = RademacherSample(&rng_state);
-        pweights[i] = pweights[i] - lr * loss/(2.0f * epsilon) * u;
-    }
-}
+// void UpdateWeightsRademacher(float32_t *__restrict__ pweights,
+//                             float32_t loss,
+//                             uint32_t seed,
+//                             float32_t epsilon,
+//                             float32_t lr,
+//                             uint32_t size) {
+//     RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32 };
+//     for (uint32_t i = 0; i < size; i++) {
+//         float32_t u = RademacherSample(&rng_state);
+//         pweights[i] = pweights[i] - lr * loss/(2.0f * epsilon) * u;
+//     }
+// }
