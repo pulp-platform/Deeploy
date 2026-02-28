@@ -709,3 +709,40 @@ class ConvTransposeLayer(ONNXLayer):
             numPx = opRep['dim_im_out_x']
 
         return numPx * opsPerPx
+
+
+class PerturbNormalLayer(ONNXLayer):
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+class PerturbUniformLayer(ONNXLayer):
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+class PerturbEggrollLayer(ONNXLayer):
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+class PerturbRademacherLayer(ONNXLayer):
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+class PerturbTriangleLayer(ONNXLayer):
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+

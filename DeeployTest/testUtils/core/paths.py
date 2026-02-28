@@ -11,12 +11,12 @@ from Deeploy.Logging import DEFAULT_LOGGER as log
 def get_test_paths(test_dir: str, platform: str, base_dir: Optional[str] = None) -> Tuple[str, str, str]:
     """
     Resolve test paths for generation and build directories.
-    
+
     Args:
         test_dir: Path to test directory (e.g., "Tests/Adder" or absolute path)
         platform: Platform name (e.g., "Generic")
         base_dir: Base directory for tests (defaults to DeeployTest/)
-        
+
     Returns:
         Tuple of (gen_dir, test_dir_abs, test_name)
     """

@@ -13,6 +13,7 @@ from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileCon
 from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiGELUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.EggrollTileConstraint import EggrollTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
     PULPFloatDWConv2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
@@ -22,7 +23,8 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBinding
     PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, PULPRQSiHardswishBindings, \
     PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, PULPSoftmaxBindings, \
     PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, \
-    PULPTransposeBindings, PULPUniformRQSBindings
+    PULPTransposeBindings, PULPUniformRQSBindings, PULPPerturbNormalBindings, PULPPerturbUniformBindings, \
+    PULPPerturbEggrollBindings, PULPPerturbRademacherBindings, PULPPerturbTriangleBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
     RQDWConv2DTileConstraint
@@ -153,3 +155,18 @@ PULPSliceTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSliceB
 
 PULPReduceMeanTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceMeanBindings,
                                                             tileConstraint = ReduceMeanTileConstraint())
+
+PULPPerturbNormalTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbNormalBindings,
+                                                                tileConstraint = UnaryTileConstraint())
+
+PULPPerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbUniformBindings,
+                                                                 tileConstraint = UnaryTileConstraint())
+
+PULPPerturbEggrollTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbEggrollBindings,
+                                                                tileConstraint = EggrollTileConstraint())
+
+PULPPerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbRademacherBindings,
+                                                                 tileConstraint = UnaryTileConstraint())
+
+PULPPerturbTriangleTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbTriangleBindings,
+                                                                tileConstraint = UnaryTileConstraint())

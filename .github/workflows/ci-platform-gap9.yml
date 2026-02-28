@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: CI • GAP9
+
+"on":
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*.*.*"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "Deeploy Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy-gap9:latest"
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select-env:
+    uses: ./.github/workflows/_select-env.yml
+    with:
+      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || (github.repository == 'pulp-platform/Deeploy' && 'ghcr.io/pulp-platform/deeploy-gap9:latest') }}
+
+  gap9-kernels:
+    needs: select-env
+    uses: ./.github/workflows/_runner-gap9.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "kernels"
+
+  gap9-models:
+    needs: select-env
+    uses: ./.github/workflows/_runner-gap9.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "models"
