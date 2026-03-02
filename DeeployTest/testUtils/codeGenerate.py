@@ -296,8 +296,8 @@ def generateTestNetwork(deployer: NetworkDeployer, test_inputs: List[np.ndarray]
 
 def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: List[List[np.ndarray]], n_steps: int,
                                      n_accum: int, grad_buf_start_idx: int = 0, num_grad_inputs: int = 0,
-                                     learning_rate: float = 0.001,
-                                     init_weights: List[np.ndarray] = None) -> str:
+                                     learning_rate: float = 0.001, init_weights: List[np.ndarray] = None,
+                                     data_size: int = None) -> str:
     """Generate testinputs.h for training tests.
 
     Parameters
@@ -326,10 +326,15 @@ def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: Lis
     """
     total_mb = n_steps * n_accum
     num_data = len(all_mb_data[0]) if all_mb_data else 0
+    # data_size: number of unique samples stored in C arrays.
+    # C harness cycles: testDataVector[mb % TRAINING_DATA_SIZE].
+    # Defaults to total_mb (no cycling) for backward compatibility.
+    effective_data_size = data_size if (data_size is not None and data_size < total_mb) else total_mb
 
     retStr = ""
     retStr += f"#define N_TRAIN_STEPS {n_steps}\n"
     retStr += f"#define N_ACCUM_STEPS {n_accum}\n"
+    retStr += f"#define TRAINING_DATA_SIZE {effective_data_size}\n"
     retStr += f"#define TRAINING_NUM_DATA_INPUTS {num_data}\n"
     if num_grad_inputs > 0:
         retStr += f"#define TRAINING_GRAD_BUF_START_IDX {grad_buf_start_idx}\n"
@@ -339,10 +344,9 @@ def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: Lis
     retStr += f"#define TRAINING_LEARNING_RATE {learning_rate:.10g}f\n"
     retStr += "\n"
 
-    # Emit per-mini-batch buffer arrays.
-    # all_mb_data[mb] gives the row for mini-batch mb; if fewer rows are
-    # provided than total_mb, the last available row is repeated.
-    for mb in range(total_mb):
+    # Emit per-mini-batch buffer arrays — only effective_data_size unique rows.
+    # all_mb_data must contain exactly effective_data_size rows.
+    for mb in range(effective_data_size):
         mb_data = all_mb_data[mb] if mb < len(all_mb_data) else all_mb_data[-1]
         row_entries = []
         for buf_idx, arr in enumerate(mb_data):
@@ -394,8 +398,8 @@ def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: Lis
         retStr += f"void* {row_name}[] = {{{', '.join(f'(void*){e}' for e in row_entries)}}};\n"
         retStr += "\n"
 
-    # Emit the top-level vector of row pointers
-    retStr += f"void** testDataVector[{total_mb}] = {{{', '.join(f'testDataRow{mb}' for mb in range(total_mb))}}};\n"
+    # Emit the top-level vector of row pointers (only unique samples; C harness cycles via modulo).
+    retStr += f"void** testDataVector[{effective_data_size}] = {{{', '.join(f'testDataRow{mb}' for mb in range(effective_data_size))}}};\n"
 
     # Emit initial weight arrays (one per weight input, indices num_data..grad_buf_start_idx-1).
     if init_weights:
@@ -578,7 +582,7 @@ def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[Lis
                                 verbosityCfg: CodeGenVerbosity, n_steps: int = 1, n_accum: int = 1,
                                 num_data_inputs: int = 2, grad_buf_start_idx: int = 0, num_grad_inputs: int = 0,
                                 learning_rate: float = 0.001, reference_losses: List = None,
-                                init_weights: List = None) -> None:
+                                init_weights: List = None, data_size: int = None) -> None:
     """Generate all training test files: testinputs.h, testoutputs.h, TrainingNetwork.h, TrainingNetwork.c.
 
     Parameters
@@ -609,7 +613,8 @@ def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[Lis
 
     # testinputs.h
     testInputStr = generateTrainingTestInputsHeader(deployer, all_mb_data, n_steps, n_accum, grad_buf_start_idx,
-                                                    num_grad_inputs, learning_rate, init_weights=init_weights)
+                                                    num_grad_inputs, learning_rate, init_weights=init_weights,
+                                                    data_size=data_size)
     with open(f'{dumpdir}/testinputs.h', 'w') as f:
         f.write(testInputStr)
 
