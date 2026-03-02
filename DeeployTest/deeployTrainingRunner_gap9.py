@@ -70,7 +70,7 @@ if __name__ == '__main__':
     worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'master')
     build_dir = str(base_dir / f'TEST_{platform.upper()}' / f'build_{worker_id}')
 
-    # cmake_args = [f'-DNUM_CORES={args.cores}', '-D SIMULATOR=' + simulator]
+    cmake_args = [f'-DNUM_CORES={args.cores}', '-D SIMULATOR=' + simulator]
     if args.cmake:
         cmake_args.extend(args.cmake)
 
