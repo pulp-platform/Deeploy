@@ -2840,6 +2840,12 @@ class NetworkContainer():
             if isinstance(node, StructBuffer):
                 continue
 
+            # Skip local buffers that were registered but never typed (e.g. optional ONNX
+            # outputs like the MaxPool indices/mask tensor).  These are not referenced by any
+            # template and must not be emitted as C declarations.
+            if not hasattr(node, '_type'):
+                continue
+
             name = node.name
             node.name = self.ctxt._mangle(node.name)
             callStack += node.init()

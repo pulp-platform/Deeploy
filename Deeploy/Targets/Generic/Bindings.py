@@ -143,12 +143,7 @@ BasicITASoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [Poi
 BasicITAPartialSoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
                                             ITAPartialMaxTemplate.referenceTemplate, BasicTransformer)
 
-BasicLayerNormBindings = [
-    NodeBinding(
-        LayerNormChecker([PointerClass(int8_t), PointerClass(int32_t),
-                          PointerClass(int32_t)], [PointerClass(int8_t)]), iLayernormTemplate.referenceTemplate,
-        BasicTransformer)
-] + [
+BasicLayerNormBindings =  [
     NodeBinding(
         LayerNormChecker(
             [PointerClass(float32_t), PointerClass(float32_t),

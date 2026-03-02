@@ -27,6 +27,11 @@ void Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
 
 void LayernormGrad_fp32_fp32(float32_t *grad_in, float32_t *data_in,
                              float32_t *grad_out, float32_t *scale,
-                             float32_t *bias, float32_t epsilon, int32_t size,
+                             float32_t epsilon, int32_t size,
                              int32_t lastDimLength);
+
+void LayernormGradParam_fp32_fp32(float32_t *grad_in, float32_t *data_in,
+                                  float32_t *weight_grad, float32_t *bias_grad,
+                                  float32_t epsilon, int32_t size,
+                                  int32_t lastDimLength);
 #endif //__DEEPLOY_BASIC_MATH_LAYERNORM_KERNEL_HEADER_

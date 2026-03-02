@@ -1690,12 +1690,15 @@ class LayerNormParser(iLayerNormParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         inputs = ['data_in', 'weight', 'bias']
-        outputs = ['data_out']
+        # ONNX LayerNormalization can have up to 3 outputs: Y, mean, inv_std_dev.
+        # The extra outputs are needed by LayerNormalizationGrad in training graphs.
+        outputs = ['data_out', 'mean', 'inv_std_dev']
 
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+            if idx < len(outputs):
+                self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
@@ -1707,7 +1710,9 @@ class LayerNormGradParser(iLayerNormParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
 
-        ret = all(['epsilon' in node.attrs, len(node.inputs) == 4, len(node.outputs) == 1])
+        # ONNX LayerNormalizationGrad has 5 inputs [dY, X, scale, mean, inv_std_dev]
+        # and 3 outputs [dX, dscale, dbias].
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 5, len(node.outputs) == 3])
 
         if ret:
             self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
@@ -1719,8 +1724,12 @@ class LayerNormGradParser(iLayerNormParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['grad_in', 'data_in', 'weight', 'bias']
-        outputs = ['grad_out']
+        # inputs: [dY, X, scale, mean, inv_std_dev]
+        # mean and inv_std_dev are not passed to the kernel (recomputed internally),
+        # but are mapped so Deeploy can track them.
+        inputs = ['grad_in', 'data_in', 'weight', 'mean', 'inv_std_dev']
+        # outputs: [dX, dscale, dbias]
+        outputs = ['grad_out', 'weight_grad', 'bias_grad']
 
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
