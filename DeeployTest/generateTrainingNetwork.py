@@ -95,6 +95,21 @@ def generateTrainingNetwork(args):
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
 
+    # 1a. Strip UNDEFINED-typed unused optional outputs (e.g. MaxPool mask indices).
+    # These are not consumed by any node but end up in localObjects without _type/_instance,
+    # causing crashes in Deeploy's bind and code-generation phases.
+    # We remove them entirely (they have no consumers, so no downstream connections break).
+    _stripped = False
+    for node in graph.nodes:
+        filtered = [out for out in node.outputs
+                    if not (out.dtype == 0 and len(out.outputs) == 0)]
+        if len(filtered) < len(node.outputs):
+            node.outputs = filtered
+            _stripped = True
+    if _stripped:
+        graph.cleanup()
+        log.debug("Stripped UNDEFINED-typed unused optional outputs from graph nodes")
+
     # 2. Load inputs.npz (new format: no grad acc buf entries)
     inputs_path = f'{args.dir}/inputs.npz'
     inputs = np.load(inputs_path)
@@ -139,6 +154,12 @@ def generateTrainingNetwork(args):
 
             if arr.dtype == bool or arr.dtype == np.bool_:
                 inputTypes[f"input_{graph_idx}"] = PointerClass(uint8_t)
+                inputOffsets[f"input_{graph_idx}"] = 0
+            elif arr.dtype in (np.float32, np.float64):
+                # Float32 training parameters always stay float32.
+                # inferTypeAndOffset would misclassify integer-valued floats
+                # (e.g. LayerNorm gamma=1.0 / beta=0.0) as int8_t.
+                inputTypes[f"input_{graph_idx}"] = PointerClass(float32_t)
                 inputOffsets[f"input_{graph_idx}"] = 0
             elif np.prod(arr.shape) == 0:
                 pass

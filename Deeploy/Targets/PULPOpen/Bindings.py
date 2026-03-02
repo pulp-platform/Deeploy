@@ -436,16 +436,27 @@ PULPReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerCla
 
 PULPLayernormBinding = NodeBinding(
     LayerNormChecker(
+        # inputs: data_in (X), weight (scale/gamma), bias (beta)
         [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+         PointerClass(float32_t)],
+        # outputs: data_out (Y), mean stash, inv_std_dev stash
+        [PointerClass(float32_t), PointerClass(float32_t),
+         PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
     ForkTransformer)
 
 PULPLayernormGradBinding = NodeBinding(
     LayerNormChecker(
+        # inputs: grad_in (dY), data_in (X), weight (scale/gamma),
+        #         mean stash, inv_std_dev stash
         [PointerClass(float32_t),
          PointerClass(float32_t),
          PointerClass(float32_t),
-         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
+         PointerClass(float32_t),
+         PointerClass(float32_t)],
+        # outputs: grad_out (dX), weight_grad (dscale), bias_grad (dbias)
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
     ForkTransformer)
 
 PULPFloatGELUBinding = NodeBinding(

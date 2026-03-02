@@ -202,11 +202,11 @@ class LayerNormChecker(SignPropTypeChecker):
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+        return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        return [True]
+        return [True] * len(self.output_types)
 
 
 class MulChecker(SignPropTypeChecker):
