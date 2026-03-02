@@ -57,7 +57,7 @@ def _infer_num_data_inputs(inputs_path: str) -> int:
     where the data/weight boundary cannot be determined automatically.
     """
     inputs = np.load(inputs_path)
-    base_keys = sorted(k for k in inputs.files if not k.startswith('mb'))
+    base_keys = sorted(k for k in inputs.files if not k.startswith('mb') and not k.startswith('meta_'))
     count = sum(1 for k in base_keys if f'mb1_{k}' in inputs.files)
     if count == 0:
         raise ValueError(
@@ -68,15 +68,16 @@ def _infer_num_data_inputs(inputs_path: str) -> int:
 
 
 def _infer_total_mb(inputs_path: str) -> int:
-    """Count total mini-batches from mb* keys in inputs.npz.
+    """Count total mini-batches from inputs.npz.
 
-    inputs.npz contains:
-      arr_0000 … arr_N  — base (mini-batch 0) entries
-      mb1_arr_* … mbK_arr_*  — extra mini-batch entries
+    New format: inputs.npz contains meta_n_batches (total training mini-batches)
+    and meta_data_size (number of unique samples stored; C harness cycles via modulo).
 
-    Returns 1 + number of unique extra mini-batch indices.
+    Legacy format: count 1 + number of unique mb* indices.
     """
     inputs = np.load(inputs_path)
+    if "meta_n_batches" in inputs.files:
+        return int(inputs["meta_n_batches"].flat[0])
     mb_indices = set()
     for key in inputs.files:
         if key.startswith('mb'):
@@ -86,6 +87,18 @@ def _infer_total_mb(inputs_path: str) -> int:
             except ValueError:
                 pass
     return 1 + len(mb_indices)
+
+
+def _infer_data_size(inputs_path: str) -> int:
+    """Return the number of unique input samples stored in inputs.npz.
+
+    New format: reads meta_data_size.
+    Legacy format: same as _infer_total_mb (all batches were unique).
+    """
+    inputs = np.load(inputs_path)
+    if "meta_data_size" in inputs.files:
+        return int(inputs["meta_data_size"].flat[0])
+    return _infer_total_mb(inputs_path)
 
 
 def generateTrainingNetwork(args):
@@ -129,8 +142,8 @@ def generateTrainingNetwork(args):
     grad_acc_set = {i for i, n in enumerate(graph_input_names) if _GRAD_ACC in n}
     non_grad_indices = [i for i in range(len(graph_input_names)) if i not in grad_acc_set]
 
-    # Base npz arrays: keys that do NOT start with 'mb' (skip per-mb entries)
-    base_keys = sorted(k for k in inputs.files if not k.startswith('mb'))
+    # Base npz arrays: keys that are neither per-mb entries (mb*) nor metadata (meta_*)
+    base_keys = sorted(k for k in inputs.files if not k.startswith('mb') and not k.startswith('meta_'))
     npz_base = [inputs[k] for k in base_keys]
 
     if len(npz_base) != len(non_grad_indices):
@@ -210,20 +223,23 @@ def generateTrainingNetwork(args):
 
     log.info(f"Training config: n_steps={n_steps} n_accum={n_accum} num_data_inputs={num_data}")
 
-    # 8. Build per-mini-batch data from npz.
+    # 8. Build unique_mb_data from npz (only data_size unique samples).
+    # The C harness cycles through them via mb % TRAINING_DATA_SIZE.
     total_mb = n_steps * n_accum
+    data_size = _infer_data_size(inputs_path)
+    log.info(f"Data cycling: data_size={data_size}, total_mb={total_mb}")
     mb0_data = list(npz_base[:num_data])
 
-    all_mb_data = []
-    for mb in range(total_mb):
+    unique_mb_data = []
+    for mb in range(data_size):
         if mb == 0:
-            all_mb_data.append(mb0_data)
+            unique_mb_data.append(mb0_data)
         else:
             mb_row = []
             for buf_idx in range(num_data):
                 key = f"mb{mb}_arr_{buf_idx:04d}"
                 mb_row.append(inputs[key] if key in inputs else mb0_data[buf_idx])
-            all_mb_data.append(mb_row)
+            unique_mb_data.append(mb_row)
 
     # Grad acc buf info for testinputs.h.
     if grad_acc_set:
@@ -246,7 +262,7 @@ def generateTrainingNetwork(args):
     os.makedirs(args.dumpdir, exist_ok=True)
 
     generateTrainingTestNetwork(deployer,
-                                all_mb_data,
+                                unique_mb_data,
                                 args.dumpdir,
                                 verbosityCfg,
                                 n_steps=n_steps,
@@ -256,7 +272,8 @@ def generateTrainingNetwork(args):
                                 num_grad_inputs=num_grad_inputs,
                                 learning_rate=args.learning_rate,
                                 reference_losses=reference_losses,
-                                init_weights=init_weights)
+                                init_weights=init_weights,
+                                data_size=data_size)
 
     # 11. Write resolved config for execution.py to pick up after subprocess call.
     meta = {

@@ -2090,11 +2090,15 @@ class ONNXLayer():
             # Update shapes and types of tensors in onnx graph based on type inference after binding
             for node in (self.node.inputs + self.node.outputs):
                 if ctxt.is_local(node.name):
+                    if not hasattr(ctxt.localObjects[node.name], '_type'):
+                        continue  # skip untyped buffers (e.g. ReduceSum axes, MaxPool mask)
                     node.shape = ctxt.localObjects[node.name].shape
                     npType = self._broadcastToNpType(ctxt.localObjects[node.name]._type)
                     if npType is not None:
                         node.dtype = npType
                 elif ctxt.is_global(node.name):
+                    if not hasattr(ctxt.globalObjects[node.name], '_type'):
+                        continue  # skip untyped global buffers
                     npType = self._broadcastToNpType(ctxt.globalObjects[node.name]._type)
                     if isinstance(ctxt.globalObjects[node.name], ConstantBuffer):
                         if isinstance(node, gs.Constant):
@@ -2950,6 +2954,8 @@ class NetworkContainer():
         callStack = ''
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
+                if not hasattr(node, '_type'):
+                    continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -2995,6 +3001,8 @@ class NetworkContainer():
 
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
+                if not hasattr(node, '_type'):
+                    continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -3532,6 +3540,8 @@ class NetworkDeployer(NetworkContainer):
                 if isinstance(_buffer, ConstantBuffer) or (isinstance(_buffer, VariableBuffer) and _buffer._deploy):
                     # SCHEREMO: We only
                     if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level == "None":
+                        if not hasattr(_buffer, '_type'):
+                            continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                         staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
                     else:
                         log.warning(f"Buffer {_buffer.name} does not have a valid memory level")

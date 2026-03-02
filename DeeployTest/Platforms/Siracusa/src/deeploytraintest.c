@@ -183,11 +183,11 @@ static void CompareLossesOnCluster(void *args) {
   for (uint32_t i = 0; i < a->n; i++) {
     float diff = a->computed[i] - a->reference[i];
     if (diff < 0.0f) diff = -diff;
-    if (diff > tol) {
-      errors++;
-      printf("  [loss %u] computed=%.6f  ref=%.6f  diff=%.6f  TOL=%.6f\r\n",
+    printf("  [loss %u] computed=%.6f  ref=%.6f  diff=%.6f  TOL=%.6f\r\n",
              i, (double)a->computed[i], (double)a->reference[i],
              (double)diff, (double)tol);
+    if (diff > tol) {
+      errors++;
     }
   }
   *a->err_count = errors;
@@ -303,11 +303,11 @@ for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
             (accum_step == 0) ? 1u : 0u;
       }
 
-      /* ② Load this mini-batch's data + labels. */
+      /* ② Load this mini-batch's data + labels (cycle through unique samples). */
       for (uint32_t buf = 0; buf < TRAINING_NUM_DATA_INPUTS; buf++) {
         if ((uint32_t)DeeployNetwork_inputs[buf] >= 0x10000000) {
           memcpy(DeeployNetwork_inputs[buf],
-                 testDataVector[mb][buf],
+                 testDataVector[mb % TRAINING_DATA_SIZE][buf],
                  DeeployNetwork_inputs_bytes[buf]);
         }
       }
