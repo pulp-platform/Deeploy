@@ -10,6 +10,8 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
+from Deeploy.Targets.Spatz.Deployer import SpatzDeployer
+from Deeploy.Targets.Spatz.Platform import SpatzOptimizer, SpatzPlatform
 from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
 from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
@@ -31,7 +33,7 @@ from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "XDNA2"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "XDNA2", "Spatz"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -76,9 +78,14 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
     elif platformName == "Chimera":
         Platform = ChimeraPlatform()
 
+<<<<<<< HEAD
     elif platformName == "XDNA2":
         from Deeploy.Targets.XDNA2.Platform import XDNA2Platform
         Platform = XDNA2Platform()
+=======
+    elif platformName == "Spatz":
+        Platform = SpatzPlatform()
+>>>>>>> 0774556 (code generation with generic c code)
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -276,6 +283,18 @@ def mapDeployer(platform: DeploymentPlatform,
                                    name = name,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir)
+    
+    elif isinstance(platform, (SpatzPlatform)):
+        deployer = SpatzDeployer(
+            graph,
+            platform,
+            inputTypes,
+            SpatzOptimizer,
+            scheduler,
+            name = name,
+            default_channels_first = default_channels_first,
+            deeployStateDir = deeployStateDir
+        )
 
     else:
         # Lazy-import XDNA2 to avoid requiring mlir-aie on non-XDNA2 platforms
