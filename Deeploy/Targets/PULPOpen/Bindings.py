@@ -393,6 +393,9 @@ PULPTransposeBindings = [
 PULPConcatBindings = [
     NodeBinding(ConcatChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
                 ConcatTemplate.referenceTemplate, ClusterTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ConcatChecker([PointerClass(float_type), PointerClass(float_type)], [PointerClass(float_type)]),
+                ConcatTemplate.referenceTemplate, ClusterTransformer) for float_type in FloatDataTypes
 ]
 
 PULPiRMSNormBindings = [

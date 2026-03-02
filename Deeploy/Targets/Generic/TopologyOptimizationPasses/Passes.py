@@ -668,6 +668,12 @@ def _split_transposes_fun(graph: gs.Graph, match: Match, name: str):
 
     perm = t1.attrs['perm']
     inputVar = t1.inputs[0]
+
+    # If the Transpose input has no producer (it is a graph input variable),
+    # we cannot rewrite the producer's output → skip splitting.
+    if not t1.inputs[0].inputs:
+        return graph
+
     inputNode = t1.inputs[0].inputs[0]
 
     originalNode = t1.outputs[0]
