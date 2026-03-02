@@ -35,7 +35,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
-    PULPRequantShiftChecker
+    PULPRequantShiftChecker, PULPConvGradBChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
     TilingVariableReplacementUpdate
 
@@ -189,6 +189,11 @@ PULPAddBindings = [
 ] + [
     NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatAddTemplate.referenceTemplate, ForkTransformer)
+] + [
+    NodeBinding(
+        AddChecker([PointerClass(float32_t), PointerClass(float32_t),
+                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatAddTemplate.referenceTemplate,
+        ForkTransformer)
 ]
 
 PULPRQSConv2DBindings = [
@@ -238,12 +243,54 @@ PULPFloatConv2DBindings = [
         ForkTransformer)
 ]
 
+PULPFloatConvGradW2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradW2DIm2ColTemplate,
+        ClusterTransformer)
+]
+
+PULPFloatConvGradX2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradX2DIm2ColTiledTemplate,
+        ForkTransformer)
+]
+
 PULPFloatDWConv2DBindings = [
     NodeBinding(
         ConvChecker(
             [PointerClass(float_type), PointerClass(float_type),
              PointerClass(float_type)], [PointerClass(float_type)]), FloatConvTemplate.referenceDW2DIm2ColTemplate,
         ForkTransformer) for float_type in FloatDataTypes
+]
+
+PULPFloatDWConvGradX2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceDWConvGradX2DTiledTemplate,
+        ForkTransformer)
+]
+
+PULPFloatDWConvGradW2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referenceDWConvGradW2DTemplate,
+        ClusterTransformer)
+]
+
+PULPFloatPWConvGradW2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referencePWConvGradW2DTemplate,
+        ClusterTransformer)
+]
+
+PULPFloatPWConvGradX2DBindings = [
+    NodeBinding(
+        ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
+                    [PointerClass(float32_t)]), FloatConvGradTemplate.referencePWConvGradX2DTemplate,
+        ClusterTransformer)
 ]
 
 PULPRQSMatrixVecBindings = [
@@ -273,6 +320,7 @@ PULPMaxPool2DBindings = [
     NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMaxPoolTemplate.referenceTemplate, ForkTransformer)
 ]
+
 
 PULPConv1DBinding = NodeBinding(
     PULPConvChecker(
@@ -428,6 +476,10 @@ PULPMulBindings = [
 PULPReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                               FloatReluTemplate.referenceTemplate, ForkTransformer)
 
+PULPReluGradBinding = NodeBinding(
+    ReluChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+    FloatReluTemplate.referenceGradTemplate, ForkTransformer)
+
 PULPLayernormBinding = NodeBinding(
     LayerNormChecker(
         # inputs: data_in (X), weight (scale/gamma), bias (beta)
@@ -451,6 +503,69 @@ PULPLayernormGradBinding = NodeBinding(
         [PointerClass(float32_t),
          PointerClass(float32_t),
          PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
+    ForkTransformer)
+
+PULPLayernormGradBinding = NodeBinding(
+    LayerNormChecker(
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
+    ForkTransformer)
+
+PULPGroupNormGradXStatBinding = NodeBinding(
+    GroupNormGradXStatChecker(
+        [PointerClass(float32_t),  # dY
+         PointerClass(float32_t),  # X
+         PointerClass(float32_t),  # gamma
+         PointerClass(float32_t)], # stat
+        [PointerClass(float32_t)]), # grad_stat
+    FloatGroupNormGradXStatTemplate.referenceTemplate,
+    ForkTransformer)
+
+PULPGroupNormGradXBinding = NodeBinding(
+    GroupNormGradXChecker(
+        [PointerClass(float32_t),  # dY
+         PointerClass(float32_t),  # X
+         PointerClass(float32_t),  # gamma
+         PointerClass(float32_t),  # stat
+         PointerClass(float32_t)], # grad_stat
+        [PointerClass(float32_t)]), # dX
+    FloatGroupNormGradXTemplate.referenceTemplate,
+    ForkTransformer)
+
+PULPGroupNormGradWBinding = NodeBinding(
+    GroupNormGradWChecker(
+        [PointerClass(float32_t),  # dY
+         PointerClass(float32_t),  # X
+         PointerClass(float32_t),  # mean
+         PointerClass(float32_t)], # inv_std
+        [PointerClass(float32_t)]), # dGamma
+    FloatGroupNormGradWTemplate.referenceTemplate,
+    ForkTransformer)
+
+PULPGroupNormGradBBinding = NodeBinding(
+    GroupNormGradBChecker(
+        [PointerClass(float32_t)],  # dY
+        [PointerClass(float32_t)]), # dBeta
+    FloatGroupNormGradBTemplate.referenceTemplate,
+    ForkTransformer)
+
+PULPGroupNormalizationStatBinding = NodeBinding(
+    GroupNormalizationStatChecker(
+        [PointerClass(float32_t)],  # X
+        [PointerClass(float32_t)]), # stat [N, G, 2]
+    FloatGroupNormalizationStatTemplate.referenceTemplate,
+    ForkTransformer)
+
+PULPGroupNormalizationBinding = NodeBinding(
+    GroupNormalizationChecker(
+        [PointerClass(float32_t),  # X
+         PointerClass(float32_t),  # gamma
+         PointerClass(float32_t),  # beta
+         PointerClass(float32_t)], # stat [N, G, 2]
+        [PointerClass(float32_t)]), # Y
+    FloatGroupNormalizationTemplate.referenceTemplate,
     ForkTransformer)
 
 PULPFloatGELUBinding = NodeBinding(
@@ -478,3 +593,4 @@ BasicDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 ForkTransformer),
 ]
+

@@ -194,6 +194,15 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
         """
     retStr += deployer.generateEngineInitializationCode()
     retStr += deployer.generateBufferAllocationCode()
+
+    # Initialize all output buffers to zero
+    output_idx = 0
+    while deployer.ctxt.is_buffer(f'output_{output_idx}'):
+        output_buffer = deployer.ctxt.lookup(f'output_{output_idx}')
+        output_size = np.prod(output_buffer.shape) if hasattr(output_buffer, 'shape') else output_buffer._type.referencedType.typeWidth
+        typeName = output_buffer._type.referencedType.typeName
+        output_idx += 1
+
     retStr += """
     }
     """
@@ -417,6 +426,11 @@ def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: Lis
                 typeName = "float32_t"
                 typeWidth = 32
             values = arr.reshape(-1).astype(np.float32)
+            # Tile values to match Deeploy's internal (possibly sequence-length-tiled) shape.
+            if deployer.ctxt.is_buffer(input_key):
+                expected_nelems = int(np.prod(deployer.ctxt.lookup(input_key).shape))
+                if expected_nelems > len(values) and expected_nelems % len(values) == 0:
+                    values = np.tile(values, expected_nelems // len(values))
             list_str = ", ".join([f'{float(x)}f' for x in values])
             buf_name = f"testInitWeight_{wi}"
             weight_entries.append(buf_name)

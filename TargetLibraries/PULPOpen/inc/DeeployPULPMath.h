@@ -23,15 +23,19 @@
 
 #include "pmsis.h"
 
+#include "kernel/AvgPool.h"
 #include "kernel/Conv.h"
 #include "kernel/GELU.h"
+#include "kernel/GroupNorm.h"
 #include "kernel/Layernorm.h"
 #include "kernel/Matmul.h"
 #include "kernel/MaxPool.h"
+#include "kernel/Relu.h"
 #include "kernel/RQiHardswish.h"
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
 #include "kernel/UniformRequantShift.h"
+#include "kernel/gemm.h"
 #include "kernel/gemv.h"
 #include "kernel/iRMSnorm.h"
 

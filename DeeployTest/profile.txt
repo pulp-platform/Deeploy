@@ -1,0 +1,1898 @@
+[{
+	{
+		input_0: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 8, 1900)
+			MemoryLevel: L1, Size: 8000, MultiBuffer: 1 Shape: (1, 1, 8, 1000)
+		}
+		node_1_conv1_Conv_Conv_input_0_transposed: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1900, 1)
+			MemoryLevel: L1, Size: 8000, MultiBuffer: 1 Shape: (1, 8, 1000, 1)
+		}
+	}
+}, {
+	{
+		node_1_conv1_Conv_Conv_input_0_transposed: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1900, 1)
+			MemoryLevel: L1, Size: 14152, MultiBuffer: 1 Shape: (1, 8, 1769, 1)
+		}
+		conv1_weight_tensor_DUPLICATE_FOR_node_1_conv1_Conv_Conv: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (1, 8, 1, 1)
+		}
+		node_1_conv1_Conv_Conv_buffer: {
+			MemoryLevel: L1, Size: 256, MultiBuffer: 1
+		}
+		node_0_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 1900, 8)
+			MemoryLevel: L1, Size: 1769, MultiBuffer: 1 Shape: (1, 1, 1769, 1)
+		}
+	}
+}, {
+	{
+		node_0_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 1900, 8)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 1, 1900, 4)
+		}
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 4, 1, 1900)
+		}
+	}
+}, {
+	{
+		node_0_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 1900, 8)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 1, 1900, 4)
+		}
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 4, 1, 1900)
+		}
+	}
+}, {
+	{
+		node_0_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 1900, 8)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 1, 1900, 4)
+		}
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 4, 1, 1900)
+		}
+	}
+}, {
+	{
+		node_0_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 1900, 8)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 1, 1900, 4)
+		}
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 4, 1, 1900)
+		}
+	}
+}, {
+	{
+		node_0_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 1900, 8)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 1, 1900, 4)
+		}
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7600, MultiBuffer: 1 Shape: (1, 4, 1, 1900)
+		}
+	}
+}, {
+	{
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+		}
+		node_0_conv1_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+	}
+}, {
+	{
+		node_0_conv1_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7984, MultiBuffer: 1 Shape: (1, 8, 1, 998)
+		}
+		layer_norm1_weight_tensor_DUPLICATE_FOR_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		layer_norm1_bias_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		node_0_layer_norm1_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7984, MultiBuffer: 1 Shape: (1, 8, 1, 998)
+		}
+	}
+}, {
+	{
+		node_0_layer_norm1_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 8000, MultiBuffer: 1 Shape: (1, 8, 1, 1000)
+		}
+		node_13_conv2_Conv_Conv_node_0_layer_norm1_Add_1__0_tensor_transposed: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 1900, 8)
+			MemoryLevel: L1, Size: 8000, MultiBuffer: 1 Shape: (1, 1, 1000, 8)
+		}
+	}
+}, {
+	{
+		node_13_conv2_Conv_Conv_node_0_layer_norm1_Add_1__0_tensor_transposed: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 1900, 8)
+			MemoryLevel: L1, Size: 7992, MultiBuffer: 1 Shape: (1, 1, 999, 8)
+		}
+		conv2_weight_tensor_DUPLICATE_FOR_node_13_conv2_Conv_Conv: {
+			MemoryLevel: L2, Size: 512, MultiBuffer: 1 Shape: (8, 1, 64, 1)
+			MemoryLevel: L1, Size: 512, MultiBuffer: 1 Shape: (8, 1, 64, 1)
+		}
+		node_13_conv2_Conv_Conv_buffer: {
+			MemoryLevel: L1, Size: 2048, MultiBuffer: 1
+		}
+		node_0_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 6984, MultiBuffer: 1 Shape: (1, 1, 873, 8)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 1, 1837, 4)
+		}
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 4, 1, 1837)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 1, 1837, 4)
+		}
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 4, 1, 1837)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 1, 1837, 4)
+		}
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 4, 1, 1837)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 1, 1837, 4)
+		}
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 4, 1, 1837)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 1, 1837, 4)
+		}
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 4, 1, 1837)
+		}
+	}
+}, {
+	{
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+		}
+		node_0_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+	}
+}, {
+	{
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7984, MultiBuffer: 1 Shape: (1, 8, 1, 998)
+		}
+		node_0_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		layer_norm2_weight_tensor_DUPLICATE_FOR_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		layer_norm2_bias_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		node_0_layer_norm2_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7984, MultiBuffer: 1 Shape: (1, 8, 1, 998)
+		}
+	}
+}, {
+	{
+		node_0_layer_norm2_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 8000, MultiBuffer: 1 Shape: (1, 8, 1, 1000)
+		}
+		node_0_activation1_Relu__0_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 8000, MultiBuffer: 1 Shape: (1, 8, 1, 1000)
+		}
+	}
+}, {
+	{
+		node_0_activation1_Relu__0_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 8000, MultiBuffer: 1 Shape: (1, 8, 1, 1000)
+		}
+		node_26_pool1_AveragePool_AveragePool_node_0_activation1_Relu__0_tensor_transposed: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 8000, MultiBuffer: 1 Shape: (1, 1, 1000, 8)
+		}
+	}
+}, {
+	{
+		node_26_pool1_AveragePool_AveragePool_node_0_activation1_Relu__0_tensor_transposed: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 12859, MultiBuffer: 1 Shape: (1, 1, 1837, 7)
+		}
+		node_0_pool1_AveragePool__0_tensor_split: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 1, 229, 8)
+			MemoryLevel: L1, Size: 1603, MultiBuffer: 1 Shape: (1, 1, 229, 7)
+		}
+	}
+}, {
+	{
+		node_0_pool1_AveragePool__0_tensor_split: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 1, 229, 8)
+			MemoryLevel: L1, Size: 1832, MultiBuffer: 1 Shape: (1, 1, 229, 8)
+		}
+		node_26_pool1_AveragePool_AveragePool_node_0_pool1_AveragePool__0_tensor_pre_transpose_node_27_sep_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_var: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 8, 1, 229)
+			MemoryLevel: L1, Size: 1832, MultiBuffer: 1 Shape: (1, 8, 1, 229)
+		}
+	}
+}, {
+	{
+		node_0_pool1_AveragePool__0_tensor_split: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 1, 229, 8)
+			MemoryLevel: L1, Size: 1832, MultiBuffer: 1 Shape: (1, 1, 229, 8)
+		}
+		sep_conv1_weight_tensor_DUPLICATE_FOR_node_27_sep_conv1_Conv_Conv: {
+			MemoryLevel: L2, Size: 128, MultiBuffer: 1 Shape: (8, 1, 16, 1)
+			MemoryLevel: L1, Size: 128, MultiBuffer: 1 Shape: (8, 1, 16, 1)
+		}
+		node_27_sep_conv1_Conv_Conv_buffer: {
+			MemoryLevel: L1, Size: 512, MultiBuffer: 1
+		}
+		node_0_sep_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		node_27_sep_conv1_Conv_Conv_node_0_sep_conv1_Conv__0_tensor_pre_transpose_node_28_sep_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv1_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		sep_conv2_weight_tensor_DUPLICATE_FOR_node_28_sep_conv2_Conv_Conv: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 1, 1, 8)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 1, 1, 8)
+		}
+		node_28_sep_conv2_Conv_Conv_buffer: {
+			MemoryLevel: L1, Size: 256, MultiBuffer: 1
+		}
+		node_0_sep_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_tensor_split: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_0_sep_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		layer_norm3_weight_tensor_DUPLICATE_FOR_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		layer_norm3_bias_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		node_0_layer_norm3_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_layer_norm3_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_0_activation2_Relu__0_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_activation2_Relu__0_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_41_pool2_AveragePool_AveragePool_node_0_activation2_Relu__0_tensor_transposed: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+	}
+}, {
+	{
+		node_41_pool2_AveragePool_AveragePool_node_0_activation2_Relu__0_tensor_transposed: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		node_41_pool2_AveragePool_AveragePool_node_0_pool2_AveragePool__0_tensor_pre_transposed: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 1, 26, 8)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 1, 26, 8)
+		}
+	}
+}, {
+	{
+		node_41_pool2_AveragePool_AveragePool_node_0_pool2_AveragePool__0_tensor_pre_transposed: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 1, 26, 8)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 1, 26, 8)
+		}
+		node_0_pool2_AveragePool__0_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 8, 1, 26)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 8, 1, 26)
+		}
+	}
+}, {
+	{
+		node_0_pool2_AveragePool__0_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 8, 1, 26)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 8, 1, 26)
+		}
+		node_0_Reshape__0_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+		}
+	}
+}, {
+	{
+		node_0_Reshape__0_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+		}
+		fc_weight_tensor_DUPLICATE_FOR_node_48_fc_Gemm_Gemm: {
+			MemoryLevel: L2, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+			MemoryLevel: L1, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+		}
+		fc_bias_tensor_DUPLICATE_FOR_node_48_fc_Gemm_Gemm: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+		output_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+	}
+}, {
+	{
+		output_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+		input_1: {
+			MemoryLevel: L2, Size: 1, MultiBuffer: 1 Shape: (1,)
+			MemoryLevel: L1, Size: 1, MultiBuffer: 1 Shape: (1,)
+		}
+		onnx__log_prob__3_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+	}
+}, {
+	{
+		onnx__log_prob__3_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+		input_1: {
+			MemoryLevel: L2, Size: 1, MultiBuffer: 1 Shape: (1,)
+			MemoryLevel: L1, Size: 1, MultiBuffer: 1 Shape: (1,)
+		}
+		output_grad_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+	}
+}, {
+	{
+		node_0_Reshape__0_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+		}
+		output_grad_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+		fc_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+			MemoryLevel: L1, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+		}
+	}
+}, {
+	{
+		output_grad_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+		fc_weight_tensor_DUPLICATE_FOR_node_48_fc_Gemm_Grad_Gemm_0_Gemm_backward: {
+			MemoryLevel: L2, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+			MemoryLevel: L1, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+		}
+		node_0_Reshape__0_grad_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+		}
+	}
+}, {
+	{
+		output_grad_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+		node_48_fc_Gemm_Grad_dC_reduced_keepdims_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 1, MultiBuffer: 1 Shape: (1, 1)
+		}
+	}
+}, {
+	{
+		node_0_Reshape__0_grad_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 208)
+		}
+		node_0_pool2_AveragePool__0_grad_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 8, 1, 26)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 8, 1, 26)
+		}
+	}
+}, {
+	{
+		node_48_fc_Gemm_Grad_dC_reduced_keepdims_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 2)
+		}
+		node_48_fc_Gemm_Grad_dC_reduced_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (2,)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (2,)
+		}
+	}
+}, {
+	{
+		fc_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+			MemoryLevel: L1, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+		}
+		fc_weight_tensor_DUPLICATE_FOR_fc_weight_sgd: {
+			MemoryLevel: L2, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+			MemoryLevel: L1, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+		}
+		output_7: {
+			MemoryLevel: L2, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+			MemoryLevel: L1, Size: 416, MultiBuffer: 1 Shape: (2, 208)
+		}
+	}
+}, {
+	{
+		node_48_fc_Gemm_Grad_dC_reduced_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (2,)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (2,)
+		}
+		fc_bias_tensor_DUPLICATE_FOR_fc_bias_sgd: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (2,)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (2,)
+		}
+		output_8: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (2,)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (2,)
+		}
+	}
+}, {
+	{
+		node_0_pool2_AveragePool__0_grad_tensor: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 8, 1, 26)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 8, 1, 26)
+		}
+		node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool2_AveragePool__0_grad_tensor_transposed: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 1, 26, 8)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 1, 26, 8)
+		}
+	}
+}, {
+	{
+		node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool2_AveragePool__0_grad_tensor_transposed: {
+			MemoryLevel: L2, Size: 208, MultiBuffer: 1 Shape: (1, 1, 26, 8)
+			MemoryLevel: L1, Size: 208, MultiBuffer: 1 Shape: (1, 1, 26, 8)
+		}
+		node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation2_Relu__0_grad_tensor_pre_transposed: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+	}
+}, {
+	{
+		node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation2_Relu__0_grad_tensor_pre_transposed: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 1, 214, 8)
+		}
+		node_0_activation2_Relu__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_activation2_Relu__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_0_layer_norm3_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_0_layer_norm3_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_0_layer_norm3_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		layer_norm3_weight_tensor_DUPLICATE_FOR_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		node_0_sep_conv2_Conv__0_grad_grad_stat_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_0_layer_norm3_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		layer_norm3_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+	}
+}, {
+	{
+		layer_norm3_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		layer_norm3_weight_tensor_DUPLICATE_FOR_layer_norm3_weight_sgd: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		output_6: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_0_sep_conv2_Conv__0_grad_grad_stat_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_0_layer_norm3_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		layer_norm3_weight_tensor_DUPLICATE_FOR_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		node_0_sep_conv2_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		sep_conv2_weight_tensor_DUPLICATE_FOR_node_28_sep_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+		}
+		node_28_sep_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_transpose_buffer: {
+			MemoryLevel: L1, Size: 256, MultiBuffer: 1
+		}
+		node_0_sep_conv1_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv2_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_27_sep_conv1_Conv_Conv_node_0_sep_conv1_Conv__0_tensor_pre_transpose_node_28_sep_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_var: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		sep_conv2_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv1_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		sep_conv1_weight_tensor_DUPLICATE_FOR_node_27_sep_conv1_Conv_Grad_ConvGrad_0_X_ConvGradX_backward: {
+			MemoryLevel: L2, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+			MemoryLevel: L1, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+		}
+		node_0_pool1_AveragePool__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 8, 1, 229)
+			MemoryLevel: L1, Size: 1832, MultiBuffer: 1 Shape: (1, 8, 1, 229)
+		}
+	}
+}, {
+	{
+		node_0_sep_conv1_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+			MemoryLevel: L1, Size: 1712, MultiBuffer: 1 Shape: (1, 8, 1, 214)
+		}
+		node_26_pool1_AveragePool_AveragePool_node_0_pool1_AveragePool__0_tensor_pre_transpose_node_27_sep_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_var: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 8, 1, 229)
+			MemoryLevel: L1, Size: 1832, MultiBuffer: 1 Shape: (1, 8, 1, 229)
+		}
+		sep_conv1_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+			MemoryLevel: L1, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+		}
+	}
+}, {
+	{
+		sep_conv2_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+		}
+		sep_conv2_weight_tensor_DUPLICATE_FOR_sep_conv2_weight_sgd: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+		}
+		output_5: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 8, 1, 1)
+		}
+	}
+}, {
+	{
+		sep_conv1_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+			MemoryLevel: L1, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+		}
+		sep_conv1_weight_tensor_DUPLICATE_FOR_sep_conv1_weight_sgd: {
+			MemoryLevel: L2, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+			MemoryLevel: L1, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+		}
+		output_4: {
+			MemoryLevel: L2, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+			MemoryLevel: L1, Size: 128, MultiBuffer: 1 Shape: (8, 1, 1, 16)
+		}
+	}
+}, {
+	{
+		node_0_pool1_AveragePool__0_grad_tensor: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 8, 1, 229)
+			MemoryLevel: L1, Size: 1832, MultiBuffer: 1 Shape: (1, 8, 1, 229)
+		}
+		node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool1_AveragePool__0_grad_tensor_transposed: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 1, 229, 8)
+			MemoryLevel: L1, Size: 1832, MultiBuffer: 1 Shape: (1, 1, 229, 8)
+		}
+	}
+}, {
+	{
+		node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool1_AveragePool__0_grad_tensor_transposed: {
+			MemoryLevel: L2, Size: 1832, MultiBuffer: 1 Shape: (1, 1, 229, 8)
+			MemoryLevel: L1, Size: 1603, MultiBuffer: 1 Shape: (1, 1, 229, 7)
+		}
+		node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation1_Relu__0_grad_tensor_pre_transposed: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 12859, MultiBuffer: 1 Shape: (1, 1, 1837, 7)
+		}
+	}
+}, {
+	{
+		node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation1_Relu__0_grad_tensor_pre_transposed: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 1, 1837, 8)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 1, 1837, 4)
+		}
+		node_0_activation1_Relu__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7348, MultiBuffer: 1 Shape: (1, 4, 1, 1837)
+		}
+	}
+}, {
+	{
+		node_0_activation1_Relu__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+		node_0_layer_norm2_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+		node_0_layer_norm2_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_0_layer_norm2_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+		}
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 1296, MultiBuffer: 1 Shape: (1, 8, 1, 162)
+		}
+		layer_norm2_weight_tensor_DUPLICATE_FOR_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 4, MultiBuffer: 1 Shape: (4,)
+		}
+		node_0_conv2_Conv__0_grad_grad_stat_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7992, MultiBuffer: 1 Shape: (1, 8, 1, 999)
+		}
+		node_0_layer_norm2_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 7992, MultiBuffer: 1 Shape: (1, 8, 1, 999)
+		}
+		layer_norm2_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+	}
+}, {
+	{
+		layer_norm2_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		layer_norm2_weight_tensor_DUPLICATE_FOR_layer_norm2_weight_sgd: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		output_3: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_0_layer_norm2_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+		node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_var: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+		node_0_conv2_Conv__0_grad_grad_stat_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		layer_norm2_weight_tensor_DUPLICATE_FOR_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		node_0_conv2_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+		}
+		conv2_weight_tensor_DUPLICATE_FOR_node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward: {
+			MemoryLevel: L2, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+			MemoryLevel: L1, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+		}
+		node_0_layer_norm1_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 792, MultiBuffer: 1 Shape: (1, 8, 1, 99)
+		}
+	}
+}, {
+	{
+		node_0_conv2_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 14696, MultiBuffer: 1 Shape: (1, 8, 1, 1837)
+			MemoryLevel: L1, Size: 288, MultiBuffer: 1 Shape: (1, 8, 1, 36)
+		}
+		node_0_layer_norm1_Add_1__0_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+		}
+		conv2_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+			MemoryLevel: L1, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+		}
+	}
+}, {
+	{
+		conv2_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+			MemoryLevel: L1, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+		}
+		conv2_weight_tensor_DUPLICATE_FOR_conv2_weight_sgd: {
+			MemoryLevel: L2, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+			MemoryLevel: L1, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+		}
+		output_2: {
+			MemoryLevel: L2, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+			MemoryLevel: L1, Size: 512, MultiBuffer: 1 Shape: (8, 1, 1, 64)
+		}
+	}
+}, {
+	{
+		node_0_conv1_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 792, MultiBuffer: 1 Shape: (1, 8, 1, 99)
+		}
+		node_0_layer_norm1_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+		}
+		layer_norm1_weight_tensor_DUPLICATE_FOR_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 4, MultiBuffer: 1 Shape: (4,)
+		}
+		node_0_conv1_Conv__0_grad_grad_stat_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+	}
+}, {
+	{
+		node_0_conv1_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7992, MultiBuffer: 1 Shape: (1, 8, 1, 999)
+		}
+		node_0_layer_norm1_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 7992, MultiBuffer: 1 Shape: (1, 8, 1, 999)
+		}
+		layer_norm1_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+	}
+}, {
+	{
+		layer_norm1_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		layer_norm1_weight_tensor_DUPLICATE_FOR_layer_norm1_weight_sgd: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		output_1: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+	}
+}, {
+	{
+		node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_var: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+		node_0_conv1_Conv__0_stat_combined_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		node_0_layer_norm1_Add_1__0_grad_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+		node_0_conv1_Conv__0_grad_grad_stat_tensor: {
+			MemoryLevel: L2, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+			MemoryLevel: L1, Size: 2, MultiBuffer: 1 Shape: (1, 1, 2)
+		}
+		layer_norm1_weight_tensor_DUPLICATE_FOR_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX: {
+			MemoryLevel: L2, Size: 8, MultiBuffer: 1 Shape: (8,)
+			MemoryLevel: L1, Size: 8, MultiBuffer: 1 Shape: (8,)
+		}
+		node_0_conv1_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 5328, MultiBuffer: 1 Shape: (1, 8, 1, 666)
+		}
+	}
+}, {
+	{
+		input_0: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 8, 1900)
+			MemoryLevel: L1, Size: 15200, MultiBuffer: 1 Shape: (1, 1, 8, 1900)
+		}
+		node_0_conv1_Conv__0_grad_tensor: {
+			MemoryLevel: L2, Size: 15200, MultiBuffer: 1 Shape: (1, 8, 1, 1900)
+			MemoryLevel: L1, Size: 368, MultiBuffer: 1 Shape: (1, 8, 1, 46)
+		}
+		node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_buffer: {
+			MemoryLevel: L1, Size: 1472, MultiBuffer: 1
+		}
+		conv1_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 1, 8, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 1, 8, 1)
+		}
+	}
+}, {
+	{
+		conv1_weight_grad_tensor: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 1, 8, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 1, 8, 1)
+		}
+		conv1_weight_tensor_DUPLICATE_FOR_conv1_weight_sgd: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 1, 8, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 1, 8, 1)
+		}
+		output_0: {
+			MemoryLevel: L2, Size: 64, MultiBuffer: 1 Shape: (8, 1, 8, 1)
+			MemoryLevel: L1, Size: 64, MultiBuffer: 1 Shape: (8, 1, 8, 1)
+		}
+	}
+}]
+-- Building for platform 'Siracusa'
+-- ============================= Project Configuration ============================
+-- [Deeploy]     platform               = Siracusa
+-- [Deeploy]     use_dma                = 1
+-- ================================================================================
+-- 
+-- ============================= Siracusa Configuration ============================
+-- [cMake  ]   ISA                    = rv32imf_xpulpv2
+-- [cMake  ]   Cluster Cores          = 8
+-- [cMake  ]   Fabric Controller      = 1
+-- [cMake  ]   Number of used cores   = 8
+-- ================================================================================
+-- 
+-- [PULP-NNX] Using the N-EUREKA accelerator.
+-- ============================= Simulation Configuration ============================
+-- [Simulator]   QuestaSim              = questa-2022.3
+-- [Simulator]   Verilator              = verilator-4.110
+-- [Simulator]   VCS                    = vcs-2020.12
+-- [Simulator]   banshee_simulation     = OFF
+-- [Simulator]   banshee_configuration  = 
+-- [Simulator]   gvsoc_simulation       = ON
+-- [Simulator]   banshee_stack_size     = 16777216
+-- [Simulator]   num_threads            = 1
+-- ================================================================================
+-- 
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /app/Deeploy/DeeployTest/TEST_SIRACUSA/build
+Consolidate compiler generated dependencies of target pulp-nnx
+[  1%] Built target pulp-nnx
+Consolidate compiler generated dependencies of target deeploybasic
+[  4%] Built target deeploybasic
+Scanning dependencies of target pulp-sdk
+Consolidate compiler generated dependencies of target pulp-sdk
+[  8%] Built target pulp-sdk
+Consolidate compiler generated dependencies of target pulp-nn-mixed
+[ 95%] Built target pulp-nn-mixed
+Consolidate compiler generated dependencies of target deeploypulp
+[ 98%] Built target deeploypulp
+Consolidate compiler generated dependencies of target network
+[100%] Building C object DeeployTest/CMakeFiles/network.dir/TEST_SIRACUSA/MI_BMINet_train_C8_T1900_F1_8_D1_N2/Network.c.obj
+[100%] Built target network
+Consolidate compiler generated dependencies of target MI_BMINet_train_C8_T1900_F1_8_D1_N2
+[100%] Linking C executable ../../../bin/MI_BMINet_train_C8_T1900_F1_8_D1_N2
+[100%] Built target MI_BMINet_train_C8_T1900_F1_8_D1_N2
+Path is not inside the script location. Using gendir path /app/Deeploy/DeeployTest/TEST_SIRACUSA/MI_BMINet_train_C8_T1900_F1_8_D1_N2
+Generation Directory:  /app/Deeploy/DeeployTest/TEST_SIRACUSA/MI_BMINet_train_C8_T1900_F1_8_D1_N2
+Test Directory      :  /app/Onnx4Deeploy/Tests/Models/MI-BMInet/onnx/MI_BMINet_train_C8_T1900_F1_8_D1_N2
+Test Name           :  MI_BMINet_train_C8_T1900_F1_8_D1_N2
+[  1%] Built target pulp-nnx
+[  4%] Built target deeploybasic
+[  8%] Built target pulp-sdk
+[ 95%] Built target pulp-nn-mixed
+[ 98%] Built target deeploypulp
+Consolidate compiler generated dependencies of target network
+[100%] Built target network
+[100%] Built target MI_BMINet_train_C8_T1900_F1_8_D1_N2
+[100%] POST_BUILD
+HELLO WORLD:
+Intializing
+Initialized
+Input copied
+[node_1_conv1_Conv_Conv_input_0_transpose_L2][SB][0 ops][Tile 0] Input DMA took 4176 cycles
+[node_1_conv1_Conv_Conv_input_0_transpose_L2][SB][0 ops][Tile 0] Kernel took 5317 cycles
+[node_1_conv1_Conv_Conv_input_0_transpose_L2][SB][0 ops][Tile 0] Output DMA took 4300 cycles
+[node_1_conv1_Conv_Conv_input_0_transpose_L2][SB][0 ops][Tile 1] Input DMA took 3716 cycles
+[node_1_conv1_Conv_Conv_input_0_transpose_L2][SB][0 ops][Tile 1] Kernel took 4785 cycles
+[node_1_conv1_Conv_Conv_input_0_transpose_L2][SB][0 ops][Tile 1] Output DMA took 3874 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 0] Input DMA took 7242 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 0] Kernel took 698764 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 0] Output DMA took 3767 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 1] Input DMA took 673 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 1] Kernel took 52550 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 1] Output DMA took 387 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 2] Input DMA took 7174 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 2] Kernel took 697723 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 2] Output DMA took 3612 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 3] Input DMA took 588 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 3] Kernel took 52168 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 3] Output DMA took 357 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 4] Input DMA took 7144 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 4] Kernel took 697546 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 4] Output DMA took 3629 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 5] Input DMA took 590 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 5] Kernel took 52125 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 5] Output DMA took 340 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 6] Input DMA took 7142 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 6] Kernel took 697494 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 6] Output DMA took 3616 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 7] Input DMA took 588 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 7] Kernel took 52119 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 7] Output DMA took 336 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 8] Input DMA took 7142 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 8] Kernel took 697507 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 8] Output DMA took 3614 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 9] Input DMA took 588 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 9] Kernel took 52132 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 9] Output DMA took 336 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 10] Input DMA took 7140 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 10] Kernel took 697519 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 10] Output DMA took 3612 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 11] Input DMA took 588 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 11] Kernel took 52123 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 11] Output DMA took 336 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 12] Input DMA took 7140 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 12] Kernel took 697491 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 12] Output DMA took 3614 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 13] Input DMA took 588 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 13] Kernel took 52130 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 13] Output DMA took 336 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 14] Input DMA took 7140 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 14] Kernel took 697500 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 14] Output DMA took 3616 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 15] Input DMA took 588 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 15] Kernel took 52134 cycles
+[node_1_conv1_Conv_Conv_L2][SB][243200 ops][Tile 15] Output DMA took 338 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3958 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11780 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 4054 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3935 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 17537 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 4029 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3938 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11747 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 4050 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3935 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 17537 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 4029 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3938 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11751 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 4052 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3937 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 17538 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 4028 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3936 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11832 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 4050 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3939 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 17557 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 4011 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3956 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11715 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 4053 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3938 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 17568 cycles
+[node_1_conv1_Conv_Conv_node_0_conv1_Conv__0_tensor_pre_transpose_node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 4013 cycles
+epsilon is 0.001000[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][91200 ops][Tile 0] Input DMA took 7793 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][91200 ops][Tile 0] Kernel took 175580 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][91200 ops][Tile 0] Output DMA took 124 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][60800 ops][Tile 0] Input DMA took 4165 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][60800 ops][Tile 0] Kernel took 122689 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][60800 ops][Tile 0] Output DMA took 4275 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][60800 ops][Tile 1] Input DMA took 3773 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][60800 ops][Tile 1] Kernel took 122341 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][60800 ops][Tile 1] Output DMA took 3864 cycles
+[node_13_conv2_Conv_Conv_node_0_layer_norm1_Add_1__0_tensor_transpose_L2][SB][0 ops][Tile 0] Input DMA took 4138 cycles
+[node_13_conv2_Conv_Conv_node_0_layer_norm1_Add_1__0_tensor_transpose_L2][SB][0 ops][Tile 0] Kernel took 4689 cycles
+[node_13_conv2_Conv_Conv_node_0_layer_norm1_Add_1__0_tensor_transpose_L2][SB][0 ops][Tile 0] Output DMA took 4255 cycles
+[node_13_conv2_Conv_Conv_node_0_layer_norm1_Add_1__0_tensor_transpose_L2][SB][0 ops][Tile 1] Input DMA took 3736 cycles
+[node_13_conv2_Conv_Conv_node_0_layer_norm1_Add_1__0_tensor_transpose_L2][SB][0 ops][Tile 1] Kernel took 4173 cycles
+[node_13_conv2_Conv_Conv_node_0_layer_norm1_Add_1__0_tensor_transpose_L2][SB][0 ops][Tile 1] Output DMA took 3848 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 0] Input DMA took 4216 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 0] Kernel took 1792063 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 0] Output DMA took 3740 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 1] Input DMA took 4201 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 1] Kernel took 1791364 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 1] Output DMA took 3657 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 2] Input DMA took 925 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 2] Kernel took 187157 cycles
+[node_13_conv2_Conv_Conv_L2][SB][1881088 ops][Tile 2] Output DMA took 431 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3835 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11362 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 3903 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3810 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 16916 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 3901 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3835 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11362 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 3885 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3812 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 16921 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 3901 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3831 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11364 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 3881 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3810 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 16916 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 3899 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3831 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11362 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 3881 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3812 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 16966 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 3899 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 3814 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 11363 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 3920 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 1] Input DMA took 3809 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 1] Kernel took 16961 cycles
+[node_13_conv2_Conv_Conv_node_0_conv2_Conv__0_tensor_pre_transpose_node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 1] Output DMA took 3899 cycles
+epsilon is 0.001000[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][88176 ops][Tile 0] Input DMA took 7461 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][88176 ops][Tile 0] Kernel took 169973 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][88176 ops][Tile 0] Output DMA took 182 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][58784 ops][Tile 0] Input DMA took 4160 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][58784 ops][Tile 0] Kernel took 118598 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][58784 ops][Tile 0] Output DMA took 4275 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][58784 ops][Tile 1] Input DMA took 3543 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][58784 ops][Tile 1] Kernel took 118211 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][58784 ops][Tile 1] Output DMA took 3608 cycles
+[node_25_activation1_Relu_Relu_L2][SB][14696 ops][Tile 0] Input DMA took 4138 cycles
+[node_25_activation1_Relu_Relu_L2][SB][14696 ops][Tile 0] Kernel took 10456 cycles
+[node_25_activation1_Relu_Relu_L2][SB][14696 ops][Tile 0] Output DMA took 4285 cycles
+[node_25_activation1_Relu_Relu_L2][SB][14696 ops][Tile 1] Input DMA took 3504 cycles
+[node_25_activation1_Relu_Relu_L2][SB][14696 ops][Tile 1] Kernel took 8644 cycles
+[node_25_activation1_Relu_Relu_L2][SB][14696 ops][Tile 1] Output DMA took 3620 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_activation1_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 0] Input DMA took 4137 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_activation1_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 0] Kernel took 4667 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_activation1_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 0] Output DMA took 4258 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_activation1_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 1] Input DMA took 3486 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_activation1_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 1] Kernel took 3840 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_activation1_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 1] Output DMA took 3565 cycles
+[node_26_pool1_AveragePool_AveragePool_L2][SB][0 ops][Tile 0] Input DMA took 6585 cycles
+[node_26_pool1_AveragePool_AveragePool_L2][SB][0 ops][Tile 0] Kernel took 16616 cycles
+[node_26_pool1_AveragePool_AveragePool_L2][SB][0 ops][Tile 0] Output DMA took 1278 cycles
+[node_26_pool1_AveragePool_AveragePool_L2][SB][0 ops][Tile 1] Input DMA took 2482 cycles
+[node_26_pool1_AveragePool_AveragePool_L2][SB][0 ops][Tile 1] Kernel took 16252 cycles
+[node_26_pool1_AveragePool_AveragePool_L2][SB][0 ops][Tile 1] Output DMA took 571 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_pool1_AveragePool__0_tensor_pre_transpose_node_27_sep_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 1031 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_pool1_AveragePool__0_tensor_pre_transpose_node_27_sep_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 2084 cycles
+[node_26_pool1_AveragePool_AveragePool_node_0_pool1_AveragePool__0_tensor_pre_transpose_node_27_sep_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 1059 cycles
+[node_27_sep_conv1_Conv_Conv_L2][SB][54784 ops][Tile 0] Input DMA took 1161 cycles
+[node_27_sep_conv1_Conv_Conv_L2][SB][54784 ops][Tile 0] Kernel took 136435 cycles
+[node_27_sep_conv1_Conv_Conv_L2][SB][54784 ops][Tile 0] Output DMA took 1013 cycles
+[node_27_sep_conv1_Conv_Conv_node_0_sep_conv1_Conv__0_tensor_pre_transpose_node_28_sep_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 971 cycles
+[node_27_sep_conv1_Conv_Conv_node_0_sep_conv1_Conv__0_tensor_pre_transpose_node_28_sep_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 1997 cycles
+[node_27_sep_conv1_Conv_Conv_node_0_sep_conv1_Conv__0_tensor_pre_transpose_node_28_sep_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 996 cycles
+[node_28_sep_conv2_Conv_Conv_L2][SB][27392 ops][Tile 0] Input DMA took 984 cycles
+[node_28_sep_conv2_Conv_Conv_L2][SB][27392 ops][Tile 0] Kernel took 41541 cycles
+[node_28_sep_conv2_Conv_Conv_L2][SB][27392 ops][Tile 0] Output DMA took 975 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 967 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 1993 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_stats_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 996 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 966 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 1954 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 994 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 1025 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 1960 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 997 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 971 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 1970 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 1014 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Input DMA took 967 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Kernel took 1991 cycles
+[node_28_sep_conv2_Conv_Conv_node_0_sep_conv2_Conv__0_tensor_pre_transpose_node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_transpose_in_L2][SB][0 ops][Tile 0] Output DMA took 994 cycles
+epsilon is 0.001000[node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][10272 ops][Tile 0] Input DMA took 991 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][10272 ops][Tile 0] Kernel took 27346 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_stats_L2][SB][10272 ops][Tile 0] Output DMA took 179 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][6848 ops][Tile 0] Input DMA took 982 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][6848 ops][Tile 0] Kernel took 14760 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__LayerNormalization_fwd_L2][SB][6848 ops][Tile 0] Output DMA took 994 cycles
+[node_40_activation2_Relu_Relu_L2][SB][1712 ops][Tile 0] Input DMA took 966 cycles
+[node_40_activation2_Relu_Relu_L2][SB][1712 ops][Tile 0] Kernel took 2513 cycles
+[node_40_activation2_Relu_Relu_L2][SB][1712 ops][Tile 0] Output DMA took 996 cycles
+[node_41_pool2_AveragePool_AveragePool_node_0_activation2_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 0] Input DMA took 1027 cycles
+[node_41_pool2_AveragePool_AveragePool_node_0_activation2_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 0] Kernel took 1251 cycles
+[node_41_pool2_AveragePool_AveragePool_node_0_activation2_Relu__0_tensor_transpose_L2][SB][0 ops][Tile 0] Output DMA took 995 cycles
+[node_41_pool2_AveragePool_AveragePool_L2][SB][0 ops][Tile 0] Input DMA took 1006 cycles
+[node_41_pool2_AveragePool_AveragePool_L2][SB][0 ops][Tile 0] Kernel took 2885 cycles
+[node_41_pool2_AveragePool_AveragePool_L2][SB][0 ops][Tile 0] Output DMA took 200 cycles
+[node_41_pool2_AveragePool_AveragePool_node_0_pool2_AveragePool__0_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Input DMA took 200 cycles
+[node_41_pool2_AveragePool_AveragePool_node_0_pool2_AveragePool__0_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Kernel took 573 cycles
+[node_41_pool2_AveragePool_AveragePool_node_0_pool2_AveragePool__0_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Output DMA took 221 cycles
+[node_48_fc_Gemm_Gemm_L2][SB][838 ops][Tile 0] Input DMA took 444 cycles
+[node_48_fc_Gemm_Gemm_L2][SB][838 ops][Tile 0] Kernel took 4009 cycles
+[node_48_fc_Gemm_Gemm_L2][SB][838 ops][Tile 0] Output DMA took 179 cycles
+[onnx__SoftmaxCrossEntropyLoss__4_SoftmaxCrossEntropyLoss_L2][SB][0 ops][Tile 0] Input DMA took 147 cycles
+[onnx__SoftmaxCrossEntropyLoss__4_SoftmaxCrossEntropyLoss_L2][SB][0 ops][Tile 0] Kernel took 1738 cycles
+[onnx__SoftmaxCrossEntropyLoss__4_SoftmaxCrossEntropyLoss_L2][SB][0 ops][Tile 0] Output DMA took 165 cycles
+[onnx__SoftmaxCrossEntropyLoss__4_Grad_SoftmaxCrossEntropyLossGrad_0_SoftmaxCrossEntropyLossGrad_backward_L2][SB][0 ops][Tile 0] Input DMA took 202 cycles
+[onnx__SoftmaxCrossEntropyLoss__4_Grad_SoftmaxCrossEntropyLossGrad_0_SoftmaxCrossEntropyLossGrad_backward_L2][SB][0 ops][Tile 0] Kernel took 1205 cycles
+[onnx__SoftmaxCrossEntropyLoss__4_Grad_SoftmaxCrossEntropyLossGrad_0_SoftmaxCrossEntropyLossGrad_backward_L2][SB][0 ops][Tile 0] Output DMA took 124 cycles
+[node_48_fc_Gemm_Grad_Gemm_1_Gemm_backward_L2][SB][2080 ops][Tile 0] Input DMA took 206 cycles
+[node_48_fc_Gemm_Grad_Gemm_1_Gemm_backward_L2][SB][2080 ops][Tile 0] Kernel took 3515 cycles
+[node_48_fc_Gemm_Grad_Gemm_1_Gemm_backward_L2][SB][2080 ops][Tile 0] Output DMA took 307 cycles
+[node_48_fc_Gemm_Grad_Gemm_0_Gemm_backward_L2][SB][1456 ops][Tile 0] Input DMA took 324 cycles
+[node_48_fc_Gemm_Grad_Gemm_0_Gemm_backward_L2][SB][1456 ops][Tile 0] Kernel took 3646 cycles
+[node_48_fc_Gemm_Grad_Gemm_0_Gemm_backward_L2][SB][1456 ops][Tile 0] Output DMA took 219 cycles
+[node_48_fc_Gemm_Grad_ReduceSum_2_ReduceSum_backward_L2][SB][0 ops][Tile 0] Input DMA took 178 cycles
+[node_48_fc_Gemm_Grad_ReduceSum_2_ReduceSum_backward_L2][SB][0 ops][Tile 0] Kernel took 56 cycles
+[node_48_fc_Gemm_Grad_ReduceSum_2_ReduceSum_backward_L2][SB][0 ops][Tile 0] Output DMA took 182 cycles
+[fc_weight_sgd_L2][SB][832 ops][Tile 0] Input DMA took 530 cycles
+[fc_weight_sgd_L2][SB][832 ops][Tile 0] Kernel took 998 cycles
+[fc_weight_sgd_L2][SB][832 ops][Tile 0] Output DMA took 326 cycles
+[fc_bias_sgd_L2][SB][4 ops][Tile 0] Input DMA took 147 cycles
+[fc_bias_sgd_L2][SB][4 ops][Tile 0] Kernel took 333 cycles
+[fc_bias_sgd_L2][SB][4 ops][Tile 0] Output DMA took 125 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool2_AveragePool__0_grad_tensor_transpose_L2][SB][0 ops][Tile 0] Input DMA took 222 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool2_AveragePool__0_grad_tensor_transpose_L2][SB][0 ops][Tile 0] Kernel took 523 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool2_AveragePool__0_grad_tensor_transpose_L2][SB][0 ops][Tile 0] Output DMA took 200 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 0] Input DMA took 217 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 0] Kernel took 6428 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 0] Output DMA took 995 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation2_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Input DMA took 971 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation2_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Kernel took 2004 cycles
+[node_41_pool2_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation2_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Output DMA took 995 cycles
+[node_40_activation2_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][1712 ops][Tile 0] Input DMA took 1821 cycles
+[node_40_activation2_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][1712 ops][Tile 0] Kernel took 3647 cycles
+[node_40_activation2_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][1712 ops][Tile 0] Output DMA took 1018 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][13696 ops][Tile 0] Input DMA took 1854 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][13696 ops][Tile 0] Kernel took 18468 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][13696 ops][Tile 0] Output DMA took 104 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][8560 ops][Tile 0] Input DMA took 1805 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][8560 ops][Tile 0] Kernel took 15444 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][8560 ops][Tile 0] Output DMA took 105 cycles
+[layer_norm3_weight_sgd_L2][SB][16 ops][Tile 0] Input DMA took 167 cycles
+[layer_norm3_weight_sgd_L2][SB][16 ops][Tile 0] Kernel took 373 cycles
+[layer_norm3_weight_sgd_L2][SB][16 ops][Tile 0] Output DMA took 179 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][10272 ops][Tile 0] Input DMA took 1831 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][10272 ops][Tile 0] Kernel took 21725 cycles
+[node_38_layer_norm3_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][10272 ops][Tile 0] Output DMA took 992 cycles
+[node_28_sep_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][27392 ops][Tile 0] Input DMA took 1070 cycles
+[node_28_sep_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][27392 ops][Tile 0] Kernel took 30149 cycles
+[node_28_sep_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][27392 ops][Tile 0] Output DMA took 993 cycles
+[node_28_sep_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][27392 ops][Tile 0] Input DMA took 1906 cycles
+[node_28_sep_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][27392 ops][Tile 0] Kernel took 14070 cycles
+[node_28_sep_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][27392 ops][Tile 0] Output DMA took 185 cycles
+[node_27_sep_conv1_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][58624 ops][Tile 0] Input DMA took 1031 cycles
+[node_27_sep_conv1_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][58624 ops][Tile 0] Kernel took 44537 cycles
+[node_27_sep_conv1_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][58624 ops][Tile 0] Output DMA took 1056 cycles
+[node_27_sep_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][54784 ops][Tile 0] Input DMA took 1908 cycles
+[node_27_sep_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][54784 ops][Tile 0] Kernel took 27171 cycles
+[node_27_sep_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][54784 ops][Tile 0] Output DMA took 183 cycles
+[sep_conv2_weight_sgd_L2][SB][128 ops][Tile 0] Input DMA took 201 cycles
+[sep_conv2_weight_sgd_L2][SB][128 ops][Tile 0] Kernel took 728 cycles
+[sep_conv2_weight_sgd_L2][SB][128 ops][Tile 0] Output DMA took 179 cycles
+[sep_conv1_weight_sgd_L2][SB][256 ops][Tile 0] Input DMA took 240 cycles
+[sep_conv1_weight_sgd_L2][SB][256 ops][Tile 0] Kernel took 807 cycles
+[sep_conv1_weight_sgd_L2][SB][256 ops][Tile 0] Output DMA took 178 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool1_AveragePool__0_grad_tensor_transpose_L2][SB][0 ops][Tile 0] Input DMA took 1010 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool1_AveragePool__0_grad_tensor_transpose_L2][SB][0 ops][Tile 0] Kernel took 1310 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_pool1_AveragePool__0_grad_tensor_transpose_L2][SB][0 ops][Tile 0] Output DMA took 1055 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 0] Input DMA took 938 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 0] Kernel took 44281 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 0] Output DMA took 9339 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 1] Input DMA took 415 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 1] Kernel took 43564 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_L2][SB][0 ops][Tile 1] Output DMA took 3829 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation1_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Input DMA took 3810 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation1_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Kernel took 11391 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation1_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 0] Output DMA took 3918 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation1_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 1] Input DMA took 3831 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation1_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 1] Kernel took 17020 cycles
+[node_26_pool1_AveragePool_Grad_AveragePoolGrad_0_AveragePoolGrad_backward_node_0_activation1_Relu__0_grad_tensor_pre_transpose_L2][SB][0 ops][Tile 1] Output DMA took 3899 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 0] Input DMA took 5535 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 0] Kernel took 10172 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 0] Output DMA took 2921 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 1] Input DMA took 5445 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 1] Kernel took 9848 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 1] Output DMA took 2835 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 2] Input DMA took 4119 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 2] Kernel took 7475 cycles
+[node_25_activation1_Relu_Grad_ReluGrad_0_ReluGrad_backward_L2][SB][14696 ops][Tile 2] Output DMA took 2151 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][117568 ops][Tile 0] Input DMA took 14858 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][117568 ops][Tile 0] Kernel took 148256 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][117568 ops][Tile 0] Output DMA took 147 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][73480 ops][Tile 0] Input DMA took 8135 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][73480 ops][Tile 0] Kernel took 65670 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][73480 ops][Tile 0] Output DMA took 169 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][73480 ops][Tile 1] Input DMA took 6823 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][73480 ops][Tile 1] Kernel took 54740 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][73480 ops][Tile 1] Output DMA took 147 cycles
+[layer_norm2_weight_sgd_L2][SB][16 ops][Tile 0] Input DMA took 202 cycles
+[layer_norm2_weight_sgd_L2][SB][16 ops][Tile 0] Kernel took 372 cycles
+[layer_norm2_weight_sgd_L2][SB][16 ops][Tile 0] Output DMA took 177 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 0] Input DMA took 5541 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 0] Kernel took 175917 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 0] Output DMA took 2941 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 1] Input DMA took 5407 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 1] Kernel took 175337 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 1] Output DMA took 2839 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 2] Input DMA took 4115 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 2] Kernel took 171810 cycles
+[node_23_layer_norm2_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][88176 ops][Tile 2] Output DMA took 2158 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 0] Input DMA took 817 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 0] Kernel took 49094 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 0] Output DMA took 645 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 1] Input DMA took 963 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 1] Kernel took 70497 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 1] Output DMA took 490 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 2] Input DMA took 963 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 2] Kernel took 70247 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 2] Output DMA took 492 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 3] Input DMA took 961 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 3] Kernel took 70442 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 3] Output DMA took 488 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 4] Input DMA took 967 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 4] Kernel took 70406 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 4] Output DMA took 486 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 5] Input DMA took 965 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 5] Kernel took 70255 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 5] Output DMA took 486 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 6] Input DMA took 961 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 6] Kernel took 70295 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 6] Output DMA took 486 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 7] Input DMA took 963 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 7] Kernel took 70504 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 7] Output DMA took 490 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 8] Input DMA took 965 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 8] Kernel took 70294 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 8] Output DMA took 488 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 9] Input DMA took 967 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 9] Kernel took 70238 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 9] Output DMA took 490 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 10] Input DMA took 965 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 10] Kernel took 70205 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 10] Output DMA took 490 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 11] Input DMA took 963 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 11] Kernel took 70229 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 11] Output DMA took 488 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 12] Input DMA took 965 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 12] Kernel took 70396 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 12] Output DMA took 488 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 13] Input DMA took 963 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 13] Kernel took 70229 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 13] Output DMA took 488 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 14] Input DMA took 965 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 14] Kernel took 70272 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 14] Output DMA took 486 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 15] Input DMA took 963 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 15] Kernel took 70424 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 15] Output DMA took 488 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 16] Input DMA took 963 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 16] Kernel took 70238 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 16] Output DMA took 488 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 17] Input DMA took 967 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 17] Kernel took 70297 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 17] Output DMA took 488 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 18] Input DMA took 787 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 18] Kernel took 58798 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 18] Output DMA took 492 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 19] Input DMA took 391 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 19] Kernel took 3258 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_X_ConvGradX_backward_L2][SB][1945600 ops][Tile 19] Output DMA took 162 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 0] Input DMA took 770 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 0] Kernel took 23551 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 0] Output DMA took 382 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 1] Input DMA took 680 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 1] Kernel took 18452 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 1] Output DMA took 331 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 2] Input DMA took 629 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 2] Kernel took 18314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 2] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 3] Input DMA took 608 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 3] Kernel took 18291 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 3] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 4] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 4] Kernel took 18289 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 4] Output DMA took 312 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 5] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 5] Kernel took 18267 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 5] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 6] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 6] Kernel took 18272 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 6] Output DMA took 316 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 7] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 7] Kernel took 18290 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 7] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 8] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 8] Kernel took 18277 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 8] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 9] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 9] Kernel took 18294 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 9] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 10] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 10] Kernel took 18294 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 10] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 11] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 11] Kernel took 18277 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 11] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 12] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 12] Kernel took 18267 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 12] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 13] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 13] Kernel took 18267 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 13] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 14] Input DMA took 608 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 14] Kernel took 18285 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 14] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 15] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 15] Kernel took 18305 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 15] Output DMA took 312 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 16] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 16] Kernel took 18269 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 16] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 17] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 17] Kernel took 18272 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 17] Output DMA took 312 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 18] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 18] Kernel took 18272 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 18] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 19] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 19] Kernel took 18262 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 19] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 20] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 20] Kernel took 18301 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 20] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 21] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 21] Kernel took 18286 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 21] Output DMA took 312 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 22] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 22] Kernel took 18271 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 22] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 23] Input DMA took 614 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 23] Kernel took 18295 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 23] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 24] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 24] Kernel took 18268 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 24] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 25] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 25] Kernel took 18275 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 25] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 26] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 26] Kernel took 18275 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 26] Output DMA took 313 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 27] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 27] Kernel took 18277 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 27] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 28] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 28] Kernel took 18364 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 28] Output DMA took 310 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 29] Input DMA took 608 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 29] Kernel took 18289 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 29] Output DMA took 312 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 30] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 30] Kernel took 18277 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 30] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 31] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 31] Kernel took 18252 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 31] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 32] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 32] Kernel took 18270 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 32] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 33] Input DMA took 614 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 33] Kernel took 18292 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 33] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 34] Input DMA took 608 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 34] Kernel took 18280 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 34] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 35] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 35] Kernel took 18287 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 35] Output DMA took 312 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 36] Input DMA took 610 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 36] Kernel took 18266 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 36] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 37] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 37] Kernel took 18279 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 37] Output DMA took 312 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 38] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 38] Kernel took 18285 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 38] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 39] Input DMA took 608 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 39] Kernel took 18270 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 39] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 40] Input DMA took 609 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 40] Kernel took 18278 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 40] Output DMA took 308 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 41] Input DMA took 613 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 41] Kernel took 18307 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 41] Output DMA took 316 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 42] Input DMA took 613 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 42] Kernel took 18307 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 42] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 43] Input DMA took 613 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 43] Kernel took 18274 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 43] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 44] Input DMA took 611 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 44] Kernel took 18283 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 44] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 45] Input DMA took 611 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 45] Kernel took 18280 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 45] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 46] Input DMA took 611 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 46] Kernel took 18278 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 46] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 47] Input DMA took 615 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 47] Kernel took 18298 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 47] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 48] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 48] Kernel took 18279 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 48] Output DMA took 312 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 49] Input DMA took 608 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 49] Kernel took 18274 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 49] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 50] Input DMA took 612 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 50] Kernel took 18299 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 50] Output DMA took 314 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 51] Input DMA took 330 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 51] Kernel took 2577 cycles
+[node_13_conv2_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][1881088 ops][Tile 51] Output DMA took 316 cycles
+[conv2_weight_sgd_L2][SB][1024 ops][Tile 0] Input DMA took 627 cycles
+[conv2_weight_sgd_L2][SB][1024 ops][Tile 0] Kernel took 1187 cycles
+[conv2_weight_sgd_L2][SB][1024 ops][Tile 0] Output DMA took 373 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][121600 ops][Tile 0] Input DMA took 15320 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][121600 ops][Tile 0] Kernel took 153251 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_stat_L2][SB][121600 ops][Tile 0] Output DMA took 168 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][76000 ops][Tile 0] Input DMA took 8135 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][76000 ops][Tile 0] Kernel took 65669 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][76000 ops][Tile 0] Output DMA took 178 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][76000 ops][Tile 1] Input DMA took 7344 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][76000 ops][Tile 1] Kernel took 58783 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dW_L2][SB][76000 ops][Tile 1] Output DMA took 125 cycles
+[layer_norm1_weight_sgd_L2][SB][16 ops][Tile 0] Input DMA took 247 cycles
+[layer_norm1_weight_sgd_L2][SB][16 ops][Tile 0] Kernel took 394 cycles
+[layer_norm1_weight_sgd_L2][SB][16 ops][Tile 0] Output DMA took 177 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 0] Input DMA took 5540 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 0] Kernel took 179988 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 0] Output DMA took 2962 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 1] Input DMA took 5406 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 1] Kernel took 185056 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 1] Output DMA took 2824 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 2] Input DMA took 4621 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 2] Kernel took 183341 cycles
+[node_11_layer_norm1_Mul_LayerNormFusion__Grad_LayerNormalizationGrad_0_LayerNormalizationGrad_backward_dX_L2][SB][91200 ops][Tile 2] Output DMA took 2416 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 0] Input DMA took 554 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 0] Kernel took 13657 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 0] Output DMA took 184 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 1] Input DMA took 467 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 1] Kernel took 11456 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 1] Output DMA took 148 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 2] Input DMA took 431 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 2] Kernel took 11043 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 2] Output DMA took 118 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 3] Input DMA took 448 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 3] Kernel took 10960 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 3] Output DMA took 84 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 4] Input DMA took 434 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 4] Kernel took 11057 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 4] Output DMA took 118 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 5] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 5] Kernel took 11022 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 5] Output DMA took 118 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 6] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 6] Kernel took 10992 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 6] Output DMA took 99 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 7] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 7] Kernel took 10944 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 7] Output DMA took 103 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 8] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 8] Kernel took 10864 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 8] Output DMA took 84 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 9] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 9] Kernel took 10947 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 9] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 10] Input DMA took 434 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 10] Kernel took 10881 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 10] Output DMA took 103 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 11] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 11] Kernel took 10896 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 11] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 12] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 12] Kernel took 10860 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 12] Output DMA took 99 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 13] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 13] Kernel took 10915 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 13] Output DMA took 103 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 14] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 14] Kernel took 10919 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 14] Output DMA took 118 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 15] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 15] Kernel took 10865 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 15] Output DMA took 84 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 16] Input DMA took 434 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 16] Kernel took 10931 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 16] Output DMA took 120 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 17] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 17] Kernel took 10887 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 17] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 18] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 18] Kernel took 10905 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 18] Output DMA took 99 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 19] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 19] Kernel took 10915 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 19] Output DMA took 103 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 20] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 20] Kernel took 10872 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 20] Output DMA took 118 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 21] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 21] Kernel took 10915 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 21] Output DMA took 118 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 22] Input DMA took 434 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 22] Kernel took 10940 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 22] Output DMA took 86 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 23] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 23] Kernel took 10952 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 23] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 24] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 24] Kernel took 10881 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 24] Output DMA took 99 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 25] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 25] Kernel took 10914 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 25] Output DMA took 86 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 26] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 26] Kernel took 10872 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 26] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 27] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 27] Kernel took 10909 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 27] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 28] Input DMA took 434 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 28] Kernel took 10923 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 28] Output DMA took 120 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 29] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 29] Kernel took 10872 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 29] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 30] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 30] Kernel took 10844 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 30] Output DMA took 116 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 31] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 31] Kernel took 10951 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 31] Output DMA took 103 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 32] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 32] Kernel took 10912 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 32] Output DMA took 84 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 33] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 33] Kernel took 10888 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 33] Output DMA took 118 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 34] Input DMA took 434 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 34] Kernel took 10945 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 34] Output DMA took 120 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 35] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 35] Kernel took 10892 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 35] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 36] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 36] Kernel took 10897 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 36] Output DMA took 99 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 37] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 37] Kernel took 10940 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 37] Output DMA took 120 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 38] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 38] Kernel took 10939 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 38] Output DMA took 84 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 39] Input DMA took 432 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 39] Kernel took 10877 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 39] Output DMA took 101 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 40] Input DMA took 434 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 40] Kernel took 10926 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 40] Output DMA took 103 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 41] Input DMA took 176 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 41] Kernel took 4336 cycles
+[node_1_conv1_Conv_Grad_ConvGrad_0_W_ConvGradW_backward_L2][SB][243200 ops][Tile 41] Output DMA took 118 cycles
+[conv1_weight_sgd_L2][SB][128 ops][Tile 0] Input DMA took 229 cycles
+[conv1_weight_sgd_L2][SB][128 ops][Tile 0] Kernel took 748 cycles
+[conv1_weight_sgd_L2][SB][128 ops][Tile 0] Output DMA took 177 cycles
+Output:
+0 errors in 64 in output 0
+0 errors in 8 in output 1
+0 errors in 512 in output 2
+0 errors in 8 in output 3
+0 errors in 128 in output 4
+0 errors in 64 in output 5
+0 errors in 8 in output 6
+0 errors in 416 in output 7
+0 errors in 2 in output 8
+Runtime: 16612782 cycles
+Errors: 0 out of 1210
+[100%] Built target gvsoc_MI_BMINet_train_C8_T1900_F1_8_D1_N2

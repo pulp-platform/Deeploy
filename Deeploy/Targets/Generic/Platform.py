@@ -101,6 +101,7 @@ GenericMapping = {
     'MatMul': GEMMLayer([MatMulMapper]),
     'MatMulInteger': MatMulLayer([MatMulMapper]),
     'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPoolMapper]),
+    'AveragePool': AveragePoolLayer([AveragePoolMapper]),
     'Mul': MulLayer([MulMapper]),
     'Pow': PowLayer([PowMapper]),
     'Sqrt': SqrtLayer([SqrtMapper]),

@@ -208,6 +208,7 @@ class Tiler():
             scratchBuffer._instance = scratchBuffer._type(arenaName, ctxt)
             scratchBuffer._memoryLevel = level
 
+
             # JUNGVI: Memory Arena buffers should be allocated first since other variable global buffers may belong to a memory arena
             ctxt.globalObjects.move_to_end(scratchBuffer.name, last = False)
 
@@ -320,6 +321,7 @@ class Tiler():
             log.debug(" - Extract Memory Allocation")
             self.innerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
             self.outerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
+        print(tilingSolution)
         return tilingSolution
 
     def computeMemoryMap(self, ctxt: NetworkContext, tilingSolution: TilingSolution) -> MemoryMap:

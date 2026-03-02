@@ -158,3 +158,4 @@ for (uint32_t n=0; n<${batch}; ++n) {
     ref_${data_out}_${data_out} += ${ch_im_out} * ${dim_im_out_x} * ${dim_im_out_y};
 }
 """)
+

@@ -4,6 +4,7 @@
 
 import math
 from typing import Tuple
+import numpy as np
 
 import onnx_graphsurgeon as gs
 
