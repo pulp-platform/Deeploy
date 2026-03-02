@@ -306,6 +306,11 @@ for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
   printf("Starting training (%u optimizer steps x %u accum steps)...\r\n",
          (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS);
 
+  uint32_t total_avail, largest_block;
+  pi_l2_available_get(&total_avail, &largest_block);
+  printf("L2 available: total=%u bytes, largest_block=%u bytes\n", 
+        total_avail, largest_block);
+
   uint32_t training_cycles   = 0;
   uint32_t optimizer_cycles  = 0;
 
@@ -336,11 +341,13 @@ for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
         }
       }
 
+      printf("Before network exec\n");
       /* ③ Forward + backward + InPlaceAccumulatorV2. */
       pi_cluster_task(&cluster_task, RunTrainingNetworkWrapper, NULL);
       // cluster_task.stack_size       = MAINSTACKSIZE;
       cluster_task.slave_stack_size = SLAVESTACKSIZE;
       pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+      printf("After network exec\n");
 
       /* ④ Store loss — use memcpy to avoid float registers on FC (no FPU). */
       if ((uint32_t)DeeployNetwork_outputs[0] >= 0x10000000u) {

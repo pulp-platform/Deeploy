@@ -29,15 +29,15 @@ from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, Gat
     LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
-    TransposeLayer, iHardswishLayer, iRMSNormLayer, InPlaceAccumulatorV2Layer
+    TransposeLayer, iHardswishLayer, iRMSNormLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, GELUGradLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUParser, GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, \
     QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, \
-    RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
+    RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, LayerNormGradParser, \
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
-    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, InPlaceAccumulatorV2Parser
+    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, InPlaceAccumulatorV2Parser, GELUGradParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.GAP9.Bindings import GAP9SoftmaxCrossEntropyLossDualOutputBindings
+from Deeploy.Targets.GAP9.Bindings import GAP9SoftmaxCrossEntropyLossDualOutputBindings, GAP9LayernormGradBinding, GAP9FloatGELUGradBinding
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
     PULPDWConv1DBinding, PULPReduceMeanBindings, PULPRQSConv1DBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
@@ -97,6 +97,8 @@ GAP9_GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
 GAP9InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), GAP9InPlaceAccumulatorV2TilingReadyBindings)
 GAP9SoftmaxCrossEntropyLossDualOutputMapper = NodeMapper(SoftmaxCrossEntropyLossParser(),
                                                      GAP9SoftmaxCrossEntropyLossDualOutputBindings)
+GAP9LayerNormGradMapper = NodeMapper(LayerNormGradParser(), [GAP9LayernormGradBinding])
+GAP9GELUGradMapper = NodeMapper(GELUGradParser(), [GAP9FloatGELUGradBinding])
 
 # GAP9-specific mapping using ClDma
 GAP9Mapping = {
@@ -110,8 +112,12 @@ GAP9Mapping = {
         GEMMLayer([GAP9_FloatGEMMMapper, GAP9_GEMMDequantMapper]),
     'Gelu':
         GELULayer([GAP9_GELUMapper]),
+    'GeluGrad': 
+        GELUGradLayer([GAP9GELUGradMapper]),
     'LayerNormalization':
         LayerNormLayer([GAP9_LayerNormMapper]),
+    'LayerNormalizationGrad': 
+        LayerNormGradLayer([GAP9LayerNormGradMapper]),
     'MaxPool':
         MaxPoolLayer([GAP9_MaxPool2DMapper]),
     'RequantizediGELU':

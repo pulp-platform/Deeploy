@@ -328,6 +328,9 @@ GAP9TransposeBindings = [
 GAP9ConcatBindings = [
     NodeBinding(ConcatChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
                 ConcatTemplate.referenceTemplate, GAP9ClusterTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ConcatChecker([PointerClass(float_type), PointerClass(float_type)], [PointerClass(float_type)]),
+                ConcatTemplate.referenceTemplate, GAP9ClusterTransformer) for float_type in FloatDataTypes
 ]
 
 GAP9iRMSNormBindings = [
@@ -358,6 +361,10 @@ GAP9iRQSGELUBindings = [
         GAP9ClusterTransformer)
 ]
 
+GAP9FloatGELUGradBinding = NodeBinding(
+    GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+    FloatGELUTemplate.referenceGradTemplate, GAP9Transformer)
+
 GAP9MulBindings = [
     NodeBinding(MulChecker([PointerClass(typeA), PointerClass(typeB)], [PointerClass(int32_t)]),
                 MulTemplate.referenceTemplate, GAP9Transformer)
@@ -372,8 +379,32 @@ GAP9ReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerCla
 
 GAP9LayernormBinding = NodeBinding(
     LayerNormChecker(
-        [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+        # inputs: grad_in (dY), data_in (X), weight (scale/gamma),
+        #         mean stash, inv_std_dev stash
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)],
+        # outputs: grad_out (dX), weight_grad (dscale), bias_grad (dbias)
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+    GAP9Transformer)
+
+GAP9LayernormGradBinding = NodeBinding(
+    LayerNormChecker(
+        # inputs: grad_in (dY), data_in (X), weight (scale/gamma),
+        #         mean stash, inv_std_dev stash
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)],
+        # outputs: grad_out (dX), weight_grad (dscale), bias_grad (dbias)
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
     GAP9Transformer)
 
 GAP9FloatGELUBinding = NodeBinding(
