@@ -14,7 +14,8 @@ from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation i
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
     FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
+    FloatAveragePoolTemplate, FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, \
+    FloatMaxPoolTemplate, \
     FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
     FloatSoftmaxTemplate, FloatSqrtTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, \
     ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
@@ -23,7 +24,8 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
-    InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, \
+    AveragePoolChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, \
+    PadChecker, \
     QuantChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, \
     RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 
@@ -171,6 +173,11 @@ BasicMaxPool2DBindings = [
 ] + [
     NodeBinding(MaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMaxPoolTemplate.referenceTemplate, BasicTransformer)
+]
+
+BasicAveragePool2DBindings = [
+    NodeBinding(AveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicMulBindings = [

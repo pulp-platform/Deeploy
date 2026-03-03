@@ -6,17 +6,17 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Lowe
     RemoveEmptyConvBiasPass, RemoveOnlySingletonReduceMeanPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBindings, BasicConcatBindings, \
-    BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, BasicDebugPrintBindings, \
-    BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicGatherBindings, \
-    BasicGELUBindings, BasicGEMMBindings, BasicInPlaceAccumulatorV2Bindings, BasicITAPartialSoftmaxBinding, \
-    BasicITASoftmaxBinding, BasicLayerNormBindings, BasicMatMulBindings, BasicMaxPool1DBindings, \
-    BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicPowBindings, \
-    BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, \
-    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, \
-    BasicSqrtBindings, BasicTransposeBindings, DummyBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, BatchNormalizationLayer, ConcatLayer, ConvLayer, \
-    ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, GatherLayer, GELULayer, GEMMLayer, \
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicAveragePool2DBindings, BasicBatchNormBindings, \
+    BasicConcatBindings, BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, \
+    BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, \
+    BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, BasicInPlaceAccumulatorV2Bindings, \
+    BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, BasicLayerNormBindings, BasicMatMulBindings, \
+    BasicMaxPool1DBindings, BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
+    BasicPowBindings, BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, \
+    BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, \
+    BasicSoftmaxBindings, BasicSqrtBindings, BasicTransposeBindings, DummyBinding
+from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolLayer, BatchNormalizationLayer, ConcatLayer, \
+    ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, GatherLayer, GELULayer, GEMMLayer, \
     InPlaceAccumulatorV2Layer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, PowLayer, \
     QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, \
     RQSiGELULayer, SliceLayer, SoftmaxLayer, SqrtLayer, TransposeLayer
@@ -52,6 +52,7 @@ ITAPartialMaxMapper = NodeMapper(ITAPartialMaxParser(), [BasicITAPartialSoftmaxB
 MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 MaxPoolMapper = NodeMapper(GenericMaxPool2DParser(), BasicMaxPool2DBindings)
 MaxPool1DMapper = NodeMapper(MaxPool1DParser(), BasicMaxPool1DBindings)
+AveragePoolMapper = NodeMapper(GenericMaxPool2DParser(), BasicAveragePool2DBindings)
 MulMapper = NodeMapper(MulParser(), BasicMulBindings)
 PowMapper = NodeMapper(PowParser(), BasicPowBindings)
 SqrtMapper = NodeMapper(SqrtParser(), BasicSqrtBindings)

@@ -73,10 +73,6 @@ ForkClosure = partial(ClosureGeneration,
                       closureCallTemplate = _clusterForkClosureCallTemplate)
 
 TilingCallClosure = partial(ClosureGeneration, closureSuffix = "_tiling_closure")
-FunctionCallClosure = partial(ClosureGeneration, closureSuffix = "_closure")
-ForkClosure = partial(ClosureGeneration,
-                      closureSuffix = "_cluster_fork",
-                      closureCallTemplate = _clusterForkClosureCallTemplate)
 
 MemoryAwareClusterClosure = partial(MemoryAwareClosureGeneration,
                                     closureSuffix = "_cluster_entry",
@@ -517,14 +513,6 @@ PULPLayernormGradBinding = NodeBinding(
         [PointerClass(float32_t),
          PointerClass(float32_t),
          PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
-    ForkTransformer)
-
-PULPLayernormGradBinding = NodeBinding(
-    LayerNormChecker(
-        [PointerClass(float32_t),
-         PointerClass(float32_t),
-         PointerClass(float32_t),
-         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
     ForkTransformer)
 
 PULPGroupNormGradXStatBinding = NodeBinding(
