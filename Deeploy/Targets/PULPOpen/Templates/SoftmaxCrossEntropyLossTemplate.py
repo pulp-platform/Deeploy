@@ -49,6 +49,7 @@ BEGIN_SINGLE_CORE
                             - sce_max_logit - sce_log_sum_exp);
     }
     ${loss}[0] = sce_total_loss / (float32_t)${batch};
+    printf("    [SCE] loss=%.6f\\r\\n", (double)${loss}[0]);
 END_SINGLE_CORE
 """)
 
