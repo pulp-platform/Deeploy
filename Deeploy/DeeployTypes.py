@@ -343,7 +343,7 @@ class VariableBuffer():
             next = queue.pop()
             buffNext = ctxt.lookup(next)
             assert isinstance(buffNext, VariableBuffer)
-            live |= buffNext._live
+            live |= buffNext._live or (next in ctxt.globalObjects)
             visited.add(next)
             queue |= buffNext.aliases - visited
         return live
