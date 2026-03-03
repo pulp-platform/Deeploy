@@ -419,10 +419,79 @@ class AveragePoolLayer(ONNXLayer):
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
 
+
 class AveragePoolGradLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
         super().__init__(maps)
+
+
+class GroupNormGradXStatLayer(ONNXLayer):
+    """Layer for GroupNormGradXStat - computes intermediate gradient statistics."""
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 8
+        return size * ops_per_element
+
+
+class GroupNormGradXLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 6
+        return size * ops_per_element
+
+
+class GroupNormGradWLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 5
+        return size * ops_per_element
+
+
+class GroupNormGradBLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 1
+        return size * ops_per_element
+
+
+class GroupNormalizationStatLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 6
+        return size * ops_per_element
+
+
+class GroupNormalizationLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 4
+        return size * ops_per_element
+
 
 
 class ReduceMeanLayer(ONNXLayer):

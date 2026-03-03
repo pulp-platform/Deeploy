@@ -29,8 +29,8 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
-from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvGradTemplate, \
-    FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatGroupNormGradBTemplate, \
+from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatAveragePoolTemplate, \
+    FloatConvGradTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatGroupNormGradBTemplate, \
     FloatGroupNormGradWTemplate, FloatGroupNormGradXStatTemplate, FloatGroupNormGradXTemplate, \
     FloatGroupNormalizationStatTemplate, FloatGroupNormalizationTemplate, FloatInPlaceAccumulatorV2Template, \
     FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, \
@@ -323,6 +323,16 @@ PULPMaxPool2DBindings = [
 ] + [
     NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMaxPoolTemplate.referenceTemplate, ForkTransformer)
+]
+
+PULPAveragePool2DBindings = [
+    NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate, ForkTransformer)
+]
+
+PULPAveragePoolGrad2DBindings = [
+    NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceGradTemplate, ForkTransformer)
 ]
 
 

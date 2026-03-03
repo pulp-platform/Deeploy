@@ -325,6 +325,56 @@ class MaxPool2DParser(MaxPoolParser):
         return newCtxt, wellFormed
 
 
+class AveragePool2DParser(MaxPool2DParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = super().parseNode(node)
+        wellFormed = False
+        if ret:
+            pads = self.operatorRepresentation['pads']
+            kernel_shape = self.operatorRepresentation['kernel_shape']
+            strides = self.operatorRepresentation['strides']
+            if len(pads) == 4 and len(kernel_shape) == 2 and len(strides) == 2:
+                wellFormed = True
+            self.operatorRepresentation['padding_x_left'] = int(pads[0])
+            self.operatorRepresentation['padding_y_top'] = int(pads[1])
+            self.operatorRepresentation['padding_x_right'] = int(pads[2])
+            self.operatorRepresentation['padding_y_bottom'] = int(pads[3])
+            self.operatorRepresentation['stride_x'] = int(strides[0])
+            self.operatorRepresentation['stride_y'] = int(strides[1])
+            self.operatorRepresentation['dim_kernel_x'] = int(kernel_shape[0])
+            self.operatorRepresentation['dim_kernel_y'] = int(kernel_shape[1])
+        return wellFormed
+
+    def parseNodeCtxt(self, ctxt, node, channels_first=True):
+        newCtxt, ret = super(MaxPool2DParser, self).parseNodeCtxt(ctxt, node, channels_first)
+        wellFormed = False
+        if ret:
+            data_in = newCtxt.lookup(self.operatorRepresentation['data_in'])
+            data_out = newCtxt.lookup(self.operatorRepresentation['data_out'])
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            if channels_first:
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[3]
+                self.operatorRepresentation['ch_im_out'] = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[2]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[3]
+            else:
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[3]
+                self.operatorRepresentation['dim_im_in_x'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+                self.operatorRepresentation['ch_im_out'] = data_out.shape[3]
+                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+            if len(data_in.shape) == 4 and len(data_out.shape) == 4:
+                wellFormed = True
+        return newCtxt, wellFormed
+
+
 class PadParser(NodeParser):
 
     def __init__(self):
@@ -3302,3 +3352,109 @@ class InPlaceAccumulatorV2Parser(NodeParser):
         self.operatorRepresentation['size'] = int(np.prod(buffer.shape))
 
         return ctxt, True
+
+
+class Conv2DGradXParser(Conv2DParser):
+
+    def __init__(self, noBiasHoisting=True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        wellFormed = super().parseNode(node)
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return wellFormed
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+
+            output_grad_name = node.inputs[0].name  # dY
+            weight_name = node.inputs[1].name
+            input_grad_name = node.outputs[0].name  # dX
+
+            output_grad = ctxt.lookup(output_grad_name)  # dY: [N, C_out, H_out, W_out]
+            weight = ctxt.lookup(weight_name)
+            input_grad = ctxt.lookup(input_grad_name)  # dX: [N, C_in, H_in, W_in]
+
+            self.operatorRepresentation['grad_out'] = output_grad_name  # dY
+            self.operatorRepresentation['weight'] = weight_name
+            self.operatorRepresentation['grad_in'] = input_grad_name  # dX
+
+            # From input_grad (dX): [N, C_in, H_in, W_in]
+            self.operatorRepresentation['ch_im_in'] = input_grad.shape[1]
+            self.operatorRepresentation['dim_im_in_x'] = input_grad.shape[2]  # H_in
+            self.operatorRepresentation['dim_im_in_y'] = input_grad.shape[3]  # W_in
+
+            # From output_grad (dY): [N, C_out, H_out, W_out]
+            self.operatorRepresentation['ch_im_out'] = output_grad.shape[1]
+            self.operatorRepresentation['dim_im_out_x'] = output_grad.shape[2]  # H_out
+            self.operatorRepresentation['dim_im_out_y'] = output_grad.shape[3]  # W_out
+
+            # Initialize offset fields (will be filled during tiling)
+            self.operatorRepresentation['offset_grad_in_h'] = 0
+            self.operatorRepresentation['offset_grad_in_w'] = 0
+            self.operatorRepresentation['offset_grad_out_h'] = 0
+            self.operatorRepresentation['offset_grad_out_w'] = 0
+
+            return newCtxt, True
+
+        return ctxt, False
+
+
+class Conv2DGradWParser(Conv2DParser):
+
+    def __init__(self, noBiasHoisting=True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        wellFormed = super().parseNode(node)
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+        return wellFormed
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+
+            input_name = node.inputs[1].name  # X
+            output_grad_name = node.inputs[0].name  # dY
+            weight_grad_name = node.outputs[0].name  # dW
+
+            input = ctxt.lookup(input_name)  # X: [N, C_in, H_in, W_in]
+            output_grad = ctxt.lookup(output_grad_name)  # dY: [N, C_out, H_out, W_out]
+            weight_grad = ctxt.lookup(weight_grad_name)  # dW: [C_out, C_in, kH, kW]
+
+            self.operatorRepresentation['data_in'] = input_name  # X
+            self.operatorRepresentation['grad_out'] = output_grad_name  # dY
+            self.operatorRepresentation['grad_weight'] = weight_grad_name  # dW
+
+            self.operatorRepresentation['ch_im_in'] = input.shape[1]
+            self.operatorRepresentation['dim_im_in_x'] = input.shape[2]  # H_in
+            self.operatorRepresentation['dim_im_in_y'] = input.shape[3]  # W_in
+
+            self.operatorRepresentation['ch_im_out'] = output_grad.shape[1]
+            self.operatorRepresentation['dim_im_out_x'] = output_grad.shape[2]  # H_out
+            self.operatorRepresentation['dim_im_out_y'] = output_grad.shape[3]  # W_out
+
+            self.operatorRepresentation['dim_kernel_x'] = weight_grad.shape[2]  # kH
+            self.operatorRepresentation['dim_kernel_y'] = weight_grad.shape[3]  # kW
+            self.operatorRepresentation['kernel_shape'] = [weight_grad.shape[2], weight_grad.shape[3]]  # [kH, kW]
+
+            return newCtxt, True
+
+        return ctxt, False

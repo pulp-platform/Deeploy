@@ -13,18 +13,22 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELUGradLayer, GELULayer, \
-    GEMMLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, \
-    PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, \
-    RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, \
-    SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
-    GELUGradParser, GELUParser, GEMMParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, \
-    MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluParser, \
-    RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, \
-    SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, \
-    SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, \
-    iSoftmaxParser
+from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, AveragePoolLayer, ConcatLayer, ConvLayer, \
+    ConvGradWLayer, ConvGradXLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, GroupNormGradBLayer, \
+    GroupNormGradWLayer, GroupNormGradXLayer, GroupNormGradXStatLayer, GroupNormalizationLayer, \
+    GroupNormalizationStatLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, \
+    MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluGradLayer, ReluLayer, \
+    RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, SliceLayer, \
+    SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, \
+    iHardswishLayer, iRMSNormLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, ConcatParser, DequantParser, \
+    FlattenParser, GatherParser, GELUGradParser, GELUParser, GEMMParser, GroupNormGradBParser, GroupNormGradWParser, \
+    GroupNormGradXParser, GroupNormGradXStatParser, GroupNormalizationParser, GroupNormalizationStatParser, \
+    InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, \
+    Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluGradParser, ReluParser, RequantShiftParser, \
+    ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
+    SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
+    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
@@ -32,20 +36,27 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPat
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
     PULPDMASliceBindings, PULPDWConv1DBinding
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
-from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
-    PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
-    PULPReduceMeanParser, PULPTallGEMMParser
+from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPConvGradW2DParser, \
+    PULPConvGradX2DParser, PULPDWConv1DParser, PULPDWConv2DParser, PULPDWConvGradW2DParser, \
+    PULPDWConvGradX2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
+    PULPPWConvGradW2DParser, PULPPWConvGradX2DParser, PULPReduceMeanParser, PULPTallGEMMParser
 from Deeploy.Targets.PULPOpen.Templates import AllocateTemplate, FreeTemplate
-from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConcatTilingReadyBindings, \
-    PULPConv2DTilingReadyBindings, PULPDWConv2DTilingReadyBindings, PULPFlattenTilingReadyBindings, \
+from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAveragePool2DTilingReadyBindings, \
+    PULPAveragePoolGrad2DTilingReadyBindings, PULPConcatTilingReadyBindings, PULPConv2DTilingReadyBindings, \
+    PULPConvGradW2DTilingReadyBindings, PULPConvGradX2DTilingReadyBindings, PULPDWConv2DTilingReadyBindings, \
+    PULPDWConvGradW2DTilingReadyBindings, PULPDWConvGradX2DTilingReadyBindings, PULPFlattenTilingReadyBindings, \
     PULPFPGELUGradTilingReadyBindings, PULPFPGELUTilingReadyBindings, PULPFPGEMMTilingReadyBindings, \
-    PULPGatherTilingReadyBindings, PULPiHardswishTilingReadyBindings, PULPiRMSNormTilingReadyBindings, \
-    PULPiRQSGELUTilingReadyBindings, PULPLayernormGradTilingReadyBindings, PULPLayernormTilingReadyBindings, \
-    PULPMatMulTilingReadyBindings, PULPMaxPool2DTilingReadyBindings, PULPMulTilingReadyBindings, \
-    PULPReduceMeanTilingReadyBindings, PULPReduceSumTilingReadyBindings, PULPReluTilingReadyBindings, \
-    PULPRQAddTilingReadyBindings, PULPRQSConv2DTilingReadyBindings, PULPRQSDWConv2DTilingReadyBindings, \
-    PULPRQSGEMMTilingReadyBindings, PULPRQSiHardswishTilingReadyBindings, PULPRQSMatrixVecTilingReadyBindings, \
-    PULPInPlaceAccumulatorV2TilingReadyBindings, PULPRQSTallGEMMTilingReadyBindings, PULPRQSTilingReadyBindings, \
+    PULPGatherTilingReadyBindings, PULPGroupNormGradBTilingReadyBindings, PULPGroupNormGradWTilingReadyBindings, \
+    PULPGroupNormGradXStatTilingReadyBindings, PULPGroupNormGradXTilingReadyBindings, \
+    PULPGroupNormalizationStatTilingReadyBindings, PULPGroupNormalizationTilingReadyBindings, \
+    PULPiHardswishTilingReadyBindings, PULPInPlaceAccumulatorV2TilingReadyBindings, \
+    PULPiRMSNormTilingReadyBindings, PULPiRQSGELUTilingReadyBindings, PULPLayernormGradTilingReadyBindings, \
+    PULPLayernormTilingReadyBindings, PULPMatMulTilingReadyBindings, PULPMaxPool2DTilingReadyBindings, \
+    PULPMulTilingReadyBindings, PULPPWConvGradW2DTilingReadyBindings, PULPPWConvGradX2DTilingReadyBindings, \
+    PULPReduceMeanTilingReadyBindings, PULPReduceSumTilingReadyBindings, PULPReluGradTilingReadyBindings, \
+    PULPReluTilingReadyBindings, PULPRQAddTilingReadyBindings, PULPRQSConv2DTilingReadyBindings, \
+    PULPRQSDWConv2DTilingReadyBindings, PULPRQSGEMMTilingReadyBindings, PULPRQSiHardswishTilingReadyBindings, \
+    PULPRQSMatrixVecTilingReadyBindings, PULPRQSTallGEMMTilingReadyBindings, PULPRQSTilingReadyBindings, \
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
@@ -177,7 +188,13 @@ PULPMapping = {
     'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossDualOutputMapper, SoftmaxCrossEntropyLossMapper]),
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
     'SGD': SGDLayer([SGDMapper]),
-    'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper])
+    'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper]),
+    'GroupNormalizationStat': GroupNormalizationStatLayer([GroupNormalizationStatMapper]),
+    'GroupNormalization': GroupNormalizationLayer([GroupNormalizationMapper]),
+    'GroupNormGradXStat': GroupNormGradXStatLayer([GroupNormGradXStatMapper]),
+    'GroupNormGradX': GroupNormGradXLayer([GroupNormGradXMapper]),
+    'GroupNormGradW': GroupNormGradWLayer([GroupNormGradWMapper]),
+    'GroupNormGradB': GroupNormGradBLayer([GroupNormGradBMapper]),
 }
 
 
