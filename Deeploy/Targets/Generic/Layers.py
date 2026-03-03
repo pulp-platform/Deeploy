@@ -725,3 +725,12 @@ class InPlaceAccumulatorV2Layer(ONNXLayer):
     def computeOps(self):
         # One conditional check + one element-wise op (copy or add) per element
         return self.mapper.parser.operatorRepresentation['size']
+
+
+class ReluGradLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']

@@ -44,7 +44,7 @@ def _resolve_optimizer_dir(config: DeeployTestConfig) -> str:
     if config.optimizer_dir:
         return config.optimizer_dir
     test_parent = Path(config.test_dir).parent
-    return str(test_parent / "convit_optimizer")
+    return str(test_parent / "tinytransformer_optimizer")
 
 
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:

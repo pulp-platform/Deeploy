@@ -1117,6 +1117,33 @@ class ReluParser(NodeParser):
         return ctxt, True
 
 
+class ReluGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        upstream_grad = ctxt.lookup(node.inputs[0].name)
+        relu_input = ctxt.lookup(node.inputs[1].name)
+        relu_grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['grad_out'] = upstream_grad.name
+        self.operatorRepresentation['data_in'] = relu_input.name
+        self.operatorRepresentation['grad_in'] = relu_grad.name
+        self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
+
+        return ctxt, True
+
+
 class ReshapeParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
