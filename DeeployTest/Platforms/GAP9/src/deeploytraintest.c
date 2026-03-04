@@ -100,6 +100,12 @@ struct pi_device cluster_dev;
 #define TOTAL_FWD_PASSES (N_TRAIN_STEPS * N_ACCUM_STEPS)
 static float stored_losses[TOTAL_FWD_PASSES];
 
+/* Number of test data samples in testDataVector (from testinputs.h).
+ * TODO: emit this from the code generator instead of hardcoding. */
+#ifndef N_TEST_SAMPLES
+#define N_TEST_SAMPLES 20
+#endif
+
 /* -------------------------------------------------------------------------
  * Wrapper functions for cluster task execution
  * ---------------------------------------------------------------------- */
@@ -306,10 +312,6 @@ for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
   printf("Starting training (%u optimizer steps x %u accum steps)...\r\n",
          (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS);
 
-  uint32_t total_avail, largest_block;
-  pi_l2_available_get(&total_avail, &largest_block);
-  printf("L2 available: total=%u bytes, largest_block=%u bytes\n", 
-        total_avail, largest_block);
 
   uint32_t training_cycles   = 0;
   uint32_t optimizer_cycles  = 0;
@@ -332,22 +334,21 @@ for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
             (accum_step == 0) ? 1u : 0u;
       }
 
-      /* ② Load this mini-batch's data + labels. */
+      /* ② Load this mini-batch's data + labels (wrap around dataset). */
+      uint32_t data_idx = mb % N_TEST_SAMPLES;
       for (uint32_t buf = 0; buf < TRAINING_NUM_DATA_INPUTS; buf++) {
         if ((uint32_t)DeeployNetwork_inputs[buf] >= 0x10000000) {
           memcpy(DeeployNetwork_inputs[buf],
-                 testDataVector[mb][buf],
+                 testDataVector[data_idx][buf],
                  DeeployNetwork_inputs_bytes[buf]);
         }
       }
 
-      printf("Before network exec\n");
       /* ③ Forward + backward + InPlaceAccumulatorV2. */
       pi_cluster_task(&cluster_task, RunTrainingNetworkWrapper, NULL);
       // cluster_task.stack_size       = MAINSTACKSIZE;
       cluster_task.slave_stack_size = SLAVESTACKSIZE;
       pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
-      printf("After network exec\n");
 
       /* ④ Store loss — use memcpy to avoid float registers on FC (no FPU). */
       if ((uint32_t)DeeployNetwork_outputs[0] >= 0x10000000u) {
