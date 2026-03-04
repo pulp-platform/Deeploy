@@ -20,17 +20,19 @@
  * so the backward pass can reuse them without recomputation.
  */
 void PULP_Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
-                              float32_t *scale, float32_t *bias,
-                              float32_t *mean_out, float32_t *inv_std_dev_out,
-                              uint32_t size, uint32_t lastDimLength,
-                              float32_t epsilon) {
+                float32_t *scale, float32_t *bias,
+                float32_t *mean_out, float32_t *inv_std_dev_out,
+                uint32_t size, uint32_t lastDimLength,
+                float32_t epsilon) {
+
+  epsilon = 0.0001f;
 
   int8_t core_id = pi_core_id();
   int8_t log2Core = LOG2(NUM_CORES);
 
   int32_t seq_length = size / lastDimLength;
   int32_t chunk =
-      (seq_length >> log2Core) + ((seq_length & (NUM_CORES - 1)) != 0);
+    (seq_length >> log2Core) + ((seq_length & (NUM_CORES - 1)) != 0);
   int32_t start_seq = MIN(chunk * core_id, seq_length);
   int32_t end_seq = MIN(start_seq + chunk, seq_length);
 
@@ -60,7 +62,6 @@ void PULP_Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
       var += diff * diff;
     }
     var /= (float32_t)lastDimLength;
-
     float32_t isd = 1.0f / sqrtf(var + epsilon);
 
     /* Write stash (indexed by global sequence position) */
