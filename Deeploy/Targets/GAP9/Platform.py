@@ -29,15 +29,15 @@ from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, Gat
     LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
-    TransposeLayer, iHardswishLayer, iRMSNormLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, GELUGradLayer
+    TransposeLayer, iHardswishLayer, iRMSNormLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, GELUGradLayer, ReluGradLayer, DebugPrintLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUParser, GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, \
     QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, \
     RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, LayerNormGradParser, \
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
-    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, InPlaceAccumulatorV2Parser, GELUGradParser
+    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, InPlaceAccumulatorV2Parser, GELUGradParser, ReluGradParser, DebugParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.GAP9.Bindings import GAP9SoftmaxCrossEntropyLossDualOutputBindings, GAP9LayernormGradBinding, GAP9FloatGELUGradBinding
+from Deeploy.Targets.GAP9.Bindings import GAP9SoftmaxCrossEntropyLossDualOutputBindings, GAP9LayernormGradBinding, GAP9FloatGELUGradBinding, GAP9ReluGradBinding, GAP9BasicDebugPrintBindings
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
     PULPDWConv1DBinding, PULPReduceMeanBindings, PULPRQSConv1DBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
@@ -77,6 +77,7 @@ GAP9_TallGEMMMapper = NodeMapper(PULPTallGEMMParser(), GAP9RQSTallGEMMTilingRead
 GAP9_MaxPool2DMapper = NodeMapper(MaxPool2DParser(), GAP9MaxPool2DTilingReadyBindings)
 GAP9_LayerNormMapper = NodeMapper(LayerNormParser(), GAP9LayernormTilingReadyBindings)
 GAP9_ReluMapper = NodeMapper(ReluParser(), GAP9ReluTilingReadyBindings)
+ReluGradMapper = NodeMapper(ReluGradParser(), [GAP9ReluGradBinding])
 GAP9_SoftmaxMapper = NodeMapper(SoftmaxParser(), GAP9SoftmaxTilingReadyBindings)
 GAP9_SoftmaxGradMapper = NodeMapper(SoftmaxGradParser(), GAP9SoftmaxGradTilingReadyBindings)
 GAP9_Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), GAP9SoftmaxTilingReadyBindings)
@@ -99,6 +100,8 @@ GAP9SoftmaxCrossEntropyLossDualOutputMapper = NodeMapper(SoftmaxCrossEntropyLoss
                                                      GAP9SoftmaxCrossEntropyLossDualOutputBindings)
 GAP9LayerNormGradMapper = NodeMapper(LayerNormGradParser(), [GAP9LayernormGradBinding])
 GAP9GELUGradMapper = NodeMapper(GELUGradParser(), [GAP9FloatGELUGradBinding])
+
+DebugMapper = NodeMapper(DebugParser(), GAP9BasicDebugPrintBindings)
 
 # GAP9-specific mapping using ClDma
 GAP9Mapping = {
@@ -150,6 +153,8 @@ GAP9Mapping = {
         PadLayer([GAP9_Pad1DMapper, GAP9_Pad2DMapper]),
     'Relu':
         ReluLayer([GAP9_ReluMapper]),
+    'ReluGrad': 
+        ReluGradLayer([ReluGradMapper]),
     'Reshape':
         ReshapeLayer([GAP9_ReshapeMapper]),
     'Squeeze':
@@ -182,7 +187,9 @@ GAP9Mapping = {
         SoftmaxCrossEntropyLossGradLayer([GAP9_SoftmaxCrossEntropyLossGradMapper]),
     'SGD':
         SGDLayer([GAP9_SGDMapper]),
-    'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([GAP9InPlaceAccumulatorV2Mapper])
+    'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([GAP9InPlaceAccumulatorV2Mapper]),
+    'DebugPrint': 
+        DebugPrintLayer([DebugMapper]),
 }
 
 

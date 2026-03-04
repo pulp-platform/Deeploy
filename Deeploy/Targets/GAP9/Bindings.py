@@ -22,11 +22,11 @@ from Deeploy.Targets.GAP9.DMA.L3Dma import gap9L3DmaHack
 from Deeploy.Targets.GAP9.DMA.MchanDma import GAP9MchanDma
 # Import templates from PULPOpen and Generic
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, \
-    FloatReduceSumTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
+    FloatReduceSumTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate, DebugPrintTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
     QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, InPlaceAccumulatorV2Checker
+    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, InPlaceAccumulatorV2Checker, DebugPrintChecker
 from Deeploy.Targets.PULPOpen.Bindings import ForkClosure, L3MemoryAwareFunctionCallClosure, \
     MemoryAwareForkTransformer, MemoryAwareFunctionCallClosure, TilingCallClosure
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -377,6 +377,10 @@ GAP9MulBindings = [
 GAP9ReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                               FloatReluTemplate.referenceTemplate, GAP9Transformer)
 
+GAP9ReluGradBinding = NodeBinding(
+    ReluChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),    
+    FloatReluTemplate.referenceGradTemplate, GAP9Transformer)
+
 GAP9LayernormBinding = NodeBinding(
     LayerNormChecker(
         # inputs: grad_in (dY), data_in (X), weight (scale/gamma),
@@ -441,4 +445,9 @@ GAP9SoftmaxCrossEntropyLossDualOutputBindings = [
         SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)],
                                        [PointerClass(float32_t), PointerClass(float32_t)]),
         SoftmaxCrossEntropyLossTemplate.referenceDualOutputTemplate, GAP9Transformer) for type in IntegerDataTypes
+]
+
+GAP9BasicDebugPrintBindings = [
+    NodeBinding(DebugPrintChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), DebugPrintTemplate.referenceTemplate,
+                GAP9Transformer)
 ]

@@ -231,6 +231,74 @@ void PrintMatrix_s32_NHWC(int32_t const *__restrict__ pSrcA, uint32_t N,
   }
 }
 
+void PrintMatrix_fp32_NCHW(float const *__restrict__ pSrcA, uint32_t N,
+                           uint32_t C, uint32_t H, uint32_t W, float offset) {
+  for (uint32_t n = 0; n < N; n++) {
+    if (N > 0)
+      deeploy_log("[\r\n");
+
+    for (uint32_t c = 0; c < C; c++) {
+      if (N > 0) {
+        deeploy_log("  [\r\n  ");
+      } else if (C > 0) {
+        deeploy_log("[\r\n");
+      }
+      for (uint32_t h = 0; h < H; h++) {
+        for (uint32_t w = 0; w < W; w++) {
+          deeploy_log(
+              "%11.6f ",
+              pSrcA[n * C * H * W + c * H * W + h * W + w] + offset);
+        }
+
+        if (N > 0) {
+          deeploy_log("\r\n  ");
+        } else {
+          deeploy_log("\r\n");
+        }
+      }
+      if (C > 0)
+        deeploy_log("]\r\n");
+    }
+
+    if (N > 0)
+      deeploy_log("]\r\n");
+  }
+}
+
+void PrintMatrix_fp32_NHWC(float const *__restrict__ pSrcA, uint32_t N,
+                           uint32_t C, uint32_t H, uint32_t W, float offset) {
+  for (uint32_t n = 0; n < N; n++) {
+    if (N > 0)
+      deeploy_log("[\r\n");
+
+    for (uint32_t c = 0; c < C; c++) {
+      if (N > 0) {
+        deeploy_log("  [\r\n  ");
+      } else if (C > 0) {
+        deeploy_log("[\r\n");
+      }
+      for (uint32_t h = 0; h < H; h++) {
+        for (uint32_t w = 0; w < W; w++) {
+          deeploy_log(
+              "%11.6f ",
+              pSrcA[n * C * H * W + h * C * W + w * C + c] + offset);
+        }
+
+        if (N > 0) {
+          deeploy_log("\r\n  ");
+        } else {
+          deeploy_log("\r\n");
+        }
+      }
+      if (C > 0)
+        deeploy_log("]\r\n");
+    }
+
+    if (N > 0)
+      deeploy_log("]\r\n");
+  }
+}
+
 void PrintArray_s8(int8_t const *__restrict__ pSrcA, uint32_t N,
                    int32_t offset) {
   for (uint32_t n = 0; n < N; n++) {
