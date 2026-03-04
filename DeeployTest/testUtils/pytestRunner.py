@@ -140,6 +140,7 @@ def create_training_test_config(
     n_train_steps: int = 1,
     n_accum_steps: int = 1,
     training_num_data_inputs: int = 2,
+    optimizer_dir: Optional[str] = None,
 ) -> DeeployTestConfig:
 
     test_dir = f"Tests/{test_name}"
@@ -159,6 +160,15 @@ def create_training_test_config(
     if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka"]:
         gen_args_list.append(f"--cores={cores}")
 
+    # Resolve optimizer_dir relative to Tests/ when given as a relative path
+    optimizer_dir_abs = None
+    if optimizer_dir is not None:
+        p = Path(optimizer_dir)
+        if not p.is_absolute():
+            optimizer_dir_abs = str(Path(deeploy_test_dir) / "Tests" / optimizer_dir)
+        else:
+            optimizer_dir_abs = optimizer_dir
+
     return DeeployTestConfig(
         test_name = test_name_clean,
         test_dir = test_dir_abs,
@@ -175,4 +185,5 @@ def create_training_test_config(
         n_train_steps = n_train_steps,
         n_accum_steps = n_accum_steps,
         training_num_data_inputs = training_num_data_inputs,
+        optimizer_dir = optimizer_dir_abs,
     )

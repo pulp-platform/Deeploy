@@ -5,14 +5,31 @@
 PLATFORM_NAME = "Siracusa"
 SIMULATOR = "gvsoc"
 DEFAULT_CORES = 8
-DEFAULT_N_TRAIN_STEPS = 1
-DEFAULT_N_ACCUM_STEPS = 1
 
-# Training tests: test_name -> (n_train_steps, n_accum_steps, training_num_data_inputs)
-# test_name is relative to DeeployTest/Tests/
-# NOTE: simplemlp_train uses an external path — handled specially in test function
+# Training tests for Siracusa (non-tiled, forward + backward + optimizer).
+#
+# Keys are relative to DeeployTest/Tests/.
+# Each entry is a dict with:
+#   n_train_steps          -- number of optimizer (weight-update) steps
+#   n_accum_steps          -- mini-batches accumulated per optimizer step
+#   num_data_inputs        -- number of inputs that change per mini-batch
+#   optimizer_dir          -- (optional) relative path to optimizer network dir
+#                             (resolved to DeeployTest/Tests/<optimizer_dir>)
 TRAINING_TESTS = {
-    "Models/SimpleMLP_Train": (1, 1, 2),
-    "Models/Transformer_Train": (1, 1, 2),
-    "Models/CCT_Train/CCT2_FT1": (1, 1, 2),
+    "Models/MLP_Train/simplemlp_train": {
+        "n_train_steps": 1,
+        "n_accum_steps": 8,
+        "num_data_inputs": 2,
+        "optimizer_dir": "Models/MLP_Train/simplemlp_optimizer",
+    },
+    "Models/Transformer_Train": {
+        "n_train_steps": 1,
+        "n_accum_steps": 1,
+        "num_data_inputs": 2,
+    },
+    "Models/CCT_Train/CCT2_FT1": {
+        "n_train_steps": 1,
+        "n_accum_steps": 1,
+        "num_data_inputs": 2,
+    },
 }

@@ -347,11 +347,11 @@ for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
     .n         = total_loss_checks,
     .err_count = &loss_err_count,
   };
-  // pi_cluster_task(&cluster_task, CompareLossesOnCluster, &loss_cmp_args);
-  // cluster_task.stack_size       = MAINSTACKSIZE;
-  // cluster_task.slave_stack_size = SLAVESTACKSIZE;
-  // pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
-  // printf("Errors: %u out of %u\r\n", (unsigned)loss_err_count, (unsigned)total_loss_checks);
+  pi_cluster_task(&cluster_task, CompareLossesOnCluster, &loss_cmp_args);
+  cluster_task.stack_size       = MAINSTACKSIZE;
+  cluster_task.slave_stack_size = SLAVESTACKSIZE;
+  pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+  printf("Errors: %u out of %u\r\n", (unsigned)loss_err_count, (unsigned)total_loss_checks);
 
 
 
