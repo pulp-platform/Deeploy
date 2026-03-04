@@ -137,10 +137,11 @@ def create_training_test_config(
     toolchain_dir: Optional[str],
     cmake_args: List[str],
     cores: Optional[int] = None,
-    n_train_steps: int = 1,
-    n_accum_steps: int = 1,
-    training_num_data_inputs: int = 2,
+    n_train_steps: Optional[int] = None,
+    n_accum_steps: Optional[int] = None,
+    training_num_data_inputs: Optional[int] = None,
     optimizer_dir: Optional[str] = None,
+    tiling: bool = False,
 ) -> DeeployTestConfig:
 
     test_dir = f"Tests/{test_name}"
@@ -174,7 +175,7 @@ def create_training_test_config(
         test_dir = test_dir_abs,
         platform = platform,
         simulator = simulator,
-        tiling = False,
+        tiling = tiling,
         gen_dir = gen_dir,
         build_dir = build_dir,
         toolchain = toolchain,

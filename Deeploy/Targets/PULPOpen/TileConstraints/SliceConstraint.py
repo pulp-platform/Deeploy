@@ -51,7 +51,7 @@ class SliceTileConstraint(TileConstraint):
                 axIndex = list(sliceAxes).index(idx)
                 axStep = sliceSteps[axIndex]
 
-                tilerModel.addConstraint(inputDimensionVar == ((outputDimensionVar - 1) * axStep + 1))
+                tilerModel.addConstraint(inputDimensionVar == ((outputDimensionVar - 1) * int(axStep) + 1))
             else:
                 # Otherwise, input and output dimensions need to be equal
                 tilerModel.addConstraint(outputDimensionVar == inputDimensionVar)

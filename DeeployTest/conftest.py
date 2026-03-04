@@ -81,6 +81,9 @@ def pytest_configure(config: pytest.Config) -> None:
         "deeploy_internal: mark test as internal Deeploy test (state serialization, extensions, transformations)")
     config.addinivalue_line("markers",
                             "siracusa_train: mark test as a Siracusa training test (forward + backward + optimizer)")
+    config.addinivalue_line(
+        "markers",
+        "siracusa_train_tiled: mark test as a Siracusa tiled training test (forward + backward + optimizer, tiled)")
 
     # Configure logging based on verbosity
     verbosity = config.option.verbose
