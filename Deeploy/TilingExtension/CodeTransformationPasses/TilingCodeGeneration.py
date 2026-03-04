@@ -141,8 +141,12 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
             for i, snippet in enumerate(snippets):
                 opReprUpdates[i].append(snippet.operatorRepresentation)
 
+        # Include direction in the prefix so that per-tile opRepr values hoisted for
+        # the same tensor in both ingress and egress schedules don't collide in the
+        # global context (e.g. accum_buffer for in-place operators).
+        dirSuffix = "in_" if direction == "ExternalToLocal" else "out_"
         tiledSnippets: List[CodeSnippet] = [
-            CodeSnippet(*self._tileTemplate(ctxt, opReprUpdate, template, tileIdxVar, f"{tensorName}_"))
+            CodeSnippet(*self._tileTemplate(ctxt, opReprUpdate, template, tileIdxVar, f"{tensorName}_{dirSuffix}"))
             for template, opReprUpdate in zip(templates, opReprUpdates)
         ]
 

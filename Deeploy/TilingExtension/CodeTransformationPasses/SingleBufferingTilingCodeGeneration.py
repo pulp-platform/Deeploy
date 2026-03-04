@@ -43,8 +43,11 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                                       localBuffer._type.referencedType.typeWidth,
                                                                       self.isFinalMemoryLevel(tensorMemoryConstraint))
 
+            # Include direction in the reference name to avoid collisions when the
+            # same external buffer appears in both ingress and egress schedules (in-place).
+            dirTag = "in" if direction == "ExternalToLocal" else "out"
             externalBufferRef = self._hoistReference(ctxt,
-                                                     externalBuffer.name + "_ref",
+                                                     externalBuffer.name + f"_ref_{dirTag}",
                                                      externalBuffer,
                                                      shape = externalBufferShape,
                                                      override_type = VoidType)
@@ -99,9 +102,12 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
         ingressDMAStatements += [future.wait() for future in ingressFutures]
 
         # 2.4) Output data transfer for current tile
+        # Use combined tensor constraints so that in-place buffers (e.g. accum_buffer)
+        # which appear in the egress schedule but are registered under input constraints
+        # can still be found.
         ctxt, egressDMAStatements, egressFutures = self._generateTransferScheduleCalls(
             ctxt, operatorRepresentation, tilingSchedule.outputLoadSchedule,
-            nodeMemoryConstraint.outputTensorMemoryConstraints, "TILING_I", "LocalToExternal")
+            nodeMemoryConstraint.tensorMemoryConstraints, "TILING_I", "LocalToExternal")
         egressDMAStatements = [CodeSnippet(self._lineComment, {"comment": "Transfer output tiles"})
                               ] + egressDMAStatements
         egressDMAStatements += [CodeSnippet(self._lineComment, {"comment": "Wait for output tiles"})]

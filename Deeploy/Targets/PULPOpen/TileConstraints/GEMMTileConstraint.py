@@ -276,6 +276,11 @@ class FloatGEMMTileConstraint(TileConstraint):
         ]
 
         has_bias = 'C' in operatorRepresentation and operatorRepresentation['C'] is not None
+        # Bias may be a small constant that the tiler keeps in L2 (single-level), so it won't
+        # appear in tilingSolution.tensorMemoryConstraints.  Only include it in the DMA schedule
+        # when it actually participates in the tiling solution.
+        if has_bias:
+            has_bias = operatorRepresentation['C'] in tilingSolution.tensorMemoryConstraints
 
         addrNames = ['A', 'B', 'data_out']
         if has_bias:

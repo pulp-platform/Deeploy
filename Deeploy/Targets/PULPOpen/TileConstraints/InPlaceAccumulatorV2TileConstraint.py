@@ -51,9 +51,26 @@ class InPlaceAccumulatorV2TileConstraint(BOPTileConstraint):
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        addrNames = [cls.dataIn1Name, cls.dataIn2Name, cls.dataOutName, 'lazy_reset_grad']
+        # The tiled template (tiledReferenceTemplate) writes ONLY to ${accum_buffer}
+        # and does NOT reference ${data_out}.  Therefore data_out is omitted from
+        # addrNames — it gets no L1 tile ref and generates no DMA transfer.
+        #
+        # Background: the memory allocator may place data_out at a DIFFERENT L2 address
+        # from accum_buffer, even though they are declared as aliases.  If data_out were
+        # added to outputBaseOffsets + outputLoadSchedule, the egress DMA would write the
+        # full weight tensor (with a stride) starting at data_out's L2 address, corrupting
+        # other live L2 buffers that share that region.
+        #
+        # The optimizer reads the updated gradient from accum_buffer's L2 address
+        # (DeeployNetwork_inputs[TRAINING_GRAD_BUF_START_IDX + wi]), which is correctly
+        # updated by the accum_buffer egress DMA below.
+        addrNames = [cls.dataIn1Name, cls.dataIn2Name, 'lazy_reset_grad']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
+
+        # Add accum_buffer to outputBaseOffsets + outputLoadSchedule for the in-place
+        # write-back egress DMA (L1 tile → accum_buffer's L2 address).
+        outputBaseOffsets[cls.dataIn1Name] = inputBaseOffsets[cls.dataIn1Name]
 
         replacements = {"size": []}
         replacementTypes = {"size": PointerClass(uint16_t)}
@@ -75,7 +92,10 @@ class InPlaceAccumulatorV2TileConstraint(BOPTileConstraint):
             })
 
         for out in outputCubes:
-            outputLoadSchedule.append({cls.dataOutName: out})
+            # Egress: write accum_buffer tile back to its L2 address (input_4 / input_5).
+            outputLoadSchedule.append({
+                cls.dataIn1Name: out,
+            })
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)

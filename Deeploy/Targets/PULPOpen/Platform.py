@@ -58,9 +58,9 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAvera
     PULPRQSDWConv2DTilingReadyBindings, PULPRQSGEMMTilingReadyBindings, PULPRQSiHardswishTilingReadyBindings, \
     PULPRQSMatrixVecTilingReadyBindings, PULPRQSTallGEMMTilingReadyBindings, PULPRQSTilingReadyBindings, \
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
+    PULPSoftmaxCrossEntropyLossDualOutputTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
-from Deeploy.Targets.PULPOpen.Bindings import PULPSoftmaxCrossEntropyLossDualOutputBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -126,7 +126,7 @@ RQSiHardswishMapper = NodeMapper(RQSiHardswishParser(), PULPRQSiHardswishTilingR
 SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(), PULPSoftmaxCrossEntropyTilingReadyBindings)
 # Dual-output mapper (loss + log_prob): tried first; falls back to single-output mapper for 1-output nodes
 SoftmaxCrossEntropyLossDualOutputMapper = NodeMapper(SoftmaxCrossEntropyLossParser(),
-                                                     PULPSoftmaxCrossEntropyLossDualOutputBindings)
+                                                     PULPSoftmaxCrossEntropyLossDualOutputTilingReadyBindings)
 SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
                                                PULPSoftmaxCrossEntropyGradTilingReadyBindings)
 SGDMapper = NodeMapper(SGDParser(), PULPSGDTilingReadyBindings)

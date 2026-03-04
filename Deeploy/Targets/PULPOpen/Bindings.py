@@ -431,6 +431,17 @@ PULPInPlaceAccumulatorV2Bindings = [
         FloatInPlaceAccumulatorV2Template.referenceTemplate, ForkTransformer)
 ]
 
+# Tiled variant: uses tiledReferenceTemplate which writes only to accum_buffer.
+# data_out is not written in the tiled kernel — the DMA egress for accum_buffer
+# carries the gradient back to L2; data_out's L2 address may overlap with other
+# live buffers so writing there via DMA would corrupt L2.
+PULPInPlaceAccumulatorV2TiledBindings = [
+    NodeBinding(
+        InPlaceAccumulatorV2Checker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(uint8_t)], [PointerClass(float32_t)]),
+        FloatInPlaceAccumulatorV2Template.tiledReferenceTemplate, ForkTransformer)
+]
+
 PULPTransposeBindings = [
     NodeBinding(TransposeChecker([PointerClass(type)], [PointerClass(type)]), TransposeTemplate.referenceTemplate,
                 ForkTransformer) for type in IntegerDataTypes

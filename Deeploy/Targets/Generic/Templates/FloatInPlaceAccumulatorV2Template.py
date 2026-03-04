@@ -37,18 +37,22 @@ class _GenericInPlaceAccumulatorV2Template(NodeTemplate):
 
 referenceTemplate = _GenericInPlaceAccumulatorV2Template("""
 // InPlaceAccumulatorV2 - true in-place (Name: ${nodeName}, Op: ${nodeOp})
-// data_out aliases accum_buffer (same memory); result written directly to accum_buffer.
+// Writes result to accum_buffer (in-place) and data_out (explicit output).
+// In training, data_out aliases accum_buffer (same or separate allocation).
 // Reset (lazy_reset_grad=1): accum_buffer  = gradient
 // Accum (lazy_reset_grad=0): accum_buffer += gradient
 BEGIN_SINGLE_CORE
-    if (${lazy_reset_grad}[0]) {
+    // Generic platform uses sign-propagation: uint8 0 -> int8 -128, uint8 1 -> int8 -127.
+    // We detect "reset" as any value strictly above INT8_MIN (i.e., > -128).
+    if (${lazy_reset_grad}[0] > (int8_t)(-128)) {
         for (uint32_t i = 0; i < ${size}; i++) {
             ${accum_buffer}[i] = ${gradient}[i];
+            ${data_out}[i] = ${gradient}[i];
         }
     } else {
         for (uint32_t i = 0; i < ${size}; i++) {
             ${accum_buffer}[i] += ${gradient}[i];
-        }
+            ${data_out}[i] = ${accum_buffer}[i];
     }
 END_SINGLE_CORE
 """)

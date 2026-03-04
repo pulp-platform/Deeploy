@@ -321,7 +321,7 @@ class MemoryScheduler():
             buffer = ctxt.lookup(tensorName)
             new_lifetime = lifetime
             if buffer.is_input:
-                new_lifetime = (0, lifetime[-1])
+                new_lifetime = (0, maxStepIdx)
             if buffer.is_output:
                 new_lifetime = (lifetime[0], maxStepIdx)
             tensorLifetimeMap[tensorName] = new_lifetime

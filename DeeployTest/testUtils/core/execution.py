@@ -20,8 +20,12 @@ def _augment_path(env: dict) -> dict:
 
     The install dirs are already set as env vars (GVSOC_INSTALL_DIR,
     LLVM_INSTALL_DIR) but their bin/ subdirectories may not be in PATH.
+
+    /usr/bin is also prepended so that gapy's `#!/usr/bin/env python3`
+    resolves to /usr/bin/python3 (which has all required packages) rather
+    than a minimal venv that may be earlier in PATH.
     """
-    extra = []
+    extra = ['/usr/bin']
     for var in ('GVSOC_INSTALL_DIR', 'LLVM_INSTALL_DIR'):
         install_dir = env.get(var, '')
         if install_dir:
@@ -29,8 +33,7 @@ def _augment_path(env: dict) -> dict:
             current = env.get('PATH', '').split(':')
             if bin_dir not in current:
                 extra.append(bin_dir)
-    if extra:
-        env['PATH'] = ':'.join(extra) + ':' + env.get('PATH', '')
+    env['PATH'] = ':'.join(extra) + ':' + env.get('PATH', '')
     return env
 
 
@@ -68,7 +71,73 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
 
     script_dir = Path(__file__).parent.parent.parent
 
-    if config.training:
+    if config.training and config.tiling:
+        # --- Tiled training: testMVPTraining.py (tiling pipeline + training init) ---
+        generation_script = script_dir / "testMVPTraining.py"
+        cmd = [
+            sys.executable,
+            str(generation_script),
+            "-d", config.gen_dir,
+            "-t", config.test_dir,
+            "-p", config.platform,
+        ]
+        if config.n_train_steps is not None:
+            cmd.append(f"--n-steps={config.n_train_steps}")
+        if config.n_accum_steps is not None:
+            cmd.append(f"--n-accum={config.n_accum_steps}")
+        if config.training_num_data_inputs is not None:
+            cmd.append(f"--num-data-inputs={config.training_num_data_inputs}")
+        if config.verbose > 0:
+            cmd.append("-" + "v" * config.verbose)
+        if config.debug:
+            cmd.append("--debug")
+        cmd.extend(config.gen_args)
+
+        log.debug(f"[Execution] Tiled training generation command: {' '.join(cmd)}")
+        result = subprocess.run(cmd, check=False)
+        if result.returncode != 0:
+            raise RuntimeError(f"Tiled training network generation failed for {config.test_name}")
+
+        # Read back auto-detected values written by testMVPTraining.py
+        meta_path = Path(config.gen_dir) / "training_meta.json"
+        if meta_path.exists():
+            with open(meta_path) as f:
+                meta = json.load(f)
+            config.n_train_steps = meta["n_train_steps"]
+            config.n_accum_steps = meta["n_accum_steps"]
+            config.training_num_data_inputs = meta["training_num_data_inputs"]
+            log.info(f"[Execution] Training meta: {meta}")
+
+        # --- Step 2: Optimizer network (SGD) ---
+        opt_dir = _resolve_optimizer_dir(config)
+        opt_script = script_dir / "generateOptimizerNetwork.py"
+
+        if not Path(opt_dir).exists():
+            log.warning(f"Optimizer directory not found: {opt_dir} — skipping optimizer codegen")
+        elif not opt_script.exists():
+            log.warning(f"generateOptimizerNetwork.py not found — skipping optimizer codegen")
+        else:
+            opt_cmd = [
+                sys.executable,
+                str(opt_script),
+                "-d", config.gen_dir,
+                "-t", opt_dir,
+                "-p", config.platform,
+            ]
+            for arg in config.gen_args:
+                if arg.startswith("--cores"):
+                    opt_cmd.append(arg)
+            if config.verbose > 0:
+                opt_cmd.append("-" + "v" * config.verbose)
+
+            log.debug(f"[Execution] Optimizer generation command: {' '.join(opt_cmd)}")
+            result = subprocess.run(opt_cmd, check=False)
+            if result.returncode != 0:
+                raise RuntimeError(f"Optimizer network generation failed for {config.test_name}")
+
+        return  # early return — tiled training path complete
+
+    elif config.training:
         # --- Step 1: Training network (forward + backward + accumulation) ---
         generation_script = script_dir / "generateTrainingNetwork.py"
         cmd = [
@@ -330,6 +399,7 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     for line in proc.stdout:
         print(line, end = '', flush = True)
         stdout_lines.append(line)
+    proc.stdout.close()
     proc.wait()
     stdout_output = ''.join(stdout_lines)
 

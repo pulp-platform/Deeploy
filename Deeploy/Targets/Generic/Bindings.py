@@ -328,12 +328,19 @@ BasicConvTransposeBindings = [
         BasicTransformer) for type in FloatDataTypes
 ]
 
-# InPlaceAccumulatorV2: buffer (float32) + gradient (float32) + lazy_reset_grad (uint8) -> out (float32)
+# InPlaceAccumulatorV2: buffer (float32) + gradient (float32) + lazy_reset_grad (uint8/int8) -> out (float32)
+# Two variants: uint8_t (direct) and int8_t (sign-propagation converts uint8->int8 on Generic platform)
 BasicInPlaceAccumulatorV2Bindings = [
     NodeBinding(
         InPlaceAccumulatorV2Checker(
             [PointerClass(float32_t), PointerClass(float32_t), PointerClass(uint8_t)],
             [PointerClass(float32_t)]),
         FloatInPlaceAccumulatorV2Template.referenceTemplate,
-        BasicTransformer)
+        BasicTransformer),
+    NodeBinding(
+        InPlaceAccumulatorV2Checker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(int8_t)],
+            [PointerClass(float32_t)]),
+        FloatInPlaceAccumulatorV2Template.referenceTemplate,
+        BasicTransformer),
 ]
