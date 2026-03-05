@@ -28,9 +28,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Build Deeploy
-        shell: bash
-        run: pip install -e .
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
       - name: Cache ccache
         uses: actions/cache/restore@v4
         with:
@@ -41,5 +40,5 @@ jobs:
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          pytest test_platforms.py -v -n 4 -m "cortexm and ${{ inputs.pytest-marker }}"
+          uv run pytest test_platforms.py -v -n 4 -m "cortexm and ${{ inputs.pytest-marker }}"
         shell: bash

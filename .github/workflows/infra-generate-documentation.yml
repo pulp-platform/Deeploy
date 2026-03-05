@@ -22,14 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
       - name: Install dependencies
-        run: |
-          pip install .
-          pip install -r requirements-dev.txt
+        run: uv sync --group dev
       - name: Sphinx build
         run: |
-          sphinx-build docs _build
+          uv run sphinx-build docs _build
       - name: Prepare Multipages
         uses: xeratec/gh-pages-multibranch@pr/support_tags
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
