@@ -37,6 +37,7 @@
 #include "kernel/Ceil.h"
 #include "kernel/Clip.h"
 #include "kernel/ConvTranspose1d_fp32.h"
+#include "kernel/ConvTranspose2d_fp32.h"
 #include "kernel/Convolution.h"
 #include "kernel/DWConvolution.h"
 #include "kernel/Div.h"

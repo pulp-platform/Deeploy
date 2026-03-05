@@ -2866,6 +2866,86 @@ class ConvTranspose1DParser(ConvTransposeParser):
         return ctxt, False
 
 
+
+class ConvTranspose2DParser(ConvTransposeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        # 2D ConvTranspose expects 4D input/output and 4D weight
+        wellFormed = super().parseNode(node)
+        ret = False
+        if wellFormed:
+            ret = all([
+                # Make sure strides are 2D
+                len(node.attrs['strides']) == 2,
+                len(node.attrs['pads']) == 4,
+                len(node.attrs['dilations']) == 2,
+            ])
+        if ret:
+
+            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
+            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
+            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
+            self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
+            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][1])
+            self.operatorRepresentation['padding_x'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
+            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+            data_in = newCtxt.lookup(node.inputs[0].name)
+            data_out = newCtxt.lookup(node.outputs[0].name)
+            in_shape = data_in.shape
+            out_shape = data_out.shape
+            weight = newCtxt.lookup(node.inputs[1].name)
+
+            if len(in_shape) != 4 or len(out_shape) != 4 or len(weight.shape) != 4:
+                return ctxt, False
+
+            self.operatorRepresentation['batch'] = in_shape[0]
+
+            if channels_first:
+                self.operatorRepresentation['ch_im_in'] = in_shape[1]
+                self.operatorRepresentation['dim_im_in_x'] = in_shape[2]
+                self.operatorRepresentation['dim_im_in_y'] = in_shape[3]
+                self.operatorRepresentation['ch_im_out'] = out_shape[1]
+                self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
+                self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
+            else:
+                self.operatorRepresentation['ch_im_in'] = in_shape[3]
+                self.operatorRepresentation['dim_im_in_x'] = in_shape[1]
+                self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
+                self.operatorRepresentation['ch_im_out'] = out_shape[3]
+                self.operatorRepresentation['dim_im_out_x'] = out_shape[1]
+                self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
+
+            self.operatorRepresentation["batchOffsetIn"] = (self.operatorRepresentation["ch_im_in"] *
+                                                            self.operatorRepresentation["dim_im_in_x"] *
+                                                            self.operatorRepresentation["dim_im_in_y"])
+            self.operatorRepresentation["batchOffsetOut"] = (self.operatorRepresentation["ch_im_out"] *
+                                                             self.operatorRepresentation["dim_im_out_x"] *
+                                                             self.operatorRepresentation["dim_im_out_y"])
+            return newCtxt, True
+        return ctxt, False
+
+
+
+
+
+
+
 class SqrtParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
