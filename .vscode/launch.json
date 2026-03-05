@@ -11,9 +11,18 @@
       "program": "generateNetwork.py",
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}/DeeployTest",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "subProcess": true,
       "justMyCode": false,
-      "args":
-          "-p${input:platformUntiled} -t${input:model} ${input:additionalArgsUntiled}"
+      "args": [
+        "-p",
+        "${input:platformUntiled}",
+        "-t",
+        "${input:model}",
+        "${input:additionalArgsUntiled}"
+      ]
     },
     {
       "name": "Deeploy Generate Tiled",
@@ -22,9 +31,18 @@
       "program": "testMVP.py",
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}/DeeployTest",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "subProcess": true,
       "justMyCode": false,
-      "args":
-          "-p${input:platformTiled} -t${input:model} ${input:additionalArgsTiled}"
+      "args": [
+        "-p",
+        "${input:platformTiled}",
+        "-t",
+        "${input:model}",
+        "${input:additionalArgsTiled}"
+      ]
     }
   ],
   "inputs": [
@@ -85,7 +103,7 @@
       "id": "additionalArgsTiled",
       "type": "promptString",
       "description": "Additional Arguments",
-      "default": "-v --doublebuffer"
+      "default": "--doublebuffer"
     }
   ]
 }
