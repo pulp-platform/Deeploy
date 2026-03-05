@@ -33,8 +33,6 @@ RUN apt-get update && \
     python3 \
     python3-dev \
     python-is-python3 \
-    python3.10-venv \
-    python3.10-distutils \
     curl \
     protobuf-compiler \
     libftdi-dev \
@@ -65,13 +63,9 @@ elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     ./cmake-3.31.1-linux-aarch64.sh --prefix=/usr --skip-license; \
 fi
 
-# Install pip
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py && \
-    rm get-pip.py
-
-# Install meson
-RUN pip install meson
+# Install uv and meson
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    uv tool install meson
 
 COPY toolchain/ toolchain/
 COPY Makefile ./
@@ -89,3 +83,7 @@ RUN --mount=type=cache,target=/ccache \
 # Remove unecessary files
 WORKDIR /app
 RUN rm -rf build
+RUN rm -rf cmake-* && \
+    rm -rf toolchain/llvm-project && \
+    rm -rf toolchain/minimalloc && \
+    rm -rf toolchain/picolibc

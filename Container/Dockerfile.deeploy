@@ -92,7 +92,7 @@ ENV PATH=/app/install/qemu/bin:/app/install/banshee:/app/install/bender:$PATH
 
 WORKDIR /app/build
 
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 
 # Install dependencies
 RUN apt-get update && \
@@ -104,16 +104,12 @@ RUN apt-get update && \
     libpixman-1-dev \
     libsdl2-dev \
     python-is-python3 \
-    python3.10-venv \
-    python3.10-distutils \
     gcc \
-    zsh && \
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py && \
-    rm get-pip.py && \
-    pip install toml-to-requirements && \
-    toml-to-req --toml-file pyproject.toml && \
-    pip install -r requirements.txt
+    zsh
+
+# Install UV and Python dependencies
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    uv sync --no-dev
 
 # Install CMake
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
@@ -133,8 +129,8 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 
 COPY --from=toolchain /app/core-requirements.txt ./core-requirements.txt
 COPY --from=toolchain /app/gapy-requirements.txt ./gapy-requirements.txt
-COPY requirements-dev.txt ./
-RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-requirements.txt
+RUN uv sync --group dev && \
+    uv pip install -r core-requirements.txt -r gapy-requirements.txt
 
 # Copy pre-built toolchains and emulators
 COPY --from=toolchain /app/install /app/install
