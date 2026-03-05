@@ -34,3 +34,13 @@ SPDX-License-Identifier = "CC-BY-ND-4.0"
 path = ".vscode/*.json"
 SPDX-FileCopyrightText = "2023 ETH Zurich and University of Bologna"
 SPDX-License-Identifier = "CC-BY-ND-4.0"
+
+[[annotations]]
+path = "uv.lock"
+SPDX-FileCopyrightText = "2025 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "CC-BY-ND-4.0"
+
+[[annotations]]
+path = ".python-version"
+SPDX-FileCopyrightText = "2025 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "CC-BY-ND-4.0"
