@@ -18,25 +18,51 @@ readme = "README.md"
 
 requires-python = ">=3.10"
 dependencies = [
-'setuptools==81.0.0',
-'protobuf==4.23.3',
-'numpy<2.0.0',
-'onnx',
-'onnxruntime',
-'onnx-graphsurgeon>=0.5.8',
-'mako',
-'argparse',
-'toml',
-'ortools',
-'plotly',
-'coloredlogs',
-'pytest',
-'pytest-xdist',
+    'protobuf==4.23.3',
+    'numpy<2.0.0',
+    'onnx',
+    'onnxruntime',
+    'onnx-graphsurgeon>=0.5.8',
+    'mako',
+    'toml',
+    'ortools',
+    'plotly',
+    'coloredlogs',
 ]
 
 [project.urls]
 Homepage = "https://github.com/pulp-platform/Deeploy"
 Issues = "https://github.com/pulp-platform/Deeploy/issues"
+
+[dependency-groups]
+dev = [
+    # Quality of life
+    "netron",
+    "debugpy",
+    "IPython",
+    "argcomplete",
+    # Build system
+    "ninja",
+    # Avoid QEMU installation issues: https://gitlab.com/qemu-project/qemu/-/issues/1853
+    "meson==1.3.1",
+    "pyelftools",
+    "pyserial",
+    # Testing
+    "pytest",
+    "pytest-xdist",
+    # Linting
+    "yapf==0.33.0",
+    "isort==5.12.0",
+    "autoflake==2.3.0",
+    "yamllint==1.37.1",
+    "clang-format",
+    "reuse",
+    # Documentation
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst-parser[linkify]",
+    "sphinx_favicon",
+]
 
 [build-system]
 requires = [
