@@ -2729,10 +2729,11 @@ class BatchNormParser(NodeParser):
         self.operatorRepresentation[outputs[0]] = ctxt.lookup(node.outputs[0].name).name
 
         input_shape = ctxt.lookup(node.inputs[0].name).shape
-        # Save input shape information
+        # BatchNorm kernel expects input flattened as [N, C, L], where L covers
+        # every spatial element per channel (e.g., L=H*W for 2D tensors).
         self.operatorRepresentation['batch_size'] = input_shape[0]
         self.operatorRepresentation['channel_size'] = input_shape[1]
-        self.operatorRepresentation['window_size'] = input_shape[2]
+        self.operatorRepresentation['window_size'] = int(np.prod(input_shape[2:]))
 
         return ctxt, True
 
