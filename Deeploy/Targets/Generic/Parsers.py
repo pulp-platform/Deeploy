@@ -2704,14 +2704,11 @@ class BatchNormParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # Verify the attributes (epsilon is mandatory, momentum and training_mode  are optional)
-        if 'epsilon' not in node.attrs:
-            return False
         # Common Inputs: 5 (X, scale, B, mean, var)
         if len(node.inputs) < 5:
             return False
 
-        # Save the attributes, default values are provided if not present
+        # Save attributes (ONNX defaults when attributes are omitted)
         self.operatorRepresentation['epsilon'] = node.attrs.get('epsilon', 1e-5)
         self.operatorRepresentation['momentum'] = node.attrs.get('momentum', 0.9)
         self.operatorRepresentation['training_mode'] = node.attrs.get('training_mode', 0)
@@ -2729,11 +2726,15 @@ class BatchNormParser(NodeParser):
         self.operatorRepresentation[outputs[0]] = ctxt.lookup(node.outputs[0].name).name
 
         input_shape = ctxt.lookup(node.inputs[0].name).shape
-        # BatchNorm kernel expects input flattened as [N, C, L], where L covers
-        # every spatial element per channel (e.g., L=H*W for 2D tensors).
+        # BatchNorm runs on flattened [N, C, L] for channels-first and [N, L, C]
+        # for channels-last, where L covers all spatial positions.
         self.operatorRepresentation['batch_size'] = input_shape[0]
-        self.operatorRepresentation['channel_size'] = input_shape[1]
-        self.operatorRepresentation['window_size'] = int(np.prod(input_shape[2:]))
+        self.operatorRepresentation['channel_size'] = input_shape[1] if channels_first else input_shape[-1]
+        if channels_first:
+            self.operatorRepresentation['window_size'] = int(np.prod(input_shape[2:]))
+        else:
+            self.operatorRepresentation['window_size'] = int(np.prod(input_shape[1:-1]))
+        self.operatorRepresentation['channels_first'] = int(channels_first)
 
         return ctxt, True
 
