@@ -34,6 +34,8 @@ jobs:
     runs-on: ${{ needs.select-env.outputs.runner }}
     container:
       image: ${{ needs.select-env.outputs.image }}
+    env:
+      UV_PROJECT_ENVIRONMENT: /app/.venv
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -50,6 +52,8 @@ jobs:
     runs-on: ${{ needs.select-env.outputs.runner }}
     container:
       image: ${{ needs.select-env.outputs.image }}
+    env:
+      UV_PROJECT_ENVIRONMENT: /app/.venv
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4

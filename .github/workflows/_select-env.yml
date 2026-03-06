@@ -33,6 +33,8 @@ jobs:
             IMAGE="ghcr.io/pulp-platform/deeploy:${TAG_NAME}"
           elif [[ "${{ github.ref_name }}" == "main" ]]; then
             IMAGE="ghcr.io/pulp-platform/deeploy:main"
+          elif [[ "${{ github.ref_name }}" == "fischeti/uv" ]]; then
+            IMAGE="ghcr.io/pulp-platform/deeploy:uv"
           else
             IMAGE="ghcr.io/pulp-platform/deeploy:devel"
           fi

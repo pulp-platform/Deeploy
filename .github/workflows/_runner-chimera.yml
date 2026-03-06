@@ -23,6 +23,8 @@ jobs:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
+    env:
+      UV_PROJECT_ENVIRONMENT: /app/.venv
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
