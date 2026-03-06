@@ -2896,7 +2896,8 @@ class PerturbNormalParser(NodeParser):
         ret = all([len(node.inputs) == 1,
                    len(node.outputs) == 1,
                      'seed' in node.attrs,
-                     'eps' in node.attrs])
+                     'eps' in node.attrs,
+                     'idx' in node.attrs])
         return ret
 
     def parseNodeCtxt(self,
@@ -2929,7 +2930,8 @@ class PerturbUniformParser(NodeParser):
                    'low' in node.attrs,
                    'high' in node.attrs,
                     'seed' in node.attrs,
-                    'eps' in node.attrs])
+                    'eps' in node.attrs,
+                    'idx' in node.attrs])
         return ret
 
     def parseNodeCtxt(self,
@@ -2963,8 +2965,7 @@ class PerturbEggrollParser(NodeParser):
         ret = all([len(node.inputs) == 1,
                    len(node.outputs) == 1,
                    'seed' in node.attrs,
-                   'idx' in node.attrs,
-                   'eps' in node.attrs])
+                   'idx' in node.attrs])
         return ret
 
     def parseNodeCtxt(self,
@@ -2977,7 +2978,6 @@ class PerturbEggrollParser(NodeParser):
         self.operatorRepresentation['shape_in'] = shape_in.name
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['seed'] = node.attrs['seed']
-        self.operatorRepresentation['eps'] = node.attrs['eps']
         self.operatorRepresentation['size'] = shape_in.values[0]
         assert len(shape_in.values) == 2, f"Expected input to be 2D, got {len(shape_in.values)}D"
         assert shape_in.values[1] == 1, f"Expected second dimension of input to be 1, got {shape_in.values[1]}"
@@ -2994,7 +2994,8 @@ class PerturbRademacherParser(NodeParser):
         ret = all([len(node.inputs) == 1,
                    len(node.outputs) == 1,
                    'seed' in node.attrs,
-                   'eps' in node.attrs])
+                   'eps' in node.attrs,
+                   'idx' in node.attrs])
         return ret
 
     def parseNodeCtxt(self,
@@ -3026,7 +3027,8 @@ class PerturbTriangleParser(NodeParser):
         ret = all([len(node.inputs) == 1,
                    len(node.outputs) == 1,
                    'seed' in node.attrs,
-                   'eps' in node.attrs])
+                   'eps' in node.attrs,
+                   'idx' in node.attrs])
         return ret
 
     def parseNodeCtxt(self,
@@ -3045,7 +3047,5 @@ class PerturbTriangleParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(input_shape)
         self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
         self.operatorRepresentation['eps'] = node.attrs['eps']
-        self.operatorRepresentation['low'] = float(node.attrs['low'])
-        self.operatorRepresentation['high'] = float(node.attrs['high'])
 
         return ctxt, True

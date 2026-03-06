@@ -7,6 +7,7 @@
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
 #include <math.h>
+#include "perf_utils.h"
 
 // TODO: 1) loop unrolling for ILP perf
 // TODO: 2) Perturbation directly integrated in GEMM or Conv kernels.
@@ -137,7 +138,7 @@ float32_t RademacherSample(RademacherRNG *rng) {
 
 /* ------------------------- Perturbation Functions -------------------------------- */
 
-void ApplyTriangularPerturbation(const float32_t *__restrict__ pweights,
+void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
                             float32_t *__restrict__ pweights_dest,
                             uint32_t seed,
                             uint32_t dir,
@@ -145,12 +146,10 @@ void ApplyTriangularPerturbation(const float32_t *__restrict__ pweights,
                             float32_t epsilon) 
 {
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    float32_t sqrt6 = 2.44948974278f;
-    float32_t scale = epsilon * sqrt6; // sqrt(6): => variance 1
-    if (dir == 0) {scale *= -1.0f;}
+    if (dir == 0) {epsilon *= -1.0f;}
     for (uint32_t i = 0; i < size; i++) {
         float32_t tr = TriangularSample(&rng_state);
-        pweights_dest[i] = pweights[i] + tr * scale;
+        pweights_dest[i] = pweights[i] + tr * epsilon;
     }
 }
 
@@ -161,14 +160,12 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon)
 {
-    printf("ApplyUniformPerturbation:epsilon=%f, size=%u \n", epsilon, size);
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    float32_t sqrt3 = 1.73205080757f;
-    float32_t scale = epsilon * sqrt3 * 2.0f; // factor 2: [-0.5,0.5] => [-1,1], sqrt(3): => Gaussian(0, 1) l2 norm.
-    if (dir == 0) {scale *= -1.0f;}
+    // sqrt(3)*2 factor already included in epsilon to match Gaussian(0, 1) l2 norm.
+    if (dir == 0) {epsilon *= -1.0f;}
     for (uint32_t i = 0; i < size; i++) {
         float32_t u = UniformSample(&rng_state);
-        pweights_dest[i] = pweights[i] + u * scale;
+        pweights_dest[i] = pweights[i] + u * epsilon;
     }
 }
 
@@ -179,11 +176,10 @@ void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon) {
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    float32_t scale = epsilon; // gaussian naturally has variance 1
-    if (dir == 0) {scale *= -1.0f;}
+    if (dir == 0) {epsilon *= -1.0f;}
     for (uint32_t i = 0; i < size; i++) {
-        float32_t u = GaussianSample(&rng_state);
-        pweights_dest[i] = pweights[i] + u * scale;
+        float32_t u = GaussianZigguratSample(&rng_state);
+        pweights_dest[i] = pweights[i] + u * epsilon;
     }
 }
 
@@ -193,33 +189,95 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t dir,
                             uint32_t size,
                             float32_t epsilon) {
-    RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32 };
-    float32_t scale = epsilon; // rademacher naturally has variance 1
-    if (dir == 0) {scale *= -1.0f;}
-    for (uint32_t i = 0; i < size; i++) {
-        float32_t u = RademacherSample(&rng_state);
-        pweights_dest[i] = pweights[i] + u * scale;
+
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
+
+    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+    if (dir == 0) epsilon *= -1.0f;
+
+    uint32_t n_full_batches = size / 32;
+    uint32_t leftover = size % 32;
+    uint32_t i = 0;
+
+    // Process full batches
+    for (uint32_t batch = 0; batch < n_full_batches; batch++) {
+        rng_state = Xorshift32(rng_state);
+        uint32_t bits = rng_state;
+        for (uint32_t b = 0; b < 32; b++, i++) {
+            float32_t r = (bits & 1) ? 1.0f : -1.0f;
+            pweights_dest[i] = pweights[i] + r * epsilon;
+            bits >>= 1;
+        }
+    }
+
+    // Process leftover elements
+    if (leftover > 0) {
+        rng_state = Xorshift32(rng_state);
+        uint32_t bits = rng_state;
+        for (uint32_t b = 0; b < leftover; b++, i++) {
+            float32_t r = (bits & 1) ? 1.0f : -1.0f;
+            pweights_dest[i] = pweights[i] + r * epsilon;
+            bits >>= 1;
+        }
+    }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "GEMM M=%u N=%u O=%u transA=%u transB=%u",
+                M, N, O, transA, transB);
+        perf_bench_print(label, &perf_total);
     }
 }
 
 void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
                             uint32_t seed,
-                            uint32_t size,
-                            float32_t epsilon)
+                            uint32_t size)
 {
     // For compatibility with existing codegen templates. Currently maps to Rademacher noise.
-    // RademacherRNG rng_state = { (seed * 1664525u) + 1013904223u, 0, 32};
-    // float32_t scale = 0.01f; // rademacher naturally has variance 1
-    // for (uint32_t i = 0; i < size; i++) {
-    //     float32_t u = RademacherSample(&rng_state);
-    //     p_dest[i] = u;
-    // }
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    float32_t u = 0.0f;
     for (uint32_t i = 0; i < size; i++) {
         p_dest[i] = UniformSample(&rng_state);
     }
 
+    // uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+
+    // uint32_t n_full_batches = size / 32;
+    // uint32_t leftover = size % 32;
+    // uint32_t i = 0;
+
+    // // Process full batches
+    // for (uint32_t batch = 0; batch < n_full_batches; batch++) {
+    //     rng_state = Xorshift32(rng_state);
+    //     uint32_t bits = rng_state;
+    //     for (uint32_t b = 0; b < 32; b++, i++) {
+    //         p_dest[i] = (bits & 1) ? 1.0f : -1.0f;
+    //         bits >>= 1;
+    //     }
+    // }
+
+    // // Process leftover elements
+    // if (leftover > 0) {
+    //     rng_state = Xorshift32(rng_state);
+    //     uint32_t bits = rng_state;
+    //     for (uint32_t b = 0; b < leftover; b++, i++) {
+    //         p_dest[i] = (bits & 1) ? 1.0f : -1.0f;
+    //         bits >>= 1;
+    //     }
+    // }
 }
 
 /* --------------------------- Update functions ---------------------------------- */

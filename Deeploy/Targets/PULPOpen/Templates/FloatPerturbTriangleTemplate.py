@@ -29,17 +29,15 @@ uint32_t ${nodeName}_chunk_start = (uint32_t) MIN(${nodeName}_chunk*${nodeName}_
 uint32_t ${nodeName}_chunk_stop = (uint32_t) MIN(${nodeName}_chunk_start + ${nodeName}_chunk, (uint32_t) ${size});
 uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop - ${nodeName}_chunk_start;
 
-uint32_t i = ${nodeName}_chunk_start;
-for (; i < ${nodeName}_chunk_stop; i++) {
-    // pick large enough stride to minimize correlation between nodes.
-    uint32_t chunk_seed = seed + i*${nodeName}_chunk_start + (${node_id} * 104729);
-    ApplyTrianglePerturbation((const float32_t *)  &${data_in}[i],
-                                (float32_t *) &${data_out}[i],
-                                chunk_seed,
-                                perturbation_sign, // globally defined in DeedeployTest main
-                                ${nodeName}_local_size,
-                                ${eps}f);
-}
+uint32_t chunk_seed = seed + (${nodeName}_chunk_start * ${node_id}) + (${node_id} * 104729);
+
+ApplyTrianglePerturbation(
+    (const float32_t *) &${data_in}[${nodeName}_chunk_start],
+    (float32_t *) &${data_out}[${nodeName}_chunk_start],
+    chunk_seed,
+    perturbation_sign, // globally defined in DeedeployTest main
+    ${nodeName}_local_size,
+    ${eps}f);
 """)
 
 updateTemplate = _FloatPerturbTriangleTemplate("""

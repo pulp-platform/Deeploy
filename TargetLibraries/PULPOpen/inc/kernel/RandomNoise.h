@@ -41,7 +41,7 @@ float32_t GaussianZigguratSample(uint32_t *state);
 void RademacherRNG_init(RademacherRNG *rng, uint32_t seed);
 
 // Applies triangular perturbation to the weights and applies rescaling to match Gaussian(0, 1) l2 norm.
-void ApplyTriangularPerturbation(const float32_t *__restrict__ pweights,
+void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
                             float32_t *__restrict__ pweights_dest,
                             uint32_t seed,
                             uint32_t dir,
@@ -108,7 +108,6 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
 
 void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
                             uint32_t seed,
-                            uint32_t size,
-                            float32_t epsilon);
+                            uint32_t size);
 
 #endif //__DEEPLOY_MATH_RANDOMNOISE_KERNEL_HEADER_
