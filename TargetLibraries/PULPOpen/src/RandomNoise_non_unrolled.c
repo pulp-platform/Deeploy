@@ -145,87 +145,11 @@ void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon) 
 {
-
-    int8_t core_id = pi_core_id();
-    int8_t log2Core = LOG2(NUM_CORES);
-
-    perf_stats_t perf_start, perf_end, perf_total;
-
-    // Initialize and start performance counters (only core 0)
-    if (core_id == 0) {
-        perf_bench_init();
-        perf_bench_start();
-        perf_bench_read(&perf_start);
-    }
-
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) {epsilon *= -1.0f;}
-    for (uint32_t i = 0; i < size; i+=5) {
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        float32_t u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i] = pweights[i] + (u1-u2) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+1] = pweights[i+1] + (u1-u2) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+2] = pweights[i+2] + (u1-u2) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+3] = pweights[i+3] + (u1-u2) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+4] = pweights[i+4] + (u1-u2) * epsilon;
-    }
-
-    if (core_id == 0) {
-        perf_bench_stop();
-        perf_bench_read(&perf_end);
-        perf_bench_diff(&perf_total, &perf_end, &perf_start);
-
-        char label[100];
-        snprintf(label, sizeof(label), "Perturb Triangle seed=%u N=%u",
-                seed, size);
-        perf_bench_print(label, &perf_total);
+    for (uint32_t i = 0; i < size; i++) {
+        float32_t tr = TriangularSample(&rng_state);
+        pweights_dest[i] = pweights[i] + tr * epsilon;
     }
 }
 
@@ -236,87 +160,12 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon)
 {
-
-    int8_t core_id = pi_core_id();
-    int8_t log2Core = LOG2(NUM_CORES);
-
-    perf_stats_t perf_start, perf_end, perf_total;
-
-    // Initialize and start performance counters (only core 0)
-    if (core_id == 0) {
-        perf_bench_init();
-        perf_bench_start();
-        perf_bench_read(&perf_start);
-    }
-
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     // sqrt(3)*2 factor already included in epsilon to match Gaussian(0, 1) l2 norm.
     if (dir == 0) {epsilon *= -1.0f;}
-    for (uint32_t i = 0; i < size; i+=7) {
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i] = pweights[i] + (u1-0.5f) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+1] = pweights[i+1] + (u1-0.5f) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+2] = pweights[i+2] + (u1-0.5f) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+3] = pweights[i+3] + (u1-0.5f) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+4] = pweights[i+4] + (u1-0.5f) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+5] = pweights[i+5] + (u1-0.5f) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+6] = pweights[i+6] + (u1-0.5f) * epsilon;
-
-        // rng_state ^= rng_state << 13;
-        // rng_state ^= rng_state >> 17;
-        // rng_state ^= rng_state << 5;
-        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // pweights_dest[i+7] = pweights[i+7] + (u1-0.5f) * epsilon;
-
-        // rng_state ^= rng_state << 13;
-        // rng_state ^= rng_state >> 17;
-        // rng_state ^= rng_state << 5;
-        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // pweights_dest[i+8] = pweights[i+8] + (u1-0.5f) * epsilon;
-    }
-
-    if (core_id == 0) {
-        perf_bench_stop();
-        perf_bench_read(&perf_end);
-        perf_bench_diff(&perf_total, &perf_end, &perf_start);
-
-        char label[100];
-        snprintf(label, sizeof(label), "Perturb Uniform seed=%u N=%u",
-                seed, size);
-        perf_bench_print(label, &perf_total);
+    for (uint32_t i = 0; i < size; i++) {
+        float32_t u = UniformSample(&rng_state);
+        pweights_dest[i] = pweights[i] + u * epsilon;
     }
 }
 
@@ -362,16 +211,11 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
 
     // Process full batches
     for (uint32_t batch = 0; batch < n_full_batches; batch++) {
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
+        rng_state = Xorshift32(rng_state);
         uint32_t bits = rng_state;
-        for (uint32_t b = 0; b < 32; b+=6, i+=6) {
+        for (uint32_t b = 0; b < 32; b++, i++) {
             float32_t r = (bits & 1) ? 1.0f : -1.0f;
-            pweights_dest[i]   = pweights[i] + r * epsilon;
-            bits >>= 1;
-            r = (bits & 1) ? 1.0f : -1.0f;
-            pweights_dest[i+1] = pweights[i+1] + r * epsilon;
+            pweights_dest[i] = pweights[i] + r * epsilon;
             bits >>= 1;
         }
     }
@@ -404,74 +248,36 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
                             uint32_t size)
 {
     // For compatibility with existing codegen templates. Currently maps to Rademacher noise.
-    int8_t core_id = pi_core_id();
-    int8_t log2Core = LOG2(NUM_CORES);
-
-    perf_stats_t perf_start, perf_end, perf_total;
-
-    // Initialize and start performance counters (only core 0)
-    if (core_id == 0) {
-        perf_bench_init();
-        perf_bench_start();
-        perf_bench_read(&perf_start);
-    }
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    for (uint32_t i = 0; i < size; i+=5) {
-        
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        p_dest[i] = u1-0.5f;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        p_dest[i+1] = u1-0.5f;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        p_dest[i+2] = u1-0.5f;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        p_dest[i+3] = u1-0.5f;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        p_dest[i+4] = u1-0.5f;
-
-        // rng_state ^= rng_state << 13;
-        // rng_state ^= rng_state >> 17;
-        // rng_state ^= rng_state << 5;
-        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // p_dest[i+5] = u1-0.5f;
-
-        // rng_state ^= rng_state << 13;
-        // rng_state ^= rng_state >> 17;
-        // rng_state ^= rng_state << 5;
-        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // p_dest[i+6] = u1-0.5f;
-
+    for (uint32_t i = 0; i < size; i++) {
+        p_dest[i] = UniformSample(&rng_state);
     }
 
-    if (core_id == 0) {
-        perf_bench_stop();
-        perf_bench_read(&perf_end);
-        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+    // uint32_t rng_state = (seed * 1664525u) + 1013904223u;
 
-        char label[100];
-        snprintf(label, sizeof(label), "Perturb Eggroll seed=%u N=%u",
-                seed, size);
-        perf_bench_print(label, &perf_total);
-    }
+    // uint32_t n_full_batches = size / 32;
+    // uint32_t leftover = size % 32;
+    // uint32_t i = 0;
+
+    // // Process full batches
+    // for (uint32_t batch = 0; batch < n_full_batches; batch++) {
+    //     rng_state = Xorshift32(rng_state);
+    //     uint32_t bits = rng_state;
+    //     for (uint32_t b = 0; b < 32; b++, i++) {
+    //         p_dest[i] = (bits & 1) ? 1.0f : -1.0f;
+    //         bits >>= 1;
+    //     }
+    // }
+
+    // // Process leftover elements
+    // if (leftover > 0) {
+    //     rng_state = Xorshift32(rng_state);
+    //     uint32_t bits = rng_state;
+    //     for (uint32_t b = 0; b < leftover; b++, i++) {
+    //         p_dest[i] = (bits & 1) ? 1.0f : -1.0f;
+    //         bits >>= 1;
+    //     }
+    // }
 }
 
 /* --------------------------- Update functions ---------------------------------- */
