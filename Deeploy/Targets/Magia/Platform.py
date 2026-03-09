@@ -7,13 +7,13 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NetworkContext, NodeMapper, \
     NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings
 from Deeploy.Targets.Generic.Layers import AddLayer
 from Deeploy.Targets.Generic.Parsers import AddParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
+from Deeploy.Targets.Magia.Bindings import MagiaAddBindings
 from Deeploy.Targets.Magia.Templates import AllocateTemplate, FreeTemplate
 
-AddMapper = NodeMapper(AddParser(), BasicAddBindings)
+AddMapper = NodeMapper(AddParser(), MagiaAddBindings)
 
 MagiaMapping = {'Add': AddLayer([AddMapper])}
 
