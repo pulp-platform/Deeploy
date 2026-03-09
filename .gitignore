@@ -24,6 +24,7 @@ install/
 compile_commands.json
 toolchain/**/*/
 
+
 # Node
 package.json
 package-lock.json
@@ -52,3 +53,7 @@ DeeployTest/Tests/**/generateTest.py
 DeeployTest/out.txt
 
 CHANGELOG_GEN.md
+
+# Container Artifacts
+.pyusbip/
+.cache/

@@ -29,4 +29,7 @@ target_compile_options(network PRIVATE
     -Wno-error
   )
 
+target_link_options(${ProjectId} PRIVATE
+    -Wl,--print-memory-usage
+)
 link_compile_dump(${TESTNAME})

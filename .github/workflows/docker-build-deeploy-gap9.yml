@@ -3,15 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ---
-name: Docker • Build Deeploy Container
+name: Docker • Build Deeploy GAP9 Container
 
 "on":
   workflow_dispatch:
     inputs:
-      docker_image_toolchain:
-        description: "Deeploy Toolchain Image to use"
+      docker_image_deeploy:
+        description: "Deeploy Image to use"
         required: false
-        default: "ghcr.io/pulp-platform/deeploy-toolchain:latest"
+        default: "ghcr.io/pulp-platform/deeploy:latest"
 
 jobs:
   prepare:
@@ -19,11 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       docker_tag: ${{ steps.generate_tag.outputs.docker_tag }}
-      docker_release_tag: ${{ steps.detect_release_tag.outputs.release_tag }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up environment variables
         run: |
@@ -40,18 +37,8 @@ jobs:
             echo "docker_tag=${{ env.BRANCH_NAME }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Detect release tag on HEAD
-        id: detect_release_tag
-        run: |
-          TAG_ON_HEAD=$(git tag --points-at HEAD | head -n 1 || true)
-          if [[ -n "$TAG_ON_HEAD" && "$IS_TAG" != "tag" ]]; then
-            echo "release_tag=$TAG_ON_HEAD" >> $GITHUB_OUTPUT
-          else
-            echo "release_tag=" >> $GITHUB_OUTPUT
-          fi
-
-  build-deeploy:
-    name: Build Deploy Image
+  build-deeploy-gap9:
+    name: Build Deeploy GAP9 Image
     needs: [prepare]
     runs-on: ${{ matrix.runner }}
     outputs:
@@ -92,7 +79,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: var-ccache
-          key: ${{ runner.os }}-${{ matrix.platform }}-build-cache-deeploy
+          key: ${{ runner.os }}-${{ matrix.platform }}-build-cache-deeploy-gap9
 
       - name: Inject build-cache
         uses: reproducible-containers/buildkit-cache-dance@v3.1.0
@@ -109,6 +96,11 @@ jobs:
         env:
           OWNER: "${{ github.repository_owner }}"
 
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Build and push final Deeploy image
         id: build
         uses: docker/build-push-action@v6
@@ -117,20 +109,21 @@ jobs:
           context: .
           cache-from: type=gha
           cache-to: type=gha,mode=min
-          file: Container/Dockerfile.deeploy
+          file: Container/Dockerfile.deeploy-gap9
           push: true
           build-args: |
-            BASE_IMAGE=${{ github.event.inputs.docker_image_toolchain }}
-          outputs: type=image,name=ghcr.io/${{ env.OWNER_LC }}/deeploy,annotation-index=true,name-canonical=true,push=true
+            DEEPLOY_IMAGE=${{ github.event.inputs.docker_image_deeploy }}
+          ssh: default
+          outputs: type=image,name=ghcr.io/${{ env.OWNER_LC }}/deeploy-gap9,annotation-index=true,name-canonical=true,push=true
 
       - name: Extract image digest
         id: digest
         run: echo "digest-${{ matrix.platform }}=${{ steps.build.outputs.digest }}" >> $GITHUB_OUTPUT
 
-  merge-deeploy-images:
-    name: Merge Deeploy Images
+  merge-deeploy-gap9-images:
+    name: Merge Deeploy GAP9 Images
     runs-on: ubuntu-latest
-    needs: [prepare, build-deeploy]
+    needs: [prepare, build-deeploy-gap9]
     steps:
       - name: GHCR Log-in
         uses: docker/login-action@v3
@@ -145,31 +138,13 @@ jobs:
         env:
           OWNER: "${{ github.repository_owner }}"
 
-      - name: Prepare manifest tags
-        id: manifest_tags
-        run: |
-          OWNER_LC_VALUE=${OWNER,,}
-          {
-            echo "tags<<EOF"
-            echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:latest,"
-            if [[ -n "${RELEASE_TAG}" ]]; then
-              echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${DOCKER_TAG},"
-              echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${RELEASE_TAG}"
-            else
-              echo "ghcr.io/${OWNER_LC_VALUE}/deeploy:${DOCKER_TAG}"
-            fi
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-        env:
-          OWNER: ${{ github.repository_owner }}
-          DOCKER_TAG: ${{ needs.prepare.outputs.docker_tag }}
-          RELEASE_TAG: ${{ needs.prepare.outputs.docker_release_tag }}
-
-      - name: Merge Deeploy Images
+      - name: Merge Deeploy GAP9 Images
         uses: Noelware/docker-manifest-action@v1
         with:
           inputs: |
-            ghcr.io/${{ env.OWNER_LC }}/deeploy@${{ needs.build-deeploy.outputs.digest-amd64 }},
-            ghcr.io/${{ env.OWNER_LC }}/deeploy@${{ needs.build-deeploy.outputs.digest-arm64 }}
-          tags: ${{ steps.manifest_tags.outputs.tags }}
+            ghcr.io/${{ env.OWNER_LC }}/deeploy-gap9@${{ needs.build-deeploy-gap9.outputs.digest-amd64 }},
+            ghcr.io/${{ env.OWNER_LC }}/deeploy-gap9@${{ needs.build-deeploy-gap9.outputs.digest-arm64 }}
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/deeploy-gap9:latest,
+            ghcr.io/${{ env.OWNER_LC }}/deeploy-gap9:${{ needs.prepare.outputs.docker_tag }}
           push: true

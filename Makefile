@@ -24,6 +24,9 @@ PICOLIBC_RV32IMA_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
 PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
 PICOLIBC_RV32IMF_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imf
 
+GCC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gcc
+GAP_RISCV_GCC_INSTALL_DIR ?= ${GCC_INSTALL_DIR}/gap9
+
 CHIMERA_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/chimera-sdk
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
@@ -36,6 +39,7 @@ MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
 XTL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtl
 XSIMD_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xsimd
 XTENSOR_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtensor
+GAP9_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gap9-sdk
 
 CMAKE ?= cmake
 
@@ -52,19 +56,28 @@ XTL_VERSION ?= 0.7.5
 XSIMD_VERSION ?= 13.2.0
 XTENSOR_VERSION ?= 0.25.0
 
+GAP_RISCV_GCC_COMMIT_HASH ?= fbb9fa450d01c1c170f94af817490f41c5ef7971
+# GAP9_SDK_COMMIT_HASH ?= 1796873cec9ca1feb352a6fe980b627df979bdd1 # v5.21.1
+# GAP9_SDK_COMMIT_HASH ?= 8c42b65338e554ac73c749f94ecddd23a9ee5490 # v5.21.1-staging-1
+GAP9_SDK_COMMIT_HASH ?= d075c068e8a531e74a9f7cdee74c52cec32253b9 # v5.21.2
+GAP_SDK_URL ?= git@github.com:pulp-platform/gap-sdk.git
+
 OS  := $(shell uname -s)
 ARCH:= $(shell uname -m)
 
 ifeq ($(OS),Linux)
 	ifeq ($(ARCH),x86_64)
-		TARGET := x86_64-unknown-linux-gnu
+		TARGET_BANSHEE := x86_64-unknown-linux-gnu
+		TARGET_GAP9 := amd64
 	else ifeq ($(ARCH),aarch64)
-		TARGET := aarch64-unknown-linux-gnu
+		TARGET_BANSHEE := aarch64-unknown-linux-gnu
+		TARGET_GAP9 := arm64
 	else
 		$(error unsupported Linux architecture $(ARCH))
 	endif
 else ifeq ($(OS),Darwin)
-	TARGET := aarch64-apple-darwin
+	TARGET_BANSHEE := aarch64-apple-darwin
+	$(warning "Deeploy is not fully supported on macOS, some components such as the GAP9 GCC toolchain are not available. Please use Linux (or Docker) for the best experience.")
 else
 	$(error unsupported platform $(OS))
 endif
@@ -77,6 +90,8 @@ echo-bash:
 	@echo "The following symbols need to be exported for Deeploy to work properly:"
 	@echo "export MINIMALLOC_INSTALL_DIR=${MINIMALLOC_INSTALL_DIR}"
 	@echo "export PULP_SDK_HOME=${PULP_SDK_INSTALL_DIR}"
+	@echo "export GAP_SDK_HOME=${GAP9_SDK_INSTALL_DIR}"
+	@echo "export GAP_RISCV_GCC_TOOLCHAIN=${GAP_RISCV_GCC_INSTALL_DIR}"
 	@echo "export CHIMERA_SDK_HOME=${CHIMERA_SDK_INSTALL_DIR}"
 	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
 	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
@@ -97,9 +112,11 @@ emulators: snitch_runtime pulp-sdk qemu banshee mempool
 
 ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/pulp-platform/llvm-project.git \
-	 -b main && \
-	cd ${TOOLCHAIN_DIR}/llvm-project && git checkout ${LLVM_COMMIT_HASH} && \
+	git init llvm-project && \
+	cd ${TOOLCHAIN_DIR}/llvm-project && \
+	git remote add origin https://github.com/pulp-platform/llvm-project.git && \
+	git fetch --depth=1 origin ${LLVM_COMMIT_HASH} && \
+	git checkout ${LLVM_COMMIT_HASH} && \
 	git submodule update --init --recursive
 
 ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
@@ -410,6 +427,23 @@ ${PULP_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/pulp-sdk
 
 pulp-sdk: ${PULP_SDK_INSTALL_DIR}
 
+${GAP_RISCV_GCC_INSTALL_DIR}:
+	mkdir -p ${GAP_RISCV_GCC_INSTALL_DIR} && cd ${GAP_RISCV_GCC_INSTALL_DIR} && \
+	curl -LO https://github.com/pulp-platform/gap-riscv-gnu-toolchain/releases/download/v0.0.1/gap9-gcc-ubuntu22.04-$(TARGET_GAP9).tar.gz && \
+	tar -xzf gap9-gcc-ubuntu22.04-$(TARGET_GAP9).tar.gz --strip-components=1 -C . && \
+	rm gap9-gcc-ubuntu22.04-$(TARGET_GAP9).tar.gz
+
+gap9-toolchain: ${GAP_RISCV_GCC_INSTALL_DIR}
+
+.PHONY: gap9-sdk
+gap9-sdk:
+	@echo "Cloning and building GAP9 SDK..."
+	GAP9_SDK_INSTALL_DIR=${GAP9_SDK_INSTALL_DIR} \
+	GAP9_SDK_COMMIT_HASH=${GAP9_SDK_COMMIT_HASH} \
+	GAP_SDK_URL=${GAP_SDK_URL} \
+	ROOT_DIR=${ROOT_DIR} \
+	bash ${ROOT_DIR}/scripts/gap9-build_sdk.sh
+
 ${TOOLCHAIN_DIR}/snitch_cluster:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone https://github.com/pulp-platform/snitch_cluster.git && \
@@ -510,18 +544,12 @@ ${QEMU_INSTALL_DIR}: ${TOOLCHAIN_DIR}/qemu
 
 qemu: ${QEMU_INSTALL_DIR}
 
-${TOOLCHAIN_DIR}/banshee:
-	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/pulp-platform/banshee.git && \
-	cd ${TOOLCHAIN_DIR}/banshee && git checkout ${BANSHEE_COMMIT_HASH} && \
-	git submodule update --init --recursive && \
-	git apply ${TOOLCHAIN_DIR}/banshee.patch
-
 ${BANSHEE_INSTALL_DIR}:
 	export LLVM_SYS_150_PREFIX=${LLVM_INSTALL_DIR} && \
 	mkdir -p ${BANSHEE_INSTALL_DIR} && cd ${BANSHEE_INSTALL_DIR} && \
-	curl -LO https://github.com/pulp-platform/banshee/releases/download/v0.5.0-prebuilt/banshee-0.5.0-$(TARGET).tar.gz && \
-	tar -xzf banshee-0.5.0-$(TARGET).tar.gz --strip-components=1 -C .
+	curl -LO https://github.com/pulp-platform/banshee/releases/download/v0.5.0-prebuilt/banshee-0.5.0-$(TARGET_BANSHEE).tar.gz && \
+	tar -xzf banshee-0.5.0-$(TARGET_BANSHEE).tar.gz --strip-components=1 -C . && \
+	rm banshee-0.5.0-$(TARGET_BANSHEE).tar.gz
 
 banshee: ${BANSHEE_INSTALL_DIR}
 
