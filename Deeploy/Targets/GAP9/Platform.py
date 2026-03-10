@@ -44,7 +44,7 @@ from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser,
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
     PULPTallGEMMParser
 
-# Create GAP9-specific NodeMappers
+# ── Inference NodeMappers ──────────────────────────────────────────────────
 GAP9_RQAddMapper = NodeMapper(RQAddParser(), GAP9RQAddTilingReadyBindings)
 GAP9_AddMapper = NodeMapper(AddParser(), GAP9AddTilingReadyBindings)
 GAP9_FlattenMapper = NodeMapper(FlattenParser(), GAP9FlattenTilingReadyBindings)
@@ -77,7 +77,6 @@ GAP9_MaxPool2DMapper = NodeMapper(MaxPool2DParser(), GAP9MaxPool2DTilingReadyBin
 GAP9_LayerNormMapper = NodeMapper(LayerNormParser(), GAP9LayernormTilingReadyBindings)
 GAP9_ReluMapper = NodeMapper(ReluParser(), GAP9ReluTilingReadyBindings)
 GAP9_SoftmaxMapper = NodeMapper(SoftmaxParser(), GAP9SoftmaxTilingReadyBindings)
-GAP9_SoftmaxGradMapper = NodeMapper(SoftmaxGradParser(), GAP9SoftmaxGradTilingReadyBindings)
 GAP9_Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), GAP9SoftmaxTilingReadyBindings)
 GAP9_ConcatMapper = NodeMapper(ConcatParser(), GAP9ConcatTilingReadyBindings)
 GAP9_DMASliceMapper = NodeMapper(SliceParser(), PULPDMASliceBindings)
@@ -85,17 +84,21 @@ GAP9_SliceMapper = NodeMapper(SliceParser(), PULPSliceBindings)
 GAP9_iRMSNormMapper = NodeMapper(iRMSNormParser(), GAP9iRMSNormTilingReadyBindings)
 GAP9_iHardswishMapper = NodeMapper(iHardswishParser(), GAP9iHardswishTilingReadyBindings)
 GAP9_RQSiHardswishMapper = NodeMapper(RQSiHardswishParser(), GAP9RQSiHardswishTilingReadyBindings)
+GAP9_QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
+GAP9_DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
+GAP9_GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
+
+# ── Training / Gradient NodeMappers ───────────────────────────────────────
+GAP9_SoftmaxGradMapper = NodeMapper(SoftmaxGradParser(), GAP9SoftmaxGradTilingReadyBindings)
 GAP9_SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(),
                                                 GAP9SoftmaxCrossEntropyTilingReadyBindings)
 GAP9_SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
                                                     GAP9SoftmaxCrossEntropyGradTilingReadyBindings)
 GAP9_SGDMapper = NodeMapper(SGDParser(), GAP9SGDTilingReadyBindings)
-GAP9_QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
-GAP9_DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
-GAP9_GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
 
 # GAP9-specific mapping using ClDma
 GAP9Mapping = {
+    # ── Inference operators ───────────────────────────────────────────────
     'Conv':
         ConvLayer([GAP9_FPConv2DMapper, GAP9_FPDWConv2DMapper]),
     'RequantizedConv':
@@ -164,6 +167,7 @@ GAP9Mapping = {
         QuantLayer([GAP9_QuantMapper]),
     'Dequant':
         QuantLayer([GAP9_DequantMapper]),
+    # ── Training / Gradient operators ─────────────────────────────────────
     'SoftmaxGrad':
         SoftmaxGradLayer([GAP9_SoftmaxGradMapper]),
     'SoftmaxCrossEntropyLoss':
