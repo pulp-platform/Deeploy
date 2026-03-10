@@ -245,7 +245,14 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         if node.op in ["Conv", "RequantizedConv"]:
             # In the case of Conv: [weights, opt. bias], RequantizedConv: [weights, mul, add, opt. shift]
             for tensor in node.inputs[1:]:
-                _transformLayoutConst(tensor, spatialDims, default_channels_first)
+                # Standard case: The weight is a direct constant input.
+                if isinstance(tensor, gs.Constant):
+                    _transformLayoutConst(tensor, spatialDims, default_channels_first)
+
+                # MeZO case: The weight is produced by a Perturb node.
+                elif isinstance(tensor, gs.Variable):
+                    permute_temp = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
+                    graph.nodes.append(_appendTranspose(tensor, node, permute_temp))
 
         node.attrs["channels_first"] = default_channels_first
 

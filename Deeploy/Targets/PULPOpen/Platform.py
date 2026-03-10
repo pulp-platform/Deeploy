@@ -17,14 +17,16 @@ from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, Gat
     GEMMLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, \
     PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, \
     RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, \
-    SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer, ReluGradLayer
+    SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer, ReluGradLayer, \
+    PerturbNormalLayer, PerturbUniformLayer, PerturbEggrollLayer, PerturbRademacherLayer, PerturbTriangleLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUGradParser, GELUParser, GEMMParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool1DParser, \
     MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluParser, \
     RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, \
     SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, \
     SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, \
-    iSoftmaxParser, ReluGradParser
+    iSoftmaxParser, ReluGradParser,  PerturbNormalParser, PerturbUniformParser, PerturbEggrollParser, \
+    PerturbRademacherParser, PerturbTriangleParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
@@ -49,7 +51,9 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPRQSTilingReadyBindings, PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, \
     PULPSoftmaxCrossEntropyGradTilingReadyBindings, PULPSoftmaxCrossEntropyTilingReadyBindings, \
     PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, PULPTransposeTilingReadyBindings, \
-    PULPUniformRQSTilingReadyBindings, PULPInPlaceAccumulatorV2TilingReadyBindings
+    PULPUniformRQSTilingReadyBindings, PULPInPlaceAccumulatorV2TilingReadyBindings, \
+    PULPPerturbNormalTilingReadyBindings, PULPPerturbUniformTilingReadyBindings, \
+    PULPPerturbEggrollTilingReadyBindings, PULPPerturbRademacherTilingReadyBindings, PULPPerturbTriangleTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -94,6 +98,13 @@ ReluGradMapper = NodeMapper(ReluGradParser(), [PULPReluGradBinding])
 SoftmaxMapper = NodeMapper(SoftmaxParser(), PULPSoftmaxTilingReadyBindings)
 SoftmaxGradMapper = NodeMapper(SoftmaxGradParser(), PULPSoftmaxGradTilingReadyBindings)
 Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), PULPSoftmaxTilingReadyBindings)
+PerturbNormalMapper = NodeMapper(PerturbNormalParser(), PULPPerturbNormalTilingReadyBindings)
+PerturbUniformMapper = NodeMapper(PerturbUniformParser(), PULPPerturbUniformTilingReadyBindings)
+PerturbEggrollMapper = NodeMapper(PerturbEggrollParser(), PULPPerturbEggrollTilingReadyBindings)
+PerturbRademacherMapper = NodeMapper(PerturbRademacherParser(), PULPPerturbRademacherTilingReadyBindings)
+PerturbTriangleMapper = NodeMapper(PerturbTriangleParser(), PULPPerturbTriangleTilingReadyBindings)
+
+
 
 ConcatMapper = NodeMapper(ConcatParser(), PULPConcatTilingReadyBindings)
 
@@ -159,6 +170,11 @@ PULPMapping = {
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
     'SGD': SGDLayer([SGDMapper]),
     'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper])
+    'PerturbNormal': PerturbNormalLayer([PerturbNormalMapper]),
+    'PerturbUniform': PerturbUniformLayer([PerturbUniformMapper]),
+    'PerturbEggroll': PerturbEggrollLayer([PerturbEggrollMapper]),
+    'PerturbRademacher': PerturbRademacherLayer([PerturbRademacherMapper]),
+    'PerturbTriangle': PerturbTriangleLayer([PerturbTriangleMapper]),
 }
 
 
@@ -255,7 +271,7 @@ PULPOptimizer = TopologyOptimizer([
 
 # SCHEREMO: stdint is included before pulp_nn_kernels.h because it is supposed to be included in there, but isn't...
 _includeList = [
-    "pmsis.h", "stdint.h", "pulp_nn_kernels.h", "DeeployPULPMath.h", "mchan_siracusa.h", "dory_mem.h", "bsp/ram.h"
+    "pmsis.h", "stdint.h", "pulp_nn_kernels.h", "DeeployPULPMath.h", "mchan_siracusa.h", "dory_mem.h", "bsp/ram.h", "perf_utils.h"
 ]
 
 

@@ -2898,10 +2898,11 @@ class NetworkContainer():
 
         callStack += "static const uint32_t " + self.ctxt._mangle("num_inputs") + f" = {len(inputs)};"
         callStack += "static const uint32_t " + self.ctxt._mangle("num_outputs") + f" = {len(outputs)};"
-
+        callStack += "static const uint32_t seed = 12345;"  # fixed seed for reproducibility
+        callStack += "static const uint32_t perturbation_sign = 1;"  # fixed sign for reproducibility
         callStack += "extern void* " + self.ctxt._mangle("inputs") + f"[{len(inputs)}];"
         callStack += "extern void* " + self.ctxt._mangle("outputs") + f"[{len(outputs)}];"
-
+    
         callStack += "static const uint32_t " + self.ctxt._mangle("inputs_bytes") + f"[{len(inputs)}] = " + "{"
 
         numBytes = []
@@ -3067,6 +3068,8 @@ class NetworkContainer():
         for engine in self.Platform.engines:
             for include in engine.includeList:
                 includeStr += ["#include \"" + include + "\""]
+            if engine.name == "GAP9Cluster":
+                includeStr += ["#include \"kernel/RandomNoise.h\""]
         return ("\n").join(includeStr)
 
     def generateEngineInitializationCode(self) -> str:

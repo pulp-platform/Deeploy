@@ -26,7 +26,8 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, Dequa
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
     QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, InPlaceAccumulatorV2Checker, DebugPrintChecker
+    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, InPlaceAccumulatorV2Checker, DebugPrintChecker, \
+    PerturbZOChecker
 from Deeploy.Targets.PULPOpen.Bindings import ForkClosure, L3MemoryAwareFunctionCallClosure, \
     MemoryAwareForkTransformer, MemoryAwareFunctionCallClosure, TilingCallClosure
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -39,7 +40,9 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, \
     MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate, FloatInPlaceAccumulatorV2Template
+    iRMSNormTemplate, iSoftmaxTemplate, FloatInPlaceAccumulatorV2Template, \
+    FloatPerturbEggrollTemplate, FloatPerturbUniformTemplate, FloatPerturbNormalTemplate, \
+    FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate 
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -451,3 +454,32 @@ GAP9BasicDebugPrintBindings = [
     NodeBinding(DebugPrintChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), DebugPrintTemplate.referenceTemplate,
                 GAP9Transformer)
 ]
+GAP9PerturbNormalBindings = [
+    NodeBinding(
+        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatPerturbNormalTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9PerturbUniformBindings = [
+    NodeBinding(
+        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatPerturbUniformTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9PerturbEggrollBindings = [
+    NodeBinding(
+        PerturbZOChecker([PointerClass(int32_t)], [PointerClass(float32_t)]),
+        FloatPerturbEggrollTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9PerturbRademacherBindings = [
+    NodeBinding(
+        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatPerturbRademacherTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9PerturbTriangleBindings = [
+    NodeBinding( 
+        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatPerturbTriangleTemplate.referenceTemplate,
+        GAP9Transformer)]

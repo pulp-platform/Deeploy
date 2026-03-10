@@ -22,20 +22,24 @@ from Deeploy.Targets.GAP9.Tiler import GAP9AddTilingReadyBindings, GAP9ConcatTil
     GAP9RQSTallGEMMTilingReadyBindings, GAP9RQSTilingReadyBindings, GAP9SGDTilingReadyBindings, \
     GAP9SoftmaxCrossEntropyGradTilingReadyBindings, GAP9SoftmaxCrossEntropyTilingReadyBindings, \
     GAP9SoftmaxGradTilingReadyBindings, GAP9SoftmaxTilingReadyBindings, GAP9TransposeTilingReadyBindings, \
-    GAP9UniformRQSTilingReadyBindings, GAP9InPlaceAccumulatorV2TilingReadyBindings
+    GAP9UniformRQSTilingReadyBindings, GAP9InPlaceAccumulatorV2TilingReadyBindings, GAP9PerturbNormalTilingReadyBindings, GAP9PerturbUniformTilingReadyBindings, \
+    GAP9PerturbEggrollTilingReadyBindings, GAP9PerturbRademacherTilingReadyBindings, GAP9PerturbTriangleTilingReadyBindings
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
     LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
-    TransposeLayer, iHardswishLayer, iRMSNormLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, GELUGradLayer, ReluGradLayer, DebugPrintLayer
+    TransposeLayer, iHardswishLayer, iRMSNormLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, GELUGradLayer, ReluGradLayer, DebugPrintLayer, \
+    PerturbEggrollLayer, PerturbNormalLayer, PerturbRademacherLayer, PerturbTriangleLayer, PerturbUniformLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUParser, GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, \
     QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, \
     RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, LayerNormGradParser, \
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
-    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, InPlaceAccumulatorV2Parser, GELUGradParser, ReluGradParser, DebugParser
+    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser, \
+    InPlaceAccumulatorV2Parser, GELUGradParser, ReluGradParser, DebugParser, \
+    PerturbEggrollParser, PerturbNormalParser, PerturbRademacherParser, PerturbTriangleParser, PerturbUniformParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.GAP9.Bindings import GAP9SoftmaxCrossEntropyLossDualOutputBindings, GAP9LayernormGradBinding, GAP9FloatGELUGradBinding, GAP9ReluGradBinding, GAP9BasicDebugPrintBindings
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
@@ -102,6 +106,11 @@ GAP9LayerNormGradMapper = NodeMapper(LayerNormGradParser(), [GAP9LayernormGradBi
 GAP9GELUGradMapper = NodeMapper(GELUGradParser(), [GAP9FloatGELUGradBinding])
 
 DebugMapper = NodeMapper(DebugParser(), GAP9BasicDebugPrintBindings)
+GAP9_PerturbNormalMapper = NodeMapper(PerturbNormalParser(), GAP9PerturbNormalTilingReadyBindings)
+GAP9_PerturbUniformMapper = NodeMapper(PerturbUniformParser(), GAP9PerturbUniformTilingReadyBindings)
+GAP9_PerturbEggrollMapper = NodeMapper(PerturbEggrollParser(), GAP9PerturbEggrollTilingReadyBindings)
+GAP9_PerturbRademacherMapper = NodeMapper(PerturbRademacherParser(), GAP9PerturbRademacherTilingReadyBindings)
+GAP9_PerturbTriangleMapper = NodeMapper(PerturbTriangleParser(), GAP9PerturbTriangleTilingReadyBindings)
 
 # GAP9-specific mapping using ClDma
 GAP9Mapping = {
@@ -190,6 +199,16 @@ GAP9Mapping = {
     'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([GAP9InPlaceAccumulatorV2Mapper]),
     'DebugPrint': 
         DebugPrintLayer([DebugMapper]),
+    'PerturbNormal': 
+        PerturbNormalLayer([GAP9_PerturbNormalMapper]),
+    'PerturbUniform': 
+        PerturbUniformLayer([GAP9_PerturbUniformMapper]),
+    'PerturbEggroll': 
+        PerturbEggrollLayer([GAP9_PerturbEggrollMapper]),
+    'PerturbRademacher': 
+        PerturbRademacherLayer([GAP9_PerturbRademacherMapper]),
+    'PerturbTriangle': 
+        PerturbTriangleLayer([GAP9_PerturbTriangleMapper]),
 }
 
 
@@ -262,7 +281,7 @@ class GAP9StructBuffer(StructBuffer):
     deallocTemplate = NodeTemplate("")
 
 
-_includeList = ["pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h"]
+_includeList = ["pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h", "perf_utils.h"]
 
 
 class GAP9ClusterEngine(DeploymentEngine):

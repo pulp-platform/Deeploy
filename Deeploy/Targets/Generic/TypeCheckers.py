@@ -643,3 +643,17 @@ class InPlaceAccumulatorV2Checker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         # Float32 output is signed
         return [True]
+
+class PerturbZOChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [inputs[0].nLevels]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
