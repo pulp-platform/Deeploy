@@ -52,6 +52,9 @@ DeeployTest/Tests/**/*.json
 DeeployTest/Tests/**/generateTest.py
 DeeployTest/out.txt
 
+gap9_sdk/.venv/
+venv/
+**/.venv/
 CHANGELOG_GEN.md
 
 # Container Artifacts
