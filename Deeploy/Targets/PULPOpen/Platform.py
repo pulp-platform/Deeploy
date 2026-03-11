@@ -12,19 +12,19 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
-    BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELUGradLayer, GELULayer, \
-    GEMMLayer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, \
-    ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
-    RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, \
-    SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
+    BasicRQIntegerDivBinding, BasicConvTranspose2DBindings
+from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, ConvTransposeLayer, GatherLayer, \
+    GELUGradLayer, GELULayer, GEMMLayer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, \
+    PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, \
+    RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, \
+    SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUGradParser, GELUParser, GEMMParser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool1DParser, \
     MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluParser, \
     RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, \
     SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, \
-    SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, \
-    iSoftmaxParser
+    SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, ConvTranspose2DParser, \
+    iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
@@ -83,6 +83,7 @@ PWConv2DMapper = NodeMapper(PULPPWConv2DParser(), PULPRQSPWConv2DTilingReadyBind
 StemConv2DMapper = NodeMapper(PULPStemConv2DParser(), PULPRQSStemConv2DTilingReadyBindings)
 FPDWConv2DMapper = NodeMapper(PULPFPDWConv2DParser(), PULPDWConv2DTilingReadyBindings)
 DWConv2DMapper = NodeMapper(PULPDWConv2DParser(), PULPRQSDWConv2DTilingReadyBindings)
+ConvTranspose2DMapper = NodeMapper(ConvTranspose2DParser(), BasicConvTranspose2DBindings)
 GEMMMapper = NodeMapper(PULPGEMMParser(), PULPRQSGEMMTilingReadyBindings)
 FloatGEMMMapper = NodeMapper(GEMMParser(), PULPFPGEMMTilingReadyBindings)
 MatrixVecMapper = NodeMapper(PULPMatrixVecParser(), PULPRQSMatrixVecTilingReadyBindings)
@@ -118,6 +119,7 @@ RQSConvMappers = [StemConv2DMapper, PWConv2DMapper, Conv2DMapper, DWConv2DMapper
 
 PULPMapping = {
     'Conv': ConvLayer([FPConv2DMapper, FPDWConv2DMapper]),
+    'ConvTranspose': ConvTransposeLayer([ConvTranspose2DMapper]),
     'RequantizedConv': PULPRQSConvLayer(RQSConvMappers),
     'RequantizedGemm': PULPRQSGEMMLayer([MatrixVecMapper, TallGEMMMapper, GEMMMapper]),
     'Gemm': GEMMLayer([FloatGEMMMapper, GEMMDequantMapper]),
