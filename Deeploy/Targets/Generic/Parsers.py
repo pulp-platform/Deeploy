@@ -6,6 +6,7 @@ import math
 from typing import Tuple
 
 import numpy as np
+import onnx
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
@@ -351,25 +352,99 @@ class PadParser(NodeParser):
     def __init__(self):
         super().__init__()
 
+    def _evaluate_constant_tensor(self, tensor: gs.Tensor):
+
+        if isinstance(tensor, gs.Constant):
+            return np.asarray(tensor.values)
+
+        if not hasattr(tensor, "inputs") or len(tensor.inputs) != 1:
+            return None
+
+        node = tensor.inputs[0]
+        input_values = []
+        for input_tensor in node.inputs:
+            value = self._evaluate_constant_tensor(input_tensor)
+            if value is None:
+                return None
+            input_values.append(value)
+
+        if node.op == "Constant":
+            value = node.attrs.get("value")
+            if value is None:
+                return None
+            return np.asarray(value.values)
+
+        if node.op == "Cast":
+            cast_dtype = onnx.helper.tensor_dtype_to_np_dtype(node.attrs["to"])
+            return input_values[0].astype(cast_dtype)
+
+        if node.op == "Reshape":
+            return np.reshape(input_values[0], input_values[1].astype(np.int64).tolist())
+
+        if node.op == "Concat":
+            return np.concatenate(input_values, axis = node.attrs["axis"])
+
+        if node.op == "Transpose":
+            return np.transpose(input_values[0], axes = node.attrs["perm"])
+
+        if node.op == "ConstantOfShape":
+            fill_value = node.attrs.get("value")
+            if fill_value is None:
+                scalar = np.array(0, dtype = np.float32)
+            else:
+                scalar = np.asarray(fill_value.values).reshape(-1)[0]
+            return np.full(input_values[0].astype(np.int64).tolist(), scalar, dtype = np.asarray(scalar).dtype)
+
+        if node.op == "Slice":
+            data = input_values[0]
+            starts = input_values[1].astype(np.int64).reshape(-1)
+            ends = input_values[2].astype(np.int64).reshape(-1)
+            axes = input_values[3].astype(np.int64).reshape(-1) if len(input_values) >= 4 else np.arange(len(starts))
+            steps = input_values[4].astype(np.int64).reshape(-1) if len(input_values) >= 5 else np.ones(
+                len(starts), dtype = np.int64)
+
+            slices = [slice(None)] * data.ndim
+            for start, end, axis, step in zip(starts, ends, axes, steps):
+                slices[int(axis)] = slice(int(start), int(end), int(step))
+
+            return data[tuple(slices)]
+
+        return None
+
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all([
-            'mode' in node.attrs, 'pads' in node.attrs, 'value' in node.attrs,
-            len(node.inputs) == 1,
-            len(node.outputs) == 1
-        ])
+        ret = all(['mode' in node.attrs, len(node.outputs) == 1])
 
         if ret:
             self.operatorRepresentation['mode'] = node.attrs['mode']
+            self.operatorRepresentation['value'] = 0
 
-            try:
-                self.operatorRepresentation['pads'] = [int(p) for p in node.attrs['pads']]
-            except Exception as e:
-                self.operatorRepresentation['pads'] = node.attrs['pads']
+            if 'pads' in node.attrs and len(node.inputs) == 1:
+                try:
+                    self.operatorRepresentation['pads'] = [int(p) for p in node.attrs['pads']]
+                except Exception:
+                    self.operatorRepresentation['pads'] = node.attrs['pads']
 
-            self.operatorRepresentation['value'] = node.attrs['value']
+                if 'value' in node.attrs:
+                    self.operatorRepresentation['value'] = node.attrs['value']
+                return True
 
-        return ret
+            if len(node.inputs) in (2, 3):
+                pads = self._evaluate_constant_tensor(node.inputs[1])
+                if pads is None:
+                    return False
+
+                self.operatorRepresentation['pads'] = [int(p) for p in np.asarray(pads).reshape(-1)]
+
+                if len(node.inputs) == 3:
+                    value = self._evaluate_constant_tensor(node.inputs[2])
+                    if value is None:
+                        return False
+                    self.operatorRepresentation['value'] = np.asarray(value).reshape(-1)[0].item()
+
+                return True
+
+        return False
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
