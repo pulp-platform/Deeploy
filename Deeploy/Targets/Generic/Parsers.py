@@ -375,6 +375,88 @@ class AveragePool2DParser(MaxPool2DParser):
         return newCtxt, wellFormed
 
 
+class MaxPoolGradParser(NodeParser):
+    """Parser for MaxPoolGrad custom training operator.
+
+    Inputs:
+        0: grad_output (dY)  - upstream gradient, shape [N, C, Ho, Wo] or [N, Ho, Wo, C]
+        1: original_input (X) - forward input, shape [N, C, Hi, Wi] or [N, Hi, Wi, C]
+    Output:
+        0: grad_input (dX)  - gradient w.r.t. forward input, same shape as original_input
+    Attributes: kernel_shape, strides, pads (same as MaxPool)
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = all([
+            'kernel_shape' in node.attrs,
+            'pads' in node.attrs,
+            'strides' in node.attrs,
+            len(node.inputs) == 2,
+            len(node.outputs) == 1,
+        ])
+
+        if ret:
+            pads = node.attrs['pads']
+            kernel_shape = node.attrs['kernel_shape']
+            strides = node.attrs['strides']
+
+            if not (len(pads) == 4 and len(kernel_shape) == 2 and len(strides) == 2):
+                return False
+
+            self.operatorRepresentation['pads'] = pads
+            self.operatorRepresentation['kernel_shape'] = kernel_shape
+            self.operatorRepresentation['strides'] = strides
+            self.operatorRepresentation['padding_x_left'] = int(pads[0])
+            self.operatorRepresentation['padding_y_top'] = int(pads[1])
+            self.operatorRepresentation['padding_x_right'] = int(pads[2])
+            self.operatorRepresentation['padding_y_bottom'] = int(pads[3])
+            self.operatorRepresentation['stride_x'] = int(strides[0])
+            self.operatorRepresentation['stride_y'] = int(strides[1])
+            self.operatorRepresentation['dim_kernel_x'] = int(kernel_shape[0])
+            self.operatorRepresentation['dim_kernel_y'] = int(kernel_shape[1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        # data_in  = grad_output (upstream gradient, shape of forward output)
+        # x_in     = original_input (forward input, needed to re-compute argmax)
+        # data_out = grad_input (gradient w.r.t. forward input)
+        data_in = ctxt.lookup(node.inputs[0].name)
+        x_in = ctxt.lookup(node.inputs[1].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['x_in'] = x_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        if channels_first:
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
+            self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
+            self.operatorRepresentation['dim_im_in_y'] = data_in.shape[3]
+            self.operatorRepresentation['ch_im_out'] = data_out.shape[1]
+            self.operatorRepresentation['dim_im_out_x'] = data_out.shape[2]
+            self.operatorRepresentation['dim_im_out_y'] = data_out.shape[3]
+        else:
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            self.operatorRepresentation['ch_im_in'] = data_in.shape[3]
+            self.operatorRepresentation['dim_im_in_x'] = data_in.shape[1]
+            self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+            self.operatorRepresentation['ch_im_out'] = data_out.shape[3]
+            self.operatorRepresentation['dim_im_out_x'] = data_out.shape[1]
+            self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+
+        wellFormed = (len(data_in.shape) == 4 and len(x_in.shape) == 4 and len(data_out.shape) == 4)
+        return ctxt, wellFormed
+
+
 class PadParser(NodeParser):
 
     def __init__(self):
@@ -3358,6 +3440,8 @@ class Conv2DGradXParser(Conv2DParser):
             self.operatorRepresentation['weight'] = weight_name
             self.operatorRepresentation['grad_in'] = input_grad_name  # dX
 
+            self.operatorRepresentation['batch'] = output_grad.shape[0]
+
             # From input_grad (dX): [N, C_in, H_in, W_in]
             self.operatorRepresentation['ch_im_in'] = input_grad.shape[1]
             self.operatorRepresentation['dim_im_in_x'] = input_grad.shape[2]  # H_in
@@ -3413,6 +3497,8 @@ class Conv2DGradWParser(Conv2DParser):
             self.operatorRepresentation['grad_out'] = output_grad_name  # dY
             self.operatorRepresentation['grad_weight'] = weight_grad_name  # dW
 
+            self.operatorRepresentation['batch'] = output_grad.shape[0]
+
             self.operatorRepresentation['ch_im_in'] = input.shape[1]
             self.operatorRepresentation['dim_im_in_x'] = input.shape[2]  # H_in
             self.operatorRepresentation['dim_im_in_y'] = input.shape[3]  # W_in
@@ -3428,3 +3514,159 @@ class Conv2DGradWParser(Conv2DParser):
             return newCtxt, True
 
         return ctxt, False
+
+
+class Conv2DGradBParser(NodeParser):
+    """Parser for ConvGradB: dB[c] = sum_{n,h,w} dY[n,c,h,w].
+    inputs: [dY: N,C_out,H,W], outputs: [dB: C_out]
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return len(node.inputs) == 1 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        output_grad = ctxt.lookup(node.inputs[0].name)
+        bias_grad = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['grad_out'] = output_grad.name
+        self.operatorRepresentation['grad_bias'] = bias_grad.name
+        self.operatorRepresentation['batch'] = output_grad.shape[0]
+        self.operatorRepresentation['ch_im_out'] = output_grad.shape[1]
+        self.operatorRepresentation['dim_im_out_x'] = output_grad.shape[2]
+        self.operatorRepresentation['dim_im_out_y'] = output_grad.shape[3]
+        return ctxt, True
+
+
+class Conv2DGradXWParser(NodeParser):
+    """Combined ConvGrad no-bias: 3 inputs (dY, X, W), 2 outputs (dX, dW)."""
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node):
+        wellFormed = all([
+            'dilations' in node.attrs,
+            'group' in node.attrs,
+            'pads' in node.attrs,
+            'strides' in node.attrs,
+            len(node.inputs) == 3,
+            len(node.outputs) == 2,
+            len(node.attrs['strides']) == 2,
+            len(node.attrs['pads']) == 4,
+            len(node.attrs['dilations']) == 2,
+        ])
+        if wellFormed:
+            if 'kernel_shape' not in node.attrs:
+                node.attrs['kernel_shape'] = node.inputs[2].shape[-2:]
+            self.operatorRepresentation['group'] = node.attrs['group']
+            self.operatorRepresentation['pads'] = node.attrs['pads']
+            self.operatorRepresentation['strides'] = node.attrs['strides']
+            self.operatorRepresentation['dilations'] = node.attrs['dilations']
+            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
+            self.operatorRepresentation['dim_kernel_x'] = int(node.attrs['kernel_shape'][0])
+            self.operatorRepresentation['dim_kernel_y'] = int(node.attrs['kernel_shape'][1])
+            self.operatorRepresentation['stride_x'] = int(node.attrs['strides'][0])
+            self.operatorRepresentation['stride_y'] = int(node.attrs['strides'][1])
+        return wellFormed
+
+    def parseNodeCtxt(self, ctxt, node, channels_first=True):
+        grad_out = ctxt.lookup(node.inputs[0].name)
+        data_in  = ctxt.lookup(node.inputs[1].name)
+        weight   = ctxt.lookup(node.inputs[2].name)
+        grad_in  = ctxt.lookup(node.outputs[0].name)
+        grad_weight = ctxt.lookup(node.outputs[1].name)
+
+        self.operatorRepresentation['grad_out']    = grad_out.name
+        self.operatorRepresentation['data_in']     = data_in.name
+        self.operatorRepresentation['weight']      = weight.name
+        self.operatorRepresentation['grad_in']     = grad_in.name
+        self.operatorRepresentation['grad_weight'] = grad_weight.name
+
+        self.operatorRepresentation['batch']       = data_in.shape[0]
+        self.operatorRepresentation['ch_im_in']    = data_in.shape[1]
+        self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
+        self.operatorRepresentation['dim_im_in_y'] = data_in.shape[3]
+        self.operatorRepresentation['ch_im_out']    = grad_out.shape[1]
+        self.operatorRepresentation['dim_im_out_x'] = grad_out.shape[2]
+        self.operatorRepresentation['dim_im_out_y'] = grad_out.shape[3]
+
+        self.operatorRepresentation['offset_grad_in_h']  = 0
+        self.operatorRepresentation['offset_grad_in_w']  = 0
+        self.operatorRepresentation['offset_grad_out_h'] = 0
+        self.operatorRepresentation['offset_grad_out_w'] = 0
+
+        self.operatorRepresentation['gradw_dim_im_in_x'] = data_in.shape[2]
+        self.operatorRepresentation['gradw_dim_im_in_y'] = data_in.shape[3]
+
+        return ctxt, True
+
+
+class Conv2DGradXWBParser(NodeParser):
+    """Combined ConvGrad with bias: 4 inputs (dY, X, W, bias), 3 outputs (dX, dW, dB)."""
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node):
+        wellFormed = all([
+            'dilations' in node.attrs,
+            'group' in node.attrs,
+            'pads' in node.attrs,
+            'strides' in node.attrs,
+            len(node.inputs) == 4,
+            len(node.outputs) == 3,
+            len(node.attrs['strides']) == 2,
+            len(node.attrs['pads']) == 4,
+            len(node.attrs['dilations']) == 2,
+        ])
+        if wellFormed:
+            if 'kernel_shape' not in node.attrs:
+                node.attrs['kernel_shape'] = node.inputs[2].shape[-2:]
+            self.operatorRepresentation['group'] = node.attrs['group']
+            self.operatorRepresentation['pads'] = node.attrs['pads']
+            self.operatorRepresentation['strides'] = node.attrs['strides']
+            self.operatorRepresentation['dilations'] = node.attrs['dilations']
+            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
+            self.operatorRepresentation['dim_kernel_x'] = int(node.attrs['kernel_shape'][0])
+            self.operatorRepresentation['dim_kernel_y'] = int(node.attrs['kernel_shape'][1])
+            self.operatorRepresentation['stride_x'] = int(node.attrs['strides'][0])
+            self.operatorRepresentation['stride_y'] = int(node.attrs['strides'][1])
+        return wellFormed
+
+    def parseNodeCtxt(self, ctxt, node, channels_first=True):
+        grad_out   = ctxt.lookup(node.inputs[0].name)
+        data_in    = ctxt.lookup(node.inputs[1].name)
+        weight     = ctxt.lookup(node.inputs[2].name)
+        bias       = ctxt.lookup(node.inputs[3].name)
+        grad_in    = ctxt.lookup(node.outputs[0].name)
+        grad_weight = ctxt.lookup(node.outputs[1].name)
+        grad_bias  = ctxt.lookup(node.outputs[2].name)
+
+        self.operatorRepresentation['grad_out']    = grad_out.name
+        self.operatorRepresentation['data_in']     = data_in.name
+        self.operatorRepresentation['weight']      = weight.name
+        self.operatorRepresentation['bias']        = bias.name
+        self.operatorRepresentation['grad_in']     = grad_in.name
+        self.operatorRepresentation['grad_weight'] = grad_weight.name
+        self.operatorRepresentation['grad_bias']   = grad_bias.name
+
+        self.operatorRepresentation['batch']       = data_in.shape[0]
+        self.operatorRepresentation['ch_im_in']    = data_in.shape[1]
+        self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
+        self.operatorRepresentation['dim_im_in_y'] = data_in.shape[3]
+        self.operatorRepresentation['ch_im_out']    = grad_out.shape[1]
+        self.operatorRepresentation['dim_im_out_x'] = grad_out.shape[2]
+        self.operatorRepresentation['dim_im_out_y'] = grad_out.shape[3]
+
+        self.operatorRepresentation['offset_grad_in_h']  = 0
+        self.operatorRepresentation['offset_grad_in_w']  = 0
+        self.operatorRepresentation['offset_grad_out_h'] = 0
+        self.operatorRepresentation['offset_grad_out_w'] = 0
+
+        self.operatorRepresentation['gradw_dim_im_in_x'] = data_in.shape[2]
+        self.operatorRepresentation['gradw_dim_im_in_y'] = data_in.shape[3]
+
+        return ctxt, True

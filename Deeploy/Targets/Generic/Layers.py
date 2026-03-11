@@ -426,6 +426,12 @@ class AveragePoolGradLayer(ONNXLayer):
         super().__init__(maps)
 
 
+class MaxPoolGradLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
 class GroupNormGradXStatLayer(ONNXLayer):
     """Layer for GroupNormGradXStat - computes intermediate gradient statistics."""
 

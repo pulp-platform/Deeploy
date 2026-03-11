@@ -538,6 +538,24 @@ class MaxPoolChecker(SignPropTypeChecker):
             return [False]
 
 
+class MaxPoolGradChecker(SignPropTypeChecker):
+    """TypeChecker for MaxPoolGrad: two float inputs (grad_output, original_input), one float output (grad_input)."""
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [inputs[0].nLevels]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True] if inputs[0]._signed else [False]
+
+    def checkOutputType(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> bool:
+        return True
+
+
 class AveragePoolChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):

@@ -16,4 +16,13 @@ void PULP_MaxPool2d_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
                                   uint32_t pad_top, uint32_t pad_bottom,
                                   uint32_t pad_left, uint32_t pad_right);
 
+void PULP_MaxPoolGrad2d_fp32_fp32_HWC(const float32_t *__restrict__ pGradOut,
+                                      const float32_t *__restrict__ pInput,
+                                      uint32_t H_out, uint32_t W_out, uint32_t C,
+                                      uint32_t H_in, uint32_t W_in,
+                                      uint32_t P, uint32_t Q, uint32_t SP,
+                                      uint32_t SQ, float32_t *__restrict__ pGradIn,
+                                      uint32_t pad_top, uint32_t pad_bottom,
+                                      uint32_t pad_left, uint32_t pad_right);
+
 #endif // __DEEPLOY_MATH_MAXPOOL_KERNEL_HEADER_

@@ -16,6 +16,7 @@ from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import Tran
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPAveragePool2DBindings, \
     PULPAveragePoolGrad2DBindings, PULPConcatBindings, PULPFloatConv2DBindings, PULPFloatConvGradW2DBindings, \
+    PULPMaxPoolGrad2DBindings, \
     PULPFloatConvGradX2DBindings, PULPFloatDWConv2DBindings, PULPFloatDWConvGradW2DBindings, \
     PULPFloatDWConvGradX2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
     PULPFloatPWConvGradW2DBindings, PULPFloatPWConvGradX2DBindings, PULPGatherBindings, PULPGroupNormGradBBinding, \
@@ -42,6 +43,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMul
 from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint import MaxPoolCTileConstraint, MaxPoolHWTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.AveragePoolTileConstraint import \
     AveragePoolCTileConstraint, AveragePoolHWTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolGradTileConstraint import MaxPoolGradCTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ReduceMeanConstraint import ReduceMeanTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint import ReduceSumTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import RequantShiftTileConstraint
@@ -57,7 +59,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.GroupNormalizationTileConstraint i
 from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradX2DHWTileConstraint, \
-    DWConvGradX2DTileConstraint, ConvGradW2DTileConstraint, ConvGradX2DIm2ColHWTileConstraint, PWConvGradXTileConstraint, PWConvGradWTileConstraint
+    DWConvGradX2DTileConstraint, DWConvGradW2DTileConstraint, ConvGradW2DTileConstraint, ConvGradX2DIm2ColHWTileConstraint, PWConvGradXTileConstraint, PWConvGradWTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyLossDualOutputTileConstraint import \
@@ -113,6 +115,9 @@ PULPAveragePool2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PU
                                                         
 PULPAveragePoolGrad2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPAveragePoolGrad2DBindings,
                                                                      tileConstraint = AveragePoolCTileConstraint())
+
+PULPMaxPoolGrad2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMaxPoolGrad2DBindings,
+                                                               tileConstraint = MaxPoolGradCTileConstraint())
 
 PULPRQSTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSBindings,
                                                      tileConstraint = RequantShiftTileConstraint())
@@ -200,7 +205,7 @@ PULPDWConvGradX2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PU
                                                               tileConstraint = DWConvGradX2DTileConstraint())
 
 PULPDWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradW2DBindings,
-                                                               tileConstraint = ConvGradW2DTileConstraint())
+                                                               tileConstraint = DWConvGradW2DTileConstraint())
 
 PULPPWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings( nodeBindings = PULPFloatPWConvGradW2DBindings,
                                                                 tileConstraint = PWConvGradWTileConstraint())
