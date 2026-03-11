@@ -415,7 +415,12 @@ class ConstantBuffer(VariableBuffer):
     def _valueString(self) -> str:
         values = list(self.values.reshape(-1))
         if self._type.typeName == 'float32_t*':
-            strValues = [f'{value}f' for value in values]
+            strValues = []
+            for value in values:
+                literal = f"{float(value):.9g}"
+                if "e" not in literal and "." not in literal:
+                    literal += ".0"
+                strValues.append(literal + "f")
         elif self._type.typeName == 'int8_t*':
             strValues = [f'{int(value)}' for value in values]
         else:
