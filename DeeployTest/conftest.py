@@ -84,6 +84,10 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line(
         "markers",
         "siracusa_train_tiled: mark test as a Siracusa tiled training test (forward + backward + optimizer, tiled)")
+    config.addinivalue_line(
+        "markers",
+        "siracusa_grad_tiled: mark test as a Siracusa tiled gradient-operator kernel test (single backward-pass ops, SBTiler)"
+    )
 
     # Configure logging based on verbosity
     verbosity = config.option.verbose

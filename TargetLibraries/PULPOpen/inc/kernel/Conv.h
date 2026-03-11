@@ -54,6 +54,22 @@ void PULP_ConvGradX2d_fp32_fp32_fp32_CHW(
     float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in, uint32_t pad_top,
     uint32_t pad_bottom, uint32_t pad_left, uint32_t pad_right);
 
+void PULP_ConvGradX2d_fp32_fp32_fp32_CHW_Im2Col_tiled(
+    const float *__restrict__ pGradOut,
+    uint32_t dim_im_out_x, uint32_t dim_im_out_y, uint32_t ch_im_out,
+    const float *__restrict__ pWeight,
+    uint32_t ch_im_in,
+    uint32_t dim_kernel_x, uint32_t dim_kernel_y,
+    uint32_t stride_h, uint32_t stride_w,
+    float *__restrict__ pGradIn,
+    uint32_t dim_im_in_x, uint32_t dim_im_in_y,
+    uint32_t padding_y_top, uint32_t padding_y_bottom,
+    uint32_t padding_x_left, uint32_t padding_x_right,
+    uint16_t offset_grad_in_h, uint16_t offset_grad_in_w,
+    uint16_t offset_grad_out_h, uint16_t offset_grad_out_w,
+    float *__restrict__ ctxtBuffer, uint32_t ctxtBufferSize,
+    float *__restrict__ btBuffer, uint32_t btBufferSize);
+
 void PULP_ConvGradW2d_fp32_fp32_fp32_CHW_Im2Col(
     const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
     uint32_t C_out, const float *__restrict__ pInput, uint32_t H_in,

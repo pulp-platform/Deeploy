@@ -43,6 +43,14 @@ float${grad_out_type.referencedType.typeWidth}_t* ${nodeName}_grad_out_ptr = ${g
 const float${mean_type.referencedType.typeWidth}_t* ${nodeName}_mean_ptr = ${mean} + ${nodeName}_start;
 const float${inv_std_dev_type.referencedType.typeWidth}_t* ${nodeName}_inv_std_dev_ptr = ${inv_std_dev} + ${nodeName}_start;
 
+// Zero-initialize weight_grad/bias_grad on first tile (accumulation across seq tiles)
+static uint8_t ${nodeName}_param_initialized = 0;
+if (!${nodeName}_param_initialized) {
+  memset(${weight_grad}, 0, ${lastDimLength} * sizeof(float${grad_out_type.referencedType.typeWidth}_t));
+  memset(${bias_grad},   0, ${lastDimLength} * sizeof(float${grad_out_type.referencedType.typeWidth}_t));
+  ${nodeName}_param_initialized = 1;
+}
+
 // Parallel: compute dX for each core's chunk of sequences using stash
 if (${nodeName}_elem_count > 0) {
   PULP_LayernormGrad_fp${grad_in_type.referencedType.typeWidth}_fp${grad_out_type.referencedType.typeWidth}(
@@ -57,17 +65,18 @@ if (${nodeName}_elem_count > 0) {
   );
 }
 
-// Core 0 only: compute dscale (weight_grad) and dbias (bias_grad) over all sequences
+// Core 0 only: accumulate dscale (weight_grad) and dbias (bias_grad) for this seq tile
 if (${nodeName}_core_id == 0) {
-  PULP_LayernormGradParam_fp${grad_in_type.referencedType.typeWidth}_fp${grad_out_type.referencedType.typeWidth}(
-      ${grad_in},                      // Full upstream gradient (dY)
-      ${data_in},                      // Full original input (X)
-      ${mean},                         // Stash mean (all sequences)
-      ${inv_std_dev},                  // Stash inv_std_dev (all sequences)
-      ${weight_grad},                  // Output: gradient w.r.t. scale (dscale)
-      ${bias_grad},                    // Output: gradient w.r.t. bias (dbias)
-      ${size},                         // Total number of elements
-      ${lastDimLength}                 // Size of the feature dimension
-  );
+  for (uint32_t ${nodeName}_s = 0; ${nodeName}_s < (uint32_t)${nodeName}_seq_length; ${nodeName}_s++) {
+    const float${grad_in_type.referencedType.typeWidth}_t* ${nodeName}_dy_s = ${grad_in} + ${nodeName}_s * ${lastDimLength};
+    const float${data_in_type.referencedType.typeWidth}_t* ${nodeName}_x_s  = ${data_in} + ${nodeName}_s * ${lastDimLength};
+    float${mean_type.referencedType.typeWidth}_t ${nodeName}_mu  = ${mean}[${nodeName}_s];
+    float${inv_std_dev_type.referencedType.typeWidth}_t ${nodeName}_isd = ${inv_std_dev}[${nodeName}_s];
+    for (uint32_t ${nodeName}_c = 0; ${nodeName}_c < (uint32_t)${lastDimLength}; ${nodeName}_c++) {
+      float${data_in_type.referencedType.typeWidth}_t ${nodeName}_xhat = (${nodeName}_x_s[${nodeName}_c] - ${nodeName}_mu) * ${nodeName}_isd;
+      ${weight_grad}[${nodeName}_c] += ${nodeName}_dy_s[${nodeName}_c] * ${nodeName}_xhat;
+      ${bias_grad}[${nodeName}_c]   += ${nodeName}_dy_s[${nodeName}_c];
+    }
+  }
 }
 """)

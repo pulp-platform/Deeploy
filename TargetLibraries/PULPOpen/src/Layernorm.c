@@ -100,21 +100,22 @@ void PULP_LayernormGrad_fp32_fp32(const float32_t *dy, const float32_t *x,
     float32_t m   = mean[s];
     float32_t isd = inv_std_dev[s];
 
-    /* Accumulate sum_dy and sum_dy_xhat */
-    float32_t sum_dy      = 0.0f;
-    float32_t sum_dy_xhat = 0.0f;
+    /* Accumulate sum(gamma*dy) and sum(gamma*dy*x_hat) */
+    float32_t sum_gdy      = 0.0f;
+    float32_t sum_gdy_xhat = 0.0f;
     for (uint32_t i = 0; i < lastDimLength; i++) {
-      float32_t x_hat_i = (x_s[i] - m) * isd;
-      sum_dy      += dy_s[i];
-      sum_dy_xhat += dy_s[i] * x_hat_i;
+      float32_t x_hat_i  = (x_s[i] - m) * isd;
+      float32_t gdy_i    = gamma[i] * dy_s[i];
+      sum_gdy      += gdy_i;
+      sum_gdy_xhat += gdy_i * x_hat_i;
     }
-    float32_t mean_dy      = sum_dy      / (float32_t)lastDimLength;
-    float32_t mean_dy_xhat = sum_dy_xhat / (float32_t)lastDimLength;
+    float32_t mean_gdy      = sum_gdy      / (float32_t)lastDimLength;
+    float32_t mean_gdy_xhat = sum_gdy_xhat / (float32_t)lastDimLength;
 
-    /* Compute dX */
+    /* Compute dX: dx[i] = isd * (gamma[i]*dy[i] - mean(gamma*dy) - x_hat[i]*mean(gamma*dy*x_hat)) */
     for (uint32_t i = 0; i < lastDimLength; i++) {
       float32_t x_hat_i = (x_s[i] - m) * isd;
-      dx_s[i] = gamma[i] * isd * (dy_s[i] - mean_dy - x_hat_i * mean_dy_xhat);
+      dx_s[i] = isd * (gamma[i] * dy_s[i] - mean_gdy - x_hat_i * mean_gdy_xhat);
     }
   }
 }

@@ -86,6 +86,30 @@ struct PointWise_Conv_args {
   int HWC;
 };
 
+// Minimal declarations for direct transpose + GEMM in PWConvGradX
+struct transp_args {
+  float *in_matrix;
+  float *out_matrix;
+  int N;
+  int M;
+  int *dim;
+  int *transposed_axes;
+  int n_dim;
+};
+
+struct matMul_args {
+  float *__restrict__ A;
+  float *__restrict__ B;
+  float *__restrict__ C;
+  int N;
+  int M;
+  int K;
+  int trans_B;
+};
+
+void transpose_matrix(void *void_args);
+void mm(void *void_args);
+
 void PULP_ConvGradW2d_fp32_fp32_fp32_CHW(
     const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
     uint32_t C_out, const float *__restrict__ pInput, uint32_t H_in,
@@ -814,49 +838,36 @@ void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
     float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in,
     float *__restrict__ pTransposeBuffer, uint32_t transposeBufferSize) {
 
-  struct blob input_blob = {0};
-  struct blob output_blob = {0};
-  struct blob coeff_blob = {0};
+  // pulp_conv_pw_fp32_bw_input_grads_cl has a bug: it passes M=C_out, N=C_in
+  // to transpose_matrix, treating W as [C_in rows, C_out cols], but W is
+  // stored as [C_out, C_in] row-major. This works only when C_in == C_out.
+  // Fix: call transpose_matrix directly with N=C_out, M=C_in (correct dims),
+  // then call mm directly with the correctly transposed buffer.
 
   memset(pGradIn, 0, sizeof(float) * (C_in * H_in * W_in));
 
-  input_blob.data = NULL;
-  input_blob.diff = (float *)pGradIn;
-  input_blob.W = (int)W_in;
-  input_blob.H = (int)H_in;
-  input_blob.C = (int)C_in;
-  input_blob.dim = (int)(C_in * H_in * W_in);
+  // Step 1: Transpose W[C_out, C_in] -> pTransposeBuffer[C_in, C_out]
+  // N = C_out (rows of W), M = C_in (cols of W) -> output [M=C_in, N=C_out]
+  struct transp_args tr_args;
+  tr_args.in_matrix = (float *)pWeight;
+  tr_args.out_matrix = pTransposeBuffer;
+  tr_args.N = (int)C_out;
+  tr_args.M = (int)C_in;
+  tr_args.dim = NULL;
+  tr_args.transposed_axes = NULL;
+  tr_args.n_dim = 0;
+  pi_cl_team_fork(NUM_CORES, transpose_matrix, &tr_args);
 
-  output_blob.data = NULL;
-  output_blob.diff = (float *)pGradOut;
-  output_blob.W = (int)W_out;
-  output_blob.H = (int)H_out;
-  output_blob.C = (int)C_out;
-  output_blob.dim = (int)(C_out * H_out * W_out);
-
-  coeff_blob.data = (float *)pWeight;
-  coeff_blob.diff = NULL;
-  coeff_blob.W = 1;
-  coeff_blob.H = 1;
-  coeff_blob.C = (int)C_in;
-  coeff_blob.dim = (int)(C_out * C_in);
-
-  struct PointWise_Conv_args pw_args;
-  memset(&pw_args, 0, sizeof(pw_args));
-
-  pw_args.input = &input_blob;
-  pw_args.output = &output_blob;
-  pw_args.coeff = &coeff_blob;
-  pw_args.transpose_buffer = pTransposeBuffer;
-
-  pw_args.skip_wg_grad = 1;
-  pw_args.skip_in_grad = 0;
-  pw_args.HWC = 0;
-  pw_args.opt_matmul_type_fw = 0;
-  pw_args.opt_matmul_type_wg = 0;
-  pw_args.opt_matmul_type_ig = 0;
-
-  pulp_conv_pw_fp32_bw_input_grads_cl(&pw_args);
+  // Step 2: GEMM: dX[C_in, H*W] = W^T[C_in, C_out] x dY[C_out, H*W]
+  struct matMul_args mm_args;
+  mm_args.A = pTransposeBuffer;       // [C_in, C_out]
+  mm_args.B = (float *)pGradOut;      // [C_out, H*W]
+  mm_args.C = pGradIn;                // [C_in, H*W]
+  mm_args.N = (int)C_in;
+  mm_args.M = (int)(H_out * W_out);
+  mm_args.K = (int)C_out;
+  mm_args.trans_B = 0;
+  pi_cl_team_fork(NUM_CORES, mm, &mm_args);
 }
 
 // Tile-aware Im2Col-based ConvGradX kernel with offset support

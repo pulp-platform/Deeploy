@@ -9,8 +9,9 @@ import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.Targets.Generic.Parsers import Conv2DGradWParser, Conv2DGradXParser, Conv2DParser, GEMMParser, \
-    ReduceMeanParser, RQSConv1DParser, RQSConv2DParser, RQSParserInterface
+from Deeploy.Targets.Generic.Parsers import Conv2DGradWParser, Conv2DGradXParser, Conv2DGradXWParser, \
+    Conv2DGradXWBParser, Conv2DParser, GEMMParser, ReduceMeanParser, RQSConv1DParser, RQSConv2DParser, \
+    RQSParserInterface
 
 
 class PULPConv2DParser(RQSConv2DParser):
@@ -622,3 +623,37 @@ class PULPPWConvGradW2DParser(PULPConvGradW2DParser):
             return False
 
         return wellFormed and True
+
+
+class PULPConvGradXW2DParser(Conv2DGradXWParser):
+    """PULP-specific combined ConvGrad no-bias (3 inputs, 2 outputs)."""
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNodeCtxt(self, ctxt, node, channels_first=True):
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if ret:
+            self.operatorRepresentation['padding_y_top']    = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left']   = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right']  = int(self.operatorRepresentation['pads'][3])
+            return newCtxt, True
+        return ctxt, False
+
+
+class PULPConvGradXWB2DParser(Conv2DGradXWBParser):
+    """PULP-specific combined ConvGrad with bias (4 inputs, 3 outputs)."""
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNodeCtxt(self, ctxt, node, channels_first=True):
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if ret:
+            self.operatorRepresentation['padding_y_top']    = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left']   = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right']  = int(self.operatorRepresentation['pads'][3])
+            return newCtxt, True
+        return ctxt, False

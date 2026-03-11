@@ -266,6 +266,21 @@ class GroupNormGradBChecker(SignPropTypeChecker):
         return [True]
 
 
+class GroupNormGradChecker(SignPropTypeChecker):
+    """TypeChecker for merged GroupNormGrad (dX + weight_grad + bias_grad)."""
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True] * len(self.output_types)
+
+
 class GroupNormalizationStatChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):

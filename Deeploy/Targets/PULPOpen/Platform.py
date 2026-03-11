@@ -15,7 +15,7 @@ from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindin
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, AveragePoolLayer, ConcatLayer, ConvLayer, \
     ConvGradWLayer, ConvGradXLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, GroupNormGradBLayer, \
-    GroupNormGradWLayer, GroupNormGradXLayer, GroupNormGradXStatLayer, GroupNormalizationLayer, \
+    GroupNormGradLayer, GroupNormGradWLayer, GroupNormGradXLayer, GroupNormGradXStatLayer, GroupNormalizationLayer, \
     GroupNormalizationStatLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, \
     MaxPoolGradLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluGradLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
@@ -23,7 +23,7 @@ from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, Avera
     TransposeLayer, iHardswishLayer, iRMSNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, ConcatParser, \
     DequantParser, FlattenParser, GatherParser, GELUGradParser, GELUParser, GEMMParser, GroupNormGradBParser, \
-    GroupNormGradWParser, GroupNormGradXParser, GroupNormGradXStatParser, GroupNormalizationParser, \
+    GroupNormGradParser, GroupNormGradWParser, GroupNormGradXParser, GroupNormGradXStatParser, GroupNormalizationParser, \
     GroupNormalizationStatParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, \
     MaxPool2DParser, MaxPoolGradParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, \
     ReluGradParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, \
@@ -47,8 +47,8 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAvera
     PULPConvGradW2DTilingReadyBindings, PULPConvGradX2DTilingReadyBindings, PULPDWConv2DTilingReadyBindings, \
     PULPDWConvGradW2DTilingReadyBindings, PULPDWConvGradX2DTilingReadyBindings, PULPFlattenTilingReadyBindings, \
     PULPFPGELUGradTilingReadyBindings, PULPFPGELUTilingReadyBindings, PULPFPGEMMTilingReadyBindings, \
-    PULPGatherTilingReadyBindings, PULPGroupNormGradBTilingReadyBindings, PULPGroupNormGradWTilingReadyBindings, \
-    PULPGroupNormGradXStatTilingReadyBindings, PULPGroupNormGradXTilingReadyBindings, \
+    PULPGatherTilingReadyBindings, PULPGroupNormGradTilingReadyBindings, PULPGroupNormGradBTilingReadyBindings, \
+    PULPGroupNormGradWTilingReadyBindings, PULPGroupNormGradXStatTilingReadyBindings, PULPGroupNormGradXTilingReadyBindings, \
     PULPGroupNormalizationStatTilingReadyBindings, PULPGroupNormalizationTilingReadyBindings, \
     PULPiHardswishTilingReadyBindings, PULPInPlaceAccumulatorV2TilingReadyBindings, \
     PULPiRMSNormTilingReadyBindings, PULPiRQSGELUTilingReadyBindings, PULPLayernormGradTilingReadyBindings, \
@@ -138,6 +138,7 @@ SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser
                                                PULPSoftmaxCrossEntropyGradTilingReadyBindings)
 SGDMapper = NodeMapper(SGDParser(), PULPSGDTilingReadyBindings)
 InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), PULPInPlaceAccumulatorV2TilingReadyBindings)
+GroupNormGradMapper = NodeMapper(GroupNormGradParser(), PULPGroupNormGradTilingReadyBindings)
 GroupNormGradXStatMapper = NodeMapper(GroupNormGradXStatParser(), PULPGroupNormGradXStatTilingReadyBindings)
 GroupNormGradXMapper = NodeMapper(GroupNormGradXParser(), PULPGroupNormGradXTilingReadyBindings)
 GroupNormGradWMapper = NodeMapper(GroupNormGradWParser(), PULPGroupNormGradWTilingReadyBindings)
@@ -195,6 +196,7 @@ PULPMapping = {
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
     'SGD': SGDLayer([SGDMapper]),
     'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper]),
+    'GroupNormGrad': GroupNormGradLayer([GroupNormGradMapper]),
     'GroupNormGradXStat': GroupNormGradXStatLayer([GroupNormGradXStatMapper]),
     'GroupNormGradX': GroupNormGradXLayer([GroupNormGradXMapper]),
     'GroupNormGradW': GroupNormGradWLayer([GroupNormGradWMapper]),

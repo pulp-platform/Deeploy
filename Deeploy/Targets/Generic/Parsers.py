@@ -2062,6 +2062,47 @@ class GroupNormGradBParser(NodeParser):
         return ctxt, True
 
 
+class GroupNormGradParser(NodeParser):
+    """Parser for merged GroupNormGrad node.
+
+    Combines GradXStat + GradX + GradW + GradB into a single node.
+    Inputs:  dY[N,C,H,W], X[N,C,H,W], gamma[C], stat[N,G,2]
+    Outputs: dX[N,C,H,W], weight_grad[C], bias_grad[C]
+    Attrs:   num_groups
+    """
+
+    def parseNode(self, node: gs.Node) -> (bool):
+        ret = all([
+            'num_groups' in node.attrs,
+            len(node.inputs) == 4,
+            len(node.outputs) == 3,
+        ])
+        if ret:
+            self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        inputs = ['dY', 'X', 'gamma', 'stat']
+        outputs = ['dX', 'weight_grad', 'bias_grad']
+
+        for idx, inputNode in enumerate(node.inputs):
+            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        for idx, outputNode in enumerate(node.outputs):
+            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['N'] = input_shape[0]
+        self.operatorRepresentation['C'] = input_shape[1]
+        self.operatorRepresentation['H'] = input_shape[2] if len(input_shape) > 2 else 1
+        self.operatorRepresentation['W'] = input_shape[3] if len(input_shape) > 3 else 1
+
+        return ctxt, True
+
+
 class GroupNormalizationStatParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> (bool):

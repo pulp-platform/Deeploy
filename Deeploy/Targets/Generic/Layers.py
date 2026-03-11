@@ -477,6 +477,18 @@ class GroupNormGradBLayer(ONNXLayer):
         return size * ops_per_element
 
 
+class GroupNormGradLayer(ONNXLayer):
+    """Layer for merged GroupNormGrad (GradXStat + GradX + GradW + GradB fused)."""
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        ops_per_element = 16  # GradXStat(8) + GradX(6) + GradW/GradB(2)
+        return size * ops_per_element
+
+
 class GroupNormalizationStatLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):

@@ -17,11 +17,11 @@ from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation i
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
     GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
-    GatherChecker, GELUChecker, GEMMChecker, GroupNormGradBChecker, GroupNormGradWChecker, GroupNormGradXChecker, \
-    GroupNormGradXStatChecker, GroupNormalizationChecker, GroupNormalizationStatChecker, HardswishChecker, \
-    InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolGradChecker, MulChecker, QuantChecker, \
-    ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, \
-    SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    GatherChecker, GELUChecker, GEMMChecker, GroupNormGradBChecker, GroupNormGradChecker, GroupNormGradWChecker, \
+    GroupNormGradXChecker, GroupNormGradXStatChecker, GroupNormalizationChecker, GroupNormalizationStatChecker, \
+    HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolGradChecker, MulChecker, \
+    QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
+    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -31,7 +31,7 @@ from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatAveragePoolTemplate, \
     FloatConvGradTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatGroupNormGradBTemplate, \
-    FloatGroupNormGradWTemplate, FloatGroupNormGradXStatTemplate, FloatGroupNormGradXTemplate, \
+    FloatGroupNormGradTemplate, FloatGroupNormGradWTemplate, FloatGroupNormGradXStatTemplate, FloatGroupNormGradXTemplate, \
     FloatGroupNormalizationStatTemplate, FloatGroupNormalizationTemplate, FloatInPlaceAccumulatorV2Template, \
     FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, \
     FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MulTemplate, \
@@ -569,6 +569,18 @@ PULPGroupNormGradBBinding = NodeBinding(
         [PointerClass(float32_t)],  # dY
         [PointerClass(float32_t)]), # dBeta
     FloatGroupNormGradBTemplate.referenceTemplate,
+    ForkTransformer)
+
+PULPGroupNormGradBinding = NodeBinding(
+    GroupNormGradChecker(
+        [PointerClass(float32_t),  # dY
+         PointerClass(float32_t),  # X
+         PointerClass(float32_t),  # gamma
+         PointerClass(float32_t)], # stat [N, G, 2]
+        [PointerClass(float32_t),  # dX
+         PointerClass(float32_t),  # weight_grad
+         PointerClass(float32_t)]), # bias_grad
+    FloatGroupNormGradTemplate.referenceGradTemplate,
     ForkTransformer)
 
 PULPGroupNormalizationStatBinding = NodeBinding(

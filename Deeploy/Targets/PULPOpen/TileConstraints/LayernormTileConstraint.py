@@ -185,13 +185,10 @@ class LayernormGradTileConstraint(TileConstraint):
 
     @staticmethod
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
-        # Approach A: pin all non-features dims to full size.
-        # PULP_LayernormGradParam_fp... must see ALL sequences to compute weight_grad/bias_grad correctly.
-        grad_in_buf = ctxt.lookup(parseDict['grad_in'])
-        input_shape = grad_in_buf.shape
-        for idx in range(len(input_shape) - 1):
-            tilerModel.addConstraint(
-                tilerModel.getTensorDimVar(tensorName = parseDict['grad_in'], dimIdx = idx) == input_shape[idx])
+        # Only pin the feature (last) dim — already done in addGeometricalConstraint.
+        # Seq dims are left free so the solver can tile along the sequence dimension.
+        # weight_grad/bias_grad accumulation across seq tiles is handled in the template
+        # via a static-flag memset + inline accumulation loop (ConvGradW pattern).
         return tilerModel
 
     @classmethod

@@ -296,7 +296,14 @@ class ConvGradXTileConstraintBase(TileConstraint):
 
         dxTiles = [c.rectangle for c in absoluteOutputCubes]
 
-        addrNames = [cls.gradOutKey, cls.weightKey, cls.gradInKey]
+        # weight may be a Constant op excluded from the tiling solution
+        varW_name = operatorRepresentation[cls.weightKey]
+        weight_in_solution = varW_name in tilingSolution.tensorMemoryConstraints
+
+        addrNames = [cls.gradOutKey]
+        if weight_in_solution:
+            addrNames.append(cls.weightKey)
+        addrNames.append(cls.gradInKey)
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(
             tilingSolution, targetMemLevel, operatorRepresentation, addrNames
         )
@@ -385,7 +392,10 @@ class ConvGradXTileConstraintBase(TileConstraint):
             inputWCubes.append(fullW)
             outputDxCubes.append(dxCube)
 
-        inputLoadSchedule  = [{cls.gradOutKey: dy, cls.weightKey: w} for dy, w in zip(inputDyCubes, inputWCubes)]
+        if weight_in_solution:
+            inputLoadSchedule = [{cls.gradOutKey: dy, cls.weightKey: w} for dy, w in zip(inputDyCubes, inputWCubes)]
+        else:
+            inputLoadSchedule = [{cls.gradOutKey: dy} for dy in inputDyCubes]
         outputLoadSchedule = [{cls.gradInKey: dx} for dx in outputDxCubes]
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
