@@ -351,3 +351,21 @@ for (uint32_t n=0; n<${batch}; ++n) {
 }
 
 """)
+
+
+# Template for ConvGradB: dB[c] = sum_{n,h,w} dY[n,c,h,w]
+referenceConvGradB2DTemplate = NodeTemplate("""
+// 2D FP ConvGradB: bias gradient = sum dY over N,H,W (Name: ${nodeName}, Op: ${nodeOp})
+${grad_out_type.typeName} ref_dB_dy = ${grad_out};
+${grad_bias_type.typeName} ref_dB_db = ${grad_bias};
+for (uint32_t c = 0; c < ${ch_im_out}; ++c) {
+    ref_dB_db[c] = 0.0f;
+    for (uint32_t n = 0; n < ${batch}; ++n) {
+        for (uint32_t h = 0; h < ${dim_im_out_y}; ++h) {
+            for (uint32_t w = 0; w < ${dim_im_out_x}; ++w) {
+                ref_dB_db[c] += ref_dB_dy[n * ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x} + c * ${dim_im_out_y} * ${dim_im_out_x} + h * ${dim_im_out_x} + w];
+            }
+        }
+    }
+}
+""")

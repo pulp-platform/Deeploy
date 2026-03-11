@@ -14,14 +14,14 @@ from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import Me
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, AveragePoolLayer, ConcatLayer, ConvLayer, \
-    ConvGradWLayer, ConvGradXLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, GroupNormGradBLayer, \
+    ConvGradBLayer, ConvGradWLayer, ConvGradXLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, GroupNormGradBLayer, \
     GroupNormGradLayer, GroupNormGradWLayer, GroupNormGradXLayer, GroupNormGradXStatLayer, GroupNormalizationLayer, \
     GroupNormalizationStatLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, \
     MaxPoolGradLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluGradLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
     TransposeLayer, iHardswishLayer, iRMSNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, ConcatParser, \
+from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, ConcatParser, Conv2DGradBParser, \
     DequantParser, FlattenParser, GatherParser, GELUGradParser, GELUParser, GEMMParser, GroupNormGradBParser, \
     GroupNormGradParser, GroupNormGradWParser, GroupNormGradXParser, GroupNormGradXStatParser, GroupNormalizationParser, \
     GroupNormalizationStatParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, \
@@ -35,7 +35,7 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPat
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
-    PULPDMASliceBindings, PULPDWConv1DBinding
+    PULPDMASliceBindings, PULPDWConv1DBinding, PULPFloatConvGradBBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPConvGradW2DParser, \
     PULPConvGradX2DParser, PULPDWConv1DParser, PULPDWConv2DParser, PULPDWConvGradW2DParser, \
@@ -143,6 +143,7 @@ GroupNormGradXStatMapper = NodeMapper(GroupNormGradXStatParser(), PULPGroupNormG
 GroupNormGradXMapper = NodeMapper(GroupNormGradXParser(), PULPGroupNormGradXTilingReadyBindings)
 GroupNormGradWMapper = NodeMapper(GroupNormGradWParser(), PULPGroupNormGradWTilingReadyBindings)
 GroupNormGradBMapper = NodeMapper(GroupNormGradBParser(), PULPGroupNormGradBTilingReadyBindings)
+ConvGradBMapper = NodeMapper(Conv2DGradBParser(), PULPFloatConvGradBBindings)
 
 PULPMapping = {
     # ── Inference operators ───────────────────────────────────────────────
@@ -186,6 +187,7 @@ PULPMapping = {
     # ── Training / Gradient operators ─────────────────────────────────────
     'ConvGradX': ConvGradXLayer([PWConvGradX2DMapper, DwConvGradxMapper, ConvGradXMapper]),
     'ConvGradW': ConvGradWLayer([PWConvGradW2DMapper, DwConvGradWMapper, ConvGradWMapper]),
+    'ConvGradB': ConvGradBLayer([ConvGradBMapper]),
     'GeluGrad': GELUGradLayer([GELUGradMapper]),
     'LayerNormalizationGrad': LayerNormGradLayer([LayerNormGradMapper]),
     'AveragePoolGrad': AveragePoolGradLayer([AveragePoolGrad2DMapper]),

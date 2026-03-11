@@ -38,8 +38,8 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
     SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
-from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
-    PULPRequantShiftChecker
+from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPConvGradBChecker, PULPLinearChecker, \
+    PULPMaxPoolChecker, PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
     TilingVariableReplacementUpdate
 
@@ -290,6 +290,13 @@ PULPFloatPWConvGradX2DBindings = [
     NodeBinding(
         ConvChecker([PointerClass(float32_t), PointerClass(float32_t)],
                     [PointerClass(float32_t)]), FloatConvGradTemplate.referencePWConvGradX2DTemplate,
+        ClusterTransformer)
+]
+
+PULPFloatConvGradBBindings = [
+    NodeBinding(
+        PULPConvGradBChecker([PointerClass(float32_t)],
+                             [PointerClass(float32_t)]), FloatConvGradTemplate.referenceConvGradB2DTemplate,
         ClusterTransformer)
 ]
 

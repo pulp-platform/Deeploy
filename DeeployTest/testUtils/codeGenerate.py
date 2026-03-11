@@ -596,7 +596,8 @@ def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[Lis
                                 verbosityCfg: CodeGenVerbosity, n_steps: int = 1, n_accum: int = 1,
                                 num_data_inputs: int = 2, grad_buf_start_idx: int = 0, num_grad_inputs: int = 0,
                                 learning_rate: float = 0.001, reference_losses: List = None,
-                                init_weights: List = None, data_size: int = None) -> None:
+                                init_weights: List = None, data_size: int = None,
+                                tolerance_abs: float = 1e-3) -> None:
     """Generate all training test files: testinputs.h, testoutputs.h, TrainingNetwork.h, TrainingNetwork.c.
 
     Parameters
@@ -635,6 +636,7 @@ def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[Lis
     # testoutputs.h
     testOutputStr = generateTrainingTestOutputsHeader(
         reference_losses=reference_losses,
+        tolerance_abs=tolerance_abs,
     )
     with open(f'{dumpdir}/testoutputs.h', 'w') as f:
         f.write(testOutputStr)

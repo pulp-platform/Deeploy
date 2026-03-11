@@ -55,7 +55,15 @@ def _split_single_conv_grad(graph: gs.Graph, node: gs.Node, counter: int):
     if len(node.outputs) >= 2:
         dw = node.outputs[1]  # dW: weight gradient  [C_out, C_in/group, kH, kW]
 
-        if 'kernel_shape' not in attrs_w and dw.shape is not None and len(dw.shape) >= 4:
+        # Propagate shape and dtype from W → dW (same shape; ONNX shape inference misses ConvGrad)
+        if dw.shape is None and w.shape is not None:
+            dw.shape = list(w.shape)
+        if dw.dtype is None and w.dtype is not None:
+            dw.dtype = w.dtype
+
+        if 'kernel_shape' not in attrs_w and w.shape is not None and len(w.shape) >= 4:
+            attrs_w['kernel_shape'] = list(w.shape[2:4])
+        elif 'kernel_shape' not in attrs_w and dw.shape is not None and len(dw.shape) >= 4:
             attrs_w['kernel_shape'] = list(dw.shape[2:4])
 
         # ConvGradW: compute dW from dY and X
@@ -70,6 +78,19 @@ def _split_single_conv_grad(graph: gs.Graph, node: gs.Node, counter: int):
 
         if len(node.outputs) >= 3:
             db = node.outputs[2]  # dB: bias gradient  [C_out]
+
+            # Propagate bias shape and dtype: dB shape == B shape (or [C_out] from W)
+            if db.shape is None:
+                if len(node.inputs) >= 4 and node.inputs[3].shape is not None:
+                    db.shape = list(node.inputs[3].shape)
+                elif w.shape is not None:
+                    db.shape = [w.shape[0]]
+            if db.dtype is None:
+                if len(node.inputs) >= 4 and node.inputs[3].dtype is not None:
+                    db.dtype = node.inputs[3].dtype
+                elif w.dtype is not None:
+                    db.dtype = w.dtype
+
             # ConvGradB: compute dB = sum(dY, axes=[N, H, W])
             conv_grad_b = gs.Node(
                 op      = 'ConvGradB',

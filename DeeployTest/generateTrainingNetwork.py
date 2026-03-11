@@ -273,7 +273,8 @@ def generateTrainingNetwork(args):
                                 learning_rate=args.learning_rate,
                                 reference_losses=reference_losses,
                                 init_weights=init_weights,
-                                data_size=data_size)
+                                data_size=data_size,
+                                tolerance_abs=args.tolerance_abs)
 
     # 11. Write resolved config for execution.py to pick up after subprocess call.
     meta = {
@@ -327,6 +328,13 @@ if __name__ == '__main__':
         dest="learning_rate",
         default=0.001,
         help="SGD learning rate emitted as TRAINING_LEARNING_RATE in testinputs.h. Default: 0.001.",
+    )
+    parser.add_argument(
+        "--tolerance",
+        type=float,
+        dest="tolerance_abs",
+        default=1e-3,
+        help="Absolute loss tolerance emitted as TRAINING_TOLERANCE_ABS in testoutputs.h. Default: 1e-3.",
     )
     parser.add_argument('--shouldFail', action='store_true')
     parser.set_defaults(shouldFail=False)

@@ -245,7 +245,12 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         if node.op in ["Conv", "RequantizedConv"]:
             # In the case of Conv: [weights, opt. bias], RequantizedConv: [weights, mul, add, opt. shift]
             for tensor in node.inputs[1:]:
-                _transformLayoutConst(tensor, spatialDims, default_channels_first)
+                if isinstance(tensor, gs.Constant):
+                    _transformLayoutConst(tensor, spatialDims, default_channels_first)
+                elif isinstance(tensor, gs.Variable) and tensor.shape is not None and len(tensor.shape) >= 2:
+                    # Trainable weight (Variable input in training graph) — insert Transpose node
+                    perm = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
+                    graph.nodes.append(_appendTranspose(tensor, node, perm))
 
         node.attrs["channels_first"] = default_channels_first
 

@@ -358,7 +358,8 @@ class ConvLayer(ONNXLayer):
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
         if len(inputShapes) == 3:
-            inputShapes[2] = inputShapes[1][0]
+            # Bias shape must be a list, not a scalar integer, to avoid corrupting tensor shape in export
+            inputShapes[2] = [inputShapes[1][0]]
         return (inputShapes, outputShapes)
 
     def computeOps(self):
@@ -856,6 +857,18 @@ class ConvGradWLayer(ONNXLayer):
         total_ops = num_weights * num_output_positions * 2
 
         return total_ops
+
+
+class ConvGradBLayer(ONNXLayer):
+    """Layer for computing bias gradients in convolution backward pass"""
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        """ConvGradB: dB[c] = sum_{n,h,w} dY[n,c,h,w]."""
+        opRep = self.mapper.parser.operatorRepresentation
+        return opRep['batch'] * opRep['ch_im_out'] * opRep['dim_im_out_x'] * opRep['dim_im_out_y']
 
 
 class ConvTransposeLayer(ONNXLayer):
