@@ -348,6 +348,7 @@ def main(default_platform: Optional[str] = None,
         "snitch": "Snitch",
         "chimera": "Chimera",
         "softhier": "SoftHier",
+        "xdna2": "XDNA2",
     }
 
     if args.platform:
