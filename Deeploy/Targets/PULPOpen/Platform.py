@@ -20,6 +20,7 @@ from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, Avera
     GroupNormGradLayer, GroupNormGradWLayer, GroupNormGradXLayer, GroupNormGradXStatLayer, GroupNormalizationLayer, \
     GroupNormalizationStatLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, \
     MaxPoolGradLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluGradLayer, \
+    MSELossGradLayer, MSELossLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
     TransposeLayer, iHardswishLayer, iRMSNormLayer
@@ -31,6 +32,7 @@ from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, Batc
     GroupNormalizationStatParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, \
     MaxPool2DParser, MaxPoolGradParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, \
     ReluGradParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, \
+    MSELossGradParser, MSELossParser, \
     RQSiHardswishParser, SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, \
     SoftmaxGradParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, \
     iRMSNormParser, iSoftmaxParser
@@ -39,7 +41,7 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPat
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
-    PULPDMASliceBindings, PULPDWConv1DBinding, PULPFloatConvGradBBindings
+    PULPDMASliceBindings, PULPDWConv1DBinding
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPConvGradW2DParser, \
     PULPConvGradX2DParser, PULPDWConv1DParser, PULPDWConv2DParser, PULPDWConvGradW2DParser, \
@@ -68,10 +70,13 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAvera
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyLossDualOutputTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
-    PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
+    PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings, \
+    PULPMSELossTilingReadyBindings, PULPMSELossGradTilingReadyBindings, \
+    PULPConvGradBTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.SplitConvGradPass import SplitConvGradPass
+from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.RewriteMaxPoolGradPass import RewriteMaxPoolGradInputPass
 
 # ── Inference NodeMappers ──────────────────────────────────────────────────
 RQAddMapper = NodeMapper(RQAddParser(), PULPRQAddTilingReadyBindings)
@@ -149,7 +154,9 @@ GroupNormGradXStatMapper = NodeMapper(GroupNormGradXStatParser(), PULPGroupNormG
 GroupNormGradXMapper = NodeMapper(GroupNormGradXParser(), PULPGroupNormGradXTilingReadyBindings)
 GroupNormGradWMapper = NodeMapper(GroupNormGradWParser(), PULPGroupNormGradWTilingReadyBindings)
 GroupNormGradBMapper = NodeMapper(GroupNormGradBParser(), PULPGroupNormGradBTilingReadyBindings)
-ConvGradBMapper = NodeMapper(Conv2DGradBParser(), PULPFloatConvGradBBindings)
+ConvGradBMapper = NodeMapper(Conv2DGradBParser(), PULPConvGradBTilingReadyBindings)
+MSELossMapper = NodeMapper(MSELossParser(), PULPMSELossTilingReadyBindings)
+MSELossGradMapper = NodeMapper(MSELossGradParser(), PULPMSELossGradTilingReadyBindings)
 BatchNormInternalMapper = NodeMapper(BatchNormInternalParser(), PULPBatchNormInternalTilingReadyBindings)
 BatchNormalizationGradMapper = NodeMapper(BatchNormalizationGradParser(), PULPBatchNormalizationGradTilingReadyBindings)
 GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), PULPGlobalAveragePool2DTilingReadyBindings)
@@ -204,6 +211,8 @@ PULPMapping = {
     'MaxPoolGrad': MaxPoolGradLayer([MaxPoolGrad2DMapper]),
     'ReluGrad': ReluGradLayer([ReluGradMapper]),
     'SoftmaxGrad': SoftmaxGradLayer([SoftmaxGradMapper]),
+    'MSELoss': MSELossLayer([MSELossMapper]),
+    'MSELossGrad': MSELossGradLayer([MSELossGradMapper]),
     'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossDualOutputMapper, SoftmaxCrossEntropyLossMapper]),
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
     'SGD': SGDLayer([SGDMapper]),
@@ -291,6 +300,7 @@ class PULPStructBuffer(StructBuffer):
 
 PULPOptimizer = TopologyOptimizer([
     SplitConvGradPass(),
+    RewriteMaxPoolGradInputPass(),
     QuantPatternPass(),
     DequantPatternPass(),
     SkipEmptyConcatPass(),

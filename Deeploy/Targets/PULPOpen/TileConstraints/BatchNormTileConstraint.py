@@ -131,8 +131,24 @@ class BatchNormInternalTileConstraint(TileConstraint):
 
         output_cubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        # Extract base addresses for all transferred tensors
-        addr_names = ['data_in', 'data_out', 'scale', 'bias', 'running_mean', 'running_var']
+        # Global model parameters (scale/bias/running_mean/running_var) may be excluded
+        # from the tiling solution by _checkResolve (global tensors with 1 memory level).
+        # Apply the same _in_solution guard as ConvTileConstraint.bias_in_solution.
+        scale_in_solution = operatorRepresentation['scale'] in tilingSolution.tensorMemoryConstraints
+        bias_in_solution = operatorRepresentation['bias'] in tilingSolution.tensorMemoryConstraints
+        running_mean_in_solution = operatorRepresentation['running_mean'] in tilingSolution.tensorMemoryConstraints
+        running_var_in_solution = operatorRepresentation['running_var'] in tilingSolution.tensorMemoryConstraints
+
+        addr_names = ['data_in', 'data_out']
+        if scale_in_solution:
+            addr_names.append('scale')
+        if bias_in_solution:
+            addr_names.append('bias')
+        if running_mean_in_solution:
+            addr_names.append('running_mean')
+        if running_var_in_solution:
+            addr_names.append('running_var')
+
         input_base_offsets, output_base_offsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                        operatorRepresentation, addr_names)
 
@@ -152,13 +168,16 @@ class BatchNormInternalTileConstraint(TileConstraint):
             # Per-channel vector tile: offset=(c_start,), dims=(C_tile,)
             vec_cube = HyperRectangle((c_start,), (C_tile,))
 
-            input_load_schedule.append({
-                "data_in": cube,
-                "scale": vec_cube,
-                "bias": vec_cube,
-                "running_mean": vec_cube,
-                "running_var": vec_cube,
-            })
+            entry = {"data_in": cube}
+            if scale_in_solution:
+                entry["scale"] = vec_cube
+            if bias_in_solution:
+                entry["bias"] = vec_cube
+            if running_mean_in_solution:
+                entry["running_mean"] = vec_cube
+            if running_var_in_solution:
+                entry["running_var"] = vec_cube
+            input_load_schedule.append(entry)
             output_load_schedule.append({"data_out": cube})
 
         tiling_schedule = TilingSchedule(input_base_offsets, output_base_offsets, input_load_schedule,
@@ -265,7 +284,21 @@ class BatchNormalizationGradTileConstraint(TileConstraint):
 
         output_cubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        addr_names = ['dY', 'X', 'gamma', 'saved_mean', 'saved_inv_std', 'dX']
+        # gamma is a learnable model parameter (global) and may be excluded from the tiling
+        # solution by _checkResolve. saved_mean/saved_inv_std are transient BN forward outputs
+        # and are normally in the solution, but guard them too for robustness.
+        gamma_in_solution = operatorRepresentation['gamma'] in tilingSolution.tensorMemoryConstraints
+        saved_mean_in_solution = operatorRepresentation['saved_mean'] in tilingSolution.tensorMemoryConstraints
+        saved_inv_std_in_solution = operatorRepresentation['saved_inv_std'] in tilingSolution.tensorMemoryConstraints
+
+        addr_names = ['dY', 'X', 'dX']
+        if gamma_in_solution:
+            addr_names.append('gamma')
+        if saved_mean_in_solution:
+            addr_names.append('saved_mean')
+        if saved_inv_std_in_solution:
+            addr_names.append('saved_inv_std')
+
         input_base_offsets, output_base_offsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                        operatorRepresentation, addr_names)
 
@@ -284,13 +317,14 @@ class BatchNormalizationGradTileConstraint(TileConstraint):
 
             vec_cube = HyperRectangle((c_start,), (C_tile,))
 
-            input_load_schedule.append({
-                "dY": cube,
-                "X": cube,
-                "gamma": vec_cube,
-                "saved_mean": vec_cube,
-                "saved_inv_std": vec_cube,
-            })
+            entry = {"dY": cube, "X": cube}
+            if gamma_in_solution:
+                entry["gamma"] = vec_cube
+            if saved_mean_in_solution:
+                entry["saved_mean"] = vec_cube
+            if saved_inv_std_in_solution:
+                entry["saved_inv_std"] = vec_cube
+            input_load_schedule.append(entry)
             output_load_schedule.append({"dX": cube})
 
         tiling_schedule = TilingSchedule(input_base_offsets, output_base_offsets, input_load_schedule,

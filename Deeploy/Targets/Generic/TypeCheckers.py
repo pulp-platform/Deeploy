@@ -8,7 +8,9 @@ import numpy as np
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
-from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
+import onnx_graphsurgeon as gs
+
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, OperatorRepresentation, VariableBuffer
 
 
 class ConcatChecker(SignPropTypeChecker):
@@ -719,6 +721,20 @@ class SoftmaxCrossEntropyLossChecker(SignPropTypeChecker):
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
 
+        return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [False] * len(self.output_types)
+
+
+class MSELossChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
         return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
 
     def _inferSignedness(self, inputs: List[VariableBuffer],

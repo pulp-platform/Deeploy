@@ -17,7 +17,7 @@ from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTil
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPAveragePool2DBindings, \
     PULPAveragePoolGrad2DBindings, PULPBatchNormInternalBindings, PULPBatchNormalizationGradBindings, \
     PULPGlobalAveragePool2DBindings, PULPGlobalAveragePoolGrad2DBindings, \
-    PULPConcatBindings, PULPFloatConv2DBindings, PULPFloatConvGradW2DBindings, \
+    PULPConcatBindings, PULPFloatConv2DBindings, PULPFloatConvGradBBindings, PULPFloatConvGradW2DBindings, \
     PULPMaxPoolGrad2DBindings, \
     PULPFloatConvGradX2DBindings, PULPFloatDWConv2DBindings, PULPFloatDWConvGradW2DBindings, \
     PULPFloatDWConvGradX2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
@@ -30,7 +30,8 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPAveragePool2D
     PULPRQSBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
     PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, \
     PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossDualOutputBindings, \
-    PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
+    PULPSoftmaxCrossEntropyLossGradBindings, PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings, \
+    PULPMSELossBindings, PULPMSELossGradBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
     RQDWConv2DTileConstraint
@@ -65,12 +66,15 @@ from Deeploy.Targets.PULPOpen.TileConstraints.BatchNormTileConstraint import Bat
     BatchNormalizationGradTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GlobalAveragePoolTileConstraint import GlobalAveragePoolTileConstraint, \
     GlobalAveragePoolGradTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradX2DHWTileConstraint, \
+from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradBTileConstraint, \
+    ConvGradX2DHWTileConstraint, \
     DWConvGradX2DTileConstraint, DWConvGradW2DTileConstraint, ConvGradW2DTileConstraint, ConvGradX2DIm2ColHWTileConstraint, PWConvGradXTileConstraint, PWConvGradWTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyLossDualOutputTileConstraint import \
     SoftmaxCrossEntropyLossDualOutputTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.MSELossTileConstraint import \
+    MSELossTileConstraint, MSELossGradTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 PULPRQSConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSConv2DBindings,
@@ -252,3 +256,12 @@ PULPGlobalAveragePool2DTilingReadyBindings = TilingReadyNodeBindings(
 
 PULPGlobalAveragePoolGrad2DTilingReadyBindings = TilingReadyNodeBindings(
     nodeBindings = PULPGlobalAveragePoolGrad2DBindings, tileConstraint = GlobalAveragePoolGradTileConstraint())
+
+PULPMSELossTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPMSELossBindings, tileConstraint = MSELossTileConstraint())
+
+PULPMSELossGradTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPMSELossGradBindings, tileConstraint = MSELossGradTileConstraint())
+
+PULPConvGradBTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPFloatConvGradBBindings, tileConstraint = ConvGradBTileConstraint())

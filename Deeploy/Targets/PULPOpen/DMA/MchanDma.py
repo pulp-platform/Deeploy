@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import math
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import CodeSnippet, NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
 from Deeploy.TilingExtension.AsyncDma import AsyncDma, DirectionWaitingStrategy, DmaDirection, Future
 
 
@@ -50,6 +50,8 @@ class MchanDma(AsyncDma):
             assert strideLoc[0] == shape[1] and strideLoc[
                 1] == 1, "Mchan supports only contigous transfers for local memory"
 
+    _MAX_1D_TRANSFER_BYTES = 1 << 17  # 131072 bytes: max representable in 17-bit mchan cmd size field
+
     def transferOpRepr(self, externalBuffer: VariableBuffer, localBuffer: VariableBuffer, shape: Tuple[int, ...],
                        strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...], direction: DmaDirection,
                        future: Future) -> OperatorRepresentation:
@@ -65,10 +67,10 @@ class MchanDma(AsyncDma):
         mchanFlags += (1 << 3)  # event enable
 
         mchanTransferSize = math.prod(shape)
-        mchanTransferSizeBits = math.ceil(math.log2(mchanTransferSize))
-        assert mchanTransferSizeBits <= 17, (
+        assert mchanTransferSize <= self._MAX_1D_TRANSFER_BYTES, (
             "The transfer size is not representable with 17 bits. "
-            f"Received transfer size {mchanTransferSize} that requires {mchanTransferSizeBits}")
+            f"Received transfer size {mchanTransferSize} that requires "
+            f"{math.ceil(math.log2(mchanTransferSize))} bits")
 
         operatorRepresentation["cmd"] = (mchanFlags << 17) + mchanTransferSize
 
@@ -77,3 +79,30 @@ class MchanDma(AsyncDma):
             operatorRepresentation["stride_2d"] = strideExt[0]
 
         return operatorRepresentation
+
+    def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
+                 shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
+                 direction: DmaDirection, future: Future) -> List[CodeSnippet]:
+        # For 1D transfers that exceed the 17-bit mchan limit, split into chunks.
+        totalSize = math.prod(shape)
+        if len(shape) == 1 and totalSize > self._MAX_1D_TRANSFER_BYTES:
+            mchanFlags = 0
+            mchanFlags += (1 << 0) if direction == "ExternalToLocal" else 0
+            mchanFlags += (1 << 1)  # increment addresses
+            mchanFlags += (1 << 3)  # event enable
+            template = self._transferTemplates[1]
+            chunks: List[CodeSnippet] = []
+            offset = 0
+            while offset < totalSize:
+                chunkSize = min(self._MAX_1D_TRANSFER_BYTES, totalSize - offset)
+                cmd = (mchanFlags << 17) + chunkSize
+                opRepr: OperatorRepresentation = {
+                    "loc": f"((char*){localBuffer.name} + {offset})",
+                    "ext": f"((char*){externalBuffer.name} + {offset})",
+                    "future": future.name,
+                    "cmd": cmd,
+                }
+                chunks.append(CodeSnippet(template, opRepr))
+                offset += chunkSize
+            return chunks
+        return super().transfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)

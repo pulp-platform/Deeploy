@@ -857,6 +857,90 @@ class PWConvGradWTileConstraint(ConvGradWTileConstraintBase):
     """Pointwise ConvGradW (1x1 kernel)."""
     pass
 
+class ConvGradBTileConstraint(TileConstraint):
+    """
+    TileConstraint for ConvGradB: dB[c] = sum_{n,h,w} dY[n,c,h,w]
+
+    Tiles along C (output channels). N, H, W are kept full (reduction dims).
+      Input:  grad_out (dY) [N, C, H, W]  — load C-slice per tile
+      Output: grad_bias (dB) [C]          — write C-slice per tile
+    """
+
+    @classmethod
+    def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        dyName = parseDict['grad_out']
+        dbName = parseDict['grad_bias']
+
+        tilerModel.addTensorDimToModel(ctxt, dyName)
+        tilerModel.addTensorDimToModel(ctxt, dbName)
+
+        dyBuf = ctxt.lookup(dyName)
+        N, C, H, W = dyBuf.shape[0], dyBuf.shape[1], dyBuf.shape[2], dyBuf.shape[3]
+
+        # C must match between dY and dB
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 1) == tilerModel.getTensorDimVar(dbName, 0))
+
+        # Keep N, H, W full (reduction dims — cannot split without atomics)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 0) == N)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 2) == H)
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(dyName, 3) == W)
+
+        return tilerModel
+
+    @classmethod
+    def constructSymbolicNodeRep(cls, tilerModel: TilerModel, parseDict: Dict,
+                                 ctxt: NetworkContext) -> Dict:
+        dyName = parseDict['grad_out']
+        dyBuf = ctxt.lookup(dyName)
+        N, H, W = dyBuf.shape[0], dyBuf.shape[2], dyBuf.shape[3]
+
+        symbolic = parseDict.copy()
+        symbolic['ch_im_out'] = tilerModel.getTensorDimVar(dyName, 1)
+        symbolic['batch'] = N
+        symbolic['dim_im_out_x'] = H
+        symbolic['dim_im_out_y'] = W
+        return symbolic
+
+    @classmethod
+    def serializeTilingSolution(
+        cls,
+        tilingSolution: NodeMemoryConstraint,
+        absoluteOutputCubes: List[AbsoluteHyperRectangle],
+        targetMemLevel: str,
+        ctxt: NetworkContext,
+        operatorRepresentation: OperatorRepresentation,
+    ) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+
+        dyName = operatorRepresentation['grad_out']
+        dyBuf = ctxt.lookup(dyName)
+        N, H, W = dyBuf.shape[0], dyBuf.shape[2], dyBuf.shape[3]
+
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(
+            tilingSolution, targetMemLevel, operatorRepresentation, ['grad_out', 'grad_bias']
+        )
+
+        replacements: Dict[str, List[int]] = {'ch_im_out': []}
+        replacementTypes = {'ch_im_out': PointerClass(uint16_t)}
+
+        inputLoadSchedule = []
+        outputLoadSchedule = []
+
+        for absOut in absoluteOutputCubes:
+            dbTile = absOut.rectangle   # 1D: offset=(c_off,), dims=(c_size,)
+            c_off  = dbTile.offset[0]
+            c_size = dbTile.dims[0]
+
+            dyTile = HyperRectangle((0, c_off, 0, 0), (N, c_size, H, W))
+
+            replacements['ch_im_out'].append(c_size)
+            inputLoadSchedule.append({'grad_out': dyTile})
+            outputLoadSchedule.append({'grad_bias': dbTile})
+
+        tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
+        variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
+        return variableReplacementSchedule, tilingSchedule
+
+
 class DWConvGradW2DTileConstraint(ConvGradWTileConstraintBase):
     """
     Depthwise ConvGradW:

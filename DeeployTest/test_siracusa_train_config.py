@@ -16,6 +16,12 @@ DEFAULT_CORES = 8
 #   optimizer_dir          -- (optional) relative path to optimizer network dir
 #                             (resolved to DeeployTest/Tests/<optimizer_dir>)
 TRAINING_TESTS = {
+    "Models/Autoencoder_Train/autoencoder_train": {
+        "n_train_steps": 1,
+        "n_accum_steps": 1,
+        "num_data_inputs": 2,
+        "optimizer_dir": "Models/Autoencoder_Train/autoencoder_optimizer",
+    },
     "Models/MLP_Train/simplemlp_train": {
         "n_train_steps": 1,
         "n_accum_steps": 8,

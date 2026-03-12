@@ -168,6 +168,10 @@ class TilerModel():
         if varNameNumElt in self._variables:
             return
 
+        # Ensure dim variables exist (untiled ops skip addGeometricalConstraint,
+        # so their tensors may not have been registered yet)
+        self.addTensorDimToModel(ctxt, tensorName, copyIdx)
+
         tensor = ctxt.lookup(tensorName)
 
         tensorDimProductExpr = 1
@@ -254,11 +258,19 @@ class TilerModel():
         offendingGeometricalConstraints: List[IntExpr] = []
         offendingMemoryConstraints: List[Tuple[MemoryLevel, IntVar, IntExpr]] = []
 
+        first_fail_printed = False
+        last_ok = None
         for constraint in self._constraints:
             if self._model.CheckConstraint(constraint):
                 self._model.Add(constraint)
+                last_ok = constraint
                 continue
 
+            if not first_fail_printed:
+                import sys
+                print(f"\n[DEBUG] LAST OK constraint:    {last_ok}", file=sys.stderr)
+                print(f"[DEBUG] FIRST failing constraint: {constraint}", file=sys.stderr)
+                first_fail_printed = True
             offendingGeometricalConstraints.append(constraint)
 
         if offendingGeometricalConstraints != []:
