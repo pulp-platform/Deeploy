@@ -29,9 +29,11 @@ from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
+from Deeploy.Targets.XDNA2.Deployer import XDNA2Deployer
+from Deeploy.Targets.XDNA2.Platform import XDNA2Optimizer, XDNA2Platform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "XDNA2"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -75,6 +77,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Chimera":
         Platform = ChimeraPlatform()
+
+    elif platformName == "XDNA2":
+        Platform = XDNA2Platform()
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -272,6 +277,22 @@ def mapDeployer(platform: DeploymentPlatform,
                                    name = name,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir)
+
+    elif isinstance(platform, XDNA2Platform):
+        if loweringOptimizer is None:
+            loweringOptimizer = XDNA2Optimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = XDNA2Deployer(graph,
+                                 platform,
+                                 inputTypes,
+                                 loweringOptimizer,
+                                 scheduler,
+                                 name = name,
+                                 default_channels_first = default_channels_first,
+                                 deeployStateDir = deeployStateDir)
 
     else:
         raise RuntimeError(f"Deployer for platform {platform} is not implemented")

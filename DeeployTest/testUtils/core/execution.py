@@ -29,6 +29,8 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
 
     if config.tiling:
         generation_script = script_dir / "testMVP.py"
+    elif config.platform == "XDNA2":
+        generation_script = script_dir / "generateNetwork_xdna2.py"
     else:
         generation_script = script_dir / "generateNetwork.py"
 
@@ -172,6 +174,9 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         # Run binary directly
         binary_path = Path(config.build_dir) / "bin" / config.test_name
         cmd = [str(binary_path)]
+        # Propagate verbosity to the host binary (e.g. XDNA2 main.cpp uses -v)
+        if config.verbose >= 1:
+            cmd.append("-v")
     else:
         # Run via CMake target
         cmake_cmd = os.environ.get("CMAKE", "cmake")

@@ -55,6 +55,8 @@ elseif(platform STREQUAL SoftHier)
   message(STATUS "Building for platform 'SoftHier'")
 elseif(platform STREQUAL Chimera)
   message(STATUS "Building for platform 'Chimera'")
+elseif(platform STREQUAL XDNA2)
+  message(STATUS "Building for platform 'XDNA2'")
 else()
   message(FATAL_ERROR "Invalid platform '${platform}' specified!")
 endif()
@@ -306,6 +308,24 @@ if(platform STREQUAL Chimera)
 
   add_subdirectory(DeeployTest)
   target_link_libraries(deeploylib INTERFACE deeploybasic deeploychimera)
+
+endif()
+
+if(platform STREQUAL XDNA2)
+
+  project(${TESTNAME} LANGUAGES CXX)
+
+  message(STATUS "============================= XDNA2 Configuration ============================")
+  message(STATUS "[cMake  ]   GENERATED_SOURCE         = " ${GENERATED_SOURCE})
+  message(STATUS "[cMake  ]   TESTNAME                 = " ${TESTNAME})
+  message(STATUS "==============================================================================")
+  message(STATUS "")
+
+  # XDNA2 uses its own CMakeLists.txt in DeeployTest/Platforms/XDNA2/
+  # which handles the two-step build: xclbin -> host binary.
+  # AIE kernel compilation is in TargetLibraries/XDNA2/.
+  add_subdirectory(TargetLibraries/XDNA2)
+  add_subdirectory(DeeployTest/Platforms/XDNA2)
 
 endif()
 
