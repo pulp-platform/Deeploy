@@ -24,8 +24,10 @@
 #include "pmsis.h"
 
 #include "kernel/AvgPool.h"
+#include "kernel/BatchNorm.h"
 #include "kernel/Conv.h"
 #include "kernel/GELU.h"
+#include "kernel/GlobalAveragePool.h"
 #include "kernel/GroupNorm.h"
 #include "kernel/Layernorm.h"
 #include "kernel/Matmul.h"

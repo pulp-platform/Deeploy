@@ -175,20 +175,20 @@ class ConvGradXTileConstraintBase(TileConstraint):
     @classmethod
     def map_onnx_pads_to_template(cls, tpt: int, tpb: int, tpl: int, tpr: int) -> Tuple[int, int, int, int]:
         """
-        ONNX pads are (top,bottom,left,right) where top/bottom are H, left/right are W.
+        ONNX pads are (top, bottom, left, right) where top/bottom are H, left/right are W.
 
-        Template wants unified order:
+        Template unified order:
           (${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right})
-        with your convention:
-          y -> W dimension, x -> H dimension
 
-        So:
-          padding_y_top    = left
-          padding_y_bottom = right
-          padding_x_left   = top
-          padding_x_right  = bottom
+        Both tiled C kernels expect:
+          - arg1 (${padding_y_top})    -> pad_top   (H_begin)
+          - arg2 (${padding_y_bottom}) -> pad_bottom (H_end)
+          - arg3 (${padding_x_left})   -> pad_left  (W_begin)
+          - arg4 (${padding_x_right})  -> pad_right (W_end)
+
+        So the mapping is the identity: padding_y_top=top, padding_x_left=left.
         """
-        return (tpl, tpr, tpt, tpb)
+        return (tpt, tpb, tpl, tpr)
 
     @classmethod
     def computeDyCubeFromDxTile(
@@ -284,7 +284,8 @@ class ConvGradXTileConstraintBase(TileConstraint):
         varW  = operatorRepresentation[cls.weightKey]   # W
         varDX = operatorRepresentation[cls.gradInKey]   # dX
 
-        pads    = tuple(operatorRepresentation.get("pads", [0, 0, 0, 0]))   # (t,b,l,r)
+        _pads   = list(operatorRepresentation.get("pads", [0, 0, 0, 0]))   # ONNX: [H_begin, W_begin, H_end, W_end]
+        pads    = (_pads[0], _pads[2], _pads[1], _pads[3])                 # reorder to (top, bottom, left, right)
         strides = tuple(operatorRepresentation.get("strides", [1, 1]))      # (sh,sw)
 
         dyFull = tuple(ctxt.lookup(varDY).shape)  # (N,Cout,Ho,Wo)
@@ -725,7 +726,8 @@ class ConvGradWTileConstraintBase(TileConstraint):
         dyName = operatorRepresentation[cls.gradOutKey]
         dwName = operatorRepresentation[cls.weightKey]
 
-        pads = tuple(operatorRepresentation.get("pads", [0, 0, 0, 0]))        # (t,b,l,r)
+        _pads = list(operatorRepresentation.get("pads", [0, 0, 0, 0]))         # ONNX: [H_begin, W_begin, H_end, W_end]
+        pads = (_pads[0], _pads[2], _pads[1], _pads[3])                       # reorder to (top, bottom, left, right)
         strides = tuple(operatorRepresentation.get("strides", [1, 1]))        # (sh,sw)
 
         xFull = tuple(ctxt.lookup(xName).shape)    # (N,Cin,Hi,Wi)
@@ -832,12 +834,12 @@ class ConvGradWTileConstraintBase(TileConstraint):
                 replacements["ch_im_out"].append(Cout_full)
 
                 # ONNX pads (t,b,l,r) -> unified naming:
-                # padding_x_* : H dimension => top/bottom
-                # padding_y_* : W dimension => left/right
-                replacements["padding_y_top"].append(tpl)      # W left
-                replacements["padding_y_bottom"].append(tpr)   # W right
-                replacements["padding_x_left"].append(tpt)     # H top
-                replacements["padding_x_right"].append(tpb)    # H bottom
+                # padding_y_top/bottom : H dimension => top/bottom
+                # padding_x_left/right : W dimension => left/right
+                replacements["padding_y_top"].append(tpt)      # H_begin = top
+                replacements["padding_y_bottom"].append(tpb)   # H_end   = bottom
+                replacements["padding_x_left"].append(tpl)     # W_begin = left
+                replacements["padding_x_right"].append(tpr)    # W_end   = right
 
                 inputLoadSchedule.append({cls.dataInKey: xTile, cls.gradOutKey: dyTile})
                 outputLoadSchedule.append({cls.weightKey: fullDW})

@@ -131,9 +131,14 @@ static void run_optimizer_step(void) {
 
     if ((uint32_t)DeeployNetwork_inputs[train_w_idx] >= 0x10000000u &&
         (uint32_t)DeeployOptNetwork_inputs[opt_w_in] >= 0x10000000u) {
+      /* Use the optimizer's expected size, not the training network's (potentially
+       * inflated) size.  GEMMLayer.computeShapes may broadcast a bias from [N] to
+       * [M, N], so the training buffer can be M× larger than what the optimizer
+       * (generated from the original ONNX) expects.  Copying the larger amount
+       * overflows the optimizer input buffer and corrupts adjacent memory. */
       memcpy(DeeployOptNetwork_inputs[opt_w_in],
              DeeployNetwork_inputs[train_w_idx],
-             DeeployNetwork_inputs_bytes[train_w_idx]);
+             DeeployOptNetwork_inputs_bytes[opt_w_in]);
     }
     if ((uint32_t)DeeployNetwork_inputs[train_g_idx] >= 0x10000000u &&
         (uint32_t)DeeployOptNetwork_inputs[opt_g_in] >= 0x10000000u) {
@@ -157,9 +162,24 @@ static void run_optimizer_step(void) {
 
     if ((uint32_t)DeeployOptNetwork_outputs[opt_w_out] >= 0x10000000u &&
         (uint32_t)DeeployNetwork_inputs[train_w_idx] >= 0x10000000u) {
-      memcpy(DeeployNetwork_inputs[train_w_idx],
-             DeeployOptNetwork_outputs[opt_w_out],
-             DeeployNetwork_inputs_bytes[train_w_idx]);
+      uint32_t opt_bytes   = DeeployOptNetwork_outputs_bytes[opt_w_out];
+      uint32_t train_bytes = DeeployNetwork_inputs_bytes[train_w_idx];
+      if (opt_bytes == train_bytes) {
+        /* Sizes match: direct copy. */
+        memcpy(DeeployNetwork_inputs[train_w_idx],
+               DeeployOptNetwork_outputs[opt_w_out],
+               opt_bytes);
+      } else {
+        /* The training network buffer is larger (broadcasted bias).
+         * Fill every tile of opt_bytes with the updated value so that
+         * all broadcast copies reflect the new weight. */
+        for (uint32_t off = 0; off < train_bytes; off += opt_bytes) {
+          uint32_t chunk = (off + opt_bytes <= train_bytes) ? opt_bytes : (train_bytes - off);
+          memcpy((char *)DeeployNetwork_inputs[train_w_idx] + off,
+                 DeeployOptNetwork_outputs[opt_w_out],
+                 chunk);
+        }
+      }
     }
   }
 #endif /* TRAINING_NUM_WEIGHT_INPUTS */

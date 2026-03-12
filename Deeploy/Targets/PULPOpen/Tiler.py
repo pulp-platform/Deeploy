@@ -15,7 +15,9 @@ from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import 
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPAveragePool2DBindings, \
-    PULPAveragePoolGrad2DBindings, PULPConcatBindings, PULPFloatConv2DBindings, PULPFloatConvGradW2DBindings, \
+    PULPAveragePoolGrad2DBindings, PULPBatchNormInternalBindings, PULPBatchNormalizationGradBindings, \
+    PULPGlobalAveragePool2DBindings, PULPGlobalAveragePoolGrad2DBindings, \
+    PULPConcatBindings, PULPFloatConv2DBindings, PULPFloatConvGradW2DBindings, \
     PULPMaxPoolGrad2DBindings, \
     PULPFloatConvGradX2DBindings, PULPFloatDWConv2DBindings, PULPFloatDWConvGradW2DBindings, \
     PULPFloatDWConvGradX2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
@@ -59,6 +61,10 @@ from Deeploy.Targets.PULPOpen.TileConstraints.GroupNormalizationStatTileConstrai
 from Deeploy.Targets.PULPOpen.TileConstraints.GroupNormalizationTileConstraint import GroupNormalizationTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.BatchNormTileConstraint import BatchNormInternalTileConstraint, \
+    BatchNormalizationGradTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.GlobalAveragePoolTileConstraint import GlobalAveragePoolTileConstraint, \
+    GlobalAveragePoolGradTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradX2DHWTileConstraint, \
     DWConvGradX2DTileConstraint, DWConvGradW2DTileConstraint, ConvGradW2DTileConstraint, ConvGradX2DIm2ColHWTileConstraint, PWConvGradXTileConstraint, PWConvGradWTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
@@ -234,3 +240,15 @@ PULPGroupNormalizationStatTilingReadyBindings = TilingReadyNodeBindings(nodeBind
 
 PULPGroupNormalizationTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPGroupNormalizationBinding],
                                                                      tileConstraint = GroupNormalizationTileConstraint())
+
+PULPBatchNormInternalTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPBatchNormInternalBindings, tileConstraint = BatchNormInternalTileConstraint())
+
+PULPBatchNormalizationGradTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPBatchNormalizationGradBindings, tileConstraint = BatchNormalizationGradTileConstraint())
+
+PULPGlobalAveragePool2DTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPGlobalAveragePool2DBindings, tileConstraint = GlobalAveragePoolTileConstraint())
+
+PULPGlobalAveragePoolGrad2DTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPGlobalAveragePoolGrad2DBindings, tileConstraint = GlobalAveragePoolGradTileConstraint())

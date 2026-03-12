@@ -67,6 +67,12 @@ def main(tiling_enabled: bool = False, default_platform: str = 'Siracusa', defau
                         default = None,
                         help = 'Directory containing the optimizer network.onnx '
                                "(default: auto-derived by replacing '_train' with '_optimizer')\n")
+    parser.add_argument('--tolerance',
+                        metavar = '<tol>',
+                        dest = 'tolerance',
+                        type = float,
+                        default = None,
+                        help = 'Absolute loss tolerance for pass/fail comparison (default: auto from generateTrainingNetwork.py)\n')
 
     args = parser.parse_args()
 
@@ -86,6 +92,8 @@ def main(tiling_enabled: bool = False, default_platform: str = 'Siracusa', defau
         cmake_args.extend(args.cmake)
 
     gen_args = [f'--cores={args.cores}']
+    if args.tolerance is not None:
+        gen_args.append(f'--tolerance={args.tolerance}')
     if args.input_type_map:
         gen_args.extend(['--input-type-map'] + list(args.input_type_map))
     if args.input_offset_map:

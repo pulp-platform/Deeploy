@@ -754,6 +754,86 @@ class BatchNormChecker(SignPropTypeChecker):
         return [True]
 
 
+class BatchNormInternalChecker(SignPropTypeChecker):
+    """TypeChecker for ORT BatchNormInternal (training-mode BN forward pass).
+
+    Inputs (5):  X, gamma, beta, running_mean, running_var  — all float32
+    Outputs (5): Y, updated_running_mean, updated_running_var, saved_mean, saved_inv_std
+                 — all float32; outputs[1,2] have no consumers but do have tensor names.
+
+    _inferNumLevels / _inferSignedness return lists of length 5 so that typeInferOutput
+    (which zips output_types with node.outputs) correctly types all five outputs.
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True] * len(self.output_types)
+
+
+class BatchNormalizationGradChecker(SignPropTypeChecker):
+    """TypeChecker for ORT BatchNormalizationGrad (BN backward pass).
+
+    Inputs (5):  dY, X, gamma, saved_mean, saved_inv_std  — all float32
+    Outputs (3): dX, dgamma, dbeta                        — all float32
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True] * len(self.output_types)
+
+
+class GlobalAveragePoolChecker(SignPropTypeChecker):
+    """TypeChecker for GlobalAveragePool.
+
+    Input:  data_in  [N, C, H, W]  float32
+    Output: data_out [N, C, 1, 1]  float32
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [inputs[0].nLevels]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [inputs[0]._signed]
+
+
+class GlobalAveragePoolGradChecker(SignPropTypeChecker):
+    """TypeChecker for GlobalAveragePoolGrad.
+
+    Input:  dY [N, C, 1, 1]  float32
+    Output: dX [N, C, H, W]  float32
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
+
 class InPlaceAccumulatorV2Checker(SignPropTypeChecker):
     """Type checker for ORT InPlaceAccumulatorV2 operator (com.microsoft).
 

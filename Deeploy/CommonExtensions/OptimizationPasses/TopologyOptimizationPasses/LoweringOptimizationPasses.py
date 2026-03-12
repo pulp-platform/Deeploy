@@ -560,8 +560,10 @@ def _remove_only_singleton_reduce_mean(graph: gs.Graph, match: Match, name: str)
     # Delete node if only reduction over singleton dimensions
     if 'axis' in node.attrs:
         axis = node.attrs['axis']
-    else:
+    elif len(node.inputs) > 1 and node.inputs[1] is not None and hasattr(node.inputs[1], 'values') and node.inputs[1].values is not None:
         axis = node.inputs[1].values
+    else:
+        return graph  # axis unknown, skip
 
     # Check if shape information is available
     if node.inputs[0].shape is not None and all(node.inputs[0].shape[ax] == 1 for ax in axis):

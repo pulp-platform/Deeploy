@@ -1308,6 +1308,8 @@ class NodeTypeChecker():
                         reference._type = _type
                         reference._instance = _type(inputNode.name, ctxt)
                 else:
+                    if not hasattr(reference, '_type'):
+                        return False
                     retCheck &= reference._type.referencedType == _type.referencedType
         return retCheck
 
