@@ -109,6 +109,13 @@ def _infer_data_size(inputs_path: str) -> int:
     return _infer_total_mb(inputs_path)
 
 
+def _infer_n_accum(inputs_path: str) -> int:
+    inputs = np.load(inputs_path)
+    if "meta_n_accum" in inputs.files:
+        return int(inputs["meta_n_accum"].flat[0])
+    return 1
+
+
 # ---------------------------------------------------------------------------
 # Mock scheduler (same as testMVP.py)
 # ---------------------------------------------------------------------------
@@ -246,8 +253,8 @@ def generateTiledTrainingNetwork(args) -> None:
         total_mb = _infer_total_mb(inputs_path)
         log.info(f"Auto-detected total_mb={total_mb} from inputs.npz")
         if n_steps is None and n_accum is None:
-            n_steps = total_mb
-            n_accum = 1
+            n_accum = _infer_n_accum(inputs_path)
+            n_steps = max(1, total_mb // n_accum)
         elif n_steps is None:
             n_steps = max(1, total_mb // n_accum)
         else:
@@ -303,7 +310,8 @@ def generateTiledTrainingNetwork(args) -> None:
                                 learning_rate=args.learning_rate,
                                 reference_losses=reference_losses,
                                 init_weights=init_weights,
-                                data_size=data_size)
+                                data_size=data_size,
+                                tolerance_abs=args.tolerance_abs)
 
     # 15. Write resolved config for execution.py to pick up.
     meta = {
@@ -401,6 +409,13 @@ if __name__ == '__main__':
         '--plotMemAlloc',
         action='store_true',
         help='Save memory allocation plots in the deeployStates folder.',
+    )
+    parser.add_argument(
+        '--tolerance',
+        type=float,
+        dest='tolerance_abs',
+        default=1e-3,
+        help='Absolute loss tolerance emitted as TRAINING_TOLERANCE_ABS in testoutputs.h. Default: 1e-3.',
     )
     parser.add_argument('--shouldFail', action='store_true')
     parser.set_defaults(shouldFail=False)

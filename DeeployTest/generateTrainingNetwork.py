@@ -101,6 +101,18 @@ def _infer_data_size(inputs_path: str) -> int:
     return _infer_total_mb(inputs_path)
 
 
+def _infer_n_accum(inputs_path: str) -> int:
+    """Return the gradient accumulation step count stored in inputs.npz.
+
+    New format: reads meta_n_accum written by the exporter.
+    Legacy format: defaults to 1 (no gradient accumulation).
+    """
+    inputs = np.load(inputs_path)
+    if "meta_n_accum" in inputs.files:
+        return int(inputs["meta_n_accum"].flat[0])
+    return 1
+
+
 def generateTrainingNetwork(args):
     log.debug("Arguments: %s", args)
 
@@ -214,8 +226,8 @@ def generateTrainingNetwork(args):
         total_mb = _infer_total_mb(inputs_path)
         log.info(f"Auto-detected total_mb={total_mb} from inputs.npz")
         if n_steps is None and n_accum is None:
-            n_steps = total_mb
-            n_accum = 1
+            n_accum = _infer_n_accum(inputs_path)
+            n_steps = max(1, total_mb // n_accum)
         elif n_steps is None:
             n_steps = max(1, total_mb // n_accum)
         else:
