@@ -58,4 +58,6 @@ CHANGELOG_GEN.md
 .pyusbip/
 .cache/
 
+# Claude context file
+CLAUDE.md
 CLAUDE.md
