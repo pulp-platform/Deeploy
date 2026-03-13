@@ -169,7 +169,7 @@ PULPMapping = {
     'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossDualOutputMapper, SoftmaxCrossEntropyLossMapper]),
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
     'SGD': SGDLayer([SGDMapper]),
-    'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper])
+    'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper]),
     'PerturbNormal': PerturbNormalLayer([PerturbNormalMapper]),
     'PerturbUniform': PerturbUniformLayer([PerturbUniformMapper]),
     'PerturbEggroll': PerturbEggrollLayer([PerturbEggrollMapper]),

@@ -54,29 +54,34 @@ float32_t GaussianSample(uint32_t *state) {
 void build_ziggurat_tables() {
     if (ziggurat_tables_initialized) return;
 
-    float32_t dn = (float32_t) ZIGGURAT_R;
+    float32_t dn = ZIGGURAT_R;
     float32_t tn = dn;
-    float32_t vn = (float32_t) ZIGGURAT_V;
+    float32_t vn = ZIGGURAT_V;
 
-    // Set up the tables
     float32_t q = vn / expf(-0.5f * dn * dn);
-    kn[0] = (uint32_t)((dn / q) * (float32_t)0xFFFFFFFF);
+    kn[0] = (uint32_t)((dn / q) * ZIGGURAT_INT32_MAX);
     kn[1] = 0;
 
-    wn[0] = (float32_t)(q / (float32_t)0xFFFFFFFF);
-    wn[ZIGGURAT_TABLE_SIZE - 1] = (float32_t)(dn / (float32_t)0xFFFFFFFF);
+    wn[0] = (float32_t)(q / ZIGGURAT_INT32_MAX);
+    wn[ZIGGURAT_TABLE_SIZE - 1] = (float32_t)(dn / ZIGGURAT_INT32_MAX);
 
     fn[0] = 1.0f;
-    fn[ZIGGURAT_TABLE_SIZE - 1] = expf(-0.5f * dn * dn);
+    fn[ZIGGURAT_TABLE_SIZE - 1] = (float32_t)expf(-0.5f * dn * dn);
 
-    for (uint32_t i = ZIGGURAT_TABLE_SIZE - 2; i >= 1; i--) {
-        dn = sqrtf(-2.0f * logf(vn / dn + expf(-0.5f * dn * dn)));
-        kn[i + 1] = (uint32_t)((dn / tn) * (float32_t)0xFFFFFFFF);
+    for (int i = ZIGGURAT_TABLE_SIZE - 2; i > 0; i--) {
+        dn = sqrtf(-2.0 * logf(vn / dn + expf(-0.5f * dn * dn)));
+        kn[i + 1] = (uint32_t)((dn / tn) * ZIGGURAT_INT32_MAX);
         tn = dn;
-        fn[i] = expf(-0.5f * dn * dn);
-        wn[i] = (float32_t)(dn / (float32_t)0xFFFFFFFF);
+        fn[i] = (float32_t)expf(-0.5f * dn * dn);
+        wn[i] = (float32_t)(dn / ZIGGURAT_INT32_MAX);
     }
     ziggurat_tables_initialized = 1;
+}
+
+
+// Convert uint32 -> float in (0,1], never 0
+static inline float u32_to_u01_open(uint32_t u) {
+    return ((float32_t)u + 1.0f) * 2.3283064365386963e-10f; // (u+1)/2^32
 }
 
 
@@ -103,20 +108,23 @@ float32_t GaussianZigguratSample(uint32_t *state) {
         if (iz == 0) {
             do {
                 *state = Xorshift32(*state);
-                x = -logf((float32_t)(*state) / (float32_t)0xFFFFFFFF) / ZIGGURAT_R;
+                x = -logf(u32_to_u01_open(*state)) / ZIGGURAT_R;
                 *state = Xorshift32(*state);
-                y = -logf((float32_t)(*state) / (float32_t)0xFFFFFFFF);
+                y = -logf(u32_to_u01_open(*state));
             } while (y + y < x * x);
             return (hz > 0) ? ZIGGURAT_R + x : -ZIGGURAT_R - x;
         }
 
-        // Slower rejection path
-        x = (float32_t)hz * wn[iz];
-        if (fn[iz] + ((float32_t)(*state) / (float32_t)0xFFFFFFFF) * (fn[iz - 1] - fn[iz]) < expf(-0.5f * x * x)) {
+        // Slow path: use a fresh uniform independent of hz
+        float32_t x = (float32_t)hz * wn[iz];
+        *state = Xorshift32(*state);
+        float32_t u2 = (float32_t)(*state) * ZIGGURAT_INV_UINT32_MAX; // in [0,1]
+        if (fn[iz] + u2 * (fn[iz - 1] - fn[iz]) < expf(-0.5f * x * x)) {
             return x;
         }
     }
 }
+
 
 void RademacherRNG_init(RademacherRNG *rng, uint32_t seed) {
     rng->state = seed;
@@ -145,11 +153,34 @@ void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon) 
 {
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
+    
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) {epsilon *= -1.0f;}
     for (uint32_t i = 0; i < size; i++) {
         float32_t tr = TriangularSample(&rng_state);
         pweights_dest[i] = pweights[i] + tr * epsilon;
+    }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Triangle seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
     }
 }
 
@@ -158,14 +189,38 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t seed,
                             uint32_t dir,
                             uint32_t size,
-                            float32_t epsilon)
+                            float32_t epsilon)  // epsilon should already include sqrt(3)*2
 {
+    
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
+    
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     // sqrt(3)*2 factor already included in epsilon to match Gaussian(0, 1) l2 norm.
     if (dir == 0) {epsilon *= -1.0f;}
     for (uint32_t i = 0; i < size; i++) {
         float32_t u = UniformSample(&rng_state);
         pweights_dest[i] = pweights[i] + u * epsilon;
+    }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Uniform seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
     }
 }
 
@@ -175,11 +230,35 @@ void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t dir,
                             uint32_t size,
                             float32_t epsilon) {
+    
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
+
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) {epsilon *= -1.0f;}
     for (uint32_t i = 0; i < size; i++) {
         float32_t u = GaussianZigguratSample(&rng_state);
         pweights_dest[i] = pweights[i] + u * epsilon;
+    }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Gaussian seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
     }
 }
 
@@ -247,37 +326,34 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
                             uint32_t seed,
                             uint32_t size)
 {
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
+    
     // For compatibility with existing codegen templates. Currently maps to Rademacher noise.
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     for (uint32_t i = 0; i < size; i++) {
         p_dest[i] = UniformSample(&rng_state);
     }
 
-    // uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
 
-    // uint32_t n_full_batches = size / 32;
-    // uint32_t leftover = size % 32;
-    // uint32_t i = 0;
-
-    // // Process full batches
-    // for (uint32_t batch = 0; batch < n_full_batches; batch++) {
-    //     rng_state = Xorshift32(rng_state);
-    //     uint32_t bits = rng_state;
-    //     for (uint32_t b = 0; b < 32; b++, i++) {
-    //         p_dest[i] = (bits & 1) ? 1.0f : -1.0f;
-    //         bits >>= 1;
-    //     }
-    // }
-
-    // // Process leftover elements
-    // if (leftover > 0) {
-    //     rng_state = Xorshift32(rng_state);
-    //     uint32_t bits = rng_state;
-    //     for (uint32_t b = 0; b < leftover; b++, i++) {
-    //         p_dest[i] = (bits & 1) ? 1.0f : -1.0f;
-    //         bits >>= 1;
-    //     }
-    // }
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Rademacher seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
+    }
 }
 
 /* --------------------------- Update functions ---------------------------------- */

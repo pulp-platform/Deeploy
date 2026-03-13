@@ -152,6 +152,19 @@ void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon)
 {
+
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
+
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) {epsilon *= -1.0f;}
     for (uint32_t i = 0; i < size; i+=5) {
@@ -210,6 +223,17 @@ void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
         u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
         pweights_dest[i+4] = pweights[i+4] + (u1-u2) * epsilon;
     }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Triangle seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
+    }
 }
 
 void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
@@ -219,6 +243,19 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon)
 {
+
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
+
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     // sqrt(3)*2 factor already included in epsilon to match Gaussian(0, 1) l2 norm.
     if (dir == 0) {epsilon *= -1.0f;}
@@ -277,6 +314,17 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
         // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
         // pweights_dest[i+8] = pweights[i+8] + (u1-0.5f) * epsilon;
     }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Uniform seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
+    }
 }
 
 void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
@@ -285,6 +333,18 @@ void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t dir,
                             uint32_t size,
                             float32_t epsilon) {
+
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
 
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) {epsilon *= -1.0f;}
@@ -327,6 +387,17 @@ void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
         pweights_dest[i + 2] = pweights[i + 2] + z1 * epsilon;
         pweights_dest[i + 3] = pweights[i + 3] + z2 * epsilon;
     }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Rademacher seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
+    }
 }
 
 void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
@@ -335,6 +406,18 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t dir,
                             uint32_t size,
                             float32_t epsilon) {
+
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
 
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) epsilon *= -1.0f;
@@ -369,6 +452,17 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
             bits >>= 1;
         }
     }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Rademacher seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
+    }
 }
 
 void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
@@ -376,6 +470,17 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
                             uint32_t size)
 {
     // For compatibility with existing codegen templates. Currently maps to Rademacher noise.
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     for (uint32_t i = 0; i < size; i+=5) {
 
@@ -421,6 +526,17 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
         // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
         // p_dest[i+6] = u1-0.5f;
 
+    }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Eggroll seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
     }
 }
 
