@@ -166,7 +166,7 @@ PULPMapping = {
     'Quant': QuantLayer([QuantMapper]),
     'Dequant': QuantLayer([DequantMapper]),
     'SoftmaxGrad': SoftmaxGradLayer([SoftmaxGradMapper]),
-    'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossDualOutputMapper, SoftmaxCrossEntropyLossMapper]),
+    'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossMapper, SoftmaxCrossEntropyLossDualOutputMapper]),
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
     'SGD': SGDLayer([SGDMapper]),
     'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper]),

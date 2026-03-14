@@ -357,7 +357,10 @@ class VariableBuffer():
             Size of this VariableBuffer in bytes
 
         """
-        return (math.prod(self.shape) * (self._type.referencedType.typeWidth)) // 8
+        if isinstance(self.shape, int):
+            return (self.shape * (self._type.referencedType.typeWidth)) // 8
+        else:
+            return (math.prod(self.shape) * (self._type.referencedType.typeWidth)) // 8
 
 
 class TransientBuffer(VariableBuffer):
@@ -3131,6 +3134,10 @@ class NetworkContainer():
             if tensor.dtype != tensor.export_dtype:
                 tensor.values = tensor.values.astype(tensor.export_dtype)
 
+        # JANSNO: Shapes of tensors should never be an int.
+        for tensor in self.graph.tensors().values():
+            if tensor.shape is not None and isinstance(tensor.shape, int):
+                tensor.shape = tensor.shape = [tensor.shape]
         model = gs.export_onnx(self.graph)
 
         # Annotate additional information in doc_string of tensors
