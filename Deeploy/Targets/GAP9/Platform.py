@@ -191,7 +191,7 @@ GAP9Mapping = {
     'SoftmaxGrad':
         SoftmaxGradLayer([GAP9_SoftmaxGradMapper]),
     'SoftmaxCrossEntropyLoss':
-        SoftmaxCrossEntropyLossLayer([GAP9SoftmaxCrossEntropyLossDualOutputMapper, GAP9_SoftmaxCrossEntropyLossMapper]),
+        SoftmaxCrossEntropyLossLayer([GAP9_SoftmaxCrossEntropyLossMapper, GAP9SoftmaxCrossEntropyLossDualOutputMapper]),
     'SoftmaxCrossEntropyLossGrad':
         SoftmaxCrossEntropyLossGradLayer([GAP9_SoftmaxCrossEntropyLossGradMapper]),
     'SGD':

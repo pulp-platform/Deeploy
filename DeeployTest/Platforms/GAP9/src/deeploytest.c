@@ -15,6 +15,7 @@
 
 // RW: Remove MAINSTACKSIZE because gap9-sdk does not use it
 #define SLAVESTACKSIZE 3800
+#define WRITE_GPIO(x) pi_gpio_pin_write(89, x)
 
 struct pi_device cluster_dev;
 uint32_t total_cycles = 0;
@@ -116,10 +117,19 @@ int main(void) {
 #ifndef CI
   printf("Input copied\r\n");
 #endif
+   unsigned int GPIOs = 89;
+
+  pi_pad_function_set(GPIOs, 1);
+  pi_gpio_pin_configure(GPIOs, PI_GPIO_OUTPUT);
+  pi_gpio_pin_write(GPIOs, 0);
+  WRITE_GPIO(0);
+  WRITE_GPIO(1);
+
 
   pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+  WRITE_GPIO(0);
 
 #ifndef CI
   printf("Output:\r\n");

@@ -251,9 +251,9 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
 
                 # MeZO case: The weight is produced by a Perturb node.
                 elif isinstance(tensor, gs.Variable):
-                    permute_temp = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
-                    graph.nodes.append(_appendTranspose(tensor, node, permute_temp))
-
+                    if len(tensor.shape) > 1:
+                        permute_temp = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
+                        graph.nodes.append(_appendTranspose(tensor, node, permute_temp))
         node.attrs["channels_first"] = default_channels_first
 
     return graph
