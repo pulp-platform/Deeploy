@@ -23,8 +23,13 @@ if [ -d "${GAP9_SDK_INSTALL_DIR}/.git" ]; then
 	cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
 	git remote set-url origin "${GAP_SDK_URL}" || true
 else
-	echo "Cloning GAP9 SDK..."
-	GIT_LFS_SKIP_SMUDGE=1 git clone "${GAP_SDK_URL}" "${GAP9_SDK_INSTALL_DIR}"
+	echo "Directory exists but .git folder is missing. Reinitializing git repository..."
+	cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
+	git init
+	git remote add origin "${GAP_SDK_URL}"
+	git fetch --all --tags || true
+	git reset --soft "${GAP9_SDK_COMMIT_HASH}"
+	git add .
 fi
 
 cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
@@ -33,6 +38,7 @@ git fetch --all --tags || true
 git stash || true
 GIT_LFS_SKIP_SMUDGE=1 git checkout "${GAP9_SDK_COMMIT_HASH}"
 git submodule update --init --recursive
+git lfs pull --include="*.so" || true
 
 # Platform specific patch
 ARCH=$(dpkg --print-architecture 2>/dev/null || true)

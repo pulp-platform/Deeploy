@@ -18,6 +18,7 @@ readme = "README.md"
 
 requires-python = ">=3.10"
 dependencies = [
+'setuptools==81.0.0',
 'protobuf==4.23.3',
 'numpy<2.0.0',
 'onnx',
