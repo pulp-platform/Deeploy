@@ -168,12 +168,17 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
     conv = matched_nodes[0]
     rqs = matched_nodes[1]
 
-    totalShift = int(np.log2(rqs.attrs['div'].values))
+    div_val = rqs.attrs['div']
+    if hasattr(div_val, 'values'):
+        div_val = div_val.values.item()
 
+    totalShift = int(np.log2(div_val)) 
+    print(f"total shift: {totalShift}")
     # Artifically add half the shift division value to implement rounding
     rounding = 2**(totalShift - 1) if totalShift > 0 else 0
 
-    rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + rounding
+    # JANSNO: this can't be right-commented.
+    #rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + rounding
 
     _inputs = list(conv.inputs) + list(rqs.inputs[1:])
 
@@ -205,9 +210,14 @@ def _merge_gemm_rq_fun(graph: gs.Graph, match: Match, name: str):
     gemm = matched_nodes[0]
     rqs = matched_nodes[1]
 
-    totalShift = int(np.log2(rqs.attrs['div'].values))
+    div_val = rqs.attrs['div']
+    if hasattr(div_val, 'values'):
+        div_val = div_val.values.item()
 
-    rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + 2**(totalShift - 1)
+    totalShift = int(np.log2(div_val))
+
+    # JANSNO: rounding here is not valid
+    #rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + 2**(totalShift - 1)
 
     # GEMM has add
     if len(list(gemm.inputs)) == 3:

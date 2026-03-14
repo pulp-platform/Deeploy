@@ -18,7 +18,8 @@ from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9ConcatBindings, G
     GAP9RQSiHardswishBindings, GAP9RQSMatrixVecBindings, GAP9RQSTallGEMMBindings, GAP9SGDBindings, \
     GAP9SoftmaxBindings, GAP9SoftmaxCrossEntropyLossBindings, GAP9SoftmaxCrossEntropyLossGradBindings, \
     GAP9SoftmaxGradBindings, GAP9TransposeBindings, GAP9UniformRQSBindings, GAP9InPlaceAccumulatorV2Bindings, GAP9PerturbNormalBindings, \
-    GAP9PerturbUniformBindings, GAP9PerturbEggrollBindings, GAP9PerturbRademacherBindings, GAP9PerturbTriangleBindings
+    GAP9PerturbUniformBindings, GAP9PerturbEggrollBindings, GAP9PerturbRademacherBindings, GAP9PerturbTriangleBindings, \
+    GAP9QuantBindings, GAP9DequantBindings
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -92,6 +93,12 @@ GAP9FlattenTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = _GAP9Fla
 
 GAP9MaxPool2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9MaxPool2DBindings,
                                                            tileConstraint = MaxPoolCTileConstraint())
+
+GAP9QuantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9QuantBindings,
+                                                        tileConstraint = UnaryTileConstraint())
+
+GAP9DequantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9DequantBindings,
+                                                        tileConstraint = UnaryTileConstraint())
 
 GAP9RQSTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9RQSBindings,
                                                      tileConstraint = RequantShiftTileConstraint())
