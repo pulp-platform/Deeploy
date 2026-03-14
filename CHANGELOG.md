@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Fix Broken CI [#175](https://github.com/pulp-platform/Deeploy/pull/175)
 - Improve Docstring and Debugging [#160](https://github.com/pulp-platform/Deeploy/pull/160)
 - Add GAP9 Container Support [#163](https://github.com/pulp-platform/Deeploy/pull/163)
 - Extend Codeowners [#164](https://github.com/pulp-platform/Deeploy/pull/164)
@@ -23,6 +24,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 
 ### Changed
+- Use by default `devel` container for GAP9 CI
+- Extend Readme platforms with GAP9 shields
 - Move `MemoryAwareClosureGeneration` pass to `MemoryLevelExtension`
 - Move `MemoryAwarePrint*` passes to `MemoryLevelExtension`
 - Make `sizeInBytes` a class property instead of a function
@@ -35,6 +38,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added @runwangdl as a code owner
 
 ### Fixed
+- Fix Docker flow to fetch `*.so` git lfs files
+- Downgrade `setuptools` to `81.0.0`
 - im2col buffer size in Conv1d template
 - Fix missing dependency in pre-commit-config
 - Fix test paths in Deeploy 101 tutorial
