@@ -23,13 +23,19 @@ if [ -d "${GAP9_SDK_INSTALL_DIR}/.git" ]; then
 	cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
 	git remote set-url origin "${GAP_SDK_URL}" || true
 else
-	echo "Directory exists but .git folder is missing. Reinitializing git repository..."
-	cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
-	git init
-	git remote add origin "${GAP_SDK_URL}"
-	git fetch --all --tags || true
-	git reset --soft "${GAP9_SDK_COMMIT_HASH}"
-	git add .
+	if [ ! -d "${GAP9_SDK_INSTALL_DIR}" ]; then
+		echo "Directory ${GAP9_SDK_INSTALL_DIR} does not exist. Cloning fresh..."
+		git clone "${GAP_SDK_URL}" "${GAP9_SDK_INSTALL_DIR}"
+		cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
+	else
+		echo "Directory exists but .git folder is missing. Reinitializing git repository..."
+		cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
+		git init
+		git remote add origin "${GAP_SDK_URL}"
+		git fetch --all --tags || true
+		git reset --soft "${GAP9_SDK_COMMIT_HASH}"
+		git add .
+	fi
 fi
 
 cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
