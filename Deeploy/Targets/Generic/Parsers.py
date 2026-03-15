@@ -3044,6 +3044,99 @@ class PerturbUniformParser(NodeParser):
 
         return ctxt, True
     
+    
+    
+
+
+        # inputs = ['data_in', 'mul', 'add']
+        # outputs = ['data_out']
+
+        # for idx, inputNode in enumerate(node.inputs):
+        #     self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        # for idx, outputNode in enumerate(node.outputs):
+        #     self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+
+        # data_in = ctxt.lookup(node.inputs[0].name)
+        # assert isinstance(data_in, VariableBuffer)
+        # shape = data_in.shape
+
+        # assert len(shape) >= 2, f"Unsupported shape length ({len(shape)}). Supported shape lengths greater then 2"
+
+        # # Assumes shape [ Batch, Channels, ...]
+        # self.operatorRepresentation['batch'] = shape[0]
+        # self.operatorRepresentation['channels'] = shape[1]
+        # self.operatorRepresentation['channel_width'] = np.prod(shape[2:]) if len(shape) > 2 else 1
+        # self.operatorRepresentation['size'] = np.prod(shape)
+
+        # return ctxt, True
+class RQSPerturbUniformParser(NodeParser, RQSParserInterface):
+    
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2,
+                   len(node.outputs) == 1,
+                    'seed' in node.attrs,
+                    'idx' in node.attrs])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        mul = ctxt.lookup(node.inputs[1].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        input_shape = data_in.shape
+        if isinstance(data_in.shape, int):
+            input_shape = tuple(input_shape, )
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['mul'] = mul.name
+        self.operatorRepresentation['seed'] = node.attrs['seed']
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+   
+        self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
+        return ctxt, True
+    
+class RQSPerturbRademacherParser(NodeParser, RQSParserInterface):
+    
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2,
+                   len(node.outputs) == 1,
+                    'seed' in node.attrs,
+                    'idx' in node.attrs])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        mul = ctxt.lookup(node.inputs[1].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        input_shape = data_in.shape
+        if isinstance(data_in.shape, int):
+            input_shape = tuple(input_shape, )
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['mul'] = mul.name
+        self.operatorRepresentation['seed'] = node.attrs['seed']
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+    
+        self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
+        return ctxt, True
+    
 class PerturbEggrollParser(NodeParser):
     
     def __init__(self):

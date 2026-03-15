@@ -18,7 +18,8 @@ from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, Gat
     PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, \
     RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, \
     SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer, ReluGradLayer, \
-    PerturbNormalLayer, PerturbUniformLayer, PerturbEggrollLayer, PerturbRademacherLayer, PerturbTriangleLayer
+    PerturbNormalLayer, PerturbUniformLayer, PerturbEggrollLayer, PerturbRademacherLayer, PerturbTriangleLayer, \
+    RQSPerturbUniformLayer, RQSPerturbRademacherLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUGradParser, GELUParser, GEMMParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool1DParser, \
     MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluParser, \
@@ -26,7 +27,7 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantPars
     SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, \
     SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, \
     iSoftmaxParser, ReluGradParser,  PerturbNormalParser, PerturbUniformParser, PerturbEggrollParser, \
-    PerturbRademacherParser, PerturbTriangleParser
+    PerturbRademacherParser, PerturbTriangleParser, RQSPerturbRademacherParser, RQSPerturbUniformParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
@@ -53,7 +54,8 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, PULPTransposeTilingReadyBindings, \
     PULPUniformRQSTilingReadyBindings, PULPInPlaceAccumulatorV2TilingReadyBindings, \
     PULPPerturbNormalTilingReadyBindings, PULPPerturbUniformTilingReadyBindings, \
-    PULPPerturbEggrollTilingReadyBindings, PULPPerturbRademacherTilingReadyBindings, PULPPerturbTriangleTilingReadyBindings
+    PULPPerturbEggrollTilingReadyBindings, PULPPerturbRademacherTilingReadyBindings, PULPPerturbTriangleTilingReadyBindings, \
+    PULPRQSPerturbUniformTilingReadyBindings, PULPRQSPerturbRademacherTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -103,7 +105,8 @@ PerturbUniformMapper = NodeMapper(PerturbUniformParser(), PULPPerturbUniformTili
 PerturbEggrollMapper = NodeMapper(PerturbEggrollParser(), PULPPerturbEggrollTilingReadyBindings)
 PerturbRademacherMapper = NodeMapper(PerturbRademacherParser(), PULPPerturbRademacherTilingReadyBindings)
 PerturbTriangleMapper = NodeMapper(PerturbTriangleParser(), PULPPerturbTriangleTilingReadyBindings)
-
+RQSPerturbUniformMapper = NodeMapper(RQSPerturbUniformParser(), PULPRQSPerturbUniformTilingReadyBindings)
+RQSPerturbRademacherMapper = NodeMapper(RQSPerturbRademacherParser(), PULPRQSPerturbRademacherTilingReadyBindings)
 
 
 ConcatMapper = NodeMapper(ConcatParser(), PULPConcatTilingReadyBindings)
@@ -175,6 +178,8 @@ PULPMapping = {
     'PerturbEggroll': PerturbEggrollLayer([PerturbEggrollMapper]),
     'PerturbRademacher': PerturbRademacherLayer([PerturbRademacherMapper]),
     'PerturbTriangle': PerturbTriangleLayer([PerturbTriangleMapper]),
+    'RQSPerturbUniform': RQSPerturbUniformLayer([RQSPerturbUniformMapper]),
+    'RQSPerturbRademacher': RQSPerturbRademacherLayer([RQSPerturbRademacherMapper])
 }
 
 

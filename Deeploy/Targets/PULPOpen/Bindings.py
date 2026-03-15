@@ -20,7 +20,7 @@ from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, Conv
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, \
     MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
     RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, \
-    PerturbZOChecker
+    PerturbZOChecker,RQSPerturbZOChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -34,7 +34,8 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, \
     RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, \
     TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate, FloatPerturbNormalTemplate, \
-    FloatPerturbUniformTemplate, FloatPerturbEggrollTemplate, FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate
+    FloatPerturbUniformTemplate, FloatPerturbEggrollTemplate, FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate, \
+    RQSPerturbUniformTemplate, RQSPerturbRademacherTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -506,6 +507,12 @@ PULPPerturbUniformBindings = [
         FloatPerturbUniformTemplate.referenceTemplate,
         ForkTransformer)]
 
+PULPRQSPerturbUniformBindings = [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+        RQSPerturbUniformTemplate.referenceTemplate,
+        ForkTransformer)]
+
 PULPPerturbEggrollBindings = [
     NodeBinding(
         PerturbZOChecker([PointerClass(int32_t)], [PointerClass(float32_t)]),
@@ -516,6 +523,12 @@ PULPPerturbRademacherBindings = [
     NodeBinding(
         PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
         FloatPerturbRademacherTemplate.referenceTemplate,
+        ForkTransformer)]
+
+PULPRQSPerturbRademacherBindings = [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+        RQSPerturbRademacherTemplate.referenceTemplate,
         ForkTransformer)]
 
 PULPPerturbTriangleBindings = [

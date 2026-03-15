@@ -78,6 +78,23 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             float32_t epsilon);
 
 static inline float u32_to_u01_open(uint32_t u);
+
+void ApplyPerturbQuantRademacher_NHWC(int8_t *__restrict__ pweights,
+                            int8_t *__restrict__ pweights_dest,
+                            const int32_t *__restrict__ M, // Fixed-point multipliers
+                            const int32_t S,             // Fixed-point shift
+                            const uint32_t channels,
+                            const uint32_t seed,
+                            const uint32_t size);
+
+
+void ApplyPerturbQuantUniform_NHWC(int8_t *__restrict__ pweights,
+                                    int8_t *__restrict__ pweights_dest,
+                                    const int32_t *__restrict__ M, // Fixed-point multipliers
+                                    const int32_t S,             // Fixed-point shift
+                                    const uint32_t channels,
+                                    const uint32_t seed,
+                                    const uint32_t size);
 // Updates the weights in place according to the MeZO update rule with triangular noise.
 // Only supports qMeZO with q = 1 for now.
 // void UpdateWeightsTriangle(float32_t *__restrict__ pweights,

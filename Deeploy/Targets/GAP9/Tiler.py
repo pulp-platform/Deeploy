@@ -19,7 +19,7 @@ from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9ConcatBindings, G
     GAP9SoftmaxBindings, GAP9SoftmaxCrossEntropyLossBindings, GAP9SoftmaxCrossEntropyLossGradBindings, \
     GAP9SoftmaxGradBindings, GAP9TransposeBindings, GAP9UniformRQSBindings, GAP9InPlaceAccumulatorV2Bindings, GAP9PerturbNormalBindings, \
     GAP9PerturbUniformBindings, GAP9PerturbEggrollBindings, GAP9PerturbRademacherBindings, GAP9PerturbTriangleBindings, \
-    GAP9QuantBindings, GAP9DequantBindings
+    GAP9QuantBindings, GAP9DequantBindings, GAP9RQSPerturbRademacherBindings, GAP9RQSPerturbUniformBindings
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -43,6 +43,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMul
 from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint import MaxPoolCTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import RequantShiftTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.RQSPerturbTileConstraint import RQSPerturbTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.InPlaceAccumulatorV2TileConstraint import \
@@ -170,3 +171,9 @@ GAP9PerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings 
 
 GAP9PerturbTriangleTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9PerturbTriangleBindings,
                                                                 tileConstraint = UnaryTileConstraint())
+
+GAP9RQSPerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9RQSPerturbUniformBindings,
+                                                                 tileConstraint = RQSPerturbTileConstraint())
+
+GAP9RQSPerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9RQSPerturbRademacherBindings,
+                                                                 tileConstraint = RQSPerturbTileConstraint())

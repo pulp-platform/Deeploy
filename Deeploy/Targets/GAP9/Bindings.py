@@ -27,7 +27,7 @@ from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, Conv
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
     QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
     SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, InPlaceAccumulatorV2Checker, DebugPrintChecker, \
-    PerturbZOChecker
+    PerturbZOChecker,RQSPerturbZOChecker
 from Deeploy.Targets.PULPOpen.Bindings import ForkClosure, L3MemoryAwareFunctionCallClosure, \
     MemoryAwareForkTransformer, MemoryAwareFunctionCallClosure, TilingCallClosure
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -42,7 +42,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate, FloatInPlaceAccumulatorV2Template, QuantTemplate, DequantTemplate, \
     FloatPerturbEggrollTemplate, FloatPerturbUniformTemplate, FloatPerturbNormalTemplate, \
-    FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate 
+    FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate, RQSPerturbUniformTemplate, RQSPerturbRademacherTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -460,6 +460,12 @@ GAP9PerturbNormalBindings = [
         FloatPerturbNormalTemplate.referenceTemplate,
         GAP9Transformer)]
 
+GAP9RQSPerturbUniformBindings = [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+        RQSPerturbUniformTemplate.referenceTemplate,
+        GAP9Transformer)]
+
 GAP9PerturbUniformBindings = [
     NodeBinding(
         PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
@@ -470,6 +476,12 @@ GAP9PerturbEggrollBindings = [
     NodeBinding(
         PerturbZOChecker([PointerClass(int32_t)], [PointerClass(float32_t)]),
         FloatPerturbEggrollTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9RQSPerturbRademacherBindings = [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+        RQSPerturbRademacherTemplate.referenceTemplate,
         GAP9Transformer)]
 
 GAP9PerturbRademacherBindings = [

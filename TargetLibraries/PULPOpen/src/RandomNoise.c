@@ -349,7 +349,7 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
         uint32_t bits = rng_state;
-        for (uint32_t b = 0; b < 32; b+=6, i+=6) {
+        for (uint32_t b = 0; b < 32; b+=2, i+=2) {
             float32_t r = (bits & 1) ? 1.0f : -1.0f;
             pweights_dest[i]   = pweights[i] + r * epsilon;
             bits >>= 1;
@@ -424,6 +424,109 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
     }
 }
 
+void ApplyPerturbQuantRademacher_NHWC(int8_t *__restrict__ pweights,
+                            int8_t *__restrict__ pweights_dest,
+                            const int32_t *__restrict__ M, // Fixed-point multipliers
+                            const int32_t S,             // Fixed-point shift
+                            const uint32_t channels,
+                            const uint32_t seed,
+                            const uint32_t size)
+{
+    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+    const int32_t rounding = (S > 0) ? (1 << (S - 1)) : 0;
+
+    uint32_t n_full_batches = size / 32;
+    uint32_t leftover = size % 32;
+    uint32_t i = 0;
+
+    // Process full batches
+    for (uint32_t batch = 0; batch < n_full_batches; batch++) {
+        rng_state = Xorshift32(rng_state);
+        uint32_t bits = rng_state;
+        for (uint32_t b = 0; b < 32; b+=2, i+=2) {
+            int32_t r = (bits & 1) ? 1 : -1;
+            int32_t m_val = M[i % channels];
+            // Fixed-point multiplication: noise_q = round(r * M / 2^S)
+            int32_t noise_q = (r * m_val + rounding) >> S;
+            int32_t val = (int32_t)pweights[i] + noise_q;
+            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127); // Saturate to int8 range
+            bits >>= 1;
+            r = (bits & 1) ? 1 : -1;
+            m_val = M[i % channels];
+            // Fixed-point multiplication: noise_q = round(r * M / 2^S)
+            noise_q = (r * m_val + rounding) >> S;
+            val = (int32_t)pweights[i+1] + noise_q;
+            pweights_dest[i+1] = (int8_t)CLAMP(val, -127, 127); // Saturate to int8 range
+            bits >>= 1;
+        }
+    }
+
+    // Process leftover elements
+    if (leftover > 0) {
+        rng_state = Xorshift32(rng_state);
+        uint32_t bits = rng_state;
+        for (uint32_t b = 0; b < leftover; b++, i++) {
+            int32_t r = (bits & 1) ? 1 : -1;
+            int32_t m_val = M[i % channels];
+            int32_t noise_q = (r * m_val + rounding) >> S;
+            int32_t val = (int32_t)pweights[i] + noise_q;
+            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
+            bits >>= 1;
+        }
+    }
+}
+
+
+void ApplyPerturbQuantUniform_NHWC(int8_t *__restrict__ pweights,
+                                    int8_t *__restrict__ pweights_dest,
+                                    const int32_t *__restrict__ M, // Fixed-point multipliers
+                                    const int32_t S,             // Fixed-point shift
+                                    const uint32_t channels,
+                                    const uint32_t seed,
+                                    const uint32_t size)
+{
+    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+    const int32_t rounding = (S > 0) ? (1 << (S - 1)) : 0;
+
+    uint32_t n_full_batches = size / 4;
+    uint32_t leftover = size % 4;
+    uint32_t i = 0;
+
+    for (uint32_t batch = 0; batch < n_full_batches; batch++) {
+        rng_state = Xorshift32(rng_state);
+        uint32_t random_word = rng_state;
+        
+        // Unroll by 4
+        for (int j=0; j<4; j++) {
+            uint8_t u = (random_word >> (j*8)) & 0xFF;
+            if (u == 0) u = 1; // Avoid 0 to prevent -128 noise
+            int32_t n_int = (int32_t)u - 128; // Centered integer noise [-127, 127]
+            
+            int32_t m_val = M[(i+j) % channels];
+            
+            // Fixed-point multiplication: noise_q = round((n_int * M) / 2^S)
+            int32_t noise_q = (n_int * m_val + rounding) >> S;
+            
+            int32_t val = (int32_t)pweights[i+j] + noise_q;
+            pweights_dest[i+j] = (int8_t)CLAMP(val, -127, 127);
+        }
+        i += 4;
+    }
+
+    // Process leftover elements
+    if (leftover > 0) {
+        rng_state = Xorshift32(rng_state);
+        for (uint32_t b = 0; b < leftover; b++, i++) {
+            uint8_t u = (rng_state >> (b*8)) & 0xFF;
+            if (u == 0) u = 1;
+            int32_t n_int = (int32_t)u - 128;
+            int32_t m_val = M[i % channels];
+            int32_t noise_q = (n_int * m_val + rounding) >> S;
+            int32_t val = (int32_t)pweights[i] + noise_q;
+            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
+        }
+    }
+}
 /* --------------------------- Update functions ---------------------------------- */
 
 // void UpdateWeightsTriangle(float32_t *__restrict__ pweights,
