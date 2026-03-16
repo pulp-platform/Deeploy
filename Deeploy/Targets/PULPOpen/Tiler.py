@@ -60,6 +60,9 @@ PULPRQSDWConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULP
 PULPConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConv2DBindings,
                                                         tileConstraint = Conv2DTileConstraint())
 
+PULPConv2DUntiledTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConv2DBindings,
+                                                               tileConstraint = UntiledTileConstraint())
+
 PULPConvTranspose2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvTranspose2DBindings,
                                                                  tileConstraint = ConvTranspose2DTileConstraint())
 
@@ -100,6 +103,9 @@ PULPMaxPool1DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMa
 
 PULPMaxPool2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMaxPool2DBindings,
                                                            tileConstraint = MaxPoolCTileConstraint())
+
+PULPMaxPool2DUntiledTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMaxPool2DBindings,
+                                                                  tileConstraint = UntiledTileConstraint())
 
 PULPRQSTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSBindings,
                                                      tileConstraint = RequantShiftTileConstraint())

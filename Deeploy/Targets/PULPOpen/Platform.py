@@ -37,13 +37,15 @@ from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser,
     PULPMatrixVecParser, PULPReduceMeanParser, PULPTallGEMMParser
 from Deeploy.Targets.PULPOpen.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConcatTilingReadyBindings, \
-    PULPBatchNormTilingReadyBindings, PULPConv2DTilingReadyBindings, PULPConvTranspose2DTilingReadyBindings, \
+    PULPBatchNormTilingReadyBindings, PULPConv2DTilingReadyBindings, \
+    PULPConvTranspose2DTilingReadyBindings, \
     PULPDWConv2DTilingReadyBindings, \
     PULPFlattenTilingReadyBindings, PULPFPGELUGradTilingReadyBindings, PULPFPGELUTilingReadyBindings, \
     PULPFPGEMMTilingReadyBindings, PULPGatherTilingReadyBindings, PULPiHardswishTilingReadyBindings, \
     PULPiRMSNormTilingReadyBindings, PULPiRQSGELUTilingReadyBindings, PULPLayernormGradTilingReadyBindings, \
     PULPLayernormTilingReadyBindings, PULPMatMulTilingReadyBindings, PULPMaxPool1DTilingReadyBindings, \
-    PULPMaxPool2DTilingReadyBindings, PULPMulTilingReadyBindings, PULPPad1DTilingReadyBindings, \
+    PULPMaxPool2DTilingReadyBindings, PULPMaxPool2DUntiledTilingReadyBindings, PULPMulTilingReadyBindings, \
+    PULPPad1DTilingReadyBindings, \
     PULPPad2DTilingReadyBindings, PULPReduceMeanTilingReadyBindings, \
     PULPReduceSumTilingReadyBindings, PULPReluTilingReadyBindings, PULPRQAddTilingReadyBindings, \
     PULPRQSConv1DTilingReadyBindings, PULPRQSConv2DTilingReadyBindings, PULPRQSDWConv2DTilingReadyBindings, \
