@@ -141,6 +141,7 @@ ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 llvm: ${LLVM_INSTALL_DIR}
 
 
+# runtimes for different architectures
 ${LLVM_CLANG_RT_RISCV_RV32IM}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32im \
 	&& cd build-compiler-rt-riscv-rv32im; \

@@ -20,8 +20,8 @@ if(TOOLCHAIN STREQUAL GCC)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, GAP9, Generic, Snitch)")
-set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open GAP9 Generic Snitch)
+set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, GAP9, Generic, Snitch, Spatz)")
+set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open GAP9 Generic Snitch Spatz)
 
 if(platform STREQUAL MemPool)
   message(STATUS "Building for platform 'MemPool'")
@@ -57,6 +57,8 @@ elseif(platform STREQUAL Chimera)
   message(STATUS "Building for platform 'Chimera'")
 elseif(platform STREQUAL XDNA2)
   message(STATUS "Building for platform 'XDNA2'")
+elseif(platform STREQUAL Spatz)
+  message(STATUS "Building for platform 'Spatz'")
 else()
   message(FATAL_ERROR "Invalid platform '${platform}' specified!")
 endif()
@@ -323,6 +325,30 @@ if(platform STREQUAL XDNA2)
 
   add_subdirectory(TargetLibraries/XDNA2)
   add_subdirectory(DeeployTest/Platforms/XDNA2)
+
+endif()
+
+
+
+if(platform STREQUAL Spatz)
+  # Only LLVM supported for Spatz
+  set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/spatz/toolchain_llvm.cmake)
+
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/spatz/spatz.cmake OPTIONAL)
+
+  project(deeploy LANGUAGES C ASM)
+
+  message(STATUS "============================= ${platform} Configuration ============================")
+  message(STATUS "[cMake  ]   ISA                      = " ${ISA})
+  message(STATUS "================================================================================")
+  message(STATUS "")
+
+  add_subdirectory(TargetLibraries/Generic)
+  add_subdirectory(TargetLibraries/Spatz)
+  target_include_directories(deeployspatz PUBLIC TargetLibraries/Generic/inc)
+
+  add_subdirectory(DeeployTest)
+  target_link_libraries(deeploylib INTERFACE deeploybasic deeployspatz)
 
 endif()
 

@@ -111,6 +111,14 @@ PLATFORM_CONFIGS = {
         "model_tests": SNITCH_MODEL_TESTS,
         "default_num_cores": SNITCH_DEFAULT_NUM_CORES,
     },
+    "spatz": {
+        "platform": "Spatz",
+        "simulator": "vsim",
+        # TODO: Define KERNEL_TESTS and MODEL_TESTS for Spatz
+        "kernel_tests": [],
+        "model_tests": [],
+        # "default_num_cores": <set if known>,
+    },
     "gap9": {
         "platform": "GAP9",
         "simulator": "gvsoc",

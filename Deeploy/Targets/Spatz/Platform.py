@@ -8,9 +8,9 @@ from Deeploy.Targets.Generic.Bindings import BasicAddBindings
 from Deeploy.Targets.Generic.Layers import AddLayer
 from Deeploy.Targets.Generic.Parsers import AddParser
 
-# TODO delete this and use from Deeploy.Targets.Spatz.Templates import AllocateTemplate as SpatzAllocateTemplate
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as GenericAllocateTemplate
-from Deeploy.Targets.Generic.Templates import FreeTemplate as GenericFreeTemplate
+from Deeploy.Targets.Spatz.Templates import AllocateTemplate as SpatzAllocateTemplate
+from Deeploy.Targets.Spatz.Templates import FreeTemplate as SpatzFreeTemplate
 
 SpatzAddMapper = NodeMapper(AddParser(), BasicAddBindings)
 
@@ -22,25 +22,25 @@ SpatzMapping = {
 
 class SpatzaVariableBuffer(VariableBuffer):
     initTemplate = GenericAllocateTemplate.referenceInitTemplate
-    allocTemplate = GenericAllocateTemplate.referenceAllocateTemplate
-    deallocTemplate = GenericFreeTemplate.referenceLocalTemplate
+    allocTemplate = SpatzAllocateTemplate.referenceAllocateTemplate
+    deallocTemplate = SpatzFreeTemplate.spatzLocalTemplate
 
 
 class SpatzTransientBuffer(TransientBuffer):
     initTemplate = GenericAllocateTemplate.referenceInitTemplate
-    allocTemplate = GenericAllocateTemplate.referenceAllocateTemplate
-    deallocTemplate = GenericFreeTemplate.referenceLocalTemplate
+    allocTemplate = SpatzAllocateTemplate.referenceAllocateTemplate
+    deallocTemplate = SpatzFreeTemplate.spatzLocalTemplate
 
 
 class SpatzConstantBuffer(ConstantBuffer):
     initTemplate = GenericAllocateTemplate.referenceGlobalInitTemplate
-    allocTemplate = GenericAllocateTemplate.referenceGlobalAllocateTemplate
+    allocTemplate = GenericAllocateTemplate.referenceAllocateTemplate
     deallocTemplate = NodeTemplate("") # const not deallocated
 
 
 class SpatzStructBuffer(StructBuffer):
     initTemplate = GenericAllocateTemplate.referenceStructInitTemplate
-    allocTemplate = GenericAllocateTemplate.referenceStructAllocateTemplate
+    allocTemplate = GenericAllocateTemplate.referenceAllocateTemplate
     deallocTemplate = NodeTemplate("") # struct not deallocated ?
 
 
@@ -49,7 +49,7 @@ SpatzOptimizer = TopologyOptimizer([
 ], name = "SpatzOptimizer")
 
 includeList = [
-    # TODO ???
+    "DeeploySpatzMath.h",
 ]
 
 
