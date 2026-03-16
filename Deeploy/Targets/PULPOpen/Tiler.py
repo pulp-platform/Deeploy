@@ -4,6 +4,7 @@
 
 import copy
 
+from Deeploy.Targets.Generic.Bindings import BasicBatchNormBindings, BasicPad1DBindings, BasicPad2DBindings
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -13,7 +14,9 @@ from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileCon
 from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiGELUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
+from Deeploy.Targets.PULPOpen.Bindings import PULPFloatConvTranspose2DBindings
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
     PULPFloatDWConv2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
     PULPGatherBindings, PULPiHardswishBindings, PULPiRMSNormBindings, PULPiRQSGELUBindings, PULPLayernormBinding, \
@@ -26,6 +29,7 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBinding
     PULPTransposeBindings, PULPUniformRQSBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv1DTileConstraint, \
     RQConv2DTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.ConvTransposeTileConstraint import ConvTranspose2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
     RQDWConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GatherTileConstraint import GatherTileConstraint
@@ -42,7 +46,6 @@ from Deeploy.Targets.PULPOpen.TileConstraints.ReduceMeanConstraint import Reduce
 from Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint import ReduceSumTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import RequantShiftTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.StemConvTileConstraint import RQStemConv2DTileConstraint
@@ -65,6 +68,9 @@ PULPRQSDWConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULP
 
 PULPConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConv2DBindings,
                                                         tileConstraint = Conv2DTileConstraint())
+
+PULPConvTranspose2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvTranspose2DBindings,
+                                                                 tileConstraint = ConvTranspose2DTileConstraint())
 
 PULPDWConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConv2DBindings,
                                                           tileConstraint = DWConv2DTileConstraint())
@@ -165,7 +171,16 @@ PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindi
                                                      tileConstraint = SGDTileConstraint())
 
 PULPSliceTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSliceBindings,
-                                                       tileConstraint = SliceTileConstraint())
+                                                       tileConstraint = UntiledTileConstraint())
 
 PULPReduceMeanTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceMeanBindings,
                                                             tileConstraint = ReduceMeanTileConstraint())
+
+PULPBatchNormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = BasicBatchNormBindings,
+                                                           tileConstraint = UntiledTileConstraint())
+
+PULPPad1DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = BasicPad1DBindings,
+                                                       tileConstraint = UntiledTileConstraint())
+
+PULPPad2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = BasicPad2DBindings,
+                                                       tileConstraint = UntiledTileConstraint())
