@@ -17,7 +17,7 @@ name: CI • GAP9
       docker_image_deeploy:
         description: "Deeploy Image to use"
         required: false
-        default: "ghcr.io/xeratec/deeploy-gap9:fix_ci"
+        default: "ghcr.io/pulp-platform/deeploy-gap9:devel"
 
 
 concurrency:
@@ -28,7 +28,7 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/xeratec/deeploy-gap9:fix_ci' }}
+      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:devel' }}
 
   gap9-kernels:
     needs: select-env
