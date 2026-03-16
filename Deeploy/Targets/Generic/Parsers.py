@@ -3043,32 +3043,7 @@ class PerturbUniformParser(NodeParser):
         self.operatorRepresentation['high'] = float(node.attrs['high'])
 
         return ctxt, True
-    
-    
-    
 
-
-        # inputs = ['data_in', 'mul', 'add']
-        # outputs = ['data_out']
-
-        # for idx, inputNode in enumerate(node.inputs):
-        #     self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-        # for idx, outputNode in enumerate(node.outputs):
-        #     self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
-
-        # data_in = ctxt.lookup(node.inputs[0].name)
-        # assert isinstance(data_in, VariableBuffer)
-        # shape = data_in.shape
-
-        # assert len(shape) >= 2, f"Unsupported shape length ({len(shape)}). Supported shape lengths greater then 2"
-
-        # # Assumes shape [ Batch, Channels, ...]
-        # self.operatorRepresentation['batch'] = shape[0]
-        # self.operatorRepresentation['channels'] = shape[1]
-        # self.operatorRepresentation['channel_width'] = np.prod(shape[2:]) if len(shape) > 2 else 1
-        # self.operatorRepresentation['size'] = np.prod(shape)
-
-        # return ctxt, True
 class RQSPerturbUniformParser(NodeParser, RQSParserInterface):
     
     def __init__(self):

@@ -32,7 +32,7 @@ from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateT
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
-from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
+from Deeploy.Targets.PULPOpen.Bindings import PULPDMASliceBindings, \
     PULPDWConv1DBinding, PULPSoftmaxCrossEntropyLossDualOutputBindings, PULPReluGradBinding
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
@@ -55,7 +55,8 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPUniformRQSTilingReadyBindings, PULPInPlaceAccumulatorV2TilingReadyBindings, \
     PULPPerturbNormalTilingReadyBindings, PULPPerturbUniformTilingReadyBindings, \
     PULPPerturbEggrollTilingReadyBindings, PULPPerturbRademacherTilingReadyBindings, PULPPerturbTriangleTilingReadyBindings, \
-    PULPRQSPerturbUniformTilingReadyBindings, PULPRQSPerturbRademacherTilingReadyBindings
+    PULPRQSPerturbUniformTilingReadyBindings, PULPRQSPerturbRademacherTilingReadyBindings,\
+    PULPQuantTilingReadyBindings, PULPDequantTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -127,8 +128,8 @@ SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser
                                                PULPSoftmaxCrossEntropyGradTilingReadyBindings)
 SGDMapper = NodeMapper(SGDParser(), PULPSGDTilingReadyBindings)
 InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), PULPInPlaceAccumulatorV2TilingReadyBindings)
-QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
-DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
+QuantMapper = NodeMapper(QuantParser(), PULPQuantTilingReadyBindings)
+DequantMapper = NodeMapper(DequantParser(), PULPDequantTilingReadyBindings)
 GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
 PULPMapping = {
     'Conv': ConvLayer([FPConv2DMapper, FPDWConv2DMapper]),

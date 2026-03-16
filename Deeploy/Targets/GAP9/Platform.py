@@ -47,7 +47,7 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantPars
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.GAP9.Bindings import GAP9SoftmaxCrossEntropyLossDualOutputBindings, GAP9LayernormGradBinding, \
                                             GAP9FloatGELUGradBinding, GAP9ReluGradBinding, GAP9BasicDebugPrintBindings
-from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
+from Deeploy.Targets.PULPOpen.Bindings import PULPDMASliceBindings, \
     PULPDWConv1DBinding, PULPReduceMeanBindings, PULPRQSConv1DBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \

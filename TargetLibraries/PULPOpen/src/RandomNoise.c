@@ -487,44 +487,59 @@ void ApplyPerturbQuantUniform_NHWC(int8_t *__restrict__ pweights,
 {
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     const int32_t rounding = (S > 0) ? (1 << (S - 1)) : 0;
+    const uint8_t threshold = 255; // Reject if uint8_t value is >= 255
 
     uint32_t n_full_batches = size / 4;
     uint32_t leftover = size % 4;
     uint32_t i = 0;
 
     for (uint32_t batch = 0; batch < n_full_batches; batch++) {
-        rng_state = Xorshift32(rng_state);
-        uint32_t random_word = rng_state;
-        
-        // Unroll by 4
-        for (int j=0; j<4; j++) {
-            uint8_t u = (random_word >> (j*8)) & 0xFF;
-            if (u == 0) u = 1; // Avoid 0 to prevent -128 noise
-            int32_t n_int = (int32_t)u - 128; // Centered integer noise [-127, 127]
-            
-            int32_t m_val = M[(i+j) % channels];
-            
-            // Fixed-point multiplication: noise_q = round((n_int * M) / 2^S)
-            int32_t noise_q = (n_int * m_val + rounding) >> S;
-            
-            int32_t val = (int32_t)pweights[i+j] + noise_q;
-            pweights_dest[i+j] = (int8_t)CLAMP(val, -127, 127);
+        uint32_t random_word;
+        int valid_word = 0;
+
+        // Loop until we get a 32-bit word where all 4 bytes are valid.
+        do {
+            rng_state = Xorshift32(rng_state);
+            random_word = rng_state;
+            valid_word = 1; // Assume it's valid initially
+            if (((random_word >> 0) & 0xFF) >= threshold ||
+                ((random_word >> 8) & 0xFF) >= threshold ||
+                ((random_word >> 16) & 0xFF) >= threshold ||
+                ((random_word >> 24) & 0xFF) >= threshold) {
+                valid_word = 0; // Invalidate if any byte is bad
+            }
+        } while (!valid_word);
+
+        // Now that we have a valid word, extract the 4 samples.
+        int32_t n_int[4];
+        n_int[0] = ((random_word >> 0) & 0xFF) % 3 - 1;
+        n_int[1] = ((random_word >> 8) & 0xFF) % 3 - 1;
+        n_int[2] = ((random_word >> 16) & 0xFF) % 3 - 1;
+        n_int[3] = ((random_word >> 24) & 0xFF) % 3 - 1;
+
+        // Apply the 4 samples
+        for (int j = 0; j < 4; j++) {
+            int32_t m_val = M[(i + j) % channels];
+            int32_t noise_q = (n_int[j] * m_val + rounding) >> S;
+            int32_t val = (int32_t)pweights[i + j] + noise_q;
+            pweights_dest[i + j] = (int8_t)CLAMP(val, -127, 127);
         }
         i += 4;
     }
-
     // Process leftover elements
-    if (leftover > 0) {
-        rng_state = Xorshift32(rng_state);
-        for (uint32_t b = 0; b < leftover; b++, i++) {
-            uint8_t u = (rng_state >> (b*8)) & 0xFF;
-            if (u == 0) u = 1;
-            int32_t n_int = (int32_t)u - 128;
-            int32_t m_val = M[i % channels];
-            int32_t noise_q = (n_int * m_val + rounding) >> S;
-            int32_t val = (int32_t)pweights[i] + noise_q;
-            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
-        }
+    for (uint32_t b = 0; b < leftover; b++, i++) {
+        uint8_t u;
+        do {
+            rng_state = Xorshift32(rng_state);
+            // Just use the lowest 8 bits for simplicity
+            u = rng_state & 0xFF;
+        } while (u >= threshold);
+        int32_t n_int = (u % 3) - 1;
+
+        int32_t m_val = M[i % channels];
+        int32_t noise_q = (n_int * m_val + rounding) >> S;
+        int32_t val = (int32_t)pweights[i] + noise_q;
+        pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
     }
 }
 /* --------------------------- Update functions ---------------------------------- */

@@ -25,7 +25,7 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBinding
     PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, \
     PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings, PULPPerturbNormalBindings, PULPPerturbUniformBindings, \
     PULPPerturbEggrollBindings, PULPPerturbRademacherBindings, PULPPerturbTriangleBindings, PULPRQSPerturbRademacherBindings, \
-    PULPRQSPerturbUniformBindings
+    PULPRQSPerturbUniformBindings, PULPQuantBindings, PULPDequantBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv1DTileConstraint, \
     RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
@@ -48,6 +48,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileCo
 from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.RQSPerturbTileConstraint import RQSPerturbTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 PULPRQSConv1DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSConv1DBindings,
@@ -185,7 +186,13 @@ PULPPerturbTriangleTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = 
                                                                 tileConstraint = UnaryTileConstraint())
 
 PULPRQSPerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSPerturbUniformBindings,
-                                                                 tileConstraint = UnaryTileConstraint())
+                                                                 tileConstraint = RQSPerturbTileConstraint())
 
 PULPRQSPerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSPerturbRademacherBindings,
-                                                                 tileConstraint = UnaryTileConstraint())
+                                                                 tileConstraint = RQSPerturbTileConstraint())
+
+PULPQuantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPQuantBindings,
+                                                        tileConstraint = UnaryTileConstraint())
+
+PULPDequantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPDequantBindings,
+                                                        tileConstraint = UnaryTileConstraint())

@@ -482,12 +482,12 @@ PULPGatherBindings = [
                 GatherTemplate.referenceTemplate, ForkTransformer) for type in IntegerDataTypes
 ]
 
-BasicQuantBindings = [
+PULPQuantBindings  = [
     NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), QuantTemplate.referenceTemplate,
                 ForkTransformer),
 ]
 
-BasicDequantBindings = [
+PULPDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 ForkTransformer),
 ] + [
@@ -511,7 +511,12 @@ PULPRQSPerturbUniformBindings = [
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
         RQSPerturbUniformTemplate.referenceTemplate,
-        ForkTransformer)]
+        ForkTransformer)] + [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
+        RQSPerturbUniformTemplate.referenceTemplate,
+        ForkTransformer)
+        ]
 
 PULPPerturbEggrollBindings = [
     NodeBinding(
@@ -528,6 +533,10 @@ PULPPerturbRademacherBindings = [
 PULPRQSPerturbRademacherBindings = [
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+        RQSPerturbRademacherTemplate.referenceTemplate,
+        ForkTransformer)]+ [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
         RQSPerturbRademacherTemplate.referenceTemplate,
         ForkTransformer)]
 

@@ -464,7 +464,12 @@ GAP9RQSPerturbUniformBindings = [
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
         RQSPerturbUniformTemplate.referenceTemplate,
-        GAP9Transformer)]
+        GAP9Transformer)] + [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
+        RQSPerturbUniformTemplate.referenceTemplate,
+        GAP9Transformer)
+        ]
 
 GAP9PerturbUniformBindings = [
     NodeBinding(
@@ -482,7 +487,13 @@ GAP9RQSPerturbRademacherBindings = [
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
         RQSPerturbRademacherTemplate.referenceTemplate,
+        GAP9Transformer)] + [
+            
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
+        RQSPerturbRademacherTemplate.referenceTemplate,
         GAP9Transformer)]
+        
 
 GAP9PerturbRademacherBindings = [
     NodeBinding(
