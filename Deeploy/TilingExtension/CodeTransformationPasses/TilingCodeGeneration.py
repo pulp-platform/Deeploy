@@ -187,6 +187,7 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
 
         if isFinalMemoryLevel:
             minimizedTransfers = []
+            fallbackToSharedOuterShape = False
             for rect in transfers:
                 paddedRect = HyperRectangle(padOffset(rect.offset, commonRank), padShape(rect.dims, commonRank))
                 minRect, newMinOuterShape = minimizeRectangle(paddedRect, outerShape)
@@ -194,13 +195,26 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
                     minOuterShape = newMinOuterShape
                 else:
                     if minOuterShape != newMinOuterShape:
-                        rectStr = "\n".join(str(trans) for trans in transfers[:transfers.index(rect)])
-                        raise RuntimeError(f"""Currently support a single minimal outer shape.
-Old minOuterShape: {minOuterShape} vs. new minOuterShape {newMinOuterShape}.
-New minOuterShape produced by outerDims: {outerShape} and rect: {rect}.
-Old minOuterShape produced by outerDims: {outerShape} and rects:
-{rectStr}""")
+                        # Keep a shared outer shape when different tiles of the same external tensor
+                        # minimize differently. This shows up for L3->L2 transposed DMA on residual
+                        # tiles: a full-width tile may collapse to 1D, while the tail tile keeps a
+                        # higher-rank shape. Falling back to the common padded shape is conservative
+                        # but preserves the existing tiling structure and avoids introducing
+                        # layer-specific hacks here.
+                        #
+                        # A better long-term fix would be earlier in tiling propagation: if an
+                        # intermediate layer such as a Transpose fits entirely in L2, keep it whole
+                        # there instead of inheriting a downstream residual tiling split. That would
+                        # minimize L3 traffic rather than only making DMA legalization robust.
+                        fallbackToSharedOuterShape = True
+                        break
                 minimizedTransfers.append(minRect)
+            if fallbackToSharedOuterShape:
+                minimizedTransfers = [
+                    HyperRectangle(padOffset(rect.offset, commonRank), padShape(rect.dims, commonRank))
+                    for rect in transfers
+                ]
+                minOuterShape = outerShape
         else:
             minimizedTransfers = [HyperRectangle((0,), (int(np.prod(rect.dims)),)) for rect in transfers]
             minOuterShape = (int(np.prod(outerShape)),)
