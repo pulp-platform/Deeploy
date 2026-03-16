@@ -23,7 +23,8 @@ GAP_SDK_URL="${GAP_SDK_URL:?GAP_SDK_URL must be set}"
 
 echo "Preparing GAP9 SDK in: ${GAP9_SDK_INSTALL_DIR}"
 mkdir -p "${GAP9_SDK_INSTALL_DIR}"
-cd "${GAP9_SDK_INSTALL_DIR}"
+# Fail if CD fails, e.g. due to missing permissions or if the path is a file.
+cd "${GAP9_SDK_INSTALL_DIR}" || exit 1
 
 if [ ! -d ".git" ]; then
 	# Support reusing a pre-created directory that is not yet a git repo.
@@ -38,7 +39,7 @@ else
 	git remote set-url origin "${GAP_SDK_URL}"
 	git fetch --depth=1 origin ${GAP9_SDK_COMMIT_HASH}
 	git add .
-	git stash
+	git stash || true # Stash may fail if there are no changes, ignore that.
 fi
 
 echo "Checking out commit ${GAP9_SDK_COMMIT_HASH} (stash and fetch if necessary)"
