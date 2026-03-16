@@ -35,7 +35,8 @@ class UntiledTileConstraint(TileConstraint):
 
             tilerModel.addTensorDimToModel(ctxt, tensorName)
 
-            for idx, shapeDim in enumerate(_buffer.shape):
+            shape = [_buffer.shape] if isinstance(_buffer.shape, int) else _buffer.shape
+            for idx, shapeDim in enumerate(shape):
                 tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = tensorName, dimIdx = idx) == shapeDim)
 
         return tilerModel
