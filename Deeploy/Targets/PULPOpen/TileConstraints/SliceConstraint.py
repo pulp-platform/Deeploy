@@ -20,6 +20,12 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
 class SliceTileConstraint(TileConstraint):
 
     @staticmethod
+    def _resolveImmediate(value, ctxt: NetworkContext):
+        if isinstance(value, str):
+            return np.asarray(ctxt.lookup(value).values).astype(np.int64).reshape(-1)
+        return np.asarray(value).astype(np.int64).reshape(-1)
+
+    @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
         # ===== GET NECESSARY INFORMATION =====
@@ -31,8 +37,8 @@ class SliceTileConstraint(TileConstraint):
         inputShape = parseDict['data_in_shape']
 
         #   Get other necessary information
-        sliceAxes = parseDict['axes']
-        sliceSteps = parseDict['steps']
+        sliceAxes = SliceTileConstraint._resolveImmediate(parseDict['axes'], ctxt)
+        sliceSteps = SliceTileConstraint._resolveImmediate(parseDict['steps'], ctxt)
 
         # ===== ADD I/O DIMENSIONS TO THE MODEL AS VARIABLES =====
         for bufferName in [inputBufferName, outputBufferName]:
@@ -83,10 +89,14 @@ class SliceTileConstraint(TileConstraint):
         in_cube_offset = list(outputCube.offset).copy()
 
         # Iterate through the sliced axes
-        for idx, ax in enumerate(parseDict['axes']):
+        sliceAxes = np.asarray(parseDict['axes']).astype(np.int64).reshape(-1)
+        sliceStarts = np.asarray(parseDict['starts']).astype(np.int64).reshape(-1)
+        sliceSteps = np.asarray(parseDict['steps']).astype(np.int64).reshape(-1)
+
+        for idx, ax in enumerate(sliceAxes):
             # Get current sliced ax parameters
-            start = parseDict['starts'][idx]
-            step = parseDict['steps'][idx]
+            start = sliceStarts[idx]
+            step = sliceSteps[idx]
 
             # Compute input cube parameters for the current axis
             in_cube_dims[ax] = (outputCube.dims[ax] - 1) * step + 1
@@ -149,12 +159,18 @@ class SliceTileConstraint(TileConstraint):
         outputLoadSchedule = []
 
         for out_cube in outputCubes:
+            immediateOperatorRepresentation = operatorRepresentation.copy()
+            immediateOperatorRepresentation['axes'] = cls._resolveImmediate(operatorRepresentation['axes'], ctxt)
+            immediateOperatorRepresentation['starts'] = cls._resolveImmediate(operatorRepresentation['starts'], ctxt)
+            immediateOperatorRepresentation['steps'] = cls._resolveImmediate(operatorRepresentation['steps'], ctxt)
+
             # Compute input cube
-            in_cube = SliceTileConstraint.computeInputCubeFromOutputCube(out_cube, parseDict = operatorRepresentation)
+            in_cube = SliceTileConstraint.computeInputCubeFromOutputCube(out_cube,
+                                                                         parseDict = immediateOperatorRepresentation)
 
             # Compute new ends for replacement
             new_ends = list()
-            for ax in operatorRepresentation['axes']:
+            for ax in immediateOperatorRepresentation['axes']:
                 new_ends.append(in_cube.offset[ax] + in_cube.dims[ax])
 
             # Append replacement elements
