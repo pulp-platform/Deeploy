@@ -11,38 +11,59 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.GAP9.Templates import AllocateTemplate, FreeTemplate
 # Import GAP9-specific tiler bindings
-from Deeploy.Targets.GAP9.Tiler import GAP9AddTilingReadyBindings, GAP9ConcatTilingReadyBindings, \
-    GAP9Conv2DTilingReadyBindings, GAP9DWConv2DTilingReadyBindings, GAP9FlattenTilingReadyBindings, \
-    GAP9FPGELUTilingReadyBindings, GAP9FPGEMMTilingReadyBindings, GAP9GatherTilingReadyBindings, \
-    GAP9iHardswishTilingReadyBindings, GAP9iRMSNormTilingReadyBindings, GAP9iRQSGELUTilingReadyBindings, \
-    GAP9LayernormTilingReadyBindings, GAP9MatMulTilingReadyBindings, GAP9MaxPool2DTilingReadyBindings, \
-    GAP9MulTilingReadyBindings, GAP9ReduceSumTilingReadyBindings, GAP9ReluTilingReadyBindings, \
+from Deeploy.Targets.GAP9.Tiler import GAP9AddTilingReadyBindings, GAP9AveragePool2DTilingReadyBindings, \
+    GAP9AveragePoolGrad2DTilingReadyBindings, GAP9BatchNormInternalTilingReadyBindings, \
+    GAP9BatchNormalizationGradTilingReadyBindings, GAP9ConcatTilingReadyBindings, \
+    GAP9Conv2DTilingReadyBindings, GAP9ConvGradBTilingReadyBindings, GAP9ConvGradW2DTilingReadyBindings, \
+    GAP9ConvGradX2DTilingReadyBindings, GAP9DWConv2DTilingReadyBindings, GAP9DWConvGradW2DTilingReadyBindings, \
+    GAP9DWConvGradX2DTilingReadyBindings, GAP9FlattenTilingReadyBindings, \
+    GAP9FPGELUGradTilingReadyBindings, GAP9FPGELUTilingReadyBindings, GAP9FPGEMMTilingReadyBindings, \
+    GAP9GatherTilingReadyBindings, GAP9GlobalAveragePool2DTilingReadyBindings, \
+    GAP9GlobalAveragePoolGrad2DTilingReadyBindings, \
+    GAP9iHardswishTilingReadyBindings, GAP9InPlaceAccumulatorV2TilingReadyBindings, \
+    GAP9iRMSNormTilingReadyBindings, GAP9iRQSGELUTilingReadyBindings, \
+    GAP9LayernormGradTilingReadyBindings, GAP9LayernormTilingReadyBindings, \
+    GAP9MatMulTilingReadyBindings, GAP9MaxPool2DTilingReadyBindings, GAP9MaxPoolGrad2DTilingReadyBindings, \
+    GAP9MSELossGradTilingReadyBindings, GAP9MSELossTilingReadyBindings, \
+    GAP9MulTilingReadyBindings, GAP9PWConvGradW2DTilingReadyBindings, GAP9PWConvGradX2DTilingReadyBindings, \
+    GAP9ReduceSumTilingReadyBindings, GAP9ReluGradTilingReadyBindings, GAP9ReluTilingReadyBindings, \
     GAP9RQAddTilingReadyBindings, GAP9RQSConv2DTilingReadyBindings, GAP9RQSDWConv2DTilingReadyBindings, \
     GAP9RQSGEMMTilingReadyBindings, GAP9RQSiHardswishTilingReadyBindings, GAP9RQSMatrixVecTilingReadyBindings, \
     GAP9RQSTallGEMMTilingReadyBindings, GAP9RQSTilingReadyBindings, GAP9SGDTilingReadyBindings, \
-    GAP9SoftmaxCrossEntropyGradTilingReadyBindings, GAP9SoftmaxCrossEntropyTilingReadyBindings, \
+    GAP9SoftmaxCrossEntropyGradTilingReadyBindings, GAP9SoftmaxCrossEntropyLossDualOutputTilingReadyBindings, \
+    GAP9SoftmaxCrossEntropyTilingReadyBindings, \
     GAP9SoftmaxGradTilingReadyBindings, GAP9SoftmaxTilingReadyBindings, GAP9TransposeTilingReadyBindings, \
     GAP9UniformRQSTilingReadyBindings
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
-    LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
-    ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
-    SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
-    TransposeLayer, iHardswishLayer, iRMSNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
-    GELUParser, GEMMParser, LayerNormParser, MatMulParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, \
-    QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, \
-    RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
+from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, AveragePoolLayer, \
+    BatchNormInternalLayer, BatchNormalizationGradLayer, ConcatLayer, ConvLayer, \
+    ConvGradBLayer, ConvGradWLayer, ConvGradXLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, \
+    GlobalAveragePoolLayer, GlobalAveragePoolGradLayer, \
+    InPlaceAccumulatorV2Layer, \
+    LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolGradLayer, MaxPoolLayer, \
+    MSELossGradLayer, MSELossLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, \
+    ReluGradLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
+    RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, \
+    SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, BatchNormInternalParser, \
+    BatchNormalizationGradParser, ConcatParser, Conv2DGradBParser, DequantParser, FlattenParser, GatherParser, \
+    GELUGradParser, GELUParser, GEMMParser, GlobalAveragePoolParser, GlobalAveragePoolGradParser, \
+    InPlaceAccumulatorV2Parser, \
+    LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool2DParser, MaxPoolGradParser, \
+    MSELossGradParser, MSELossParser, MulParser, Pad1DParser, Pad2DParser, \
+    QuantParser, ReduceMeanParser, ReduceSumParser, ReluGradParser, ReluParser, RequantShiftParser, ReshapeParser, \
+    RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
     TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPConv1DBinding, \
     PULPDMASliceBindings, PULPDWConv1DBinding, PULPReduceMeanBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
-from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
-    PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
-    PULPTallGEMMParser
+from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPConvGradW2DParser, \
+    PULPConvGradX2DParser, PULPDWConv1DParser, PULPDWConv2DParser, PULPDWConvGradW2DParser, \
+    PULPDWConvGradX2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
+    PULPPWConvGradW2DParser, PULPPWConvGradX2DParser, PULPTallGEMMParser
 
 # ── Inference NodeMappers ──────────────────────────────────────────────────
 GAP9_RQAddMapper = NodeMapper(RQAddParser(), GAP9RQAddTilingReadyBindings)
@@ -89,12 +110,35 @@ GAP9_DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
 GAP9_GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
 
 # ── Training / Gradient NodeMappers ───────────────────────────────────────
+GAP9_GELUGradMapper = NodeMapper(GELUGradParser(), GAP9FPGELUGradTilingReadyBindings)
+GAP9_ConvGradXMapper = NodeMapper(PULPConvGradX2DParser(), GAP9ConvGradX2DTilingReadyBindings)
+GAP9_DWConvGradXMapper = NodeMapper(PULPDWConvGradX2DParser(), GAP9DWConvGradX2DTilingReadyBindings)
+GAP9_PWConvGradX2DMapper = NodeMapper(PULPPWConvGradX2DParser(), GAP9PWConvGradX2DTilingReadyBindings)
+GAP9_ConvGradWMapper = NodeMapper(PULPConvGradW2DParser(), GAP9ConvGradW2DTilingReadyBindings)
+GAP9_DWConvGradWMapper = NodeMapper(PULPDWConvGradW2DParser(), GAP9DWConvGradW2DTilingReadyBindings)
+GAP9_PWConvGradW2DMapper = NodeMapper(PULPPWConvGradW2DParser(), GAP9PWConvGradW2DTilingReadyBindings)
+GAP9_ConvGradBMapper = NodeMapper(Conv2DGradBParser(), GAP9ConvGradBTilingReadyBindings)
+GAP9_LayerNormGradMapper = NodeMapper(LayerNormGradParser(), GAP9LayernormGradTilingReadyBindings)
+GAP9_AveragePool2DMapper = NodeMapper(AveragePool2DParser(), GAP9AveragePool2DTilingReadyBindings)
+GAP9_AveragePoolGrad2DMapper = NodeMapper(AveragePool2DParser(), GAP9AveragePoolGrad2DTilingReadyBindings)
+GAP9_MaxPoolGrad2DMapper = NodeMapper(MaxPoolGradParser(), GAP9MaxPoolGrad2DTilingReadyBindings)
+GAP9_ReluGradMapper = NodeMapper(ReluGradParser(), GAP9ReluGradTilingReadyBindings)
 GAP9_SoftmaxGradMapper = NodeMapper(SoftmaxGradParser(), GAP9SoftmaxGradTilingReadyBindings)
 GAP9_SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(),
                                                 GAP9SoftmaxCrossEntropyTilingReadyBindings)
+# Dual-output mapper (loss + log_prob): tried first; falls back to single-output mapper for 1-output nodes
+GAP9_SoftmaxCrossEntropyLossDualOutputMapper = NodeMapper(SoftmaxCrossEntropyLossParser(),
+                                                          GAP9SoftmaxCrossEntropyLossDualOutputTilingReadyBindings)
 GAP9_SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
                                                     GAP9SoftmaxCrossEntropyGradTilingReadyBindings)
 GAP9_SGDMapper = NodeMapper(SGDParser(), GAP9SGDTilingReadyBindings)
+GAP9_MSELossMapper = NodeMapper(MSELossParser(), GAP9MSELossTilingReadyBindings)
+GAP9_MSELossGradMapper = NodeMapper(MSELossGradParser(), GAP9MSELossGradTilingReadyBindings)
+GAP9_InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), GAP9InPlaceAccumulatorV2TilingReadyBindings)
+GAP9_BatchNormInternalMapper = NodeMapper(BatchNormInternalParser(), GAP9BatchNormInternalTilingReadyBindings)
+GAP9_BatchNormalizationGradMapper = NodeMapper(BatchNormalizationGradParser(), GAP9BatchNormalizationGradTilingReadyBindings)
+GAP9_GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), GAP9GlobalAveragePool2DTilingReadyBindings)
+GAP9_GlobalAveragePoolGradMapper = NodeMapper(GlobalAveragePoolGradParser(), GAP9GlobalAveragePoolGrad2DTilingReadyBindings)
 
 # GAP9-specific mapping using ClDma
 GAP9Mapping = {
@@ -167,15 +211,47 @@ GAP9Mapping = {
         QuantLayer([GAP9_QuantMapper]),
     'Dequant':
         QuantLayer([GAP9_DequantMapper]),
+    'AveragePool':
+        AveragePoolLayer([GAP9_AveragePool2DMapper]),
     # ── Training / Gradient operators ─────────────────────────────────────
+    'ConvGradX':
+        ConvGradXLayer([GAP9_PWConvGradX2DMapper, GAP9_DWConvGradXMapper, GAP9_ConvGradXMapper]),
+    'ConvGradW':
+        ConvGradWLayer([GAP9_PWConvGradW2DMapper, GAP9_DWConvGradWMapper, GAP9_ConvGradWMapper]),
+    'ConvGradB':
+        ConvGradBLayer([GAP9_ConvGradBMapper]),
+    'GeluGrad':
+        GELUGradLayer([GAP9_GELUGradMapper]),
+    'LayerNormalizationGrad':
+        LayerNormGradLayer([GAP9_LayerNormGradMapper]),
+    'AveragePoolGrad':
+        AveragePoolGradLayer([GAP9_AveragePoolGrad2DMapper]),
+    'MaxPoolGrad':
+        MaxPoolGradLayer([GAP9_MaxPoolGrad2DMapper]),
+    'ReluGrad':
+        ReluGradLayer([GAP9_ReluGradMapper]),
     'SoftmaxGrad':
         SoftmaxGradLayer([GAP9_SoftmaxGradMapper]),
+    'MSELoss':
+        MSELossLayer([GAP9_MSELossMapper]),
+    'MSELossGrad':
+        MSELossGradLayer([GAP9_MSELossGradMapper]),
     'SoftmaxCrossEntropyLoss':
-        SoftmaxCrossEntropyLossLayer([GAP9_SoftmaxCrossEntropyLossMapper]),
+        SoftmaxCrossEntropyLossLayer([GAP9_SoftmaxCrossEntropyLossDualOutputMapper, GAP9_SoftmaxCrossEntropyLossMapper]),
     'SoftmaxCrossEntropyLossGrad':
         SoftmaxCrossEntropyLossGradLayer([GAP9_SoftmaxCrossEntropyLossGradMapper]),
     'SGD':
-        SGDLayer([GAP9_SGDMapper])
+        SGDLayer([GAP9_SGDMapper]),
+    'InPlaceAccumulatorV2':
+        InPlaceAccumulatorV2Layer([GAP9_InPlaceAccumulatorV2Mapper]),
+    'BatchNormInternal':
+        BatchNormInternalLayer([GAP9_BatchNormInternalMapper]),
+    'BatchNormalizationGrad':
+        BatchNormalizationGradLayer([GAP9_BatchNormalizationGradMapper]),
+    'GlobalAveragePool':
+        GlobalAveragePoolLayer([GAP9_GlobalAveragePoolMapper]),
+    'GlobalAveragePoolGrad':
+        GlobalAveragePoolGradLayer([GAP9_GlobalAveragePoolGradMapper]),
 }
 
 

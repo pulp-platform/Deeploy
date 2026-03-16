@@ -1341,7 +1341,9 @@ class NodeTypeChecker():
         for key, value in operatorRepresentation.items():
             # check if the referenced buffer is in the environment
             if isinstance(value, str) and value in env:
-                self.typeDict[key + '_type'] = ctxt.lookup(value)._type
+                buf = ctxt.lookup(value)
+                if hasattr(buf, '_type'):
+                    self.typeDict[key + '_type'] = buf._type
 
     def typeCheck(self, ctxt: NetworkContext, node: gs.Node,
                   operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, bool]:

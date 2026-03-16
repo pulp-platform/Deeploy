@@ -120,20 +120,27 @@ def generateTrainingNetwork(args):
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)
 
-    # 1a. Strip UNDEFINED-typed unused optional outputs (e.g. MaxPool mask indices).
-    # These are not consumed by any node but end up in localObjects without _type/_instance,
-    # causing crashes in Deeploy's bind and code-generation phases.
-    # We remove them entirely (they have no consumers, so no downstream connections break).
+    # 1a. Handle UNDEFINED-typed outputs in training ONNX graphs.
+    # Backward pass ONNX often doesn't propagate types for gradient outputs.
+    # (i) Strip UNDEFINED-typed outputs that have no consumers.
+    # (ii) Patch UNDEFINED-typed outputs WITH consumers to float32 (training default).
     _stripped = False
+    _patched = False
     for node in graph.nodes:
         filtered = [out for out in node.outputs
                     if not (out.dtype == 0 and len(out.outputs) == 0)]
         if len(filtered) < len(node.outputs):
             node.outputs = filtered
             _stripped = True
+        for out in node.outputs:
+            if out.dtype == 0 and len(out.outputs) > 0:
+                out.dtype = np.dtype(np.float32)
+                _patched = True
     if _stripped:
         graph.cleanup()
         log.debug("Stripped UNDEFINED-typed unused optional outputs from graph nodes")
+    if _patched:
+        log.debug("Patched UNDEFINED-typed outputs with consumers to float32")
 
     # 2. Load inputs.npz (new format: no grad acc buf entries)
     inputs_path = f'{args.dir}/inputs.npz'

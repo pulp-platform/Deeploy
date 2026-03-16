@@ -21,11 +21,14 @@ def _augment_path(env: dict) -> dict:
     The install dirs are already set as env vars (GVSOC_INSTALL_DIR,
     LLVM_INSTALL_DIR) but their bin/ subdirectories may not be in PATH.
 
-    /usr/bin is also prepended so that gapy's `#!/usr/bin/env python3`
-    resolves to /usr/bin/python3 (which has all required packages) rather
-    than a minimal venv that may be earlier in PATH.
+    If a virtual environment is active (VIRTUAL_ENV is set), its bin dir
+    is prepended so that shebang-invoked scripts (kconfigtool.py, gapy)
+    resolve python3 to the venv interpreter, which has kconfiglib.
+    Without this, /usr/bin/python3 would be picked up instead, which
+    lacks kconfiglib and causes CMake kconfig setup to fail.
     """
-    extra = ['/usr/bin']
+    venv = env.get('VIRTUAL_ENV', '')
+    extra = [str(Path(venv) / 'bin')] if venv else ['/usr/bin']
     for var in ('GVSOC_INSTALL_DIR', 'LLVM_INSTALL_DIR'):
         install_dir = env.get(var, '')
         if install_dir:
@@ -360,12 +363,26 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         # pipe buffering — cmake's USES_TERMINAL connects gvsoc to the real
         # terminal, bypassing our pipe and causing apparent hangs.
         gvsoc_exe = str(Path(env.get('GVSOC_INSTALL_DIR', '')) / 'bin' / 'gvsoc')
-        binary_path = str(Path(config.build_dir) / 'bin' / config.test_name)
         workdir = str(Path(config.build_dir) / 'gvsoc_workdir')
         os.makedirs(workdir, exist_ok=True)
+
         # gvsoc target name is derived from cmake's add_gvsoc_emulation call.
-        # For Siracusa it is always "siracusa".
-        gvsoc_target = config.platform.lower().replace('_w_neureka', '')
+        # GAP9 uses "gap9.evk"; Siracusa uses "siracusa".
+        platform_lower = config.platform.lower().replace('_w_neureka', '')
+        _GVSOC_TARGET_MAP = {'gap9': 'gap9.evk'}
+        gvsoc_target = _GVSOC_TARGET_MAP.get(platform_lower, platform_lower)
+
+        # Binary is placed directly in build_dir (not in a bin/ subdir).
+        # For GAP9, the image target also produces .bin files that gvsoc needs
+        # in the work directory; copy them if present.
+        binary_path = str(Path(config.build_dir) / config.test_name)
+        for bin_file in Path(config.build_dir).glob('*.bin'):
+            shutil.copy2(str(bin_file), workdir)
+        gap9_sdk = env.get('GAP_SDK_HOME', '')
+        efuse_src = Path(gap9_sdk) / 'utils' / 'efuse' / 'GAP9' / 'efuse_hyper_preload.data'
+        if efuse_src.exists():
+            shutil.copy2(str(efuse_src), str(Path(workdir) / 'chip.efuse_preload.data'))
+
         cmd = [
             gvsoc_exe,
             f"--target={gvsoc_target}",

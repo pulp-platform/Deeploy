@@ -77,7 +77,12 @@ elseif(platform STREQUAL GAP9)
   if (NOT HEXLIST)
     # L2 mode: No flash/readfs files
     # Data lives in L2 memory only
-    target_compile_options(network PUBLIC -DNOFLASH)
+    if(TRAINING)
+      target_compile_options(training_network PUBLIC -DNOFLASH)
+      target_compile_options(optimizer_network PUBLIC -DNOFLASH)
+    else()
+      target_compile_options(network PUBLIC -DNOFLASH)
+    endif()
     message(STATUS "[Deeploy GAP9] L2 mode: No hex files found, -DNOFLASH set")
     message(STATUS "[Deeploy GAP9] If you expect L3 mode, ensure Python codegen created hex files in ${GENERATED_SOURCE}/hex/")
   else()
@@ -91,6 +96,14 @@ elseif(platform STREQUAL GAP9)
     endforeach()
     gvsoc_flags_add_files_to_flash(GAPY_RUNNER_ARGS HEXLIST)
     message(STATUS "GAPY_RUNNER_ARGS: ${GAPY_RUNNER_ARGS}")
+  endif()
+
+  # Waive warnings in generated code
+  if(TRAINING)
+    target_compile_options(training_network PRIVATE -Wno-pointer-sign -Wno-sign-compare)
+    target_compile_options(optimizer_network PRIVATE -Wno-pointer-sign -Wno-sign-compare)
+  else()
+    target_compile_options(network PRIVATE -Wno-pointer-sign -Wno-sign-compare)
   endif()
 
   add_subdirectory(Platforms/GAP9)

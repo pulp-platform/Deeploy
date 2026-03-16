@@ -158,7 +158,7 @@ def create_training_test_config(
         cmake_args_list.append(f"NUM_CORES={cores}")
 
     gen_args_list = []
-    if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka"]:
+    if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka", "GAP9"]:
         gen_args_list.append(f"--cores={cores}")
 
     # Resolve optimizer_dir relative to Tests/ when given as a relative path

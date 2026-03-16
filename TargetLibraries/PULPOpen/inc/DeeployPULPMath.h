@@ -28,7 +28,6 @@
 #include "kernel/Conv.h"
 #include "kernel/GELU.h"
 #include "kernel/GlobalAveragePool.h"
-#include "kernel/GroupNorm.h"
 #include "kernel/Layernorm.h"
 #include "kernel/Matmul.h"
 #include "kernel/MaxPool.h"
