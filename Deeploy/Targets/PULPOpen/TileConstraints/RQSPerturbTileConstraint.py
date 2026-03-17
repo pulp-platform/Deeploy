@@ -35,18 +35,15 @@ class RQSPerturbTileConstraint(TileConstraint):
 
         mulChannelVar = tilerModel.getTensorDimVar(tensorName = mulBufferName, dimIdx = 0)
 
-        channels_first = parseDict['channels_first']
-        if not channels_first:
-            inChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = len(inputShape) - 1)
-        else:
-            inChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 0)
+        # Channel dim always first since we manipulate parameter tensors.
+        inChannelVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = 0)
 
         tilerModel.addConstraint(mulChannelVar == inChannelVar)
 
         for dim in range(len(inputShape)):
             inputDimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = dim)
             outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
-            tilerModel.addConstraint(inputDimVar == outputDimVar)  # Batch
+            tilerModel.addConstraint(inputDimVar == outputDimVar)  # Channel dim
 
         return tilerModel
 
@@ -65,21 +62,17 @@ class RQSPerturbTileConstraint(TileConstraint):
 
         rqCubes = []
 
-        replacements = {"size": [], "channel_width": [], "channels": []}
+        replacements = {"size": [], "channel_width": []}
         replacementTypes = {
             "size": PointerClass(uint16_t),
             "channel_width": PointerClass(uint16_t),
-            "channels": PointerClass(uint16_t)
         }
 
         for cube in inputCubes:
-
-            if operatorRepresentation['channels_first']:
-                rqCube = HyperRectangle((cube.offset[0],), (cube.dims[0],))
-                channelDim = cube.dims[0]
-            else:
-                rqCube = HyperRectangle((cube.offset[-1],), (cube.dims[-1],))
-                channelDim = cube.dims[-1]
+            
+            # this OP is applied to weights, the output channels are the dim that matters, ant that's always the first.
+            rqCube = HyperRectangle((cube.offset[0],), (cube.dims[0],))
+            channelDim = cube.dims[0]
 
             rqCubes.append(rqCube)
 
@@ -89,7 +82,8 @@ class RQSPerturbTileConstraint(TileConstraint):
 
             replacements['size'].append(size)
             replacements['channel_width'].append(channelWidth)
-            replacements['channels'].append(channels)
+            # always channel first so we only need channel_width
+            #replacements['channels'].append(channels) 
 
         inputLoadSchedule = []
         outputLoadSchedule = []

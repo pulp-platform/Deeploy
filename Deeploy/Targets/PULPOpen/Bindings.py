@@ -10,7 +10,7 @@ from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGen
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
 from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
-    int8_t, int32_t, int64_t, uint8_t
+    int8_t, int32_t, int64_t, uint32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
@@ -450,8 +450,7 @@ PULPLayernormBinding = NodeBinding(
         [PointerClass(float32_t), PointerClass(float32_t),
          PointerClass(float32_t)],
         # outputs: data_out (Y), mean stash, inv_std_dev stash
-        [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+        [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
     ForkTransformer)
 
 PULPLayernormGradBinding = NodeBinding(
@@ -490,9 +489,12 @@ PULPQuantBindings  = [
 PULPDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 ForkTransformer),
-] + [
+    NodeBinding(DequantChecker([PointerClass(uint8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                ForkTransformer),
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 ForkTransformer),
+    NodeBinding(DequantChecker([PointerClass(uint32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                ForkTransformer)
 ]
 
 PULPPerturbNormalBindings = [

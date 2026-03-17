@@ -424,11 +424,11 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
     }
 }
 
-void ApplyPerturbQuantRademacher_NHWC(int8_t *__restrict__ pweights,
+void ApplyPerturbQuantRademacher_CHW(int8_t *__restrict__ pweights,
                             int8_t *__restrict__ pweights_dest,
                             const int32_t *__restrict__ M, // Fixed-point multipliers
                             const int32_t S,             // Fixed-point shift
-                            const uint32_t channels,
+                            const uint32_t channel_width,
                             const uint32_t seed,
                             const uint32_t size)
 {
@@ -445,14 +445,14 @@ void ApplyPerturbQuantRademacher_NHWC(int8_t *__restrict__ pweights,
         uint32_t bits = rng_state;
         for (uint32_t b = 0; b < 32; b+=2, i+=2) {
             int32_t r = (bits & 1) ? 1 : -1;
-            int32_t m_val = M[i % channels];
+            int32_t m_val = M[i % channel_width];
             // Fixed-point multiplication: noise_q = round(r * M / 2^S)
             int32_t noise_q = (r * m_val + rounding) >> S;
             int32_t val = (int32_t)pweights[i] + noise_q;
             pweights_dest[i] = (int8_t)CLAMP(val, -127, 127); // Saturate to int8 range
             bits >>= 1;
             r = (bits & 1) ? 1 : -1;
-            m_val = M[i % channels];
+            m_val = M[i % channel_width];
             // Fixed-point multiplication: noise_q = round(r * M / 2^S)
             noise_q = (r * m_val + rounding) >> S;
             val = (int32_t)pweights[i+1] + noise_q;
@@ -467,7 +467,7 @@ void ApplyPerturbQuantRademacher_NHWC(int8_t *__restrict__ pweights,
         uint32_t bits = rng_state;
         for (uint32_t b = 0; b < leftover; b++, i++) {
             int32_t r = (bits & 1) ? 1 : -1;
-            int32_t m_val = M[i % channels];
+            int32_t m_val = M[i % channel_width];
             int32_t noise_q = (r * m_val + rounding) >> S;
             int32_t val = (int32_t)pweights[i] + noise_q;
             pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);

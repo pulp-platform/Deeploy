@@ -1726,8 +1726,10 @@ class LayerNormParser(iLayerNormParser):
         inputs = ['data_in', 'weight', 'bias']
         # ONNX LayerNormalization can have up to 3 outputs: Y, mean, inv_std_dev.
         # The extra outputs are needed by LayerNormalizationGrad in training graphs.
-        outputs = ['data_out', 'mean', 'inv_std_dev']
-
+        
+        # JanSno: Revert to single output layernorm
+        # outputs = ['data_out', 'mean', 'inv_std_dev']
+        outputs = ['data_out']
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):

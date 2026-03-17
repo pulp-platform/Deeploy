@@ -21,7 +21,6 @@
  */
 void PULP_Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
                 float32_t *scale, float32_t *bias,
-                float32_t *mean_out, float32_t *inv_std_dev_out,
                 uint32_t size, uint32_t lastDimLength,
                 float32_t epsilon) {
 
@@ -64,9 +63,9 @@ void PULP_Layernorm_fp32_fp32(float32_t *data_in, float32_t *data_out,
     var /= (float32_t)lastDimLength;
     float32_t isd = 1.0f / sqrtf(var + epsilon);
 
-    /* Write stash (indexed by global sequence position) */
-    mean_out[start_seq + i] = mean;
-    inv_std_dev_out[start_seq + i] = isd;
+    // /* Write stash (indexed by global sequence position) */
+    // mean_out[start_seq + i] = mean;
+    // inv_std_dev_out[start_seq + i] = isd;
 
     /* Compute normalized output */
     for (int32_t j = 0; j < lastDimLength; j++) {

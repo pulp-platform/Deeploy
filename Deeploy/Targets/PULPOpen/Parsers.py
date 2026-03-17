@@ -26,7 +26,7 @@ class PULPConv2DParser(RQSConv2DParser):
                 self.operatorRepresentation['group'] == 1,
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
-                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+                # self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
                 len(node.inputs) == 4,
                 'shift' in node.attrs,
             ])

@@ -79,11 +79,11 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
 
 static inline float u32_to_u01_open(uint32_t u);
 
-void ApplyPerturbQuantRademacher_NHWC(int8_t *__restrict__ pweights,
+void ApplyPerturbQuantRademacher_CHW(int8_t *__restrict__ pweights,
                             int8_t *__restrict__ pweights_dest,
                             const int32_t *__restrict__ M, // Fixed-point multipliers
                             const int32_t S,             // Fixed-point shift
-                            const uint32_t channels,
+                            const uint32_t channel_width,
                             const uint32_t seed,
                             const uint32_t size);
 

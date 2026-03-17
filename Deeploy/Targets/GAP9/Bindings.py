@@ -388,15 +388,10 @@ GAP9LayernormBinding = NodeBinding(
     LayerNormChecker(
         # inputs: grad_in (dY), data_in (X), weight (scale/gamma),
         #         mean stash, inv_std_dev stash
-        [PointerClass(float32_t),
-         PointerClass(float32_t),
-         PointerClass(float32_t),
-         PointerClass(float32_t),
+        [PointerClass(float32_t), PointerClass(float32_t),
          PointerClass(float32_t)],
-        # outputs: grad_out (dX), weight_grad (dscale), bias_grad (dbias)
-        [PointerClass(float32_t),
-         PointerClass(float32_t),
-         PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+        # outputs: data_out (Y), mean stash, inv_std_dev stash
+        [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
     GAP9Transformer)
 
 GAP9LayernormGradBinding = NodeBinding(
@@ -431,9 +426,10 @@ GAP9QuantBindings = [
 GAP9DequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 GAP9Transformer),
-] + [
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 GAP9Transformer),
+    NodeBinding(DequantChecker([PointerClass(uint8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                GAP9Transformer)
 ]
 
 GAP9InPlaceAccumulatorV2Bindings = [

@@ -12,8 +12,6 @@ PULP_Layernorm_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.refe
     ${data_out},
     ${weight},
     ${bias},
-    ${mean},
-    ${inv_std_dev},
     ${size},
     ${lastDimLength},
     ${epsilon}

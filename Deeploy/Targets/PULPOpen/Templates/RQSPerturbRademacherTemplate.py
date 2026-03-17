@@ -31,7 +31,7 @@ uint32_t ${nodeName}_chunk_stop = (uint32_t) MIN(${nodeName}_chunk_start + ${nod
 uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop - ${nodeName}_chunk_start;
 
 // Calculate the starting channel for this core's chunk of M
-uint32_t ${nodeName}_channel_start_offset = ${nodeName}_chunk_start % ${channels};
+uint32_t ${nodeName}_channel_start_offset = ${nodeName}_chunk_start % ${channel_width};
 
 // Pick large enough stride to minimize correlation between nodes.
 uint32_t chunk_seed = seed + ${node_id};
@@ -41,11 +41,11 @@ if isinstance(log2D, int):
 else:
     log2Dstring = "*"+log2D
 %>
-ApplyPerturbQuantRademacher_NHWC((const int8_t *)  &${data_in}[${nodeName}_chunk_start],
+ApplyPerturbQuantRademacher_CHW((const int8_t *)  &${data_in}[${nodeName}_chunk_start],
                                 (int8_t *) &${data_out}[${nodeName}_chunk_start],
                                 (const int32_t *) &${mul}[${nodeName}_channel_start_offset],
                                 ${log2Dstring},
-                                ${channels},
+                                ${channel_width},
                                 chunk_seed,
                                 ${nodeName}_local_size);
 
