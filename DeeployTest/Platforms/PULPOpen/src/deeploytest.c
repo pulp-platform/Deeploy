@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <math.h>
+
 #include "CycleCounter.h"
 #include "Network.h"
 #include "dory_mem.h"
@@ -125,7 +127,7 @@ int main(void) {
       compbuf = DeeployNetwork_outputs[buf];
     }
 
-    if (ISOUTPUTFLOAT) {
+#if ISOUTPUTFLOAT == 1
       float_error_count = 0;
       float_compare_args.expected = testOutputVector[buf];
       float_compare_args.actual = compbuf;
@@ -141,7 +143,7 @@ int main(void) {
       pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
       tot_err += float_error_count;
-    } else {
+#else
 
       for (uint32_t i = 0;
            i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
@@ -157,7 +159,7 @@ int main(void) {
           printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
         }
       }
-    }
+#endif
     if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
       pi_l2_free(compbuf, (int)DeeployNetwork_outputs_bytes[buf]);
     }

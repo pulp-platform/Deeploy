@@ -2881,7 +2881,17 @@ class NetworkContainer():
 
             name = node.name
             node.name = self.ctxt._mangle(node.name)
-            callStack += node.init()
+
+            # Local inference buffers are late-bound by the generated layer code. Initializing them to NULL keeps
+            # clang from flagging false-positive uninitialized reads on paths where the assignment is emitted in a
+            # separate closure, and marking them unused avoids noise for scratch buffers that are reserved
+            # generically but optimized away for a specific layer instance.
+            if ("TILING_CODEGEN" not in node.name and isinstance(node, VariableBuffer) and hasattr(node, "_type") and
+                    issubclass(node._type, Pointer)):
+                typeName = node._instance.typeName if hasattr(node, "_instance") else node._type.typeName
+                callStack += f"{typeName} {node.name} __attribute__((unused)) = NULL;\n"
+            else:
+                callStack += node.init()
             node.name = name
 
         return callStack
