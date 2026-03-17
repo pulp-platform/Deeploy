@@ -124,12 +124,16 @@ int main(void) {
   pi_gpio_pin_write(GPIOs, 0);
   WRITE_GPIO(0);
   WRITE_GPIO(1);
-
+  // StartTimer();
 
   pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+
+  // StopTimer();
   WRITE_GPIO(0);
+
+
 
 #ifndef CI
   printf("Output:\r\n");
