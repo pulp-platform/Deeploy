@@ -60,16 +60,18 @@ class UntiledTileConstraint(TileConstraint):
         repScheme = VariableReplacementScheme({}, {})
 
         for key, value in tilingSolution.tensorMemoryConstraints.items():
-
-            assert len(value.memoryConstraints.keys()) == 1, f"{cls} should be untiled, but {value} is tiled!"
-
-            memKey = list(value.memoryConstraints.keys())[0]
-            memValue = value.memoryConstraints[memKey]
-
             _buffer = ctxt.lookup(key)
             if isinstance(_buffer, TransientBuffer):
                 continue
 
-            assert memValue.shape == tuple(_buffer.shape)
+            fullShape = tuple(_buffer.shape)
+            memoryConstraints = list(value.memoryConstraints.values())
+
+            # Untiled tensors may still be materialized on multiple memory levels when the same
+            # full-shape buffer is replicated along the memory path (for example, an untiled Slice
+            # fed by an L3-backed producer). This is not true tiling and should remain acceptable
+            # here. We only reject the case where different memory levels carry different shapes.
+            assert all(memValue.shape == fullShape for memValue in memoryConstraints), \
+                f"{cls} should be untiled, but {value} carries multiple shapes across memory levels!"
 
         return repScheme, schedule
