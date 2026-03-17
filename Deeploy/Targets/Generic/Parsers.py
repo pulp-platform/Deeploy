@@ -2988,7 +2988,6 @@ class ConvTranspose1DParser(ConvTransposeParser):
         return ctxt, False
 
 
-
 class ConvTranspose2DParser(ConvTransposeParser):
 
     def __init__(self):
