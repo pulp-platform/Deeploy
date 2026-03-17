@@ -100,7 +100,6 @@ RUN apt-get update && \
     wget \
     ccache \
     make \
-    curl \
     libpixman-1-dev \
     libsdl2-dev \
     python-is-python3 \
@@ -108,8 +107,8 @@ RUN apt-get update && \
     zsh
 
 # Install UV and Python dependencies
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    uv sync --no-dev
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+RUN uv sync --no-dev
 
 # Install CMake
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \

@@ -64,8 +64,8 @@ elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
 fi
 
 # Install uv and meson
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    uv tool install meson
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+RUN uv tool install meson
 
 COPY toolchain/ toolchain/
 COPY Makefile ./
