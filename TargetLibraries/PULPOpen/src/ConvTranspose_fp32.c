@@ -7,7 +7,7 @@
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
 
-void PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
+__attribute__((noinline, optnone)) void PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
     const float32_t *__restrict__ pSrcA, uint32_t C_in, uint32_t H_in,
     uint32_t W_in, const float32_t *__restrict__ pSrcB, uint32_t C_out,
     uint32_t groups, uint32_t K_h, uint32_t K_w, uint32_t stride_h,

@@ -6,6 +6,7 @@ from typing import Optional
 
 import onnx_graphsurgeon as gs
 
+from Deeploy.AbstractDataTypes import PointerClass, VoidType
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     RequantizedGemmToPwPass
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeTemplate, TopologyOptimizer
@@ -26,6 +27,12 @@ class NeurekaConstantBuffer(ConstantBuffer):
     initTemplate = neurekaGenericGlobalInitTemplate
     allocTemplate = NodeTemplate("")
     deallocTemplate = NodeTemplate("")
+
+    def __init__(self, name: str = '', shape = [1], values = [0]):
+        super().__init__(name, shape, values)
+        # Some Neureka lowering paths inspect global constants before type inference
+        # has populated them with the final pointer type.
+        self._type = PointerClass(VoidType)
 
     def _bufferRepresentation(self):
         operatorRepresentation = super()._bufferRepresentation()
