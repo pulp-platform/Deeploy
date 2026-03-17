@@ -79,9 +79,17 @@ static std::vector<uint32_t> read_instr_binary(const std::string &path)
 
 int main(int argc, char **argv)
 {
-    // Paths to the compiled artefacts (relative to the binary's working dir)
-    std::string xclbin_path = "/scratch/jungvi/Deeploy/DeeployTest/TEST_XDNA2/build_master/bin/network.xclbin";
-    std::string instr_path  = "/scratch/jungvi/Deeploy/DeeployTest/TEST_XDNA2/build_master/bin/npu_insts.bin";
+    // Paths to the compiled artefacts: default to the directory containing
+    // this binary so the test works regardless of the working directory or
+    // whether it is run inside a container.
+    std::string bin_dir;
+    {
+        std::string argv0(argv[0]);
+        auto sep = argv0.rfind('/');
+        bin_dir = (sep == std::string::npos) ? "." : argv0.substr(0, sep);
+    }
+    std::string xclbin_path = bin_dir + "/network.xclbin";
+    std::string instr_path  = bin_dir + "/npu_insts.bin";
 
     bool verbose = false;
     for (int i = 1; i < argc; ++i) {
