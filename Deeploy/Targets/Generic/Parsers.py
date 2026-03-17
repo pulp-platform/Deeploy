@@ -3004,11 +3004,11 @@ class ConvTranspose2DParser(ConvTransposeParser):
 
             if channels_first:
                 self.operatorRepresentation['ch_im_in'] = in_shape[1]
-                self.operatorRepresentation['dim_im_in_x'] = in_shape[2]
-                self.operatorRepresentation['dim_im_in_y'] = in_shape[3]
+                self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
+                self.operatorRepresentation['dim_im_in_x'] = in_shape[3]
                 self.operatorRepresentation['ch_im_out'] = out_shape[1]
-                self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
-                self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
+                self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
+                self.operatorRepresentation['dim_im_out_x'] = out_shape[3]
             else:
                 self.operatorRepresentation['ch_im_in'] = in_shape[3]
                 self.operatorRepresentation['dim_im_in_x'] = in_shape[1]

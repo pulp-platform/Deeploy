@@ -90,6 +90,8 @@ class PULPFPConv2DParser(Conv2DParser):
             self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
             self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
             self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+            if "n_cores" in node.attrs:
+                self.operatorRepresentation["n_cores"] = int(node.attrs["n_cores"])
 
             return ret
         return False
@@ -148,6 +150,8 @@ class PULPFPDWConv2DParser(Conv2DParser):
             self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
             self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
             self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+            if "n_cores" in node.attrs:
+                self.operatorRepresentation["n_cores"] = int(node.attrs["n_cores"])
 
             return ret
         return False
@@ -191,6 +195,10 @@ class PULPConvTranspose2DParser(ConvTranspose2DParser):
         wellFormed = super().parseNode(node)
 
         if wellFormed:
+            # ConvTranspose kernels on PULP/Siracusa are emitted in CHW layout.
+            # This must be visible before broadcast() runs, otherwise output shapes
+            # are reinterpreted as NHWC and the last dimension gets clobbered.
+            self.operatorRepresentation['channels_first'] = True
             self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
             self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
@@ -205,7 +213,6 @@ class PULPConvTranspose2DParser(ConvTranspose2DParser):
         if node.attrs.get("channels_first", True) == False:
             return ctxt, False
 
-        self.operatorRepresentation['channels_first'] = True
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, True)
 
         if ret:

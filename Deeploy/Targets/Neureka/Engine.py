@@ -4,6 +4,7 @@
 
 from typing import List
 
+import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import DeploymentEngine, NodeMapper
@@ -77,5 +78,16 @@ class NeurekaEngine(DeploymentEngine):
             node.attrs['group'] != 1 and \
             (node.attrs['strides'] == [1, 1] or self.enableStrides)
 
+    @staticmethod
+    def _isIntegerTensor(tensor: gs.Tensor) -> bool:
+        dtype = getattr(tensor, "dtype", None)
+        return dtype is not None and np.issubdtype(np.dtype(dtype), np.integer)
+
+    def _hasSupportedTensorTypes(self, node: gs.Node) -> bool:
+        tensors = list(node.inputs) + list(node.outputs)
+        return all(self._isIntegerTensor(tensor) for tensor in tensors)
+
     def canExecute(self, node: gs.Node) -> bool:
+        if not self._hasSupportedTensorTypes(node):
+            return False
         return self.isPWConv(node) or self.isDWConv(node) or self.isDenseConv(node)
