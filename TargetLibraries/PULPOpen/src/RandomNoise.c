@@ -154,7 +154,7 @@ void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
 {
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) {epsilon *= -1.0f;}
-    for (uint32_t i = 0; i < size; i+=5) {
+    for (uint32_t i = 0; i < size; i+=4) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
@@ -199,16 +199,16 @@ void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
         u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
         pweights_dest[i+3] = pweights[i+3] + (u1-u2) * epsilon;
 
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+4] = pweights[i+4] + (u1-u2) * epsilon;
+        // rng_state ^= rng_state << 13;
+        // rng_state ^= rng_state >> 17;
+        // rng_state ^= rng_state << 5;
+        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        // // mutate state to avoid same seed for u2.
+        // rng_state ^= rng_state << 13;
+        // rng_state ^= rng_state >> 17;
+        // rng_state ^= rng_state << 5;
+        // u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        // pweights_dest[i+4] = pweights[i+4] + (u1-u2) * epsilon;
     }
 }
 
@@ -222,7 +222,7 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     // sqrt(3)*2 factor already included in epsilon to match Gaussian(0, 1) l2 norm.
     if (dir == 0) {epsilon *= -1.0f;}
-    for (uint32_t i = 0; i < size; i+=7) {
+    for (uint32_t i = 0; i < size; i+=4) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
@@ -247,23 +247,23 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
         u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
         pweights_dest[i+3] = pweights[i+3] + (u1-0.5f) * epsilon;
 
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+4] = pweights[i+4] + (u1-0.5f) * epsilon;
+        // rng_state ^= rng_state << 13;
+        // rng_state ^= rng_state >> 17;
+        // rng_state ^= rng_state << 5;
+        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        // pweights_dest[i+4] = pweights[i+4] + (u1-0.5f) * epsilon;
 
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+5] = pweights[i+5] + (u1-0.5f) * epsilon;
+        // rng_state ^= rng_state << 13;
+        // rng_state ^= rng_state >> 17;
+        // rng_state ^= rng_state << 5;
+        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        // pweights_dest[i+5] = pweights[i+5] + (u1-0.5f) * epsilon;
 
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+6] = pweights[i+6] + (u1-0.5f) * epsilon;
+        // rng_state ^= rng_state << 13;
+        // rng_state ^= rng_state >> 17;
+        // rng_state ^= rng_state << 5;
+        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        // pweights_dest[i+6] = pweights[i+6] + (u1-0.5f) * epsilon;
 
         // rng_state ^= rng_state << 13;
         // rng_state ^= rng_state >> 17;
@@ -336,6 +336,8 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon) {
 
+    
+    
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) epsilon *= -1.0f;
 
@@ -377,7 +379,7 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
 {
     // For compatibility with existing codegen templates. Currently maps to Rademacher noise.
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    for (uint32_t i = 0; i < size; i+=5) {
+    for (uint32_t i = 0; i < size; i+=4) {
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
@@ -403,11 +405,11 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
         u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
         p_dest[i+3] = u1-0.5f;
 
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        p_dest[i+4] = u1-0.5f;
+        // rng_state ^= rng_state << 13;
+        // rng_state ^= rng_state >> 17;
+        // rng_state ^= rng_state << 5;
+        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        // p_dest[i+4] = u1-0.5f;
 
         // rng_state ^= rng_state << 13;
         // rng_state ^= rng_state >> 17;
@@ -432,6 +434,19 @@ void ApplyPerturbQuantRademacher_CHW(int8_t *__restrict__ pweights,
                             const uint32_t seed,
                             const uint32_t size)
 {
+
+    // int8_t core_id = pi_core_id();
+    // int8_t log2Core = LOG2(NUM_CORES);
+
+    // perf_stats_t perf_start, perf_end, perf_total;
+
+    // // Initialize and start performance counters (only core 0)
+    // if (core_id == 0) {
+    //     perf_bench_init();
+    //     perf_bench_start();
+    //     perf_bench_read(&perf_start);
+    // }
+
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     const int32_t rounding = (S > 0) ? (1 << (S - 1)) : 0;
 
@@ -439,41 +454,49 @@ void ApplyPerturbQuantRademacher_CHW(int8_t *__restrict__ pweights,
     uint32_t leftover = size % 32;
     uint32_t i = 0;
 
-    // Process full batches
+    int32_t m_val;
+    int32_t sign;
+    uint32_t c = 0; // used to get rid of the modulo
+    uint32_t unroll = 8;
     for (uint32_t batch = 0; batch < n_full_batches; batch++) {
         rng_state = Xorshift32(rng_state);
         uint32_t bits = rng_state;
-        for (uint32_t b = 0; b < 32; b+=2, i+=2) {
-            int32_t r = (bits & 1) ? 1 : -1;
-            int32_t m_val = M[i % channel_width];
-            // Fixed-point multiplication: noise_q = round(r * M / 2^S)
-            int32_t noise_q = (r * m_val + rounding) >> S;
-            int32_t val = (int32_t)pweights[i] + noise_q;
-            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127); // Saturate to int8 range
+        for (uint32_t j = 0; j < 32; j+= unroll, i+=unroll) {
+            for (uint32_t u = 0; u < unroll; u++) {
+                int32_t m_val = M[c];
+                sign = (bits & 1) ? m_val : -m_val;
+                bits >>= 1;
+                pweights_dest[i] = pweights[i] + (int8_t)CLAMP((sign + rounding) >> S, -127, 127);
+                c++;
+                if (c == channel_width) c = 0;
+            }
+        }
+    }       
+    // Process leftover elements
+    c = i % channel_width; // start index for M
+    rng_state = Xorshift32(rng_state);
+    if (leftover > 0) {
+        uint32_t bits = rng_state;
+        for (uint32_t j = 0; j < leftover; j++, i++) {
+            m_val = M[c];
+            sign = (bits & 1) ? m_val : -m_val;
             bits >>= 1;
-            r = (bits & 1) ? 1 : -1;
-            m_val = M[i % channel_width];
-            // Fixed-point multiplication: noise_q = round(r * M / 2^S)
-            noise_q = (r * m_val + rounding) >> S;
-            val = (int32_t)pweights[i+1] + noise_q;
-            pweights_dest[i+1] = (int8_t)CLAMP(val, -127, 127); // Saturate to int8 range
-            bits >>= 1;
+            pweights_dest[i]= pweights[i] + (int8_t)(CLAMP((sign + rounding) >> S, -127, 127));
+            c++;
+            if (c == channel_width) c = 0;
         }
     }
 
-    // Process leftover elements
-    if (leftover > 0) {
-        rng_state = Xorshift32(rng_state);
-        uint32_t bits = rng_state;
-        for (uint32_t b = 0; b < leftover; b++, i++) {
-            int32_t r = (bits & 1) ? 1 : -1;
-            int32_t m_val = M[i % channel_width];
-            int32_t noise_q = (r * m_val + rounding) >> S;
-            int32_t val = (int32_t)pweights[i] + noise_q;
-            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
-            bits >>= 1;
-        }
-    }
+    // if (core_id == 0) {
+    //     perf_bench_stop();
+    //     perf_bench_read(&perf_end);
+    //     perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+    //     char label[100];
+    //     snprintf(label, sizeof(label), "Perturb Triangle seed=%u N=%u",
+    //             seed, size);
+    //     perf_bench_print(label, &perf_total);
+    // }
 }
 
 
