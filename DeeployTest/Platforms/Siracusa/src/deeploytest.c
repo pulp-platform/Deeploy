@@ -128,37 +128,36 @@ int main(void) {
     }
 
 #if ISOUTPUTFLOAT == 1
-      float_error_count = 0;
-      float_compare_args.expected = testOutputVector[buf];
-      float_compare_args.actual = compbuf;
-      float_compare_args.num_elements =
-          DeeployNetwork_outputs_bytes[buf] / sizeof(float);
-      float_compare_args.output_buf_index = buf;
-      float_compare_args.err_count = &float_error_count;
+    float_error_count = 0;
+    float_compare_args.expected = testOutputVector[buf];
+    float_compare_args.actual = compbuf;
+    float_compare_args.num_elements =
+        DeeployNetwork_outputs_bytes[buf] / sizeof(float);
+    float_compare_args.output_buf_index = buf;
+    float_compare_args.err_count = &float_error_count;
 
-      pi_cluster_task(&cluster_task, CompareFloatOnCluster,
-                      &float_compare_args);
-      cluster_task.stack_size = MAINSTACKSIZE;
-      cluster_task.slave_stack_size = SLAVESTACKSIZE;
-      pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+    pi_cluster_task(&cluster_task, CompareFloatOnCluster, &float_compare_args);
+    cluster_task.stack_size = MAINSTACKSIZE;
+    cluster_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
-      tot_err += float_error_count;
+    tot_err += float_error_count;
 #else
 
-      for (uint32_t i = 0;
-           i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
-        OUTPUTTYPE expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
-        OUTPUTTYPE actual = ((OUTPUTTYPE *)compbuf)[i];
-        int32_t error = expected - actual;
-        OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
+    for (uint32_t i = 0;
+         i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
+      OUTPUTTYPE expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
+      OUTPUTTYPE actual = ((OUTPUTTYPE *)compbuf)[i];
+      int32_t error = expected - actual;
+      OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
 
-        if (diff) {
-          tot_err += 1;
-          printf("Expected: %4d  ", expected);
-          printf("Actual: %4d  ", actual);
-          printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
-        }
+      if (diff) {
+        tot_err += 1;
+        printf("Expected: %4d  ", expected);
+        printf("Actual: %4d  ", actual);
+        printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
       }
+    }
 #endif
     if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
       pi_l2_free(compbuf, (int)DeeployNetwork_outputs_bytes[buf]);

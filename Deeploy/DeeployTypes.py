@@ -93,6 +93,7 @@ def _deeployTypeToNpType(ty: Type[BaseType]):
 
     return None
 
+
 _ctxtExtension = '.pkl'
 _graphExtension = '.onnx'
 _dataExtension = '.data'
@@ -2886,8 +2887,8 @@ class NetworkContainer():
             # clang from flagging false-positive uninitialized reads on paths where the assignment is emitted in a
             # separate closure, and marking them unused avoids noise for scratch buffers that are reserved
             # generically but optimized away for a specific layer instance.
-            if ("TILING_CODEGEN" not in node.name and isinstance(node, VariableBuffer) and hasattr(node, "_type") and
-                    issubclass(node._type, Pointer)):
+            if ("TILING_CODEGEN" not in node.name and isinstance(node, VariableBuffer) and hasattr(node, "_type")
+                    and issubclass(node._type, Pointer)):
                 typeName = node._instance.typeName if hasattr(node, "_instance") else node._type.typeName
                 callStack += f"{typeName} {node.name} __attribute__((unused)) = NULL;\n"
             else:

@@ -75,10 +75,11 @@ void PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
               }
 
               uint32_t weight_idx =
-                  (((cin * ch_out_per_group + cout_in_group) * K_h + kh) * K_w) +
+                  (((cin * ch_out_per_group + cout_in_group) * K_h + kh) *
+                   K_w) +
                   kw;
-              uint32_t out_idx = (cout * H_out + (uint32_t)h_out) * W_out +
-                                 (uint32_t)w_out;
+              uint32_t out_idx =
+                  (cout * H_out + (uint32_t)h_out) * W_out + (uint32_t)w_out;
 
               pDstC[out_idx] += val * pSrcB[weight_idx];
             }

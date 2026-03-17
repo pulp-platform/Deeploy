@@ -29,12 +29,13 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
-from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
-    FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
-    FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, ConvTransposeTemplate, GEMMTemplate, \
-    MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, \
-    RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, \
-    TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
+from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, ConvTransposeTemplate, DMASliceTemplate, \
+    FloatAddTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, \
+    FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
+    FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, \
+    RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
+    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
+    iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -250,19 +251,12 @@ PULPFloatDWConv2DBindings = [
 ]
 
 PULPFloatConvTranspose2DBindings = [
-    NodeBinding(
-        ConvChecker(
-            [PointerClass(type), PointerClass(type), PointerClass(type)],
-            [PointerClass(type)]),
-        ConvTransposeTemplate.reference2DTemplate,
-        ForkTransformer) for type in FloatDataTypes
+    NodeBinding(ConvChecker(
+        [PointerClass(type), PointerClass(type), PointerClass(type)], [PointerClass(type)]),
+                ConvTransposeTemplate.reference2DTemplate, ForkTransformer) for type in FloatDataTypes
 ] + [
-    NodeBinding(
-        ConvChecker(
-            [PointerClass(type), PointerClass(type)],
-            [PointerClass(type)]),
-        ConvTransposeTemplate.reference2DTemplate,
-        ForkTransformer) for type in FloatDataTypes
+    NodeBinding(ConvChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
+                ConvTransposeTemplate.reference2DTemplate, ForkTransformer) for type in FloatDataTypes
 ]
 
 PULPRQSMatrixVecBindings = [

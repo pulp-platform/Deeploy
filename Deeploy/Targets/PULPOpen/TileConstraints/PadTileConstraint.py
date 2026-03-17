@@ -88,11 +88,9 @@ class Pad2DTileConstraint(TileConstraint):
 
         # Keep batch, width and channels whole to preserve contiguous NHWC row copies.
         tilerModel.addConstraint(tilerModel.getTensorDimVar(inputBufferName, batchDim) == inputBuffer.shape[batchDim])
-        tilerModel.addConstraint(
-            tilerModel.getTensorDimVar(outputBufferName, batchDim) == outputBuffer.shape[batchDim])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(outputBufferName, batchDim) == outputBuffer.shape[batchDim])
         tilerModel.addConstraint(tilerModel.getTensorDimVar(inputBufferName, widthDim) == inputBuffer.shape[widthDim])
-        tilerModel.addConstraint(
-            tilerModel.getTensorDimVar(outputBufferName, widthDim) == outputBuffer.shape[widthDim])
+        tilerModel.addConstraint(tilerModel.getTensorDimVar(outputBufferName, widthDim) == outputBuffer.shape[widthDim])
         tilerModel.addConstraint(
             tilerModel.getTensorDimVar(inputBufferName, channelDim) == inputBuffer.shape[channelDim])
         tilerModel.addConstraint(
@@ -136,9 +134,11 @@ class Pad2DTileConstraint(TileConstraint):
         inputHeight = max(inputEnd - inputStart, 1)
 
         if channels_first:
-            inCube = HyperRectangle((batchOffset, 0, inputStart, 0), (batchSize, inputChannels, inputHeight, inputWidth))
+            inCube = HyperRectangle((batchOffset, 0, inputStart, 0),
+                                    (batchSize, inputChannels, inputHeight, inputWidth))
         else:
-            inCube = HyperRectangle((batchOffset, inputStart, 0, 0), (batchSize, inputHeight, inputWidth, inputChannels))
+            inCube = HyperRectangle((batchOffset, inputStart, 0, 0),
+                                    (batchSize, inputHeight, inputWidth, inputChannels))
 
         _ = localPadBottom  # Bottom padding is encoded by the output height itself.
         return inCube, localPadTop
