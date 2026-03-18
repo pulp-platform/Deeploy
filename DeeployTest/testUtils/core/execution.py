@@ -289,6 +289,8 @@ def configure_cmake(config: DeeployTestConfig) -> None:
             cmd.append(f"-DN_ACCUM_STEPS={config.n_accum_steps}")
         if config.training_num_data_inputs is not None:
             cmd.append(f"-DTRAINING_NUM_DATA_INPUTS={config.training_num_data_inputs}")
+    else:
+        cmd.append("-DTRAINING=OFF")
 
     script_dir = Path(__file__).parent.parent.parent
     cmd.append(str(script_dir.parent))
