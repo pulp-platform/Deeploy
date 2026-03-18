@@ -374,10 +374,12 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         _GVSOC_TARGET_MAP = {'gap9': 'gap9.evk'}
         gvsoc_target = _GVSOC_TARGET_MAP.get(platform_lower, platform_lower)
 
-        # Binary is placed directly in build_dir (not in a bin/ subdir).
-        # For GAP9, the image target also produces .bin files that gvsoc needs
-        # in the work directory; copy them if present.
-        binary_path = str(Path(config.build_dir) / config.test_name)
+        # GAP9 sets CMAKE_RUNTIME_OUTPUT_DIRECTORY = CMAKE_BINARY_DIR (flat).
+        # Other platforms (Siracusa, etc.) use the default CMAKE_BINARY_DIR/bin.
+        if platform_lower == 'gap9':
+            binary_path = str(Path(config.build_dir) / config.test_name)
+        else:
+            binary_path = str(Path(config.build_dir) / 'bin' / config.test_name)
         for bin_file in Path(config.build_dir).glob('*.bin'):
             shutil.copy2(str(bin_file), workdir)
         gap9_sdk = env.get('GAP_SDK_HOME', '')
