@@ -236,6 +236,7 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         else:
             raise ValueError(f"Cannot determine spatialDims for node {node.name} with operator {node.op}")
 
+        # Insert Transpose nodes around the op's activation input/output to convert the data layout.
         permuteIn = _transformLayoutPermutation(len(tensorIn.shape), spatialDims, default_channels_first)
         graph.nodes.append(_appendTranspose(tensorIn, node, permuteIn))
 
@@ -246,9 +247,11 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
             # In the case of Conv: [weights, opt. bias], RequantizedConv: [weights, mul, add, opt. shift]
             for tensor in node.inputs[1:]:
                 if isinstance(tensor, gs.Constant):
+                    # Inference graph: weight is a fixed constant — permute its data in-place.
                     _transformLayoutConst(tensor, spatialDims, default_channels_first)
                 elif isinstance(tensor, gs.Variable) and tensor.shape is not None and len(tensor.shape) >= 2:
-                    # Trainable weight (Variable input in training graph) — insert Transpose node
+                    # Training graph: weight is a Variable (updated by the optimizer) — cannot permute
+                    # in-place, so insert an explicit Transpose node that will run at inference/forward time.
                     perm = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
                     graph.nodes.append(_appendTranspose(tensor, node, perm))
 
