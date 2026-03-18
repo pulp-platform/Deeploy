@@ -6,6 +6,15 @@
 Unlike other Deeploy deployers that generate C code via Mako templates,
 this deployer constructs an ``mlir.ir.Module`` with AIE dialect operations
 and returns the verified MLIR text.
+
+MLIR generation is split into two phases orchestrated by
+:class:`MLIRCodeTransformation`:
+
+1. **Device phase** — inside ``@aie_d.device(npu2)``: for each operator,
+   run ``devicePasses`` (ObjectFifo creation, external-kernel
+   declaration) then call ``template.emit()`` (compute core only).
+2. **Runtime-sequence phase** — inside ``@aiex_d.runtime_sequence``:
+   for each operator, run ``runtimeSequencePasses`` (DMA configuration).
 """
 
 from __future__ import annotations
@@ -23,15 +32,20 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Logging import DEFAULT_LOGGER as log
-from Deeploy.MLIRDataTypes import MLIRNodeTemplate
-from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
+from Deeploy.MLIRDataTypes import MLIRCodeTransformation, MLIRExecutionBlock, MLIRNodeTemplate
 
 
 class XDNA2Deployer(SignPropDeployer):
     """Deployer for the XDNA2 (AIE2p) platform.
 
-    Generates an mlir-aie MLIR module by calling :meth:`emit` /
-    :meth:`emitRuntimeSequence` on each bound :class:`MLIRNodeTemplate`.
+    Generates an mlir-aie MLIR module via two-phase code transformation:
+
+    * **Device phase**: ``MLIRObjectFifoPass`` creates ObjectFifos and
+      declares external kernels; the bound ``MLIRNodeTemplate`` emits
+      the compute core.
+    * **Runtime-sequence phase**: ``MLIRRuntimeSequencePass`` configures
+      shim DMA for L3 ↔ L1 transfers.
+
     The module is verified via MLIR's built-in verifier before being
     returned as a string.
     """
@@ -65,13 +79,16 @@ class XDNA2Deployer(SignPropDeployer):
     def generateMLIR(self) -> str:
         """Generate an mlir-aie MLIR module for the prepared graph.
 
-        Iterates over bound layers, calls each template's ``emit()``
-        to construct AIE operations, adds a ``runtime_sequence`` for
-        host-side DMA, verifies the module, and returns the MLIR text.
-        
-        If tiling is enabled (patternMemoryConstraint available), passes
-        tiling information to templates to generate tiled transfers and
-        compute kernels.
+        Iterates over bound layers in two phases:
+
+        1. **Device phase** — for each node, creates an
+           :class:`MLIRExecutionBlock`, runs device-phase code-
+           transformation passes (ObjectFifo creation, kernel
+           declaration), then calls ``template.emit()`` (compute core).
+        2. **Runtime-sequence phase** — opens an
+           ``@aiex_d.runtime_sequence`` block, sets
+           ``runtimeSequenceArgs`` on each block, then runs
+           runtime-sequence passes (DMA configuration).
 
         Returns
         -------
@@ -80,60 +97,86 @@ class XDNA2Deployer(SignPropDeployer):
         """
         assert self.prepared, "XDNA2Deployer.generateMLIR() called before prepare()"
 
-        # Collect templates and their operator representations
+        # Collect per-node info from the bound layers
         nodes = []
-        for node_name, layer in self.layerBinding.items():
+        for nodeName, layer in self.layerBinding.items():
             mapper = layer.mapper
-            template = mapper.binder.template
-            op_repr = mapper.parser.operatorRepresentation
-            
-            # Check if tiling is enabled by looking for patternMemoryConstraint
-            executionBlock = mapper.binder.executionBlock
+            binder = mapper.binder
+            template = binder.template
+            opRepr = mapper.parser.operatorRepresentation
+            codeTransformer = binder.codeTransformer
+
+            # Tiling constraint from the midend solver (may be None)
+            executionBlock = binder.executionBlock
             tilingConstraint = getattr(executionBlock, 'patternMemoryConstraint', None)
 
             if not isinstance(template, MLIRNodeTemplate):
                 raise RuntimeError(
-                    f"Node '{node_name}' has no MLIRNodeTemplate — "
+                    f"Node '{nodeName}' has no MLIRNodeTemplate — "
                     f"only BF16 Add is supported in this release.")
+            if not isinstance(codeTransformer, MLIRCodeTransformation):
+                raise RuntimeError(
+                    f"Node '{nodeName}' uses a non-MLIR CodeTransformation — "
+                    f"expected MLIRCodeTransformation, got {type(codeTransformer).__name__}.")
 
-            nodes.append((node_name, template, op_repr, tilingConstraint))
+            nodes.append({
+                'nodeName': nodeName,
+                'template': template,
+                'opRepr': opRepr,
+                'codeTransformer': codeTransformer,
+                'tilingConstraint': tilingConstraint,
+            })
 
         if not nodes:
             raise RuntimeError("No bound layers found — cannot generate MLIR.")
 
         # Build the MLIR module
+        mlirBlocks = []
+
         with mlir_mod_ctx() as ctx:
 
             @aie_d.device(aie_d.AIEDevice.npu2)
             def _device():
-                compute_tile = aie_d.tile(0, 2) # JUNGVI: This will have to change when we deploy on the whole array
-                shim_tile = aie_d.tile(0, 0)
+                computeTile = aie_d.tile(0, 2)  # TODO: generalize to full array
+                shimTile = aie_d.tile(0, 0)
 
-                # Emit each node's operations (ObjectFifos, core, kernel decls)
-                for node_name, template, op_repr, tilingConstraint in nodes:
-                    log.info(f"[XDNA2] Emitting MLIR for node '{node_name}'" +
-                             (" with tiling" if tilingConstraint else ""))
-                    template.emit(op_repr,
-                                  compute_tile=compute_tile,
-                                  shim_tile=shim_tile,
-                                  tilingConstraint=tilingConstraint)  # Pass tiling info
+                # === Device phase ===
+                for node in nodes:
+                    # Create MLIRExecutionBlock with deployer-level state
+                    eb = MLIRExecutionBlock(computeTile=computeTile, shimTile=shimTile)
+                    eb.operatorRepresentation = node['opRepr']
+                    eb.patternMemoryConstraint = node['tilingConstraint']
 
-                # Runtime sequence: collect tensor types from all nodes' I/O
-                # For now (single-node), derive from the first node.
-                _, first_template, first_op_repr, first_tilingConstraint = nodes[0]
-                params = first_template.getAIEParams(first_op_repr, tilingConstraint=first_tilingConstraint)
-                num_elements = params['num_elements']
-                tensor_ty = ir.MemRefType.get((num_elements,), ir.BF16Type.get())
+                    log.info(f"[XDNA2] Device phase for '{node['nodeName']}'" +
+                             (" (tiled)" if node['tilingConstraint'] else ""))
 
-                @aiex_d.runtime_sequence(tensor_ty, tensor_ty, tensor_ty)
+                    # Run device-phase passes (ObjectFifo creation, kernel decl)
+                    self.ctxt, eb = node['codeTransformer'].applyDevicePasses(
+                        self.ctxt, eb, node['nodeName'])
+
+                    # Emit compute core (template reads FIFOs etc. from eb)
+                    node['template'].emit(node['opRepr'], executionBlock=eb)
+
+                    mlirBlocks.append((node, eb))
+
+                # === Runtime-sequence phase ===
+                # Derive tensor type from the first node's numElements
+                _, firstEb = mlirBlocks[0]
+                numElements = firstEb.numElements
+                tensorTy = ir.MemRefType.get((numElements,), ir.BF16Type.get())
+
+                @aiex_d.runtime_sequence(tensorTy, tensorTy, tensorTy)
                 def _seq(*args):
-                    for _, template, op_repr, tilingConstraint in nodes:
-                        template.emitRuntimeSequence(op_repr, list(args), tilingConstraint=tilingConstraint)
+                    for node, eb in mlirBlocks:
+                        eb.runtimeSequenceArgs = list(args)
+                        log.info(f"[XDNA2] Runtime-sequence phase for '{node['nodeName']}'")
+                        self.ctxt, eb = node['codeTransformer'].applyRuntimeSequencePasses(
+                            self.ctxt, eb, node['nodeName'])
 
             module = ctx.module
             assert module.operation.verify(), \
                 "[XDNA2] Generated MLIR module failed verification"
 
-        mlir_str = str(module)
-        log.info(f"[XDNA2] MLIR module generated ({len(mlir_str)} bytes)")
-        return mlir_str
+        mlirStr = str(module)
+        log.info(f"[XDNA2] MLIR module generated ({len(mlirStr)} bytes)")
+        return mlirStr
