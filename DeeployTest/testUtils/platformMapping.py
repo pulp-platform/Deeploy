@@ -30,7 +30,8 @@ from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 from Deeploy.Targets.XDNA2.Deployer import XDNA2Deployer
-from Deeploy.Targets.XDNA2.Platform import XDNA2Optimizer, XDNA2Platform
+from Deeploy.Targets.XDNA2.Platform import MemoryXDNA2Platform, MemoryXDNA2PlatformWrapper, XDNA2Optimizer, \
+    XDNA2Platform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
 _NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "XDNA2"]
@@ -278,7 +279,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir)
 
-    elif isinstance(platform, XDNA2Platform):
+    elif isinstance(platform, (XDNA2Platform, MemoryXDNA2Platform, MemoryXDNA2PlatformWrapper)):
         if loweringOptimizer is None:
             loweringOptimizer = XDNA2Optimizer
 

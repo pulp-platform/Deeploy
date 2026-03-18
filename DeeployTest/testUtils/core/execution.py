@@ -27,10 +27,10 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
 
     script_dir = Path(__file__).parent.parent.parent
 
-    if config.tiling:
-        generation_script = script_dir / "testMVP.py"
-    elif config.platform == "XDNA2":
+    if config.platform == "XDNA2":
         generation_script = script_dir / "generateNetwork_xdna2.py"
+    elif config.tiling:
+        generation_script = script_dir / "testMVP.py"
     else:
         generation_script = script_dir / "generateNetwork.py"
 

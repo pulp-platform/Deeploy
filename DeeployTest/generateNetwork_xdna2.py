@@ -22,14 +22,21 @@ import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
 
-from testUtils.platformMapping import mapDeployer, mapPlatform
+from testUtils.platformMapping import mapDeployer
 from testUtils.testRunner import TestGeneratorArgumentParser
-from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import bfloat16_t
-from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
+from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
+from Deeploy.Targets.XDNA2.Platform import MemoryXDNA2Platform, XDNA2AIECoreEngine, XDNA2TilingMapping
+from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
+
+
+def _tilingScheduler(graph: gs.Graph):
+    """Scheduler that returns List[List[gs.Node]] as required by the tiling framework."""
+    return [[node] for node in graph.nodes]
 
 
 def _float32_to_bf16_uint16(arr: np.ndarray) -> np.ndarray:
@@ -122,9 +129,6 @@ def generateNetworkXDNA2(args):
     test_inputs_f32 = [inputs_npz[x] for x in inputs_npz.files]
     test_outputs_f32 = [outputs_npz[x] for x in outputs_npz.files]
 
-    # XDNA2 is a non-signprop platform: signProp = False
-    platform, signProp = mapPlatform(args.platform)
-
     inputTypes = {}
     inputOffsets = {}
 
@@ -139,14 +143,45 @@ def generateNetworkXDNA2(args):
 
     _DEEPLOYSTATEDIR = os.path.join(args.dumpdir, "deeployStates")
 
-    deployer = mapDeployer(platform,
+    # Define memory hierarchy: L1 (AIE core local) and L3 (shared)
+    l1_size = int(getattr(args, 'l1', None) or 8192)  # 8KB default
+    l3_size = int(getattr(args, 'l3', None) or 128 * 1024 * 1024)  # 128MB default
+
+    log.info(f"[XDNA2] Using MemoryXDNA2Platform with L1={l1_size}, L3={l3_size}")
+
+    l1_level = MemoryLevel("L1", neighbourNames=["L3"], size=l1_size)
+    l3_level = MemoryLevel("L3", neighbourNames=["L1"], size=l3_size)
+    memory_hierarchy = MemoryHierarchy([l1_level, l3_level])
+    memory_hierarchy.setDefaultMemoryLevel("L3")  # Tensors default to L3
+
+    # Create memory-aware platform with AIE core engine
+    # defaultTargetMemoryLevel=L1 tells the tiling framework that computation
+    # targets L1, so it must tile data from L3 into L1-sized chunks.
+    mem_platform = MemoryXDNA2Platform(
+        memoryHierarchy=memory_hierarchy,
+        defaultTargetMemoryLevel=l1_level,
+        engines=[XDNA2AIECoreEngine(Mapping=XDNA2TilingMapping, preferredMemoryLevel="L1")]
+    )
+
+    # Create base deployer with memory platform
+    deployer = mapDeployer(mem_platform,
                            graph,
                            inputTypes,
+                           scheduler=_tilingScheduler,
                            deeployStateDir=_DEEPLOYSTATEDIR,
                            inputOffsets=inputOffsets)
 
-    # Prepare the deployer (type checking + binding)
-    deployer.prepare(_NoVerbosity)
+    # Wrap with MemoryDeployerWrapper (adds memory level annotation)
+    deployer = MemoryDeployerWrapper(deployer)
+
+    # Wrap with TilerDeployerWrapper (adds tiling)
+    deployer = TilerDeployerWrapper(deployer, workDir=_DEEPLOYSTATEDIR)
+
+    # frontEnd() parses the graph; bind() triggers tiling via wrappers
+    deployer.frontEnd()
+    deployer.bind()
+    deployer.prepared = True
+    log.info("[XDNA2] Tiling completed, proceeding with MLIR generation")
 
     # Create output directory
     os.makedirs(args.dumpdir, exist_ok=True)
@@ -180,8 +215,9 @@ def generateNetworkXDNA2(args):
 
 
 if __name__ == '__main__':
-    parser = TestGeneratorArgumentParser(description="Deeploy XDNA2 Code Generation Utility.")
-    args = parser.parse_args()
+    parser = TestGeneratorArgumentParser(tiling_arguments=True,
+                                        description="Deeploy XDNA2 Code Generation Utility.")
+    args, _ = parser.parse_known_args()
 
     if args.platform != 'XDNA2':
         parser.error(f"This script is for the XDNA2 platform. Got: {args.platform}")
