@@ -4,8 +4,7 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import float32_t
+from Deeploy.AbstractDataTypes import float32_tPtr
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
@@ -20,7 +19,7 @@ class PULPFloatGEMMTemplate(NodeTemplate):
         if 'C' not in operatorRepresentation or operatorRepresentation['C'] is None:
             # No bias case - set C to NULL and provide a default type
             operatorRepresentation['C'] = None
-            operatorRepresentation['C_type'] = PointerClass(float32_t)  # Default to fp32 type
+            operatorRepresentation['C_type'] = float32_tPtr  # Default to fp32 type
             operatorRepresentation['C_batched'] = False
 
         return ctxt, operatorRepresentation, []

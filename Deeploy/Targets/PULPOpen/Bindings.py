@@ -19,8 +19,6 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, Dequa
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormInternalChecker, \
     BatchNormalizationGradChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, GlobalAveragePoolGradChecker, \
-    GroupNormGradBChecker, GroupNormGradChecker, GroupNormGradWChecker, \
-    GroupNormGradXChecker, GroupNormGradXStatChecker, GroupNormalizationChecker, GroupNormalizationStatChecker, \
     HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolGradChecker, MulChecker, \
     MSELossChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, \
     SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
@@ -34,9 +32,7 @@ from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatAveragePoolTemplate, \
     FloatBatchNormTemplate, FloatConvGradTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
     FloatGlobalAveragePoolTemplate, \
-    FloatGroupNormGradBTemplate, FloatGroupNormGradTemplate, FloatGroupNormGradWTemplate, \
-    FloatGroupNormGradXStatTemplate, FloatGroupNormGradXTemplate, FloatGroupNormalizationStatTemplate, \
-    FloatGroupNormalizationTemplate, FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, \
+    FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, \
     FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
     GEMMTemplate, MatrixVectorTemplate, MaxPool2DTemplate, MSELossTemplate, MulTemplate, ReduceMeanTemplate, \
     RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
@@ -586,73 +582,6 @@ PULPLayernormGradBinding = NodeBinding(
         [PointerClass(float32_t),
          PointerClass(float32_t),
          PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
-    ForkTransformer)
-
-PULPGroupNormGradXStatBinding = NodeBinding(
-    GroupNormGradXStatChecker(
-        [PointerClass(float32_t),  # dY
-         PointerClass(float32_t),  # X
-         PointerClass(float32_t),  # gamma
-         PointerClass(float32_t)], # stat
-        [PointerClass(float32_t)]), # grad_stat
-    FloatGroupNormGradXStatTemplate.referenceTemplate,
-    ForkTransformer)
-
-PULPGroupNormGradXBinding = NodeBinding(
-    GroupNormGradXChecker(
-        [PointerClass(float32_t),  # dY
-         PointerClass(float32_t),  # X
-         PointerClass(float32_t),  # gamma
-         PointerClass(float32_t),  # stat
-         PointerClass(float32_t)], # grad_stat
-        [PointerClass(float32_t)]), # dX
-    FloatGroupNormGradXTemplate.referenceTemplate,
-    ForkTransformer)
-
-PULPGroupNormGradWBinding = NodeBinding(
-    GroupNormGradWChecker(
-        [PointerClass(float32_t),  # dY
-         PointerClass(float32_t),  # X
-         PointerClass(float32_t),  # mean
-         PointerClass(float32_t)], # inv_std
-        [PointerClass(float32_t)]), # dGamma
-    FloatGroupNormGradWTemplate.referenceTemplate,
-    ForkTransformer)
-
-PULPGroupNormGradBBinding = NodeBinding(
-    GroupNormGradBChecker(
-        [PointerClass(float32_t)],  # dY
-        [PointerClass(float32_t)]), # dBeta
-    FloatGroupNormGradBTemplate.referenceTemplate,
-    ForkTransformer)
-
-PULPGroupNormGradBinding = NodeBinding(
-    GroupNormGradChecker(
-        [PointerClass(float32_t),  # dY
-         PointerClass(float32_t),  # X
-         PointerClass(float32_t),  # gamma
-         PointerClass(float32_t)], # stat [N, G, 2]
-        [PointerClass(float32_t),  # dX
-         PointerClass(float32_t),  # weight_grad
-         PointerClass(float32_t)]), # bias_grad
-    FloatGroupNormGradTemplate.referenceGradTemplate,
-    ForkTransformer)
-
-PULPGroupNormalizationStatBinding = NodeBinding(
-    GroupNormalizationStatChecker(
-        [PointerClass(float32_t)],  # X
-        [PointerClass(float32_t)]), # stat [N, G, 2]
-    FloatGroupNormalizationStatTemplate.referenceTemplate,
-    ForkTransformer)
-
-PULPGroupNormalizationBinding = NodeBinding(
-    GroupNormalizationChecker(
-        [PointerClass(float32_t),  # X
-         PointerClass(float32_t),  # gamma
-         PointerClass(float32_t),  # beta
-         PointerClass(float32_t)], # stat [N, G, 2]
-        [PointerClass(float32_t)]), # Y
-    FloatGroupNormalizationTemplate.referenceTemplate,
     ForkTransformer)
 
 PULPFloatGELUBinding = NodeBinding(
