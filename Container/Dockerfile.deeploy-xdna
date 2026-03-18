@@ -53,6 +53,5 @@ RUN pip install \
     llvm-aie
 
 ENV MLIR_AIE_PYTHON=/usr/bin/python3
-ENV IRON_OPERATORS_DIR=/usr/lib/python3/dist-packages/aie/iron/operators
 
 WORKDIR /app/Deeploy
