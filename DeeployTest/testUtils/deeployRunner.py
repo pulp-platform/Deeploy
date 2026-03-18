@@ -139,6 +139,12 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                               type = int,
                               default = 1024000,
                               help = 'L2 size in bytes\n')
+            self.add_argument('--l3',
+                              metavar = '<size>',
+                              dest = 'l3',
+                              type = int,
+                              default = None,
+                              help = 'L3 size in bytes\n')
             self.add_argument('--randomizedMemoryScheduler',
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
@@ -221,6 +227,8 @@ def create_config_from_args(args: argparse.Namespace,
             gen_args_list.append(f"--l1={args.l1}")
         if hasattr(args, 'l2') and args.l2 and args.l2 != 1024000:
             gen_args_list.append(f"--l2={args.l2}")
+        if hasattr(args, 'l3') and args.l3:
+            gen_args_list.append(f"--l3={args.l3}")
         if hasattr(args, 'randomizedMemoryScheduler') and args.randomizedMemoryScheduler:
             gen_args_list.append("--randomizedMemoryScheduler")
         if hasattr(args, 'profileTiling') and args.profileTiling:

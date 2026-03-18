@@ -14,4 +14,4 @@ import sys
 from testUtils.deeployRunner import main
 
 if __name__ == '__main__':
-    sys.exit(main(default_platform="XDNA2", default_simulator="host"))
+    sys.exit(main(default_platform="XDNA2", default_simulator="host", tiling_enabled=True))

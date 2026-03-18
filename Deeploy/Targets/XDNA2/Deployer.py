@@ -24,6 +24,7 @@ from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropD
 from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MLIRDataTypes import MLIRNodeTemplate
+from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 
 
 class XDNA2Deployer(SignPropDeployer):
@@ -67,6 +68,10 @@ class XDNA2Deployer(SignPropDeployer):
         Iterates over bound layers, calls each template's ``emit()``
         to construct AIE operations, adds a ``runtime_sequence`` for
         host-side DMA, verifies the module, and returns the MLIR text.
+        
+        If tiling is enabled (patternMemoryConstraint available), passes
+        tiling information to templates to generate tiled transfers and
+        compute kernels.
 
         Returns
         -------
@@ -81,13 +86,17 @@ class XDNA2Deployer(SignPropDeployer):
             mapper = layer.mapper
             template = mapper.binder.template
             op_repr = mapper.parser.operatorRepresentation
+            
+            # Check if tiling is enabled by looking for patternMemoryConstraint
+            executionBlock = mapper.binder.executionBlock
+            tilingConstraint = getattr(executionBlock, 'patternMemoryConstraint', None)
 
             if not isinstance(template, MLIRNodeTemplate):
                 raise RuntimeError(
                     f"Node '{node_name}' has no MLIRNodeTemplate — "
                     f"only BF16 Add is supported in this release.")
 
-            nodes.append((node_name, template, op_repr))
+            nodes.append((node_name, template, op_repr, tilingConstraint))
 
         if not nodes:
             raise RuntimeError("No bound layers found — cannot generate MLIR.")
@@ -101,23 +110,25 @@ class XDNA2Deployer(SignPropDeployer):
                 shim_tile = aie_d.tile(0, 0)
 
                 # Emit each node's operations (ObjectFifos, core, kernel decls)
-                for node_name, template, op_repr in nodes:
-                    log.info(f"[XDNA2] Emitting MLIR for node '{node_name}'")
+                for node_name, template, op_repr, tilingConstraint in nodes:
+                    log.info(f"[XDNA2] Emitting MLIR for node '{node_name}'" +
+                             (" with tiling" if tilingConstraint else ""))
                     template.emit(op_repr,
                                   compute_tile=compute_tile,
-                                  shim_tile=shim_tile) # JUNGVI: What should be the interface of the MLIR template emission exactly?
+                                  shim_tile=shim_tile,
+                                  tilingConstraint=tilingConstraint)  # Pass tiling info
 
                 # Runtime sequence: collect tensor types from all nodes' I/O
                 # For now (single-node), derive from the first node.
-                _, first_template, first_op_repr = nodes[0]
-                params = first_template.getAIEParams(first_op_repr)
+                _, first_template, first_op_repr, first_tilingConstraint = nodes[0]
+                params = first_template.getAIEParams(first_op_repr, tilingConstraint=first_tilingConstraint)
                 num_elements = params['num_elements']
                 tensor_ty = ir.MemRefType.get((num_elements,), ir.BF16Type.get())
 
                 @aiex_d.runtime_sequence(tensor_ty, tensor_ty, tensor_ty)
                 def _seq(*args):
-                    for _, template, op_repr in nodes:
-                        template.emitRuntimeSequence(op_repr, list(args))
+                    for _, template, op_repr, tilingConstraint in nodes:
+                        template.emitRuntimeSequence(op_repr, list(args), tilingConstraint=tilingConstraint)
 
             module = ctx.module
             assert module.operation.verify(), \

@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from aie.dialects import aie as aie_d
 from aie.dialects import aiex as aiex_d
 from aie.dialects import arith as arith_d
@@ -51,19 +53,56 @@ class XDNA2AddTemplate(MLIRNodeTemplate):
     # Parameter helpers
     # ------------------------------------------------------------------
 
-    def getAIEParams(self, operatorRepresentation: OperatorRepresentation) -> dict:
+    def getAIEParams(self, operatorRepresentation: OperatorRepresentation,
+                     tilingConstraint=None) -> dict:
         """Extract AIE parameters from the operator representation.
+        
+        If tilingConstraint is available (tiling enabled), use information
+        from it. Otherwise fall back to fixed tile sizes.
+
+        Parameters
+        ----------
+        operatorRepresentation : OperatorRepresentation
+            Parsed operator representation containing 'size' (total elements).
+        tilingConstraint : PatternMemoryConstraints, optional
+            Tiling solution from the solver. If provided, tile size is derived
+            from the tiling solution.
 
         Returns
         -------
         dict
-            ``num_elements``, ``tile_size`` (clamped to MAX_TILE_SIZE and
-            ensuring divisibility).
+            ``num_elements``, ``tile_size`` (from tiling solution if available,
+            otherwise clamped to MAX_TILE_SIZE).
         """
         num_elements = int(operatorRepresentation['size'])
-        tile_size = min(num_elements, self.MAX_TILE_SIZE)
+        
+        # If tiling is enabled, extract tile size from the tiling solution
+        if tilingConstraint is not None:
+            # tilingConstraint is a PatternMemoryConstraints with nodeConstraints
+            nodeConstraint = tilingConstraint.nodeConstraints[0]
+            outputConstraints = nodeConstraint.outputTensorMemoryConstraints
+            if outputConstraints:
+                # Get the first output tensor's L1 memory constraint (tile shape)
+                firstOutputName = list(outputConstraints.keys())[0]
+                tensorConstraint = outputConstraints[firstOutputName]
+                # Use L1 constraint which holds the tile shape for the AIE core
+                if "L1" in tensorConstraint.memoryConstraints:
+                    l1Constraint = tensorConstraint.memoryConstraints["L1"]
+                    if l1Constraint.shape is not None:
+                        tile_size = int(np.prod(l1Constraint.shape))
+                    else:
+                        tile_size = min(num_elements, self.MAX_TILE_SIZE)
+                else:
+                    tile_size = min(num_elements, self.MAX_TILE_SIZE)
+            else:
+                tile_size = min(num_elements, self.MAX_TILE_SIZE)
+        else:
+            tile_size = min(num_elements, self.MAX_TILE_SIZE)
+            
         if num_elements % tile_size != 0:
-            tile_size = 1
+            # Round down to the largest divisor of num_elements that fits
+            tile_size = max(d for d in range(1, tile_size + 1) if num_elements % d == 0)
+            
         return {
             'num_elements': num_elements,
             'tile_size': tile_size,
@@ -81,8 +120,17 @@ class XDNA2AddTemplate(MLIRNodeTemplate):
 
         * ``compute_tile`` — result of ``aie_d.tile(col, row)``
         * ``shim_tile`` — result of ``aie_d.tile(col, 0)``
+        * ``tilingConstraint`` — optional NodeMemoryConstraint for tiled execution
+
+        Parameters
+        ----------
+        operatorRepresentation : OperatorRepresentation
+            Parsed operator representation with 'size' and other attributes
+        **kwargs
+            compute_tile, shim_tile, tilingConstraint (optional)
         """
-        params = self.getAIEParams(operatorRepresentation)
+        tilingConstraint = kwargs.get('tilingConstraint', None)
+        params = self.getAIEParams(operatorRepresentation, tilingConstraint=tilingConstraint)
         num_elements = params['num_elements']
         tile_size = params['tile_size']
         num_tiles = num_elements // tile_size
@@ -123,7 +171,7 @@ class XDNA2AddTemplate(MLIRNodeTemplate):
                 scf_d.yield_([])
 
     def emitRuntimeSequence(self, operatorRepresentation: OperatorRepresentation,
-                            seq_args: list) -> None:
+                            seq_args: list, tilingConstraint=None) -> None:
         """Emit DMA configuration inside a runtime_sequence block.
 
         Parameters
@@ -133,8 +181,10 @@ class XDNA2AddTemplate(MLIRNodeTemplate):
         seq_args : list
             Block arguments of the runtime_sequence (memref values for
             in1, in2, out — in the order matching the ONNX graph I/O).
+        tilingConstraint : NodeMemoryConstraint, optional
+            Tiling solution from the solver (currently ignored, for future use).
         """
-        params = self.getAIEParams(operatorRepresentation)
+        params = self.getAIEParams(operatorRepresentation, tilingConstraint=tilingConstraint)
         num_elements = params['num_elements']
 
         dims = [
