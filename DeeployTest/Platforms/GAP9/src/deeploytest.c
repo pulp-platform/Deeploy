@@ -84,7 +84,9 @@ int main(void) {
   printf("[%d %d] Hello World!\n", cluster_id, core_id);
 #endif
   struct pi_cluster_conf conf;
-
+  pi_freq_set(PI_FREQ_DOMAIN_FC, 370000000);
+  pi_freq_set(PI_FREQ_DOMAIN_CL, 370000000);
+  pi_freq_set(PI_FREQ_DOMAIN_PERIPH, 200000000);
   pi_cluster_conf_init(&conf);
   conf.id = 0;
   pi_open_from_conf(&cluster_dev, &conf);

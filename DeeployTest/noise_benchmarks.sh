@@ -8,3 +8,4 @@ python3 deeployRunner_tiled_gap9.py -t Tests/Kernels/Noise/PerturbEggroll --prof
 # python3 deeployRunner_tiled_gap9.py -t Tests/Kernels/Noise/PerturbEggroll-Uniform --profileTiling > Tests/Kernels/Noise/PerturbEggroll-Uniform.txt 2>&1
 python3 deeployRunner_tiled_gap9.py -t Tests/Kernels/Noise/PerturbTriangle --profileTiling -s board > Tests/Kernels/Noise/PerturbTriangle.txt 2>&1
 python3 deeployRunner_tiled_gap9.py -t Tests/Kernels/Noise/PerturbRademacher --profileTiling -s board > Tests/Kernels/Noise/PerturbRademacher.txt 2>&1
+python3 deeployRunner_tiled_gap9.py -t Tests/Kernels/Noise/RQSPerturbRademacher --profileTiling -s board > Tests/Kernels/Noise/RQSPerturbRademacher.txt 2>&1
