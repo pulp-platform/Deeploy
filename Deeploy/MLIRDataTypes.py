@@ -76,6 +76,10 @@ class MLIRExecutionBlock:
         self.kernelFuncName: Optional[str] = None
         self.kernelObjFile: Optional[str] = None
 
+        # The MLIRNodeTemplate for this node (set by deployer, called by
+        # MLIRComputeCorePass to emit the kernel call inside the core block)
+        self.template: Optional[Any] = None
+
         # Set by deployer before runtime-sequence phase
         self.runtimeSequenceArgs: List[Any] = []
 
