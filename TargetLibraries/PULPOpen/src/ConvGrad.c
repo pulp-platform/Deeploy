@@ -536,41 +536,13 @@ void PULP_ConvGradX2d_fp32_fp32_fp32_CHW(
     const uint32_t pad_left = padding_y_top;
     const uint32_t pad_right = padding_y_bottom;
 
-    // Get core ID for parallelization across input channels
     int8_t core_id = pi_core_id();
     int8_t log2Core = LOG2(NUM_CORES);
-
-    // DEBUG: Print parameters on core 0 only
-    if (core_id == 0) {
-        printf("\n[ConvGradX] === Kernel Invocation ===\n");
-        printf("[ConvGradX] dY tile: H_out=%lu, W_out=%lu, C_out=%lu\n",
-               (unsigned long)H_out, (unsigned long)W_out, (unsigned long)C_out);
-        printf("[ConvGradX] dX tile: H_in=%lu, W_in=%lu, C_in=%lu\n",
-               (unsigned long)H_in, (unsigned long)W_in, (unsigned long)C_in);
-        printf("[ConvGradX] Kernel: P=%lu, Q=%lu\n",
-               (unsigned long)P, (unsigned long)Q);
-        printf("[ConvGradX] Stride: stride_h=%lu, stride_w=%lu\n",
-               (unsigned long)stride_h, (unsigned long)stride_w);
-        printf("[ConvGradX] Padding: top=%lu, bottom=%lu, left=%lu, right=%lu\n",
-               (unsigned long)pad_top, (unsigned long)pad_bottom,
-               (unsigned long)pad_left, (unsigned long)pad_right);
-        printf("[ConvGradX] Pointers: pGradOut=%p, pWeight=%p, pGradIn=%p\n",
-               (void*)pGradOut, (void*)pWeight, (void*)pGradIn);
-    }
 
     // Parallelize over input channels (C_in)
     uint16_t ch_chunk = (C_in >> log2Core) + ((C_in & (NUM_CORES - 1)) != 0);
     uint16_t ch_start = MIN(ch_chunk * core_id, C_in);
     uint16_t ch_stop = MIN(ch_start + ch_chunk, C_in);
-
-    // DEBUG: Print channel assignment for each core
-    printf("[ConvGradX] Core %d: ch_range=[%u, %u), chunk_size=%u\n",
-           core_id, ch_start, ch_stop, ch_chunk);
-
-    if (ch_stop <= ch_start) {
-        printf("[ConvGradX] Core %d: No channels assigned, returning\n", core_id);
-        return;
-    }
 
     // =========================================================================
     // Step 1: Zero-initialize dX tile for this core's channel range
@@ -584,11 +556,7 @@ void PULP_ConvGradX2d_fp32_fp32_fp32_CHW(
             }
         }
     }
-
-    if (core_id == 0) {
-        printf("[ConvGradX] Core 0: Initialized dX tile to zero\n");
-    }
-
+    
     // =========================================================================
     // Step 2: Compute gradient via transposed convolution
     // =========================================================================
@@ -635,26 +603,6 @@ void PULP_ConvGradX2d_fp32_fp32_fp32_CHW(
                     }
                 }
             }
-        }
-    }
-
-    // DEBUG: Print sample output values on core 0
-    if (core_id == 0) {
-        printf("[ConvGradX] Core 0: Computation done\n");
-        printf("[ConvGradX] Core 0: Sample dX values:\n");
-        for (uint32_t i = 0; i < MIN(5, H_in * W_in * C_in); ++i) {
-            printf("  dX[%lu] = %.6f\n", (unsigned long)i, pGradIn[i]);
-        }
-
-        // Print sample input values
-        printf("[ConvGradX] Core 0: Sample dY values:\n");
-        for (uint32_t i = 0; i < MIN(5, H_out * W_out * C_out); ++i) {
-            printf("  dY[%lu] = %.6f\n", (unsigned long)i, pGradOut[i]);
-        }
-
-        printf("[ConvGradX] Core 0: Sample Weight values:\n");
-        for (uint32_t i = 0; i < MIN(5, C_out * C_in * P * Q); ++i) {
-            printf("  W[%lu] = %.6f\n", (unsigned long)i, pWeight[i]);
         }
     }
 }

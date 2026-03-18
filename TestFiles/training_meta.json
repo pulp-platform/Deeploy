@@ -1,5 +1,0 @@
-{
-  "n_train_steps": 104,
-  "n_accum_steps": 1,
-  "training_num_data_inputs": 2
-}

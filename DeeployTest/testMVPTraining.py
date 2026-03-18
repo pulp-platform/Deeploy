@@ -1,27 +1,6 @@
 # SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
-"""
-Tiled training code generation entry point.
-
-Combines the training-specific initialisation logic from generateTrainingNetwork.py
-with the memory-level / tiling pipeline from testMVP.py.
-
-Usage (minimal — training params auto-detected):
-    python testMVPTraining.py \\
-        -t /app/Onnx4Deeploy/onnx/model/simplemlp_train \\
-        -d /tmp/simplemlp_tiled \\
-        -p Siracusa \\
-        --l1 64000 --l2 1024000
-
-Usage (explicit training params):
-    python testMVPTraining.py \\
-        -t /app/Onnx4Deeploy/onnx/model/sleepconvit_train \\
-        -d /tmp/sleepconvit_tiled \\
-        -p Siracusa \\
-        --l1 64000 --l2 2000000 \\
-        --n-steps 4 --n-accum 2
-"""
 
 import hashlib
 import json
