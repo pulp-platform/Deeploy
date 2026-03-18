@@ -1,49 +1,38 @@
 # SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
+"""XDNA2 deployer — generates mlir-aie MLIR using ``aie.dialects``.
 
-import os
-import subprocess
-import tempfile
+Unlike other Deeploy deployers that generate C code via Mako templates,
+this deployer constructs an ``mlir.ir.Module`` with AIE dialect operations
+and returns the verified MLIR text.
+"""
+
+from __future__ import annotations
+
 from typing import Callable, Dict, Optional, Type
 
 import onnx_graphsurgeon as gs
+
+from aie.extras.context import mlir_mod_ctx
+from aie.dialects import aie as aie_d
+from aie.dialects import aiex as aiex_d
+import aie.ir as ir
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Logging import DEFAULT_LOGGER as log
-from Deeploy.Targets.XDNA2.Templates.AddTemplate import XDNA2NodeTemplate
-
-# JUNGVI: Will be removed once Deeploy generates it's own MLIR
-
-# Default path to the mlir-aie Python environment.
-# Can be overridden via the MLIR_AIE_PYTHON env variable.
-_DEFAULT_IRON_PYTHON = os.environ.get(
-    "MLIR_AIE_PYTHON",
-    "/scratch/jungvi/micromamba/envs/iron/bin/python",
-)
-
-# Path to the IRON design scripts shipped with mlir-aie examples.
-# Can be overridden via the IRON_OPERATORS_DIR env variable.
-_DEFAULT_IRON_OPERATORS_DIR = os.environ.get(
-    "IRON_OPERATORS_DIR",
-    "/scratch/jungvi/IRON/iron/operators",
-)
+from Deeploy.MLIRDataTypes import MLIRNodeTemplate
 
 
 class XDNA2Deployer(SignPropDeployer):
     """Deployer for the XDNA2 (AIE2p) platform.
 
-    Unlike other Deeploy deployers that generate C code, this deployer
-    generates an mlir-aie MLIR module.  The MLIR is produced by invoking the
-    IRON operator ``design.py`` scripts as subprocesses (using the mlir-aie
-    Python environment) so that the main Deeploy environment does not need to
-    have ``aie.iron`` installed.
-
-    It also writes ``testinputs.h`` and ``testoutputs.h`` via the XDNA2
-    generation script so the XRT C++ testbench can be compiled against
-    known-good golden values.
+    Generates an mlir-aie MLIR module by calling :meth:`emit` /
+    :meth:`emitRuntimeSequence` on each bound :class:`MLIRNodeTemplate`.
+    The module is verified via MLIR's built-in verifier before being
+    returned as a string.
     """
 
     def __init__(self,
@@ -55,22 +44,7 @@ class XDNA2Deployer(SignPropDeployer):
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = False,
                  deeployStateDir: str = "DeeployStateDir",
-                 inputOffsets: Optional[Dict[str, int]] = None,
-                 iron_python: Optional[str] = None,
-                 iron_operators_dir: Optional[str] = None):
-        """
-        Parameters
-        ----------
-        iron_python : str, optional
-            Path to the Python interpreter in the mlir-aie (IRON) environment.
-            Defaults to ``MLIR_AIE_PYTHON`` env variable or
-            ``/scratch/jungvi/micromamba/envs/iron/bin/python``.
-        iron_operators_dir : str, optional
-            Path to the IRON operators directory containing per-operator
-            ``design.py`` scripts.
-            Defaults to ``IRON_OPERATORS_DIR`` env variable or
-            ``/scratch/jungvi/IRON/iron/operators``.
-        """
+                 inputOffsets: Optional[Dict[str, int]] = None):
         super().__init__(
             graph,
             deploymentPlatform,
@@ -82,8 +56,6 @@ class XDNA2Deployer(SignPropDeployer):
             deeployStateDir = deeployStateDir,
             inputOffsets = inputOffsets if inputOffsets is not None else {},
         )
-        self._iron_python = iron_python or _DEFAULT_IRON_PYTHON
-        self._iron_operators_dir = iron_operators_dir or _DEFAULT_IRON_OPERATORS_DIR
 
     # ------------------------------------------------------------------
     # MLIR generation
@@ -92,113 +64,65 @@ class XDNA2Deployer(SignPropDeployer):
     def generateMLIR(self) -> str:
         """Generate an mlir-aie MLIR module for the prepared graph.
 
-        Iterates over ``self.layerBinding``, extracts AIE parameters from each
-        bound template, and calls the corresponding IRON ``design.py`` script
-        as a subprocess.  Currently only a single BF16 Add node is supported.
+        Iterates over bound layers, calls each template's ``emit()``
+        to construct AIE operations, adds a ``runtime_sequence`` for
+        host-side DMA, verifies the module, and returns the MLIR text.
 
         Returns
         -------
         str
-            MLIR module string (ready to be written to ``network.mlir``).
-
-        Raises
-        ------
-        RuntimeError
-            If the graph contains unsupported operators or if the IRON
-            subprocess fails.
+            Verified MLIR module string.
         """
         assert self.prepared, "XDNA2Deployer.generateMLIR() called before prepare()"
 
-        mlir_parts = []
-
+        # Collect templates and their operator representations
+        nodes = []
         for node_name, layer in self.layerBinding.items():
             mapper = layer.mapper
             template = mapper.binder.template
             op_repr = mapper.parser.operatorRepresentation
 
-            if not isinstance(template, XDNA2NodeTemplate):
+            if not isinstance(template, MLIRNodeTemplate):
                 raise RuntimeError(
-                    f"Node '{node_name}' has no XDNA2NodeTemplate — "
+                    f"Node '{node_name}' has no MLIRNodeTemplate — "
                     f"only BF16 Add is supported in this release.")
 
-            aie_params = template.getAIEParams(op_repr)
-            log.info(f"[XDNA2] Generating MLIR for node '{node_name}' "
-                     f"with params: {aie_params}")
+            nodes.append((node_name, template, op_repr))
 
-            mlir_str = self._generate_add_mlir(aie_params)
-            mlir_parts.append(mlir_str)
+        if not nodes:
+            raise RuntimeError("No bound layers found — cannot generate MLIR.")
 
-        if not mlir_parts:
-            raise RuntimeError("No bound layers found in graph — cannot generate MLIR.")
+        # Build the MLIR module
+        with mlir_mod_ctx() as ctx:
 
-        # For a single-node graph the MLIR is just the one module.
-        # Multi-node support would require merging modules.
-        return mlir_parts[0]
+            @aie_d.device(aie_d.AIEDevice.npu2)
+            def _device():
+                compute_tile = aie_d.tile(0, 2) # JUNGVI: This will have to change when we deploy on the whole array
+                shim_tile = aie_d.tile(0, 0)
 
-    def _generate_add_mlir(self, aie_params: dict) -> str:
-        """Call the IRON elementwise_add design.py to produce MLIR.
+                # Emit each node's operations (ObjectFifos, core, kernel decls)
+                for node_name, template, op_repr in nodes:
+                    log.info(f"[XDNA2] Emitting MLIR for node '{node_name}'")
+                    template.emit(op_repr,
+                                  compute_tile=compute_tile,
+                                  shim_tile=shim_tile) # JUNGVI: What should be the interface of the MLIR template emission exactly?
 
-        Parameters
-        ----------
-        aie_params : dict
-            Dict with keys: num_elements, n_cols, n_channels, tile_size, trace_size.
+                # Runtime sequence: collect tensor types from all nodes' I/O
+                # For now (single-node), derive from the first node.
+                _, first_template, first_op_repr = nodes[0]
+                params = first_template.getAIEParams(first_op_repr)
+                num_elements = params['num_elements']
+                tensor_ty = ir.MemRefType.get((num_elements,), ir.BF16Type.get())
 
-        Returns
-        -------
-        str
-            MLIR module string.
-        """
-        design_script = os.path.join(
-            self._iron_operators_dir, "elementwise_add", "design.py"
-        )
+                @aiex_d.runtime_sequence(tensor_ty, tensor_ty, tensor_ty)
+                def _seq(*args):
+                    for _, template, op_repr in nodes:
+                        template.emitRuntimeSequence(op_repr, list(args))
 
-        if not os.path.isfile(design_script):
-            raise RuntimeError(
-                f"IRON design script not found: {design_script}\n"
-                f"Set IRON_OPERATORS_DIR to point to the IRON operators directory.")
+            module = ctx.module
+            assert module.operation.verify(), \
+                "[XDNA2] Generated MLIR module failed verification"
 
-        if not os.path.isfile(self._iron_python):
-            raise RuntimeError(
-                f"IRON Python interpreter not found: {self._iron_python}\n"
-                f"Set MLIR_AIE_PYTHON to the mlir-aie Python interpreter.")
-
-        with tempfile.NamedTemporaryFile(suffix=".mlir", delete=False) as tmp:
-            output_path = tmp.name
-
-        try:
-            cmd = [
-                self._iron_python,
-                design_script,
-                "--dev", "npu2",
-                "--length", str(aie_params['num_elements']),
-                "--columns", str(aie_params['n_cols']),
-                "--channels", str(aie_params['n_channels']),
-                "--tile-size", str(aie_params['tile_size']),
-                "--trace-size", str(aie_params['trace_size']),
-                "--output-file-path", output_path,
-            ]
-
-            log.debug(f"[XDNA2] Running: {' '.join(cmd)}")
-
-            result = subprocess.run(
-                cmd,
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-
-            if result.returncode != 0:
-                raise RuntimeError(
-                    f"IRON design.py failed (exit {result.returncode}):\n"
-                    f"  cmd: {' '.join(cmd)}\n"
-                    f"  stdout: {result.stdout}\n"
-                    f"  stderr: {result.stderr}")
-
-            with open(output_path, 'r') as f:
-                mlir_str = f.read()
-
-        finally:
-            if os.path.exists(output_path):
-                os.unlink(output_path)
-
+        mlir_str = str(module)
+        log.info(f"[XDNA2] MLIR module generated ({len(mlir_str)} bytes)")
         return mlir_str
