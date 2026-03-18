@@ -146,16 +146,17 @@ class XDNA2Deployer(SignPropDeployer):
                     eb = MLIRExecutionBlock(computeTile=computeTile, shimTile=shimTile)
                     eb.operatorRepresentation = node['opRepr']
                     eb.patternMemoryConstraint = node['tilingConstraint']
+                    eb.template = node['template']
 
                     log.info(f"[XDNA2] Device phase for '{node['nodeName']}'" +
                              (" (tiled)" if node['tilingConstraint'] else ""))
 
-                    # Run device-phase passes (ObjectFifo creation, kernel decl)
+                    # Run device-phase passes:
+                    #  1. MLIRObjectFifoPass — creates FIFOs, declares kernel
+                    #  2. MLIRComputeCorePass — opens core + loops, calls
+                    #     template.emit() with acquired FIFO elements in opRepr
                     self.ctxt, eb = node['codeTransformer'].applyDevicePasses(
                         self.ctxt, eb, node['nodeName'])
-
-                    # Emit compute core (template reads FIFOs etc. from eb)
-                    node['template'].emit(node['opRepr'], executionBlock=eb)
 
                     mlirBlocks.append((node, eb))
 

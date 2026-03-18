@@ -6,6 +6,7 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import bfloat16_t
 from Deeploy.DeeployTypes import NodeBinding
 from Deeploy.MLIRDataTypes import MLIRCodeTransformation
+from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRComputeCorePass import MLIRComputeCorePass
 from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRObjectFifoPass import MLIRObjectFifoPass
 from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRRuntimeSequencePass import MLIRRuntimeSequencePass
 from Deeploy.Targets.XDNA2.Templates import AddTemplate
@@ -21,6 +22,10 @@ XDNA2Transformer = MLIRCodeTransformation(
             outputTensorKeys = _ADD_OUTPUT_KEYS,
             kernelFuncName = "eltwise_add_bf16_vector",
             kernelObjFile = "add.o",
+        ),
+        MLIRComputeCorePass(
+            inputTensorKeys = _ADD_INPUT_KEYS,
+            outputTensorKeys = _ADD_OUTPUT_KEYS,
         ),
     ],
     runtimeSequencePasses = [
