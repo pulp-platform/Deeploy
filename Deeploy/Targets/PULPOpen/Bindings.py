@@ -14,13 +14,13 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure import MemoryAwareClosureGeneration
-from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
-    GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
-from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
-    GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
-    QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, DequantTemplate, \
+    FloatPadTemplate, FloatReduceSumTemplate, GatherTemplate, PadTemplate, QuantTemplate, RQSiGELUTemplate, \
+    SliceTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
+    DequantChecker, GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, \
+    MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
+    RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -175,6 +175,35 @@ PULPSliceBindings = [
 PULPReshapeBindings = [
     NodeBinding(ReshapeChecker([PointerClass(type), PointerClass(int64_t)], [PointerClass(type)]),
                 ReshapeTemplate.referenceTemplate, SkipTransformer) for type in IntegerDataTypes + FloatDataTypes
+]
+
+PULPBatchNormBindings = [
+    NodeBinding(
+        BatchNormChecker(
+            [PointerClass(type),
+             PointerClass(type),
+             PointerClass(type),
+             PointerClass(type),
+             PointerClass(type)], [PointerClass(type)]), BatchNormalizationTemplate.referenceTemplate,
+        ForkTransformer) for type in FloatDataTypes
+]
+
+PULPPad1DBindings = [
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference1DTemplate,
+                ForkTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), FloatPadTemplate.reference1DTemplate,
+                ForkTransformer) for type in FloatDataTypes
+]
+
+PULPPad2DBindings = [
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference2DTemplate,
+                ForkTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(
+        PadChecker([PointerClass(float32_t), PointerClass(float32_t),
+                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatPadTemplate.reference2DTemplate,
+        ForkTransformer)
 ]
 
 PULPRQAddBindings = [

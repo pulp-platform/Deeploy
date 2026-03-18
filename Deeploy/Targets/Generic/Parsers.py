@@ -2811,6 +2811,18 @@ class BatchNormParser(NodeParser):
         self.operatorRepresentation[outputs[0]] = ctxt.lookup(node.outputs[0].name).name
 
         input_shape = ctxt.lookup(node.inputs[0].name).shape
+        param_shape = ctxt.lookup(node.inputs[1].name).shape
+
+        if len(input_shape) >= 2 and len(param_shape) >= 1:
+            channel_count = param_shape[0]
+            channels_first_match = input_shape[1] == channel_count
+            channels_last_match = input_shape[-1] == channel_count
+
+            # Prefer explicit evidence from the BN parameter length when the
+            # default layout would otherwise be ambiguous for mixed-layout graphs.
+            if channels_first_match != channels_last_match:
+                channels_first = channels_first_match
+
         # BatchNorm runs on flattened [N, C, L] for channels-first and [N, L, C]
         # for channels-last, where L covers all spatial positions.
         self.operatorRepresentation['batch_size'] = input_shape[0]
