@@ -24,6 +24,14 @@ jobs:
     # NPU access (/dev/accel/accel0). Instead we use explicit
     # `docker run` commands.
     steps:
+      - name: Fix workspace permissions
+        shell: bash
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/workspace \
+            ${{ inputs.docker-image }} \
+            chown -R $(id -u):$(id -g) /workspace || true
+
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
