@@ -24,4 +24,6 @@
 
 #include "pmsis.h"
 
+#include "DeeployPULPKernels.h"
+
 #endif // __DEEPLOY_MATH_HEADER_

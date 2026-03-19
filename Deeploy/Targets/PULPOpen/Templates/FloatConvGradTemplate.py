@@ -8,10 +8,26 @@ from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
-class PULP2DFloatConvGradWIm2ColTemplate(NodeTemplate):
+_TILE_IDX_NULL = "NULL"
 
-    def __init__(self, templateStr):
-        super().__init__(templateStr)
+
+class _ConvGradWTemplate(NodeTemplate):
+    """NodeTemplate subclass for ConvGradW operators.
+
+    Injects tileIdxPtr='NULL' sentinel via alignToContext so the template
+    always has a defined tileIdxPtr value, avoiding Mako strict_undefined
+    eager-initialization NameError.  The tiling pass overwrites 'NULL' with
+    the real buffer name when multi-tile execution is required.
+    """
+
+    def alignToContext(self, ctxt: NetworkContext,
+                       operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
+        if 'tileIdxPtr' not in operatorRepresentation:
+            operatorRepresentation['tileIdxPtr'] = _TILE_IDX_NULL
+        return ctxt, operatorRepresentation, []
+
+
+class PULP2DFloatConvGradWIm2ColTemplate(_ConvGradWTemplate):
 
     @staticmethod
     def computeTransientBuffersSize(
@@ -140,18 +156,23 @@ for (uint32_t n=0; n<${batch}; ++n) {
 
 
 # Templates for ConvGradW operations
-referenceConvGradW2DTemplate = NodeTemplate("""
+referenceConvGradW2DTemplate = _ConvGradWTemplate("""
 // 2D FP ConvGradW NCHW using pulp-trainlib naive (Name: ${nodeName}, Op: ${nodeOp})
 ${grad_out_type.typeName} ref_${grad_weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${grad_weight}_${data_in} = ${data_in};
 ${grad_weight_type.typeName} ref_${grad_weight}_out = ${grad_weight};
 
-// Zero-initialize output tensor on first tile
-static int ${nodeName}_${grad_weight}_initialized = 0;
-if (!${nodeName}_${grad_weight}_initialized) {
-  memset(${grad_weight}, 0, (${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y}) *  sizeof(${grad_weight_type.referencedType.typeName}));
-  ${nodeName}_${grad_weight}_initialized = 1;
+% if tileIdxPtr != 'NULL':
+{
+    static uint32_t ${nodeName}_last_step = 0xFFFFFFFFu;
+    if ((uint32_t)*${tileIdxPtr} != ${nodeName}_last_step) {
+        memset(${grad_weight}, 0, (${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y}) * sizeof(${grad_weight_type.referencedType.typeName}));
+        ${nodeName}_last_step = (uint32_t)*${tileIdxPtr};
+    }
 }
+% else:
+memset(${grad_weight}, 0, (${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y}) * sizeof(${grad_weight_type.referencedType.typeName}));
+% endif
 
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW(
@@ -176,13 +197,17 @@ ${grad_out_type.typeName} ref_${grad_weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${grad_weight}_${data_in} = ${data_in};
 ${grad_weight_type.typeName} ref_${grad_weight}_out = ${grad_weight};
 
-
-// Zero-initialize output tensor on first tile
-static int ${nodeName}_${grad_weight}_initialized = 0;
-if (!${nodeName}_${grad_weight}_initialized) {
-  memset(${grad_weight}, 0, (${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y}) *  sizeof(${grad_weight_type.referencedType.typeName}));
-  ${nodeName}_${grad_weight}_initialized = 1;
+% if tileIdxPtr != 'NULL':
+{
+    static uint32_t ${nodeName}_last_step = 0xFFFFFFFFu;
+    if ((uint32_t)*${tileIdxPtr} != ${nodeName}_last_step) {
+        memset(${grad_weight}, 0, (${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y}) * sizeof(${grad_weight_type.referencedType.typeName}));
+        ${nodeName}_last_step = (uint32_t)*${tileIdxPtr};
+    }
 }
+% else:
+memset(${grad_weight}, 0, (${ch_im_out} * ${ch_im_in} * ${dim_kernel_x} * ${dim_kernel_y}) * sizeof(${grad_weight_type.referencedType.typeName}));
+% endif
 
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW_Im2Col(
@@ -207,19 +232,23 @@ for (uint32_t n=0; n<${batch}; ++n) {
 #  ============================================================================
 
 
-referenceDWConvGradW2DTemplate = NodeTemplate("""
+referenceDWConvGradW2DTemplate = _ConvGradWTemplate("""
 // 2D FP DW ConvGradW NCHW (Name: ${nodeName}, Op: ${nodeOp})
 ${grad_out_type.typeName} ref_${grad_weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${grad_weight}_${data_in} = ${data_in};
 ${grad_weight_type.typeName} ref_${grad_weight}_out = ${grad_weight};
 
-
-// Zero-initialize output tensor on first tile
-static uint8_t ${nodeName}_${grad_weight}_init = 0;
-if (!${nodeName}_${grad_weight}_init) {
-    memset(${grad_weight}, 0, ${ch_im_out} * ${dim_kernel_x} * ${dim_kernel_y} * sizeof(${grad_weight_type.referencedType.typeName}));
-    ${nodeName}_${grad_weight}_init = 1;
+% if tileIdxPtr != 'NULL':
+{
+    static uint32_t ${nodeName}_last_step = 0xFFFFFFFFu;
+    if ((uint32_t)*${tileIdxPtr} != ${nodeName}_last_step) {
+        memset(${grad_weight}, 0, ${ch_im_out} * ${dim_kernel_x} * ${dim_kernel_y} * sizeof(${grad_weight_type.referencedType.typeName}));
+        ${nodeName}_last_step = (uint32_t)*${tileIdxPtr};
+    }
 }
+% else:
+memset(${grad_weight}, 0, ${ch_im_out} * ${dim_kernel_x} * ${dim_kernel_y} * sizeof(${grad_weight_type.referencedType.typeName}));
+% endif
 
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_DWConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW(
@@ -301,18 +330,23 @@ class PULP2DFloatPWConvGradXTemplate(NodeTemplate):
         return ctxt, operatorRepresentation, [bt_name]
 
 
-referencePWConvGradW2DTemplate = NodeTemplate("""
+referencePWConvGradW2DTemplate = _ConvGradWTemplate("""
 // 2D FP Pointwise ConvGradW (1x1) NCHW using pulp-trainlib pw interface (Name: ${nodeName}, Op: ${nodeOp})
 ${grad_out_type.typeName} ref_${grad_weight}_${grad_out} = ${grad_out};
 ${data_in_type.typeName} ref_${grad_weight}_${data_in} = ${data_in};
 ${grad_weight_type.typeName} ref_${grad_weight}_out = ${grad_weight};
 
-// Zero-initialize output tensor on first tile
-static int ${nodeName}_${grad_weight}_initialized = 0;
-if (!${nodeName}_${grad_weight}_initialized) {
-    memset(${grad_weight}, 0, ${ch_im_out} * ${ch_im_in} * sizeof(${grad_weight_type.referencedType.typeName}));
-    ${nodeName}_${grad_weight}_initialized = 1;
+% if tileIdxPtr != 'NULL':
+{
+    static uint32_t ${nodeName}_last_step = 0xFFFFFFFFu;
+    if ((uint32_t)*${tileIdxPtr} != ${nodeName}_last_step) {
+        memset(${grad_weight}, 0, ${ch_im_out} * ${ch_im_in} * sizeof(${grad_weight_type.referencedType.typeName}));
+        ${nodeName}_last_step = (uint32_t)*${tileIdxPtr};
+    }
 }
+% else:
+memset(${grad_weight}, 0, ${ch_im_out} * ${ch_im_in} * sizeof(${grad_weight_type.referencedType.typeName}));
+% endif
 
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_PWConvGradW2d_fp${grad_out_type.referencedType.typeWidth}_fp${data_in_type.referencedType.typeWidth}_fp${grad_weight_type.referencedType.typeWidth}_CHW(
