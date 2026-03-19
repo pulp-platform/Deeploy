@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
 - Fix Broken CI [#175](https://github.com/pulp-platform/Deeploy/pull/175)
 - Improve Docstring and Debugging [#160](https://github.com/pulp-platform/Deeploy/pull/160)
 - Add GAP9 Container Support [#163](https://github.com/pulp-platform/Deeploy/pull/163)
@@ -38,6 +39,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added @runwangdl as a code owner
 
 ### Fixed
+- Add missing `shell: bash` directive to CI cache generation steps to ensure correct shell execution
+- Fix wrong test case in GAP9 ccache workflow (`test_gap9_tiled_kernels_l2_singlebuffer` using `MatMul/Regular` instead of `Add/Large`)
 - Fix Docker flow to fetch `*.so` git lfs files
 - Downgrade `setuptools` to `81.0.0`
 - im2col buffer size in Conv1d template

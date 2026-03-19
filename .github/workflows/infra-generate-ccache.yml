@@ -31,6 +31,7 @@ jobs:
         run: pip install -e .
 
       - name: Generate CCache
+        shell: bash
         run: |
           cd DeeployTest
           mkdir -p /app/.ccache
