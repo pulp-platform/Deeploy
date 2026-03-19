@@ -49,6 +49,9 @@
 #include "testinputs.h"
 #include "testoutputs.h"
 
+/* Helper: true when ptr is in L2 (CPU-accessible); false when in L3 (external RAM) */
+#define IS_L2(ptr)  ((uint32_t)(ptr) >= 0x10000000u)
+
 /* -------------------------------------------------------------------------
  * Compile-time defaults — override via CMake target_compile_definitions
  * ---------------------------------------------------------------------- */
@@ -65,8 +68,11 @@
 #define TRAINING_NUM_DATA_INPUTS 2
 #endif
 
-/* RW: Remove MAINSTACKSIZE because gap9-sdk does not use it */
-#define SLAVESTACKSIZE 3800
+/* Training networks are much larger than inference; the master core needs
+ * a bigger stack for the generated RunTrainingNetwork/InitTrainingNetwork
+ * functions which have many local variables across deep closure chains. */
+#define MAINSTACKSIZE  12000
+#define SLAVESTACKSIZE 6000
 
 /* -------------------------------------------------------------------------
  * Cluster device
@@ -110,6 +116,28 @@ void RunOptimizerNetworkWrapper(void *args) {
 }
 
 /* -------------------------------------------------------------------------
+ * L3-aware memory transfer: handles all combinations of L2/L3 src and dst
+ * ---------------------------------------------------------------------- */
+
+static void l3_aware_copy(void *dst, const void *src, uint32_t bytes) {
+  if (IS_L2(dst) && IS_L2(src)) {
+    memcpy(dst, src, bytes);
+  } else if (IS_L2(dst)) {
+    /* L3 → L2 */
+    ram_read(dst, (void *)src, bytes);
+  } else if (IS_L2(src)) {
+    /* L2 → L3 */
+    ram_write(dst, (void *)src, bytes);
+  } else {
+    /* L3 → L3: stage through a temporary L2 buffer */
+    void *tmp = pi_l2_malloc(bytes);
+    ram_read(tmp, (void *)src, bytes);
+    ram_write(dst, tmp, bytes);
+    pi_l2_free(tmp, bytes);
+  }
+}
+
+/* -------------------------------------------------------------------------
  * Optimizer step: copy buffers → run → copy back
  * ---------------------------------------------------------------------- */
 
@@ -122,18 +150,12 @@ static void run_optimizer_step(void) {
     uint32_t opt_w_in    = 2u * wi;
     uint32_t opt_g_in    = 2u * wi + 1u;
 
-    if ((uint32_t)DeeployNetwork_inputs[train_w_idx] >= 0x10000000u &&
-        (uint32_t)DeeployOptNetwork_inputs[opt_w_in] >= 0x10000000u) {
-      memcpy(DeeployOptNetwork_inputs[opt_w_in],
-             DeeployNetwork_inputs[train_w_idx],
-             DeeployOptNetwork_inputs_bytes[opt_w_in]);
-    }
-    if ((uint32_t)DeeployNetwork_inputs[train_g_idx] >= 0x10000000u &&
-        (uint32_t)DeeployOptNetwork_inputs[opt_g_in] >= 0x10000000u) {
-      memcpy(DeeployOptNetwork_inputs[opt_g_in],
-             DeeployNetwork_inputs[train_g_idx],
-             DeeployNetwork_inputs_bytes[train_g_idx]);
-    }
+    l3_aware_copy(DeeployOptNetwork_inputs[opt_w_in],
+                  DeeployNetwork_inputs[train_w_idx],
+                  DeeployOptNetwork_inputs_bytes[opt_w_in]);
+    l3_aware_copy(DeeployOptNetwork_inputs[opt_g_in],
+                  DeeployNetwork_inputs[train_g_idx],
+                  DeeployNetwork_inputs_bytes[train_g_idx]);
   }
 
   /* --- Step B: Run optimizer network --- */
@@ -147,22 +169,19 @@ static void run_optimizer_step(void) {
     uint32_t train_w_idx  = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
     uint32_t opt_w_out    = wi;
 
-    if ((uint32_t)DeeployOptNetwork_outputs[opt_w_out] >= 0x10000000u &&
-        (uint32_t)DeeployNetwork_inputs[train_w_idx] >= 0x10000000u) {
-      uint32_t opt_bytes   = DeeployOptNetwork_outputs_bytes[opt_w_out];
-      uint32_t train_bytes = DeeployNetwork_inputs_bytes[train_w_idx];
-      if (opt_bytes == train_bytes) {
-        memcpy(DeeployNetwork_inputs[train_w_idx],
-               DeeployOptNetwork_outputs[opt_w_out],
-               opt_bytes);
-      } else {
-        /* Broadcasted bias: fill every tile with updated value. */
-        for (uint32_t off = 0; off < train_bytes; off += opt_bytes) {
-          uint32_t chunk = (off + opt_bytes <= train_bytes) ? opt_bytes : (train_bytes - off);
-          memcpy((char *)DeeployNetwork_inputs[train_w_idx] + off,
-                 DeeployOptNetwork_outputs[opt_w_out],
-                 chunk);
-        }
+    uint32_t opt_bytes   = DeeployOptNetwork_outputs_bytes[opt_w_out];
+    uint32_t train_bytes = DeeployNetwork_inputs_bytes[train_w_idx];
+    if (opt_bytes == train_bytes) {
+      l3_aware_copy(DeeployNetwork_inputs[train_w_idx],
+                    DeeployOptNetwork_outputs[opt_w_out],
+                    opt_bytes);
+    } else {
+      /* Broadcasted bias: fill every tile with updated value. */
+      for (uint32_t off = 0; off < train_bytes; off += opt_bytes) {
+        uint32_t chunk = (off + opt_bytes <= train_bytes) ? opt_bytes : (train_bytes - off);
+        l3_aware_copy((char *)DeeployNetwork_inputs[train_w_idx] + off,
+                      DeeployOptNetwork_outputs[opt_w_out],
+                      chunk);
       }
     }
   }
@@ -246,8 +265,19 @@ int main(void) {
 
   for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
     uint32_t _idx = (uint32_t)TRAINING_GRAD_BUF_START_IDX + _gi;
-    if ((uint32_t)DeeployNetwork_inputs[_idx] >= 0x10000000u) {
-      memset(DeeployNetwork_inputs[_idx], 0, DeeployNetwork_inputs_bytes[_idx]);
+    uint32_t bytes = DeeployNetwork_inputs_bytes[_idx];
+    void *buf = DeeployNetwork_inputs[_idx];
+    if (IS_L2(buf)) {
+      memset(buf, 0, bytes);
+    } else {
+      /* Write zeros into L3 via DMA using a temporary L2 zero page */
+      uint8_t *zero_page = pi_l2_malloc(512);
+      memset(zero_page, 0, 512);
+      for (uint32_t off = 0; off < bytes; off += 512) {
+        uint32_t chunk = (off + 512 <= bytes) ? 512 : (bytes - off);
+        ram_write((char *)buf + off, zero_page, chunk);
+      }
+      pi_l2_free(zero_page, 512);
     }
   }
 
@@ -273,9 +303,7 @@ int main(void) {
 #if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
   for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
     uint32_t idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
-    if ((uint32_t)DeeployNetwork_inputs[idx] >= 0x10000000u) {
-      memcpy(DeeployNetwork_inputs[idx], testInitWeights[wi], DeeployNetwork_inputs_bytes[idx]);
-    }
+    l3_aware_copy(DeeployNetwork_inputs[idx], testInitWeights[wi], DeeployNetwork_inputs_bytes[idx]);
   }
 #endif
 
@@ -294,18 +322,21 @@ int main(void) {
              mb);
 
       /* 1. Set lazy_reset_grad. */
-      if ((uint32_t)DeeployNetwork_inputs[reset_idx] >= 0x10000000) {
-        *((uint8_t *)DeeployNetwork_inputs[reset_idx]) =
-            (accum_step == 0) ? 1u : 0u;
+      {
+        void *reset_ptr = DeeployNetwork_inputs[reset_idx];
+        uint8_t reset_val = (accum_step == 0) ? 1u : 0u;
+        if (IS_L2(reset_ptr)) {
+          *((uint8_t *)reset_ptr) = reset_val;
+        } else {
+          ram_write(reset_ptr, &reset_val, sizeof(uint8_t));
+        }
       }
 
       /* 2. Load this mini-batch's data + labels. */
       for (uint32_t buf = 0; buf < TRAINING_NUM_DATA_INPUTS; buf++) {
-        if ((uint32_t)DeeployNetwork_inputs[buf] >= 0x10000000) {
-          memcpy(DeeployNetwork_inputs[buf],
-                 testDataVector[mb % TRAINING_DATA_SIZE][buf],
-                 DeeployNetwork_inputs_bytes[buf]);
-        }
+        l3_aware_copy(DeeployNetwork_inputs[buf],
+                      testDataVector[mb % TRAINING_DATA_SIZE][buf],
+                      DeeployNetwork_inputs_bytes[buf]);
       }
 
       /* 3. Forward + backward + InPlaceAccumulatorV2. */
@@ -314,8 +345,13 @@ int main(void) {
       pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
       /* 4. Store loss. */
-      if ((uint32_t)DeeployNetwork_outputs[0] >= 0x10000000u) {
-        memcpy(&stored_losses[mb], DeeployNetwork_outputs[0], sizeof(float));
+      {
+        void *loss_ptr = DeeployNetwork_outputs[0];
+        if (IS_L2(loss_ptr)) {
+          memcpy(&stored_losses[mb], loss_ptr, sizeof(float));
+        } else {
+          ram_read(&stored_losses[mb], loss_ptr, sizeof(float));
+        }
       }
 
     } /* end accum_step loop */

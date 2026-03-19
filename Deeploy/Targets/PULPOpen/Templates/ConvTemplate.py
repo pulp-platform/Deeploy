@@ -88,7 +88,7 @@ class PULP1DConvTemplate(NodeTemplate):
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-        im2col_dim = 8 * (1 * (1 + operatorRepresentation['pads'][0]) + operatorRepresentation['dim_kernel_y'])
+        im2col_dim = 8 * 2 * operatorRepresentation['ch_im_in'] * operatorRepresentation['dim_kernel_y']
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
         return [(im2col_name, im2col_dim)]
 

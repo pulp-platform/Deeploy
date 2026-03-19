@@ -475,17 +475,11 @@ class Conv2DTileConstraint(TileConstraint):
 
         group = operatorRepresentation["group"]
 
-        # weight and bias may be Constant ops excluded from the tiling solution
-        weight_in_solution = varWeight in tilingSolution.tensorMemoryConstraints
-        bias_in_solution = varBias != "NULL" and varBias in tilingSolution.tensorMemoryConstraints
-
         # Prepare address names, also handling bias
-        addrNames = ['data_in']
-        if weight_in_solution:
-            addrNames.append('weight')
-        if bias_in_solution:
-            addrNames.append('bias')
-        addrNames.append('data_out')
+        if varBias != "NULL":
+            addrNames = ['data_in', 'weight', 'bias', 'data_out']
+        else:
+            addrNames = ['data_in', 'weight', 'data_out']
 
         # Extract memory base addresses for each of the required components,
         # based on the computed memory configuration
@@ -584,14 +578,13 @@ class Conv2DTileConstraint(TileConstraint):
         inputLoadSchedule = []
         outputLoadSchedule = []
 
-        # Create input schedule lists, skipping constant tensors not in tiling solution
-        for idx2, a in enumerate(inputInCubes):
-            entry = {"data_in": a}
-            if weight_in_solution:
-                entry["weight"] = inputWeightCubes[idx2]
-            if bias_in_solution:
-                entry["bias"] = inputBiasCubes[idx2]
-            inputLoadSchedule.append(entry)
+        # Create input schedule lists, with bias handling
+        if varBias == "NULL":
+            for a, b in zip(inputInCubes, inputWeightCubes):
+                inputLoadSchedule.append({"data_in": a, "weight": b})
+        else:
+            for a, b, c in zip(inputInCubes, inputWeightCubes, inputBiasCubes):
+                inputLoadSchedule.append({"data_in": a, "weight": b, "bias": c})
 
         # Create output schedule list
         for out in outputCubes:

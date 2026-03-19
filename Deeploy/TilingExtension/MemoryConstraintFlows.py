@@ -124,9 +124,6 @@ class PatternMemoryConstraintFlow(GenericFlow[TensorMemLevelTuple, gs.Node]):
 
         intermediateTensorNames = [tensor.name for tensor in step.inputs if tensor.name not in outputTensorNames]
         for tensorName in intermediateTensorNames:
-            # Constants are always live; skip kill-set tracking for them.
-            if isinstance(self.ctxt.lookup(tensorName), ConstantBuffer):
-                continue
             patternUsers = [node for node in self.ctxt.lookup(tensorName)._users if node in self.patternNodeNames]
             assert patternUsers != [], f"Tensor {tensorName} has no users in this pattern and is not an output!"
             if step.name == patternUsers[-1]:

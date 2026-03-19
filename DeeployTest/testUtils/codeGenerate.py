@@ -655,6 +655,40 @@ def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[Lis
     for fname in ['TrainingNetwork.c', 'TrainingNetwork.h', 'testinputs.h', 'testoutputs.h']:
         os.system(f'clang-format -i --style="{clang_format}" {dumpdir}/{fname}')
 
+    # Build initial-value list for every input_N buffer so that L3 hex files
+    # can be written.  The list must cover all N where "input_N" exists in the
+    # deployer context.  Layout (must match DeeployNetwork_inputs[] order):
+    #   [0 .. num_data_inputs-1]              → first mini-batch data
+    #   [num_data_inputs .. grad_start-1]     → initial weights
+    #   [grad_start .. grad_start+num_grad-1] → zeros  (grad acc bufs)
+    #   [last]                                → lazy_reset_grad = 1 (uint8)
+    l3_initial_inputs: List[np.ndarray] = []
+    # Count how many input_N buffers exist in the deployer context
+    n_total_inputs = sum(1 for name in deployer.ctxt.globalObjects
+                         if name.startswith("input_") and name[len("input_"):].isdigit())
+    for i in range(n_total_inputs):
+        if all_mb_data and i < len(all_mb_data[0]):
+            # Data / label input
+            l3_initial_inputs.append(all_mb_data[0][i])
+        elif (init_weights is not None and grad_buf_start_idx > 0
+              and num_data_inputs <= i < grad_buf_start_idx):
+            # Weight input
+            wi = i - num_data_inputs
+            l3_initial_inputs.append(init_weights[wi] if wi < len(init_weights) else np.array([0.0], dtype=np.float32))
+        elif (grad_buf_start_idx > 0 and num_grad_inputs > 0
+              and grad_buf_start_idx <= i < grad_buf_start_idx + num_grad_inputs):
+            # Gradient accumulation buffer — zero-initialised
+            buf = deployer.ctxt.globalObjects.get(f"input_{i}")
+            shape = buf.shape if (buf is not None and hasattr(buf, 'shape')) else (1,)
+            l3_initial_inputs.append(np.zeros(shape, dtype=np.float32))
+        else:
+            # lazy_reset_grad (last input) or any unknown slot — default 1 / uint8
+            buf = deployer.ctxt.globalObjects.get(f"input_{i}")
+            shape = buf.shape if (buf is not None and hasattr(buf, 'shape')) else (1,)
+            l3_initial_inputs.append(np.ones(shape, dtype=np.uint8))
+
+    generateL3HexDump(deployer, os.path.join(dumpdir, 'hex'), l3_initial_inputs, [])
+
 
 # ---------------------------------------------------------------------------
 # Optimizer network code-generation helpers
