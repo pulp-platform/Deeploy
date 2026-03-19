@@ -45,7 +45,7 @@ jobs:
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
           pytest 'test_platforms.py::test_gap9_kernels[Kernels/Integer/Add/Regular]' --skipsim
-          pytest 'test_platforms.py::test_gap9_tiled_kernels_l2_singlebuffer[Kernels/Integer/Add/Large-5000-L2-singlebuffer]' --skipsim
+          pytest 'test_platforms.py::test_gap9_tiled_kernels_l2_singlebuffer[Kernels/Integer/MatMul/Regular-64000-L2-singlebuffer]' --skipsim
           deactivate
 
       - name: Clean and Upload CCache
