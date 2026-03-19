@@ -36,6 +36,7 @@ jobs:
           deactivate
 
       - name: Generate CCache for GAP9
+        shell: bash
         run: |
           source /app/install/gap9-sdk/.gap9-venv/bin/activate
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
