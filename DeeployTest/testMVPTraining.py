@@ -218,6 +218,8 @@ def generateTiledTrainingNetwork(args) -> None:
 
     # 10. Prepare deployer.
     verbosityCfg = _NoVerbosity
+    if args.profileTiling:
+        verbosityCfg = CodeGenVerbosity(tilingProfiling = True)
     _ = deployer.prepare(verbosityCfg)
 
     # 11. Resolve num_data_inputs, n_steps, n_accum.
@@ -388,6 +390,11 @@ if __name__ == '__main__':
         '--plotMemAlloc',
         action='store_true',
         help='Save memory allocation plots in the deeployStates folder.',
+    )
+    parser.add_argument(
+        '--profileTiling',
+        action='store_true',
+        help='Enable tiling profiling (inserts cycle counters around each tiled kernel).',
     )
     parser.add_argument(
         '--tolerance',

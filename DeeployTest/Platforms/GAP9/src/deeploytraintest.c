@@ -155,7 +155,7 @@ static void run_optimizer_step(void) {
                   DeeployOptNetwork_inputs_bytes[opt_w_in]);
     l3_aware_copy(DeeployOptNetwork_inputs[opt_g_in],
                   DeeployNetwork_inputs[train_g_idx],
-                  DeeployNetwork_inputs_bytes[train_g_idx]);
+                  DeeployOptNetwork_inputs_bytes[opt_g_in]);
   }
 
   /* --- Step B: Run optimizer network --- */

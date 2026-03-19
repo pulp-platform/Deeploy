@@ -19,9 +19,15 @@ class AnnotateDefaultMemoryLevel(SequentialPass):
         self.memoryHierarchy = memoryHierarchy
 
     def apply(self, ctxt: NetworkContext, graph: gs.Graph) -> Tuple[NetworkContext, gs.Graph]:
+        defaultLevel = self.memoryHierarchy.getDefaultMemoryLevel().name
         for _buffer in {**ctxt.localObjects, **ctxt.globalObjects}.values():
             if not hasattr(_buffer, "_memoryLevel"):
-                _buffer._memoryLevel = self.memoryHierarchy.getDefaultMemoryLevel().name
+                if isinstance(_buffer, ConstantBuffer) and defaultLevel == "L3":
+                    # ConstantBuffer (weights, biases, BN params) are small and
+                    # excluded from the tiling DMA schedule.  Keep them in L2.
+                    _buffer._memoryLevel = "L2"
+                else:
+                    _buffer._memoryLevel = defaultLevel
         return ctxt, graph
 
 
