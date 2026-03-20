@@ -305,7 +305,7 @@ cmd_attach_usbip() {
 	cmd_detach_usbip || true
 
 	log_info "Attaching USB device to usbip-devmgr..."
-	docker exec -it usbip-devmgr /bin/sh -lc 'nsenter -t1 -m sh -lc "
+	docker exec -i usbip-devmgr /bin/sh -lc 'nsenter -t1 -m sh -lc "
         usbip list -r \"$USBIP_HOST\" || { echo \"usbip list failed\"; exit 1; }
         BUSID=\$(usbip list -r \"$USBIP_HOST\" \
             | grep \"$USBIP_VENDOR:$USBIP_PRODUCT\" \
@@ -457,28 +457,28 @@ cmd_start_tmux() {
 
 	log_info "Creating tmux session: $session_name"
 
-	# Create new session with three panes (usbip-host, usbip-daemon, gap9)
-	tmux new-session -d -s "$session_name" -x 200 -y 50
+	# Create session and capture pane IDs (agnostic of base-index / pane-base-index)
+	# Layout: gap9 (left) | usbip-host (top-right)
+	#                      | usbip-daemon (bottom-right)
+	local pane_gap9 pane_usbip_host pane_usbip_daemon
+	pane_gap9=$(tmux new-session -d -s "$session_name" -x 200 -y 50 -P -F '#{pane_id}')
+	pane_usbip_host=$(tmux split-window -t "$pane_gap9" -h -P -F '#{pane_id}')
+	pane_usbip_daemon=$(tmux split-window -t "$pane_usbip_host" -v -P -F '#{pane_id}')
 
-	# First pane: run pyusbip server
+	tmux send-keys -t "$pane_usbip_host" "alias stop='$script_path$opts_escaped stop'" Enter
+	tmux send-keys -t "$pane_usbip_host" "$script_path$opts_escaped start-usbip-host" Enter
+	tmux send-keys -t "$pane_usbip_daemon" "alias stop='$script_path$opts_escaped stop'" Enter
+	tmux send-keys -t "$pane_usbip_daemon" "$script_path$opts_escaped start-usbip-daemon" Enter
+	tmux send-keys -t "$pane_usbip_daemon" "$script_path$opts_escaped attach-usbip" Enter
+	tmux send-keys -t "$pane_gap9" "alias stop='$script_path$opts_escaped stop'" Enter
+	tmux send-keys -t "$pane_gap9" "$script_path$opts_escaped start-gap9" Enter
 
-	# Second pane: run main orchestration (with delay to let server start)
-	tmux split-window -t "$session_name:0" -h
-	tmux split-window -t "$session_name:0" -v
-	tmux send-keys -t "$session_name:0.1" "alias stop='$script_path$opts_escaped stop'" Enter
-	tmux send-keys -t "$session_name:0.1" "$script_path$opts_escaped start-usbip-host" Enter
-	tmux send-keys -t "$session_name:0.2" "alias stop='$script_path$opts_escaped stop'" Enter
-	tmux send-keys -t "$session_name:0.2" "$script_path$opts_escaped start-usbip-daemon" Enter
-	tmux send-keys -t "$session_name:0.2" "$script_path$opts_escaped attach-usbip" Enter
-	tmux send-keys -t "$session_name:0.0" "alias stop='$script_path$opts_escaped stop'" Enter
-	tmux send-keys -t "$session_name:0.0" "$script_path$opts_escaped start-gap9" Enter
-
-	# Select the first pane
-	tmux select-pane -t "$session_name:0.0"
+	# Focus the main GAP9 pane
+	tmux select-pane -t "$pane_gap9"
 
 	log_success "tmux session created: $session_name"
 	log_info "Attaching to session..."
-	log_info "To detach: Ctrl+B then D"
+	log_info "To detach: prefix + D"
 	log_info "To kill session: tmux kill-session -t $session_name"
 
 	# Attach to the session
