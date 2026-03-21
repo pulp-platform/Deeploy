@@ -19,5 +19,5 @@ python3 deeployRunner_tiled_gap9.py -t Tests/Models/Noise/LiteCNN-Eggroll --prof
 python3 deeployRunner_tiled_gap9.py -t Tests/Models/Noise/QLiteCNN --profileTiling -s board > Tests/Models/Noise/QLiteCNN.txt 2>&1
 python3 deeployRunner_tiled_gap9.py -t Tests/Models/Noise/QLiteCNN-Gaussian --profileTiling -s board > Tests/Models/Noise/QLiteCNN-Gaussian.txt 2>&1
 python3 deeployRunner_tiled_gap9.py -t Tests/Models/Noise/QLiteCNN-Uniform --profileTiling -s board > Tests/Models/Noise/QLiteCNN-Uniform.txt 2>&1
-python3 deeployRunner_tiled_gap9.py -t Tests/Models/Noise/QLiteCNN-Rademacher --profileTiling -s board > Tests/Models/Noise/QLiteCNN-Rademacher.txt 2>&1
+python3 deeployRunner_tiled_gap9.py -t Tests/Models/Noise/QLiteCNN-QRSRademacher --profileTiling -s board > Tests/Models/Noise/QLiteCNN-Rademacher.txt 2>&1
 python3 deeployRunner_tiled_gap9.py -t Tests/Models/Noise/QLiteCNN-Eggroll --profileTiling -s board > Tests/Models/Noise/QLiteCNN-Eggroll.txt 2>&1
