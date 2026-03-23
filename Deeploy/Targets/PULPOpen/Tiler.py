@@ -67,6 +67,9 @@ from Deeploy.Targets.PULPOpen.TileConstraints.MSELossTileConstraint import \
     MSELossTileConstraint, MSELossGradTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
+PULPRQSConv1DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSConv1DBindings,
+                                                           tileConstraint = RQConv1DTileConstraint())
+
 PULPRQSConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSConv2DBindings,
                                                            tileConstraint = RQConv2DTileConstraint())
 
@@ -107,6 +110,9 @@ _BasicFlattenBindings = copy.deepcopy(PULPReshapeBindings)
 
 PULPFlattenTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = _BasicFlattenBindings,
                                                          tileConstraint = NOPTileConstraint())
+
+PULPMaxPool1DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMaxPool1DBindings,
+                                                           tileConstraint = MaxPoolCTileConstraint())
 
 PULPMaxPool2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMaxPool2DBindings,
                                                            tileConstraint = MaxPoolHWTileConstraint())

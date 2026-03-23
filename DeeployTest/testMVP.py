@@ -26,7 +26,8 @@ from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
-    AnnotateIOMemoryLevel, AnnotateNeurekaWeightMemoryLevel
+    AnnotateIOMemoryLevel
+from Deeploy.Targets.Neureka.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateNeurekaWeightMemoryLevel
 from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 

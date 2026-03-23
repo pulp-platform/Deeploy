@@ -50,7 +50,7 @@ IntegerDivMapper = NodeMapper(IntegerDivParser(), BasicDivBindings)
 ITAMaxMapper = NodeMapper(ITAMaxParser(), [BasicITASoftmaxBinding])
 ITAPartialMaxMapper = NodeMapper(ITAPartialMaxParser(), [BasicITAPartialSoftmaxBinding])
 MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
-MaxPoolMapper = NodeMapper(GenericMaxPool2DParser(), BasicMaxPool2DBindings)
+MaxPool2DMapper = NodeMapper(GenericMaxPool2DParser(), BasicMaxPool2DBindings)
 MaxPool1DMapper = NodeMapper(MaxPool1DParser(), BasicMaxPool1DBindings)
 MulMapper = NodeMapper(MulParser(), BasicMulBindings)
 PowMapper = NodeMapper(PowParser(), BasicPowBindings)
@@ -99,7 +99,7 @@ GenericMapping = {
     'ITAPartialMax': ITAMaxLayer([ITAPartialMaxMapper]),
     'MatMul': GEMMLayer([MatMulMapper]),
     'MatMulInteger': MatMulLayer([MatMulMapper]),
-    'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPoolMapper]),
+    'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPool2DMapper]),
     'Mul': MulLayer([MulMapper]),
     'Pow': PowLayer([PowMapper]),
     'Sqrt': SqrtLayer([SqrtMapper]),

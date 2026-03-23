@@ -1,0 +1,32 @@
+diff --git a/.gitignore b/.gitignore
+index 2d63047dd..221d67f8b 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -56,3 +56,5 @@ gaptest_reports/
+ # Release script dry-run output
+ release_dry_run/
+ artifact.txt
++
++.gap9-venv
+diff --git a/merged_requirements.txt b/merged_requirements.txt
+index bf711ddbf..ec08bfe0b 100644
+--- a/merged_requirements.txt
++++ b/merged_requirements.txt
+@@ -2,7 +2,7 @@ Cython>=0.29.21
+ Mako>=1.1.3
+ Ninja
+ Pillow>=7.2.0
+-PyQt5
++# PyQt5
+ PyYAML>=6.0.1
+ QGraphViz
+ Sphinx<7.2.0,>=3.0.0
+@@ -48,7 +48,7 @@ ptyprocess>=0.7.0
+ pybind11>=2.6
+ pycryptodome
+ pyelftools>=0.29
+-pyqt5
++# pyqt5
+ pyserial>=3.5
+ pytablewriter>=1.2.0
+ python-dateutil>=2.7

@@ -6,7 +6,7 @@ import itertools
 from functools import partial
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
+from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
 from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
@@ -14,6 +14,7 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
+from Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure import MemoryAwareClosureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
     GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormInternalChecker, \
@@ -340,9 +341,14 @@ PULPRQSTallGEMMBindings = [
 
 PULPRQSGEMMBindings = PULPRQSGEMM_8_Binding
 
+PULPMaxPool1DBindings = [
+    NodeBinding(PULPMaxPoolChecker([PointerClass(type)], [PointerClass(type)]),
+                MaxPoolTemplate.PULPMaxPool1D_8_Template, ForkTransformer) for type in [int8_t, uint8_t]
+]
+
 PULPMaxPool2DBindings = [
     NodeBinding(PULPMaxPoolChecker([PointerClass(type)], [PointerClass(type)]),
-                MaxPool2DTemplate.PULPMaxPool2D_8_Template, ForkTransformer) for type in [int8_t, uint8_t]
+                MaxPoolTemplate.PULPMaxPool2D_8_Template, ForkTransformer) for type in [int8_t, uint8_t]
 ] + [
     NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMaxPoolTemplate.referenceTemplate, ForkTransformer)
@@ -381,11 +387,49 @@ PULPMaxPoolGrad2DBindings = [
 ]
 
 
-PULPConv1DBinding = NodeBinding(
-    PULPConvChecker(
-        [PointerClass(int8_t), PointerClass(int8_t),
-         PointerClass(int32_t),
-         PointerClass(int32_t)], [PointerClass(int8_t)]), ConvTemplate.PULPConv1D_8_Template, ForkTransformer)
+PULPAveragePool2DBindings = [
+    NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate, ForkTransformer)
+]
+
+PULPAveragePoolGrad2DBindings = [
+    NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceGradTemplate, ForkTransformer)
+]
+
+# 1 input (data_in [N,C,H,W]), 1 output (data_out [N,C,1,1])
+PULPGlobalAveragePool2DBindings = [
+    NodeBinding(
+        GlobalAveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatGlobalAveragePoolTemplate.globalAveragePoolTemplate,
+        ForkTransformer)
+]
+
+# 1 input (dY [N,C,1,1]), 1 output (dX [N,C,H,W])
+PULPGlobalAveragePoolGrad2DBindings = [
+    NodeBinding(
+        GlobalAveragePoolGradChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatGlobalAveragePoolTemplate.globalAveragePoolGradTemplate,
+        ForkTransformer)
+]
+
+PULPMaxPoolGrad2DBindings = [
+    NodeBinding(
+        MaxPoolGradChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatMaxPoolTemplate.referenceGradTemplate, ForkTransformer)
+]
+
+
+PULPRQSConv1DBindings = [
+    NodeBinding(
+        PULPConvChecker([PointerClass(_type),
+                         PointerClass(int8_t),
+                         PointerClass(int32_t),
+                         PointerClass(int32_t)], [PointerClass(_type)]),
+        ConvTemplate.PULPConv1D_8_Template,
+        ForkTransformer,
+    ) for _type in (int8_t, uint8_t)
+]
 
 PULPDWConv1DBinding = NodeBinding(
     PULPConvChecker(

@@ -14,15 +14,17 @@ ARG TARGETPLATFORM
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 ENV PATH="/app/install/bender:${PATH}"
+ENV DEEPLOY_INSTALL_DIR=/app/install
 ENV LLVM_INSTALL_DIR=/app/install/llvm
 
-WORKDIR /app
+WORKDIR /app/build
 
 # Make sure updates in the repo are reflected in the image
 COPY toolchain/*.patch toolchain/
 COPY Makefile ./
-COPY requirements-dev.txt ./
 
 # Compile emulators
 # WIESEP: We need to already clean up some space, otherwise the GitHub runners run out of disk space
@@ -30,8 +32,8 @@ RUN --mount=type=cache,target=/ccache \
     ccache -z && \
     make pulp-sdk chimera-sdk qemu mempool banshee xtensor && \
     make gvsoc && \
-    cp -r /app/toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
-    cp -r /app/toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
+    cp -r toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
+    cp -r toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
     rm -rf toolchain/pulp-sdk toolchain/qemu toolchain/mempool toolchain/banshee toolchain/xtensor toolchain/xtl toolchain/xsimd toolchain/gvsoc && \
     ccache -s
 
@@ -54,13 +56,15 @@ fi
 # Compile Snitch Runtime
 ENV CC="gcc"
 ENV CXX="g++"
+ENV PATH=/app/install/bender:${PATH}
 RUN --mount=type=cache,target=/ccache \
     ccache -z && \
     make snitch_runtime && \
     ccache -s
 
 # Remove toolchain to make the container lighter
-RUN rm -rf toolchain
+WORKDIR /app
+RUN rm -rf /app/build
 
 ########## Stage 2: Lightweight image with precompiled toolchain and emulators ##########
 FROM ubuntu:22.04 AS deeploy
@@ -68,9 +72,12 @@ FROM ubuntu:22.04 AS deeploy
 ARG TARGETPLATFORM
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 # Export symbols necessary for Deeploy's build flow
 ENV CMAKE=/usr/bin/cmake
+ENV DEEPLOY_INSTALL_DIR=/app/install
 ENV PULP_SDK_HOME=/app/install/pulp-sdk
 ENV SNITCH_HOME=/app/install/snitch_cluster
 ENV CHIMERA_SDK_HOME=/app/install/chimera-sdk
@@ -83,7 +90,7 @@ ENV MEMPOOL_HOME=/app/install/mempool
 ENV BENDER_INSTALL_DIR=/app/install/bender
 ENV PATH=/app/install/qemu/bin:/app/install/banshee:/app/install/bender:$PATH
 
-WORKDIR /app
+WORKDIR /app/build
 
 COPY pyproject.toml ./
 
@@ -99,7 +106,8 @@ RUN apt-get update && \
     python-is-python3 \
     python3.10-venv \
     python3.10-distutils \
-    gcc && \
+    gcc \
+    zsh && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && \
     rm get-pip.py && \
@@ -118,10 +126,19 @@ elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     ./cmake-3.24.0-linux-aarch64.sh --prefix=/usr --skip-license; \
 fi
 
+COPY Container/.zshrc ./
+# # Install Oh My ZSH
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \
+    cp .zshrc /root/.zshrc
+
 COPY --from=toolchain /app/core-requirements.txt ./core-requirements.txt
 COPY --from=toolchain /app/gapy-requirements.txt ./gapy-requirements.txt
-COPY --from=toolchain /app/requirements-dev.txt ./
+COPY requirements-dev.txt ./
 RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-requirements.txt
 
 # Copy pre-built toolchains and emulators
-COPY --from=toolchain /app/install ./install
+COPY --from=toolchain /app/install /app/install
+
+# Remove unused files and clean up to reduce image size
+WORKDIR /app
+RUN rm -rf /app/build

@@ -26,6 +26,7 @@ concurrency:
 
 jobs:
   select-env:
+    if: github.repository == 'pulp-platform/Deeploy'
     uses: ./.github/workflows/_select-env.yml
     with:
       docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || (github.repository == 'pulp-platform/Deeploy' && 'ghcr.io/pulp-platform/deeploy-gap9:latest') }}

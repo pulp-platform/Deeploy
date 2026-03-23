@@ -233,7 +233,7 @@ GAP9RQSGEMMBindings = GAP9RQSGEMM_8_Binding
 
 GAP9MaxPool2DBindings = [
     NodeBinding(PULPMaxPoolChecker([PointerClass(type)], [PointerClass(type)]),
-                MaxPool2DTemplate.PULPMaxPool2D_8_Template, GAP9Transformer) for type in [int8_t, uint8_t]
+                MaxPoolTemplate.PULPMaxPool2D_8_Template, GAP9Transformer) for type in [int8_t, uint8_t]
 ] + [
     NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatMaxPoolTemplate.referenceTemplate, GAP9Transformer)
