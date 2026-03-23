@@ -30,6 +30,7 @@ GAP_RISCV_GCC_INSTALL_DIR ?= ${GCC_INSTALL_DIR}/gap9
 CHIMERA_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/chimera-sdk
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
+SPATZ_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/spatz
 QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
 BANSHEE_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/banshee
 MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
@@ -48,6 +49,7 @@ PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
+SPATZ_COMMIT_HASH ?= 9974c6aeabead537e232a0409742cb6fc534171e
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
 GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
@@ -82,7 +84,7 @@ else
 	$(error unsupported platform $(OS))
 endif
 
-all: toolchain emulators docs echo-bash
+all: toolchain emulators # docs echo-bash
 
 echo-bash:
 
@@ -94,6 +96,7 @@ echo-bash:
 	@echo "export GAP_RISCV_GCC_TOOLCHAIN=${GAP_RISCV_GCC_INSTALL_DIR}"
 	@echo "export CHIMERA_SDK_HOME=${CHIMERA_SDK_INSTALL_DIR}"
 	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
+	@echo "export SPATZ_HOME=${SPATZ_INSTALL_DIR}"
 	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
 	@echo "export SOFTHIER_INSTALL_DIR=${SOFTHIER_INSTALL_DIR}"
 	@echo "export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
@@ -463,6 +466,26 @@ ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 	make LLVM_BINROOT=${LLVM_INSTALL_DIR}/bin sw/runtime/banshee sw/runtime/rtl sw/math
 
 snitch_runtime: ${SNITCH_INSTALL_DIR}
+
+${TOOLCHAIN_DIR}/spatz:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/pulp-platform/spatz.git && \
+	cd ${TOOLCHAIN_DIR}/spatz && git checkout ${SPATZ_COMMIT_HASH} && \
+ 	git submodule update --init --recursive
+
+${SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/spatz
+	mkdir -p ${SPATZ_INSTALL_DIR}
+	cp -r ${TOOLCHAIN_DIR}/spatz/ ${SPATZ_INSTALL_DIR}/../
+	cd ${SPATZ_INSTALL_DIR} 
+	make all -j8 && \
+	conda activate /home/sem26f13/.conda/envs/mempool && \
+	source util/iis-env.sh && \
+	make init && \
+	cd hw/system/spatz_cluster/ && \
+	make sw  && \
+	conda deactivate \
+
+spatz_runtime: ${SPATZ_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \

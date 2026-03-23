@@ -10,8 +10,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(CMAKE_C_STANDARD 99)
 
-set(CMAKE_C_COMPILER_LAUNCHER "ccache")
-set(CMAKE_CXX_COMPILER_LAUNCHER "ccache")
+# set(CMAKE_C_COMPILER_LAUNCHER "ccache")
+# set(CMAKE_CXX_COMPILER_LAUNCHER "ccache")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
@@ -331,10 +331,16 @@ endif()
 
 
 if(platform STREQUAL Spatz)
-  # Only LLVM supported for Spatz
+
+  if(NOT DEFINED ENV{SPATZ_HOME})
+    message(FATAL_ERROR "Environment variable SNITCH_HOME not set.")
+  endif()
+
+  set(SPATZ_HOME $ENV{SPATZ_HOME})
+
   set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/spatz/toolchain_llvm.cmake)
 
-  include(${CMAKE_CURRENT_LIST_DIR}/cmake/spatz/spatz.cmake OPTIONAL)
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/spatz/spatz.cmake)
 
   project(deeploy LANGUAGES C ASM)
 
