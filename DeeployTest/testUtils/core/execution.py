@@ -198,27 +198,24 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
     cmd_str = " ".join(cmd)
-    process = subprocess.Popen(cmd_str,
-                               stdout = subprocess.PIPE,
-                               stderr = subprocess.STDOUT,
-                               shell = True,
-                               encoding = 'utf-8')
+    with subprocess.Popen(cmd_str,
+                          stdout = subprocess.PIPE,
+                          stderr = subprocess.STDOUT,
+                          shell = True,
+                          encoding = 'utf-8') as process:
 
-    fileHandle = open('out.txt', 'a', encoding = 'utf-8')
-    fileHandle.write(f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
+        with open('out.txt', 'a', encoding = 'utf-8') as fileHandle:
+            fileHandle.write(f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
 
-    result = ""
-    while True:
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-            break
-        if output:
-            print(output.strip())
-            result += output
-            fileHandle.write(f"{escapeAnsi(output)}")
-
-    fileHandle.write("")
-    fileHandle.close()
+            result = ""
+            while True:
+                output = process.stdout.readline()
+                if output == '' and process.poll() is not None:
+                    break
+                if output:
+                    print(output.strip())
+                    result += output
+                    fileHandle.write(f"{escapeAnsi(output)}")
 
     # Parse output for error count and cycles
     test_result = parse_test_output(result, "")
