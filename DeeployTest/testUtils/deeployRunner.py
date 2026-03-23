@@ -404,6 +404,9 @@ def main(default_platform: Optional[str] = None,
     if hasattr(args, 'num_clusters'):
         platform_specific_cmake_args.append(f"-DNUM_CLUSTERS={args.num_clusters}")
 
+    if hasattr(args, 'powerMeasurement') and args.powerMeasurement:
+        platform_specific_cmake_args.append("-DPOWER_MEASUREMENT=ON")
+
     if platform == 'GAP9':
         platform_specific_cmake_args.append("-D SIMULATOR=" + simulator)
 

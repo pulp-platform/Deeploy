@@ -12,6 +12,7 @@ if __name__ == "__main__":
     # Define parser setup callback to add GAP9-specific arguments
     def setup_parser(parser):
         parser.add_argument('--cores', type = int, default = 8, help = 'Number of cores (default: 8)\n')
+        parser.add_argument('--powerMeasurement', action = 'store_true', default = False, help = 'Enable power measurement GPIO toggling\n')
 
     sys.exit(
         main(default_platform = "GAP9",
