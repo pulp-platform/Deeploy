@@ -11,7 +11,6 @@ from .core import DeeployTestConfig, build_binary, configure_cmake, get_test_pat
 __all__ = [
     'get_worker_id',
     'create_test_config',
-    'create_training_test_config',
     'run_and_assert_test',
     'build_binary',
     'configure_cmake',
@@ -126,65 +125,3 @@ def run_and_assert_test(test_name: str, config: DeeployTestConfig, skipgen: bool
 
     if result.error_count >= 0:
         assert result.error_count == 0, (f"Found {result.error_count} errors out of {result.total_count} tests")
-
-
-def create_training_test_config(
-    test_name: str,
-    platform: str,
-    simulator: str,
-    deeploy_test_dir: str,
-    toolchain: str,
-    toolchain_dir: Optional[str],
-    cmake_args: List[str],
-    cores: Optional[int] = None,
-    n_train_steps: Optional[int] = None,
-    n_accum_steps: Optional[int] = None,
-    training_num_data_inputs: Optional[int] = None,
-    optimizer_dir: Optional[str] = None,
-    tiling: bool = False,
-) -> DeeployTestConfig:
-
-    test_dir = f"Tests/{test_name}"
-    gen_dir, test_dir_abs, test_name_clean = get_test_paths(test_dir, platform, base_dir = deeploy_test_dir)
-
-    worker_id = get_worker_id()
-    if worker_id == "master":
-        build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / "build_master")
-    else:
-        build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}")
-
-    cmake_args_list = list(cmake_args) if cmake_args else []
-    if cores is not None:
-        cmake_args_list.append(f"NUM_CORES={cores}")
-
-    gen_args_list = []
-    if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka", "GAP9"]:
-        gen_args_list.append(f"--cores={cores}")
-
-    # Resolve optimizer_dir relative to Tests/ when given as a relative path
-    optimizer_dir_abs = None
-    if optimizer_dir is not None:
-        p = Path(optimizer_dir)
-        if not p.is_absolute():
-            optimizer_dir_abs = str(Path(deeploy_test_dir) / "Tests" / optimizer_dir)
-        else:
-            optimizer_dir_abs = optimizer_dir
-
-    return DeeployTestConfig(
-        test_name = test_name_clean,
-        test_dir = test_dir_abs,
-        platform = platform,
-        simulator = simulator,
-        tiling = tiling,
-        gen_dir = gen_dir,
-        build_dir = build_dir,
-        toolchain = toolchain,
-        toolchain_install_dir = toolchain_dir,
-        cmake_args = cmake_args_list,
-        gen_args = gen_args_list,
-        training = True,
-        n_train_steps = n_train_steps,
-        n_accum_steps = n_accum_steps,
-        training_num_data_inputs = training_num_data_inputs,
-        optimizer_dir = optimizer_dir_abs,
-    )

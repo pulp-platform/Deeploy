@@ -68,11 +68,6 @@ def pytest_configure(config: pytest.Config) -> None:
                             "siracusa_neureka_tiled: mark test as a Siracusa + Neureka platform test (tiled)")
     config.addinivalue_line("markers", "gap9: mark test as a GAP9 platform test")
     config.addinivalue_line("markers", "gap9_tiled: mark test as a GAP9 platform test (tiled)")
-    config.addinivalue_line("markers",
-                            "gap9_train: mark test as a GAP9 training test (forward + backward + optimizer)")
-    config.addinivalue_line(
-        "markers",
-        "gap9_train_tiled: mark test as a GAP9 tiled training test (forward + backward + optimizer, tiled)")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")
     config.addinivalue_line("markers", "models: mark test as a model test (full networks)")
     config.addinivalue_line("markers", "singlebuffer: mark test as single-buffer configuration")
@@ -84,19 +79,6 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line(
         "markers",
         "deeploy_internal: mark test as internal Deeploy test (state serialization, extensions, transformations)")
-    config.addinivalue_line("markers",
-                            "siracusa_train: mark test as a Siracusa training test (forward + backward + optimizer)")
-    config.addinivalue_line(
-        "markers",
-        "siracusa_train_tiled: mark test as a Siracusa tiled training test (forward + backward + optimizer, tiled)")
-    config.addinivalue_line(
-        "markers",
-        "siracusa_grad_tiled: mark test as a Siracusa tiled gradient-operator kernel test (single backward-pass ops, SBTiler)"
-    )
-    config.addinivalue_line(
-        "markers",
-        "gap9_grad_tiled: mark test as a GAP9 tiled gradient-operator kernel test (single backward-pass ops, SBTiler)"
-    )
 
     # Configure logging based on verbosity
     verbosity = config.option.verbose
