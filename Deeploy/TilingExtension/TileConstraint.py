@@ -131,13 +131,6 @@ class TileConstraint():
 
             return solution, solutionLengths
 
-        if len(tilingSolution.outputTensorMemoryConstraints) != 1:
-            import sys
-            node_name = operatorRepresentation.get('nodeName', '?')
-            print(f"[DEBUG] TileConstraint assertion fail for node '{node_name}': "
-                  f"outputs={list(tilingSolution.outputTensorMemoryConstraints.keys())}, "
-                  f"inputs={list(tilingSolution.inputTensorMemoryConstraints.keys())}, "
-                  f"intermediates={list(tilingSolution.intermediateTensorMemoryConstraints.keys())}", file=sys.stderr, flush=True)
         assert len(tilingSolution.outputTensorMemoryConstraints) == 1, "Expected node to have only one output!"
 
         outVar, outTensorConstraint = next(iter(tilingSolution.outputTensorMemoryConstraints.items()))

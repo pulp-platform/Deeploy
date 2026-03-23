@@ -28,9 +28,7 @@ class _PULPInPlaceAccumulatorV2Template(NodeTemplate):
             operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, OperatorRepresentation, List[str]]:
         accum_buffer = ctxt.lookup(operatorRepresentation['accum_buffer'])
         data_out = ctxt.lookup(operatorRepresentation['data_out'])
-        assert isinstance(accum_buffer, VariableBuffer)
-        assert isinstance(data_out, VariableBuffer)
-        # Bidirectional alias: data_out shares memory with accum_buffer.
+
         accum_buffer.aliases.add(data_out.name)
         data_out.aliases.add(accum_buffer.name)
         return ctxt, operatorRepresentation, []
