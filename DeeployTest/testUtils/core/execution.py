@@ -205,7 +205,8 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
                           encoding = 'utf-8') as process:
 
         with open('out.txt', 'a', encoding = 'utf-8') as fileHandle:
-            fileHandle.write(f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
+            fileHandle.write(
+                f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
 
             result = ""
             while True:
