@@ -25,7 +25,7 @@ set -euo pipefail
 #########################################################################
 
 # Image and container names
-GAP9_IMAGE="deeploy-gap9"
+GAP9_IMAGE="ghcr.io/pulp-platform/deeploy-gap9"
 USBIP_IMAGE="jonathanberi/devmgr"
 
 DOCKER_PLATFORM="auto"
