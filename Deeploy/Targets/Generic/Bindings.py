@@ -14,7 +14,7 @@ from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation i
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
     FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatAveragePoolTemplate, FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, \
+    FloatLayernormTemplate, FloatMatMulTemplate, \
     FloatMaxPoolTemplate, \
     FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
     FloatSoftmaxTemplate, FloatSqrtTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, \
@@ -24,7 +24,7 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
-    AveragePoolChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, \
+    LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, \
     PadChecker, \
     QuantChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, \
     RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
@@ -175,11 +175,6 @@ BasicMaxPool2DBindings = [
                 FloatMaxPoolTemplate.referenceTemplate, BasicTransformer)
 ]
 
-BasicAveragePool2DBindings = [
-    NodeBinding(AveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatAveragePoolTemplate.referenceTemplate, BasicTransformer)
-]
-
 BasicMulBindings = [
     NodeBinding(MulChecker([PointerClass(typeA), PointerClass(typeB)], [PointerClass(int32_t)]),
                 MulTemplate.referenceTemplate, BasicTransformer)
@@ -328,19 +323,3 @@ BasicConvTransposeBindings = [
         BasicTransformer) for type in FloatDataTypes
 ]
 
-# InPlaceAccumulatorV2: buffer (float32) + gradient (float32) + lazy_reset_grad (uint8/int8) -> out (float32)
-# Two variants: uint8_t (direct) and int8_t (sign-propagation converts uint8->int8 on Generic platform)
-BasicInPlaceAccumulatorV2Bindings = [
-    NodeBinding(
-        InPlaceAccumulatorV2Checker(
-            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(uint8_t)],
-            [PointerClass(float32_t)]),
-        FloatInPlaceAccumulatorV2Template.referenceTemplate,
-        BasicTransformer),
-    NodeBinding(
-        InPlaceAccumulatorV2Checker(
-            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(int8_t)],
-            [PointerClass(float32_t)]),
-        FloatInPlaceAccumulatorV2Template.referenceTemplate,
-        BasicTransformer),
-]

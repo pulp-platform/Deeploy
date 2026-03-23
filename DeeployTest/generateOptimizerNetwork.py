@@ -28,13 +28,16 @@ import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
 from testUtils.codeGenerate import generateOptimizerTestNetwork
-from testUtils.platformMapping import mapDeployer, mapPlatform
+from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import float32_t
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
+from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
+from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel
 from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 
 
@@ -72,6 +75,21 @@ def generateOptimizerNetwork(args):
                            deeployStateDir=_DEEPLOYSTATEDIR,
                            inputOffsets=inputOffsets)
 
+    # Set up memory hierarchy so AnnotateDefaultMemoryLevel assigns the correct
+    # memory level to ConstantBuffers (weights).  The optimizer graph is NOT
+    # tiled, but it must share the same memory-level view as the training graph
+    # so that weights end up in the same physical location (L2 when L3 is the
+    # training default, see AnnotateDefaultMemoryLevel).
+    L3 = MemoryLevel(name="L3", neighbourNames=["L2"], size=64000000)
+    L2 = MemoryLevel(name="L2", neighbourNames=["L3", "L1"], size=args.l2)
+    L1 = MemoryLevel(name="L1", neighbourNames=["L2"], size=args.l1)
+    memoryHierarchy = MemoryHierarchy([L3, L2, L1])
+    memoryHierarchy.setDefaultMemoryLevel(args.defaultMemLevel)
+    defaultTargetMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel]
+
+    deployer.Platform = setupMemoryPlatform(deployer.Platform, memoryHierarchy, defaultTargetMemoryLevel)
+    deployer = MemoryDeployerWrapper(deployer, [AnnotateDefaultMemoryLevel(memoryHierarchy)])
+
     verbosityCfg = _NoVerbosity
     _ = deployer.prepare(verbosityCfg)
 
@@ -98,6 +116,10 @@ if __name__ == '__main__':
         default=0.001,
         help="Learning rate (informational only; embedded in optimizer ONNX attributes). Default: 0.001.",
     )
+    parser.add_argument("--defaultMemLevel", type=str, default="L2",
+                        help="Default memory level (L2 or L3). Must match the training graph. Default: L2.")
+    parser.add_argument("--l1", type=int, default=64000, help="L1 size in bytes. Default: 64000.")
+    parser.add_argument("--l2", type=int, default=1024000, help="L2 size in bytes. Default: 1024000.")
     parser.add_argument('--shouldFail', action='store_true')
     parser.set_defaults(shouldFail=False)
 

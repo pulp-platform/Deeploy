@@ -127,8 +127,9 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 "-t", opt_dir,
                 "-p", config.platform,
             ]
+            _OPT_PASSTHROUGH = ("--cores", "--defaultMemLevel", "--l1", "--l2")
             for arg in config.gen_args:
-                if arg.startswith("--cores"):
+                if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
                     opt_cmd.append(arg)
             if config.verbose > 0:
                 opt_cmd.append("-" + "v" * config.verbose)
@@ -195,8 +196,9 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 "-t", opt_dir,
                 "-p", config.platform,
             ]
+            _OPT_PASSTHROUGH = ("--cores", "--defaultMemLevel", "--l1", "--l2")
             for arg in config.gen_args:
-                if arg.startswith("--cores"):
+                if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
                     opt_cmd.append(arg)
             if config.verbose > 0:
                 opt_cmd.append("-" + "v" * config.verbose)
