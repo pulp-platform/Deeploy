@@ -298,7 +298,7 @@ class TestRunner():
                  gen_args: str = "",
                  cmake_args: str = ""):
 
-        if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board' ,'none']:
+        if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none']:
             raise ValueError(
                 f"Invalid emulator {simulator} (valid options are 'gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none')!"
             )

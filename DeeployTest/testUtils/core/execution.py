@@ -6,14 +6,12 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from Deeploy.Logging import DEFAULT_LOGGER as log
 
 from .config import DeeployTestConfig
 from .output_parser import TestResult, parse_test_output
-import threading
 
 
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
@@ -149,10 +147,12 @@ def build_binary(config: DeeployTestConfig) -> None:
         log.error(f"Build failed with return code {result.returncode}")
         raise RuntimeError(f"Build failed for {config.test_name}")
 
+
 # Source: https://stackoverflow.com/a/38662876
 def escapeAnsi(line):
     ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
     return ansi_escape.sub('', line)
+
 
 def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     """
@@ -199,14 +199,13 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
 
     cmd_str = " ".join(cmd)
     process = subprocess.Popen(cmd_str,
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.STDOUT,
-                                shell = True,
-                                encoding = 'utf-8')
+                               stdout = subprocess.PIPE,
+                               stderr = subprocess.STDOUT,
+                               shell = True,
+                               encoding = 'utf-8')
 
     fileHandle = open('out.txt', 'a', encoding = 'utf-8')
-    fileHandle.write(
-        f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
+    fileHandle.write(f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
 
     result = ""
     while True:

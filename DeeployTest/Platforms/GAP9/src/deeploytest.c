@@ -17,10 +17,10 @@
 #define SLAVESTACKSIZE 3800
 
 #ifdef POWER_MEASUREMENT
-  unsigned int GPIOs = 89;
-  #define WRITE_GPIO(x) pi_gpio_pin_write(GPIOs,x)
+unsigned int GPIOs = 89;
+#define WRITE_GPIO(x) pi_gpio_pin_write(GPIOs, x)
 #endif
-  
+
 struct pi_device cluster_dev;
 uint32_t total_cycles = 0;
 
