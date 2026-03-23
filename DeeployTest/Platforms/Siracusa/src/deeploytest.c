@@ -11,7 +11,7 @@
 #include "testinputs.h"
 #include "testoutputs.h"
 
-#define MAINSTACKSIZE 12000
+#define MAINSTACKSIZE 8000
 #define SLAVESTACKSIZE 3800
 
 struct pi_device cluster_dev;
@@ -41,7 +41,7 @@ void CompareFloatOnCluster(void *args) {
       float actual_val = actual[i];
       float diff = expected_val - actual_val;
 
-      if ((diff < -1e-3) || (diff > 1e-3) || isnan(diff)) {
+      if ((diff < -1e-4) || (diff > 1e-4) || isnan(diff)) {
         local_err_count += 1;
 
         printf("Expected: %10.6f  ", expected_val);
@@ -138,10 +138,7 @@ int main(void) {
                       &float_compare_args);
       cluster_task.stack_size = MAINSTACKSIZE;
       cluster_task.slave_stack_size = SLAVESTACKSIZE;
-
       pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
-      printf("%i errors in %i in output %i\r\n", float_error_count,
-             float_compare_args.num_elements, buf);
 
       tot_err += float_error_count;
     } else {
