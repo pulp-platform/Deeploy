@@ -17,7 +17,7 @@ from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9AveragePool2DBind
     GAP9FloatDWConvGradX2DBindings, GAP9FloatGELUBinding, GAP9FloatGELUGradBinding, GAP9FloatGEMMBindings, \
     GAP9FloatPWConvGradW2DBindings, GAP9FloatPWConvGradX2DBindings, GAP9GatherBindings, \
     GAP9GlobalAveragePool2DBindings, GAP9GlobalAveragePoolGrad2DBindings, \
-    GAP9iHardswishBindings, GAP9InPlaceAccumulatorV2TiledBindings, GAP9iRMSNormBindings, GAP9iRQSGELUBindings, \
+    GAP9iHardswishBindings, GAP9InPlaceAccumulatorV2Bindings, GAP9InPlaceAccumulatorV2TiledBindings, GAP9iRMSNormBindings, GAP9iRQSGELUBindings, \
     GAP9LayernormBinding, GAP9LayernormGradBinding, GAP9LayernormInferenceBinding, \
     GAP9MatMulBindings, GAP9MaxPool2DBindings, \
     GAP9MaxPoolGrad2DBindings, GAP9MSELossBindings, GAP9MSELossGradBindings, \
@@ -38,6 +38,7 @@ from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import 
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.InPlaceAccumulatorV2TileConstraint import InPlaceAccumulatorV2TileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
     RQDWConv2DTileConstraint
@@ -52,8 +53,6 @@ from Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint import FloatGEM
 from Deeploy.Targets.PULPOpen.TileConstraints.GeluTileConstraint import GeluGradTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GlobalAveragePoolTileConstraint import GlobalAveragePoolTileConstraint, \
     GlobalAveragePoolGradTileConstraint
-from Deeploy.Targets.PULPOpen.TileConstraints.InPlaceAccumulatorV2TileConstraint import \
-    InPlaceAccumulatorV2TileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint import SoftmaxGradTileConstraint, \
     iSoftmaxTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint import ReduceSumTileConstraint

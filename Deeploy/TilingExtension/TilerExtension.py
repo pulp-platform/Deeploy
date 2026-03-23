@@ -208,7 +208,6 @@ class Tiler():
             scratchBuffer._instance = scratchBuffer._type(arenaName, ctxt)
             scratchBuffer._memoryLevel = level
 
-
             # JUNGVI: Memory Arena buffers should be allocated first since other variable global buffers may belong to a memory arena
             ctxt.globalObjects.move_to_end(scratchBuffer.name, last = False)
 
@@ -277,12 +276,11 @@ class Tiler():
                                 8) * nodeMemoryConstraint.tensorMemoryConstraints[
                                     memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
 
-                _alignedBufferSize = ((int(_bufferSize) + 3) // 4) * 4
                 writer.writerow([
                     memoryBlock.name,
                     str(memoryBlock.lifetime[0]),
                     str(memoryBlock.lifetime[1] + 1),
-                    str(_alignedBufferSize)
+                    str(int(_bufferSize))
                 ])
 
         try:
@@ -322,7 +320,6 @@ class Tiler():
             log.debug(" - Extract Memory Allocation")
             self.innerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
             self.outerMemoryScheduler.annotateSolution(ctxt, self.tilerModel)
-        print(tilingSolution)
         return tilingSolution
 
     def computeMemoryMap(self, ctxt: NetworkContext, tilingSolution: TilingSolution) -> MemoryMap:

@@ -21,7 +21,8 @@ from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormInternalCh
     GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, GlobalAveragePoolGradChecker, \
     HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolGradChecker, MulChecker, \
     MSELossChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, \
-    SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, \
+    PULPConvGradBChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -38,7 +39,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
     SoftmaxCrossEntropyLossTemplate, \
     TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
-from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPConvGradBChecker, PULPLinearChecker, \
+from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, \
     PULPMaxPoolChecker, PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
     TilingVariableReplacementUpdate
@@ -489,10 +490,6 @@ PULPInPlaceAccumulatorV2Bindings = [
         FloatInPlaceAccumulatorV2Template.referenceTemplate, ForkTransformer)
 ]
 
-# Tiled variant: uses tiledReferenceTemplate which writes only to accum_buffer.
-# data_out is not written in the tiled kernel — the DMA egress for accum_buffer
-# carries the gradient back to L2; data_out's L2 address may overlap with other
-# live buffers so writing there via DMA would corrupt L2.
 PULPInPlaceAccumulatorV2TiledBindings = [
     NodeBinding(
         InPlaceAccumulatorV2Checker(

@@ -9,7 +9,6 @@ from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTy
 from Deeploy.DeeployTypes import OperatorRepresentation, VariableBuffer
 
 
-
 class PULPDMASliceChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
