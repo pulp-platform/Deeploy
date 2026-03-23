@@ -425,28 +425,9 @@ class MaxPoolGradParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        # data_in  = grad_output (upstream gradient, shape of forward output)
-        # x_in     = original_input (forward input, needed to re-compute argmax)
-        # data_out = grad_input (gradient w.r.t. forward input)
-        #
-        # ORT training format: MaxPoolGrad inputs are [dY, mask] where mask is the int64
-        # indices tensor from MaxPool output[1].  Deeploy's kernel recomputes argmax from
-        # the original forward input X, so when input[1] is the int64 mask we traverse
-        # the graph to find X (the producer MaxPool node's input[0]).
         data_in = ctxt.lookup(node.inputs[0].name)
         data_out = ctxt.lookup(node.outputs[0].name)
-
-        mask_tensor = node.inputs[1]
-        # Detect ORT format by checking the producer op (dtype may be None or int64).
-        maxpool_producers = [n for n in mask_tensor.inputs if n.op == 'MaxPool']
-        if maxpool_producers:
-            # ORT format: input[1] is the index mask produced by MaxPool output[1].
-            # Traverse: mask_tensor.inputs[0] = MaxPool node → .inputs[0] = forward input X.
-            X_tensor = maxpool_producers[0].inputs[0]
-            x_in = ctxt.lookup(X_tensor.name)
-        else:
-            # Legacy / rewritten format: input[1] is already the float32 forward input X.
-            x_in = ctxt.lookup(mask_tensor.name)
+        x_in = ctxt.lookup(node.inputs[1].name)
 
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['x_in'] = x_in.name

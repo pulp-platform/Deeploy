@@ -71,7 +71,6 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAvera
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.SplitConvGradPass import SplitConvGradPass
-from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.RewriteMaxPoolGradPass import RewriteMaxPoolGradInputPass
 
 # ── Inference NodeMappers ──────────────────────────────────────────────────
 RQAddMapper = NodeMapper(RQAddParser(), PULPRQAddTilingReadyBindings)
@@ -280,7 +279,6 @@ class PULPStructBuffer(StructBuffer):
 
 PULPOptimizer = TopologyOptimizer([
     SplitConvGradPass(),
-    RewriteMaxPoolGradInputPass(),
     QuantPatternPass(),
     DequantPatternPass(),
     SkipEmptyConcatPass(),
