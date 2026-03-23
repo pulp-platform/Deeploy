@@ -343,11 +343,12 @@ class VariableBuffer():
             next = queue.pop()
             buffNext = ctxt.lookup(next)
             assert isinstance(buffNext, VariableBuffer)
-            live |= buffNext._live or (next in ctxt.globalObjects)
+            live |= buffNext._live
             visited.add(next)
             queue |= buffNext.aliases - visited
         return live
 
+    @property
     def sizeInBytes(self) -> int:
         """Returns the size of this VariableBuffer in bytes
 
@@ -386,6 +387,7 @@ class TransientBuffer(VariableBuffer):
     def __repr__(self) -> str:
         return f'TransientBuffer: name: {self.name}, size: {self.size}'
 
+    @property
     def sizeInBytes(self) -> int:
         return int(self.size)
 
@@ -504,9 +506,20 @@ class _ReferenceBuffer(VariableBuffer):
         repr['offset'] = self._offset
         return repr
 
+    def __str__(self) -> str:
+        if hasattr(self, "_type"):
+            return f'VariableBuffer: name: {self.name}, type: {self._type}, reference: {self._referenceName}+{self._offset}'
+
+        return f'VariableBuffer: name: {self.name}, reference: {self._referenceName}+{self._offset}'
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class NetworkContext():
-    """The global context of the compiler. This object holds all the typing inferred in the type-checking passes within the respective buffers. It holds all hoisted transient buffers, struct buffers, and global definitions. The context is the source of truth for all code generation in the backend.
+    """The global context of the compiler. This object holds all the typing inferred in the type-checking passes within
+    the respective buffers. It holds all hoisted transient buffers, struct buffers, and global definitions.
+    The context is the source of truth for all code generation in the backend.
     """
 
     def __init__(self,
@@ -514,11 +527,11 @@ class NetworkContext():
                  constantBuffer: Type[ConstantBuffer],
                  structBuffer: Type[StructBuffer],
                  transientBuffer: Type[TransientBuffer],
-                 globalObjects = {},
-                 localObjects = {},
+                 globalObjects: Optional[OrderedDict] = None,
+                 localObjects: Optional[OrderedDict] = None,
                  name: str = 'DeeployNetwork'):
-        self.globalObjects = OrderedDict()
-        self.localObjects = OrderedDict()
+        self.globalObjects = globalObjects if globalObjects is not None else OrderedDict()
+        self.localObjects = localObjects if localObjects is not None else OrderedDict()
         self.VariableBuffer = variableBuffer
         self.ConstantBuffer = constantBuffer
         self.StructBuffer = structBuffer
@@ -544,8 +557,8 @@ class NetworkContext():
         Raises
         ------
         Exception
-            Raises an Exception if aliases are circular
-
+            Raises an Exception if aliases are circular, i.e. there
+            is no underlying VariableBuffer
         """
         seenAliases: Set[str] = set()
         alias = self.lookup(name)
@@ -571,8 +584,8 @@ class NetworkContext():
         Raises
         ------
         Exception
-            Raises an Exception if references are circular
-
+            Raises an Exception if references are circular, i.e. there
+            is no underlying VariableBuffer
         """
         seenRefs = set()
         while isinstance(ref, _ReferenceBuffer):
@@ -922,7 +935,7 @@ class NetworkContext():
         reference : VariableBuffer
             Referenced VariableBuffer
         shape: Tuple[int, ...]
-            Shape of the _ReferenceBuffer
+            Shape of the reference
         offset: Union[int, str, VariableBuffer]
             Offset from the reference
         override_type: Optional[Type[BaseType]]
@@ -932,7 +945,6 @@ class NetworkContext():
         -------
         _ReferenceBuffer
             Returns the newly registered _ReferenceBuffer
-
         """
         ref = _ReferenceBuffer(name, reference, shape, offset)
         if override_type is not None:
@@ -1308,8 +1320,6 @@ class NodeTypeChecker():
                         reference._type = _type
                         reference._instance = _type(inputNode.name, ctxt)
                 else:
-                    if not hasattr(reference, '_type'):
-                        return False
                     retCheck &= reference._type.referencedType == _type.referencedType
         return retCheck
 
@@ -1341,9 +1351,7 @@ class NodeTypeChecker():
         for key, value in operatorRepresentation.items():
             # check if the referenced buffer is in the environment
             if isinstance(value, str) and value in env:
-                buf = ctxt.lookup(value)
-                if hasattr(buf, '_type'):
-                    self.typeDict[key + '_type'] = buf._type
+                self.typeDict[key + '_type'] = ctxt.lookup(value)._type
 
     def typeCheck(self, ctxt: NetworkContext, node: gs.Node,
                   operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, bool]:
@@ -2090,15 +2098,11 @@ class ONNXLayer():
             # Update shapes and types of tensors in onnx graph based on type inference after binding
             for node in (self.node.inputs + self.node.outputs):
                 if ctxt.is_local(node.name):
-                    if not hasattr(ctxt.localObjects[node.name], '_type'):
-                        continue  # skip untyped buffers (e.g. ReduceSum axes, MaxPool mask)
                     node.shape = ctxt.localObjects[node.name].shape
                     npType = self._broadcastToNpType(ctxt.localObjects[node.name]._type)
                     if npType is not None:
                         node.dtype = npType
                 elif ctxt.is_global(node.name):
-                    if not hasattr(ctxt.globalObjects[node.name], '_type'):
-                        continue  # skip untyped global buffers
                     npType = self._broadcastToNpType(ctxt.globalObjects[node.name]._type)
                     if isinstance(ctxt.globalObjects[node.name], ConstantBuffer):
                         if isinstance(node, gs.Constant):
@@ -2848,12 +2852,6 @@ class NetworkContainer():
             if isinstance(node, StructBuffer):
                 continue
 
-            # Skip local buffers that were registered but never typed (e.g. optional ONNX
-            # outputs like the MaxPool indices/mask tensor).  These are not referenced by any
-            # template and must not be emitted as C declarations.
-            if not hasattr(node, '_type'):
-                continue
-
             name = node.name
             node.name = self.ctxt._mangle(node.name)
             callStack += node.init()
@@ -2954,8 +2952,6 @@ class NetworkContainer():
         callStack = ''
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
-                if not hasattr(node, '_type'):
-                    continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -3001,8 +2997,6 @@ class NetworkContainer():
 
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
-                if not hasattr(node, '_type'):
-                    continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -3540,8 +3534,6 @@ class NetworkDeployer(NetworkContainer):
                 if isinstance(_buffer, ConstantBuffer) or (isinstance(_buffer, VariableBuffer) and _buffer._deploy):
                     # SCHEREMO: We only
                     if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level == "None":
-                        if not hasattr(_buffer, '_type'):
-                            continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                         staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
                     else:
                         log.warning(f"Buffer {_buffer.name} does not have a valid memory level")
