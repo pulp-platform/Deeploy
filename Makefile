@@ -478,12 +478,13 @@ ${SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/spatz
 	cp -r ${TOOLCHAIN_DIR}/spatz/ ${SPATZ_INSTALL_DIR}/../
 	cd ${SPATZ_INSTALL_DIR} 
 	make all -j8 && \
-	conda activate /home/sem26f13/.conda/envs/mempool && \
+	python3.6 -m venv .venv && \
+	.venv/bin/pip install jsonref jsonschema jstyleson dataclasses hjson mako && \
+	source .venv/bin/activate && \
 	source util/iis-env.sh && \
 	make init && \
 	cd hw/system/spatz_cluster/ && \
-	make sw  && \
-	conda deactivate \
+	make sw
 
 spatz_runtime: ${SPATZ_INSTALL_DIR}
 
