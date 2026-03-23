@@ -92,11 +92,11 @@ class TilingHoistingMixIn:
         # LMACAN: Intentionally don't annotate memory level so it gets allocated
         # outside of the tiling loops
 
-        tileIdxPtr.allocTemplate = NodeTemplate("")
-        tileIdxPtr.deallocTemplate = NodeTemplate("")
-        tileIdxPtr.initTemplate = NodeTemplate("""
+        tileIdxPtr.allocTemplate = NodeTemplate("""
         ${type.referencedType.typeName} bu_${name} = 0;
         ${type.referencedType.typeName}* ${name} = &bu_${name};""")
+        tileIdxPtr.deallocTemplate = NodeTemplate("")
+        tileIdxPtr.initTemplate = NodeTemplate("")
 
         return (tileNum, tileIdxPtr)
 
