@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
-#
-# SPDX-License-Identifier: Apache-2.0
 
 set(CMAKE_SYSTEM_NAME Generic)
 
