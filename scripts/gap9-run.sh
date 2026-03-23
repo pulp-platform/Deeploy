@@ -25,7 +25,7 @@ set -euo pipefail
 #########################################################################
 
 # Image and container names
-GAP9_IMAGE="ghcr.io/pulp-platform/deeploy-gap9"
+GAP9_IMAGE="deeploy-gap9"
 USBIP_IMAGE="jonathanberi/devmgr"
 
 DOCKER_PLATFORM="auto"
@@ -66,6 +66,40 @@ log_warn() {
 
 log_success() {
 	echo -e "\033[0;32m[SUCCESS]\033[0m $*"
+}
+
+# Resolve USBIP_HOST to an IP usable from the host network namespace.
+# On Linux, host.docker.internal doesn't resolve natively (no Docker Desktop DNS).
+resolve_usbip_host() {
+	local host="$1"
+	# Already an IP address — return as-is
+	if [[ "$host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		echo "$host"
+		return
+	fi
+	# Try standard DNS resolution (works on macOS/Windows with Docker Desktop)
+	local ip
+	ip=$(getent hosts "$host" 2>/dev/null | awk '{print $1; exit}')
+	if [[ -n "$ip" ]]; then
+		echo "$ip"
+		return
+	fi
+	# Fallback for host.docker.internal on native Linux Docker:
+	# use the docker0 bridge interface or Docker bridge network gateway
+	if [[ "$host" == "host.docker.internal" ]]; then
+		ip=$(ip -4 addr show docker0 2>/dev/null | sed -n 's/.*inet \([0-9.]*\).*/\1/p' | head -1)
+		if [[ -n "$ip" ]]; then
+			echo "$ip"
+			return
+		fi
+		ip=$(docker network inspect bridge -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}' 2>/dev/null | head -1)
+		if [[ -n "$ip" ]]; then
+			echo "$ip"
+			return
+		fi
+	fi
+	# Last resort: return hostname as-is (works on macOS/Windows)
+	echo "$host"
 }
 
 # Display help message
@@ -291,6 +325,7 @@ cmd_start_usbip_daemon() {
 		--privileged \
 		--pid=host \
 		--name usbip-devmgr \
+		--add-host=host.docker.internal:host-gateway \
 		-e USBIP_HOST="$USBIP_HOST" \
 		-e USBIP_VENDOR="$USBIP_VENDOR" \
 		-e USBIP_PRODUCT="$USBIP_PRODUCT" \
@@ -304,8 +339,16 @@ cmd_attach_usbip() {
 	# First detach any existing attachment
 	cmd_detach_usbip || true
 
-	log_info "Attaching USB device to usbip-devmgr..."
-	docker exec -i usbip-devmgr /bin/sh -lc 'nsenter -t1 -m sh -lc "
+	# Resolve hostname to IP on the host side (avoids DNS issues inside nsenter on Linux)
+	local usbip_host_ip
+	usbip_host_ip=$(resolve_usbip_host "$USBIP_HOST")
+	log_info "Attaching USB device to usbip-devmgr (host: $usbip_host_ip)..."
+
+	docker exec -i \
+		-e USBIP_HOST="$usbip_host_ip" \
+		-e USBIP_VENDOR="$USBIP_VENDOR" \
+		-e USBIP_PRODUCT="$USBIP_PRODUCT" \
+		usbip-devmgr /bin/sh -lc 'nsenter -t1 -m sh -lc "
         usbip list -r \"$USBIP_HOST\" || { echo \"usbip list failed\"; exit 1; }
         BUSID=\$(usbip list -r \"$USBIP_HOST\" \
             | grep \"$USBIP_VENDOR:$USBIP_PRODUCT\" \
