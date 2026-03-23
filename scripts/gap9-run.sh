@@ -77,7 +77,12 @@ resolve_usbip_host() {
 		echo "$host"
 		return
 	fi
-	# Try standard DNS resolution (works on macOS/Windows with Docker Desktop)
+	# On non-Linux (macOS/Windows), Docker Desktop resolves host.docker.internal natively
+	if [[ "$(uname -s)" != "Linux" ]]; then
+		echo "$host"
+		return
+	fi
+	# Linux: try standard DNS resolution
 	local ip
 	ip=$(getent hosts "$host" 2>/dev/null | awk '{print $1; exit}')
 	if [[ -n "$ip" ]]; then
@@ -98,7 +103,7 @@ resolve_usbip_host() {
 			return
 		fi
 	fi
-	# Last resort: return hostname as-is (works on macOS/Windows)
+	# Last resort: return hostname as-is
 	echo "$host"
 }
 
