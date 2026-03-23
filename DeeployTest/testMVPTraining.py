@@ -14,7 +14,7 @@ import onnx_graphsurgeon as gs
 from testUtils.codeGenerate import generateTrainingTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
-from testUtils.tilingUtils import SBTiler
+from testUtils.tilingUtils import TrainingSBTiler
 from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -207,11 +207,11 @@ def generateTiledTrainingNetwork(args) -> None:
         AnnotateDefaultMemoryLevel(memoryHierarchy),
     ])
 
-    # 9. Wrap with tiler (SBTiler only — DBTiler conflicts with InPlaceAccumulatorV2 alias).
+    # 9. Wrap with tiler (TrainingSBTiler: SB strategy + extended input lifetimes for backward pass).
     unique_params = f"{args.dumpdir}_L1{args.l1}_L2{args.l2}_{args.defaultMemLevel}"
     testIdentifier = hashlib.md5(unique_params.encode()).hexdigest()[:16]
 
-    deployer = TilerDeployerWrapper(deployer, SBTiler, testName=testIdentifier, workDir=args.dumpdir)
+    deployer = TilerDeployerWrapper(deployer, TrainingSBTiler, testName=testIdentifier, workDir=args.dumpdir)
     deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
