@@ -111,14 +111,14 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
             config.training_num_data_inputs = meta["training_num_data_inputs"]
             log.info(f"[Execution] Training meta: {meta}")
 
-        # --- Step 2: Optimizer network (SGD) ---
+        # --- Step 2: Tiled optimizer network (SGD via testMVPOptimizer.py) ---
         opt_dir = _resolve_optimizer_dir(config)
-        opt_script = script_dir / "generateOptimizerNetwork.py"
+        opt_script = script_dir / "testMVPOptimizer.py"
 
         if not Path(opt_dir).exists():
             log.warning(f"Optimizer directory not found: {opt_dir} — skipping optimizer codegen")
         elif not opt_script.exists():
-            log.warning(f"generateOptimizerNetwork.py not found — skipping optimizer codegen")
+            log.warning(f"testMVPOptimizer.py not found — skipping optimizer codegen")
         else:
             opt_cmd = [
                 sys.executable,
@@ -127,17 +127,26 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 "-t", opt_dir,
                 "-p", config.platform,
             ]
-            _OPT_PASSTHROUGH = ("--cores", "--defaultMemLevel", "--l1", "--l2")
+            # The SGD kernel directly dereferences its input/output buffers as CPU
+            # pointers (no DMA).  L3 HyperRAM device addresses are NOT CPU-accessible
+            # from the cluster, so the optimizer must always use L2 for its I/O
+            # buffers regardless of what memory level the training graph uses.
+            # l3_aware_copy() in deeploytraintest.c handles the L3<->L2 transfers
+            # between the training and optimizer networks at runtime.
+            _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2",
+                                "--memAllocStrategy", "--searchStrategy",
+                                "--plotMemAlloc", "--profileTiling")
             for arg in config.gen_args:
                 if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
                     opt_cmd.append(arg)
+            opt_cmd.append("--defaultMemLevel=L2")
             if config.verbose > 0:
                 opt_cmd.append("-" + "v" * config.verbose)
 
-            log.debug(f"[Execution] Optimizer generation command: {' '.join(opt_cmd)}")
+            log.debug(f"[Execution] Tiled optimizer generation command: {' '.join(opt_cmd)}")
             result = subprocess.run(opt_cmd, check=False)
             if result.returncode != 0:
-                raise RuntimeError(f"Optimizer network generation failed for {config.test_name}")
+                raise RuntimeError(f"Tiled optimizer network generation failed for {config.test_name}")
 
         return  # early return — tiled training path complete
 
@@ -196,10 +205,14 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 "-t", opt_dir,
                 "-p", config.platform,
             ]
-            _OPT_PASSTHROUGH = ("--cores", "--defaultMemLevel", "--l1", "--l2")
+            # SGD kernel directly dereferences its buffers as CPU pointers (no DMA).
+            # L3 HyperRAM device addresses are NOT CPU-accessible from the cluster,
+            # so the optimizer must always use L2 regardless of the training graph.
+            _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2")
             for arg in config.gen_args:
                 if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
                     opt_cmd.append(arg)
+            opt_cmd.append("--defaultMemLevel=L2")
             if config.verbose > 0:
                 opt_cmd.append("-" + "v" * config.verbose)
 
