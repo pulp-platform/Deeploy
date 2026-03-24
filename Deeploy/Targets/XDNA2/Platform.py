@@ -9,15 +9,15 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.Generic.Layers import AddLayer
-from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.Parsers import AddParser
+from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.XDNA2.Bindings import XDNA2AddBindings
 from Deeploy.Targets.XDNA2.Tiler import XDNA2AddTilingReadyBindings
 
 # Standard mapper for non-tiled deployment
 XDNA2AddMapper = NodeMapper(AddParser(), XDNA2AddBindings)
 
-# Tiling-ready mapper for tiled deployment  
+# Tiling-ready mapper for tiled deployment
 XDNA2AddTilableMapper = NodeMapper(AddParser(), XDNA2AddTilingReadyBindings)
 
 # Standard mapping (used when tiling is disabled)
@@ -64,8 +64,7 @@ XDNA2Optimizer = TopologyOptimizer([], name = "XDNA2Optimizer")
 
 class XDNA2Engine(DeploymentEngine):
 
-    def __init__(self, name: str = "XDNA2", Mapping = XDNA2Mapping, initCode: str = "",
-                 includeList = None) -> None:
+    def __init__(self, name: str = "XDNA2", Mapping = XDNA2Mapping, initCode: str = "", includeList = None) -> None:
         if includeList is None:
             includeList = []
         super().__init__(name, Mapping, initCode, includeList)
@@ -73,13 +72,17 @@ class XDNA2Engine(DeploymentEngine):
 
 class XDNA2AIECoreEngine(DeploymentEngine):
     """AIE core execution engine with L1 local memory as preferred memory level.
-    
+
     The AIE core has 8KB of local memory (L1) for temporary buffers and computation.
     Data is transferred from L3 (shared memory) to L1 as needed.
     """
 
-    def __init__(self, name: str = "XDNA2_AIE_Core", Mapping = XDNA2Mapping, initCode: str = "",
-                 includeList = None, preferredMemoryLevel: str = "L1") -> None:
+    def __init__(self,
+                 name: str = "XDNA2_AIE_Core",
+                 Mapping = XDNA2Mapping,
+                 initCode: str = "",
+                 includeList = None,
+                 preferredMemoryLevel: str = "L1") -> None:
         if includeList is None:
             includeList = []
         super().__init__(name, Mapping, initCode, includeList)
@@ -101,7 +104,7 @@ class XDNA2Platform(DeploymentPlatform):
 
 class MemoryXDNA2Platform(MemoryPlatform):
     """XDNA2 platform with memory hierarchy support for tiling.
-    
+
     Defines the memory hierarchy:
     - L1: 8KB per AIE core (local memory)
     - L3: Shared memory for entire AIE array
@@ -122,7 +125,7 @@ class MemoryXDNA2Platform(MemoryPlatform):
 
     def getTargetMemoryLevel(self, node: gs.Node, tensorName: str, ctxt: NetworkContext) -> str:
         """Get the target memory level for a tensor in a given node.
-        
+
         For XDNA2, if the node is marked to run on AIE core engine, return L1 (preferred level).
         Otherwise use the default target memory level (typically L3).
         """
@@ -131,14 +134,14 @@ class MemoryXDNA2Platform(MemoryPlatform):
             engine = node._engine_assignment
             if isinstance(engine, XDNA2AIECoreEngine) and hasattr(engine, 'preferredMemoryLevel'):
                 return engine.preferredMemoryLevel
-        
+
         return self.defaultTargetMemoryLevel.name
 
 
 class MemoryXDNA2PlatformWrapper(MemoryPlatformWrapper):
     """Wrapper for XDNA2Platform with memory-level support."""
 
-    def __init__(self, platform: XDNA2Platform, memoryHierarchy: MemoryHierarchy, 
+    def __init__(self, platform: XDNA2Platform, memoryHierarchy: MemoryHierarchy,
                  defaultTargetMemoryLevel: MemoryLevel):
         assert isinstance(platform, XDNA2Platform), \
             f"Given platform is not an instance of XDNA2Platform. Platform type: {type(platform).__name__}"
@@ -150,5 +153,5 @@ class MemoryXDNA2PlatformWrapper(MemoryPlatformWrapper):
             engine = node._engine_assignment
             if isinstance(engine, XDNA2AIECoreEngine) and hasattr(engine, 'preferredMemoryLevel'):
                 return engine.preferredMemoryLevel
-        
+
         return self.defaultTargetMemoryLevel.name

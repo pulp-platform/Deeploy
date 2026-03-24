@@ -56,9 +56,7 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
         self.inputTensorKeys = inputTensorKeys
         self.outputTensorKeys = outputTensorKeys
 
-    def apply(self,
-              ctxt: NetworkContext,
-              mlirBlock: MLIRExecutionBlock,
+    def apply(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
               name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
         computeTile = mlirBlock.computeTile
         kernelObj = mlirBlock.kernelObjFile
@@ -71,7 +69,7 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
         firstKey = self.inputTensorKeys[0]
         tileTy = mlirBlock.fifoTypes[firstKey]
 
-        @aie_d.core(computeTile, link_with=kernelObj)
+        @aie_d.core(computeTile, link_with = kernelObj)
         def _core():
             subviewTy = aie_d.ObjectFifoSubviewType.get(tileTy)
             for _ in scf_d.for_(0, 0x7FFFFFFFFFFFFFFF, 1):
@@ -80,18 +78,14 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
                     acquiredElements = {}
                     for key in self.inputTensorKeys:
                         fifoName = mlirBlock.fifoMap[key]
-                        acq = aie_d.objectfifo_acquire(
-                            subviewTy, aie_d.ObjectFifoPort.Consume, fifoName, 1)
-                        acquiredElements[key] = aie_d.objectfifo_subview_access(
-                            tileTy, acq, 0)
+                        acq = aie_d.objectfifo_acquire(subviewTy, aie_d.ObjectFifoPort.Consume, fifoName, 1)
+                        acquiredElements[key] = aie_d.objectfifo_subview_access(tileTy, acq, 0)
 
                     # Acquire all output FIFO elements
                     for key in self.outputTensorKeys:
                         fifoName = mlirBlock.fifoMap[key]
-                        acq = aie_d.objectfifo_acquire(
-                            subviewTy, aie_d.ObjectFifoPort.Produce, fifoName, 1)
-                        acquiredElements[key] = aie_d.objectfifo_subview_access(
-                            tileTy, acq, 0)
+                        acq = aie_d.objectfifo_acquire(subviewTy, aie_d.ObjectFifoPort.Produce, fifoName, 1)
+                        acquiredElements[key] = aie_d.objectfifo_subview_access(tileTy, acq, 0)
 
                     # Build modified opRepr: replace tensor names with MLIR
                     # values, replace size with tile size.  This mirrors the
@@ -103,12 +97,10 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
 
                     # Release all inputs
                     for key in self.inputTensorKeys:
-                        aie_d.objectfifo_release(
-                            aie_d.ObjectFifoPort.Consume, mlirBlock.fifoMap[key], 1)
+                        aie_d.objectfifo_release(aie_d.ObjectFifoPort.Consume, mlirBlock.fifoMap[key], 1)
                     # Release all outputs
                     for key in self.outputTensorKeys:
-                        aie_d.objectfifo_release(
-                            aie_d.ObjectFifoPort.Produce, mlirBlock.fifoMap[key], 1)
+                        aie_d.objectfifo_release(aie_d.ObjectFifoPort.Produce, mlirBlock.fifoMap[key], 1)
 
                     scf_d.yield_([])
                 scf_d.yield_([])

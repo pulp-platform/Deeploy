@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
-
 """XDNA2 network generation script.
 
 JUNGVI: TODO: Move this script to ONNX4Deeploy
@@ -16,12 +15,10 @@ Instead of emitting C code it:
 """
 
 import os
-import struct
 
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-
 from testUtils.platformMapping import mapDeployer
 from testUtils.testRunner import TestGeneratorArgumentParser
 
@@ -149,8 +146,8 @@ def generateNetworkXDNA2(args):
 
     log.info(f"[XDNA2] Using MemoryXDNA2Platform with L1={l1_size}, L3={l3_size}")
 
-    l1_level = MemoryLevel("L1", neighbourNames=["L3"], size=l1_size)
-    l3_level = MemoryLevel("L3", neighbourNames=["L1"], size=l3_size)
+    l1_level = MemoryLevel("L1", neighbourNames = ["L3"], size = l1_size)
+    l3_level = MemoryLevel("L3", neighbourNames = ["L1"], size = l3_size)
     memory_hierarchy = MemoryHierarchy([l1_level, l3_level])
     memory_hierarchy.setDefaultMemoryLevel("L3")  # Tensors default to L3
 
@@ -158,24 +155,23 @@ def generateNetworkXDNA2(args):
     # defaultTargetMemoryLevel=L1 tells the tiling framework that computation
     # targets L1, so it must tile data from L3 into L1-sized chunks.
     mem_platform = MemoryXDNA2Platform(
-        memoryHierarchy=memory_hierarchy,
-        defaultTargetMemoryLevel=l1_level,
-        engines=[XDNA2AIECoreEngine(Mapping=XDNA2TilingMapping, preferredMemoryLevel="L1")]
-    )
+        memoryHierarchy = memory_hierarchy,
+        defaultTargetMemoryLevel = l1_level,
+        engines = [XDNA2AIECoreEngine(Mapping = XDNA2TilingMapping, preferredMemoryLevel = "L1")])
 
     # Create base deployer with memory platform
     deployer = mapDeployer(mem_platform,
                            graph,
                            inputTypes,
-                           scheduler=_tilingScheduler,
-                           deeployStateDir=_DEEPLOYSTATEDIR,
-                           inputOffsets=inputOffsets)
+                           scheduler = _tilingScheduler,
+                           deeployStateDir = _DEEPLOYSTATEDIR,
+                           inputOffsets = inputOffsets)
 
     # Wrap with MemoryDeployerWrapper (adds memory level annotation)
     deployer = MemoryDeployerWrapper(deployer)
 
     # Wrap with TilerDeployerWrapper (adds tiling)
-    deployer = TilerDeployerWrapper(deployer, workDir=_DEEPLOYSTATEDIR)
+    deployer = TilerDeployerWrapper(deployer, workDir = _DEEPLOYSTATEDIR)
 
     # frontEnd() parses the graph; bind() triggers tiling via wrappers
     deployer.frontEnd()
@@ -184,7 +180,7 @@ def generateNetworkXDNA2(args):
     log.info("[XDNA2] Tiling completed, proceeding with MLIR generation")
 
     # Create output directory
-    os.makedirs(args.dumpdir, exist_ok=True)
+    os.makedirs(args.dumpdir, exist_ok = True)
 
     # Write testinputs.h (raw BF16 bit patterns as uint16_t)
     testInputStr = _generate_xdna2_inputs_header(test_inputs_f32)
@@ -215,8 +211,8 @@ def generateNetworkXDNA2(args):
 
 
 if __name__ == '__main__':
-    parser = TestGeneratorArgumentParser(tiling_arguments=True,
-                                        description="Deeploy XDNA2 Code Generation Utility.")
+    parser = TestGeneratorArgumentParser(tiling_arguments = True,
+                                         description = "Deeploy XDNA2 Code Generation Utility.")
     args, _ = parser.parse_known_args()
 
     if args.platform != 'XDNA2':
