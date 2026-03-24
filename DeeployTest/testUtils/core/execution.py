@@ -128,19 +128,16 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 "-p", config.platform,
                 f"--training-dir={config.test_dir}",
             ]
-            # The SGD kernel directly dereferences its input/output buffers as CPU
-            # pointers (no DMA).  L3 HyperRAM device addresses are NOT CPU-accessible
-            # from the cluster, so the optimizer must always use L2 for its I/O
-            # buffers regardless of what memory level the training graph uses.
-            # l3_aware_copy() in deeploytraintest.c handles the L3<->L2 transfers
-            # between the training and optimizer networks at runtime.
             _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2",
+                                "--defaultMemLevel",
                                 "--memAllocStrategy", "--searchStrategy",
                                 "--plotMemAlloc", "--profileTiling")
             for arg in config.gen_args:
                 if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
                     opt_cmd.append(arg)
-            opt_cmd.append("--defaultMemLevel=L2")
+            # If no --defaultMemLevel was passed through, default to L2
+            if not any(arg.startswith("--defaultMemLevel") for arg in opt_cmd):
+                opt_cmd.append("--defaultMemLevel=L2")
             if config.verbose > 0:
                 opt_cmd.append("-" + "v" * config.verbose)
 
@@ -207,14 +204,12 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 "-p", config.platform,
                 f"--training-dir={config.test_dir}",
             ]
-            # SGD kernel directly dereferences its buffers as CPU pointers (no DMA).
-            # L3 HyperRAM device addresses are NOT CPU-accessible from the cluster,
-            # so the optimizer must always use L2 regardless of the training graph.
-            _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2")
+            _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2", "--defaultMemLevel")
             for arg in config.gen_args:
                 if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
                     opt_cmd.append(arg)
-            opt_cmd.append("--defaultMemLevel=L2")
+            if not any(arg.startswith("--defaultMemLevel") for arg in opt_cmd):
+                opt_cmd.append("--defaultMemLevel=L2")
             if config.verbose > 0:
                 opt_cmd.append("-" + "v" * config.verbose)
 
