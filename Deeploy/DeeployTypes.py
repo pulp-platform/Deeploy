@@ -336,14 +336,14 @@ class VariableBuffer():
             True if this VariableBuffer has any live aliases, False otherwise
         """
         # Do a breadth-first search across the aliasing double-linked list
-        live = self._live
+        live = self._live or self.is_input or self.is_output
         queue = set(self.aliases)
         visited = set(self.name)
         while len(queue) > 0:
             next = queue.pop()
             buffNext = ctxt.lookup(next)
             assert isinstance(buffNext, VariableBuffer)
-            live |= buffNext._live
+            live |= buffNext._live or buffNext.is_input or buffNext.is_output
             visited.add(next)
             queue |= buffNext.aliases - visited
         return live
