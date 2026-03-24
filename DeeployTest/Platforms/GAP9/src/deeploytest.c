@@ -88,7 +88,6 @@ int main(void) {
   pi_pad_function_set(GPIOs, 1);
   pi_gpio_pin_configure(GPIOs, PI_GPIO_OUTPUT);
   pi_gpio_pin_write(GPIOs, 0);
-  WRITE_GPIO(0);
 #endif
 
 #ifndef CI
