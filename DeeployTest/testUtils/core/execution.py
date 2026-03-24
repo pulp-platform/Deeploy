@@ -126,6 +126,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 "-d", config.gen_dir,
                 "-t", opt_dir,
                 "-p", config.platform,
+                f"--training-dir={config.test_dir}",
             ]
             # The SGD kernel directly dereferences its input/output buffers as CPU
             # pointers (no DMA).  L3 HyperRAM device addresses are NOT CPU-accessible
@@ -204,6 +205,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 "-d", config.gen_dir,
                 "-t", opt_dir,
                 "-p", config.platform,
+                f"--training-dir={config.test_dir}",
             ]
             # SGD kernel directly dereferences its buffers as CPU pointers (no DMA).
             # L3 HyperRAM device addresses are NOT CPU-accessible from the cluster,

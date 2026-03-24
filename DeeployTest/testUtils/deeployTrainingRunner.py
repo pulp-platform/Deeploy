@@ -110,10 +110,10 @@ def main(tiling_enabled: bool = False, default_platform: str = 'Siracusa', defau
             gen_args.append(f'--memAllocStrategy={args.memAllocStrategy}')
         if getattr(args, 'searchStrategy', None):
             gen_args.append(f'--searchStrategy={args.searchStrategy}')
-        if getattr(args, 'plotMemAlloc', False):
-            gen_args.append('--plotMemAlloc')
         if getattr(args, 'profileTiling', False):
             gen_args.append('--profileTiling')
+        if getattr(args, 'plotMemAlloc', False):
+            gen_args.append('--plotMemAlloc')
 
     config = DeeployTestConfig(
         test_name = test_name,
