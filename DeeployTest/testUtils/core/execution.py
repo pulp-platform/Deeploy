@@ -335,7 +335,6 @@ def build_binary(config: DeeployTestConfig) -> None:
         config.test_name,
     ]
 
-    env = _augment_path(os.environ.copy())
     # GAP9 requires the 'image' target to generate MRAM .bin files for GVSOC
     if config.platform == 'GAP9':
         cmd.append("image")
@@ -376,80 +375,9 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         cmd = [str(binary_path)]
 
     elif config.simulator == 'gvsoc':
-        # Run gvsoc directly instead of through cmake to avoid USES_TERMINAL
-        # pipe buffering — cmake's USES_TERMINAL connects gvsoc to the real
-        # terminal, bypassing our pipe and causing apparent hangs.
-        gvsoc_exe = str(Path(env.get('GVSOC_INSTALL_DIR', '')) / 'bin' / 'gvsoc')
-        workdir = str(Path(config.build_dir) / 'gvsoc_workdir')
-        os.makedirs(workdir, exist_ok=True)
-
-        # gvsoc target name is derived from cmake's add_gvsoc_emulation call.
-        # GAP9 uses "gap9.evk"; Siracusa uses "siracusa".
-        platform_lower = config.platform.lower().replace('_w_neureka', '')
-        _GVSOC_TARGET_MAP = {'gap9': 'gap9.evk'}
-        gvsoc_target = _GVSOC_TARGET_MAP.get(platform_lower, platform_lower)
-
-        # GAP9 sets CMAKE_RUNTIME_OUTPUT_DIRECTORY = CMAKE_BINARY_DIR (flat).
-        # Other platforms (Siracusa, etc.) use the default CMAKE_BINARY_DIR/bin.
-        if platform_lower == 'gap9':
-            binary_path = str(Path(config.build_dir) / config.test_name)
-        else:
-            binary_path = str(Path(config.build_dir) / 'bin' / config.test_name)
-        for bin_file in Path(config.build_dir).glob('*.bin'):
-            shutil.copy2(str(bin_file), workdir)
-        gap9_sdk = env.get('GAP_SDK_HOME', '')
-        efuse_src = Path(gap9_sdk) / 'utils' / 'efuse' / 'GAP9' / 'efuse_hyper_preload.data'
-        if efuse_src.exists():
-            shutil.copy2(str(efuse_src), str(Path(workdir) / 'chip.efuse_preload.data'))
-
-        # Check for hex files (L3 mode).
-        hex_dir = Path(config.gen_dir) / 'hex'
-        hex_files = sorted(hex_dir.glob('*')) if hex_dir.is_dir() else []
-
-        if platform_lower == 'gap9' and hex_files:
-            # GAP9 L3 mode: use gapy with readfs flash layout.
-            # Mirrors the CMake gapy command from cmake/gap9/gap9_gvsoc.cmake.
-            gap9_sdk_home = env.get('GAP_SDK_HOME', '')
-            gapy_exe = str(Path(gap9_sdk_home) / 'utils' / 'gapy_v2' / 'bin' / 'gapy')
-            flash_layout = str(Path(gap9_sdk_home) / 'utils' / 'layouts' / 'default_layout_multi_readfs.json')
-            fsbl_binary = str(Path(gap9_sdk_home) / 'install' / 'target' / 'bin' / 'fsbl')
-            ssbl_binary = str(Path(gap9_sdk_home) / 'install' / 'target' / 'bin' / 'ssbl')
-            target_dir = str(Path(gap9_sdk_home) / 'install' / 'workstation' / 'generators')
-            model_dir = str(Path(gap9_sdk_home) / 'install' / 'workstation' / 'models')
-
-            cmd = [
-                gapy_exe,
-                '--target=gap9.evk',
-                f'--target-dir={target_dir}',
-                f'--model-dir={model_dir}',
-                '--platform=gvsoc',
-                f'--work-dir={workdir}',
-                '--target-property=boot.flash_device=mram',
-                '--target-property=boot.mode=flash',
-                f'--multi-flash-content={flash_layout}',
-                f'--flash-property={binary_path}@mram:app:binary',
-            ]
-            for hf in hex_files:
-                cmd.append(f'--flash-property={hf}@flash:readfs_flash:files')
-            cmd.extend([
-                f'--flash-property={fsbl_binary}@mram:fsbl:binary',
-                f'--flash-property={ssbl_binary}@mram:ssbl:binary',
-                '--py-stack',
-                'image', 'flash', 'run',
-                f'--binary={binary_path}',
-            ])
-        else:
-            # Non-GAP9 or L2 mode: use gvsoc directly.
-            cmd = [
-                gvsoc_exe,
-                f"--target={gvsoc_target}",
-                f"--binary={binary_path}",
-                f"--work-dir={workdir}",
-            ]
-            # Siracusa L3 mode: pass hex files via hyperflash:readfs.
-            for hf in hex_files:
-                cmd.append(f"--flash-property={hf}@hyperflash:readfs:files")
-            cmd.extend(["image", "flash", "run"])
+        cmake_cmd = os.environ.get("CMAKE", "cmake")
+        cmd = [cmake_cmd, "--build", config.build_dir, "--target",
+               f"gvsoc_{config.test_name}"]
 
     elif config.simulator == 'banshee':
         if config.verbose == 1:
