@@ -42,7 +42,7 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     FloatGELUTemplate, FloatGemmTemplate, FloatGlobalAveragePoolTemplate, \
     FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, \
     FloatMaxPoolTemplate, FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, \
-    MatrixVectorTemplate, MaxPool2DTemplate, MSELossTemplate, MulTemplate, ReduceMeanTemplate, \
+    MatrixVectorTemplate, MaxPoolTemplate, MSELossTemplate, MulTemplate, ReduceMeanTemplate, \
     RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate

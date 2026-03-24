@@ -28,7 +28,7 @@ from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, Batc
     GlobalAveragePoolParser, GlobalAveragePoolGradParser, \
     DequantParser, FlattenParser, GatherParser, GELUGradParser, GELUParser, GEMMParser, \
     InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, \
-    MaxPool2DParser, MaxPoolGradParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, \
+    MaxPool1DParser, MaxPool2DParser, MaxPoolGradParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, \
     ReluGradParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, \
     MSELossGradParser, MSELossParser, \
     RQSiHardswishParser, SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, \
@@ -51,12 +51,14 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAvera
     PULPConvGradW2DTilingReadyBindings, PULPConvGradX2DTilingReadyBindings, PULPDWConv2DTilingReadyBindings, \
     PULPDWConvGradW2DTilingReadyBindings, PULPDWConvGradX2DTilingReadyBindings, PULPFlattenTilingReadyBindings, \
     PULPFPGELUGradTilingReadyBindings, PULPFPGELUTilingReadyBindings, PULPFPGEMMTilingReadyBindings, \
-    PULPGatherTilingReadyBindings, PULPiHardswishTilingReadyBindings, PULPInPlaceAccumulatorV2Bindings, \
+    PULPGatherTilingReadyBindings, PULPiHardswishTilingReadyBindings, PULPInPlaceAccumulatorV2TilingReadyBindings, \
     PULPiRMSNormTilingReadyBindings, PULPiRQSGELUTilingReadyBindings, PULPLayernormGradTilingReadyBindings, \
-    PULPLayernormTilingReadyBindings, PULPMatMulTilingReadyBindings, PULPMaxPool2DTilingReadyBindings, \
+    PULPLayernormTilingReadyBindings, PULPMatMulTilingReadyBindings, PULPMaxPool1DTilingReadyBindings, \
+    PULPMaxPool2DTilingReadyBindings, \
     PULPMulTilingReadyBindings, PULPPWConvGradW2DTilingReadyBindings, PULPPWConvGradX2DTilingReadyBindings, \
     PULPReduceMeanTilingReadyBindings, PULPReduceSumTilingReadyBindings, PULPReluGradTilingReadyBindings, \
-    PULPReluTilingReadyBindings, PULPRQAddTilingReadyBindings, PULPRQSConv2DTilingReadyBindings, \
+    PULPReluTilingReadyBindings, PULPRQAddTilingReadyBindings, PULPRQSConv1DTilingReadyBindings, \
+    PULPRQSConv2DTilingReadyBindings, \
     PULPRQSDWConv2DTilingReadyBindings, PULPRQSGEMMTilingReadyBindings, PULPRQSiHardswishTilingReadyBindings, \
     PULPMaxPoolGrad2DTilingReadyBindings, PULPRQSMatrixVecTilingReadyBindings, \
     PULPRQSTallGEMMTilingReadyBindings, PULPRQSTilingReadyBindings, \
@@ -140,7 +142,7 @@ SoftmaxCrossEntropyLossDualOutputMapper = NodeMapper(SoftmaxCrossEntropyLossPars
 SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
                                                PULPSoftmaxCrossEntropyGradTilingReadyBindings)
 SGDMapper = NodeMapper(SGDParser(), PULPSGDTilingReadyBindings)
-InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), PULPInPlaceAccumulatorV2Bindings)
+InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), PULPInPlaceAccumulatorV2TilingReadyBindings)
 ConvGradBMapper = NodeMapper(Conv2DGradBParser(), PULPConvGradBTilingReadyBindings)
 MSELossMapper = NodeMapper(MSELossParser(), PULPMSELossTilingReadyBindings)
 MSELossGradMapper = NodeMapper(MSELossGradParser(), PULPMSELossGradTilingReadyBindings)

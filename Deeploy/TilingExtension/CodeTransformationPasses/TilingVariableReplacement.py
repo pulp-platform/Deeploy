@@ -90,14 +90,6 @@ class TilingVariableReplacement(CodeTransformationPass, IntrospectiveCodeTransfo
             assert isinstance(buffer, VariableBuffer)
             unraveledBuffer = ctxt.unravelReference(buffer)
 
-            # An in-place buffer (e.g. accum_buffer in InPlaceAccumulatorV2) may appear in
-            # both inputBaseOffsets and outputBaseOffsets with the same base address.  Skip
-            # re-creation if the reference was already hoisted on the input pass.
-            full_ref_name = self.prefix + name + "_ref"
-            if ctxt.is_buffer(full_ref_name):
-                operatorRepresentation[name] = full_ref_name
-                continue
-
             ref = self._hoistReference(ctxt, name + "_ref", unraveledBuffer)
             ref = self._arenaAllocate(ctxt, ref, offsets[0])
             operatorRepresentation[name] = ref.name
@@ -185,7 +177,7 @@ class TilingVariableReplacementUpdate(CodeTransformationPass, IntrospectiveCodeT
 
     _updateReferenceTemplate = NodeTemplate("""
     // UPDATE VARIABLE ${reference}
-    ${reference} = ${baseReference} + ${tileIdxVar};
+    *${reference} = ${baseReference}[${tileIdxVar}];
     """)
 
     def __init__(self, targetMemLevel: str, tileIdxVar: str = "TILING_I"):
