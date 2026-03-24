@@ -23,10 +23,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Tuple
 
-import numpy as np
-
-from aie.dialects import aie as aie_d
 import aie.ir as ir
+import numpy as np
+from aie.dialects import aie as aie_d
 
 from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
@@ -89,7 +88,7 @@ class MLIRObjectFifoPass(MLIRCodeTransformationPass):
                  outputTensorKeys: list,
                  kernelFuncName: str,
                  kernelObjFile: str,
-                 kernelArgTypes=None,
+                 kernelArgTypes = None,
                  fifoDepth: int = 2) -> None:
         self.inputTensorKeys = inputTensorKeys
         self.outputTensorKeys = outputTensorKeys
@@ -98,9 +97,7 @@ class MLIRObjectFifoPass(MLIRCodeTransformationPass):
         self._kernelArgTypes = kernelArgTypes
         self.fifoDepth = fifoDepth
 
-    def apply(self,
-              ctxt: NetworkContext,
-              mlirBlock: MLIRExecutionBlock,
+    def apply(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
               name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
         opRepr = mlirBlock.operatorRepresentation
         numElements = int(opRepr['size'])

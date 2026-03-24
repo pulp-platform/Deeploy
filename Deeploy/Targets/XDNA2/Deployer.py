@@ -21,12 +21,11 @@ from __future__ import annotations
 
 from typing import Callable, Dict, Optional, Type
 
+import aie.ir as ir
 import onnx_graphsurgeon as gs
-
-from aie.extras.context import mlir_mod_ctx
 from aie.dialects import aie as aie_d
 from aie.dialects import aiex as aiex_d
-import aie.ir as ir
+from aie.extras.context import mlir_mod_ctx
 
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
@@ -111,13 +110,11 @@ class XDNA2Deployer(SignPropDeployer):
             tilingConstraint = getattr(executionBlock, 'patternMemoryConstraint', None)
 
             if not isinstance(template, MLIRNodeTemplate):
-                raise RuntimeError(
-                    f"Node '{nodeName}' has no MLIRNodeTemplate — "
-                    f"only BF16 Add is supported in this release.")
+                raise RuntimeError(f"Node '{nodeName}' has no MLIRNodeTemplate — "
+                                   f"only BF16 Add is supported in this release.")
             if not isinstance(codeTransformer, MLIRCodeTransformation):
-                raise RuntimeError(
-                    f"Node '{nodeName}' uses a non-MLIR CodeTransformation — "
-                    f"expected MLIRCodeTransformation, got {type(codeTransformer).__name__}.")
+                raise RuntimeError(f"Node '{nodeName}' uses a non-MLIR CodeTransformation — "
+                                   f"expected MLIRCodeTransformation, got {type(codeTransformer).__name__}.")
 
             nodes.append({
                 'nodeName': nodeName,
@@ -143,7 +140,7 @@ class XDNA2Deployer(SignPropDeployer):
                 # === Device phase ===
                 for node in nodes:
                     # Create MLIRExecutionBlock with deployer-level state
-                    eb = MLIRExecutionBlock(computeTile=computeTile, shimTile=shimTile)
+                    eb = MLIRExecutionBlock(computeTile = computeTile, shimTile = shimTile)
                     eb.operatorRepresentation = node['opRepr']
                     eb.patternMemoryConstraint = node['tilingConstraint']
                     eb.template = node['template']
@@ -155,8 +152,7 @@ class XDNA2Deployer(SignPropDeployer):
                     #  1. MLIRObjectFifoPass — creates FIFOs, declares kernel
                     #  2. MLIRComputeCorePass — opens core + loops, calls
                     #     template.emit() with acquired FIFO elements in opRepr
-                    self.ctxt, eb = node['codeTransformer'].applyDevicePasses(
-                        self.ctxt, eb, node['nodeName'])
+                    self.ctxt, eb = node['codeTransformer'].applyDevicePasses(self.ctxt, eb, node['nodeName'])
 
                     mlirBlocks.append((node, eb))
 

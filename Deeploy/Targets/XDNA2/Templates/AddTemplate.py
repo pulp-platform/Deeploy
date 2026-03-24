@@ -18,9 +18,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import aie.ir as ir
 from aie.dialects import arith as arith_d
 from aie.dialects import func as func_d
-import aie.ir as ir
 
 from Deeploy.MLIRDataTypes import MLIRNodeTemplate
 

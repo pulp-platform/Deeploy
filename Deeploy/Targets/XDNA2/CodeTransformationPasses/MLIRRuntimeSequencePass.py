@@ -18,9 +18,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Tuple
 
+import aie.ir as ir
 from aie.dialects import aie as aie_d
 from aie.dialects import aiex as aiex_d
-import aie.ir as ir
 
 from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
@@ -43,18 +43,16 @@ class MLIRRuntimeSequencePass(MLIRCodeTransformationPass):
         self.inputTensorKeys = inputTensorKeys
         self.outputTensorKeys = outputTensorKeys
 
-    def apply(self,
-              ctxt: NetworkContext,
-              mlirBlock: MLIRExecutionBlock,
+    def apply(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
               name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
         numElements = mlirBlock.numElements
         seqArgs = mlirBlock.runtimeSequenceArgs
 
         dims = [
-            aie_d.bd_dim_layout(size=1, stride=0),
-            aie_d.bd_dim_layout(size=1, stride=0),
-            aie_d.bd_dim_layout(size=1, stride=0),
-            aie_d.bd_dim_layout(size=numElements, stride=1),
+            aie_d.bd_dim_layout(size = 1, stride = 0),
+            aie_d.bd_dim_layout(size = 1, stride = 0),
+            aie_d.bd_dim_layout(size = 1, stride = 0),
+            aie_d.bd_dim_layout(size = numElements, stride = 1),
         ]
 
         # Build ordered list of (fifoName, seqArg, isOutput)
@@ -70,12 +68,12 @@ class MLIRRuntimeSequencePass(MLIRCodeTransformationPass):
 
         for fifoName, seqArg, isOutput in transfers:
             if isOutput:
-                task = aiex_d.dma_configure_task_for(fifoName, issue_token=True)
+                task = aiex_d.dma_configure_task_for(fifoName, issue_token = True)
             else:
                 task = aiex_d.dma_configure_task_for(fifoName)
             block = task.body.blocks.append()
             with ir.InsertionPoint(block):
-                aie_d.dma_bd(seqArg, offset=0, len=numElements, dimensions=dims, burst_length=0)
+                aie_d.dma_bd(seqArg, offset = 0, len = numElements, dimensions = dims, burst_length = 0)
                 aie_d.end()
             aiex_d.dma_start_task(task)
 

@@ -24,17 +24,17 @@ backends (NVGPU, Linalg, …) can reuse them.
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from Deeploy.DeeployTypes import NodeTemplate
 
 if TYPE_CHECKING:
     from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 
-
 # ======================================================================
 # MLIRExecutionBlock
 # ======================================================================
+
 
 class MLIRExecutionBlock:
     """MLIR-specific execution state for a single operator.
@@ -92,6 +92,7 @@ class MLIRExecutionBlock:
 # MLIRCodeTransformationPass / MLIRCodeTransformation
 # ======================================================================
 
+
 class MLIRCodeTransformationPass:
     """Base class for passes that transform an :class:`MLIRExecutionBlock`.
 
@@ -99,9 +100,7 @@ class MLIRCodeTransformationPass:
     and optionally emit MLIR operations into the current insertion point.
     """
 
-    def apply(self,
-              ctxt: NetworkContext,
-              mlirBlock: MLIRExecutionBlock,
+    def apply(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
               name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
         return ctxt, mlirBlock
 
@@ -125,17 +124,13 @@ class MLIRCodeTransformation:
         self.devicePasses: List[MLIRCodeTransformationPass] = devicePasses or []
         self.runtimeSequencePasses: List[MLIRCodeTransformationPass] = runtimeSequencePasses or []
 
-    def applyDevicePasses(self,
-                          ctxt: NetworkContext,
-                          mlirBlock: MLIRExecutionBlock,
+    def applyDevicePasses(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
                           name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
         for _pass in self.devicePasses:
             ctxt, mlirBlock = _pass.apply(ctxt, mlirBlock, name)
         return ctxt, mlirBlock
 
-    def applyRuntimeSequencePasses(self,
-                                   ctxt: NetworkContext,
-                                   mlirBlock: MLIRExecutionBlock,
+    def applyRuntimeSequencePasses(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
                                    name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
         for _pass in self.runtimeSequencePasses:
             ctxt, mlirBlock = _pass.apply(ctxt, mlirBlock, name)
@@ -145,6 +140,7 @@ class MLIRCodeTransformation:
 # ======================================================================
 # MLIRNodeTemplate
 # ======================================================================
+
 
 class MLIRNodeTemplate(NodeTemplate):
     """NodeTemplate subclass that emits MLIR instead of C code.
@@ -188,7 +184,7 @@ class MLIRNodeTemplate(NodeTemplate):
     # NodeTemplate overrides
     # ------------------------------------------------------------------
 
-    def generate(self, operatorRepresentation={}, **kwargs) -> str:
+    def generate(self, operatorRepresentation = {}, **kwargs) -> str:
         """Generate an MLIR string for this node.
 
         This default implementation is a thin wrapper: it delegates to
