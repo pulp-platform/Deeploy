@@ -40,17 +40,12 @@ ENV LD_LIBRARY_PATH=${XILINX_XRT}/lib
 
 
 WORKDIR /app
-COPY pyproject.toml ./
+COPY pyproject.toml requirements-xdna.txt ./
 RUN pip install toml-to-requirements && \
     toml-to-req --toml-file pyproject.toml && \
     pip install -r requirements.txt && \
-    rm -f requirements.txt pyproject.toml
-
-RUN pip install \
-    --extra-index-url https://github.com/Xilinx/mlir-aie/releases/expanded_assets/v1.2.1 \
-    --extra-index-url https://github.com/Xilinx/llvm-aie/releases/expanded_assets/nightly \
-    "mlir_aie==v1.2.1" \
-    llvm-aie
+    pip install -r requirements-xdna.txt && \
+    rm -f requirements.txt pyproject.toml requirements-xdna.txt
 
 ENV MLIR_AIE_PYTHON=/usr/bin/python3
 
