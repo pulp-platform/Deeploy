@@ -51,26 +51,25 @@ class InPlaceAccumulatorV2TileConstraint(BOPTileConstraint):
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        # The tiled template (tiledReferenceTemplate) writes ONLY to ${accum_buffer}
-        # and does NOT reference ${data_out}.  Therefore data_out is omitted from
-        # addrNames — it gets no L1 tile ref and generates no DMA transfer.
+        # Egress strategy: use data_out (the proper graph output, present in
+        # outputTensorMemoryConstraints) rather than accum_buffer (a graph input,
+        # only in inputTensorMemoryConstraints).  This avoids two core-class issues:
+        #   1. accum_buffer appearing in BOTH inputBaseOffsets and outputBaseOffsets
+        #      causes a duplicate-hoist KeyError in TilingVariableReplacement.
+        #   2. The egress DMA lookup uses outputTensorMemoryConstraints; accum_buffer
+        #      is not there and would raise a KeyError.
         #
-        # Background: the memory allocator may place data_out at a DIFFERENT L2 address
-        # from accum_buffer, even though they are declared as aliases.  If data_out were
-        # added to outputBaseOffsets + outputLoadSchedule, the egress DMA would write the
-        # full weight tensor (with a stride) starting at data_out's L2 address, corrupting
-        # other live L2 buffers that share that region.
-        #
-        # The optimizer reads the updated gradient from accum_buffer's L2 address
-        # (DeeployNetwork_inputs[TRAINING_GRAD_BUF_START_IDX + wi]), which is correctly
-        # updated by the accum_buffer egress DMA below.
-        addrNames = [cls.dataIn1Name, cls.dataIn2Name, 'lazy_reset_grad']
+        # The trick: force outputBaseOffsets[data_out] to the SAME L1 arena offset as
+        # inputBaseOffsets[accum_buffer].  Both data_out_ref and accum_buffer_ref then
+        # map to the same physical L1 address.  The tiled kernel writes to ${accum_buffer}
+        # (= accum_buffer_ref in L1); the egress DMA transfers data_out_ref (same L1
+        # bytes) to data_out's L2 address, which is what the optimizer reads.
+        addrNames = [cls.dataIn1Name, cls.dataIn2Name, cls.dataOutName, 'lazy_reset_grad']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
-        # Add accum_buffer to outputBaseOffsets + outputLoadSchedule for the in-place
-        # write-back egress DMA (L1 tile → accum_buffer's L2 address).
-        outputBaseOffsets[cls.dataIn1Name] = inputBaseOffsets[cls.dataIn1Name]
+        # Pin data_out's L1 tile to the same arena slot as accum_buffer's L1 tile.
+        outputBaseOffsets[cls.dataOutName] = inputBaseOffsets[cls.dataIn1Name]
 
         replacements = {"size": []}
         replacementTypes = {"size": PointerClass(uint16_t)}
@@ -92,9 +91,9 @@ class InPlaceAccumulatorV2TileConstraint(BOPTileConstraint):
             })
 
         for out in outputCubes:
-            # Egress: write accum_buffer tile back to its L2 address (input_4 / input_5).
+            # Egress: DMA from data_out_ref (same L1 slot as accum_buffer_ref) → data_out L2.
             outputLoadSchedule.append({
-                cls.dataIn1Name: out,
+                cls.dataOutName: out,
             })
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
