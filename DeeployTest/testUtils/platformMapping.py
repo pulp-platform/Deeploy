@@ -281,8 +281,8 @@ def mapDeployer(platform: DeploymentPlatform,
         # Lazy-import XDNA2 to avoid requiring mlir-aie on non-XDNA2 platforms
         try:
             from Deeploy.Targets.XDNA2.Deployer import XDNA2Deployer
-            from Deeploy.Targets.XDNA2.Platform import (MemoryXDNA2Platform, MemoryXDNA2PlatformWrapper,
-                                                         XDNA2Optimizer, XDNA2Platform)
+            from Deeploy.Targets.XDNA2.Platform import MemoryXDNA2Platform, MemoryXDNA2PlatformWrapper, \
+                XDNA2Optimizer, XDNA2Platform
         except ImportError:
             raise RuntimeError(f"Deployer for platform {platform} is not implemented")
 
