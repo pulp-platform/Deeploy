@@ -88,6 +88,61 @@ struct pi_device cluster_dev;
 static float stored_losses[TOTAL_FWD_PASSES];
 
 /* -------------------------------------------------------------------------
+ * L1 arena sharing.
+ *
+ * GAP9 L1 is only ~131 KB.  Large training models need ~64 KB for the
+ * Training arena and ~64 KB for the Optimizer arena; both cannot coexist.
+ * Since RunTrainingNetwork and RunOptimizerNetwork never execute at the
+ * same time, we allocate a single shared L1 buffer of max(train, opt)
+ * and point both MEMORYARENA_L1 globals to it.
+ * ---------------------------------------------------------------------- */
+
+/* Weak extern declarations for L1 arena pointers — resolve to NULL when
+ * the generated code doesn't define them (non-tiled builds). */
+int8_t *DeeployNetwork_MEMORYARENA_L1 __attribute__((weak));
+int8_t *DeeployOptNetwork_MEMORYARENA_L1 __attribute__((weak));
+
+/* Saved L1 arena sizes — measured from L1 heap delta during Init calls. */
+static uint32_t _train_l1_size = 0;
+static uint32_t _opt_l1_size = 0;
+
+/* Measure L1 heap consumed by a function call (must run on cluster). */
+static uint32_t _l1_heap_used_by(void (*fn)(uint32_t, uint32_t)) {
+  uint32_t avail_before = 0, avail_after = 0, dummy = 0;
+  pi_cl_l1_available_get(&avail_before, &dummy);
+  fn(pi_core_id(), pi_cl_cluster_nb_cores());
+  pi_cl_l1_available_get(&avail_after, &dummy);
+  return (avail_before > avail_after) ? (avail_before - avail_after) : 0;
+}
+
+/* Free Training L1, init Optimizer, free Optimizer L1, alloc shared.
+ * All L1 operations run on the cluster (pi_l1_malloc/free require it). */
+static void InitOptAndShareL1(void *args) {
+  (void)args;
+
+  /* Free Training L1 so Optimizer Init has room in the L1 heap. */
+  if (_train_l1_size > 0 && DeeployNetwork_MEMORYARENA_L1) {
+    pi_l1_free((void *)0, DeeployNetwork_MEMORYARENA_L1, _train_l1_size);
+  }
+
+  /* Init Optimizer — measure its L1 consumption. */
+  _opt_l1_size = _l1_heap_used_by(InitOptimizerNetwork);
+
+  /* If both networks need L1, create a shared arena. */
+  if (_train_l1_size > 0 && _opt_l1_size > 0) {
+    pi_l1_free((void *)0, DeeployOptNetwork_MEMORYARENA_L1, _opt_l1_size);
+
+    uint32_t max_l1 = (_train_l1_size > _opt_l1_size) ? _train_l1_size : _opt_l1_size;
+    int8_t *shared = (int8_t *)pi_l1_malloc((void *)0, max_l1);
+    DeeployNetwork_MEMORYARENA_L1 = shared;
+    DeeployOptNetwork_MEMORYARENA_L1 = shared;
+  } else if (_train_l1_size > 0) {
+    /* Optimizer doesn't use L1; re-alloc Training L1. */
+    DeeployNetwork_MEMORYARENA_L1 = (int8_t *)pi_l1_malloc((void *)0, _train_l1_size);
+  }
+}
+
+/* -------------------------------------------------------------------------
  * Wrapper functions for cluster task dispatch.
  *
  * GAP9 code generator produces functions with
@@ -97,17 +152,12 @@ static float stored_losses[TOTAL_FWD_PASSES];
 
 void InitTrainingNetworkWrapper(void *args) {
   (void)args;
-  InitTrainingNetwork(pi_core_id(), pi_cl_cluster_nb_cores());
+  _train_l1_size = _l1_heap_used_by(InitTrainingNetwork);
 }
 
 void RunTrainingNetworkWrapper(void *args) {
   (void)args;
   RunTrainingNetwork(pi_core_id(), pi_cl_cluster_nb_cores());
-}
-
-void InitOptimizerNetworkWrapper(void *args) {
-  (void)args;
-  InitOptimizerNetwork(pi_core_id(), pi_cl_cluster_nb_cores());
 }
 
 void RunOptimizerNetworkWrapper(void *args) {
@@ -143,19 +193,24 @@ static void l3_aware_copy(void *dst, const void *src, uint32_t bytes) {
 
 static void run_optimizer_step(void) {
 #if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
-  /* --- Step A: copy current weights + grad acc → optimizer input buffers --- */
+  /* --- Step A: copy current weights + grad acc → optimizer input buffers ---
+   * Skipped when codegen has shared the buffers (pointer equality test). */
   for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
     uint32_t train_w_idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
     uint32_t train_g_idx = (uint32_t)TRAINING_GRAD_BUF_START_IDX + wi;
     uint32_t opt_w_in    = 2u * wi;
     uint32_t opt_g_in    = 2u * wi + 1u;
 
-    l3_aware_copy(DeeployOptNetwork_inputs[opt_w_in],
-                  DeeployNetwork_inputs[train_w_idx],
-                  DeeployOptNetwork_inputs_bytes[opt_w_in]);
-    l3_aware_copy(DeeployOptNetwork_inputs[opt_g_in],
-                  DeeployNetwork_inputs[train_g_idx],
-                  DeeployOptNetwork_inputs_bytes[opt_g_in]);
+    if (DeeployOptNetwork_inputs[opt_w_in] != DeeployNetwork_inputs[train_w_idx]) {
+      l3_aware_copy(DeeployOptNetwork_inputs[opt_w_in],
+                    DeeployNetwork_inputs[train_w_idx],
+                    DeeployOptNetwork_inputs_bytes[opt_w_in]);
+    }
+    if (DeeployOptNetwork_inputs[opt_g_in] != DeeployNetwork_inputs[train_g_idx]) {
+      l3_aware_copy(DeeployOptNetwork_inputs[opt_g_in],
+                    DeeployNetwork_inputs[train_g_idx],
+                    DeeployOptNetwork_inputs_bytes[opt_g_in]);
+    }
   }
 
   /* --- Step B: Run optimizer network --- */
@@ -164,10 +219,15 @@ static void run_optimizer_step(void) {
   opt_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &opt_task);
 
-  /* --- Step C: copy weight_updated back to training network --- */
+  /* --- Step C: copy weight_updated back to training network ---
+   * Skipped when codegen has shared the output buffer with the training input. */
   for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
     uint32_t train_w_idx  = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
     uint32_t opt_w_out    = wi;
+
+    if (DeeployOptNetwork_outputs[opt_w_out] == DeeployNetwork_inputs[train_w_idx]) {
+      continue;  /* in-place: training buffer already updated */
+    }
 
     uint32_t opt_bytes   = DeeployOptNetwork_outputs_bytes[opt_w_out];
     uint32_t train_bytes = DeeployNetwork_inputs_bytes[train_w_idx];
@@ -239,6 +299,10 @@ int main(void) {
   struct pi_cluster_conf conf;
   pi_cluster_conf_init(&conf);
   conf.id = 0;
+  /* Training networks have deep closure chains with many local variables.
+   * The default PI_CL_CC_STACK_SIZE (0x800 = 2KB) is too small; increase
+   * the cluster controller (master core) stack to MAINSTACKSIZE. */
+  conf.cc_stack_size = MAINSTACKSIZE;
   pi_open_from_conf(&cluster_dev, &conf);
   if (pi_cluster_open(&cluster_dev))
     return -1;
@@ -251,7 +315,7 @@ int main(void) {
   struct pi_cluster_task cluster_task;
 
   /* ------------------------------------------------------------------
-   * Init training network
+   * Init training network (allocates L1 + L2 arenas, loads hex data)
    * ------------------------------------------------------------------ */
 
   printf("Initializing TrainingNetwork...\r\n");
@@ -282,11 +346,18 @@ int main(void) {
   }
 
   /* ------------------------------------------------------------------
-   * Init optimizer network
+   * Init optimizer network.
+   *
+   * GAP9 L1 is limited (~131 KB).  Large models need ~64 KB each for
+   * Training and Optimizer L1 arenas — both can't coexist.  We free
+   * Training's L1, init Optimizer (which allocates its own L1), then
+   * free both and create a single shared L1 arena.
    * ------------------------------------------------------------------ */
 
   printf("Initializing OptimizerNetwork...\r\n");
-  pi_cluster_task(&cluster_task, InitOptimizerNetworkWrapper, NULL);
+  /* Free Training L1, init Optimizer, then set up a shared L1 arena.
+   * All done in one cluster task since pi_l1_free/malloc are cluster APIs. */
+  pi_cluster_task(&cluster_task, InitOptAndShareL1, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 

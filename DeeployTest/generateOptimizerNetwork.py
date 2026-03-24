@@ -23,11 +23,12 @@ Usage
 
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-from testUtils.codeGenerate import generateOptimizerTestNetwork
+from testUtils.codeGenerate import build_shared_buffer_maps, generateOptimizerTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 
@@ -93,13 +94,27 @@ def generateOptimizerNetwork(args):
     verbosityCfg = _NoVerbosity
     _ = deployer.prepare(verbosityCfg)
 
-    # 5. Generate OptimizerNetwork.c / OptimizerNetwork.h
+    # 5. Build shared-buffer maps when the training ONNX is available
+    shared_input_map: dict = {}
+    shared_output_map: dict = {}
+    training_onnx = Path(args.training_dir) / "network.onnx" if args.training_dir else None
+    if training_onnx and training_onnx.exists():
+        shared_input_map, shared_output_map = build_shared_buffer_maps(str(training_onnx), onnx_model)
+        log.debug(f"[SharedBuffers] input map: {shared_input_map}")
+        log.debug(f"[SharedBuffers] output map: {shared_output_map}")
+        log.info(f"[OptimizerNetwork] Sharing {len(shared_input_map)} inputs and "
+                 f"{len(shared_output_map)} outputs with TrainingNetwork")
+    else:
+        if args.training_dir:
+            log.warning(f"[OptimizerNetwork] training_dir set but {training_onnx} not found — "
+                        "generating standalone OptimizerNetwork (no buffer sharing)")
+
+    # 6. Generate OptimizerNetwork.c / OptimizerNetwork.h
     os.makedirs(args.dumpdir, exist_ok=True)
-    generateOptimizerTestNetwork(deployer, args.dumpdir, verbosityCfg)
+    generateOptimizerTestNetwork(deployer, args.dumpdir, verbosityCfg, shared_input_map, shared_output_map)
 
     log.info(f"Optimizer network code generated in: {args.dumpdir}")
     print(f"[OptimizerNetwork] Generated OptimizerNetwork.c/h in {args.dumpdir}")
-
 
 if __name__ == '__main__':
 
@@ -120,6 +135,14 @@ if __name__ == '__main__':
                         help="Default memory level (L2 or L3). Must match the training graph. Default: L2.")
     parser.add_argument("--l1", type=int, default=64000, help="L1 size in bytes. Default: 64000.")
     parser.add_argument("--l2", type=int, default=1024000, help="L2 size in bytes. Default: 1024000.")
+    parser.add_argument(
+        "--training-dir",
+        type=str,
+        default=None,
+        help="Directory containing the training network.onnx.  When provided, "
+             "weight and grad-acc buffers are shared with TrainingNetwork instead "
+             "of being allocated independently.",
+    )
     parser.add_argument('--shouldFail', action='store_true')
     parser.set_defaults(shouldFail=False)
 

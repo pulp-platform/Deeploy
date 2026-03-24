@@ -27,11 +27,12 @@ Usage
 import hashlib
 import os
 import sys
+from pathlib import Path
 from typing import List
 
 import onnx
 import onnx_graphsurgeon as gs
-from testUtils.codeGenerate import generateOptimizerTestNetwork
+from testUtils.codeGenerate import build_shared_buffer_maps, generateOptimizerTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import TrainingSBTiler
@@ -125,9 +126,24 @@ def generateTiledOptimizerNetwork(args) -> None:
         verbosityCfg = CodeGenVerbosity(tilingProfiling=True)
     _ = deployer.prepare(verbosityCfg)
 
-    # 9. Generate OptimizerNetwork.c / OptimizerNetwork.h
+    # 9. Build shared-buffer maps when the training ONNX is available
+    shared_input_map: dict = {}
+    shared_output_map: dict = {}
+    training_onnx = Path(args.training_dir) / "network.onnx" if args.training_dir else None
+    if training_onnx and training_onnx.exists():
+        shared_input_map, shared_output_map = build_shared_buffer_maps(str(training_onnx), onnx_model)
+        log.debug(f"[SharedBuffers] input map: {shared_input_map}")
+        log.debug(f"[SharedBuffers] output map: {shared_output_map}")
+        log.info(f"[TiledOptimizerNetwork] Sharing {len(shared_input_map)} inputs and "
+                 f"{len(shared_output_map)} outputs with TrainingNetwork")
+    else:
+        if args.training_dir:
+            log.warning(f"[TiledOptimizerNetwork] training_dir set but {training_onnx} not found — "
+                        "generating standalone OptimizerNetwork (no buffer sharing)")
+
+    # 10. Generate OptimizerNetwork.c / OptimizerNetwork.h
     os.makedirs(args.dumpdir, exist_ok=True)
-    generateOptimizerTestNetwork(deployer, args.dumpdir, verbosityCfg)
+    generateOptimizerTestNetwork(deployer, args.dumpdir, verbosityCfg, shared_input_map, shared_output_map)
 
     log.info(f"Tiled optimizer network code generated in: {args.dumpdir}")
     print(f"[TiledOptimizerNetwork] Generated OptimizerNetwork.c/h in {args.dumpdir}")
@@ -193,6 +209,14 @@ if __name__ == '__main__':
         '--profileTiling',
         action='store_true',
         help='Enable tiling profiling (inserts cycle counters around each tiled kernel).',
+    )
+    parser.add_argument(
+        "--training-dir",
+        type=str,
+        default=None,
+        help="Directory containing the training network.onnx.  When provided, "
+             "weight and grad-acc buffers are shared with TrainingNetwork instead "
+             "of being allocated independently.",
     )
     parser.add_argument('--shouldFail', action='store_true')
     parser.set_defaults(shouldFail=False)

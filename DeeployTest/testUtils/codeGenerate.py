@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-from typing import List, Tuple
+import re
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -698,6 +700,160 @@ _OPT_PREFIX = "DeeployOptNetwork_"
 _TRAIN_PREFIX = "DeeployNetwork_"
 
 
+def build_shared_buffer_maps(train_onnx_path: str, opt_onnx_model) -> Tuple[Dict[int, int], Dict[int, int]]:
+    """Build optimizer→training index maps for tensors shared between the two graphs.
+
+    The optimizer ONNX inputs are interleaved weight/grad pairs that have the
+    same tensor names as inputs in the training ONNX graph.  We match by name
+    so that ``InitOptimizerNetwork`` can reference the already-allocated
+    ``DeeployNetwork_input_N`` pointers instead of allocating fresh buffers.
+
+    Parameters
+    ----------
+    train_onnx_path : str
+        Path to the training ``network.onnx``.
+    opt_onnx_model :
+        Already-loaded optimizer ONNX model (``onnx.ModelProto``).
+
+    Returns
+    -------
+    shared_input_map : Dict[int, int]
+        opt_input_idx → train_input_idx
+    shared_output_map : Dict[int, int]
+        opt_output_idx → train_input_idx  (SGD outputs == updated weights,
+        same physical buffer as the weight input)
+    """
+    import onnx as _onnx
+    train_model = _onnx.load_model(train_onnx_path)
+    train_names = [inp.name for inp in train_model.graph.input]
+    train_name_to_idx = {name: i for i, name in enumerate(train_names)}
+
+    opt_input_names = [inp.name for inp in opt_onnx_model.graph.input]
+    opt_output_names = [out.name for out in opt_onnx_model.graph.output]
+
+    shared_input_map: Dict[int, int] = {}
+    for opt_idx, name in enumerate(opt_input_names):
+        if name in train_name_to_idx:
+            shared_input_map[opt_idx] = train_name_to_idx[name]
+
+    shared_output_map: Dict[int, int] = {}
+    for opt_idx, name in enumerate(opt_output_names):
+        # Try exact match first; then strip the '_updated' suffix that the SGD
+        # node appends to output tensor names (e.g. 'conv1_weight_updated' → 'conv1_weight').
+        lookup_name = name
+        if lookup_name not in train_name_to_idx and lookup_name.endswith('_updated'):
+            lookup_name = lookup_name[: -len('_updated')]
+        if lookup_name in train_name_to_idx:
+            shared_output_map[opt_idx] = train_name_to_idx[lookup_name]
+
+    return shared_input_map, shared_output_map
+
+
+def _patch_shared_buffers(retStr: str, shared_input_map: Dict[int, int], shared_output_map: Dict[int, int]) -> str:
+    """Redirect optimizer I/O buffers to Training's already-allocated buffers.
+
+    Must be called AFTER the _TRAIN_PREFIX → _OPT_PREFIX substitution so that
+    the generated symbols already carry the ``DeeployOptNetwork_`` prefix.
+
+    Handles two allocation styles produced by Deeploy:
+
+    *Non-tiled* (per-buffer malloc)::
+
+        DeeployOptNetwork_input_N = (SomeType *)pi_l2_malloc(sizeof(...));
+
+    *Tiled* (single arena with offsets)::
+
+        DeeployOptNetwork_input_N = (float32_t *)((char *)DeeployOptNetwork_MEMORYARENA_L2 + OFFSET);
+
+    Both are replaced with direct pointers into the TrainingNetwork arenas::
+
+        DeeployOptNetwork_input_N = (float32_t *)DeeployNetwork_input_M;
+
+    After all I/O pointers are redirected, if a ``MEMORYARENA_L2`` or
+    ``MEMORYARENA_L3`` allocation is no longer referenced anywhere in the Init
+    body (i.e., the shared buffers consumed the entire arena), the now-unused
+    malloc is also removed to reclaim the L2/L3 memory.
+
+    Parameters
+    ----------
+    retStr : str
+        The already-prefix-substituted C source string.
+    shared_input_map : Dict[int, int]
+        Optimizer input index → training input index.
+    shared_output_map : Dict[int, int]
+        Optimizer output index → training input index (in-place update).
+
+    Returns
+    -------
+    str
+        Patched C source string.
+    """
+    if not shared_input_map and not shared_output_map:
+        return retStr
+
+    # ------------------------------------------------------------------
+    # Pattern 1 (non-tiled): individual pi_*_malloc per buffer
+    # ------------------------------------------------------------------
+    _malloc_pat = re.compile(
+        r'(DeeployOptNetwork_(input|output)_(\d+))\s*=\s*\([^)]+\s*\*\s*\)\s*pi_\w+_malloc\([^;]+\);'
+    )
+
+    # ------------------------------------------------------------------
+    # Pattern 2 (tiled): arena-offset assignment
+    #   DeeployOptNetwork_input_N = (Type *)((char *)DeeployOptNetwork_MEMORYARENA_Lx + OFFSET);
+    # ------------------------------------------------------------------
+    _arena_pat = re.compile(
+        r'(DeeployOptNetwork_(input|output)_(\d+))\s*=\s*\([^)]+\s*\*\s*\)'
+        r'\s*\(\s*\(char\s*\*\)\s*DeeployOptNetwork_MEMORYARENA_L\w+\s*\+\s*\d+\s*\)\s*;'
+    )
+
+    def _make_replacement(symbol: str, kind: str, idx: int) -> Optional[str]:
+        if kind == "input" and idx in shared_input_map:
+            train_idx = shared_input_map[idx]
+            return f'{symbol} = (float32_t *){_TRAIN_PREFIX}input_{train_idx};  /* shared with TrainingNetwork */'
+        if kind == "output" and idx in shared_output_map:
+            train_idx = shared_output_map[idx]
+            return f'{symbol} = (float32_t *){_TRAIN_PREFIX}input_{train_idx};  /* in-place, shared with TrainingNetwork */'
+        return None
+
+    def _replace(m: re.Match) -> str:
+        replacement = _make_replacement(m.group(1), m.group(2), int(m.group(3)))
+        return replacement if replacement is not None else m.group(0)
+
+    retStr = _malloc_pat.sub(_replace, retStr)
+    retStr = _arena_pat.sub(_replace, retStr)
+
+    # ------------------------------------------------------------------
+    # Arena elimination: if a MEMORYARENA_Lx is no longer used for any
+    # pointer arithmetic after the redirects, its malloc is dead and can
+    # be removed to reclaim L2/L3.  The global declaration is left in
+    # place (harmless; the variable will be NULL at runtime).
+    # ------------------------------------------------------------------
+    for level in ('L2', 'L3'):
+        arena_sym = f'DeeployOptNetwork_MEMORYARENA_{level}'
+        # Pattern for the malloc assignment line itself
+        malloc_line_pat = re.compile(
+            rf'[^\n]*{re.escape(arena_sym)}\s*=\s*\([^)]+\)\s*pi_\w+_malloc\([^;]+\);\s*\n'
+        )
+        # Pattern for any use of the arena in pointer arithmetic:
+        #   (char *)ARENA + OFFSET  or  (void *)ARENA  etc.
+        arena_use_pat = re.compile(
+            rf'\(\s*(?:char|void|int8_t)\s*\*\s*\)\s*{re.escape(arena_sym)}'
+        )
+        if not arena_use_pat.search(retStr):
+            # No remaining pointer arithmetic — the malloc is dead
+            retStr = malloc_line_pat.sub('', retStr)
+
+    # ------------------------------------------------------------------
+    # Inject TrainingNetwork header so DeeployNetwork_input_N symbols resolve
+    # ------------------------------------------------------------------
+    retStr = retStr.replace(
+        '#include "OptimizerNetwork.h"',
+        '#include "OptimizerNetwork.h"\n#include "TrainingNetwork.h"',
+    )
+    return retStr
+
+
 def generateOptimizerNetworkHeader(deployer: NetworkDeployer) -> str:
     """Generate OptimizerNetwork.h.
 
@@ -745,7 +901,10 @@ void InitOptimizerNetwork(uint32_t core_id, uint32_t numThreads);
     return retStr
 
 
-def generateOptimizerNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: CodeGenVerbosity) -> str:
+def generateOptimizerNetworkImplementation(deployer: NetworkDeployer,
+                                           verbosityCfg: CodeGenVerbosity,
+                                           shared_input_map: Optional[Dict[int, int]] = None,
+                                           shared_output_map: Optional[Dict[int, int]] = None) -> str:
     """Generate OptimizerNetwork.c.
 
     Parameters
@@ -754,6 +913,12 @@ def generateOptimizerNetworkImplementation(deployer: NetworkDeployer, verbosityC
         Prepared deployer for the optimizer ONNX graph.
     verbosityCfg : CodeGenVerbosity
         Verbosity configuration.
+    shared_input_map : Dict[int, int], optional
+        Optimizer input index → training input index for shared weight/grad buffers.
+        When provided, those malloc calls are replaced with references to the
+        already-allocated TrainingNetwork buffers.
+    shared_output_map : Dict[int, int], optional
+        Optimizer output index → training input index for in-place shared outputs.
 
     Returns
     -------
@@ -810,11 +975,16 @@ void InitOptimizerNetwork(__attribute__((unused)) uint32_t core_id, __attribute_
 """
     # Prefix substitution
     retStr = retStr.replace(_TRAIN_PREFIX, _OPT_PREFIX)
+    # Replace malloc calls for shared weight/grad buffers with Training pointers
+    retStr = _patch_shared_buffers(retStr, shared_input_map or {}, shared_output_map or {})
     return retStr
 
 
-def generateOptimizerTestNetwork(deployer: NetworkDeployer, dumpdir: str,
-                                 verbosityCfg: CodeGenVerbosity) -> None:
+def generateOptimizerTestNetwork(deployer: NetworkDeployer,
+                                 dumpdir: str,
+                                 verbosityCfg: CodeGenVerbosity,
+                                 shared_input_map: Optional[Dict[int, int]] = None,
+                                 shared_output_map: Optional[Dict[int, int]] = None) -> None:
     """Generate OptimizerNetwork.h and OptimizerNetwork.c.
 
     Parameters
@@ -825,6 +995,10 @@ def generateOptimizerTestNetwork(deployer: NetworkDeployer, dumpdir: str,
         Output directory for generated files.
     verbosityCfg : CodeGenVerbosity
         Verbosity configuration.
+    shared_input_map : Dict[int, int], optional
+        Optimizer input index → training input index for shared weight/grad buffers.
+    shared_output_map : Dict[int, int], optional
+        Optimizer output index → training input index for in-place shared outputs.
     """
     assert deployer.prepared, "An unprepared deployer was given"
 
@@ -834,7 +1008,7 @@ def generateOptimizerTestNetwork(deployer: NetworkDeployer, dumpdir: str,
     with open(f'{dumpdir}/OptimizerNetwork.h', 'w') as f:
         f.write(headerStr)
 
-    implStr = generateOptimizerNetworkImplementation(deployer, verbosityCfg)
+    implStr = generateOptimizerNetworkImplementation(deployer, verbosityCfg, shared_input_map, shared_output_map)
     with open(f'{dumpdir}/OptimizerNetwork.c', 'w') as f:
         f.write(implStr)
 

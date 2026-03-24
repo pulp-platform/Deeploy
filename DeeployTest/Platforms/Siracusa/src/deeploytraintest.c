@@ -147,21 +147,25 @@ static void connect_optimizer_buffers(void) {
 
 static void run_optimizer_step(void) {
 #if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
-  /* --- Step A: copy current weights + grad acc → optimizer input buffers --- */
+  /* --- Step A: copy current weights + grad acc → optimizer input buffers ---
+   * Skipped when codegen has shared the buffers (pointer equality test). */
   for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
     uint32_t train_w_idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
     uint32_t train_g_idx = (uint32_t)TRAINING_GRAD_BUF_START_IDX + wi;
     uint32_t opt_w_in    = 2u * wi;
     uint32_t opt_g_in    = 2u * wi + 1u;
 
-    l3_aware_copy(DeeployOptNetwork_inputs[opt_w_in],
-                  DeeployNetwork_inputs[train_w_idx],
-                  DeeployOptNetwork_inputs_bytes[opt_w_in]);
-    l3_aware_copy(DeeployOptNetwork_inputs[opt_g_in],
-                  DeeployNetwork_inputs[train_g_idx],
-                  DeeployOptNetwork_inputs_bytes[opt_g_in]);
+    if (DeeployOptNetwork_inputs[opt_w_in] != DeeployNetwork_inputs[train_w_idx]) {
+      l3_aware_copy(DeeployOptNetwork_inputs[opt_w_in],
+                    DeeployNetwork_inputs[train_w_idx],
+                    DeeployOptNetwork_inputs_bytes[opt_w_in]);
+    }
+    if (DeeployOptNetwork_inputs[opt_g_in] != DeeployNetwork_inputs[train_g_idx]) {
+      l3_aware_copy(DeeployOptNetwork_inputs[opt_g_in],
+                    DeeployNetwork_inputs[train_g_idx],
+                    DeeployOptNetwork_inputs_bytes[opt_g_in]);
+    }
   }
-
 
   struct pi_cluster_task opt_task;
   pi_cluster_task(&opt_task, RunOptimizerNetwork, NULL);
@@ -169,10 +173,15 @@ static void run_optimizer_step(void) {
   opt_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &opt_task);
 
-  /* --- Step C: copy weight_updated back to training network's weight buffers --- */
+  /* --- Step C: copy weight_updated back to training network's weight buffers ---
+   * Skipped when codegen has shared the output buffer with the training input. */
   for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
     uint32_t train_w_idx  = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
     uint32_t opt_w_out    = wi;
+
+    if (DeeployOptNetwork_outputs[opt_w_out] == DeeployNetwork_inputs[train_w_idx]) {
+      continue;  /* in-place: training buffer already updated */
+    }
 
     uint32_t opt_bytes   = DeeployOptNetwork_outputs_bytes[opt_w_out];
     uint32_t train_bytes = DeeployNetwork_inputs_bytes[train_w_idx];
@@ -246,8 +255,8 @@ printf("N_TRAIN_STEPS=%u  N_ACCUM_STEPS=%u  DATA_INPUTS=%u\r\n",
   if (pi_cluster_open(&cluster_dev))
     return -1;
 
-  mem_init();
 #ifndef NOFLASH
+  mem_init();
   open_fs();
 #endif
 
