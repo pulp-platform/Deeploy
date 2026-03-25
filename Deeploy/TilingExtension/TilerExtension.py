@@ -400,17 +400,20 @@ class Tiler():
 
         blockNames = [block.name for block in memoryMap]
 
-        # JUNGVI: In-place alias outputs are costless — their storage is
+        # In-place alias outputs are costless — their storage is
         # already accounted for by the alias target.  This mirrors the
         # zero-cost logic in _buildCostVector (MemoryScheduler.py) and the
         # skip logic in _allocateStaticBuffer.
         # We skip them from the MiniMalloc CSV (MiniMalloc does not accept
         # size-0 entries) and resolve their addrSpace from the alias target
         # after the solver runs.
+        # NOTE: Only skip when alias target is in the SAME memoryMap.
+        # When alias target is global (e.g. L2 weight) but we're allocating
+        # L1, the buffer still needs its own L1 space.
         aliasBlocks = set()
         for memoryBlock in memoryMap:
             _buffer = ctxt.lookup(memoryBlock.name)
-            if hasattr(_buffer, "_alias") and (ctxt.is_global(_buffer._alias) or _buffer._alias in blockNames):
+            if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:
                 aliasBlocks.add(memoryBlock.name)
 
         with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
