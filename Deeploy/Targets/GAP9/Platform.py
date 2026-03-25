@@ -33,11 +33,15 @@ from Deeploy.Targets.GAP9.Tiler import GAP9AddTilingReadyBindings, GAP9AveragePo
     GAP9SoftmaxCrossEntropyGradTilingReadyBindings, GAP9SoftmaxCrossEntropyLossDualOutputTilingReadyBindings, \
     GAP9SliceTilingReadyBindings, GAP9SoftmaxCrossEntropyTilingReadyBindings, \
     GAP9SoftmaxGradTilingReadyBindings, GAP9SoftmaxTilingReadyBindings, GAP9TransposeTilingReadyBindings, \
-    GAP9UniformRQSTilingReadyBindings
+    GAP9UniformRQSTilingReadyBindings, \
+    GAP9WelfordReduceTilingReadyBindings, GAP9ChannelNormalizeTilingReadyBindings, \
+    GAP9BNGradReduceTilingReadyBindings, GAP9BNGradNormalizeTilingReadyBindings
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, AveragePoolLayer, \
-    BatchNormInternalLayer, BatchNormalizationGradLayer, ConcatLayer, ConvLayer, \
+    BatchNormInternalLayer, BatchNormalizationGradLayer, BNGradNormalizeLayer, BNGradReduceLayer, \
+    ChannelNormalizeLayer, ConcatLayer, ConvLayer, \
+    WelfordReduceLayer, \
     ConvGradBLayer, ConvGradWLayer, ConvGradXLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, \
     GlobalAveragePoolLayer, GlobalAveragePoolGradLayer, \
     InPlaceAccumulatorV2Layer, \
@@ -47,7 +51,9 @@ from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, Avera
     RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, \
     SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, BatchNormInternalParser, \
-    BatchNormalizationGradParser, ConcatParser, Conv2DGradBParser, DequantParser, FlattenParser, GatherParser, \
+    BatchNormalizationGradParser, BNGradNormalizeParser, BNGradReduceParser, \
+    ChannelNormalizeParser, ConcatParser, Conv2DGradBParser, DequantParser, FlattenParser, GatherParser, \
+    WelfordReduceParser, \
     GELUGradParser, GELUParser, GEMMParser, GlobalAveragePoolParser, GlobalAveragePoolGradParser, \
     InPlaceAccumulatorV2Parser, \
     LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool2DParser, MaxPoolGradParser, \
@@ -137,6 +143,10 @@ GAP9_MSELossGradMapper = NodeMapper(MSELossGradParser(), GAP9MSELossGradTilingRe
 GAP9_InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), GAP9InPlaceAccumulatorV2TilingReadyBindings)
 GAP9_BatchNormInternalMapper = NodeMapper(BatchNormInternalParser(), GAP9BatchNormInternalTilingReadyBindings)
 GAP9_BatchNormalizationGradMapper = NodeMapper(BatchNormalizationGradParser(), GAP9BatchNormalizationGradTilingReadyBindings)
+GAP9_WelfordReduceMapper = NodeMapper(WelfordReduceParser(), GAP9WelfordReduceTilingReadyBindings)
+GAP9_ChannelNormalizeMapper = NodeMapper(ChannelNormalizeParser(), GAP9ChannelNormalizeTilingReadyBindings)
+GAP9_BNGradReduceMapper = NodeMapper(BNGradReduceParser(), GAP9BNGradReduceTilingReadyBindings)
+GAP9_BNGradNormalizeMapper = NodeMapper(BNGradNormalizeParser(), GAP9BNGradNormalizeTilingReadyBindings)
 GAP9_GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), GAP9GlobalAveragePool2DTilingReadyBindings)
 GAP9_GlobalAveragePoolGradMapper = NodeMapper(GlobalAveragePoolGradParser(), GAP9GlobalAveragePoolGrad2DTilingReadyBindings)
 
@@ -252,6 +262,15 @@ GAP9Mapping = {
         GlobalAveragePoolLayer([GAP9_GlobalAveragePoolMapper]),
     'GlobalAveragePoolGrad':
         GlobalAveragePoolGradLayer([GAP9_GlobalAveragePoolGradMapper]),
+    # Split BN ops (for spatial tiling)
+    'WelfordReduce':
+        WelfordReduceLayer([GAP9_WelfordReduceMapper]),
+    'ChannelNormalize':
+        ChannelNormalizeLayer([GAP9_ChannelNormalizeMapper]),
+    'BNGradReduce':
+        BNGradReduceLayer([GAP9_BNGradReduceMapper]),
+    'BNGradNormalize':
+        BNGradNormalizeLayer([GAP9_BNGradNormalizeMapper]),
 }
 
 

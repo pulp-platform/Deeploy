@@ -12,6 +12,8 @@ import copy
 
 from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9AveragePool2DBindings, \
     GAP9AveragePoolGrad2DBindings, GAP9BatchNormInternalBindings, GAP9BatchNormalizationGradBindings, \
+    GAP9BNGradNormalizeBindings, GAP9BNGradReduceBindings, GAP9ChannelNormalizeBindings, \
+    GAP9WelfordReduceBindings, \
     GAP9ConcatBindings, GAP9FloatConv2DBindings, GAP9FloatConvGradBBindings, GAP9FloatConvGradW2DBindings, \
     GAP9FloatConvGradX2DBindings, GAP9FloatDWConv2DBindings, GAP9FloatDWConvGradW2DBindings, \
     GAP9FloatDWConvGradX2DBindings, GAP9FloatGELUBinding, GAP9FloatGELUGradBinding, GAP9FloatGEMMBindings, \
@@ -44,7 +46,8 @@ from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv
     RQDWConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.AveragePoolTileConstraint import AveragePoolCTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.BatchNormTileConstraint import BatchNormInternalTileConstraint, \
-    BatchNormalizationGradTileConstraint
+    BatchNormalizationGradTileConstraint, WelfordReduceTileConstraint, ChannelNormalizeTileConstraint, \
+    BNGradReduceTileConstraint, BNGradNormalizeTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradBTileConstraint, \
     ConvGradX2DIm2ColHWTileConstraint, ConvGradW2DTileConstraint, \
     DWConvGradX2DTileConstraint, DWConvGradW2DTileConstraint, PWConvGradXTileConstraint, PWConvGradWTileConstraint
@@ -238,6 +241,17 @@ GAP9BatchNormInternalTilingReadyBindings = TilingReadyNodeBindings(
 GAP9BatchNormalizationGradTilingReadyBindings = TilingReadyNodeBindings(
     nodeBindings = GAP9BatchNormalizationGradBindings, tileConstraint = BatchNormalizationGradTileConstraint())
 
+GAP9WelfordReduceTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = GAP9WelfordReduceBindings, tileConstraint = WelfordReduceTileConstraint())
+
+GAP9ChannelNormalizeTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = GAP9ChannelNormalizeBindings, tileConstraint = ChannelNormalizeTileConstraint())
+
+GAP9BNGradReduceTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = GAP9BNGradReduceBindings, tileConstraint = BNGradReduceTileConstraint())
+
+GAP9BNGradNormalizeTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = GAP9BNGradNormalizeBindings, tileConstraint = BNGradNormalizeTileConstraint())
 
 GAP9SliceTilingReadyBindings = TilingReadyNodeBindings(
     nodeBindings = GAP9SliceBindings, tileConstraint = SliceTileConstraint())

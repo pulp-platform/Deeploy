@@ -16,6 +16,8 @@ from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import Tran
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPAveragePool2DBindings, \
     PULPAveragePoolGrad2DBindings, PULPBatchNormInternalBindings, PULPBatchNormalizationGradBindings, \
+    PULPBNGradNormalizeBindings, PULPBNGradReduceBindings, PULPChannelNormalizeBindings, \
+    PULPWelfordReduceBindings, \
     PULPGlobalAveragePool2DBindings, PULPGlobalAveragePoolGrad2DBindings, \
     PULPConcatBindings, PULPFloatConv2DBindings, PULPFloatConvGradBBindings, PULPFloatConvGradW2DBindings, \
     PULPMaxPoolGrad2DBindings, \
@@ -55,7 +57,8 @@ from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileCo
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.InPlaceAccumulatorV2TileConstraint import InPlaceAccumulatorV2TileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.BatchNormTileConstraint import BatchNormInternalTileConstraint, \
-    BatchNormalizationGradTileConstraint
+    BatchNormalizationGradTileConstraint, WelfordReduceTileConstraint, ChannelNormalizeTileConstraint, \
+    BNGradReduceTileConstraint, BNGradNormalizeTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GlobalAveragePoolTileConstraint import GlobalAveragePoolTileConstraint, \
     GlobalAveragePoolGradTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradBTileConstraint, \
@@ -227,6 +230,18 @@ PULPBatchNormInternalTilingReadyBindings = TilingReadyNodeBindings(
 
 PULPBatchNormalizationGradTilingReadyBindings = TilingReadyNodeBindings(
     nodeBindings = PULPBatchNormalizationGradBindings, tileConstraint = BatchNormalizationGradTileConstraint())
+
+PULPWelfordReduceTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPWelfordReduceBindings, tileConstraint = WelfordReduceTileConstraint())
+
+PULPChannelNormalizeTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPChannelNormalizeBindings, tileConstraint = ChannelNormalizeTileConstraint())
+
+PULPBNGradReduceTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPBNGradReduceBindings, tileConstraint = BNGradReduceTileConstraint())
+
+PULPBNGradNormalizeTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPBNGradNormalizeBindings, tileConstraint = BNGradNormalizeTileConstraint())
 
 PULPGlobalAveragePool2DTilingReadyBindings = TilingReadyNodeBindings(
     nodeBindings = PULPGlobalAveragePool2DBindings, tileConstraint = GlobalAveragePoolTileConstraint())

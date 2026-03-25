@@ -76,4 +76,97 @@ void PULP_BatchNormGrad_fp32(const float32_t *dY, const float32_t *X,
                               float32_t *dgamma, float32_t *dbeta, uint32_t N, uint32_t C,
                               uint32_t H_in, uint32_t W_in, float32_t epsilon);
 
+/**
+ * @brief Welford reduction: compute per-channel mean and 1/sqrt(var+eps) over (N,H,W).
+ *
+ * This is the reduction half of a split BN forward pass.
+ * Parallelized over channels.
+ *
+ * @param X              Input [N, C, H_in, W_in] NCHW float32
+ * @param saved_mean     Output: per-channel batch mean [C]
+ * @param saved_inv_std  Output: per-channel 1/sqrt(var+eps) [C]
+ * @param N              Batch size
+ * @param C              Number of channels
+ * @param H_in           Spatial height
+ * @param W_in           Spatial width
+ * @param epsilon        Numerical stability term
+ */
+void PULP_WelfordReduce_fp32(const float32_t *X, float32_t *saved_mean,
+                              float32_t *saved_inv_std, uint32_t N, uint32_t C,
+                              uint32_t H_in, uint32_t W_in, float32_t epsilon);
+
+/**
+ * @brief Channel normalize: Y = (X - mean) * inv_std * gamma + beta.
+ *
+ * This is the elementwise half of a split BN forward pass.
+ * Freely spatially tileable (no reduction).
+ * Parallelized over channels.
+ *
+ * @param X              Input [N, C, H_in, W_in]
+ * @param saved_mean     Per-channel batch mean [C]
+ * @param saved_inv_std  Per-channel 1/sqrt(var+eps) [C]
+ * @param gamma          Affine scale [C]
+ * @param beta           Affine bias [C]
+ * @param Y              Output [N, C, H_in, W_in]
+ * @param N              Batch size
+ * @param C              Number of channels
+ * @param H_in           Spatial height
+ * @param W_in           Spatial width
+ */
+void PULP_ChannelNormalize_fp32(const float32_t *X, const float32_t *saved_mean,
+                                 const float32_t *saved_inv_std, const float32_t *gamma,
+                                 const float32_t *beta, float32_t *Y, uint32_t N,
+                                 uint32_t C, uint32_t H_in, uint32_t W_in);
+
+/**
+ * @brief BN gradient reduction: compute dgamma and dbeta over (N,H,W).
+ *
+ * This is the reduction half of a split BN backward pass.
+ * Parallelized over channels.
+ *
+ * @param dY             Upstream gradient [N, C, H_in, W_in]
+ * @param X              Original input from forward [N, C, H_in, W_in]
+ * @param saved_mean     Stash batch mean from forward [C]
+ * @param saved_inv_std  Stash 1/sqrt(var+eps) from forward [C]
+ * @param dgamma         Output: gradient w.r.t. scale [C]
+ * @param dbeta          Output: gradient w.r.t. bias [C]
+ * @param N              Batch size
+ * @param C              Number of channels
+ * @param H_in           Spatial height
+ * @param W_in           Spatial width
+ */
+void PULP_BNGradReduce_fp32(const float32_t *dY, const float32_t *X,
+                              const float32_t *saved_mean, const float32_t *saved_inv_std,
+                              float32_t *dgamma, float32_t *dbeta, uint32_t N,
+                              uint32_t C, uint32_t H_in, uint32_t W_in);
+
+/**
+ * @brief BN gradient normalize: compute dX using pre-computed dgamma, dbeta.
+ *
+ * This is the elementwise half of a split BN backward pass.
+ * Freely spatially tileable (no reduction).
+ * Parallelized over channels.
+ *
+ * @param dY             Upstream gradient [N, C, H_in, W_in]
+ * @param X              Original input from forward [N, C, H_in, W_in]
+ * @param saved_mean     Stash batch mean from forward [C]
+ * @param saved_inv_std  Stash 1/sqrt(var+eps) from forward [C]
+ * @param gamma          Affine scale [C]
+ * @param dgamma         Pre-computed gradient w.r.t. scale [C]
+ * @param dbeta          Pre-computed gradient w.r.t. bias [C]
+ * @param dX             Output: gradient w.r.t. input [N, C, H_in, W_in]
+ * @param N              Batch size
+ * @param C              Number of channels
+ * @param H_in           Spatial height
+ * @param W_in           Spatial width
+ * @param N_total_inv    1.0f / (N * H_full * W_full) — must be pre-computed with
+ *                       FULL spatial dims (not tile dims) for correct BN gradient.
+ */
+void PULP_BNGradNormalize_fp32(const float32_t *dY, const float32_t *X,
+                                const float32_t *saved_mean, const float32_t *saved_inv_std,
+                                const float32_t *gamma, const float32_t *dgamma,
+                                const float32_t *dbeta, float32_t *dX, uint32_t N,
+                                uint32_t C, uint32_t H_in, uint32_t W_in,
+                                float32_t N_total_inv);
+
 #endif /* __DEEPLOY_MATH_BATCHNORM_KERNEL_HEADER_ */

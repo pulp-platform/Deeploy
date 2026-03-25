@@ -712,6 +712,82 @@ class BatchNormalizationGradChecker(SignPropTypeChecker):
         return [True] * len(self.output_types)
 
 
+class WelfordReduceChecker(SignPropTypeChecker):
+    """TypeChecker for WelfordReduce (split BN forward reduction).
+
+    Inputs (1):  X [N,C,H,W]
+    Outputs (2): saved_mean [C], saved_inv_std [C]
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True] * len(self.output_types)
+
+
+class ChannelNormalizeChecker(SignPropTypeChecker):
+    """TypeChecker for ChannelNormalize (split BN forward elementwise).
+
+    Inputs (5):  X, saved_mean, saved_inv_std, gamma, beta
+    Outputs (1): Y [N,C,H,W]
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
+
+class BNGradReduceChecker(SignPropTypeChecker):
+    """TypeChecker for BNGradReduce (split BN backward reduction).
+
+    Inputs (4):  dY, X, saved_mean, saved_inv_std
+    Outputs (2): dgamma [C], dbeta [C]
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True] * len(self.output_types)
+
+
+class BNGradNormalizeChecker(SignPropTypeChecker):
+    """TypeChecker for BNGradNormalize (split BN backward elementwise).
+
+    Inputs (7):  dY, X, saved_mean, saved_inv_std, gamma, dgamma, dbeta
+    Outputs (1): dX [N,C,H,W]
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
+
 class GlobalAveragePoolChecker(SignPropTypeChecker):
     """TypeChecker for GlobalAveragePool.
 

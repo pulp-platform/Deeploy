@@ -48,3 +48,72 @@ PULP_BatchNormGrad_fp32(
     ${epsilon}f
 );
 """)
+
+# Split BN forward: WelfordReduce
+welfordReduceTemplate = NodeTemplate("""
+// WelfordReduce (Name: ${nodeName}, Op: ${nodeOp})
+PULP_WelfordReduce_fp32(
+    ${data_in},
+    ${saved_mean},
+    ${saved_inv_std},
+    ${N},
+    ${C},
+    ${H_in},
+    ${W_in},
+    ${epsilon}f
+);
+""")
+
+# Split BN forward: ChannelNormalize
+channelNormalizeTemplate = NodeTemplate("""
+// ChannelNormalize (Name: ${nodeName}, Op: ${nodeOp})
+PULP_ChannelNormalize_fp32(
+    ${data_in},
+    ${saved_mean},
+    ${saved_inv_std},
+    ${gamma},
+    ${beta},
+    ${data_out},
+    ${N},
+    ${C},
+    ${H_in},
+    ${W_in}
+);
+""")
+
+# Split BN backward: BNGradReduce
+bnGradReduceTemplate = NodeTemplate("""
+// BNGradReduce (Name: ${nodeName}, Op: ${nodeOp})
+PULP_BNGradReduce_fp32(
+    ${dY},
+    ${X},
+    ${saved_mean},
+    ${saved_inv_std},
+    ${dgamma},
+    ${dbeta},
+    ${N},
+    ${C},
+    ${H_in},
+    ${W_in}
+);
+""")
+
+# Split BN backward: BNGradNormalize
+bnGradNormalizeTemplate = NodeTemplate("""
+// BNGradNormalize (Name: ${nodeName}, Op: ${nodeOp})
+PULP_BNGradNormalize_fp32(
+    ${dY},
+    ${X},
+    ${saved_mean},
+    ${saved_inv_std},
+    ${gamma},
+    ${dgamma},
+    ${dbeta},
+    ${dX},
+    ${N},
+    ${C},
+    ${H_in},
+    ${W_in},
+    ${N_total_inv}f
+);
+""")

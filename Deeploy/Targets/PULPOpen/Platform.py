@@ -14,17 +14,21 @@ from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import Me
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, AveragePoolLayer, \
-    BatchNormInternalLayer, BatchNormalizationGradLayer, ConcatLayer, ConvLayer, \
+    BatchNormInternalLayer, BatchNormalizationGradLayer, BNGradNormalizeLayer, BNGradReduceLayer, \
+    ChannelNormalizeLayer, ConcatLayer, ConvLayer, \
     GlobalAveragePoolLayer, GlobalAveragePoolGradLayer, \
     ConvGradBLayer, ConvGradWLayer, ConvGradXLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, \
     InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, \
+    WelfordReduceLayer, \
     MaxPoolGradLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluGradLayer, \
     MSELossGradLayer, MSELossLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
     TransposeLayer, iHardswishLayer, iRMSNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, BatchNormInternalParser, \
-    BatchNormalizationGradParser, ConcatParser, Conv2DGradBParser, \
+    BatchNormalizationGradParser, BNGradNormalizeParser, BNGradReduceParser, \
+    ChannelNormalizeParser, ConcatParser, Conv2DGradBParser, \
+    WelfordReduceParser, \
     GlobalAveragePoolParser, GlobalAveragePoolGradParser, \
     DequantParser, FlattenParser, GatherParser, GELUGradParser, GELUParser, GEMMParser, \
     InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, \
@@ -63,6 +67,8 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAvera
     PULPMaxPoolGrad2DTilingReadyBindings, PULPRQSMatrixVecTilingReadyBindings, \
     PULPRQSTallGEMMTilingReadyBindings, PULPRQSTilingReadyBindings, \
     PULPBatchNormInternalTilingReadyBindings, PULPBatchNormalizationGradTilingReadyBindings, \
+    PULPWelfordReduceTilingReadyBindings, PULPChannelNormalizeTilingReadyBindings, \
+    PULPBNGradReduceTilingReadyBindings, PULPBNGradNormalizeTilingReadyBindings, \
     PULPGlobalAveragePool2DTilingReadyBindings, PULPGlobalAveragePoolGrad2DTilingReadyBindings, \
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyLossDualOutputTilingReadyBindings, \
@@ -148,6 +154,10 @@ MSELossMapper = NodeMapper(MSELossParser(), PULPMSELossTilingReadyBindings)
 MSELossGradMapper = NodeMapper(MSELossGradParser(), PULPMSELossGradTilingReadyBindings)
 BatchNormInternalMapper = NodeMapper(BatchNormInternalParser(), PULPBatchNormInternalTilingReadyBindings)
 BatchNormalizationGradMapper = NodeMapper(BatchNormalizationGradParser(), PULPBatchNormalizationGradTilingReadyBindings)
+WelfordReduceMapper = NodeMapper(WelfordReduceParser(), PULPWelfordReduceTilingReadyBindings)
+ChannelNormalizeMapper = NodeMapper(ChannelNormalizeParser(), PULPChannelNormalizeTilingReadyBindings)
+BNGradReduceMapper = NodeMapper(BNGradReduceParser(), PULPBNGradReduceTilingReadyBindings)
+BNGradNormalizeMapper = NodeMapper(BNGradNormalizeParser(), PULPBNGradNormalizeTilingReadyBindings)
 GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), PULPGlobalAveragePool2DTilingReadyBindings)
 GlobalAveragePoolGradMapper = NodeMapper(GlobalAveragePoolGradParser(), PULPGlobalAveragePoolGrad2DTilingReadyBindings)
 
@@ -208,6 +218,11 @@ PULPMapping = {
     'BatchNormalizationGrad': BatchNormalizationGradLayer([BatchNormalizationGradMapper]),
     'GlobalAveragePool': GlobalAveragePoolLayer([GlobalAveragePoolMapper]),
     'GlobalAveragePoolGrad': GlobalAveragePoolGradLayer([GlobalAveragePoolGradMapper]),
+    # Split BN ops (for spatial tiling)
+    'WelfordReduce': WelfordReduceLayer([WelfordReduceMapper]),
+    'ChannelNormalize': ChannelNormalizeLayer([ChannelNormalizeMapper]),
+    'BNGradReduce': BNGradReduceLayer([BNGradReduceMapper]),
+    'BNGradNormalize': BNGradNormalizeLayer([BNGradNormalizeMapper]),
 }
 
 

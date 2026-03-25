@@ -92,6 +92,163 @@ void PULP_BatchNormInternal_fp32(const float32_t *X, const float32_t *gamma,
  * Parallelism: channels are split evenly across cores.
  * Each core independently computes its channel slice of dgamma, dbeta, dX.
  */
+/*
+ * Welford reduction: compute per-channel mean and 1/sqrt(var+eps).
+ * Parallelism: channels split across cores.
+ */
+void PULP_WelfordReduce_fp32(const float32_t *X, float32_t *saved_mean,
+                              float32_t *saved_inv_std, uint32_t N, uint32_t C,
+                              uint32_t H_in, uint32_t W_in, float32_t epsilon) {
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = LOG2(NUM_CORES);
+
+  uint32_t N_hw = H_in * W_in;
+  uint32_t N_total = N * N_hw;
+  float32_t inv_N = 1.0f / (float32_t)N_total;
+
+  int32_t chunk = ((int32_t)C >> log2Core) + (((int32_t)C & (NUM_CORES - 1)) != 0);
+  int32_t c_start = MIN(chunk * core_id, (int32_t)C);
+  int32_t c_end = MIN(c_start + chunk, (int32_t)C);
+
+  for (int32_t c = c_start; c < c_end; c++) {
+    float32_t mean = 0.0f;
+    for (uint32_t n = 0; n < N; n++) {
+      const float32_t *x_nc = X + (n * C + c) * N_hw;
+      for (uint32_t hw = 0; hw < N_hw; hw++) {
+        mean += x_nc[hw];
+      }
+    }
+    mean *= inv_N;
+    saved_mean[c] = mean;
+
+    float32_t var = 0.0f;
+    for (uint32_t n = 0; n < N; n++) {
+      const float32_t *x_nc = X + (n * C + c) * N_hw;
+      for (uint32_t hw = 0; hw < N_hw; hw++) {
+        float32_t diff = x_nc[hw] - mean;
+        var += diff * diff;
+      }
+    }
+    var *= inv_N;
+    saved_inv_std[c] = 1.0f / sqrtf(var + epsilon);
+  }
+}
+
+/*
+ * Channel normalize: Y = (X - mean) * inv_std * gamma + beta.
+ * Freely spatially tileable. Parallelism: channels split across cores.
+ */
+void PULP_ChannelNormalize_fp32(const float32_t *X, const float32_t *saved_mean,
+                                 const float32_t *saved_inv_std, const float32_t *gamma,
+                                 const float32_t *beta, float32_t *Y, uint32_t N,
+                                 uint32_t C, uint32_t H_in, uint32_t W_in) {
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = LOG2(NUM_CORES);
+
+  uint32_t N_hw = H_in * W_in;
+
+  int32_t chunk = ((int32_t)C >> log2Core) + (((int32_t)C & (NUM_CORES - 1)) != 0);
+  int32_t c_start = MIN(chunk * core_id, (int32_t)C);
+  int32_t c_end = MIN(c_start + chunk, (int32_t)C);
+
+  for (int32_t c = c_start; c < c_end; c++) {
+    float32_t mean = saved_mean[c];
+    float32_t inv_std = saved_inv_std[c];
+    float32_t g = gamma[c];
+    float32_t b = beta[c];
+
+    for (uint32_t n = 0; n < N; n++) {
+      const float32_t *x_nc = X + (n * C + c) * N_hw;
+      float32_t *y_nc = Y + (n * C + c) * N_hw;
+      for (uint32_t hw = 0; hw < N_hw; hw++) {
+        y_nc[hw] = (x_nc[hw] - mean) * inv_std * g + b;
+      }
+    }
+  }
+}
+
+/*
+ * BN gradient reduction: compute dgamma and dbeta.
+ * Parallelism: channels split across cores.
+ */
+void PULP_BNGradReduce_fp32(const float32_t *dY, const float32_t *X,
+                              const float32_t *saved_mean, const float32_t *saved_inv_std,
+                              float32_t *dgamma, float32_t *dbeta, uint32_t N,
+                              uint32_t C, uint32_t H_in, uint32_t W_in) {
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = LOG2(NUM_CORES);
+
+  uint32_t N_hw = H_in * W_in;
+
+  int32_t chunk = ((int32_t)C >> log2Core) + (((int32_t)C & (NUM_CORES - 1)) != 0);
+  int32_t c_start = MIN(chunk * core_id, (int32_t)C);
+  int32_t c_end = MIN(c_start + chunk, (int32_t)C);
+
+  for (int32_t c = c_start; c < c_end; c++) {
+    float32_t mean = saved_mean[c];
+    float32_t inv_std = saved_inv_std[c];
+
+    float32_t sum_dbeta = 0.0f;
+    float32_t sum_dgamma = 0.0f;
+
+    for (uint32_t n = 0; n < N; n++) {
+      const float32_t *x_nc = X + (n * C + c) * N_hw;
+      const float32_t *dy_nc = dY + (n * C + c) * N_hw;
+      for (uint32_t hw = 0; hw < N_hw; hw++) {
+        float32_t x_hat = (x_nc[hw] - mean) * inv_std;
+        sum_dbeta += dy_nc[hw];
+        sum_dgamma += dy_nc[hw] * x_hat;
+      }
+    }
+    dgamma[c] = sum_dgamma;
+    dbeta[c] = sum_dbeta;
+  }
+}
+
+/*
+ * BN gradient normalize: compute dX using pre-computed dgamma, dbeta.
+ * Freely spatially tileable. Parallelism: channels split across cores.
+ *
+ * N_total_inv = 1.0f / (N * H_full * W_full), pre-computed with FULL spatial dims.
+ */
+void PULP_BNGradNormalize_fp32(const float32_t *dY, const float32_t *X,
+                                const float32_t *saved_mean, const float32_t *saved_inv_std,
+                                const float32_t *gamma, const float32_t *dgamma,
+                                const float32_t *dbeta, float32_t *dX, uint32_t N,
+                                uint32_t C, uint32_t H_in, uint32_t W_in,
+                                float32_t N_total_inv) {
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = LOG2(NUM_CORES);
+
+  uint32_t N_hw = H_in * W_in;
+  /* N_total for the BN formula uses FULL spatial extents (passed as N_total_inv). */
+  float32_t N_total_f = 1.0f / N_total_inv;
+
+  int32_t chunk = ((int32_t)C >> log2Core) + (((int32_t)C & (NUM_CORES - 1)) != 0);
+  int32_t c_start = MIN(chunk * core_id, (int32_t)C);
+  int32_t c_end = MIN(c_start + chunk, (int32_t)C);
+
+  for (int32_t c = c_start; c < c_end; c++) {
+    float32_t mean = saved_mean[c];
+    float32_t inv_std = saved_inv_std[c];
+    float32_t g = gamma[c];
+    float32_t dg = dgamma[c];
+    float32_t db = dbeta[c];
+    float32_t scale = inv_std * N_total_inv;
+
+    for (uint32_t n = 0; n < N; n++) {
+      const float32_t *x_nc = X + (n * C + c) * N_hw;
+      const float32_t *dy_nc = dY + (n * C + c) * N_hw;
+      float32_t *dx_nc = dX + (n * C + c) * N_hw;
+      for (uint32_t hw = 0; hw < N_hw; hw++) {
+        float32_t x_hat = (x_nc[hw] - mean) * inv_std;
+        float32_t dx_hat = dy_nc[hw] * g;
+        dx_nc[hw] = scale * (N_total_f * dx_hat - db - x_hat * dg);
+      }
+    }
+  }
+}
+
 void PULP_BatchNormGrad_fp32(const float32_t *dY, const float32_t *X,
                               const float32_t *gamma, const float32_t *saved_mean,
                               const float32_t *saved_inv_std, float32_t *dX,

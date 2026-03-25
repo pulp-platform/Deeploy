@@ -18,7 +18,9 @@ from Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure import Memory
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
     GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormInternalChecker, \
-    BatchNormalizationGradChecker, ConcatChecker, ConvChecker, DequantChecker, \
+    BatchNormalizationGradChecker, BNGradNormalizeChecker, BNGradReduceChecker, \
+    ChannelNormalizeChecker, ConcatChecker, ConvChecker, DequantChecker, \
+    WelfordReduceChecker, \
     GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, GlobalAveragePoolGradChecker, \
     HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolGradChecker, MulChecker, \
     MSELossChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, \
@@ -320,6 +322,42 @@ PULPBatchNormalizationGradBindings = [
         ForkTransformer)
 ]
 
+
+# Split BN forward: WelfordReduce (1 input X, 2 outputs saved_mean, saved_inv_std)
+PULPWelfordReduceBindings = [
+    NodeBinding(
+        WelfordReduceChecker(
+            [PointerClass(float32_t)] * 1,
+            [PointerClass(float32_t)] * 2), FloatBatchNormTemplate.welfordReduceTemplate,
+        ForkTransformer)
+]
+
+# Split BN forward: ChannelNormalize (5 inputs, 1 output)
+PULPChannelNormalizeBindings = [
+    NodeBinding(
+        ChannelNormalizeChecker(
+            [PointerClass(float32_t)] * 5,
+            [PointerClass(float32_t)] * 1), FloatBatchNormTemplate.channelNormalizeTemplate,
+        ForkTransformer)
+]
+
+# Split BN backward: BNGradReduce (4 inputs, 2 outputs)
+PULPBNGradReduceBindings = [
+    NodeBinding(
+        BNGradReduceChecker(
+            [PointerClass(float32_t)] * 4,
+            [PointerClass(float32_t)] * 2), FloatBatchNormTemplate.bnGradReduceTemplate,
+        ForkTransformer)
+]
+
+# Split BN backward: BNGradNormalize (7 inputs, 1 output)
+PULPBNGradNormalizeBindings = [
+    NodeBinding(
+        BNGradNormalizeChecker(
+            [PointerClass(float32_t)] * 7,
+            [PointerClass(float32_t)] * 1), FloatBatchNormTemplate.bnGradNormalizeTemplate,
+        ForkTransformer)
+]
 
 PULPRQSMatrixVecBindings = [
     NodeBinding(

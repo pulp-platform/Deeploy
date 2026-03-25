@@ -24,7 +24,9 @@ from Deeploy.Targets.GAP9.DMA.MchanDma import GAP9MchanDma
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, \
     FloatReduceSumTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormInternalChecker, \
-    BatchNormalizationGradChecker, ConcatChecker, ConvChecker, DequantChecker, \
+    BatchNormalizationGradChecker, BNGradNormalizeChecker, BNGradReduceChecker, \
+    ChannelNormalizeChecker, ConcatChecker, ConvChecker, DequantChecker, \
+    WelfordReduceChecker, \
     GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, GlobalAveragePoolGradChecker, \
     HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolGradChecker, MulChecker, \
     MSELossChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, \
@@ -469,6 +471,38 @@ GAP9BatchNormalizationGradBindings = [
         BatchNormalizationGradChecker(
             [PointerClass(float32_t)] * 5,
             [PointerClass(float32_t)] * 3), FloatBatchNormTemplate.batchNormGradTemplate,
+        GAP9Transformer)
+]
+
+GAP9WelfordReduceBindings = [
+    NodeBinding(
+        WelfordReduceChecker(
+            [PointerClass(float32_t)] * 1,
+            [PointerClass(float32_t)] * 2), FloatBatchNormTemplate.welfordReduceTemplate,
+        GAP9Transformer)
+]
+
+GAP9ChannelNormalizeBindings = [
+    NodeBinding(
+        ChannelNormalizeChecker(
+            [PointerClass(float32_t)] * 5,
+            [PointerClass(float32_t)] * 1), FloatBatchNormTemplate.channelNormalizeTemplate,
+        GAP9Transformer)
+]
+
+GAP9BNGradReduceBindings = [
+    NodeBinding(
+        BNGradReduceChecker(
+            [PointerClass(float32_t)] * 4,
+            [PointerClass(float32_t)] * 2), FloatBatchNormTemplate.bnGradReduceTemplate,
+        GAP9Transformer)
+]
+
+GAP9BNGradNormalizeBindings = [
+    NodeBinding(
+        BNGradNormalizeChecker(
+            [PointerClass(float32_t)] * 7,
+            [PointerClass(float32_t)] * 1), FloatBatchNormTemplate.bnGradNormalizeTemplate,
         GAP9Transformer)
 ]
 
