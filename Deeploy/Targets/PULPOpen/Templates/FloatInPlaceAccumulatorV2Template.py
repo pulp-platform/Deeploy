@@ -32,13 +32,6 @@ class _PULPInPlaceAccumulatorV2Template(NodeTemplate):
         accum_buffer.aliases.add(data_out.name)
         data_out.aliases.add(accum_buffer.name)
         data_out._alias = accum_buffer.name
-
-        # Make data_out share accum_buffer's L2 allocation (no separate malloc).
-        # This ensures the egress DMA writes to accum_buffer's L2 address,
-        # which is where the optimizer reads gradients from.
-        data_out.allocTemplate = NodeTemplate(
-            " ${name} = (${type.typeName}) " + str(accum_buffer._instance) + ";")
-        data_out.deallocTemplate = NodeTemplate("")
         return ctxt, operatorRepresentation, []
 
 
