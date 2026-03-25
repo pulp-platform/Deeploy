@@ -398,13 +398,22 @@ class Tiler():
         environment variable to be set to the installation directory.
         """
 
+        blockNames = [block.name for block in memoryMap]
+
         with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
             writer = csv.writer(file, lineterminator = "\n")
             writer.writerow(["id", "lower", "upper", "size"])
             for memoryBlock in memoryMap:
 
                 _buffer = ctxt.lookup(memoryBlock.name)
-                if nodeMemoryConstraint is None:
+
+                # RunW: In-place alias outputs are costless — their storage is
+                # already accounted for by the alias target.  This mirrors the
+                # zero-cost logic in _buildCostVector (MemoryScheduler.py) and the
+                # skip logic in _allocateStaticBuffer.
+                if hasattr(_buffer, "_alias") and (ctxt.is_global(_buffer._alias) or _buffer._alias in blockNames):
+                    _bufferSize = 0
+                elif nodeMemoryConstraint is None:
                     _bufferSize = _buffer.size if isinstance(
                         _buffer,
                         TransientBuffer) else np.prod(_buffer.shape) * (_buffer._type.referencedType.typeWidth / 8)
