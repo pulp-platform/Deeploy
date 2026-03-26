@@ -177,7 +177,7 @@ class TilingVariableReplacementUpdate(CodeTransformationPass, IntrospectiveCodeT
 
     _updateReferenceTemplate = NodeTemplate("""
     // UPDATE VARIABLE ${reference}
-    *${reference} = ${baseReference}[${tileIdxVar}];
+    ${reference} = &${baseReference}[${tileIdxVar}];
     """)
 
     def __init__(self, targetMemLevel: str, tileIdxVar: str = "TILING_I"):

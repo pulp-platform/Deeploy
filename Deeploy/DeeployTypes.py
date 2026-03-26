@@ -2800,7 +2800,8 @@ class NetworkContainer():
             self.ctxt, code = node.generate(self.ctxt)
 
             sections = reduce(lambda a, b: a + b, code, [])
-            callStack += reduce(lambda a, b: a + b, sections, "")
+            layerCode = reduce(lambda a, b: a + b, sections, "")
+            callStack += "{\n" + layerCode + "\n}\n"
 
         return callStack
 
