@@ -15,6 +15,8 @@ from Deeploy.Targets.XDNA2.TypeCheckers import XDNA2AddChecker
 _ADD_INPUT_KEYS = ['data_in_1', 'data_in_2']
 _ADD_OUTPUT_KEYS = ['data_out']
 
+# JUNGVI: TODO: This logic should not be boiled down for 1 operator but should be applied on every nodes of the network
+# Likewise the kernelName and object file name should be specified in the node template of each operator.
 XDNA2Transformer = MLIRCodeTransformation(
     devicePasses = [
         MLIRObjectFifoPass(

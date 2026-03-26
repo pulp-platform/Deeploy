@@ -3,8 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """XDNA2 network generation script.
 
-JUNGVI: TODO: Move this script to ONNX4Deeploy
-
 Replaces the generic ``generateNetwork.py`` for the XDNA2 platform.
 Instead of emitting C code it:
 
@@ -32,7 +30,6 @@ from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 
 
 def _tilingScheduler(graph: gs.Graph):
-    """Scheduler that returns List[List[gs.Node]] as required by the tiling framework."""
     return [[node] for node in graph.nodes]
 
 
@@ -135,13 +132,15 @@ def generateNetworkXDNA2(args):
         # Force bfloat16_t — BF16 test data stored as float32 in npz would be
         # inferred as float32_t by minimalFloatType, but the XDNA2 kernel
         # requires bfloat16_t inputs.
+        # JUNGVI: TODO: Align minimalFloatType to properly handle bf16 and don't force types.
         inputTypes[f"input_{index}"] = PointerClass(bfloat16_t)
         inputOffsets[f"input_{index}"] = 0
 
     _DEEPLOYSTATEDIR = os.path.join(args.dumpdir, "deeployStates")
 
+    # JUNGVI: TODO: Extend with the whole NPU array
     # Define memory hierarchy: L1 (AIE core local) and L3 (shared)
-    l1_size = int(getattr(args, 'l1', None) or 8192)  # 8KB default
+    l1_size = int(getattr(args, 'l1', None) or 64000)  # 64KB default
     l3_size = int(getattr(args, 'l3', None) or 128 * 1024 * 1024)  # 128MB default
 
     log.info(f"[XDNA2] Using MemoryXDNA2Platform with L1={l1_size}, L3={l3_size}")
@@ -151,9 +150,7 @@ def generateNetworkXDNA2(args):
     memory_hierarchy = MemoryHierarchy([l1_level, l3_level])
     memory_hierarchy.setDefaultMemoryLevel("L3")  # Tensors default to L3
 
-    # Create memory-aware platform with AIE core engine
-    # defaultTargetMemoryLevel=L1 tells the tiling framework that computation
-    # targets L1, so it must tile data from L3 into L1-sized chunks.
+    # Create memory-aware platform with AIE core engines
     mem_platform = MemoryXDNA2Platform(
         memoryHierarchy = memory_hierarchy,
         defaultTargetMemoryLevel = l1_level,
@@ -187,6 +184,7 @@ def generateNetworkXDNA2(args):
     with open(f'{args.dumpdir}/testinputs.h', 'w') as f:
         f.write(testInputStr)
 
+    # JUNGVI: TODO: Move this in ONNX4Deeploy
     # Recompute golden outputs from the actual BF16 inputs the hardware will
     # see.  The original outputs.npz may have been computed in float32
     # precision, which can differ by several BF16 ULPs.

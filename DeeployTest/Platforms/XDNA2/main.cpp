@@ -122,6 +122,7 @@ int main(int argc, char **argv) {
   //    N_ELEMENTS_INPUT0, N_ELEMENTS_INPUT1, N_ELEMENTS_OUTPUT0 are set
   //    by generateNetwork_xdna2.py.
   // -----------------------------------------------------------------------
+  // JUNGVI: TODO: Remove this assert and make it scalable for N I/Os graphs (with respect to the amount of bo available)
   static_assert(N_ELEMENTS_INPUT0 == N_ELEMENTS_INPUT1,
                 "Input 0 and input 1 must have the same number of elements");
   static_assert(N_ELEMENTS_INPUT0 == N_ELEMENTS_OUTPUT0,
@@ -160,6 +161,8 @@ int main(int argc, char **argv) {
   // 6. Launch kernel and wait for completion
   //    opcode 3 = execute NPU instruction stream
   // -----------------------------------------------------------------------
+  // JUNGVI: TODO: Collect runtime and display it
+  // JUNGVI: TODO: Enable warmup iterations
   unsigned int opcode = 3;
   auto run = kernel(opcode, bo_instr, static_cast<uint32_t>(n_instr), bo_in0,
                     bo_in1, bo_out);
