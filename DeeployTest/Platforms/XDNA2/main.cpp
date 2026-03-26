@@ -122,7 +122,8 @@ int main(int argc, char **argv) {
   //    N_ELEMENTS_INPUT0, N_ELEMENTS_INPUT1, N_ELEMENTS_OUTPUT0 are set
   //    by generateNetwork_xdna2.py.
   // -----------------------------------------------------------------------
-  // JUNGVI: TODO: Remove this assert and make it scalable for N I/Os graphs (with respect to the amount of bo available)
+  // JUNGVI: TODO: Remove this assert and make it scalable for N I/Os graphs
+  // (with respect to the amount of bo available)
   static_assert(N_ELEMENTS_INPUT0 == N_ELEMENTS_INPUT1,
                 "Input 0 and input 1 must have the same number of elements");
   static_assert(N_ELEMENTS_INPUT0 == N_ELEMENTS_OUTPUT0,
