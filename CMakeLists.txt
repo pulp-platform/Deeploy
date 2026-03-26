@@ -321,9 +321,6 @@ if(platform STREQUAL XDNA2)
   message(STATUS "==============================================================================")
   message(STATUS "")
 
-  # XDNA2 uses its own CMakeLists.txt in DeeployTest/Platforms/XDNA2/
-  # which handles the two-step build: xclbin -> host binary.
-  # AIE kernel compilation is in TargetLibraries/XDNA2/.
   add_subdirectory(TargetLibraries/XDNA2)
   add_subdirectory(DeeployTest/Platforms/XDNA2)
 
