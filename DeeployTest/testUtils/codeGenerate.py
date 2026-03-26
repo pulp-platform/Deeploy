@@ -854,6 +854,130 @@ def _patch_shared_buffers(retStr: str, shared_input_map: Dict[int, int], shared_
     return retStr
 
 
+def _patch_shared_arenas(retStr: str, train_c_source: str) -> str:
+    """Redirect optimizer L1/L2 arena allocations to reuse training network's arenas.
+
+    TrainingNetwork and OptimizerNetwork run strictly sequentially: RunTrainingNetwork()
+    completes before RunOptimizerNetwork() starts.  Their L1/L2 tile-working arenas
+    therefore never overlap in time and can share the same physical memory.
+
+    Only the L1 arena is shared: it is pure tile-compute scratch whose content is
+    dead after each kernel returns.  The L2 arena is NOT shared because it may hold
+    persistent tensor data (weights, activations) at fixed offsets in non-tiled mode;
+    sharing it would let the optimizer's L2 staging buffers overwrite that data.
+
+    Must be called AFTER the _TRAIN_PREFIX → _OPT_PREFIX substitution.
+
+    Parameters
+    ----------
+    retStr : str
+        The already-prefix-substituted C source string for the optimizer.
+    train_c_source : str
+        The full text of TrainingNetwork.c (used to confirm the arena symbols exist).
+
+    Returns
+    -------
+    str
+        Patched C source string.
+    """
+    for level in ('L1',):
+        train_sym = f'DeeployNetwork_MEMORYARENA_{level}'
+        # Only alias if the training network actually has this arena
+        if train_sym not in train_c_source:
+            continue
+
+        opt_sym = f'DeeployOptNetwork_MEMORYARENA_{level}'
+        opt_malloc_pat = re.compile(
+            rf'({re.escape(opt_sym)})\s*=\s*\([^)]+\)\s*\w+\(sizeof\([^)]+\)\s*\*\s*\d+\)\s*;'
+        )
+        if not opt_malloc_pat.search(retStr):
+            continue
+
+        replacement = f'{opt_sym} = (int8_t *){train_sym};  /* shared with TrainingNetwork */'
+        retStr = opt_malloc_pat.sub(replacement, retStr)
+
+    # Inject TrainingNetwork header if not already present
+    # (_patch_shared_buffers may have already added it; guard against duplicates)
+    if '#include "TrainingNetwork.h"' not in retStr:
+        retStr = retStr.replace(
+            '#include "OptimizerNetwork.h"',
+            '#include "OptimizerNetwork.h"\n#include "TrainingNetwork.h"',
+        )
+
+    return retStr
+
+
+def _ensure_training_l1_capacity(dumpdir: str, train_c_source: str, opt_alloc_code: str) -> str:
+    """Enlarge TrainingNetwork's L1 arena to cover the optimizer's L1 needs.
+
+    Since the two networks share the same L1 arena, TrainingNetwork must allocate
+    at least max(train_L1, opt_L1) bytes.  When the optimizer needs more L1 than
+    training (rare but possible, e.g. autoencoder), this function patches
+    TrainingNetwork.c and TrainingNetwork.h in-place and returns the updated
+    TrainingNetwork.c source string.
+
+    Parameters
+    ----------
+    dumpdir : str
+        Directory containing TrainingNetwork.c and TrainingNetwork.h.
+    train_c_source : str
+        Current content of TrainingNetwork.c.
+    opt_alloc_code : str
+        Optimizer buffer-allocation code after _TRAIN_PREFIX → _OPT_PREFIX
+        substitution (used to extract the optimizer's L1 size).
+
+    Returns
+    -------
+    str
+        (Possibly updated) TrainingNetwork.c source string.
+    """
+    m_opt = re.search(
+        r'DeeployOptNetwork_MEMORYARENA_L1\s*=\s*\([^)]+\)\s*pmsis_l1_malloc\(sizeof\([^)]+\)\s*\*\s*(\d+)\)',
+        opt_alloc_code,
+    )
+    if not m_opt:
+        return train_c_source
+
+    opt_l1 = int(m_opt.group(1))
+
+    m_train = re.search(
+        r'(DeeployNetwork_MEMORYARENA_L1\s*=\s*\([^)]+\)\s*pmsis_l1_malloc\(sizeof\([^)]+\)\s*\*\s*)(\d+)(\))',
+        train_c_source,
+    )
+    if not m_train:
+        return train_c_source
+
+    train_l1 = int(m_train.group(2))
+    if opt_l1 <= train_l1:
+        return train_c_source  # Already large enough
+
+    new_l1 = opt_l1
+
+    # Patch TrainingNetwork.c malloc size
+    train_c_new = train_c_source.replace(
+        m_train.group(0),
+        f'{m_train.group(1)}{new_l1}{m_train.group(3)}',
+        1,
+    )
+    train_c_path = os.path.join(dumpdir, 'TrainingNetwork.c')
+    with open(train_c_path, 'w') as f:
+        f.write(train_c_new)
+
+    # Patch TrainingNetwork.h _len constant
+    train_h_path = os.path.join(dumpdir, 'TrainingNetwork.h')
+    if os.path.exists(train_h_path):
+        train_h = open(train_h_path).read()
+        train_h_new = re.sub(
+            r'(DeeployNetwork_MEMORYARENA_L1_len\s*=\s*)\d+',
+            rf'\g<1>{new_l1}',
+            train_h,
+        )
+        with open(train_h_path, 'w') as f:
+            f.write(train_h_new)
+
+    return train_c_new
+
+
 def generateOptimizerNetworkHeader(deployer: NetworkDeployer) -> str:
     """Generate OptimizerNetwork.h.
 
@@ -904,7 +1028,8 @@ void InitOptimizerNetwork(uint32_t core_id, uint32_t numThreads);
 def generateOptimizerNetworkImplementation(deployer: NetworkDeployer,
                                            verbosityCfg: CodeGenVerbosity,
                                            shared_input_map: Optional[Dict[int, int]] = None,
-                                           shared_output_map: Optional[Dict[int, int]] = None) -> str:
+                                           shared_output_map: Optional[Dict[int, int]] = None,
+                                           train_c_source: Optional[str] = None) -> str:
     """Generate OptimizerNetwork.c.
 
     Parameters
@@ -919,6 +1044,11 @@ def generateOptimizerNetworkImplementation(deployer: NetworkDeployer,
         already-allocated TrainingNetwork buffers.
     shared_output_map : Dict[int, int], optional
         Optimizer output index → training input index for in-place shared outputs.
+    train_c_source : str, optional
+        Full text of TrainingNetwork.c.  When provided, the optimizer's L1/L2 arena
+        malloc calls are replaced with direct pointers to the training arenas,
+        saving one L1 and one L2 allocation (safe because the two networks run
+        strictly sequentially).
 
     Returns
     -------
@@ -977,6 +1107,9 @@ void InitOptimizerNetwork(__attribute__((unused)) uint32_t core_id, __attribute_
     retStr = retStr.replace(_TRAIN_PREFIX, _OPT_PREFIX)
     # Replace malloc calls for shared weight/grad buffers with Training pointers
     retStr = _patch_shared_buffers(retStr, shared_input_map or {}, shared_output_map or {})
+    # Redirect optimizer L1/L2 arena mallocs to reuse training arenas
+    if train_c_source:
+        retStr = _patch_shared_arenas(retStr, train_c_source)
     return retStr
 
 
@@ -1004,11 +1137,23 @@ def generateOptimizerTestNetwork(deployer: NetworkDeployer,
 
     os.makedirs(dumpdir, exist_ok=True)
 
+    train_c_path = os.path.join(dumpdir, 'TrainingNetwork.c')
+    train_c_source: Optional[str] = None
+    if os.path.exists(train_c_path):
+        with open(train_c_path, 'r') as f:
+            train_c_source = f.read()
+
+    # Enlarge training L1 arena if optimizer needs more (so unconditional L1 sharing is safe)
+    if train_c_source:
+        opt_alloc_preview = deployer.generateBufferAllocationCode().replace(_TRAIN_PREFIX, _OPT_PREFIX)
+        train_c_source = _ensure_training_l1_capacity(dumpdir, train_c_source, opt_alloc_preview)
+
     headerStr = generateOptimizerNetworkHeader(deployer)
     with open(f'{dumpdir}/OptimizerNetwork.h', 'w') as f:
         f.write(headerStr)
 
-    implStr = generateOptimizerNetworkImplementation(deployer, verbosityCfg, shared_input_map, shared_output_map)
+    implStr = generateOptimizerNetworkImplementation(deployer, verbosityCfg, shared_input_map, shared_output_map,
+                                                     train_c_source)
     with open(f'{dumpdir}/OptimizerNetwork.c', 'w') as f:
         f.write(implStr)
 
