@@ -728,6 +728,118 @@ class ReduceSumParser(ReduceParser):
         return newCtxt, ret
 
 
+class ReduceLogSumExpParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if len(node.inputs) < 1 or len(node.inputs) > 2 or len(node.outputs) != 1:
+            return False
+
+        if 'keepdims' not in node.attrs:
+            return False
+
+        self.operatorRepresentation['keepdims'] = int(node.attrs['keepdims'])
+        if len(node.inputs[0].shape) == 0:
+            return False
+
+        if len(node.inputs) == 2:
+            if not isinstance(node.inputs[1], gs.Constant):
+                return False
+            axes = np.array(node.inputs[1].values, dtype = np.int64)
+        else:
+            if 'axes' not in node.attrs:
+                return False
+            axes = node.attrs['axes']
+            if isinstance(axes, int):
+                axes = [axes]
+            axes = np.array(axes, dtype = np.int64)
+
+        normalized_axes = []
+        rank = len(node.inputs[0].shape)
+        for axis in axes:
+            normalized_axis = int(axis)
+            if normalized_axis < 0:
+                normalized_axis += rank
+            normalized_axes.append(normalized_axis)
+
+        if len(normalized_axes) != 1:
+            return False
+
+        axis = normalized_axes[0]
+        if axis < 0 or axis >= rank:
+            return False
+
+        self.operatorRepresentation['axes'] = np.array([axis], dtype = np.int64)
+
+        if self.operatorRepresentation['keepdims']:
+            output_shape = list(node.inputs[0].shape)
+            output_shape[axis] = 1
+        else:
+            output_shape = list(node.inputs[0].shape[:axis]) + list(node.inputs[0].shape[axis + 1:])
+            if len(output_shape) == 0:
+                output_shape = [1]
+
+        node.outputs[0].shape = output_shape
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        if len(node.inputs) == 2:
+            axes_buffer = ctxt.lookup(node.inputs[1].name)
+            axes_buffer._live = False
+            axes_buffer._deploy = False
+            axes = np.array(axes_buffer.values, dtype = np.int64)
+        else:
+            axes = np.array(self.operatorRepresentation['axes'], dtype = np.int64)
+
+        normalized_axes = []
+        for axis in axes:
+            normalized_axis = int(axis)
+            if normalized_axis < 0:
+                normalized_axis += len(data_in.shape)
+            normalized_axes.append(normalized_axis)
+
+        if len(normalized_axes) != 1:
+            return ctxt, False
+
+        axis = normalized_axes[0]
+        if axis < 0 or axis >= len(data_in.shape):
+            return ctxt, False
+
+        outer_size = int(np.prod(data_in.shape[:axis])) if axis > 0 else 1
+        inner_size = int(np.prod(data_in.shape[axis + 1:])) if axis + 1 < len(data_in.shape) else 1
+        if self.operatorRepresentation['keepdims']:
+            output_shape = list(data_in.shape)
+            output_shape[axis] = 1
+        else:
+            output_shape = list(data_in.shape[:axis]) + list(data_in.shape[axis + 1:])
+            if len(output_shape) == 0:
+                output_shape = [1]
+
+        data_out.shape = output_shape
+        node.outputs[0].shape = output_shape
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['data_in_shape'] = data_in.shape
+        self.operatorRepresentation['data_out_shape'] = output_shape
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+        self.operatorRepresentation['axes'] = np.array([axis], dtype = np.int64)
+        self.operatorRepresentation['axisLength'] = data_in.shape[axis]
+        self.operatorRepresentation['outerSize'] = outer_size
+        self.operatorRepresentation['innerSize'] = inner_size
+
+        return ctxt, True
+
+
 class SoftmaxParser(NodeParser):
 
     def __init__(self):
