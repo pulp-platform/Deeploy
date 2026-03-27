@@ -333,7 +333,7 @@ endif()
 if(platform STREQUAL Spatz)
 
   if(NOT DEFINED ENV{SPATZ_HOME})
-    message(FATAL_ERROR "Environment variable SNITCH_HOME not set.")
+    message(FATAL_ERROR "Environment variable SPATZ_HOME not set.")
   endif()
 
   set(SPATZ_HOME $ENV{SPATZ_HOME})
