@@ -111,7 +111,7 @@ macro(add_spatz_gvsoc_emulation name target)
 		DEPENDS ${name}
 		WORKING_DIRECTORY ${GVSOC_WORKDIR}
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/*.bin ${GVSOC_WORKDIR}/ || true
-		COMMAND bash -c "source /scratch/mmm/Deeploy/toolchain/gvsoc_spatz/venv/bin/activate && /scratch/mmm/Deeploy/install/gvsoc_spatz/bin/gvrun --target ${target} --param chip/soc/binary=${GVSOC_BINARY} run"
+		COMMAND bash -c "${GVSOC_INSTALL_DIR}/bin/gvrun --target ${target} --param chip/soc/binary=${GVSOC_BINARY} run"
 		COMMENT "Simulating deeploytest ${name} with gvsoc for the target ${target}"
 		POST_BUILD
 		USES_TERMINAL

@@ -52,8 +52,8 @@ MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 SPATZ_COMMIT_HASH ?= 9974c6aeabead537e232a0409742cb6fc534171e
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
-GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0 # old
-# GVSOC_COMMIT_HASH ?= 209c147cbd293d5c1590694e68c489122c777acc # new
+# GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0 # old
+GVSOC_COMMIT_HASH ?= 209c147cbd293d5c1590694e68c489122c777acc # new
 GVSOC_SPATZ_COMMIT_HASH ?= 209c147cbd293d5c1590694e68c489122c777acc
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
@@ -491,33 +491,34 @@ ${SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/spatz
 
 spatz_runtime: ${SPATZ_INSTALL_DIR}
 
-${TOOLCHAIN_DIR}/gvsoc_spatz:
-	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/gvsoc/gvsoc.git gvsoc_spatz && \
-	cd ${TOOLCHAIN_DIR}/gvsoc_spatz && git checkout ${GVSOC_SPATZ_COMMIT_HASH} && \
-	git submodule update --init --recursive && \
-	python3 -m venv venv && source venv/bin/activate &&\
-	pip3 install -r core/requirements.txt && pip3 install -r gapy/requirements.txt && pip3 install psutil && \
-	cd core && git apply ${TOOLCHAIN_DIR}/gvsoc.patch
-
-
-${GVSOC_SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc_spatz
-	cd ${TOOLCHAIN_DIR}/gvsoc_spatz && \
-	source venv/bin/activate &&\
-	CXX=g++-11.2.0 CC=gcc-11.2.0 CMAKE=cmake-3.18.1 make all TARGETS=spatz_v2 INSTALLDIR=${GVSOC_SPATZ_INSTALL_DIR}
-
-gvsoc_spatz: ${GVSOC_SPATZ_INSTALL_DIR}
+# ${TOOLCHAIN_DIR}/gvsoc_spatz:
+# 	cd ${TOOLCHAIN_DIR} && \
+# 	git clone https://github.com/gvsoc/gvsoc.git gvsoc_spatz && \
+# 	cd ${TOOLCHAIN_DIR}/gvsoc_spatz && git checkout ${GVSOC_SPATZ_COMMIT_HASH} && \
+# 	git submodule update --init --recursive && \
+# 	python3 -m venv venv && source venv/bin/activate &&\
+# 	pip3 install -r core/requirements.txt && pip3 install -r gapy/requirements.txt && pip3 install psutil && \
+# 	cd core && git apply ${TOOLCHAIN_DIR}/gvsoc.patch
+# 
+# 
+# ${GVSOC_SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc_spatz
+# 	cd ${TOOLCHAIN_DIR}/gvsoc_spatz && \
+# 	source venv/bin/activate &&\
+# 	CXX=g++-11.2.0 CC=gcc-11.2.0 CMAKE=cmake-3.18.1 make all TARGETS=spatz_v2 INSTALLDIR=${GVSOC_SPATZ_INSTALL_DIR}
+# 
+# gvsoc_spatz: ${GVSOC_SPATZ_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone https://github.com/gvsoc/gvsoc.git && \
 	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
 	git submodule update --init --recursive && \
-	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt
+	pip3 install -r core/requirements.txt && pip3 install -r gapy/requirements.txt && pip3 install psutil &&\
+	cd core && git apply ${TOOLCHAIN_DIR}/gvsoc.patch
 
 ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	cd ${TOOLCHAIN_DIR}/gvsoc && \
-	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera" build INSTALLDIR=${GVSOC_INSTALL_DIR}
+	XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera spatz_v2" build INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
 
