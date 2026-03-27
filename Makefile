@@ -35,6 +35,7 @@ QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
 BANSHEE_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/banshee
 MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
 GVSOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc
+GVSOC_SPATZ_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc_spatz
 SOFTHIER_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/softhier
 MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
 XTL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtl
@@ -51,7 +52,9 @@ MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 SPATZ_COMMIT_HASH ?= 9974c6aeabead537e232a0409742cb6fc534171e
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
-GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
+GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0 # old
+# GVSOC_COMMIT_HASH ?= 209c147cbd293d5c1590694e68c489122c777acc # new
+GVSOC_SPATZ_COMMIT_HASH ?= 209c147cbd293d5c1590694e68c489122c777acc
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
@@ -487,6 +490,23 @@ ${SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/spatz
 	make sw
 
 spatz_runtime: ${SPATZ_INSTALL_DIR}
+
+${TOOLCHAIN_DIR}/gvsoc_spatz:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/gvsoc/gvsoc.git gvsoc_spatz && \
+	cd ${TOOLCHAIN_DIR}/gvsoc_spatz && git checkout ${GVSOC_SPATZ_COMMIT_HASH} && \
+	git submodule update --init --recursive && \
+	python3 -m venv venv && source venv/bin/activate &&\
+	pip3 install -r core/requirements.txt && pip3 install -r gapy/requirements.txt && pip3 install psutil && \
+	cd core && git apply ${TOOLCHAIN_DIR}/gvsoc.patch
+
+
+${GVSOC_SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc_spatz
+	cd ${TOOLCHAIN_DIR}/gvsoc_spatz && \
+	source venv/bin/activate &&\
+	CXX=g++-11.2.0 CC=gcc-11.2.0 CMAKE=cmake-3.18.1 make all TARGETS=spatz_v2 INSTALLDIR=${GVSOC_SPATZ_INSTALL_DIR}
+
+gvsoc_spatz: ${GVSOC_SPATZ_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \

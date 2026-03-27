@@ -102,3 +102,19 @@ macro(add_gvsoc_emulation name target)
 		USES_TERMINAL
 	)
 endmacro()
+
+macro(add_spatz_gvsoc_emulation name target)
+	set(GVSOC_WORKDIR ${CMAKE_BINARY_DIR}/gvsoc_workdir)
+	make_directory(${GVSOC_WORKDIR})
+	set(GVSOC_BINARY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${name}")
+	add_custom_target(gvsoc_${name}
+		DEPENDS ${name}
+		WORKING_DIRECTORY ${GVSOC_WORKDIR}
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/*.bin ${GVSOC_WORKDIR}/ || true
+		COMMAND bash -c "source /scratch/mmm/Deeploy/toolchain/gvsoc_spatz/venv/bin/activate && /scratch/mmm/Deeploy/install/gvsoc_spatz/bin/gvrun --target ${target} --param chip/soc/binary=${GVSOC_BINARY} run"
+		COMMENT "Simulating deeploytest ${name} with gvsoc for the target ${target}"
+		POST_BUILD
+		USES_TERMINAL
+		VERBATIM
+	)
+endmacro()

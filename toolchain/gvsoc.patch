@@ -1,0 +1,12 @@
+diff --git a/engine/src/launcher.cpp b/engine/src/launcher.cpp
+index f0b1b654..48c83592 100644
+--- a/engine/src/launcher.cpp
++++ b/engine/src/launcher.cpp
+@@ -21,6 +21,7 @@
+ 
+ #include <pthread.h>
+ #include <signal.h>
++#include <unistd.h>
+ #include <algorithm>
+ 
+ #include <stdexcept>
