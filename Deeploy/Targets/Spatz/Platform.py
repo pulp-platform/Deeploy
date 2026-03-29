@@ -4,18 +4,24 @@ from Deeploy.DeeployTypes import VariableBuffer, TransientBuffer, ConstantBuffer
     NodeMapper, NodeTemplate, TopologyOptimizer, DeploymentEngine, DeploymentPlatform
 
 # from Deeploy.Targets.Spatz.Bindings import SpatzAddBindings # <- TODO create this
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings
-from Deeploy.Targets.Generic.Layers import AddLayer
-from Deeploy.Targets.Generic.Parsers import AddParser
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicMatMulBindings, BasicSoftmaxBindings, BasicTopKBindings
+from Deeploy.Targets.Generic.Layers import AddLayer, GEMMLayer, SoftmaxLayer, TopKLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, MatMulParser, SoftmaxParser, TopKParser
 
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as GenericAllocateTemplate
 from Deeploy.Targets.Spatz.Templates import AllocateTemplate as SpatzAllocateTemplate
 from Deeploy.Targets.Spatz.Templates import FreeTemplate as SpatzFreeTemplate
 
 SpatzAddMapper = NodeMapper(AddParser(), BasicAddBindings)
+MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
+SoftmaxMapper = NodeMapper(SoftmaxParser(), BasicSoftmaxBindings)
+TopKMapper = NodeMapper(TopKParser(), BasicTopKBindings)
 
 SpatzMapping = {
     'Add': AddLayer([SpatzAddMapper]),
+    'MatMul': GEMMLayer([MatMulMapper]),
+    'Softmax': SoftmaxLayer([SoftmaxMapper]),
+    'TopK': TopKLayer([TopKMapper]),
     # sparse attention : ...
 }
 
@@ -34,13 +40,13 @@ class SpatzTransientBuffer(TransientBuffer):
 
 class SpatzConstantBuffer(ConstantBuffer):
     initTemplate = GenericAllocateTemplate.referenceGlobalInitTemplate
-    allocTemplate = GenericAllocateTemplate.referenceAllocateTemplate
+    allocTemplate = GenericAllocateTemplate.referenceGlobalAllocateTemplate
     deallocTemplate = NodeTemplate("") # const not deallocated
 
 
 class SpatzStructBuffer(StructBuffer):
     initTemplate = GenericAllocateTemplate.referenceStructInitTemplate
-    allocTemplate = GenericAllocateTemplate.referenceAllocateTemplate
+    allocTemplate = GenericAllocateTemplate.referenceStructAllocateTemplate
     deallocTemplate = NodeTemplate("") # struct not deallocated ?
 
 
