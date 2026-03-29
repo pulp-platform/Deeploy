@@ -6,6 +6,6 @@ if __name__ == "__main__":
     sys.exit(
         main(
             default_platform = "Spatz",
-            default_simulator = "vsim",
+            default_simulator = "gvsoc",
         )
     )
