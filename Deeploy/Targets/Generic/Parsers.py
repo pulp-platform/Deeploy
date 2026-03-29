@@ -3124,3 +3124,28 @@ class GlobalMaxPoolParser(GlobalPoolParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'GlobalMaxPool'
+
+# TopKParser: selects the largest k elements from a vector
+class TopKParser(NodeParser):
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return len(node.inputs)==2 and len(node.outputs)==2 and node.op=='TopK'
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        data_in = ctxt.lookup(node.inputs[0].name)
+        k_in = ctxt.lookup(node.inputs[1].name)
+        values_out = ctxt.lookup(node.outputs[0].name)
+        indices_out = ctxt.lookup(node.outputs[1].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_in_size'] = int(np.prod(data_in.shape))
+        self.operatorRepresentation['k_value'] = int(k_in.values[0])
+        self.operatorRepresentation['values_out'] = values_out.name
+        self.operatorRepresentation['indices_out'] = indices_out.name
+
+        return ctxt, True
