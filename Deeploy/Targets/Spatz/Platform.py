@@ -3,25 +3,27 @@ from typing import List
 from Deeploy.DeeployTypes import VariableBuffer, TransientBuffer, ConstantBuffer, StructBuffer, \
     NodeMapper, NodeTemplate, TopologyOptimizer, DeploymentEngine, DeploymentPlatform
 
-# from Deeploy.Targets.Spatz.Bindings import SpatzAddBindings # <- TODO create this
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicMatMulBindings, BasicSoftmaxBindings, BasicTopKBindings
-from Deeploy.Targets.Generic.Layers import AddLayer, GEMMLayer, SoftmaxLayer, TopKLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, MatMulParser, SoftmaxParser, TopKParser
-
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as GenericAllocateTemplate
 from Deeploy.Targets.Spatz.Templates import AllocateTemplate as SpatzAllocateTemplate
 from Deeploy.Targets.Spatz.Templates import FreeTemplate as SpatzFreeTemplate
+
+from Deeploy.Targets.Spatz.Bindings import SpatzGatherBindings 
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicMatMulBindings, BasicSoftmaxBindings, BasicTopKBindings
+from Deeploy.Targets.Generic.Layers import AddLayer, GEMMLayer, SoftmaxLayer, TopKLayer, GatherLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, MatMulParser, SoftmaxParser, TopKParser, GatherParser
 
 SpatzAddMapper = NodeMapper(AddParser(), BasicAddBindings)
 MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 SoftmaxMapper = NodeMapper(SoftmaxParser(), BasicSoftmaxBindings)
 TopKMapper = NodeMapper(TopKParser(), BasicTopKBindings)
+GatherMapper = NodeMapper(GatherParser(), SpatzGatherBindings)
 
 SpatzMapping = {
     'Add': AddLayer([SpatzAddMapper]),
     'MatMul': GEMMLayer([MatMulMapper]),
     'Softmax': SoftmaxLayer([SoftmaxMapper]),
     'TopK': TopKLayer([TopKMapper]),
+    'Gather': GatherLayer([GatherMapper]),
     # sparse attention : ...
 }
 
