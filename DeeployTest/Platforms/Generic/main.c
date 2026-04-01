@@ -25,6 +25,23 @@ int main() {
   printf("Running network...\r\n");
   RunNetwork(0, 1);
 
+  const char *dump_outputs = getenv("DEEPLOY_DUMP_OUTPUTS");
+  if (dump_outputs && dump_outputs[0] != '\0') {
+    for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
+      uint32_t count = DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE);
+      printf("OUTPUT %u %u\r\n", buf, count);
+      for (uint32_t i = 0; i < count; i++) {
+        OUTPUTTYPE actual = ((OUTPUTTYPE *)DeeployNetwork_outputs[buf])[i];
+#if ISOUTPUTFLOAT == 1
+        printf("%.9g\r\n", (double)actual);
+#else
+        printf("%d\r\n", actual);
+#endif
+      }
+    }
+    return 0;
+  }
+
   int32_t tot_err = 0;
   uint32_t tot = 0;
   OUTPUTTYPE diff;
