@@ -6,7 +6,7 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 referenceTemplate = NodeTemplate("""
 // TopK (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
-// Find the top 10 values and their indices
+// Find the top ${k_value} values and their indices
 // Assumes 1D input for simplicity
 typedef struct {
 	${data_in_type.referencedType.typeName} value;
@@ -19,7 +19,7 @@ for (uint32_t i = 0; i < ${data_in_size}; ++i) {
 	pairs[i].index = i;
 }
 // Simple selection sort for top-k
-for (uint32_t i = 0; i < 10; ++i) {
+for (uint32_t i = 0; i < ${k_value}; ++i) {
 	uint32_t max_idx = i;
 	for (uint32_t j = i + 1; j < ${data_in_size}; ++j) {
 		if (pairs[j].value > pairs[max_idx].value) {
