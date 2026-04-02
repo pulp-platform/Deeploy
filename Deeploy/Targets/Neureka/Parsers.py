@@ -50,14 +50,18 @@ class NeurekaConv2DBaseParser(Conv2DParser):
         #         and enforcing that the channels_first is false
         data_in = newCtxt.lookup(self.operatorRepresentation['data_in'])
         data_out = newCtxt.lookup(self.operatorRepresentation['data_out'])
-        weight = newCtxt.lookup(self.operatorRepresentation['weight'])
+        # MARCHIOA: weight depends on the type of convolution so it requires to be parsed by the child parsers
+        #           - PW -> 3-dim
+        #           - DW -> 4-dim
+        #           - Dense -> 4-dim
+        # weight = newCtxt.lookup(self.operatorRepresentation['weight'])
 
         if not all([
                 channels_first == False,
                 len(data_in.shape) == 4,
-                # LMACAN: weight shape should be equal to 3 because we have to do the neureka's
-                #         special weight encoding
-                len(weight.shape) == 3,
+                # # LMACAN: weight shape should be equal to 3 because we have to do the neureka's
+                # #         special weight encoding
+                # len(weight.shape) == 3,
         ]):
             return newCtxt, False
 
@@ -94,6 +98,18 @@ class NeurekaDWConv2DParser(NeurekaConv2DBaseParser):
             return False
 
         return True
+
+    def parseNodeCtxt(self, ctxt, node, channels_first = True):
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return False
+
+        weight = newCtxt.lookup(self.operatorRepresentation['weight'])
+        if not (len(weight.shape) == 4):
+            return False
+
+        return newCtxt, True
 
 
 class NeurekaRQSDWConv2DParser(NeurekaDWConv2DParser, RQSParserInterface):
@@ -136,6 +152,18 @@ class NeurekaPWConv2DParser(NeurekaConv2DBaseParser):
 
         return True
 
+    def parseNodeCtxt(self, ctxt, node, channels_first = True):
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return False
+
+        weight = newCtxt.lookup(self.operatorRepresentation['weight'])
+        if not (len(weight.shape) == 3):
+            return False
+
+        return newCtxt, True
+
 
 class NeurekaRQSPWConv2DParser(NeurekaPWConv2DParser, RQSParserInterface):
 
@@ -175,6 +203,18 @@ class NeurekaDenseConv2DParser(NeurekaConv2DBaseParser):
             return False
 
         return True
+
+    def parseNodeCtxt(self, ctxt, node, channels_first = True):
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return False
+
+        weight = newCtxt.lookup(self.operatorRepresentation['weight'])
+        if not (len(weight.shape) == 4):
+            return False
+
+        return newCtxt, True
 
 
 class NeurekaRQSDenseConv2DParser(NeurekaDenseConv2DParser, RQSParserInterface):

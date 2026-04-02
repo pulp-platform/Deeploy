@@ -218,7 +218,10 @@ class NeurekaDenseConv2DTileConstraint(TileConstraint):
             replacementTypes['weight_addr_offset'] = PointerClass(uint32_t)
             for absoluteCube in absoluteOutputCubes:
                 COffset, CSize = absoluteCube.absoluteOffset[-1], absoluteCube.rectangle.dims[-1]
-                WeightCube = HyperRectangle((COffset, 0, 0), (CSize, weightShape[-2], weightShape[-1]))
+                # WeightCube = HyperRectangle((COffset, 0, 0), (CSize, weightShape[-2], weightShape[-1]))
+                WeightCube = HyperRectangle(
+                    (COffset, 0, 0, 0),
+                    (CSize, weightShape[-3], weightShape[-2], weightShape[-1]))
                 replacements['weight_addr_offset'].append(calculateFlatOffsetInBytes(WeightCube, weightBuffer))
         else:
             inputWeightBaseOffsets, outputWeightBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
