@@ -187,7 +187,8 @@ def create_config_from_args(args: argparse.Namespace,
                             platform: str,
                             simulator: str,
                             tiling: bool,
-                            platform_specific_cmake_args: Optional[list] = None) -> DeeployTestConfig:
+                            platform_specific_cmake_args: Optional[list] = None,
+                            gen_args_callback = None) -> DeeployTestConfig:
 
     script_path = Path(__file__).resolve()
     base_dir = script_path.parent.parent
@@ -242,6 +243,10 @@ def create_config_from_args(args: argparse.Namespace,
 
     if not tiling and getattr(args, 'profileUntiled', False):
         gen_args_list.append("--profileUntiled")
+
+    # Allow platform-specific runners to append their own generation args
+    if gen_args_callback:
+        gen_args_callback(args, gen_args_list)
 
     config = DeeployTestConfig(
         test_name = test_name,
@@ -321,7 +326,9 @@ def main(default_platform: Optional[str] = None,
          tiling_enabled: bool = False,
          platform_specific_cmake_args: Optional[list] = None,
          parsed_args: Optional[argparse.Namespace] = None,
-         parser_setup_callback = None):
+         parser_setup_callback = None,
+         gen_args_callback = None,
+         post_sim_callback = None):
     """
     Main entry point for Deeploy test runners.
 
@@ -332,6 +339,10 @@ def main(default_platform: Optional[str] = None,
         platform_specific_cmake_args: Additional CMake arguments for platform-specific configurations
         parsed_args: Pre-parsed arguments (if None, will parse from sys.argv)
         parser_setup_callback: Optional callback to configure parser before parsing (receives parser as arg)
+        gen_args_callback: Optional callback ``(args, gen_args_list) -> None`` to append
+            platform-specific generation arguments after the base args are collected.
+        post_sim_callback: Optional callback ``(config, result, args) -> None`` invoked
+            after simulation completes (e.g. for trace post-processing).
     """
 
     if parsed_args is None:
@@ -414,12 +425,16 @@ def main(default_platform: Optional[str] = None,
     if hasattr(args, 'num_clusters'):
         platform_specific_cmake_args.append(f"-DNUM_CLUSTERS={args.num_clusters}")
 
-    config = create_config_from_args(args, platform, simulator, tiling_enabled, platform_specific_cmake_args)
+    config = create_config_from_args(args, platform, simulator, tiling_enabled, platform_specific_cmake_args,
+                                        gen_args_callback)
 
     print_configuration(config)
 
     try:
         result = run_complete_test(config, skipgen = args.skipgen, skipsim = args.skipsim)
+
+        if post_sim_callback and not args.skipsim:
+            post_sim_callback(config, result, args)
 
         print_colored_result(result, config.test_name)
 

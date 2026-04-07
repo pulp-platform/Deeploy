@@ -170,6 +170,14 @@ def generateNetworkXDNA2(args):
     # Wrap with TilerDeployerWrapper (adds tiling)
     deployer = TilerDeployerWrapper(deployer, workDir = _DEEPLOYSTATEDIR)
 
+    # Enable tracing if requested
+    enableTrace = getattr(args, 'trace', False)
+    if enableTrace:
+        traceBufferSize = int(getattr(args, 'trace_buffer_size', None) or 8192)
+        deployer.enableTrace = True
+        deployer.traceBufferSize = traceBufferSize
+        log.info(f"[XDNA2] Tracing enabled (buffer_size={traceBufferSize})")
+
     # frontEnd() parses the graph; bind() triggers tiling via wrappers
     deployer.frontEnd()
     deployer.bind()
@@ -181,6 +189,12 @@ def generateNetworkXDNA2(args):
 
     # Write testinputs.h (raw BF16 bit patterns as uint16_t)
     testInputStr = _generate_xdna2_inputs_header(test_inputs_f32)
+    # Append trace buffer size define so the host binary knows whether to
+    # allocate a trace buffer and how large it should be.
+    if enableTrace:
+        testInputStr += f"#define TRACE_BUFFER_SIZE {traceBufferSize}u\n"
+    else:
+        testInputStr += "#define TRACE_BUFFER_SIZE 0u\n"
     with open(f'{args.dumpdir}/testinputs.h', 'w') as f:
         f.write(testInputStr)
 
@@ -211,6 +225,10 @@ def generateNetworkXDNA2(args):
 if __name__ == '__main__':
     parser = TestGeneratorArgumentParser(tiling_arguments = True,
                                          description = "Deeploy XDNA2 Code Generation Utility.")
+    parser.add_argument('--trace', action = 'store_true', default = False,
+                        help = 'Enable execution tracing in the generated MLIR')
+    parser.add_argument('--trace-buffer-size', type = int, default = 8192,
+                        help = 'Trace buffer size in bytes (default: 8192)')
     args, _ = parser.parse_known_args()
 
     if args.platform != 'XDNA2':

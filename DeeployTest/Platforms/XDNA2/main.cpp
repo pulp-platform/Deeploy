@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <cstring>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -135,7 +136,8 @@ int main(int argc, char **argv) {
 
   // -----------------------------------------------------------------------
   // 4. Allocate XRT buffer objects
-  //    Kernel args: (0:opcode, 1:instr_bo, 2:instr_len, 3:in0, 4:in1, 5:out)
+  //    Kernel args: (0:opcode, 1:instr_bo, 2:instr_len,
+  //                  3:in0, 4:in1, 5:out, 6:ctrlpkts, 7:trace)
   // -----------------------------------------------------------------------
   auto bo_instr = xrt::bo(device, n_instr * sizeof(uint32_t),
                           XCL_BO_FLAGS_CACHEABLE, kernel.group_id(1));
@@ -145,6 +147,24 @@ int main(int argc, char **argv) {
       xrt::bo(device, buf_bytes, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(4));
   auto bo_out =
       xrt::bo(device, buf_bytes, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(5));
+
+  // Control packets buffer (required by the kernel ABI)
+  auto bo_ctrlpkts =
+      xrt::bo(device, 8, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(6));
+
+  // Trace buffer: allocated at 4x the requested size (hardware requirement).
+  // When TRACE_BUFFER_SIZE == 0 (no tracing), allocate a minimal 1-byte
+  // placeholder so the kernel call signature stays the same.
+  constexpr size_t trace_alloc =
+      TRACE_BUFFER_SIZE > 0 ? TRACE_BUFFER_SIZE * 4 : 1;
+  auto bo_trace =
+      xrt::bo(device, trace_alloc, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(7));
+
+  // Zero-initialise trace buffer
+  if constexpr (TRACE_BUFFER_SIZE > 0) {
+    std::memset(bo_trace.map<void *>(), 0, trace_alloc);
+    bo_trace.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+  }
 
   // -----------------------------------------------------------------------
   // 5. Copy data into device buffers
@@ -166,7 +186,7 @@ int main(int argc, char **argv) {
   // JUNGVI: TODO: Enable warmup iterations
   unsigned int opcode = 3;
   auto run = kernel(opcode, bo_instr, static_cast<uint32_t>(n_instr), bo_in0,
-                    bo_in1, bo_out);
+                    bo_in1, bo_out, bo_ctrlpkts, bo_trace);
   run.wait();
 
   // -----------------------------------------------------------------------
@@ -205,6 +225,33 @@ int main(int argc, char **argv) {
 
   // Output format required by testUtils/core/output_parser.py
   std::cout << "Errors: " << errors << " out of " << n_elem << "\n";
+
+  // -----------------------------------------------------------------------
+  // 8. Read back trace data and write to trace.txt
+  // -----------------------------------------------------------------------
+  if constexpr (TRACE_BUFFER_SIZE > 0) {
+    bo_trace.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+
+    const uint32_t *trace_data =
+        bo_trace.map<const uint32_t *>();
+    size_t trace_words = TRACE_BUFFER_SIZE / sizeof(uint32_t);
+
+    std::string trace_path = bin_dir + "/trace.txt";
+    std::ofstream trace_file(trace_path);
+    if (trace_file.is_open()) {
+      for (size_t i = 0; i < trace_words; ++i) {
+        if (trace_data[i] != 0) {
+          trace_file << std::hex << std::setfill('0') << std::setw(8)
+                     << trace_data[i] << "\n";
+        }
+      }
+      trace_file.close();
+      std::cout << "Trace written to " << trace_path << "\n";
+    } else {
+      std::cerr << "Warning: could not open " << trace_path
+                << " for writing\n";
+    }
+  }
 
   return (errors == 0) ? 0 : 1;
 }

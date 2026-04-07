@@ -87,6 +87,11 @@ class MLIRExecutionBlock:
         self.inputNames: List[str] = []
         self.outputNames: List[str] = []
 
+        # Trace support (populated by device-phase trace passes, read by
+        # runtime-sequence trace pass)
+        self.traceConfigs: List[str] = []
+        self.traceBufferSize: int = 0
+
 
 # ======================================================================
 # MLIRCodeTransformationPass / MLIRCodeTransformation

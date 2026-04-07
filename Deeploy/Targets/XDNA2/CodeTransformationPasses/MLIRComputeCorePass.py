@@ -34,7 +34,7 @@ from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
 if TYPE_CHECKING:
     from Deeploy.DeeployTypes import NetworkContext
-
+    
 
 class MLIRComputeCorePass(MLIRCodeTransformationPass):
     """Emit ``@aie_d.core`` with tiling loops and FIFO acquire/release.
@@ -69,7 +69,7 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
         firstKey = self.inputTensorKeys[0]
         tileTy = mlirBlock.fifoTypes[firstKey]
 
-        @aie_d.core(computeTile, link_with = kernelObj)
+        @aie_d.core(computeTile)
         def _core():
             subviewTy = aie_d.ObjectFifoSubviewType.get(tileTy)
             for _ in scf_d.for_(0, 0x7FFFFFFFFFFFFFFF, 1):

@@ -101,6 +101,7 @@ add_custom_command(
             --aie-generate-npu-insts
             --npu-insts-name npu_insts.bin
             --aie-generate-xclbin
+            --dump-intermediates
             --xclbin-kernel-name=MLIR_AIE
             --xclbin-name network.xclbin
             "${NETWORK_MLIR}"

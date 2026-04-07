@@ -19,6 +19,7 @@ MLIR generation is split into two phases orchestrated by
 
 from __future__ import annotations
 
+import copy
 from typing import Callable, Dict, Optional, Type
 
 import aie.ir as ir
@@ -32,6 +33,9 @@ from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropD
 from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MLIRDataTypes import MLIRCodeTransformation, MLIRExecutionBlock, MLIRNodeTemplate
+from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRCoreTracePass import MLIRCoreTracePass
+from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRMemTracePass import MLIRMemTracePass
+from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRTraceRuntimePass import MLIRTraceRuntimePass
 
 
 class XDNA2Deployer(SignPropDeployer):
@@ -58,7 +62,9 @@ class XDNA2Deployer(SignPropDeployer):
                  name: str = 'DeeployNetwork',
                  default_channels_first: bool = False,
                  deeployStateDir: str = "DeeployStateDir",
-                 inputOffsets: Optional[Dict[str, int]] = None):
+                 inputOffsets: Optional[Dict[str, int]] = None,
+                 enableTrace: bool = False,
+                 traceBufferSize: int = 8192):
         super().__init__(
             graph,
             deploymentPlatform,
@@ -70,6 +76,8 @@ class XDNA2Deployer(SignPropDeployer):
             deeployStateDir = deeployStateDir,
             inputOffsets = inputOffsets if inputOffsets is not None else {},
         )
+        self.enableTrace = enableTrace
+        self.traceBufferSize = traceBufferSize
 
     # ------------------------------------------------------------------
     # MLIR generation
@@ -116,6 +124,19 @@ class XDNA2Deployer(SignPropDeployer):
                 raise RuntimeError(f"Node '{nodeName}' uses a non-MLIR CodeTransformation — "
                                    f"expected MLIRCodeTransformation, got {type(codeTransformer).__name__}.")
 
+            # When tracing is enabled, shallow-copy the code transformer
+            # to inject trace passes without mutating the shared singleton
+            # (XDNA2Transformer in Bindings.py).
+            if self.enableTrace:
+                codeTransformer = copy.copy(codeTransformer)
+                codeTransformer.devicePasses = list(codeTransformer.devicePasses) + [
+                    MLIRCoreTracePass(),
+                    MLIRMemTracePass(),
+                ]
+                codeTransformer.runtimeSequencePasses = [
+                    MLIRTraceRuntimePass(),
+                ] + list(codeTransformer.runtimeSequencePasses)
+
             nodes.append({
                 'nodeName': nodeName,
                 'template': template,
@@ -144,6 +165,8 @@ class XDNA2Deployer(SignPropDeployer):
                     eb.operatorRepresentation = node['opRepr']
                     eb.patternMemoryConstraint = node['tilingConstraint']
                     eb.template = node['template']
+                    if self.enableTrace:
+                        eb.traceBufferSize = self.traceBufferSize
 
                     log.info(f"[XDNA2] Device phase for '{node['nodeName']}'" +
                              (" (tiled)" if node['tilingConstraint'] else ""))
