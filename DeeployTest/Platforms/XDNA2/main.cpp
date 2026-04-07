@@ -232,8 +232,7 @@ int main(int argc, char **argv) {
   if constexpr (TRACE_BUFFER_SIZE > 0) {
     bo_trace.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
 
-    const uint32_t *trace_data =
-        bo_trace.map<const uint32_t *>();
+    const uint32_t *trace_data = bo_trace.map<const uint32_t *>();
     size_t trace_words = TRACE_BUFFER_SIZE / sizeof(uint32_t);
 
     std::string trace_path = bin_dir + "/trace.txt";
@@ -248,8 +247,7 @@ int main(int argc, char **argv) {
       trace_file.close();
       std::cout << "Trace written to " << trace_path << "\n";
     } else {
-      std::cerr << "Warning: could not open " << trace_path
-                << " for writing\n";
+      std::cerr << "Warning: could not open " << trace_path << " for writing\n";
     }
   }
 

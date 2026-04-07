@@ -19,9 +19,13 @@ from testUtils.deeployRunner import main
 
 def _add_xdna2_args(parser):
     """Register XDNA2-specific CLI arguments."""
-    parser.add_argument('--trace', action = 'store_true', default = False,
+    parser.add_argument('--trace',
+                        action = 'store_true',
+                        default = False,
                         help = 'Enable execution tracing in the generated MLIR')
-    parser.add_argument('--trace-buffer-size', type = int, default = 8192,
+    parser.add_argument('--trace-buffer-size',
+                        type = int,
+                        default = 8192,
                         help = 'Trace buffer size in bytes (default: 8192)')
 
 
@@ -47,8 +51,8 @@ def _xdna2_post_sim(config, result, args):
 
     # Find the MLIR with lowered NpuWrite32 ops (trace event register config).
     # aiecc.py produces this when invoked with --dump-intermediates.
-    prj_pattern = os.path.join(build_dir, "DeeployTest", "Platforms", "XDNA2",
-                               "network.mlir.prj", "main_physical_with_elfs.mlir")
+    prj_pattern = os.path.join(build_dir, "DeeployTest", "Platforms", "XDNA2", "network.mlir.prj",
+                               "main_physical_with_elfs.mlir")
     candidates = glob(prj_pattern)
     if not candidates:
         print(f"Warning: lowered MLIR not found at {prj_pattern}; skipping trace parsing.")
@@ -58,10 +62,9 @@ def _xdna2_post_sim(config, result, args):
     trace_json = os.path.join(build_dir, "bin", "trace.json")
 
     try:
-        from aie.utils.trace.parse import parse_mlir_trace_events, setup_trace_metadata, \
-            convert_commands_to_json, check_for_valid_trace, trim_trace_pkts, \
-            trace_pkts_de_interleave, convert_to_byte_stream, convert_to_commands, \
-            align_column_start_index
+        from aie.utils.trace.parse import align_column_start_index, check_for_valid_trace, convert_commands_to_json, \
+            convert_to_byte_stream, convert_to_commands, parse_mlir_trace_events, setup_trace_metadata, \
+            trace_pkts_de_interleave, trim_trace_pkts
 
         with open(trace_txt, "r") as f:
             trace_pkts = f.read().split("\n")

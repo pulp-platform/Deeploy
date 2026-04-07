@@ -225,9 +225,13 @@ def generateNetworkXDNA2(args):
 if __name__ == '__main__':
     parser = TestGeneratorArgumentParser(tiling_arguments = True,
                                          description = "Deeploy XDNA2 Code Generation Utility.")
-    parser.add_argument('--trace', action = 'store_true', default = False,
+    parser.add_argument('--trace',
+                        action = 'store_true',
+                        default = False,
                         help = 'Enable execution tracing in the generated MLIR')
-    parser.add_argument('--trace-buffer-size', type = int, default = 8192,
+    parser.add_argument('--trace-buffer-size',
+                        type = int,
+                        default = 8192,
                         help = 'Trace buffer size in bytes (default: 8192)')
     args, _ = parser.parse_known_args()
 

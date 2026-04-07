@@ -34,7 +34,7 @@ from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
 if TYPE_CHECKING:
     from Deeploy.DeeployTypes import NetworkContext
-    
+
 
 class MLIRComputeCorePass(MLIRCodeTransformationPass):
     """Emit ``@aie_d.core`` with tiling loops and FIFO acquire/release.

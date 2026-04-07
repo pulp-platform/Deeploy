@@ -426,7 +426,7 @@ def main(default_platform: Optional[str] = None,
         platform_specific_cmake_args.append(f"-DNUM_CLUSTERS={args.num_clusters}")
 
     config = create_config_from_args(args, platform, simulator, tiling_enabled, platform_specific_cmake_args,
-                                        gen_args_callback)
+                                     gen_args_callback)
 
     print_configuration(config)
 

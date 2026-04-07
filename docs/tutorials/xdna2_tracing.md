@@ -62,7 +62,7 @@ mlir-aie trace parser (`aie.utils.trace.parse`) against the lowered MLIR
 ## Traced Events
 
 - `INSTR_EVENT_0`: Emitted by the `event0();` call, usually called at the beginning of the kernels (see `TargetLibraries/XDNA2/kernels/add.cc`).
-- `INSTR_EVENT_1`: Emitted by the `event1();` call, usually called at the end of the kernels. 
+- `INSTR_EVENT_1`: Emitted by the `event1();` call, usually called at the end of the kernels.
 - `INSTR_VECTOR`: Emitted every time the vector unit is used, can be useful to see how well the kernel is using the vector unit.
 - `PORT_RUNNING_0`: Emitted when a DMA transfer is running on port 0.
 - `PORT_RUNNING_1`: Emitted when a DMA transfer is running on port 1.

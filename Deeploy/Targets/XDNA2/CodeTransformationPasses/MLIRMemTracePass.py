@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
-from aie.dialects.aie import (TracePacketType, trace, trace_event, trace_packet, trace_start, trace_stop)
+from aie.dialects.aie import TracePacketType, trace, trace_event, trace_packet, trace_start, trace_stop
 
 from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 

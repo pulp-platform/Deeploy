@@ -13,8 +13,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
-from aie.dialects.aie import (DMAChannelDir, TraceMode, TracePacketType, WireBundle, trace, trace_event, trace_mode,
-                               trace_packet, trace_port, trace_start, trace_stop)
+from aie.dialects.aie import DMAChannelDir, TraceMode, TracePacketType, WireBundle, trace, trace_event, trace_mode, \
+    trace_packet, trace_port, trace_start, trace_stop
 
 from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
