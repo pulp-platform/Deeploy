@@ -57,3 +57,7 @@ CHANGELOG_GEN.md
 # Container Artifacts
 .pyusbip/
 .cache/
+
+# Claude context file
+CLAUDE.md
+Container/xrt-debs/

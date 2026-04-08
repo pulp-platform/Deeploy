@@ -14,5 +14,6 @@ Each tutorial covers a specific topic and includes code examples to illustrate t
 
    introduction
    debugging
+   xdna2_tracing
 
 
