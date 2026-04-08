@@ -23,6 +23,8 @@ jobs:
     container:
       image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:latest' }}
     steps:
+      - name: Mark workspace as safe
+        run: git config --global --add safe.directory '*'
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:

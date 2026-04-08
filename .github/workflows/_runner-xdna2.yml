@@ -32,6 +32,9 @@ jobs:
             ${{ inputs.docker-image }} \
             chown -R $(id -u):$(id -g) /workspace || true
 
+      - name: Mark workspace as safe
+        run: git config --global --add safe.directory '*'
+
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
