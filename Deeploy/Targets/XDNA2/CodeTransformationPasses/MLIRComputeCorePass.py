@@ -25,7 +25,7 @@ prior passes (e.g. :class:`MLIRObjectFifoPass`).
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, Tuple
 
 from aie.dialects import aie as aie_d
 from aie.dialects import scf as scf_d
@@ -44,29 +44,23 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
     entries point to acquired MLIR memref values instead of buffer name
     strings.
 
-    Parameters
-    ----------
-    inputTensorKeys : list of str
-        Keys in ``operatorRepresentation`` that name input tensors.
-    outputTensorKeys : list of str
-        Keys that name output tensors.
+    All operator-specific metadata (tensor keys) is read from the
+    template's ``INPUT_KEYS`` and ``OUTPUT_KEYS``.
     """
-
-    def __init__(self, inputTensorKeys: List[str], outputTensorKeys: List[str]) -> None:
-        self.inputTensorKeys = inputTensorKeys
-        self.outputTensorKeys = outputTensorKeys
 
     def apply(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
               name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
+        template = mlirBlock.template
+        inputTensorKeys = template.INPUT_KEYS
+        outputTensorKeys = template.OUTPUT_KEYS
+
         computeTile = mlirBlock.computeTile
-        kernelObj = mlirBlock.kernelObjFile
         tileSize = mlirBlock.tileSize
         numTiles = mlirBlock.numTiles
         opRepr = mlirBlock.operatorRepresentation
-        template = mlirBlock.template
 
         # Use the first tensor's type as representative tile memref type
-        firstKey = self.inputTensorKeys[0]
+        firstKey = inputTensorKeys[0]
         tileTy = mlirBlock.fifoTypes[firstKey]
 
         @aie_d.core(computeTile)
@@ -76,13 +70,13 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
                 for _ in scf_d.for_(0, numTiles, 1):
                     # Acquire all input FIFO elements
                     acquiredElements = {}
-                    for key in self.inputTensorKeys:
+                    for key in inputTensorKeys:
                         fifoName = mlirBlock.fifoMap[key]
                         acq = aie_d.objectfifo_acquire(subviewTy, aie_d.ObjectFifoPort.Consume, fifoName, 1)
                         acquiredElements[key] = aie_d.objectfifo_subview_access(tileTy, acq, 0)
 
                     # Acquire all output FIFO elements
-                    for key in self.outputTensorKeys:
+                    for key in outputTensorKeys:
                         fifoName = mlirBlock.fifoMap[key]
                         acq = aie_d.objectfifo_acquire(subviewTy, aie_d.ObjectFifoPort.Produce, fifoName, 1)
                         acquiredElements[key] = aie_d.objectfifo_subview_access(tileTy, acq, 0)
@@ -96,10 +90,10 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
                     template.emit(modifiedOpRepr)
 
                     # Release all inputs
-                    for key in self.inputTensorKeys:
+                    for key in inputTensorKeys:
                         aie_d.objectfifo_release(aie_d.ObjectFifoPort.Consume, mlirBlock.fifoMap[key], 1)
                     # Release all outputs
-                    for key in self.outputTensorKeys:
+                    for key in outputTensorKeys:
                         aie_d.objectfifo_release(aie_d.ObjectFifoPort.Produce, mlirBlock.fifoMap[key], 1)
 
                     scf_d.yield_([])

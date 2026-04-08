@@ -159,9 +159,25 @@ class MLIRNodeTemplate(NodeTemplate):
     retained and work unchanged.
     """
 
+    # Subclasses MUST set these class attributes:
+    KERNEL_FN: str = ""  # External kernel function name (e.g. "silu_bf16")
+    KERNEL_OBJ: str = ""  # Kernel object file (e.g. "silu.o")
+    INPUT_KEYS: List[str] = []  # Keys in operatorRepresentation for input tensors
+    OUTPUT_KEYS: List[str] = []  # Keys in operatorRepresentation for output tensors
+
     def __init__(self):
         # Empty Mako template — no C code is generated.
         super().__init__("")
+
+    def kernelArgTypes(self, tileTy: Any) -> List[Any]:
+        """Return the MLIR argument types for the external kernel declaration.
+
+        Default: one memref per input + output tensor, plus a trailing i32 size.
+        Override for non-standard kernel signatures.
+        """
+        import aie.ir as ir
+        i32 = ir.IntegerType.get_signless(32)
+        return [tileTy] * (len(self.INPUT_KEYS) + len(self.OUTPUT_KEYS)) + [i32]
 
     # ------------------------------------------------------------------
     # Subclass API

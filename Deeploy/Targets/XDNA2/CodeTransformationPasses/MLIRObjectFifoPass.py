@@ -63,42 +63,25 @@ def _deriveTileSize(numElements: int, patternMemoryConstraint) -> int:
 class MLIRObjectFifoPass(MLIRCodeTransformationPass):
     """Create ObjectFifos and declare the external kernel.
 
+    All operator-specific metadata (tensor keys, kernel function name,
+    kernel object file, argument types) is read from the
+    :class:`MLIRNodeTemplate` stored on ``mlirBlock.template``.
+
     Parameters
     ----------
-    inputTensorKeys : list of str
-        Keys in ``operatorRepresentation`` that name input tensors
-        (e.g. ``['data_in_1', 'data_in_2']``).
-    outputTensorKeys : list of str
-        Keys that name output tensors (e.g. ``['data_out']``).
-    kernelFuncName : str
-        Symbol name of the external AIE kernel function.
-    kernelObjFile : str
-        Object file to link with the AIE core (e.g. ``"add.o"``).
-    kernelArgTypes : callable, optional
-        A callable ``(tile_memref_type) -> list[ir.Type]`` that returns
-        the kernel's argument types.  Defaults to
-        ``[tile_ty, tile_ty, tile_ty, i32]`` (suitable for binary
-        elementwise ops).
     fifoDepth : int
         ObjectFifo depth (default 2 for double-buffering).
     """
 
-    def __init__(self,
-                 inputTensorKeys: list,
-                 outputTensorKeys: list,
-                 kernelFuncName: str,
-                 kernelObjFile: str,
-                 kernelArgTypes = None,
-                 fifoDepth: int = 2) -> None:
-        self.inputTensorKeys = inputTensorKeys
-        self.outputTensorKeys = outputTensorKeys
-        self.kernelFuncName = kernelFuncName
-        self.kernelObjFile = kernelObjFile
-        self._kernelArgTypes = kernelArgTypes
+    def __init__(self, fifoDepth: int = 2) -> None:
         self.fifoDepth = fifoDepth
 
     def apply(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
               name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
+        template = mlirBlock.template
+        inputTensorKeys = template.INPUT_KEYS
+        outputTensorKeys = template.OUTPUT_KEYS
+
         opRepr = mlirBlock.operatorRepresentation
         numElements = int(opRepr['size'])
         tileSize = _deriveTileSize(numElements, mlirBlock.patternMemoryConstraint)
@@ -107,34 +90,29 @@ class MLIRObjectFifoPass(MLIRCodeTransformationPass):
         mlirBlock.tileSize = tileSize
         mlirBlock.numTiles = numTiles
         mlirBlock.numElements = numElements
-        mlirBlock.kernelFuncName = self.kernelFuncName
-        mlirBlock.kernelObjFile = self.kernelObjFile
+        mlirBlock.kernelFuncName = template.KERNEL_FN
+        mlirBlock.kernelObjFile = template.KERNEL_OBJ
 
         tileTy = ir.MemRefType.get((tileSize,), ir.BF16Type.get())
         computeTile = mlirBlock.computeTile
         shimTile = mlirBlock.shimTile
 
         # Create input ObjectFifos (shim → compute)
-        for idx, key in enumerate(self.inputTensorKeys):
+        for idx, key in enumerate(inputTensorKeys):
             fifoName = f"in{idx + 1}_0"
             aie_d.object_fifo(fifoName, shimTile, [computeTile], self.fifoDepth, tileTy)
             mlirBlock.fifoMap[key] = fifoName
             mlirBlock.fifoTypes[key] = tileTy
 
         # Create output ObjectFifos (compute → shim)
-        for idx, key in enumerate(self.outputTensorKeys):
+        for idx, key in enumerate(outputTensorKeys):
             fifoName = f"out_{idx}"
             aie_d.object_fifo(fifoName, computeTile, [shimTile], self.fifoDepth, tileTy)
             mlirBlock.fifoMap[key] = fifoName
             mlirBlock.fifoTypes[key] = tileTy
 
         # Declare external kernel
-        i32 = ir.IntegerType.get_signless(32)
-        if self._kernelArgTypes is not None:
-            argTypes = self._kernelArgTypes(tileTy)
-        else:
-            # Default: binary elementwise  (in1, in2, out, size)
-            argTypes = [tileTy, tileTy, tileTy, i32]
-        aie_d.external_func(self.kernelFuncName, argTypes, link_with = self.kernelObjFile)
+        argTypes = template.kernelArgTypes(tileTy)
+        aie_d.external_func(template.KERNEL_FN, argTypes, link_with = template.KERNEL_OBJ)
 
         return ctxt, mlirBlock

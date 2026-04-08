@@ -40,6 +40,9 @@ class XDNA2SiLUTemplate(MLIRNodeTemplate):
     """
 
     KERNEL_FN = "silu_bf16"
+    KERNEL_OBJ = "silu.o"
+    INPUT_KEYS = ['data_in']
+    OUTPUT_KEYS = ['data_out']
 
     def __init__(self):
         super().__init__()

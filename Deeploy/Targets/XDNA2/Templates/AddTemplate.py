@@ -41,6 +41,9 @@ class XDNA2AddTemplate(MLIRNodeTemplate):
     """
 
     KERNEL_FN = "eltwise_add_bf16_vector"
+    KERNEL_OBJ = "add.o"
+    INPUT_KEYS = ['data_in_1', 'data_in_2']
+    OUTPUT_KEYS = ['data_out']
 
     def __init__(self):
         super().__init__()

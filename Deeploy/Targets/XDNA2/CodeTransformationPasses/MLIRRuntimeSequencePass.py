@@ -31,20 +31,16 @@ if TYPE_CHECKING:
 class MLIRRuntimeSequencePass(MLIRCodeTransformationPass):
     """Emit DMA configuration inside a ``runtime_sequence`` block.
 
-    Parameters
-    ----------
-    inputTensorKeys : list of str
-        Keys in ``operatorRepresentation`` that name input tensors.
-    outputTensorKeys : list of str
-        Keys that name output tensors.
+    All operator-specific metadata (tensor keys) is read from the
+    template's ``INPUT_KEYS`` and ``OUTPUT_KEYS`` via ``mlirBlock.template``.
     """
-
-    def __init__(self, inputTensorKeys: list, outputTensorKeys: list) -> None:
-        self.inputTensorKeys = inputTensorKeys
-        self.outputTensorKeys = outputTensorKeys
 
     def apply(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
               name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
+        template = mlirBlock.template
+        inputTensorKeys = template.INPUT_KEYS
+        outputTensorKeys = template.OUTPUT_KEYS
+
         numElements = mlirBlock.numElements
         seqArgs = mlirBlock.runtimeSequenceArgs
 
@@ -57,10 +53,10 @@ class MLIRRuntimeSequencePass(MLIRCodeTransformationPass):
 
         # Build ordered list of (fifoName, seqArg, isOutput)
         transfers = []
-        allKeys = self.inputTensorKeys + self.outputTensorKeys
+        allKeys = inputTensorKeys + outputTensorKeys
         for idx, key in enumerate(allKeys):
             fifoName = mlirBlock.fifoMap[key]
-            isOutput = key in self.outputTensorKeys
+            isOutput = key in outputTensorKeys
             transfers.append((fifoName, seqArgs[idx], isOutput))
 
         inputTasks = []

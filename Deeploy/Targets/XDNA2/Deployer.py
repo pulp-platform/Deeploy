@@ -180,19 +180,15 @@ class XDNA2Deployer(SignPropDeployer):
                     mlirBlocks.append((node, eb))
 
                 # === Runtime-sequence phase ===
-                # Derive tensor type and argument count from the code
-                # transformer's input/output tensor keys.  Each input and
-                # output tensor becomes one runtime_sequence argument.
+                # Derive tensor type and argument count from the template's
+                # INPUT_KEYS / OUTPUT_KEYS.  Each tensor becomes one
+                # runtime_sequence argument.
                 _, firstEb = mlirBlocks[0]
                 numElements = firstEb.numElements
                 tensorTy = ir.MemRefType.get((numElements,), ir.BF16Type.get())
 
-                # Count total I/O tensors from the first node's transformer passes
-                firstTransformer = nodes[0]['codeTransformer']
-                firstDevicePass = firstTransformer.devicePasses[0]  # MLIRObjectFifoPass
-                nInputs = len(firstDevicePass.inputTensorKeys)
-                nOutputs = len(firstDevicePass.outputTensorKeys)
-                nArgs = nInputs + nOutputs
+                firstTemplate = nodes[0]['template']
+                nArgs = len(firstTemplate.INPUT_KEYS) + len(firstTemplate.OUTPUT_KEYS)
                 seqArgTypes = [tensorTy] * nArgs
 
                 @aiex_d.runtime_sequence(*seqArgTypes)
