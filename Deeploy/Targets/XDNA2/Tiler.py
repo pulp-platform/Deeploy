@@ -8,7 +8,6 @@ from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTil
 from Deeploy.Targets.XDNA2.Bindings import XDNA2AddBindings, XDNA2SiLUBindings
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
-
 XDNA2AddTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = XDNA2AddBindings,
                                                       tileConstraint = AddTileConstraint())
 XDNA2SiLUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = XDNA2SiLUBindings,

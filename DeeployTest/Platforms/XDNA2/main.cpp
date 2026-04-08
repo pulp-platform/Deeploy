@@ -39,7 +39,8 @@ static float bf16_to_float(uint16_t bf16) {
   return f;
 }
 
-static bool bf16_nearly_equal(uint16_t a, uint16_t b, unsigned int tolerance_ulps = 1,
+static bool bf16_nearly_equal(uint16_t a, uint16_t b,
+                              unsigned int tolerance_ulps = 1,
                               float rtol = 0.0f, float atol = 0.0f) {
   // Allow `tolerance_ulps` BF16 ULP difference to account for hardware rounding
   // and approximations (e.g. tanh in SiLU).
@@ -153,8 +154,8 @@ int main(int argc, char **argv) {
 #endif
 
   // Allocate output buffer object
-  auto bo_out =
-      xrt::bo(device, buf_bytes, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(3u + N_INPUTS));
+  auto bo_out = xrt::bo(device, buf_bytes, XRT_BO_FLAGS_HOST_ONLY,
+                        kernel.group_id(3u + N_INPUTS));
 
   // Control packets buffer (required by the kernel ABI)
   auto bo_ctrlpkts =
@@ -165,8 +166,8 @@ int main(int argc, char **argv) {
   // placeholder so the kernel call signature stays the same.
   constexpr size_t trace_alloc =
       TRACE_BUFFER_SIZE > 0 ? TRACE_BUFFER_SIZE * 4 : 1;
-  auto bo_trace =
-      xrt::bo(device, trace_alloc, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(trace_gid));
+  auto bo_trace = xrt::bo(device, trace_alloc, XRT_BO_FLAGS_HOST_ONLY,
+                          kernel.group_id(trace_gid));
 
   // Zero-initialise trace buffer
   if constexpr (TRACE_BUFFER_SIZE > 0) {
@@ -218,7 +219,8 @@ int main(int argc, char **argv) {
 
   int errors = 0;
   for (size_t i = 0; i < n_elem; ++i) {
-    bool match = bf16_nearly_equal(hw_out[i], golden_out[i], BF16_TOLERANCE_ULPS);
+    bool match =
+        bf16_nearly_equal(hw_out[i], golden_out[i], BF16_TOLERANCE_ULPS);
     if (!match) {
       ++errors;
       if (errors <= 10) {
