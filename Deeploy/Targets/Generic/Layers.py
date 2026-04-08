@@ -93,6 +93,17 @@ class iNoNormLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
 
+class SiLULayer(GELULayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        size = self.mapper.parser.operatorRepresentation['size']
+        # sigmoid(x) = 1/(1+exp(-x)): neg + exp + add + div = 4, then mul by x = 5
+        return size * 5
+
+
 class RQSiGELULayer(GELULayer):
 
     def __init__(self, maps: List[NodeMapper]):

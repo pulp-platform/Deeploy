@@ -119,7 +119,7 @@ class XDNA2Deployer(SignPropDeployer):
 
             if not isinstance(template, MLIRNodeTemplate):
                 raise RuntimeError(f"Node '{nodeName}' has no MLIRNodeTemplate — "
-                                   f"only BF16 Add is supported in this release.")
+                                   f"got {type(template).__name__}.")
             if not isinstance(codeTransformer, MLIRCodeTransformation):
                 raise RuntimeError(f"Node '{nodeName}' uses a non-MLIR CodeTransformation — "
                                    f"expected MLIRCodeTransformation, got {type(codeTransformer).__name__}.")
@@ -180,12 +180,22 @@ class XDNA2Deployer(SignPropDeployer):
                     mlirBlocks.append((node, eb))
 
                 # === Runtime-sequence phase ===
-                # Derive tensor type from the first node's numElements
+                # Derive tensor type and argument count from the code
+                # transformer's input/output tensor keys.  Each input and
+                # output tensor becomes one runtime_sequence argument.
                 _, firstEb = mlirBlocks[0]
                 numElements = firstEb.numElements
                 tensorTy = ir.MemRefType.get((numElements,), ir.BF16Type.get())
 
-                @aiex_d.runtime_sequence(tensorTy, tensorTy, tensorTy)
+                # Count total I/O tensors from the first node's transformer passes
+                firstTransformer = nodes[0]['codeTransformer']
+                firstDevicePass = firstTransformer.devicePasses[0]  # MLIRObjectFifoPass
+                nInputs = len(firstDevicePass.inputTensorKeys)
+                nOutputs = len(firstDevicePass.outputTensorKeys)
+                nArgs = nInputs + nOutputs
+                seqArgTypes = [tensorTy] * nArgs
+
+                @aiex_d.runtime_sequence(*seqArgTypes)
                 def _seq(*args):
                     for node, eb in mlirBlocks:
                         eb.runtimeSequenceArgs = list(args)

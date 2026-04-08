@@ -39,10 +39,10 @@ static float bf16_to_float(uint16_t bf16) {
   return f;
 }
 
-static bool bf16_nearly_equal(uint16_t a, uint16_t b, float rtol = 0.0f,
-                              float atol = 0.0f) {
-  // Default: allow 1 BF16 ULP difference to account for hardware rounding.
-  // A BF16 ULP at a given magnitude is the gap between adjacent BF16 values.
+static bool bf16_nearly_equal(uint16_t a, uint16_t b, unsigned int tolerance_ulps = 1,
+                              float rtol = 0.0f, float atol = 0.0f) {
+  // Allow `tolerance_ulps` BF16 ULP difference to account for hardware rounding
+  // and approximations (e.g. tanh in SiLU).
   float fa = bf16_to_float(a);
   float fb = bf16_to_float(b);
   float diff = std::fabs(fa - fb);
@@ -56,7 +56,7 @@ static bool bf16_nearly_equal(uint16_t a, uint16_t b, float rtol = 0.0f,
     ulp = std::ldexp(1.0f,
                      static_cast<int>(ref_exp) - 127 - 7); // 7 mantissa bits
 
-  float tol = std::fmax(atol + rtol * std::fabs(fb), ulp);
+  float tol = std::fmax(atol + rtol * std::fabs(fb), ulp * tolerance_ulps);
   return diff <= tol;
 }
 
@@ -123,13 +123,10 @@ int main(int argc, char **argv) {
   //    N_ELEMENTS_INPUT0, N_ELEMENTS_INPUT1, N_ELEMENTS_OUTPUT0 are set
   //    by generateNetwork_xdna2.py.
   // -----------------------------------------------------------------------
-  // JUNGVI: TODO: Remove this assert and make it scalable for N I/Os graphs
-  // (with respect to the amount of bo available)
-  static_assert(N_ELEMENTS_INPUT0 == N_ELEMENTS_INPUT1,
-                "Input 0 and input 1 must have the same number of elements");
-  static_assert(N_ELEMENTS_INPUT0 == N_ELEMENTS_OUTPUT0,
-                "Inputs and output must have the same number of elements");
-
+  // 3. Derive element counts from the testinputs/testoutputs header defines.
+  //    N_INPUTS is set by generateNetwork_xdna2.py.
+  //    N_ELEMENTS_INPUT0, N_ELEMENTS_OUTPUT0, etc. are also defined.
+  // -----------------------------------------------------------------------
   const size_t n_elem = N_ELEMENTS_OUTPUT0;
   const size_t elem_size = sizeof(uint16_t); // BF16 = 2 bytes
   const size_t buf_bytes = n_elem * elem_size;
@@ -137,20 +134,31 @@ int main(int argc, char **argv) {
   // -----------------------------------------------------------------------
   // 4. Allocate XRT buffer objects
   //    Kernel args: (0:opcode, 1:instr_bo, 2:instr_len,
-  //                  3:in0, 4:in1, 5:out, 6:ctrlpkts, 7:trace)
+  //                  3..3+N_INPUTS-1: inputs, 3+N_INPUTS: output,
+  //                  next: ctrlpkts, next+1: trace)
   // -----------------------------------------------------------------------
+  constexpr unsigned int n_data_args = N_INPUTS + 1u; // inputs + 1 output
+  constexpr unsigned int ctrlpkts_gid = 3u + n_data_args;
+  constexpr unsigned int trace_gid = ctrlpkts_gid + 1u;
+
   auto bo_instr = xrt::bo(device, n_instr * sizeof(uint32_t),
                           XCL_BO_FLAGS_CACHEABLE, kernel.group_id(1));
+
+  // Allocate input buffer objects
   auto bo_in0 =
       xrt::bo(device, buf_bytes, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(3));
+#if N_INPUTS >= 2u
   auto bo_in1 =
       xrt::bo(device, buf_bytes, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(4));
+#endif
+
+  // Allocate output buffer object
   auto bo_out =
-      xrt::bo(device, buf_bytes, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(5));
+      xrt::bo(device, buf_bytes, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(3u + N_INPUTS));
 
   // Control packets buffer (required by the kernel ABI)
   auto bo_ctrlpkts =
-      xrt::bo(device, 8, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(6));
+      xrt::bo(device, 8, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(ctrlpkts_gid));
 
   // Trace buffer: allocated at 4x the requested size (hardware requirement).
   // When TRACE_BUFFER_SIZE == 0 (no tracing), allocate a minimal 1-byte
@@ -158,7 +166,7 @@ int main(int argc, char **argv) {
   constexpr size_t trace_alloc =
       TRACE_BUFFER_SIZE > 0 ? TRACE_BUFFER_SIZE * 4 : 1;
   auto bo_trace =
-      xrt::bo(device, trace_alloc, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(7));
+      xrt::bo(device, trace_alloc, XRT_BO_FLAGS_HOST_ONLY, kernel.group_id(trace_gid));
 
   // Zero-initialise trace buffer
   if constexpr (TRACE_BUFFER_SIZE > 0) {
@@ -172,11 +180,15 @@ int main(int argc, char **argv) {
   std::memcpy(bo_instr.map<uint32_t *>(), instr_v.data(),
               n_instr * sizeof(uint32_t));
   std::memcpy(bo_in0.map<void *>(), testInputVector0, buf_bytes);
+#if N_INPUTS >= 2u
   std::memcpy(bo_in1.map<void *>(), testInputVector1, buf_bytes);
+#endif
 
   bo_instr.sync(XCL_BO_SYNC_BO_TO_DEVICE);
   bo_in0.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+#if N_INPUTS >= 2u
   bo_in1.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+#endif
 
   // -----------------------------------------------------------------------
   // 6. Launch kernel and wait for completion
@@ -185,8 +197,15 @@ int main(int argc, char **argv) {
   // JUNGVI: TODO: Collect runtime and display it
   // JUNGVI: TODO: Enable warmup iterations
   unsigned int opcode = 3;
+#if N_INPUTS == 1u
+  auto run = kernel(opcode, bo_instr, static_cast<uint32_t>(n_instr), bo_in0,
+                    bo_out, bo_ctrlpkts, bo_trace);
+#elif N_INPUTS == 2u
   auto run = kernel(opcode, bo_instr, static_cast<uint32_t>(n_instr), bo_in0,
                     bo_in1, bo_out, bo_ctrlpkts, bo_trace);
+#else
+#error "Unsupported N_INPUTS value — extend main.cpp for more inputs"
+#endif
   run.wait();
 
   // -----------------------------------------------------------------------
@@ -199,7 +218,7 @@ int main(int argc, char **argv) {
 
   int errors = 0;
   for (size_t i = 0; i < n_elem; ++i) {
-    bool match = bf16_nearly_equal(hw_out[i], golden_out[i]);
+    bool match = bf16_nearly_equal(hw_out[i], golden_out[i], BF16_TOLERANCE_ULPS);
     if (!match) {
       ++errors;
       if (errors <= 10) {

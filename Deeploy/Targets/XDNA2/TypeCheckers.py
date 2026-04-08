@@ -27,3 +27,21 @@ class XDNA2AddChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
         # BF16 is a signed floating-point type.
         return [True]
+
+
+class XDNA2SiLUChecker(SignPropTypeChecker):
+    """Type checker for BF16 SiLU on XDNA2.
+
+    Single input and output, both bfloat16_t pointers.
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+        return [1]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [True]

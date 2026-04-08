@@ -830,6 +830,19 @@ class GELUGradParser(NodeParser):
         return ctxt, True
 
 
+class SiLUParser(GELUParser):
+    """Parser for the SiLU (x * sigmoid(x)) activation.
+
+    Identical structure to GELU: single input, single output, flat size.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return all([len(node.inputs) >= 1, len(node.outputs) == 1])
+
+
 class RQSiGELUParser(GELUParser):
 
     def __init__(self):

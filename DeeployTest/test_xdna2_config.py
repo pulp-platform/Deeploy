@@ -7,4 +7,5 @@
 
 KERNEL_TESTS = [
     "Kernels/BF16/Add/Regular",
+    "Kernels/BF16/SiLU/Regular",
 ]

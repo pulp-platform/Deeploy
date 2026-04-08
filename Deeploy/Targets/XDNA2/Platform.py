@@ -8,26 +8,30 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
     NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
-from Deeploy.Targets.Generic.Layers import AddLayer
-from Deeploy.Targets.Generic.Parsers import AddParser
+from Deeploy.Targets.Generic.Layers import AddLayer, SiLULayer
+from Deeploy.Targets.Generic.Parsers import AddParser, SiLUParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
-from Deeploy.Targets.XDNA2.Bindings import XDNA2AddBindings
-from Deeploy.Targets.XDNA2.Tiler import XDNA2AddTilingReadyBindings
+from Deeploy.Targets.XDNA2.Bindings import XDNA2AddBindings, XDNA2SiLUBindings
+from Deeploy.Targets.XDNA2.Tiler import XDNA2AddTilingReadyBindings, XDNA2SiLUTilingReadyBindings
 
 # Standard mapper for non-tiled deployment
 XDNA2AddMapper = NodeMapper(AddParser(), XDNA2AddBindings)
+XDNA2SiLUMapper = NodeMapper(SiLUParser(), XDNA2SiLUBindings)
 
 # Tiling-ready mapper for tiled deployment
 XDNA2AddTilableMapper = NodeMapper(AddParser(), XDNA2AddTilingReadyBindings)
+XDNA2SiLUTilableMapper = NodeMapper(SiLUParser(), XDNA2SiLUTilingReadyBindings)
 
 # Standard mapping (used when tiling is disabled)
 XDNA2Mapping = {
     'Add': AddLayer([XDNA2AddMapper]),
+    'Silu': SiLULayer([XDNA2SiLUMapper]),
 }
 
 # Tiling-ready mapping (used when tiling is enabled)
 XDNA2TilingMapping = {
     'Add': AddLayer([XDNA2AddTilableMapper]),
+    'Silu': SiLULayer([XDNA2SiLUTilableMapper]),
 }
 
 # Buffer classes reuse Generic templates since XDNA2Deployer manages its own
