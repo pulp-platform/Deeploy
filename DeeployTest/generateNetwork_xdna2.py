@@ -25,7 +25,7 @@ from Deeploy.CommonExtensions.DataTypes import bfloat16_t
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
-from Deeploy.Targets.XDNA2.Platform import MemoryXDNA2Platform, XDNA2AIECoreEngine, XDNA2TilingMapping
+from Deeploy.Targets.XDNA2.Platform import MemoryXDNA2Platform, XDNA2AIECoreEngine, XDNA2Mapping
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 
 
@@ -158,7 +158,7 @@ def generateNetworkXDNA2(args):
     mem_platform = MemoryXDNA2Platform(
         memoryHierarchy = memory_hierarchy,
         defaultTargetMemoryLevel = l1_level,
-        engines = [XDNA2AIECoreEngine(Mapping = XDNA2TilingMapping, preferredMemoryLevel = "L1")])
+        engines = [XDNA2AIECoreEngine(Mapping = XDNA2Mapping, preferredMemoryLevel = "L1")])
 
     # Create base deployer with memory platform
     deployer = mapDeployer(mem_platform,

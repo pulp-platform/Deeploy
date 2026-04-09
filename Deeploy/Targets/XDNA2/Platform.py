@@ -8,30 +8,21 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
     NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
-from Deeploy.Targets.Generic.Layers import AddLayer, SiLULayer
-from Deeploy.Targets.Generic.Parsers import AddParser, SiLUParser
+from Deeploy.Targets.Generic.Layers import AddLayer, LayerNormLayer, SiLULayer
+from Deeploy.Targets.Generic.Parsers import AddParser, LayerNormParser, SiLUParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
-from Deeploy.Targets.XDNA2.Bindings import XDNA2AddBindings, XDNA2SiLUBindings
-from Deeploy.Targets.XDNA2.Tiler import XDNA2AddTilingReadyBindings, XDNA2SiLUTilingReadyBindings
+from Deeploy.Targets.XDNA2.Tiler import XDNA2AddTilingReadyBindings, XDNA2LayerNormTilingReadyBindings, \
+    XDNA2SiLUTilingReadyBindings
 
-# Standard mapper for non-tiled deployment
-XDNA2AddMapper = NodeMapper(AddParser(), XDNA2AddBindings)
-XDNA2SiLUMapper = NodeMapper(SiLUParser(), XDNA2SiLUBindings)
+# XDNA2 always requires tiling (ObjectFifo streaming).
+XDNA2AddMapper = NodeMapper(AddParser(), XDNA2AddTilingReadyBindings)
+XDNA2SiLUMapper = NodeMapper(SiLUParser(), XDNA2SiLUTilingReadyBindings)
+XDNA2LayerNormMapper = NodeMapper(LayerNormParser(), XDNA2LayerNormTilingReadyBindings)
 
-# Tiling-ready mapper for tiled deployment
-XDNA2AddTilableMapper = NodeMapper(AddParser(), XDNA2AddTilingReadyBindings)
-XDNA2SiLUTilableMapper = NodeMapper(SiLUParser(), XDNA2SiLUTilingReadyBindings)
-
-# Standard mapping (used when tiling is disabled)
 XDNA2Mapping = {
     'Add': AddLayer([XDNA2AddMapper]),
     'Silu': SiLULayer([XDNA2SiLUMapper]),
-}
-
-# Tiling-ready mapping (used when tiling is enabled)
-XDNA2TilingMapping = {
-    'Add': AddLayer([XDNA2AddTilableMapper]),
-    'Silu': SiLULayer([XDNA2SiLUTilableMapper]),
+    'LayerNormalization': LayerNormLayer([XDNA2LayerNormMapper]),
 }
 
 # Buffer classes reuse Generic templates since XDNA2Deployer manages its own
@@ -110,7 +101,7 @@ class MemoryXDNA2Platform(MemoryPlatform):
     """XDNA2 platform with memory hierarchy support for tiling.
 
     Defines the memory hierarchy:
-    - L1: 8KB per AIE core (local memory)
+    - L1: 64KB per AIE core (local memory)
     - L3: Shared memory for entire AIE array
     """
 

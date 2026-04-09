@@ -92,7 +92,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy ${XDNA2_KERNEL_OBJECTS} "${CMAKE_CURRENT_BINARY_DIR}"
     COMMAND ${CMAKE_COMMAND} -E env
             "PATH=${MLIR_AIE_INSTALL_DIR}/bin:$ENV{PATH}"
-            "python" "${AIECC_PY}"
+            "${Python3_EXECUTABLE}" "${AIECC_PY}"
             --no-aiesim
             --no-xchesscc
             --no-xbridge

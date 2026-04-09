@@ -84,7 +84,15 @@ class MLIRObjectFifoPass(MLIRCodeTransformationPass):
 
         opRepr = mlirBlock.operatorRepresentation
         numElements = int(opRepr['size'])
-        tileSize = _deriveTileSize(numElements, mlirBlock.patternMemoryConstraint)
+
+        # Let the template override tile-size derivation (e.g. LayerNorm
+        # forces tileSize = lastDimLength).  Fall back to the default
+        # heuristic when the template returns None.
+        overrideTileSize = template.deriveTileSize(numElements, mlirBlock.patternMemoryConstraint, opRepr)
+        if overrideTileSize is not None:
+            tileSize = overrideTileSize
+        else:
+            tileSize = _deriveTileSize(numElements, mlirBlock.patternMemoryConstraint)
         numTiles = numElements // tileSize
 
         mlirBlock.tileSize = tileSize

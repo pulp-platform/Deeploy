@@ -179,6 +179,17 @@ class MLIRNodeTemplate(NodeTemplate):
         i32 = ir.IntegerType.get_signless(32)
         return [tileTy] * (len(self.INPUT_KEYS) + len(self.OUTPUT_KEYS)) + [i32]
 
+    def deriveTileSize(self, numElements: int, patternMemoryConstraint: Any,
+                       operatorRepresentation: 'OperatorRepresentation') -> Optional[int]:
+        """Optionally override the tile-size derivation for this operator.
+
+        Return ``None`` (the default) to let the pass use its own
+        heuristic.  Return a concrete ``int`` to force a specific tile
+        size (e.g. ``lastDimLength`` for row-oriented kernels like
+        LayerNorm).
+        """
+        return None
+
     # ------------------------------------------------------------------
     # Subclass API
     # ------------------------------------------------------------------

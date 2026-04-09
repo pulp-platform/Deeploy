@@ -9,8 +9,8 @@ from Deeploy.MLIRDataTypes import MLIRCodeTransformation
 from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRComputeCorePass import MLIRComputeCorePass
 from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRObjectFifoPass import MLIRObjectFifoPass
 from Deeploy.Targets.XDNA2.CodeTransformationPasses.MLIRRuntimeSequencePass import MLIRRuntimeSequencePass
-from Deeploy.Targets.XDNA2.Templates import AddTemplate, SiLUTemplate
-from Deeploy.Targets.XDNA2.TypeCheckers import XDNA2AddChecker, XDNA2SiLUChecker
+from Deeploy.Targets.XDNA2.Templates import AddTemplate, LayerNormTemplate, SiLUTemplate
+from Deeploy.Targets.XDNA2.TypeCheckers import XDNA2AddChecker, XDNA2LayerNormChecker, XDNA2SiLUChecker
 
 XDNA2Transformer = MLIRCodeTransformation(
     devicePasses = [
@@ -34,6 +34,15 @@ XDNA2SiLUBindings = [
     NodeBinding(
         XDNA2SiLUChecker([PointerClass(bfloat16_t)], [PointerClass(bfloat16_t)]),
         SiLUTemplate.referenceTemplate,
+        XDNA2Transformer,
+    )
+]
+
+XDNA2LayerNormBindings = [
+    NodeBinding(
+        XDNA2LayerNormChecker([PointerClass(bfloat16_t), PointerClass(bfloat16_t), PointerClass(bfloat16_t)],
+                              [PointerClass(bfloat16_t)]),
+        LayerNormTemplate.referenceTemplate,
         XDNA2Transformer,
     )
 ]

@@ -35,7 +35,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         generation_script = script_dir / "generateNetwork.py"
 
     cmd = [
-        "python",
+        sys.executable,
         str(generation_script),
         "-d",
         config.gen_dir,

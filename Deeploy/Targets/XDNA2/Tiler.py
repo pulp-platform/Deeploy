@@ -5,10 +5,13 @@
 
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
-from Deeploy.Targets.XDNA2.Bindings import XDNA2AddBindings, XDNA2SiLUBindings
+from Deeploy.Targets.XDNA2.Bindings import XDNA2AddBindings, XDNA2LayerNormBindings, XDNA2SiLUBindings
+from Deeploy.Targets.XDNA2.TileConstraints.LayerNormTileConstraint import XDNA2LayerNormTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 XDNA2AddTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = XDNA2AddBindings,
                                                       tileConstraint = AddTileConstraint())
 XDNA2SiLUTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = XDNA2SiLUBindings,
                                                        tileConstraint = UnaryTileConstraint())
+XDNA2LayerNormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = XDNA2LayerNormBindings,
+                                                            tileConstraint = XDNA2LayerNormTileConstraint())

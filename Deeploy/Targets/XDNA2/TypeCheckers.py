@@ -45,3 +45,23 @@ class XDNA2SiLUChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
         return [True]
+
+
+class XDNA2LayerNormChecker(SignPropTypeChecker):
+    """Type checker for BF16 LayerNorm on XDNA2.
+
+    Three inputs (data, weight, bias) and one output, all bfloat16_t pointers.
+    The kernel hardcodes gamma=1, beta=0 but the ONNX node still carries
+    scale/bias as graph-level inputs for proper type inference.
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+        return [1]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [True]
