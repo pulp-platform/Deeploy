@@ -399,23 +399,17 @@ class Tiler():
         environment variable to be set to the installation directory.
         """
 
-        blockNames = [block.name for block in memoryMap]
+        blockNames = {block.name for block in memoryMap}
 
-        # In-place alias outputs are costless — their storage is
-        # already accounted for by the alias target.  This mirrors the
-        # zero-cost logic in _buildCostVector (MemoryScheduler.py) and the
-        # skip logic in _allocateStaticBuffer.
-        # We skip them from the MiniMalloc CSV (MiniMalloc does not accept
-        # size-0 entries) and resolve their addrSpace from the alias target
+        # In-place alias outputs whose target is in the same memoryMap share
+        # storage with the target — skip them from the MiniMalloc CSV (it
+        # rejects size-0 entries) and copy their addrSpace from the target
         # after the solver runs.
-        # NOTE: Only skip when alias target is in the SAME memoryMap.
-        # When alias target is global (e.g. L2 weight) but we're allocating
-        # L1, the buffer still needs its own L1 space.
-        aliasBlocks = set()
-        for memoryBlock in memoryMap:
-            _buffer = ctxt.lookup(memoryBlock.name)
-            if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:
-                aliasBlocks.add(memoryBlock.name)
+        aliasBlocks = {
+            block.name
+            for block in memoryMap
+            if getattr(ctxt.lookup(block.name), "_alias", None) in blockNames
+        }
 
         with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
             writer = csv.writer(file, lineterminator = "\n")
@@ -474,20 +468,13 @@ class Tiler():
                     if memoryBlock.name == row[0]:
                         memoryBlock._addrSpace = (int(row[-1]), int(row[-1]) + int(row[-2]))
 
-        # JUNGVI: Alias blocks were skipped in the MiniMalloc CSV.
-        # Resolve their addrSpace from their alias target so that
-        # downstream code can access it if needed.
+        # Resolve skipped alias blocks: copy addrSpace from the alias target.
+        targetBlocks = {block.name: block for block in memoryMap}
         for memoryBlock in memoryMap:
-            if memoryBlock.name in aliasBlocks:
-                _buffer = ctxt.lookup(memoryBlock.name)
-                aliasTarget = ctxt.dealiasBuffer(memoryBlock.name)
-                for targetBlock in memoryMap:
-                    if targetBlock.name == aliasTarget:
-                        memoryBlock._addrSpace = targetBlock._addrSpace
-                        break
-                else:
-                    # Alias target not in this memoryMap — use zero offset
-                    memoryBlock._addrSpace = (0, 0)
+            if memoryBlock.name not in aliasBlocks:
+                continue
+            target = targetBlocks.get(ctxt.dealiasBuffer(memoryBlock.name))
+            memoryBlock._addrSpace = target._addrSpace if target is not None else (0, 0)
 
         return memoryMap
 
