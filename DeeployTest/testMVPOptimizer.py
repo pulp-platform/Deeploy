@@ -36,6 +36,7 @@ from testUtils.codeGenerate import build_shared_buffer_maps, generateOptimizerTe
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import TrainingSBTiler
+from testUtils.trainingUtils import _mockScheduler
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import float32_t
@@ -47,11 +48,6 @@ from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses
     AnnotateIOMemoryLevel
 from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
-
-
-def _mockScheduler(graph: gs.Graph) -> List[List[gs.Node]]:
-    """Wrap every node in a singleton list for the Tiler pattern interface."""
-    return [[node] for node in graph.nodes]
 
 
 def generateTiledOptimizerNetwork(args) -> None:

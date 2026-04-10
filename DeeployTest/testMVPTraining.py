@@ -15,6 +15,8 @@ from testUtils.codeGenerate import generateTrainingTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import TrainingSBTiler
+from testUtils.trainingUtils import _GRAD_ACC, _infer_data_size, _infer_n_accum, _infer_num_data_inputs, \
+    _infer_total_mb, _load_reference_losses, _mockScheduler
 from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -27,86 +29,6 @@ from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses
     AnnotateIOMemoryLevel
 from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
-
-_GRAD_ACC = "_grad.accumulation.buffer"
-
-# ---------------------------------------------------------------------------
-# Helpers copied from generateTrainingNetwork.py
-# ---------------------------------------------------------------------------
-
-
-def _load_reference_losses(train_dir: str) -> list:
-    """Load reference loss values from outputs.npz."""
-    outputs_path = os.path.join(train_dir, "outputs.npz")
-    if not os.path.exists(outputs_path):
-        log.warning(f"outputs.npz not found at {outputs_path} — loss comparison skipped")
-        return None
-    try:
-        outputs = np.load(outputs_path)
-    except Exception as e:
-        log.warning(f"Failed to load outputs.npz: {e} — loss comparison skipped")
-        return None
-    for key in outputs.files:
-        if 'loss' in key.lower():
-            vals = [float(v) for v in np.array(outputs[key]).flatten().tolist()]
-            log.info(f"Reference losses loaded from outputs.npz['{key}']: {vals}")
-            return vals
-    log.warning("No 'loss' key found in outputs.npz — loss comparison skipped")
-    return None
-
-
-def _infer_num_data_inputs(inputs_path: str) -> int:
-    inputs = np.load(inputs_path)
-    base_keys = sorted(k for k in inputs.files if not k.startswith('mb') and not k.startswith('meta_'))
-    count = sum(1 for k in base_keys if f'mb1_{k}' in inputs.files)
-    if count == 0:
-        raise ValueError("Cannot auto-detect num_data_inputs: inputs.npz has only one mini-batch "
-                         "(no mb1_arr_* entries found). Please pass --num-data-inputs explicitly.")
-    return count
-
-
-def _infer_total_mb(inputs_path: str) -> int:
-    inputs = np.load(inputs_path)
-    if "meta_n_batches" in inputs.files:
-        return int(inputs["meta_n_batches"].flat[0])
-    mb_indices = set()
-    for key in inputs.files:
-        if key.startswith('mb'):
-            try:
-                idx = int(key.split('_')[0][2:])
-                mb_indices.add(idx)
-            except ValueError:
-                pass
-    return 1 + len(mb_indices)
-
-
-def _infer_data_size(inputs_path: str) -> int:
-    inputs = np.load(inputs_path)
-    if "meta_data_size" in inputs.files:
-        return int(inputs["meta_data_size"].flat[0])
-    return _infer_total_mb(inputs_path)
-
-
-def _infer_n_accum(inputs_path: str) -> int:
-    inputs = np.load(inputs_path)
-    if "meta_n_accum" in inputs.files:
-        return int(inputs["meta_n_accum"].flat[0])
-    return 1
-
-
-# ---------------------------------------------------------------------------
-# Mock scheduler (same as testMVP.py)
-# ---------------------------------------------------------------------------
-
-
-def _mockScheduler(graph: gs.Graph) -> List[List[gs.Node]]:
-    """Wrap every node in a singleton list for the Tiler pattern interface."""
-    return [[node] for node in graph.nodes]
-
-
-# ---------------------------------------------------------------------------
-# Main generation function
-# ---------------------------------------------------------------------------
 
 
 def generateTiledTrainingNetwork(args) -> None:
