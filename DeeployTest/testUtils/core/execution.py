@@ -49,90 +49,23 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
 
     script_dir = Path(__file__).parent.parent.parent
 
-    if config.training and config.tiling:
-        # --- Tiled training: testMVPTraining.py (tiling pipeline + training init) ---
-        generation_script = script_dir / "testMVPTraining.py"
-        cmd = [
-            sys.executable,
-            str(generation_script),
-            "-d",
-            config.gen_dir,
-            "-t",
-            config.test_dir,
-            "-p",
-            config.platform,
-        ]
-        if config.n_train_steps is not None:
-            cmd.append(f"--n-steps={config.n_train_steps}")
-        if config.n_accum_steps is not None:
-            cmd.append(f"--n-accum={config.n_accum_steps}")
-        if config.training_num_data_inputs is not None:
-            cmd.append(f"--num-data-inputs={config.training_num_data_inputs}")
-        if config.verbose > 0:
-            cmd.append("-" + "v" * config.verbose)
-        if config.debug:
-            cmd.append("--debug")
-        cmd.extend(config.gen_args)
-
-        log.debug(f"[Execution] Tiled training generation command: {' '.join(cmd)}")
-        result = subprocess.run(cmd, check = False)
-        if result.returncode != 0:
-            raise RuntimeError(f"Tiled training network generation failed for {config.test_name}")
-
-        # Read back auto-detected values written by testMVPTraining.py
-        meta_path = Path(config.gen_dir) / "training_meta.json"
-        if meta_path.exists():
-            with open(meta_path) as f:
-                meta = json.load(f)
-            config.n_train_steps = meta["n_train_steps"]
-            config.n_accum_steps = meta["n_accum_steps"]
-            config.training_num_data_inputs = meta["training_num_data_inputs"]
-            log.info(f"[Execution] Training meta: {meta}")
-
-        # --- Step 2: Tiled optimizer network (SGD via testMVPOptimizer.py) ---
-        opt_dir = _resolve_optimizer_dir(config)
-        opt_script = script_dir / "testMVPOptimizer.py"
-
-        if not Path(opt_dir).exists():
-            log.warning(f"Optimizer directory not found: {opt_dir} — skipping optimizer codegen")
-        elif not opt_script.exists():
-            log.warning(f"testMVPOptimizer.py not found — skipping optimizer codegen")
+    if config.training:
+        if config.tiling:
+            training_script = script_dir / "testMVPTraining.py"
+            optimizer_script = script_dir / "testMVPOptimizer.py"
+            opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel", "--memAllocStrategy",
+                               "--searchStrategy", "--plotMemAlloc", "--profileTiling")
+            stage = "Tiled training"
         else:
-            opt_cmd = [
-                sys.executable,
-                str(opt_script),
-                "-d",
-                config.gen_dir,
-                "-t",
-                opt_dir,
-                "-p",
-                config.platform,
-                f"--training-dir={config.test_dir}",
-            ]
-            _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2", "--defaultMemLevel", "--memAllocStrategy",
-                                "--searchStrategy", "--plotMemAlloc", "--profileTiling")
-            for arg in config.gen_args:
-                if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
-                    opt_cmd.append(arg)
-            # If no --defaultMemLevel was passed through, default to L2
-            if not any(arg.startswith("--defaultMemLevel") for arg in opt_cmd):
-                opt_cmd.append("--defaultMemLevel=L2")
-            if config.verbose > 0:
-                opt_cmd.append("-" + "v" * config.verbose)
+            training_script = script_dir / "generateTrainingNetwork.py"
+            optimizer_script = script_dir / "generateOptimizerNetwork.py"
+            opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel")
+            stage = "Training"
 
-            log.debug(f"[Execution] Tiled optimizer generation command: {' '.join(opt_cmd)}")
-            result = subprocess.run(opt_cmd, check = False)
-            if result.returncode != 0:
-                raise RuntimeError(f"Tiled optimizer network generation failed for {config.test_name}")
-
-        return  # early return — tiled training path complete
-
-    elif config.training:
         # --- Step 1: Training network (forward + backward + accumulation) ---
-        generation_script = script_dir / "generateTrainingNetwork.py"
         cmd = [
             sys.executable,
-            str(generation_script),
+            str(training_script),
             "-d",
             config.gen_dir,
             "-t",
@@ -140,26 +73,25 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
             "-p",
             config.platform,
         ]
-        # Only pass values when explicitly set; otherwise let the script auto-detect
+        # Only pass values when explicitly set; otherwise let the script auto-detect.
         if config.n_train_steps is not None:
             cmd.append(f"--n-steps={config.n_train_steps}")
         if config.n_accum_steps is not None:
             cmd.append(f"--n-accum={config.n_accum_steps}")
         if config.training_num_data_inputs is not None:
             cmd.append(f"--num-data-inputs={config.training_num_data_inputs}")
-
         if config.verbose > 0:
             cmd.append("-" + "v" * config.verbose)
         if config.debug:
             cmd.append("--debug")
         cmd.extend(config.gen_args)
 
-        log.debug(f"[Execution] Training generation command: {' '.join(cmd)}")
+        log.debug(f"[Execution] {stage} generation command: {' '.join(cmd)}")
         result = subprocess.run(cmd, check = False)
         if result.returncode != 0:
-            raise RuntimeError(f"Training network generation failed for {config.test_name}")
+            raise RuntimeError(f"{stage} network generation failed for {config.test_name}")
 
-        # Read back auto-detected values written by generateTrainingNetwork.py
+        # Read back auto-detected values written by the training generation script.
         meta_path = Path(config.gen_dir) / "training_meta.json"
         if meta_path.exists():
             with open(meta_path) as f:
@@ -171,16 +103,14 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
 
         # --- Step 2: Optimizer network (SGD) ---
         opt_dir = _resolve_optimizer_dir(config)
-        opt_script = script_dir / "generateOptimizerNetwork.py"
-
         if not Path(opt_dir).exists():
             log.warning(f"Optimizer directory not found: {opt_dir} — skipping optimizer codegen")
-        elif not opt_script.exists():
-            log.warning(f"generateOptimizerNetwork.py not found — skipping optimizer codegen")
+        elif not optimizer_script.exists():
+            log.warning(f"{optimizer_script.name} not found — skipping optimizer codegen")
         else:
             opt_cmd = [
                 sys.executable,
-                str(opt_script),
+                str(optimizer_script),
                 "-d",
                 config.gen_dir,
                 "-t",
@@ -189,19 +119,18 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 config.platform,
                 f"--training-dir={config.test_dir}",
             ]
-            _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2", "--defaultMemLevel")
             for arg in config.gen_args:
-                if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
+                if any(arg.startswith(p) for p in opt_passthrough):
                     opt_cmd.append(arg)
             if not any(arg.startswith("--defaultMemLevel") for arg in opt_cmd):
                 opt_cmd.append("--defaultMemLevel=L2")
             if config.verbose > 0:
                 opt_cmd.append("-" + "v" * config.verbose)
 
-            log.debug(f"[Execution] Optimizer generation command: {' '.join(opt_cmd)}")
+            log.debug(f"[Execution] {stage} optimizer generation command: {' '.join(opt_cmd)}")
             result = subprocess.run(opt_cmd, check = False)
             if result.returncode != 0:
-                raise RuntimeError(f"Optimizer network generation failed for {config.test_name}")
+                raise RuntimeError(f"{stage} optimizer network generation failed for {config.test_name}")
 
         return  # early return — training path complete
 
