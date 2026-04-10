@@ -295,6 +295,22 @@ def run_with_shouldfail(fn: Callable[[argparse.Namespace], None], args: argparse
 # ---------------------------------------------------------------------------
 
 
+def resolve_optimizer_dir(test_dir: str, optimizer_dir: Optional[str]) -> str:
+    """Return the optimizer ONNX directory for a training test.
+
+    If ``optimizer_dir`` is explicitly set, it is returned as-is.  Otherwise
+    fall back to ``<test_dir>/../<model>_optimizer``, where ``<model>`` is
+    derived by replacing the ``_train`` suffix of the test directory's base
+    name with ``_optimizer`` (e.g. ``simplemlp_train`` → ``simplemlp_optimizer``,
+    ``sleepconvit_train`` → ``sleepconvit_optimizer``).
+    """
+    if optimizer_dir:
+        return optimizer_dir
+    test_path = Path(test_dir)
+    optimizer_name = test_path.name.replace("_train", "_optimizer")
+    return str(test_path.parent / optimizer_name)
+
+
 def build_codegen_cmd(script: Path, test_path: str, gen_dir: str, platform: str) -> List[str]:
     """Return the common ``[python, script, -d gen_dir, -t test_path, -p platform]`` prefix."""
     return [

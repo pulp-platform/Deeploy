@@ -12,25 +12,9 @@ from pathlib import Path
 from Deeploy.Logging import DEFAULT_LOGGER as log
 
 from ..trainingUtils import add_training_cmake_flags, build_codegen_cmd, filter_passthrough_args, \
-    run_codegen_subprocess
+    resolve_optimizer_dir, run_codegen_subprocess
 from .config import DeeployTestConfig
 from .output_parser import TestResult, parse_test_output
-
-
-def _resolve_optimizer_dir(config: DeeployTestConfig) -> str:
-    """Return the optimizer ONNX directory for this config.
-
-    Falls back to <test_dir>/../<model>_optimizer if not explicitly set,
-    where <model> is derived by replacing the '_train' suffix of the test
-    directory name with '_optimizer' (e.g. simplemlp_train → simplemlp_optimizer,
-    sleepconvit_train → sleepconvit_optimizer).
-    """
-    if config.optimizer_dir:
-        return config.optimizer_dir
-    test_parent = Path(config.test_dir).parent
-    test_dir_name = Path(config.test_dir).name
-    optimizer_name = test_dir_name.replace("_train", "_optimizer")
-    return str(test_parent / optimizer_name)
 
 
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
@@ -91,7 +75,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
             log.info(f"[Execution] Training meta: {meta}")
 
         # --- Step 2: Optimizer network (SGD) ---
-        opt_dir = _resolve_optimizer_dir(config)
+        opt_dir = resolve_optimizer_dir(config.test_dir, config.optimizer_dir)
         if not Path(opt_dir).exists():
             log.warning(f"Optimizer directory not found: {opt_dir} — skipping optimizer codegen")
         elif not optimizer_script.exists():
