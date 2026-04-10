@@ -2,9 +2,42 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from Deeploy.DeeployTypes import NodeTemplate
+from typing import List, Tuple
 
-referenceTemplate = NodeTemplate("""
+from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
+
+
+class _PULPSGDTemplate(NodeTemplate):
+    """In-place SGD template for PULP.
+
+    weight_updated is aliased to weight so the memory allocator places them
+    at the same L2 address.  This ensures the tiled egress DMA writes the
+    updated weight back to weight's L2 buffer — the same buffer the training
+    network reads from on the next forward pass.
+    """
+
+    def __init__(self, templateStr):
+        super().__init__(templateStr)
+
+    def alignToContext(
+            self, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, OperatorRepresentation, List[str]]:
+        weight = ctxt.lookup(operatorRepresentation['weight'])
+        weight_updated = ctxt.lookup(operatorRepresentation['weight_updated'])
+
+        weight.aliases.add(weight_updated.name)
+        weight_updated.aliases.add(weight.name)
+        weight_updated._alias = weight.name
+
+        # Make weight_updated share weight's L2 allocation (no separate malloc).
+        # The egress DMA then writes updated weights back to weight's L2 address.
+        weight_updated.allocTemplate = NodeTemplate(
+            " ${name} = (${type.typeName}) " + str(weight._instance) + ";")
+        weight_updated.deallocTemplate = NodeTemplate("")
+        return ctxt, operatorRepresentation, []
+
+
+referenceTemplate = _PULPSGDTemplate("""
 // SGD Weight Update with Separated Multiplication and Subtraction Unrolling
 // (Name: ${nodeName}, Op: ${nodeOp})
 int8_t ${nodeName}_core_id = pi_core_id();

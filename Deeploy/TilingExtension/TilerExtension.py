@@ -333,7 +333,7 @@ class Tiler():
                     if _buffer._memoryLevel != memoryLevel:
                         continue
 
-                    if hasattr(_buffer, "_alias") and ctxt.is_global(_buffer._alias):
+                    if hasattr(_buffer, "_alias") and ctxt.is_global(_buffer._alias) and _buffer._alias not in blockNames:
                         continue
 
                     if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:
@@ -398,10 +398,31 @@ class Tiler():
         environment variable to be set to the installation directory.
         """
 
+        blockNames = [block.name for block in memoryMap]
+
+        # In-place alias outputs are costless — their storage is
+        # already accounted for by the alias target.  This mirrors the
+        # zero-cost logic in _buildCostVector (MemoryScheduler.py) and the
+        # skip logic in _allocateStaticBuffer.
+        # We skip them from the MiniMalloc CSV (MiniMalloc does not accept
+        # size-0 entries) and resolve their addrSpace from the alias target
+        # after the solver runs.
+        # NOTE: Only skip when alias target is in the SAME memoryMap.
+        # When alias target is global (e.g. L2 weight) but we're allocating
+        # L1, the buffer still needs its own L1 space.
+        aliasBlocks = set()
+        for memoryBlock in memoryMap:
+            _buffer = ctxt.lookup(memoryBlock.name)
+            if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:
+                aliasBlocks.add(memoryBlock.name)
+
         with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
             writer = csv.writer(file, lineterminator = "\n")
             writer.writerow(["id", "lower", "upper", "size"])
             for memoryBlock in memoryMap:
+
+                if memoryBlock.name in aliasBlocks:
+                    continue
 
                 _buffer = ctxt.lookup(memoryBlock.name)
                 if nodeMemoryConstraint is None:
@@ -419,11 +440,12 @@ class Tiler():
                                 8) * nodeMemoryConstraint.tensorMemoryConstraints[
                                     memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
 
+                _alignedSize = ((int(_bufferSize) + 3) // 4) * 4
                 writer.writerow([
                     memoryBlock.name,
                     str(memoryBlock.lifetime[0]),
                     str(memoryBlock.lifetime[1] + 1),
-                    str(int(_bufferSize))
+                    str(_alignedSize)
                 ])
 
         try:
@@ -451,6 +473,21 @@ class Tiler():
                 for memoryBlock in memoryMap:
                     if memoryBlock.name == row[0]:
                         memoryBlock._addrSpace = (int(row[-1]), int(row[-1]) + int(row[-2]))
+
+        # JUNGVI: Alias blocks were skipped in the MiniMalloc CSV.
+        # Resolve their addrSpace from their alias target so that
+        # downstream code can access it if needed.
+        for memoryBlock in memoryMap:
+            if memoryBlock.name in aliasBlocks:
+                _buffer = ctxt.lookup(memoryBlock.name)
+                aliasTarget = ctxt.dealiasBuffer(memoryBlock.name)
+                for targetBlock in memoryMap:
+                    if targetBlock.name == aliasTarget:
+                        memoryBlock._addrSpace = targetBlock._addrSpace
+                        break
+                else:
+                    # Alias target not in this memoryMap — use zero offset
+                    memoryBlock._addrSpace = (0, 0)
 
         return memoryMap
 
