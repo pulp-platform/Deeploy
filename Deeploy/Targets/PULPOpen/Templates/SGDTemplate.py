@@ -11,9 +11,10 @@ class _PULPSGDTemplate(NodeTemplate):
     """In-place SGD template for PULP.
 
     weight_updated is aliased to weight so the memory allocator places them
-    at the same L2 address.  This ensures the tiled egress DMA writes the
-    updated weight back to weight's L2 buffer — the same buffer the training
-    network reads from on the next forward pass.
+    at the same address in whichever memory level weight lives in (L2 or L3).
+    This ensures the tiled egress DMA writes the updated weight back to
+    weight's buffer — the same buffer the training network reads from on the
+    next forward pass.
     """
 
     def __init__(self, templateStr):
@@ -29,8 +30,9 @@ class _PULPSGDTemplate(NodeTemplate):
         weight_updated.aliases.add(weight.name)
         weight_updated._alias = weight.name
 
-        # Make weight_updated share weight's L2 allocation (no separate malloc).
-        # The egress DMA then writes updated weights back to weight's L2 address.
+        # Make weight_updated share weight's allocation (no separate malloc),
+        # regardless of which memory level (L2 or L3) weight is placed in.
+        # The egress DMA then writes updated weights back to weight's address.
         weight_updated.allocTemplate = NodeTemplate(" ${name} = (${type.typeName}) " + str(weight._instance) + ";")
         weight_updated.deallocTemplate = NodeTemplate("")
         return ctxt, operatorRepresentation, []
