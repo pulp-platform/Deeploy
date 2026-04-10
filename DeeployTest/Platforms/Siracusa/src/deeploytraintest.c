@@ -154,6 +154,7 @@ static void run_optimizer_step(void) {
     }
   }
 
+  /* --- Step B: run optimizer kernel on cluster --- */
   struct pi_cluster_task opt_task;
   pi_cluster_task(&opt_task, RunOptimizerNetwork, NULL);
   opt_task.stack_size = MAINSTACKSIZE;
