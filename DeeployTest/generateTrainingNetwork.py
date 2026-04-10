@@ -13,7 +13,8 @@ from testUtils.codeGenerate import generateTrainingTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.trainingUtils import _GRAD_ACC, _infer_data_size, _infer_n_accum, _infer_num_data_inputs, \
-    _infer_total_mb, _load_reference_losses
+    _infer_total_mb, _load_reference_losses, add_cores_arg, add_should_fail_arg, add_training_inference_args, \
+    run_with_shouldfail
 from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -216,66 +217,9 @@ def generateTrainingNetwork(args):
 
 
 if __name__ == '__main__':
-
     parser = TestGeneratorArgumentParser(description = "Deeploy Training Code Generation Utility.")
-    parser.add_argument(
-        "--cores",
-        type = int,
-        default = 1,
-        help = "Number of cores on which the network is run. "
-        "Currently required for im2col buffer sizing on Siracusa. Default: 1.",
-    )
-    parser.add_argument(
-        "--num-data-inputs",
-        type = int,
-        dest = "num_data_inputs",
-        default = None,
-        help = "Number of DATA inputs that change per mini-batch. "
-        "Auto-detected from ONNX graph if not specified.",
-    )
-    parser.add_argument(
-        "--n-steps",
-        type = int,
-        dest = "n_steps",
-        default = None,
-        help = "N_TRAIN_STEPS: number of gradient-accumulation update steps. "
-        "Auto-detected from inputs.npz mini-batch count if not specified.",
-    )
-    parser.add_argument(
-        "--n-accum",
-        type = int,
-        dest = "n_accum",
-        default = None,
-        help = "N_ACCUM_STEPS: number of mini-batches per update step. "
-        "Auto-detected from inputs.npz mini-batch count if not specified.",
-    )
-    parser.add_argument(
-        "--learning-rate",
-        type = float,
-        dest = "learning_rate",
-        default = 0.001,
-        help = "SGD learning rate emitted as TRAINING_LEARNING_RATE in testinputs.h. Default: 0.001.",
-    )
-    parser.add_argument(
-        "--tolerance",
-        type = float,
-        dest = "tolerance_abs",
-        default = 1e-3,
-        help = "Absolute loss tolerance emitted as TRAINING_TOLERANCE_ABS in testoutputs.h. Default: 1e-3.",
-    )
-    parser.add_argument('--shouldFail', action = 'store_true')
-    parser.set_defaults(shouldFail = False)
-
+    add_cores_arg(parser)
+    add_training_inference_args(parser)
+    add_should_fail_arg(parser)
     args = parser.parse_args()
-
-    try:
-        generateTrainingNetwork(args)
-    except Exception as e:
-        if args.shouldFail:
-            print("\033[92mTraining network generation ended, failed as expected!\033[0m")
-            sys.exit(0)
-        else:
-            raise e
-
-    if args.shouldFail:
-        raise RuntimeError("Expected to fail!")
+    run_with_shouldfail(generateTrainingNetwork, args, "Training network generation")

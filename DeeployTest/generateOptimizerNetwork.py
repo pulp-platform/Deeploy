@@ -30,6 +30,8 @@ import onnx_graphsurgeon as gs
 from testUtils.codeGenerate import build_shared_buffer_maps, generateOptimizerTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
+from testUtils.trainingUtils import add_cores_arg, add_memory_level_args, add_optimizer_training_dir_arg, \
+    add_should_fail_arg, run_with_shouldfail
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import float32_t
@@ -117,47 +119,16 @@ def generateOptimizerNetwork(args):
 
 
 if __name__ == '__main__':
-
     parser = TestGeneratorArgumentParser(description = "Deeploy Optimizer Network Code Generation.")
-    parser.add_argument(
-        "--cores",
-        type = int,
-        default = 1,
-        help = "Number of cluster cores. Default: 1.",
-    )
+    add_cores_arg(parser)
     parser.add_argument(
         "--lr",
         type = float,
         default = 0.001,
         help = "Learning rate (informational only; embedded in optimizer ONNX attributes). Default: 0.001.",
     )
-    parser.add_argument("--defaultMemLevel",
-                        type = str,
-                        default = "L2",
-                        help = "Default memory level (L2 or L3). Must match the training graph. Default: L2.")
-    parser.add_argument("--l1", type = int, default = 64000, help = "L1 size in bytes. Default: 64000.")
-    parser.add_argument("--l2", type = int, default = 1024000, help = "L2 size in bytes. Default: 1024000.")
-    parser.add_argument(
-        "--training-dir",
-        type = str,
-        default = None,
-        help = "Directory containing the training network.onnx.  When provided, "
-        "weight and grad-acc buffers are shared with TrainingNetwork instead "
-        "of being allocated independently.",
-    )
-    parser.add_argument('--shouldFail', action = 'store_true')
-    parser.set_defaults(shouldFail = False)
-
+    add_memory_level_args(parser)
+    add_optimizer_training_dir_arg(parser)
+    add_should_fail_arg(parser)
     args = parser.parse_args()
-
-    try:
-        generateOptimizerNetwork(args)
-    except Exception as e:
-        if args.shouldFail:
-            print("\033[92mOptimizer network generation ended, failed as expected!\033[0m")
-            sys.exit(0)
-        else:
-            raise e
-
-    if args.shouldFail:
-        raise RuntimeError("Expected to fail!")
+    run_with_shouldfail(generateOptimizerNetwork, args, "Optimizer network generation")

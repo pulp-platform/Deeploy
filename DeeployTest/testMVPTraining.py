@@ -16,7 +16,8 @@ from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatf
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import TrainingSBTiler
 from testUtils.trainingUtils import _GRAD_ACC, _infer_data_size, _infer_n_accum, _infer_num_data_inputs, \
-    _infer_total_mb, _load_reference_losses, _mockScheduler
+    _infer_total_mb, _load_reference_losses, _mockScheduler, add_cores_arg, add_memory_level_args, \
+    add_should_fail_arg, add_tiling_solver_args, add_training_inference_args, run_with_shouldfail
 from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -233,111 +234,11 @@ def generateTiledTrainingNetwork(args) -> None:
 # ---------------------------------------------------------------------------
 
 if __name__ == '__main__':
-
     parser = TestGeneratorArgumentParser(description = "Deeploy Tiled Training Code Generation Utility.")
-
-    # Training params (same as generateTrainingNetwork.py)
-    parser.add_argument(
-        "--cores",
-        type = int,
-        default = 1,
-        help = "Number of cores on which the network is run. Default: 1.",
-    )
-    parser.add_argument(
-        "--num-data-inputs",
-        type = int,
-        dest = "num_data_inputs",
-        default = None,
-        help = "Number of DATA inputs that change per mini-batch. Auto-detected if not specified.",
-    )
-    parser.add_argument(
-        "--n-steps",
-        type = int,
-        dest = "n_steps",
-        default = None,
-        help = "N_TRAIN_STEPS: number of gradient-accumulation update steps.",
-    )
-    parser.add_argument(
-        "--n-accum",
-        type = int,
-        dest = "n_accum",
-        default = None,
-        help = "N_ACCUM_STEPS: number of mini-batches per update step.",
-    )
-    parser.add_argument(
-        "--learning-rate",
-        type = float,
-        dest = "learning_rate",
-        default = 0.001,
-        help = "SGD learning rate emitted as TRAINING_LEARNING_RATE in testinputs.h. Default: 0.001.",
-    )
-
-    # Tiling params (same as testMVP.py)
-    parser.add_argument(
-        '--l1',
-        type = int,
-        dest = 'l1',
-        default = 64_000,
-        help = 'Set L1 size in bytes. Default: 64000.',
-    )
-    parser.add_argument(
-        '--l2',
-        type = int,
-        dest = 'l2',
-        default = 1_024_000,
-        help = 'Set L2 size in bytes. Default: 1024000.',
-    )
-    parser.add_argument(
-        '--defaultMemLevel',
-        type = str,
-        dest = 'defaultMemLevel',
-        default = "L2",
-        help = 'Default memory level for IO buffers. Default: L2.',
-    )
-    parser.add_argument(
-        '--memAllocStrategy',
-        type = str,
-        dest = 'memAllocStrategy',
-        default = "MiniMalloc",
-        help = 'Memory allocation strategy. Default: MiniMalloc.',
-    )
-    parser.add_argument(
-        '--searchStrategy',
-        type = str,
-        dest = 'searchStrategy',
-        default = "random-max",
-        help = 'CP solver search strategy. Default: random-max.',
-    )
-    parser.add_argument(
-        '--plotMemAlloc',
-        action = 'store_true',
-        help = 'Save memory allocation plots in the deeployStates folder.',
-    )
-    parser.add_argument(
-        '--profileTiling',
-        action = 'store_true',
-        help = 'Enable tiling profiling (inserts cycle counters around each tiled kernel).',
-    )
-    parser.add_argument(
-        '--tolerance',
-        type = float,
-        dest = 'tolerance_abs',
-        default = 1e-3,
-        help = 'Absolute loss tolerance emitted as TRAINING_TOLERANCE_ABS in testoutputs.h. Default: 1e-3.',
-    )
-    parser.add_argument('--shouldFail', action = 'store_true')
-    parser.set_defaults(shouldFail = False)
-
+    add_cores_arg(parser)
+    add_training_inference_args(parser)
+    add_memory_level_args(parser)
+    add_tiling_solver_args(parser)
+    add_should_fail_arg(parser)
     args = parser.parse_args()
-
-    try:
-        generateTiledTrainingNetwork(args)
-    except Exception as e:
-        if args.shouldFail:
-            print("\033[92mTiled training network generation ended, failed as expected!\033[0m")
-            sys.exit(0)
-        else:
-            raise e
-
-    if args.shouldFail:
-        raise RuntimeError("Expected to fail!")
+    run_with_shouldfail(generateTiledTrainingNetwork, args, "Tiled training network generation")

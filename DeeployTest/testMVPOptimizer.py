@@ -36,7 +36,8 @@ from testUtils.codeGenerate import build_shared_buffer_maps, generateOptimizerTe
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import TrainingSBTiler
-from testUtils.trainingUtils import _mockScheduler
+from testUtils.trainingUtils import _mockScheduler, add_cores_arg, add_memory_level_args, \
+    add_optimizer_training_dir_arg, add_should_fail_arg, add_tiling_solver_args, run_with_shouldfail
 
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import float32_t
@@ -146,87 +147,17 @@ def generateTiledOptimizerNetwork(args) -> None:
 
 
 if __name__ == '__main__':
-
     parser = TestGeneratorArgumentParser(description = "Deeploy Tiled Optimizer Network Code Generation.")
-
-    parser.add_argument(
-        "--cores",
-        type = int,
-        default = 1,
-        help = "Number of cluster cores. Default: 1.",
-    )
+    add_cores_arg(parser)
     parser.add_argument(
         "--lr",
         type = float,
         default = 0.001,
         help = "Learning rate (informational only; embedded in optimizer ONNX attributes). Default: 0.001.",
     )
-    parser.add_argument(
-        '--l1',
-        type = int,
-        dest = 'l1',
-        default = 64_000,
-        help = 'L1 size in bytes. Default: 64000.',
-    )
-    parser.add_argument(
-        '--l2',
-        type = int,
-        dest = 'l2',
-        default = 1_024_000,
-        help = 'L2 size in bytes. Default: 1024000.',
-    )
-    parser.add_argument(
-        '--defaultMemLevel',
-        type = str,
-        dest = 'defaultMemLevel',
-        default = "L2",
-        help = 'Default memory level for optimizer I/O buffers (L2 or L3). Must match the training graph. Default: L2.',
-    )
-    parser.add_argument(
-        '--memAllocStrategy',
-        type = str,
-        dest = 'memAllocStrategy',
-        default = "MiniMalloc",
-        help = 'Memory allocation strategy. Default: MiniMalloc.',
-    )
-    parser.add_argument(
-        '--searchStrategy',
-        type = str,
-        dest = 'searchStrategy',
-        default = "random-max",
-        help = 'CP solver search strategy. Default: random-max.',
-    )
-    parser.add_argument(
-        '--plotMemAlloc',
-        action = 'store_true',
-        help = 'Save memory allocation plots in the deeployStates folder.',
-    )
-    parser.add_argument(
-        '--profileTiling',
-        action = 'store_true',
-        help = 'Enable tiling profiling (inserts cycle counters around each tiled kernel).',
-    )
-    parser.add_argument(
-        "--training-dir",
-        type = str,
-        default = None,
-        help = "Directory containing the training network.onnx.  When provided, "
-        "weight and grad-acc buffers are shared with TrainingNetwork instead "
-        "of being allocated independently.",
-    )
-    parser.add_argument('--shouldFail', action = 'store_true')
-    parser.set_defaults(shouldFail = False)
-
+    add_memory_level_args(parser)
+    add_tiling_solver_args(parser)
+    add_optimizer_training_dir_arg(parser)
+    add_should_fail_arg(parser)
     args = parser.parse_args()
-
-    try:
-        generateTiledOptimizerNetwork(args)
-    except Exception as e:
-        if args.shouldFail:
-            print("\033[92mTiled optimizer network generation ended, failed as expected!\033[0m")
-            sys.exit(0)
-        else:
-            raise e
-
-    if args.shouldFail:
-        raise RuntimeError("Expected to fail!")
+    run_with_shouldfail(generateTiledOptimizerNetwork, args, "Tiled optimizer network generation")
