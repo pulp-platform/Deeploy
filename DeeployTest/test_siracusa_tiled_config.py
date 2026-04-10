@@ -139,7 +139,6 @@ L3_SINGLEBUFFER_MODELS = {
     "Models/Transformer": [60000, 30000, 15000],
     "Models/microLlama/microLlama1": [60000, 10000, 5000],
     "Models/CCT/FP32/CCT_2_32_32_128": [128000],
-    "Models/CCT_Train/CCT2_FT2": [128000],
     "Models/TinyViT/Demo": [4000],
 }
 
@@ -153,6 +152,5 @@ L3_DOUBLEBUFFER_MODELS = {
     "Models/microLlama/microLlama8": [60000, 20000, 10000],
     "Models/microLlama/microLlama8_parallel": [60000, 20000, 10000],
     "Models/CCT/FP32/CCT_2_32_32_128": [128000],
-    "Models/CCT_Train/CCT2_FT2": [128000],
     "Models/TinyViT/Demo": [4000],
 }
