@@ -574,12 +574,6 @@ class SoftmaxCrossEntropyLossChecker(SignPropTypeChecker):
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
 
-    def checkOutputType(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> bool:
-        # The parser sets 'loss' to a non-empty string for 2-output nodes, '' for 1-output.
-        # Use this to determine the actual output count and match it against this binding.
-        actual_num_outputs = 2 if operatorRepresentation.get('loss', '') != '' else 1
-        return actual_num_outputs == len(self.output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
 

@@ -354,15 +354,9 @@ PULPSoftmaxGradBindings = [
 
 PULPSoftmaxCrossEntropyLossBindings = [
     NodeBinding(
-        SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)], [PointerClass(float32_t)]),
-        SoftmaxCrossEntropyLossTemplate.referenceTemplate, ForkTransformer) for type in IntegerDataTypes
-]
-
-PULPSoftmaxCrossEntropyLossDualOutputBindings = [
-    NodeBinding(
         SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)],
                                        [PointerClass(float32_t), PointerClass(float32_t)]),
-        SoftmaxCrossEntropyLossTemplate.referenceDualOutputTemplate, ForkTransformer) for type in IntegerDataTypes
+        SoftmaxCrossEntropyLossTemplate.referenceTemplate, ForkTransformer) for type in IntegerDataTypes
 ]
 
 PULPSoftmaxCrossEntropyLossGradBindings = [

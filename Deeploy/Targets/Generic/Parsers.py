@@ -2611,16 +2611,18 @@ class DequantParser(NodeParser):
 
 
 class SoftmaxCrossEntropyLossParser(NodeParser):
+    """SoftmaxCrossEntropyLoss parser.
+
+    The canonical form has two outputs: a scalar mean cross-entropy loss and
+    a per-sample log_prob tensor, matching the signature emitted by ONNX
+    Runtime when exporting training graphs.
+    """
 
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-
-        # Accept 1 output (log_prob only) or 2 outputs (loss + log_prob)
-        ret = all([len(node.inputs) == 2, len(node.outputs) in (1, 2)])
-
-        return ret
+        return all([len(node.inputs) == 2, len(node.outputs) == 2])
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -2629,17 +2631,13 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
 
         logits = ctxt.lookup(node.inputs[0].name)
         labels = ctxt.lookup(node.inputs[1].name)
-        if len(node.outputs) == 2:
-            # Dual-output: outputs[0]=loss (scalar), outputs[1]=log_prob
-            loss = ctxt.lookup(node.outputs[0].name)
-            log_prob = ctxt.lookup(node.outputs[1].name)
-            self.operatorRepresentation['loss'] = loss.name
-        else:
-            # Single-output (legacy): outputs[0]=log_prob
-            log_prob = ctxt.lookup(node.outputs[0].name)
-            self.operatorRepresentation['loss'] = ''
+        # outputs[0] = loss (0-d scalar, shape [1] after Deeploy normalisation)
+        # outputs[1] = log_prob tensor
+        loss = ctxt.lookup(node.outputs[0].name)
+        log_prob = ctxt.lookup(node.outputs[1].name)
         self.operatorRepresentation['logits'] = logits.name
         self.operatorRepresentation['labels'] = labels.name
+        self.operatorRepresentation['loss'] = loss.name
         self.operatorRepresentation['log_prob'] = log_prob.name
         self.operatorRepresentation['batch'] = logits.shape[0]
         self.operatorRepresentation['num_classes'] = logits.shape[1]

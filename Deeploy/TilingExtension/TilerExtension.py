@@ -441,12 +441,11 @@ class Tiler():
                                 8) * nodeMemoryConstraint.tensorMemoryConstraints[
                                     memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
 
-                _alignedSize = ((int(_bufferSize) + 3) // 4) * 4
                 writer.writerow([
                     memoryBlock.name,
                     str(memoryBlock.lifetime[0]),
                     str(memoryBlock.lifetime[1] + 1),
-                    str(_alignedSize)
+                    str(int(_bufferSize))
                 ])
 
         try:
