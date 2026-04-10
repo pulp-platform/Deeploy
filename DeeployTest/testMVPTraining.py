@@ -16,8 +16,7 @@ from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatf
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import TrainingSBTiler
 from testUtils.trainingUtils import _GRAD_ACC, _infer_data_size, _infer_n_accum, _infer_num_data_inputs, \
-    _infer_total_mb, _load_reference_losses, _mockScheduler, add_cores_arg, add_memory_level_args, \
-    add_should_fail_arg, add_tiling_solver_args, add_training_inference_args, run_with_shouldfail
+    _infer_total_mb, _load_reference_losses, _mockScheduler, add_training_inference_args
 from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -235,10 +234,38 @@ def generateTiledTrainingNetwork(args) -> None:
 
 if __name__ == '__main__':
     parser = TestGeneratorArgumentParser(description = "Deeploy Tiled Training Code Generation Utility.")
-    add_cores_arg(parser)
+    parser.add_argument("--cores", type = int, default = 1, help = "Number of cluster cores. Default: 1.")
     add_training_inference_args(parser)
-    add_memory_level_args(parser)
-    add_tiling_solver_args(parser)
-    add_should_fail_arg(parser)
+    parser.add_argument("--l1", type = int, default = 64_000, help = "L1 size in bytes. Default: 64000.")
+    parser.add_argument("--l2", type = int, default = 1_024_000, help = "L2 size in bytes. Default: 1024000.")
+    parser.add_argument("--defaultMemLevel",
+                        type = str,
+                        default = "L2",
+                        help = "Default memory level for IO buffers. Default: L2.")
+    parser.add_argument("--memAllocStrategy",
+                        type = str,
+                        default = "MiniMalloc",
+                        help = "Memory allocation strategy. Default: MiniMalloc.")
+    parser.add_argument("--searchStrategy",
+                        type = str,
+                        default = "random-max",
+                        help = "CP solver search strategy. Default: random-max.")
+    parser.add_argument("--plotMemAlloc",
+                        action = "store_true",
+                        help = "Save memory allocation plots in the deeployStates folder.")
+    parser.add_argument("--profileTiling",
+                        action = "store_true",
+                        help = "Enable tiling profiling (inserts cycle counters around each tiled kernel).")
+    parser.add_argument("--shouldFail", action = "store_true")
+    parser.set_defaults(shouldFail = False)
     args = parser.parse_args()
-    run_with_shouldfail(generateTiledTrainingNetwork, args, "Tiled training network generation")
+
+    try:
+        generateTiledTrainingNetwork(args)
+    except Exception:
+        if args.shouldFail:
+            print("\033[92mTiled training network generation ended, failed as expected!\033[0m")
+            sys.exit(0)
+        raise
+    if args.shouldFail:
+        raise RuntimeError("Expected to fail!")

@@ -13,8 +13,7 @@ from testUtils.codeGenerateTraining import generateTrainingTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.trainingUtils import _GRAD_ACC, _infer_data_size, _infer_n_accum, _infer_num_data_inputs, \
-    _infer_total_mb, _load_reference_losses, add_cores_arg, add_should_fail_arg, add_training_inference_args, \
-    run_with_shouldfail
+    _infer_total_mb, _load_reference_losses, add_training_inference_args
 from testUtils.typeMapping import inferTypeAndOffset
 
 from Deeploy.AbstractDataTypes import PointerClass
@@ -218,8 +217,18 @@ def generateTrainingNetwork(args):
 
 if __name__ == '__main__':
     parser = TestGeneratorArgumentParser(description = "Deeploy Training Code Generation Utility.")
-    add_cores_arg(parser)
+    parser.add_argument("--cores", type = int, default = 1, help = "Number of cluster cores. Default: 1.")
     add_training_inference_args(parser)
-    add_should_fail_arg(parser)
+    parser.add_argument("--shouldFail", action = "store_true")
+    parser.set_defaults(shouldFail = False)
     args = parser.parse_args()
-    run_with_shouldfail(generateTrainingNetwork, args, "Training network generation")
+
+    try:
+        generateTrainingNetwork(args)
+    except Exception:
+        if args.shouldFail:
+            print("\033[92mTraining network generation ended, failed as expected!\033[0m")
+            sys.exit(0)
+        raise
+    if args.shouldFail:
+        raise RuntimeError("Expected to fail!")

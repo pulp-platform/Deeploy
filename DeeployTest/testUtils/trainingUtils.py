@@ -6,20 +6,22 @@ Shared helpers used by the training / optimizer code-generation entry points
 (generateTrainingNetwork.py, testMVPTraining.py, generateOptimizerNetwork.py,
 testMVPOptimizer.py).
 
-Four kinds of helpers live here:
+Four kinds of helpers live here, all strictly training-specific:
 
 1. inputs.npz / outputs.npz readers (``_load_reference_losses``, ``_infer_*``).
 2. The singleton ``_mockScheduler`` the Tiler expects for per-node tiling.
-3. argparse builders and the ``--shouldFail`` handshake runner that each
-   codegen entry point would otherwise have to duplicate verbatim in its
-   ``if __name__ == '__main__':`` block.
-4. Subprocess helpers (``build_codegen_cmd``, ``run_codegen_subprocess``,
-   ``filter_passthrough_args``, ``add_training_cmake_flags``) used by the
-   core test execution module to dispatch the training / optimizer codegen
-   scripts and assemble the training-side cmake defines.
+3. Training-only argparse builders (``add_training_inference_args``,
+   ``add_optimizer_training_dir_arg``).
+4. The core hooks invoked by ``testUtils.core.execution``
+   (``resolve_optimizer_dir``, ``run_training_codegen``,
+   ``add_training_cmake_flags``).
 
-The subprocess helpers take primitive parameters (no ``DeeployTestConfig``
-dependency) so this module stays free of a back-edge to ``testUtils.core``.
+Generic helpers (``--cores`` / ``--l1`` / ``--l2`` / ``--defaultMemLevel`` /
+``--memAllocStrategy`` / ``--searchStrategy`` / ``--plotMemAlloc`` /
+``--profileTiling`` / ``--shouldFail`` arg definitions and the ``shouldFail``
+try/except handshake) are deliberately *not* wrapped into functions here:
+they are not training-specific and belong inline in whichever entry point
+needs them, consistent with the upstream inference codegen scripts.
 """
 
 import argparse
@@ -28,7 +30,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple
+from typing import List, Optional
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -146,15 +148,6 @@ def _mockScheduler(graph: gs.Graph) -> List[List[gs.Node]]:
 # ---------------------------------------------------------------------------
 
 
-def add_cores_arg(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        "--cores",
-        type = int,
-        default = 1,
-        help = "Number of cores on which the network is run. Default: 1.",
-    )
-
-
 def add_training_inference_args(parser: argparse.ArgumentParser) -> None:
     """Arguments consumed by both training codegen entry points."""
     parser.add_argument(
@@ -197,59 +190,6 @@ def add_training_inference_args(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def add_memory_level_args(parser: argparse.ArgumentParser) -> None:
-    """L1/L2 sizes and the default IO memory level."""
-    parser.add_argument(
-        "--l1",
-        type = int,
-        dest = "l1",
-        default = 64_000,
-        help = "Set L1 size in bytes. Default: 64000.",
-    )
-    parser.add_argument(
-        "--l2",
-        type = int,
-        dest = "l2",
-        default = 1_024_000,
-        help = "Set L2 size in bytes. Default: 1024000.",
-    )
-    parser.add_argument(
-        "--defaultMemLevel",
-        type = str,
-        dest = "defaultMemLevel",
-        default = "L2",
-        help = "Default memory level for IO buffers. Default: L2.",
-    )
-
-
-def add_tiling_solver_args(parser: argparse.ArgumentParser) -> None:
-    """Arguments specific to the tiled codegen path."""
-    parser.add_argument(
-        "--memAllocStrategy",
-        type = str,
-        dest = "memAllocStrategy",
-        default = "MiniMalloc",
-        help = "Memory allocation strategy. Default: MiniMalloc.",
-    )
-    parser.add_argument(
-        "--searchStrategy",
-        type = str,
-        dest = "searchStrategy",
-        default = "random-max",
-        help = "CP solver search strategy. Default: random-max.",
-    )
-    parser.add_argument(
-        "--plotMemAlloc",
-        action = "store_true",
-        help = "Save memory allocation plots in the deeployStates folder.",
-    )
-    parser.add_argument(
-        "--profileTiling",
-        action = "store_true",
-        help = "Enable tiling profiling (inserts cycle counters around each tiled kernel).",
-    )
-
-
 def add_optimizer_training_dir_arg(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--training-dir",
@@ -259,41 +199,6 @@ def add_optimizer_training_dir_arg(parser: argparse.ArgumentParser) -> None:
         "weight and grad-acc buffers are shared with TrainingNetwork instead "
         "of being allocated independently.",
     )
-
-
-def add_should_fail_arg(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--shouldFail", action = "store_true")
-    parser.set_defaults(shouldFail = False)
-
-
-def run_with_shouldfail(fn: Callable[[argparse.Namespace], None], args: argparse.Namespace,
-                        stage_label: str) -> None:
-    """Invoke ``fn(args)`` honouring the ``--shouldFail`` handshake.
-
-    On success with ``--shouldFail``: raises ``RuntimeError("Expected to fail!")``.
-    On exception with ``--shouldFail``: prints a green success banner and exits 0.
-    Otherwise: exception propagates, success returns normally.
-    """
-    try:
-        fn(args)
-    except Exception:
-        if args.shouldFail:
-            print(f"\033[92m{stage_label} ended, failed as expected!\033[0m")
-            sys.exit(0)
-        raise
-    if args.shouldFail:
-        raise RuntimeError("Expected to fail!")
-
-
-# ---------------------------------------------------------------------------
-# Subprocess helpers for the test execution harness.
-#
-# These are used by testUtils/core/execution.py to dispatch the training /
-# optimizer codegen scripts.  Kept here (rather than as local helpers in
-# execution.py) so that every training-related helper lives in one module.
-# They take primitive parameters only — no DeeployTestConfig — to avoid
-# layering core → training back-edges.
-# ---------------------------------------------------------------------------
 
 
 def resolve_optimizer_dir(test_dir: str, optimizer_dir: Optional[str]) -> str:
@@ -310,33 +215,6 @@ def resolve_optimizer_dir(test_dir: str, optimizer_dir: Optional[str]) -> str:
     test_path = Path(test_dir)
     optimizer_name = test_path.name.replace("_train", "_optimizer")
     return str(test_path.parent / optimizer_name)
-
-
-def build_codegen_cmd(script: Path, test_path: str, gen_dir: str, platform: str) -> List[str]:
-    """Return the common ``[python, script, -d gen_dir, -t test_path, -p platform]`` prefix."""
-    return [
-        sys.executable,
-        str(script),
-        "-d",
-        gen_dir,
-        "-t",
-        test_path,
-        "-p",
-        platform,
-    ]
-
-
-def run_codegen_subprocess(cmd: Sequence[str], stage_label: str, test_name: str) -> None:
-    """Run ``cmd`` as a subprocess, log it, and raise with a stage/test-aware message on failure."""
-    log.debug(f"[Execution] {stage_label} command: {' '.join(cmd)}")
-    result = subprocess.run(list(cmd), check = False)
-    if result.returncode != 0:
-        raise RuntimeError(f"{stage_label} failed for {test_name}")
-
-
-def filter_passthrough_args(gen_args: Iterable[str], passthrough: Tuple[str, ...]) -> List[str]:
-    """Return the subset of ``gen_args`` whose entries start with any prefix in ``passthrough``."""
-    return [arg for arg in gen_args if any(arg.startswith(p) for p in passthrough)]
 
 
 def add_training_cmake_flags(cmd: List[str], training: bool, n_train_steps: Optional[int],
@@ -389,7 +267,16 @@ def run_training_codegen(config, script_dir: Path) -> None:
         stage = "Training"
 
     # --- Step 1: Training network (forward + backward + accumulation) ---
-    cmd = build_codegen_cmd(training_script, config.test_dir, config.gen_dir, config.platform)
+    cmd = [
+        sys.executable,
+        str(training_script),
+        "-d",
+        config.gen_dir,
+        "-t",
+        config.test_dir,
+        "-p",
+        config.platform,
+    ]
     if config.n_train_steps is not None:
         cmd.append(f"--n-steps={config.n_train_steps}")
     if config.n_accum_steps is not None:
@@ -401,7 +288,10 @@ def run_training_codegen(config, script_dir: Path) -> None:
     if config.debug:
         cmd.append("--debug")
     cmd.extend(config.gen_args)
-    run_codegen_subprocess(cmd, f"{stage} network generation", config.test_name)
+
+    log.debug(f"[Execution] {stage} network generation command: {' '.join(cmd)}")
+    if subprocess.run(cmd, check = False).returncode != 0:
+        raise RuntimeError(f"{stage} network generation failed for {config.test_name}")
 
     # Read back auto-detected values written by the training generation script.
     meta_path = Path(config.gen_dir) / "training_meta.json"
@@ -422,11 +312,23 @@ def run_training_codegen(config, script_dir: Path) -> None:
         log.warning(f"{optimizer_script.name} not found — skipping optimizer codegen")
         return
 
-    opt_cmd = build_codegen_cmd(optimizer_script, opt_dir, config.gen_dir, config.platform)
-    opt_cmd.append(f"--training-dir={config.test_dir}")
-    opt_cmd.extend(filter_passthrough_args(config.gen_args, opt_passthrough))
+    opt_cmd = [
+        sys.executable,
+        str(optimizer_script),
+        "-d",
+        config.gen_dir,
+        "-t",
+        opt_dir,
+        "-p",
+        config.platform,
+        f"--training-dir={config.test_dir}",
+    ]
+    opt_cmd.extend(arg for arg in config.gen_args if any(arg.startswith(p) for p in opt_passthrough))
     if not any(arg.startswith("--defaultMemLevel") for arg in opt_cmd):
         opt_cmd.append("--defaultMemLevel=L2")
     if config.verbose > 0:
         opt_cmd.append("-" + "v" * config.verbose)
-    run_codegen_subprocess(opt_cmd, f"{stage} optimizer network generation", config.test_name)
+
+    log.debug(f"[Execution] {stage} optimizer network generation command: {' '.join(opt_cmd)}")
+    if subprocess.run(opt_cmd, check = False).returncode != 0:
+        raise RuntimeError(f"{stage} optimizer network generation failed for {config.test_name}")
