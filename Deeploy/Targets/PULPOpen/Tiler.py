@@ -16,7 +16,7 @@ from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import Tran
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
     PULPFloatDWConv2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
-    PULPGatherBindings, PULPiHardswishBindings, PULPInPlaceAccumulatorV2TiledBindings, PULPiRMSNormBindings, \
+    PULPGatherBindings, PULPiHardswishBindings, PULPInPlaceAccumulatorV2Bindings, PULPiRMSNormBindings, \
     PULPiRQSGELUBindings, PULPLayernormBinding, PULPLayernormGradBinding, PULPMatMulBindings, PULPMaxPool1DBindings, \
     PULPMaxPool2DBindings, PULPMulBindings, PULPReduceMeanBindings, PULPReduceSumBindings, PULPReluBinding, \
     PULPReshapeBindings, PULPRQAddBindings, PULPRQSBindings, PULPRQSConv1DBindings, PULPRQSConv2DBindings, \
@@ -159,7 +159,7 @@ PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindi
                                                      tileConstraint = SGDTileConstraint())
 
 PULPInPlaceAccumulatorV2TilingReadyBindings = TilingReadyNodeBindings(
-    nodeBindings = PULPInPlaceAccumulatorV2TiledBindings, tileConstraint = InPlaceAccumulatorV2TileConstraint())
+    nodeBindings = PULPInPlaceAccumulatorV2Bindings, tileConstraint = InPlaceAccumulatorV2TileConstraint())
 
 PULPSliceTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSliceBindings,
                                                        tileConstraint = SliceTileConstraint())

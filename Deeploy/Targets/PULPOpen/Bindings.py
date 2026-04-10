@@ -378,14 +378,6 @@ PULPInPlaceAccumulatorV2Bindings = [
         ForkTransformer)
 ]
 
-PULPInPlaceAccumulatorV2TiledBindings = [
-    NodeBinding(
-        InPlaceAccumulatorV2Checker(
-            [PointerClass(float32_t), PointerClass(float32_t),
-             PointerClass(uint8_t)], [PointerClass(float32_t)]),
-        FloatInPlaceAccumulatorV2Template.tiledReferenceTemplate, ForkTransformer)
-]
-
 PULPTransposeBindings = [
     NodeBinding(TransposeChecker([PointerClass(type)], [PointerClass(type)]), TransposeTemplate.referenceTemplate,
                 ForkTransformer) for type in IntegerDataTypes
