@@ -11,6 +11,8 @@ from pathlib import Path
 
 from Deeploy.Logging import DEFAULT_LOGGER as log
 
+from ..trainingUtils import add_training_cmake_flags, build_codegen_cmd, filter_passthrough_args, \
+    run_codegen_subprocess
 from .config import DeeployTestConfig
 from .output_parser import TestResult, parse_test_output
 
@@ -63,16 +65,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
             stage = "Training"
 
         # --- Step 1: Training network (forward + backward + accumulation) ---
-        cmd = [
-            sys.executable,
-            str(training_script),
-            "-d",
-            config.gen_dir,
-            "-t",
-            config.test_dir,
-            "-p",
-            config.platform,
-        ]
+        cmd = build_codegen_cmd(training_script, config.test_dir, config.gen_dir, config.platform)
         # Only pass values when explicitly set; otherwise let the script auto-detect.
         if config.n_train_steps is not None:
             cmd.append(f"--n-steps={config.n_train_steps}")
@@ -85,11 +78,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         if config.debug:
             cmd.append("--debug")
         cmd.extend(config.gen_args)
-
-        log.debug(f"[Execution] {stage} generation command: {' '.join(cmd)}")
-        result = subprocess.run(cmd, check = False)
-        if result.returncode != 0:
-            raise RuntimeError(f"{stage} network generation failed for {config.test_name}")
+        run_codegen_subprocess(cmd, f"{stage} network generation", config.test_name)
 
         # Read back auto-detected values written by the training generation script.
         meta_path = Path(config.gen_dir) / "training_meta.json"
@@ -108,29 +97,14 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         elif not optimizer_script.exists():
             log.warning(f"{optimizer_script.name} not found — skipping optimizer codegen")
         else:
-            opt_cmd = [
-                sys.executable,
-                str(optimizer_script),
-                "-d",
-                config.gen_dir,
-                "-t",
-                opt_dir,
-                "-p",
-                config.platform,
-                f"--training-dir={config.test_dir}",
-            ]
-            for arg in config.gen_args:
-                if any(arg.startswith(p) for p in opt_passthrough):
-                    opt_cmd.append(arg)
+            opt_cmd = build_codegen_cmd(optimizer_script, opt_dir, config.gen_dir, config.platform)
+            opt_cmd.append(f"--training-dir={config.test_dir}")
+            opt_cmd.extend(filter_passthrough_args(config.gen_args, opt_passthrough))
             if not any(arg.startswith("--defaultMemLevel") for arg in opt_cmd):
                 opt_cmd.append("--defaultMemLevel=L2")
             if config.verbose > 0:
                 opt_cmd.append("-" + "v" * config.verbose)
-
-            log.debug(f"[Execution] {stage} optimizer generation command: {' '.join(opt_cmd)}")
-            result = subprocess.run(opt_cmd, check = False)
-            if result.returncode != 0:
-                raise RuntimeError(f"{stage} optimizer network generation failed for {config.test_name}")
+            run_codegen_subprocess(opt_cmd, f"{stage} optimizer network generation", config.test_name)
 
         return  # early return — training path complete
 
@@ -212,17 +186,8 @@ def configure_cmake(config: DeeployTestConfig) -> None:
     else:
         cmd.append("-Dgvsoc_simulation=OFF")
 
-    if config.training:
-        cmd.append("-DTRAINING=ON")
-        # Only add cmake defines when the values are known (after codegen)
-        if config.n_train_steps is not None:
-            cmd.append(f"-DN_TRAIN_STEPS={config.n_train_steps}")
-        if config.n_accum_steps is not None:
-            cmd.append(f"-DN_ACCUM_STEPS={config.n_accum_steps}")
-        if config.training_num_data_inputs is not None:
-            cmd.append(f"-DTRAINING_NUM_DATA_INPUTS={config.training_num_data_inputs}")
-    else:
-        cmd.append("-DTRAINING=OFF")
+    add_training_cmake_flags(cmd, config.training, config.n_train_steps, config.n_accum_steps,
+                             config.training_num_data_inputs)
 
     script_dir = Path(__file__).parent.parent.parent
     cmd.append(str(script_dir.parent))

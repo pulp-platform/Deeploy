@@ -6,19 +6,28 @@ Shared helpers used by the training / optimizer code-generation entry points
 (generateTrainingNetwork.py, testMVPTraining.py, generateOptimizerNetwork.py,
 testMVPOptimizer.py).
 
-Three kinds of helpers live here:
+Four kinds of helpers live here:
 
 1. inputs.npz / outputs.npz readers (``_load_reference_losses``, ``_infer_*``).
 2. The singleton ``_mockScheduler`` the Tiler expects for per-node tiling.
 3. argparse builders and the ``--shouldFail`` handshake runner that each
    codegen entry point would otherwise have to duplicate verbatim in its
    ``if __name__ == '__main__':`` block.
+4. Subprocess helpers (``build_codegen_cmd``, ``run_codegen_subprocess``,
+   ``filter_passthrough_args``, ``add_training_cmake_flags``) used by the
+   core test execution module to dispatch the training / optimizer codegen
+   scripts and assemble the training-side cmake defines.
+
+The subprocess helpers take primitive parameters (no ``DeeployTestConfig``
+dependency) so this module stays free of a back-edge to ``testUtils.core``.
 """
 
 import argparse
 import os
+import subprocess
 import sys
-from typing import Callable, List, Optional
+from pathlib import Path
+from typing import Callable, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import onnx_graphsurgeon as gs
@@ -273,3 +282,56 @@ def run_with_shouldfail(fn: Callable[[argparse.Namespace], None], args: argparse
         raise
     if args.shouldFail:
         raise RuntimeError("Expected to fail!")
+
+
+# ---------------------------------------------------------------------------
+# Subprocess helpers for the test execution harness.
+#
+# These are used by testUtils/core/execution.py to dispatch the training /
+# optimizer codegen scripts.  Kept here (rather than as local helpers in
+# execution.py) so that every training-related helper lives in one module.
+# They take primitive parameters only — no DeeployTestConfig — to avoid
+# layering core → training back-edges.
+# ---------------------------------------------------------------------------
+
+
+def build_codegen_cmd(script: Path, test_path: str, gen_dir: str, platform: str) -> List[str]:
+    """Return the common ``[python, script, -d gen_dir, -t test_path, -p platform]`` prefix."""
+    return [
+        sys.executable,
+        str(script),
+        "-d",
+        gen_dir,
+        "-t",
+        test_path,
+        "-p",
+        platform,
+    ]
+
+
+def run_codegen_subprocess(cmd: Sequence[str], stage_label: str, test_name: str) -> None:
+    """Run ``cmd`` as a subprocess, log it, and raise with a stage/test-aware message on failure."""
+    log.debug(f"[Execution] {stage_label} command: {' '.join(cmd)}")
+    result = subprocess.run(list(cmd), check = False)
+    if result.returncode != 0:
+        raise RuntimeError(f"{stage_label} failed for {test_name}")
+
+
+def filter_passthrough_args(gen_args: Iterable[str], passthrough: Tuple[str, ...]) -> List[str]:
+    """Return the subset of ``gen_args`` whose entries start with any prefix in ``passthrough``."""
+    return [arg for arg in gen_args if any(arg.startswith(p) for p in passthrough)]
+
+
+def add_training_cmake_flags(cmd: List[str], training: bool, n_train_steps: Optional[int],
+                             n_accum_steps: Optional[int], training_num_data_inputs: Optional[int]) -> None:
+    """Append -DTRAINING=ON/OFF plus any known -DN_TRAIN_STEPS / -DN_ACCUM_STEPS /
+    -DTRAINING_NUM_DATA_INPUTS defines to ``cmd``.  In-place."""
+    cmd.append(f"-DTRAINING={'ON' if training else 'OFF'}")
+    if not training:
+        return
+    if n_train_steps is not None:
+        cmd.append(f"-DN_TRAIN_STEPS={n_train_steps}")
+    if n_accum_steps is not None:
+        cmd.append(f"-DN_ACCUM_STEPS={n_accum_steps}")
+    if training_num_data_inputs is not None:
+        cmd.append(f"-DTRAINING_NUM_DATA_INPUTS={training_num_data_inputs}")
