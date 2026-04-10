@@ -217,8 +217,8 @@ def resolve_optimizer_dir(test_dir: str, optimizer_dir: Optional[str]) -> str:
     return str(test_path.parent / optimizer_name)
 
 
-def add_training_cmake_flags(cmd: List[str], training: bool, n_train_steps: Optional[int],
-                             n_accum_steps: Optional[int], training_num_data_inputs: Optional[int]) -> None:
+def add_training_cmake_flags(cmd: List[str], training: bool, n_train_steps: Optional[int], n_accum_steps: Optional[int],
+                             training_num_data_inputs: Optional[int]) -> None:
     """Append -DTRAINING=ON/OFF plus any known -DN_TRAIN_STEPS / -DN_ACCUM_STEPS /
     -DTRAINING_NUM_DATA_INPUTS defines to ``cmd``.  In-place."""
     cmd.append(f"-DTRAINING={'ON' if training else 'OFF'}")
@@ -257,8 +257,8 @@ def run_training_codegen(config, script_dir: Path) -> None:
     if config.tiling:
         training_script = script_dir / "testMVPTraining.py"
         optimizer_script = script_dir / "testMVPOptimizer.py"
-        opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel", "--memAllocStrategy",
-                           "--searchStrategy", "--plotMemAlloc", "--profileTiling")
+        opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel", "--memAllocStrategy", "--searchStrategy",
+                           "--plotMemAlloc", "--profileTiling")
         stage = "Tiled training"
     else:
         training_script = script_dir / "generateTrainingNetwork.py"

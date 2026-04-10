@@ -28,7 +28,6 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-from typing import List
 
 import onnx
 import onnx_graphsurgeon as gs

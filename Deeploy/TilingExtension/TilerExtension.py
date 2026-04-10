@@ -406,9 +406,7 @@ class Tiler():
         # rejects size-0 entries) and copy their addrSpace from the target
         # after the solver runs.
         aliasBlocks = {
-            block.name
-            for block in memoryMap
-            if getattr(ctxt.lookup(block.name), "_alias", None) in blockNames
+            block.name for block in memoryMap if getattr(ctxt.lookup(block.name), "_alias", None) in blockNames
         }
 
         with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
