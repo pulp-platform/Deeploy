@@ -11,7 +11,7 @@ from typing import List
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-from testUtils.codeGenerate import generateTrainingTestNetwork
+from testUtils.codeGenerateTraining import generateTrainingTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import TrainingSBTiler

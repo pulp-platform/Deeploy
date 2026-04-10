@@ -32,7 +32,7 @@ from typing import List
 
 import onnx
 import onnx_graphsurgeon as gs
-from testUtils.codeGenerate import build_shared_buffer_maps, generateOptimizerTestNetwork
+from testUtils.codeGenerateTraining import build_shared_buffer_maps, generateOptimizerTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import TrainingSBTiler

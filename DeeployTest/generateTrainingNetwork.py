@@ -9,7 +9,7 @@ import sys
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-from testUtils.codeGenerate import generateTrainingTestNetwork
+from testUtils.codeGenerateTraining import generateTrainingTestNetwork
 from testUtils.platformMapping import mapDeployer, mapPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.trainingUtils import _GRAD_ACC, _infer_data_size, _infer_n_accum, _infer_num_data_inputs, \
