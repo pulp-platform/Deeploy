@@ -109,16 +109,6 @@ struct pi_device cluster_dev;
 static float stored_losses[TOTAL_FWD_PASSES];
 
 /* -------------------------------------------------------------------------
- * Optimizer buffer connection
- *
- * Connect DeeployOptNetwork_inputs[]/outputs[] to the training network's
- * weight and grad acc buffers via memcpy.
- *
- * Optimizer ONNX input order: [w0, g0, w1, g1, ...]  (interleaved pairs)
- * Optimizer ONNX output order: [w0_updated, w1_updated, ...]
- * ---------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------
  * L3-aware memory transfer: handles all combinations of L2/L3 src and dst
  * ---------------------------------------------------------------------- */
 
@@ -138,16 +128,6 @@ static void l3_aware_copy(void *dst, const void *src, uint32_t bytes) {
     ram_write(dst, tmp, bytes);
     pi_l2_free(tmp, bytes);
   }
-}
-
-static void connect_optimizer_buffers(void) {
-#if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
-  /* Nothing to pre-allocate — InitOptimizerNetwork() already allocated the
-   * optimizer's static buffers and set DeeployOptNetwork_inputs[]/outputs[].
-   * We only need to sync data at each optimizer step (see run_optimizer_step).
-   */
-  (void)0;
-#endif
 }
 
 static void run_optimizer_step(void) {
@@ -253,10 +233,6 @@ int main(void) {
          (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS,
          (unsigned)TRAINING_NUM_DATA_INPUTS);
 
-  //   /* ------------------------------------------------------------------
-  //    * Cluster bring-up
-  //    * ------------------------------------------------------------------ */
-
   struct pi_cluster_conf conf;
   pi_cluster_conf_init(&conf);
   conf.id = 0;
@@ -313,12 +289,6 @@ int main(void) {
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
-  //   connect_optimizer_buffers();
-
-  //   /* ------------------------------------------------------------------
-  //    * lazy_reset_grad is the last input of the training network.
-  //    * ------------------------------------------------------------------ */
-
   uint32_t reset_idx = DeeployNetwork_num_inputs - 1;
 
   /* ------------------------------------------------------------------
@@ -337,9 +307,6 @@ int main(void) {
 
   printf("Starting training (%u optimizer steps x %u accum steps)...\r\n",
          (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS);
-
-  uint32_t training_cycles = 0;
-  uint32_t optimizer_cycles = 0;
 
   for (uint32_t update_step = 0; update_step < N_TRAIN_STEPS; update_step++) {
 
@@ -393,10 +360,6 @@ int main(void) {
 
   } /* end update_step loop */
 
-  // printf("Training complete.\r\n");
-  // printf("Total training cycles  : %u\r\n", training_cycles);
-  // printf("Total optimizer cycles : %u\r\n", optimizer_cycles);
-
   /* ------------------------------------------------------------------
    * Numerical verification — run on cluster (FC has no FPU)
    * ------------------------------------------------------------------ */
@@ -417,5 +380,5 @@ int main(void) {
   printf("Errors: %u out of %u\r\n", (unsigned)loss_err_count,
          (unsigned)total_loss_checks);
 
-  return 0;
+  return loss_err_count == 0 ? 0 : 1;
 }
