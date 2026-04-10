@@ -79,7 +79,7 @@ def generateTiledTrainingNetwork(args) -> None:
     inputOffsets = {}
 
     npz_idx = 0
-    for graph_idx, name in enumerate(graph_input_names):
+    for graph_idx in range(len(graph_input_names)):
         if graph_idx in grad_acc_set:
             inputTypes[f"input_{graph_idx}"] = PointerClass(float32_t)
             inputOffsets[f"input_{graph_idx}"] = 0
@@ -93,7 +93,11 @@ def generateTiledTrainingNetwork(args) -> None:
                 inputTypes[f"input_{graph_idx}"] = PointerClass(float32_t)
                 inputOffsets[f"input_{graph_idx}"] = 0
             elif np.prod(arr.shape) == 0:
-                pass
+                # Zero-sized input (ONNX allows shape (0, ...) for optional
+                # placeholders).  No data to infer from, but downstream still
+                # looks up input_{idx} by key, so populate with a trivial default.
+                inputTypes[f"input_{graph_idx}"] = PointerClass(float32_t)
+                inputOffsets[f"input_{graph_idx}"] = 0
             else:
                 values = arr.reshape(-1).astype(np.float32)
                 _type, offset = inferTypeAndOffset(values, signProp = False)
