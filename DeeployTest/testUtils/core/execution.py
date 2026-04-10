@@ -15,31 +15,6 @@ from .config import DeeployTestConfig
 from .output_parser import TestResult, parse_test_output
 
 
-def _augment_path(env: dict) -> dict:
-    """Prepend gvsoc/llvm bin dirs to PATH based on installed env vars.
-
-    The install dirs are already set as env vars (GVSOC_INSTALL_DIR,
-    LLVM_INSTALL_DIR) but their bin/ subdirectories may not be in PATH.
-
-    If a virtual environment is active (VIRTUAL_ENV is set), its bin dir
-    is prepended so that shebang-invoked scripts (kconfigtool.py, gapy)
-    resolve python3 to the venv interpreter, which has kconfiglib.
-    Without this, /usr/bin/python3 would be picked up instead, which
-    lacks kconfiglib and causes CMake kconfig setup to fail.
-    """
-    venv = env.get('VIRTUAL_ENV', '')
-    extra = [str(Path(venv) / 'bin')] if venv else ['/usr/bin']
-    for var in ('GVSOC_INSTALL_DIR', 'LLVM_INSTALL_DIR'):
-        install_dir = env.get(var, '')
-        if install_dir:
-            bin_dir = str(Path(install_dir) / 'bin')
-            current = env.get('PATH', '').split(':')
-            if bin_dir not in current:
-                extra.append(bin_dir)
-    env['PATH'] = ':'.join(extra) + ':' + env.get('PATH', '')
-    return env
-
-
 def _resolve_optimizer_dir(config: DeeployTestConfig) -> str:
     """Return the optimizer ONNX directory for this config.
 
@@ -323,7 +298,7 @@ def configure_cmake(config: DeeployTestConfig) -> None:
     script_dir = Path(__file__).parent.parent.parent
     cmd.append(str(script_dir.parent))
 
-    env = _augment_path(os.environ.copy())
+    env = os.environ.copy()
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
 
@@ -379,7 +354,7 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     if config.simulator == 'none':
         raise RuntimeError("No simulator specified!")
 
-    env = _augment_path(os.environ.copy())
+    env = os.environ.copy()
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
 
