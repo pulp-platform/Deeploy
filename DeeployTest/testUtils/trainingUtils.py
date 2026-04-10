@@ -23,6 +23,7 @@ dependency) so this module stays free of a back-edge to ``testUtils.core``.
 """
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -351,3 +352,81 @@ def add_training_cmake_flags(cmd: List[str], training: bool, n_train_steps: Opti
         cmd.append(f"-DN_ACCUM_STEPS={n_accum_steps}")
     if training_num_data_inputs is not None:
         cmd.append(f"-DTRAINING_NUM_DATA_INPUTS={training_num_data_inputs}")
+
+
+def run_training_codegen(config, script_dir: Path) -> None:
+    """Drive the two-stage training codegen pipeline for one test.
+
+    Runs the training network codegen script (generateTrainingNetwork.py or
+    testMVPTraining.py) followed by the matching optimizer codegen script
+    (generateOptimizerNetwork.py or testMVPOptimizer.py), and writes back
+    any auto-detected training parameters from ``training_meta.json`` into
+    ``config``.
+
+    The single entry point keeps ``testUtils.core.execution.generate_network``
+    oblivious to training internals — it only has to call this and return.
+
+    Parameters
+    ----------
+    config : DeeployTestConfig
+        The test configuration (must have ``training=True``).  Training
+        fields (``n_train_steps``, ``n_accum_steps``,
+        ``training_num_data_inputs``) may be updated in-place from the
+        training_meta.json written by the codegen script.
+    script_dir : Path
+        ``DeeployTest/`` — the directory that hosts the four codegen scripts.
+    """
+    if config.tiling:
+        training_script = script_dir / "testMVPTraining.py"
+        optimizer_script = script_dir / "testMVPOptimizer.py"
+        opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel", "--memAllocStrategy",
+                           "--searchStrategy", "--plotMemAlloc", "--profileTiling")
+        stage = "Tiled training"
+    else:
+        training_script = script_dir / "generateTrainingNetwork.py"
+        optimizer_script = script_dir / "generateOptimizerNetwork.py"
+        opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel")
+        stage = "Training"
+
+    # --- Step 1: Training network (forward + backward + accumulation) ---
+    cmd = build_codegen_cmd(training_script, config.test_dir, config.gen_dir, config.platform)
+    if config.n_train_steps is not None:
+        cmd.append(f"--n-steps={config.n_train_steps}")
+    if config.n_accum_steps is not None:
+        cmd.append(f"--n-accum={config.n_accum_steps}")
+    if config.training_num_data_inputs is not None:
+        cmd.append(f"--num-data-inputs={config.training_num_data_inputs}")
+    if config.verbose > 0:
+        cmd.append("-" + "v" * config.verbose)
+    if config.debug:
+        cmd.append("--debug")
+    cmd.extend(config.gen_args)
+    run_codegen_subprocess(cmd, f"{stage} network generation", config.test_name)
+
+    # Read back auto-detected values written by the training generation script.
+    meta_path = Path(config.gen_dir) / "training_meta.json"
+    if meta_path.exists():
+        with open(meta_path) as f:
+            meta = json.load(f)
+        config.n_train_steps = meta["n_train_steps"]
+        config.n_accum_steps = meta["n_accum_steps"]
+        config.training_num_data_inputs = meta["training_num_data_inputs"]
+        log.info(f"[Execution] Training meta: {meta}")
+
+    # --- Step 2: Optimizer network (SGD) ---
+    opt_dir = resolve_optimizer_dir(config.test_dir, config.optimizer_dir)
+    if not Path(opt_dir).exists():
+        log.warning(f"Optimizer directory not found: {opt_dir} — skipping optimizer codegen")
+        return
+    if not optimizer_script.exists():
+        log.warning(f"{optimizer_script.name} not found — skipping optimizer codegen")
+        return
+
+    opt_cmd = build_codegen_cmd(optimizer_script, opt_dir, config.gen_dir, config.platform)
+    opt_cmd.append(f"--training-dir={config.test_dir}")
+    opt_cmd.extend(filter_passthrough_args(config.gen_args, opt_passthrough))
+    if not any(arg.startswith("--defaultMemLevel") for arg in opt_cmd):
+        opt_cmd.append("--defaultMemLevel=L2")
+    if config.verbose > 0:
+        opt_cmd.append("-" + "v" * config.verbose)
+    run_codegen_subprocess(opt_cmd, f"{stage} optimizer network generation", config.test_name)

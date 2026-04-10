@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import json
 import os
 import shutil
 import subprocess
@@ -11,8 +10,7 @@ from pathlib import Path
 
 from Deeploy.Logging import DEFAULT_LOGGER as log
 
-from ..trainingUtils import add_training_cmake_flags, build_codegen_cmd, filter_passthrough_args, \
-    resolve_optimizer_dir, run_codegen_subprocess
+from ..trainingUtils import add_training_cmake_flags, run_training_codegen
 from .config import DeeployTestConfig
 from .output_parser import TestResult, parse_test_output
 
@@ -20,11 +18,6 @@ from .output_parser import TestResult, parse_test_output
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
     """
     Generate network code from ONNX model.
-
-    In training mode, generates both TrainingNetwork (fwd+bwd) and
-    OptimizerNetwork (SGD) into the same gen_dir.  Auto-detected training
-    parameters (n_steps, n_accum, num_data_inputs) are written to
-    gen_dir/training_meta.json and read back into config after codegen.
 
     Raises:
         RuntimeError: If network generation fails
@@ -36,91 +29,34 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
     script_dir = Path(__file__).parent.parent.parent
 
     if config.training:
-        if config.tiling:
-            training_script = script_dir / "testMVPTraining.py"
-            optimizer_script = script_dir / "testMVPOptimizer.py"
-            opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel", "--memAllocStrategy",
-                               "--searchStrategy", "--plotMemAlloc", "--profileTiling")
-            stage = "Tiled training"
-        else:
-            training_script = script_dir / "generateTrainingNetwork.py"
-            optimizer_script = script_dir / "generateOptimizerNetwork.py"
-            opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel")
-            stage = "Training"
+        run_training_codegen(config, script_dir)
+        return
 
-        # --- Step 1: Training network (forward + backward + accumulation) ---
-        cmd = build_codegen_cmd(training_script, config.test_dir, config.gen_dir, config.platform)
-        # Only pass values when explicitly set; otherwise let the script auto-detect.
-        if config.n_train_steps is not None:
-            cmd.append(f"--n-steps={config.n_train_steps}")
-        if config.n_accum_steps is not None:
-            cmd.append(f"--n-accum={config.n_accum_steps}")
-        if config.training_num_data_inputs is not None:
-            cmd.append(f"--num-data-inputs={config.training_num_data_inputs}")
-        if config.verbose > 0:
-            cmd.append("-" + "v" * config.verbose)
-        if config.debug:
-            cmd.append("--debug")
-        cmd.extend(config.gen_args)
-        run_codegen_subprocess(cmd, f"{stage} network generation", config.test_name)
-
-        # Read back auto-detected values written by the training generation script.
-        meta_path = Path(config.gen_dir) / "training_meta.json"
-        if meta_path.exists():
-            with open(meta_path) as f:
-                meta = json.load(f)
-            config.n_train_steps = meta["n_train_steps"]
-            config.n_accum_steps = meta["n_accum_steps"]
-            config.training_num_data_inputs = meta["training_num_data_inputs"]
-            log.info(f"[Execution] Training meta: {meta}")
-
-        # --- Step 2: Optimizer network (SGD) ---
-        opt_dir = resolve_optimizer_dir(config.test_dir, config.optimizer_dir)
-        if not Path(opt_dir).exists():
-            log.warning(f"Optimizer directory not found: {opt_dir} — skipping optimizer codegen")
-        elif not optimizer_script.exists():
-            log.warning(f"{optimizer_script.name} not found — skipping optimizer codegen")
-        else:
-            opt_cmd = build_codegen_cmd(optimizer_script, opt_dir, config.gen_dir, config.platform)
-            opt_cmd.append(f"--training-dir={config.test_dir}")
-            opt_cmd.extend(filter_passthrough_args(config.gen_args, opt_passthrough))
-            if not any(arg.startswith("--defaultMemLevel") for arg in opt_cmd):
-                opt_cmd.append("--defaultMemLevel=L2")
-            if config.verbose > 0:
-                opt_cmd.append("-" + "v" * config.verbose)
-            run_codegen_subprocess(opt_cmd, f"{stage} optimizer network generation", config.test_name)
-
-        return  # early return — training path complete
-
-    elif config.tiling:
+    if config.tiling:
         generation_script = script_dir / "testMVP.py"
-        cmd = [
-            sys.executable,
-            str(generation_script),
-            "-d",
-            config.gen_dir,
-            "-t",
-            config.test_dir,
-            "-p",
-            config.platform,
-        ]
     else:
         generation_script = script_dir / "generateNetwork.py"
-        cmd = [
-            sys.executable,
-            str(generation_script),
-            "-d",
-            config.gen_dir,
-            "-t",
-            config.test_dir,
-            "-p",
-            config.platform,
-        ]
 
+    cmd = [
+        "python",
+        str(generation_script),
+        "-d",
+        config.gen_dir,
+        "-t",
+        config.test_dir,
+        "-p",
+        config.platform,
+    ]
+
+    # Add verbosity flags
     if config.verbose > 0:
         cmd.append("-" + "v" * config.verbose)
+
+    # Add debug flag
     if config.debug:
         cmd.append("--debug")
+
+    # Add additional generation arguments
     cmd.extend(config.gen_args)
 
     log.debug(f"[Execution] Generation command: {' '.join(cmd)}")
@@ -141,6 +77,7 @@ def configure_cmake(config: DeeployTestConfig) -> None:
     if cmake_cmd == "cmake" and shutil.which("cmake") is None:
         raise RuntimeError("CMake not found. Please install CMake or set CMAKE environment variable")
 
+    # Build CMake command
     cmd = [
         cmake_cmd,
         f"-DTOOLCHAIN={config.toolchain}",
@@ -173,6 +110,7 @@ def configure_cmake(config: DeeployTestConfig) -> None:
     add_training_cmake_flags(cmd, config.training, config.n_train_steps, config.n_accum_steps,
                              config.training_num_data_inputs)
 
+    # Last argument is the source directory
     script_dir = Path(__file__).parent.parent.parent
     cmd.append(str(script_dir.parent))
 
@@ -232,50 +170,44 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     if config.simulator == 'none':
         raise RuntimeError("No simulator specified!")
 
+    if config.simulator == 'host':
+        # Run binary directly
+        binary_path = Path(config.build_dir) / "bin" / config.test_name
+        cmd = [str(binary_path)]
+    else:
+        # Run via CMake target
+        cmake_cmd = os.environ.get("CMAKE", "cmake")
+        cmd = [
+            cmake_cmd,
+            "--build",
+            config.build_dir,
+            "--target",
+            f"{config.simulator}_{config.test_name}",
+        ]
+
     env = os.environ.copy()
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
 
-    if config.simulator == 'host':
-        binary_path = Path(config.build_dir) / "bin" / config.test_name
-        cmd = [str(binary_path)]
-
-    elif config.simulator == 'gvsoc':
-        cmake_cmd = os.environ.get("CMAKE", "cmake")
-        cmd = [cmake_cmd, "--build", config.build_dir, "--target", f"gvsoc_{config.test_name}"]
-
-    elif config.simulator == 'banshee':
+    if config.simulator == 'banshee':
         if config.verbose == 1:
             env["BANSHEE_LOG"] = "warn"
         elif config.verbose == 2:
             env["BANSHEE_LOG"] = "info"
         elif config.verbose >= 3:
             env["BANSHEE_LOG"] = "debug"
-        cmake_cmd = os.environ.get("CMAKE", "cmake")
-        cmd = [cmake_cmd, "--build", config.build_dir, "--target", f"{config.simulator}_{config.test_name}"]
-
-    else:
-        cmake_cmd = os.environ.get("CMAKE", "cmake")
-        cmd = [cmake_cmd, "--build", config.build_dir, "--target", f"{config.simulator}_{config.test_name}"]
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
-    # Stream output in real-time (line-buffered) and capture for parsing.
-    proc = subprocess.Popen(cmd,
-                            stdout = subprocess.PIPE,
-                            stderr = subprocess.STDOUT,
-                            text = True,
-                            env = env,
-                            bufsize = 1)
-    stdout_lines = []
-    for line in proc.stdout:
-        print(line, end = '', flush = True)
-        stdout_lines.append(line)
-    proc.stdout.close()
-    proc.wait()
-    stdout_output = ''.join(stdout_lines)
+    result = subprocess.run(cmd, capture_output = True, text = True, env = env)
 
-    test_result = parse_test_output(stdout_output, '')
+    if result.stdout:
+        print(result.stdout, end = '')
+    if result.stderr:
+        print(result.stderr, end = '', file = sys.stderr)
+
+    # Parse output for error count and cycles
+    test_result = parse_test_output(result.stdout, result.stderr)
 
     if not test_result.success and test_result.error_count == -1:
         log.warning(f"Could not parse error count from output")
@@ -289,9 +221,16 @@ def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim:
     """
     log.info(f"################## Testing {config.test_name} on {config.platform} Platform ##################")
 
+    # Step 1: Generate network
     generate_network(config, skip = skipgen)
+
+    # Step 2: Configure CMake
     configure_cmake(config)
+
+    # Step 3: Build binary
     build_binary(config)
+
+    # Step 4: Run simulation
     result = run_simulation(config, skip = skipsim)
 
     return result
