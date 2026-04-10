@@ -22,9 +22,9 @@ from testUtils.deeployTrainingRunner import main
 
 if __name__ == '__main__':
     # Peek at --tiled and -p before passing to main(), which builds its own parser.
-    pre = argparse.ArgumentParser(add_help=False)
-    pre.add_argument('--tiled', action='store_true', default=False)
-    pre.add_argument('-p', '--platform', default='Siracusa')
+    pre = argparse.ArgumentParser(add_help = False)
+    pre.add_argument('--tiled', action = 'store_true', default = False)
+    pre.add_argument('-p', '--platform', default = 'Siracusa')
     known, _ = pre.parse_known_args()
 
-    sys.exit(main(tiling_enabled=known.tiled, default_platform=known.platform))
+    sys.exit(main(tiling_enabled = known.tiled, default_platform = known.platform))

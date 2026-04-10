@@ -4,7 +4,7 @@
 
 from typing import List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
 class _PULPSGDTemplate(NodeTemplate):
@@ -31,8 +31,7 @@ class _PULPSGDTemplate(NodeTemplate):
 
         # Make weight_updated share weight's L2 allocation (no separate malloc).
         # The egress DMA then writes updated weights back to weight's L2 address.
-        weight_updated.allocTemplate = NodeTemplate(
-            " ${name} = (${type.typeName}) " + str(weight._instance) + ";")
+        weight_updated.allocTemplate = NodeTemplate(" ${name} = (${type.typeName}) " + str(weight._instance) + ";")
         weight_updated.deallocTemplate = NodeTemplate("")
         return ctxt, operatorRepresentation, []
 

@@ -11,9 +11,7 @@ Usage:
 """
 
 import os
-import sys
 from pathlib import Path
-from typing import Optional
 
 # gapy (gvsoc launcher) uses `#!/usr/bin/env python3`.  Put /usr/bin first so
 # it resolves to /usr/bin/python3 which has all required packages (gapylib,
@@ -66,13 +64,14 @@ def main(tiling_enabled: bool = False, default_platform: str = 'Siracusa', defau
                         type = str,
                         default = None,
                         help = 'Directory containing the optimizer network.onnx '
-                               "(default: auto-derived by replacing '_train' with '_optimizer')\n")
-    parser.add_argument('--tolerance',
-                        metavar = '<tol>',
-                        dest = 'tolerance',
-                        type = float,
-                        default = None,
-                        help = 'Absolute loss tolerance for pass/fail comparison (default: auto from generateTrainingNetwork.py)\n')
+                        "(default: auto-derived by replacing '_train' with '_optimizer')\n")
+    parser.add_argument(
+        '--tolerance',
+        metavar = '<tol>',
+        dest = 'tolerance',
+        type = float,
+        default = None,
+        help = 'Absolute loss tolerance for pass/fail comparison (default: auto from generateTrainingNetwork.py)\n')
 
     args = parser.parse_args()
 

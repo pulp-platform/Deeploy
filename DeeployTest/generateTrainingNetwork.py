@@ -18,7 +18,7 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import float32_t, uint8_t
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
-from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPPlatform
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
 
 _GRAD_ACC = "_grad.accumulation.buffer"
 
@@ -60,10 +60,8 @@ def _infer_num_data_inputs(inputs_path: str) -> int:
     base_keys = sorted(k for k in inputs.files if not k.startswith('mb') and not k.startswith('meta_'))
     count = sum(1 for k in base_keys if f'mb1_{k}' in inputs.files)
     if count == 0:
-        raise ValueError(
-            "Cannot auto-detect num_data_inputs: inputs.npz has only one mini-batch "
-            "(no mb1_arr_* entries found). Please pass --num-data-inputs explicitly."
-        )
+        raise ValueError("Cannot auto-detect num_data_inputs: inputs.npz has only one mini-batch "
+                         "(no mb1_arr_* entries found). Please pass --num-data-inputs explicitly.")
     return count
 
 
@@ -127,8 +125,7 @@ def generateTrainingNetwork(args):
     _stripped = False
     _patched = False
     for node in graph.nodes:
-        filtered = [out for out in node.outputs
-                    if not (out.dtype == 0 and len(out.outputs) == 0)]
+        filtered = [out for out in node.outputs if not (out.dtype == 0 and len(out.outputs) == 0)]
         if len(filtered) < len(node.outputs):
             node.outputs = filtered
             _stripped = True
@@ -166,10 +163,9 @@ def generateTrainingNetwork(args):
     npz_base = [inputs[k] for k in base_keys]
 
     if len(npz_base) != len(non_grad_indices):
-        raise ValueError(
-            f"inputs.npz has {len(npz_base)} base entries but network.onnx has "
-            f"{len(non_grad_indices)} non-grad-buf inputs. "
-            f"Re-generate inputs.npz with the updated exporter.")
+        raise ValueError(f"inputs.npz has {len(npz_base)} base entries but network.onnx has "
+                         f"{len(non_grad_indices)} non-grad-buf inputs. "
+                         f"Re-generate inputs.npz with the updated exporter.")
 
     # Build inputTypes / inputOffsets for ALL graph input positions.
     inputTypes = {}
@@ -197,7 +193,7 @@ def generateTrainingNetwork(args):
                 pass
             else:
                 values = arr.reshape(-1).astype(np.float32)
-                _type, offset = inferTypeAndOffset(values, signProp=False)
+                _type, offset = inferTypeAndOffset(values, signProp = False)
                 inputTypes[f"input_{graph_idx}"] = _type
                 inputOffsets[f"input_{graph_idx}"] = offset
 
@@ -207,9 +203,9 @@ def generateTrainingNetwork(args):
     deployer = mapDeployer(platform,
                            graph,
                            inputTypes,
-                           name="DeeployTrainingNetwork",
-                           deeployStateDir=_DEEPLOYSTATEDIR,
-                           inputOffsets=inputOffsets)
+                           name = "DeeployTrainingNetwork",
+                           deeployStateDir = _DEEPLOYSTATEDIR,
+                           inputOffsets = inputOffsets)
 
     log.debug(f"Deployer: {deployer}")
 
@@ -278,22 +274,22 @@ def generateTrainingNetwork(args):
     reference_losses = _load_reference_losses(args.dir)
 
     # 10. Generate all output files
-    os.makedirs(args.dumpdir, exist_ok=True)
+    os.makedirs(args.dumpdir, exist_ok = True)
 
     generateTrainingTestNetwork(deployer,
                                 unique_mb_data,
                                 args.dumpdir,
                                 verbosityCfg,
-                                n_steps=n_steps,
-                                n_accum=n_accum,
-                                num_data_inputs=num_data,
-                                grad_buf_start_idx=grad_buf_start_idx,
-                                num_grad_inputs=num_grad_inputs,
-                                learning_rate=args.learning_rate,
-                                reference_losses=reference_losses,
-                                init_weights=init_weights,
-                                data_size=data_size,
-                                tolerance_abs=args.tolerance_abs)
+                                n_steps = n_steps,
+                                n_accum = n_accum,
+                                num_data_inputs = num_data,
+                                grad_buf_start_idx = grad_buf_start_idx,
+                                num_grad_inputs = num_grad_inputs,
+                                learning_rate = args.learning_rate,
+                                reference_losses = reference_losses,
+                                init_weights = init_weights,
+                                data_size = data_size,
+                                tolerance_abs = args.tolerance_abs)
 
     # 11. Write resolved config for execution.py to pick up after subprocess call.
     meta = {
@@ -303,60 +299,60 @@ def generateTrainingNetwork(args):
     }
     meta_path = os.path.join(args.dumpdir, "training_meta.json")
     with open(meta_path, 'w') as f:
-        json.dump(meta, f, indent=2)
+        json.dump(meta, f, indent = 2)
     log.info(f"Training meta written to {meta_path}: {meta}")
 
 
 if __name__ == '__main__':
 
-    parser = TestGeneratorArgumentParser(description="Deeploy Training Code Generation Utility.")
+    parser = TestGeneratorArgumentParser(description = "Deeploy Training Code Generation Utility.")
     parser.add_argument(
         "--cores",
-        type=int,
-        default=1,
-        help="Number of cores on which the network is run. "
+        type = int,
+        default = 1,
+        help = "Number of cores on which the network is run. "
         "Currently required for im2col buffer sizing on Siracusa. Default: 1.",
     )
     parser.add_argument(
         "--num-data-inputs",
-        type=int,
-        dest="num_data_inputs",
-        default=None,
-        help="Number of DATA inputs that change per mini-batch. "
+        type = int,
+        dest = "num_data_inputs",
+        default = None,
+        help = "Number of DATA inputs that change per mini-batch. "
         "Auto-detected from ONNX graph if not specified.",
     )
     parser.add_argument(
         "--n-steps",
-        type=int,
-        dest="n_steps",
-        default=None,
-        help="N_TRAIN_STEPS: number of gradient-accumulation update steps. "
+        type = int,
+        dest = "n_steps",
+        default = None,
+        help = "N_TRAIN_STEPS: number of gradient-accumulation update steps. "
         "Auto-detected from inputs.npz mini-batch count if not specified.",
     )
     parser.add_argument(
         "--n-accum",
-        type=int,
-        dest="n_accum",
-        default=None,
-        help="N_ACCUM_STEPS: number of mini-batches per update step. "
+        type = int,
+        dest = "n_accum",
+        default = None,
+        help = "N_ACCUM_STEPS: number of mini-batches per update step. "
         "Auto-detected from inputs.npz mini-batch count if not specified.",
     )
     parser.add_argument(
         "--learning-rate",
-        type=float,
-        dest="learning_rate",
-        default=0.001,
-        help="SGD learning rate emitted as TRAINING_LEARNING_RATE in testinputs.h. Default: 0.001.",
+        type = float,
+        dest = "learning_rate",
+        default = 0.001,
+        help = "SGD learning rate emitted as TRAINING_LEARNING_RATE in testinputs.h. Default: 0.001.",
     )
     parser.add_argument(
         "--tolerance",
-        type=float,
-        dest="tolerance_abs",
-        default=1e-3,
-        help="Absolute loss tolerance emitted as TRAINING_TOLERANCE_ABS in testoutputs.h. Default: 1e-3.",
+        type = float,
+        dest = "tolerance_abs",
+        default = 1e-3,
+        help = "Absolute loss tolerance emitted as TRAINING_TOLERANCE_ABS in testoutputs.h. Default: 1e-3.",
     )
-    parser.add_argument('--shouldFail', action='store_true')
-    parser.set_defaults(shouldFail=False)
+    parser.add_argument('--shouldFail', action = 'store_true')
+    parser.set_defaults(shouldFail = False)
 
     args = parser.parse_args()
 

@@ -3,16 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
-from typing import Dict, List, Tuple, Union
+from typing import List, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
+from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import SoftmaxCrossEntropyTileConstraint
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
-from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
-    VariableReplacementScheme
-from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
-    SoftmaxCrossEntropyTileConstraint
+from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule, VariableReplacementScheme
 
 
 class SoftmaxCrossEntropyLossDualOutputTileConstraint(SoftmaxCrossEntropyTileConstraint):
@@ -35,8 +32,8 @@ class SoftmaxCrossEntropyLossDualOutputTileConstraint(SoftmaxCrossEntropyTileCon
             cls, tilingSolution: NodeMemoryConstraint, targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, List[TilingSchedule]]:
 
-        logProbVar = operatorRepresentation[cls.dataOutName]   # e.g. "onnx::log_prob::3"
-        lossVar    = operatorRepresentation.get(cls.dataLossName, '')
+        logProbVar = operatorRepresentation[cls.dataOutName]  # e.g. "onnx::log_prob::3"
+        lossVar = operatorRepresentation.get(cls.dataLossName, '')
 
         # If loss is absent (empty string — single-output fallback) or not in the
         # memory constraint dict, delegate straight to the parent unchanged.
@@ -52,8 +49,8 @@ class SoftmaxCrossEntropyLossDualOutputTileConstraint(SoftmaxCrossEntropyTileCon
 
         # Call the base-class wrapTilingSolution, which runs cube computation and
         # calls serializeTilingSolution for log_prob.
-        varReplacement, tilingSchedules = super().wrapTilingSolution(
-            singleOutputSolution, targetMemLevel, ctxt, operatorRepresentation)
+        varReplacement, tilingSchedules = super().wrapTilingSolution(singleOutputSolution, targetMemLevel, ctxt,
+                                                                     operatorRepresentation)
 
         # Extend each TilingSchedule to include the scalar loss output.
         # The loss tensor is always 1 element (0-d scalar represented as [1] for DMA).

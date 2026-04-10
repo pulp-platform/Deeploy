@@ -379,14 +379,16 @@ PULPSGDBindings = [
 PULPInPlaceAccumulatorV2Bindings = [
     NodeBinding(
         InPlaceAccumulatorV2Checker(
-            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(uint8_t)], [PointerClass(float32_t)]),
-        FloatInPlaceAccumulatorV2Template.referenceTemplate, ForkTransformer)
+            [PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(uint8_t)], [PointerClass(float32_t)]), FloatInPlaceAccumulatorV2Template.referenceTemplate,
+        ForkTransformer)
 ]
 
 PULPInPlaceAccumulatorV2TiledBindings = [
     NodeBinding(
         InPlaceAccumulatorV2Checker(
-            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(uint8_t)], [PointerClass(float32_t)]),
+            [PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(uint8_t)], [PointerClass(float32_t)]),
         FloatInPlaceAccumulatorV2Template.tiledReferenceTemplate, ForkTransformer)
 ]
 

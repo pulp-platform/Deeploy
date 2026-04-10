@@ -20,8 +20,8 @@ from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, Gat
     SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
     GELUGradParser, GELUParser, GEMMParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, \
-    MatMulParser, MaxPool1DParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, \
-    ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, \
+    MatMulParser, MaxPool1DParser, MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, \
+    ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, \
     RQSiHardswishParser, SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, \
     SoftmaxGradParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, \
     iRMSNormParser, iSoftmaxParser
@@ -116,48 +116,88 @@ QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
 DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
 GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
 PULPMapping = {
-    'Conv': ConvLayer([FPConv2DMapper, FPDWConv2DMapper]),
-    'RequantizedConv': PULPRQSConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
-    'RequantizedGemm': PULPRQSGEMMLayer([MatrixVecMapper, TallGEMMMapper, GEMMMapper]),
-    'Gemm': GEMMLayer([FloatGEMMMapper, GEMMDequantMapper]),
-    'Gelu': GELULayer([GELUMapper]),
-    'GeluGrad': GELUGradLayer([GELUGradMapper]),
-    'LayerNormalization': LayerNormLayer([LayerNormMapper]),
-    'LayerNormalizationGrad': LayerNormGradLayer([LayerNormGradMapper]),
-    'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPool2DMapper]),
-    'RequantizediGELU': RQSiGELULayer([RQGELU_int8_Mapper]),
-    'RQIntegerDiv': RQIntegerDivLayer([RQIntegerDivMapper]),
-    'MatMul': MatMulLayer([MatMulMapper]),
-    'IntegerMean': ReduceMeanLayer([ReduceMeanMapper]),
-    'iSoftmax': SoftmaxLayer([Softmax_int8_Mapper]),
-    'Softmax': SoftmaxLayer([SoftmaxMapper]),
-    'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
-    'ReduceSum': ReduceSumLayer([ReduceSumMapper]),
-    'RequantShift': RequantShiftLayer([UniformRequantShiftMapper, RequantShiftMapper]),
-    'Add': AddLayer([AddMapper]),
-    'Flatten': ReshapeLayer([FlattenMapper]),
-    'Gather': GatherLayer([GatherMapper]),
-    'Mul': MulLayer([MulMapper]),
-    'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
-    'Relu': ReluLayer([ReluMapper]),
-    'Reshape': ReshapeLayer([ReshapeMapper]),
-    'Squeeze': ReshapeLayer([UnsqueezeMapper]),
-    'Transpose': TransposeLayer([TransposeMapper]),
-    'Unsqueeze': ReshapeLayer([UnsqueezeMapper]),
-    'Slice': SliceLayer([SliceMapper, DMASliceMapper]),
-    'RequantizedAdd': AddLayer([RQAddMapper]),
-    'Concat': ConcatLayer([ConcatMapper]),
-    'iRMSNorm': iRMSNormLayer([iRMSNormMapper]),
-    'iHardswish': iHardswishLayer([iHardswishMapper]),
-    'RequantizediHardswish': RQSiHardswishLayer([RQSiHardswishMapper]),
-    'Quant': QuantLayer([QuantMapper]),
-    'Dequant': QuantLayer([DequantMapper]),
-    'SoftmaxGrad': SoftmaxGradLayer([SoftmaxGradMapper]),
+    'Conv':
+        ConvLayer([FPConv2DMapper, FPDWConv2DMapper]),
+    'RequantizedConv':
+        PULPRQSConvLayer([Conv2DMapper, DWConv2DMapper, Conv1DMapper, DWConv1DMapper]),
+    'RequantizedGemm':
+        PULPRQSGEMMLayer([MatrixVecMapper, TallGEMMMapper, GEMMMapper]),
+    'Gemm':
+        GEMMLayer([FloatGEMMMapper, GEMMDequantMapper]),
+    'Gelu':
+        GELULayer([GELUMapper]),
+    'GeluGrad':
+        GELUGradLayer([GELUGradMapper]),
+    'LayerNormalization':
+        LayerNormLayer([LayerNormMapper]),
+    'LayerNormalizationGrad':
+        LayerNormGradLayer([LayerNormGradMapper]),
+    'MaxPool':
+        MaxPoolLayer([MaxPool1DMapper, MaxPool2DMapper]),
+    'RequantizediGELU':
+        RQSiGELULayer([RQGELU_int8_Mapper]),
+    'RQIntegerDiv':
+        RQIntegerDivLayer([RQIntegerDivMapper]),
+    'MatMul':
+        MatMulLayer([MatMulMapper]),
+    'IntegerMean':
+        ReduceMeanLayer([ReduceMeanMapper]),
+    'iSoftmax':
+        SoftmaxLayer([Softmax_int8_Mapper]),
+    'Softmax':
+        SoftmaxLayer([SoftmaxMapper]),
+    'ReduceMean':
+        ReduceMeanLayer([ReduceMeanMapper]),
+    'ReduceSum':
+        ReduceSumLayer([ReduceSumMapper]),
+    'RequantShift':
+        RequantShiftLayer([UniformRequantShiftMapper, RequantShiftMapper]),
+    'Add':
+        AddLayer([AddMapper]),
+    'Flatten':
+        ReshapeLayer([FlattenMapper]),
+    'Gather':
+        GatherLayer([GatherMapper]),
+    'Mul':
+        MulLayer([MulMapper]),
+    'Pad':
+        PadLayer([Pad1DMapper, Pad2DMapper]),
+    'Relu':
+        ReluLayer([ReluMapper]),
+    'Reshape':
+        ReshapeLayer([ReshapeMapper]),
+    'Squeeze':
+        ReshapeLayer([UnsqueezeMapper]),
+    'Transpose':
+        TransposeLayer([TransposeMapper]),
+    'Unsqueeze':
+        ReshapeLayer([UnsqueezeMapper]),
+    'Slice':
+        SliceLayer([SliceMapper, DMASliceMapper]),
+    'RequantizedAdd':
+        AddLayer([RQAddMapper]),
+    'Concat':
+        ConcatLayer([ConcatMapper]),
+    'iRMSNorm':
+        iRMSNormLayer([iRMSNormMapper]),
+    'iHardswish':
+        iHardswishLayer([iHardswishMapper]),
+    'RequantizediHardswish':
+        RQSiHardswishLayer([RQSiHardswishMapper]),
+    'Quant':
+        QuantLayer([QuantMapper]),
+    'Dequant':
+        QuantLayer([DequantMapper]),
+    'SoftmaxGrad':
+        SoftmaxGradLayer([SoftmaxGradMapper]),
     'SoftmaxCrossEntropyLoss':
         SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossDualOutputMapper, SoftmaxCrossEntropyLossMapper]),
-    'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
-    'SGD': SGDLayer([SGDMapper]),
-    'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper]),
+    'SoftmaxCrossEntropyLossGrad':
+        SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
+    'SGD':
+        SGDLayer([SGDMapper]),
+    'InPlaceAccumulatorV2':
+        InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper]),
 }
 
 

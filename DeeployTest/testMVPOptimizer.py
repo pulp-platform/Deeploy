@@ -84,16 +84,16 @@ def generateTiledOptimizerNetwork(args) -> None:
     deployer = mapDeployer(platform,
                            graph,
                            inputTypes,
-                           name="DeeployOptimizerNetwork",
-                           deeployStateDir=_DEEPLOYSTATEDIR,
-                           inputOffsets=inputOffsets,
-                           scheduler=_mockScheduler)
+                           name = "DeeployOptimizerNetwork",
+                           deeployStateDir = _DEEPLOYSTATEDIR,
+                           inputOffsets = inputOffsets,
+                           scheduler = _mockScheduler)
 
     # 5. Set up memory hierarchy.
     #    Tiles execute in L1; optimizer I/O (weights, grads) live in L2 (or L3).
-    L3 = MemoryLevel(name="L3", neighbourNames=["L2"], size=64_000_000)
-    L2 = MemoryLevel(name="L2", neighbourNames=["L3", "L1"], size=args.l2)
-    L1 = MemoryLevel(name="L1", neighbourNames=["L2"], size=args.l1)
+    L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64_000_000)
+    L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = args.l2)
+    L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = args.l1)
     memoryHierarchy = MemoryHierarchy([L3, L2, L1])
     memoryHierarchy.setDefaultMemoryLevel(args.defaultMemLevel)
 
@@ -115,7 +115,7 @@ def generateTiledOptimizerNetwork(args) -> None:
     # schedule (via TrainingMemoryScheduler).  This prevents the allocator from
     # reusing the space of a consumed input (e.g. fc1 weight) for a later
     # output (e.g. fc2 updated weight), which would corrupt the weight buffer.
-    deployer = TilerDeployerWrapper(deployer, TrainingSBTiler, testName=testIdentifier, workDir=args.dumpdir)
+    deployer = TilerDeployerWrapper(deployer, TrainingSBTiler, testName = testIdentifier, workDir = args.dumpdir)
     deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
     deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
     deployer.tiler.searchStrategy = args.searchStrategy
@@ -123,7 +123,7 @@ def generateTiledOptimizerNetwork(args) -> None:
     # 8. Prepare deployer.
     verbosityCfg = _NoVerbosity
     if args.profileTiling:
-        verbosityCfg = CodeGenVerbosity(tilingProfiling=True)
+        verbosityCfg = CodeGenVerbosity(tilingProfiling = True)
     _ = deployer.prepare(verbosityCfg)
 
     # 9. Build shared-buffer maps when the training ONNX is available
@@ -142,7 +142,7 @@ def generateTiledOptimizerNetwork(args) -> None:
                         "generating standalone OptimizerNetwork (no buffer sharing)")
 
     # 10. Generate OptimizerNetwork.c / OptimizerNetwork.h
-    os.makedirs(args.dumpdir, exist_ok=True)
+    os.makedirs(args.dumpdir, exist_ok = True)
     generateOptimizerTestNetwork(deployer, args.dumpdir, verbosityCfg, shared_input_map, shared_output_map)
 
     log.info(f"Tiled optimizer network code generated in: {args.dumpdir}")
@@ -151,75 +151,75 @@ def generateTiledOptimizerNetwork(args) -> None:
 
 if __name__ == '__main__':
 
-    parser = TestGeneratorArgumentParser(description="Deeploy Tiled Optimizer Network Code Generation.")
+    parser = TestGeneratorArgumentParser(description = "Deeploy Tiled Optimizer Network Code Generation.")
 
     parser.add_argument(
         "--cores",
-        type=int,
-        default=1,
-        help="Number of cluster cores. Default: 1.",
+        type = int,
+        default = 1,
+        help = "Number of cluster cores. Default: 1.",
     )
     parser.add_argument(
         "--lr",
-        type=float,
-        default=0.001,
-        help="Learning rate (informational only; embedded in optimizer ONNX attributes). Default: 0.001.",
+        type = float,
+        default = 0.001,
+        help = "Learning rate (informational only; embedded in optimizer ONNX attributes). Default: 0.001.",
     )
     parser.add_argument(
         '--l1',
-        type=int,
-        dest='l1',
-        default=64_000,
-        help='L1 size in bytes. Default: 64000.',
+        type = int,
+        dest = 'l1',
+        default = 64_000,
+        help = 'L1 size in bytes. Default: 64000.',
     )
     parser.add_argument(
         '--l2',
-        type=int,
-        dest='l2',
-        default=1_024_000,
-        help='L2 size in bytes. Default: 1024000.',
+        type = int,
+        dest = 'l2',
+        default = 1_024_000,
+        help = 'L2 size in bytes. Default: 1024000.',
     )
     parser.add_argument(
         '--defaultMemLevel',
-        type=str,
-        dest='defaultMemLevel',
-        default="L2",
-        help='Default memory level for optimizer I/O buffers (L2 or L3). Must match the training graph. Default: L2.',
+        type = str,
+        dest = 'defaultMemLevel',
+        default = "L2",
+        help = 'Default memory level for optimizer I/O buffers (L2 or L3). Must match the training graph. Default: L2.',
     )
     parser.add_argument(
         '--memAllocStrategy',
-        type=str,
-        dest='memAllocStrategy',
-        default="MiniMalloc",
-        help='Memory allocation strategy. Default: MiniMalloc.',
+        type = str,
+        dest = 'memAllocStrategy',
+        default = "MiniMalloc",
+        help = 'Memory allocation strategy. Default: MiniMalloc.',
     )
     parser.add_argument(
         '--searchStrategy',
-        type=str,
-        dest='searchStrategy',
-        default="random-max",
-        help='CP solver search strategy. Default: random-max.',
+        type = str,
+        dest = 'searchStrategy',
+        default = "random-max",
+        help = 'CP solver search strategy. Default: random-max.',
     )
     parser.add_argument(
         '--plotMemAlloc',
-        action='store_true',
-        help='Save memory allocation plots in the deeployStates folder.',
+        action = 'store_true',
+        help = 'Save memory allocation plots in the deeployStates folder.',
     )
     parser.add_argument(
         '--profileTiling',
-        action='store_true',
-        help='Enable tiling profiling (inserts cycle counters around each tiled kernel).',
+        action = 'store_true',
+        help = 'Enable tiling profiling (inserts cycle counters around each tiled kernel).',
     )
     parser.add_argument(
         "--training-dir",
-        type=str,
-        default=None,
-        help="Directory containing the training network.onnx.  When provided, "
-             "weight and grad-acc buffers are shared with TrainingNetwork instead "
-             "of being allocated independently.",
+        type = str,
+        default = None,
+        help = "Directory containing the training network.onnx.  When provided, "
+        "weight and grad-acc buffers are shared with TrainingNetwork instead "
+        "of being allocated independently.",
     )
-    parser.add_argument('--shouldFail', action='store_true')
-    parser.set_defaults(shouldFail=False)
+    parser.add_argument('--shouldFail', action = 'store_true')
+    parser.set_defaults(shouldFail = False)
 
     args = parser.parse_args()
 

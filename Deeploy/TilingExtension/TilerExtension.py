@@ -333,7 +333,8 @@ class Tiler():
                     if _buffer._memoryLevel != memoryLevel:
                         continue
 
-                    if hasattr(_buffer, "_alias") and ctxt.is_global(_buffer._alias) and _buffer._alias not in blockNames:
+                    if hasattr(_buffer, "_alias") and ctxt.is_global(
+                            _buffer._alias) and _buffer._alias not in blockNames:
                         continue
 
                     if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:

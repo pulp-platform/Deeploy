@@ -11,6 +11,7 @@ class SGDTileConstraint(BOPTileConstraint):
     dataIn2Name = 'grad'
     dataOutName = 'weight_updated'
 
+
 class ReluGradTileConstraint(BOPTileConstraint):
 
     dataIn1Name = 'grad_out'

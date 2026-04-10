@@ -25,7 +25,6 @@ import os
 import sys
 from pathlib import Path
 
-import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
 from testUtils.codeGenerate import build_shared_buffer_maps, generateOptimizerTestNetwork
@@ -72,18 +71,18 @@ def generateOptimizerNetwork(args):
     deployer = mapDeployer(platform,
                            graph,
                            inputTypes,
-                           name="DeeployOptimizerNetwork",
-                           deeployStateDir=_DEEPLOYSTATEDIR,
-                           inputOffsets=inputOffsets)
+                           name = "DeeployOptimizerNetwork",
+                           deeployStateDir = _DEEPLOYSTATEDIR,
+                           inputOffsets = inputOffsets)
 
     # Set up memory hierarchy so AnnotateDefaultMemoryLevel assigns the correct
     # memory level to ConstantBuffers (weights).  The optimizer graph is NOT
     # tiled, but it must share the same memory-level view as the training graph
     # so that weights end up in the same physical location (L2 when L3 is the
     # training default, see AnnotateDefaultMemoryLevel).
-    L3 = MemoryLevel(name="L3", neighbourNames=["L2"], size=64000000)
-    L2 = MemoryLevel(name="L2", neighbourNames=["L3", "L1"], size=args.l2)
-    L1 = MemoryLevel(name="L1", neighbourNames=["L2"], size=args.l1)
+    L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64000000)
+    L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = args.l2)
+    L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = args.l1)
     memoryHierarchy = MemoryHierarchy([L3, L2, L1])
     memoryHierarchy.setDefaultMemoryLevel(args.defaultMemLevel)
     defaultTargetMemoryLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel]
@@ -110,41 +109,44 @@ def generateOptimizerNetwork(args):
                         "generating standalone OptimizerNetwork (no buffer sharing)")
 
     # 6. Generate OptimizerNetwork.c / OptimizerNetwork.h
-    os.makedirs(args.dumpdir, exist_ok=True)
+    os.makedirs(args.dumpdir, exist_ok = True)
     generateOptimizerTestNetwork(deployer, args.dumpdir, verbosityCfg, shared_input_map, shared_output_map)
 
     log.info(f"Optimizer network code generated in: {args.dumpdir}")
     print(f"[OptimizerNetwork] Generated OptimizerNetwork.c/h in {args.dumpdir}")
 
+
 if __name__ == '__main__':
 
-    parser = TestGeneratorArgumentParser(description="Deeploy Optimizer Network Code Generation.")
+    parser = TestGeneratorArgumentParser(description = "Deeploy Optimizer Network Code Generation.")
     parser.add_argument(
         "--cores",
-        type=int,
-        default=1,
-        help="Number of cluster cores. Default: 1.",
+        type = int,
+        default = 1,
+        help = "Number of cluster cores. Default: 1.",
     )
     parser.add_argument(
         "--lr",
-        type=float,
-        default=0.001,
-        help="Learning rate (informational only; embedded in optimizer ONNX attributes). Default: 0.001.",
+        type = float,
+        default = 0.001,
+        help = "Learning rate (informational only; embedded in optimizer ONNX attributes). Default: 0.001.",
     )
-    parser.add_argument("--defaultMemLevel", type=str, default="L2",
-                        help="Default memory level (L2 or L3). Must match the training graph. Default: L2.")
-    parser.add_argument("--l1", type=int, default=64000, help="L1 size in bytes. Default: 64000.")
-    parser.add_argument("--l2", type=int, default=1024000, help="L2 size in bytes. Default: 1024000.")
+    parser.add_argument("--defaultMemLevel",
+                        type = str,
+                        default = "L2",
+                        help = "Default memory level (L2 or L3). Must match the training graph. Default: L2.")
+    parser.add_argument("--l1", type = int, default = 64000, help = "L1 size in bytes. Default: 64000.")
+    parser.add_argument("--l2", type = int, default = 1024000, help = "L2 size in bytes. Default: 1024000.")
     parser.add_argument(
         "--training-dir",
-        type=str,
-        default=None,
-        help="Directory containing the training network.onnx.  When provided, "
-             "weight and grad-acc buffers are shared with TrainingNetwork instead "
-             "of being allocated independently.",
+        type = str,
+        default = None,
+        help = "Directory containing the training network.onnx.  When provided, "
+        "weight and grad-acc buffers are shared with TrainingNetwork instead "
+        "of being allocated independently.",
     )
-    parser.add_argument('--shouldFail', action='store_true')
-    parser.set_defaults(shouldFail=False)
+    parser.add_argument('--shouldFail', action = 'store_true')
+    parser.set_defaults(shouldFail = False)
 
     args = parser.parse_args()
 

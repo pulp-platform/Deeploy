@@ -80,9 +80,12 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         cmd = [
             sys.executable,
             str(generation_script),
-            "-d", config.gen_dir,
-            "-t", config.test_dir,
-            "-p", config.platform,
+            "-d",
+            config.gen_dir,
+            "-t",
+            config.test_dir,
+            "-p",
+            config.platform,
         ]
         if config.n_train_steps is not None:
             cmd.append(f"--n-steps={config.n_train_steps}")
@@ -97,7 +100,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         cmd.extend(config.gen_args)
 
         log.debug(f"[Execution] Tiled training generation command: {' '.join(cmd)}")
-        result = subprocess.run(cmd, check=False)
+        result = subprocess.run(cmd, check = False)
         if result.returncode != 0:
             raise RuntimeError(f"Tiled training network generation failed for {config.test_name}")
 
@@ -123,15 +126,16 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
             opt_cmd = [
                 sys.executable,
                 str(opt_script),
-                "-d", config.gen_dir,
-                "-t", opt_dir,
-                "-p", config.platform,
+                "-d",
+                config.gen_dir,
+                "-t",
+                opt_dir,
+                "-p",
+                config.platform,
                 f"--training-dir={config.test_dir}",
             ]
-            _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2",
-                                "--defaultMemLevel",
-                                "--memAllocStrategy", "--searchStrategy",
-                                "--plotMemAlloc", "--profileTiling")
+            _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2", "--defaultMemLevel", "--memAllocStrategy",
+                                "--searchStrategy", "--plotMemAlloc", "--profileTiling")
             for arg in config.gen_args:
                 if any(arg.startswith(p) for p in _OPT_PASSTHROUGH):
                     opt_cmd.append(arg)
@@ -142,7 +146,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 opt_cmd.append("-" + "v" * config.verbose)
 
             log.debug(f"[Execution] Tiled optimizer generation command: {' '.join(opt_cmd)}")
-            result = subprocess.run(opt_cmd, check=False)
+            result = subprocess.run(opt_cmd, check = False)
             if result.returncode != 0:
                 raise RuntimeError(f"Tiled optimizer network generation failed for {config.test_name}")
 
@@ -154,9 +158,12 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         cmd = [
             sys.executable,
             str(generation_script),
-            "-d", config.gen_dir,
-            "-t", config.test_dir,
-            "-p", config.platform,
+            "-d",
+            config.gen_dir,
+            "-t",
+            config.test_dir,
+            "-p",
+            config.platform,
         ]
         # Only pass values when explicitly set; otherwise let the script auto-detect
         if config.n_train_steps is not None:
@@ -173,7 +180,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         cmd.extend(config.gen_args)
 
         log.debug(f"[Execution] Training generation command: {' '.join(cmd)}")
-        result = subprocess.run(cmd, check=False)
+        result = subprocess.run(cmd, check = False)
         if result.returncode != 0:
             raise RuntimeError(f"Training network generation failed for {config.test_name}")
 
@@ -199,9 +206,12 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
             opt_cmd = [
                 sys.executable,
                 str(opt_script),
-                "-d", config.gen_dir,
-                "-t", opt_dir,
-                "-p", config.platform,
+                "-d",
+                config.gen_dir,
+                "-t",
+                opt_dir,
+                "-p",
+                config.platform,
                 f"--training-dir={config.test_dir}",
             ]
             _OPT_PASSTHROUGH = ("--cores", "--l1", "--l2", "--defaultMemLevel")
@@ -214,7 +224,7 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
                 opt_cmd.append("-" + "v" * config.verbose)
 
             log.debug(f"[Execution] Optimizer generation command: {' '.join(opt_cmd)}")
-            result = subprocess.run(opt_cmd, check=False)
+            result = subprocess.run(opt_cmd, check = False)
             if result.returncode != 0:
                 raise RuntimeError(f"Optimizer network generation failed for {config.test_name}")
 
@@ -225,18 +235,24 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         cmd = [
             sys.executable,
             str(generation_script),
-            "-d", config.gen_dir,
-            "-t", config.test_dir,
-            "-p", config.platform,
+            "-d",
+            config.gen_dir,
+            "-t",
+            config.test_dir,
+            "-p",
+            config.platform,
         ]
     else:
         generation_script = script_dir / "generateNetwork.py"
         cmd = [
             sys.executable,
             str(generation_script),
-            "-d", config.gen_dir,
-            "-t", config.test_dir,
-            "-p", config.platform,
+            "-d",
+            config.gen_dir,
+            "-t",
+            config.test_dir,
+            "-p",
+            config.platform,
         ]
 
     if config.verbose > 0:
@@ -373,8 +389,7 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
 
     elif config.simulator == 'gvsoc':
         cmake_cmd = os.environ.get("CMAKE", "cmake")
-        cmd = [cmake_cmd, "--build", config.build_dir, "--target",
-               f"gvsoc_{config.test_name}"]
+        cmd = [cmake_cmd, "--build", config.build_dir, "--target", f"gvsoc_{config.test_name}"]
 
     elif config.simulator == 'banshee':
         if config.verbose == 1:
@@ -384,19 +399,21 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         elif config.verbose >= 3:
             env["BANSHEE_LOG"] = "debug"
         cmake_cmd = os.environ.get("CMAKE", "cmake")
-        cmd = [cmake_cmd, "--build", config.build_dir, "--target",
-               f"{config.simulator}_{config.test_name}"]
+        cmd = [cmake_cmd, "--build", config.build_dir, "--target", f"{config.simulator}_{config.test_name}"]
 
     else:
         cmake_cmd = os.environ.get("CMAKE", "cmake")
-        cmd = [cmake_cmd, "--build", config.build_dir, "--target",
-               f"{config.simulator}_{config.test_name}"]
+        cmd = [cmake_cmd, "--build", config.build_dir, "--target", f"{config.simulator}_{config.test_name}"]
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
     # Stream output in real-time (line-buffered) and capture for parsing.
-    proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.STDOUT,
-                            text = True, env = env, bufsize = 1)
+    proc = subprocess.Popen(cmd,
+                            stdout = subprocess.PIPE,
+                            stderr = subprocess.STDOUT,
+                            text = True,
+                            env = env,
+                            bufsize = 1)
     stdout_lines = []
     for line in proc.stdout:
         print(line, end = '', flush = True)

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 from ortools.constraint_solver.pywrapcp import IntVar
 
@@ -54,9 +54,8 @@ class TrainingMemoryScheduler(MemoryScheduler):
     that forward-pass inputs remain live during the backward pass.
     """
 
-    def _calculateLifetimes(
-            self, ctxt: NetworkContext, patternMemoryConstraint: PatternMemoryConstraints,
-            memoryLevel: str) -> Tuple[Dict[str, Tuple[int, int]], Dict]:
+    def _calculateLifetimes(self, ctxt: NetworkContext, patternMemoryConstraint: PatternMemoryConstraints,
+                            memoryLevel: str) -> Tuple[Dict[str, Tuple[int, int]], Dict]:
         tensorLifetimeMap, tensorMap = super()._calculateLifetimes(ctxt, patternMemoryConstraint, memoryLevel)
 
         maxStepIdx = len(patternMemoryConstraint.nodeConstraints)

@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
 class _PULPInPlaceAccumulatorV2Template(NodeTemplate):

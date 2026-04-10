@@ -4,7 +4,6 @@
 
 import os
 import re
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -201,7 +200,8 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
     output_idx = 0
     while deployer.ctxt.is_buffer(f'output_{output_idx}'):
         output_buffer = deployer.ctxt.lookup(f'output_{output_idx}')
-        output_size = np.prod(output_buffer.shape) if hasattr(output_buffer, 'shape') else output_buffer._type.referencedType.typeWidth
+        output_size = np.prod(output_buffer.shape) if hasattr(output_buffer,
+                                                              'shape') else output_buffer._type.referencedType.typeWidth
         typeName = output_buffer._type.referencedType.typeName
         output_idx += 1
 
@@ -305,9 +305,14 @@ def generateTestNetwork(deployer: NetworkDeployer, test_inputs: List[np.ndarray]
 # ---------------------------------------------------------------------------
 
 
-def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: List[List[np.ndarray]], n_steps: int,
-                                     n_accum: int, grad_buf_start_idx: int = 0, num_grad_inputs: int = 0,
-                                     learning_rate: float = 0.001, init_weights: List[np.ndarray] = None,
+def generateTrainingTestInputsHeader(deployer: NetworkDeployer,
+                                     all_mb_data: List[List[np.ndarray]],
+                                     n_steps: int,
+                                     n_accum: int,
+                                     grad_buf_start_idx: int = 0,
+                                     num_grad_inputs: int = 0,
+                                     learning_rate: float = 0.001,
+                                     init_weights: List[np.ndarray] = None,
                                      data_size: int = None) -> str:
     """Generate testinputs.h for training tests.
 
@@ -389,9 +394,8 @@ def generateTrainingTestInputsHeader(deployer: NetworkDeployer, all_mb_data: Lis
 
             # Format values
             if typeName == 'float32_t':
-                list_str = ", ".join([
-                    f'{float(x)}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in values.astype(np.float32)
-                ])
+                list_str = ", ".join(
+                    [f'{float(x)}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in values.astype(np.float32)])
             else:
                 list_str = ", ".join([str(x) for x in values])
 
@@ -594,11 +598,19 @@ void InitTrainingNetwork(__attribute__((unused)) uint32_t core_id, __attribute__
     return retStr
 
 
-def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[List[np.ndarray]], dumpdir: str,
-                                verbosityCfg: CodeGenVerbosity, n_steps: int = 1, n_accum: int = 1,
-                                num_data_inputs: int = 2, grad_buf_start_idx: int = 0, num_grad_inputs: int = 0,
-                                learning_rate: float = 0.001, reference_losses: List = None,
-                                init_weights: List = None, data_size: int = None,
+def generateTrainingTestNetwork(deployer: NetworkDeployer,
+                                all_mb_data: List[List[np.ndarray]],
+                                dumpdir: str,
+                                verbosityCfg: CodeGenVerbosity,
+                                n_steps: int = 1,
+                                n_accum: int = 1,
+                                num_data_inputs: int = 2,
+                                grad_buf_start_idx: int = 0,
+                                num_grad_inputs: int = 0,
+                                learning_rate: float = 0.001,
+                                reference_losses: List = None,
+                                init_weights: List = None,
+                                data_size: int = None,
                                 tolerance_abs: float = 1e-3) -> None:
     """Generate all training test files: testinputs.h, testoutputs.h, TrainingNetwork.h, TrainingNetwork.c.
 
@@ -626,19 +638,25 @@ def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[Lis
     """
     assert deployer.prepared, "An unprepared deployer was given"
 
-    os.makedirs(dumpdir, exist_ok=True)
+    os.makedirs(dumpdir, exist_ok = True)
 
     # testinputs.h
-    testInputStr = generateTrainingTestInputsHeader(deployer, all_mb_data, n_steps, n_accum, grad_buf_start_idx,
-                                                    num_grad_inputs, learning_rate, init_weights=init_weights,
-                                                    data_size=data_size)
+    testInputStr = generateTrainingTestInputsHeader(deployer,
+                                                    all_mb_data,
+                                                    n_steps,
+                                                    n_accum,
+                                                    grad_buf_start_idx,
+                                                    num_grad_inputs,
+                                                    learning_rate,
+                                                    init_weights = init_weights,
+                                                    data_size = data_size)
     with open(f'{dumpdir}/testinputs.h', 'w') as f:
         f.write(testInputStr)
 
     # testoutputs.h
     testOutputStr = generateTrainingTestOutputsHeader(
-        reference_losses=reference_losses,
-        tolerance_abs=tolerance_abs,
+        reference_losses = reference_losses,
+        tolerance_abs = tolerance_abs,
     )
     with open(f'{dumpdir}/testoutputs.h', 'w') as f:
         f.write(testOutputStr)
@@ -666,28 +684,28 @@ def generateTrainingTestNetwork(deployer: NetworkDeployer, all_mb_data: List[Lis
     #   [last]                                → lazy_reset_grad = 1 (uint8)
     l3_initial_inputs: List[np.ndarray] = []
     # Count how many input_N buffers exist in the deployer context
-    n_total_inputs = sum(1 for name in deployer.ctxt.globalObjects
-                         if name.startswith("input_") and name[len("input_"):].isdigit())
+    n_total_inputs = sum(
+        1 for name in deployer.ctxt.globalObjects if name.startswith("input_") and name[len("input_"):].isdigit())
     for i in range(n_total_inputs):
         if all_mb_data and i < len(all_mb_data[0]):
             # Data / label input
             l3_initial_inputs.append(all_mb_data[0][i])
-        elif (init_weights is not None and grad_buf_start_idx > 0
-              and num_data_inputs <= i < grad_buf_start_idx):
+        elif (init_weights is not None and grad_buf_start_idx > 0 and num_data_inputs <= i < grad_buf_start_idx):
             # Weight input
             wi = i - num_data_inputs
-            l3_initial_inputs.append(init_weights[wi] if wi < len(init_weights) else np.array([0.0], dtype=np.float32))
+            l3_initial_inputs.append(init_weights[wi] if wi <
+                                     len(init_weights) else np.array([0.0], dtype = np.float32))
         elif (grad_buf_start_idx > 0 and num_grad_inputs > 0
               and grad_buf_start_idx <= i < grad_buf_start_idx + num_grad_inputs):
             # Gradient accumulation buffer — zero-initialised
             buf = deployer.ctxt.globalObjects.get(f"input_{i}")
             shape = buf.shape if (buf is not None and hasattr(buf, 'shape')) else (1,)
-            l3_initial_inputs.append(np.zeros(shape, dtype=np.float32))
+            l3_initial_inputs.append(np.zeros(shape, dtype = np.float32))
         else:
             # lazy_reset_grad (last input) or any unknown slot — default 1 / uint8
             buf = deployer.ctxt.globalObjects.get(f"input_{i}")
             shape = buf.shape if (buf is not None and hasattr(buf, 'shape')) else (1,)
-            l3_initial_inputs.append(np.ones(shape, dtype=np.uint8))
+            l3_initial_inputs.append(np.ones(shape, dtype = np.uint8))
 
     generateL3HexDump(deployer, os.path.join(dumpdir, 'hex'), l3_initial_inputs, [])
 
@@ -742,7 +760,7 @@ def build_shared_buffer_maps(train_onnx_path: str, opt_onnx_model) -> Tuple[Dict
         # node appends to output tensor names (e.g. 'conv1_weight_updated' → 'conv1_weight').
         lookup_name = name
         if lookup_name not in train_name_to_idx and lookup_name.endswith('_updated'):
-            lookup_name = lookup_name[: -len('_updated')]
+            lookup_name = lookup_name[:-len('_updated')]
         if lookup_name in train_name_to_idx:
             shared_output_map[opt_idx] = train_name_to_idx[lookup_name]
 
@@ -795,17 +813,14 @@ def _patch_shared_buffers(retStr: str, shared_input_map: Dict[int, int], shared_
     # Pattern 1 (non-tiled): individual pi_*_malloc per buffer
     # ------------------------------------------------------------------
     _malloc_pat = re.compile(
-        r'(DeeployOptNetwork_(input|output)_(\d+))\s*=\s*\([^)]+\s*\*\s*\)\s*pi_\w+_malloc\([^;]+\);'
-    )
+        r'(DeeployOptNetwork_(input|output)_(\d+))\s*=\s*\([^)]+\s*\*\s*\)\s*pi_\w+_malloc\([^;]+\);')
 
     # ------------------------------------------------------------------
     # Pattern 2 (tiled): arena-offset assignment
     #   DeeployOptNetwork_input_N = (Type *)((char *)DeeployOptNetwork_MEMORYARENA_Lx + OFFSET);
     # ------------------------------------------------------------------
-    _arena_pat = re.compile(
-        r'(DeeployOptNetwork_(input|output)_(\d+))\s*=\s*\([^)]+\s*\*\s*\)'
-        r'\s*\(\s*\(char\s*\*\)\s*DeeployOptNetwork_MEMORYARENA_L\w+\s*\+\s*\d+\s*\)\s*;'
-    )
+    _arena_pat = re.compile(r'(DeeployOptNetwork_(input|output)_(\d+))\s*=\s*\([^)]+\s*\*\s*\)'
+                            r'\s*\(\s*\(char\s*\*\)\s*DeeployOptNetwork_MEMORYARENA_L\w+\s*\+\s*\d+\s*\)\s*;')
 
     def _make_replacement(symbol: str, kind: str, idx: int) -> Optional[str]:
         if kind == "input" and idx in shared_input_map:
@@ -832,14 +847,10 @@ def _patch_shared_buffers(retStr: str, shared_input_map: Dict[int, int], shared_
     for level in ('L2', 'L3'):
         arena_sym = f'DeeployOptNetwork_MEMORYARENA_{level}'
         # Pattern for the malloc assignment line itself
-        malloc_line_pat = re.compile(
-            rf'[^\n]*{re.escape(arena_sym)}\s*=\s*\([^)]+\)\s*pi_\w+_malloc\([^;]+\);\s*\n'
-        )
+        malloc_line_pat = re.compile(rf'[^\n]*{re.escape(arena_sym)}\s*=\s*\([^)]+\)\s*pi_\w+_malloc\([^;]+\);\s*\n')
         # Pattern for any use of the arena in pointer arithmetic:
         #   (char *)ARENA + OFFSET  or  (void *)ARENA  etc.
-        arena_use_pat = re.compile(
-            rf'\(\s*(?:char|void|int8_t)\s*\*\s*\)\s*{re.escape(arena_sym)}'
-        )
+        arena_use_pat = re.compile(rf'\(\s*(?:char|void|int8_t)\s*\*\s*\)\s*{re.escape(arena_sym)}')
         if not arena_use_pat.search(retStr):
             # No remaining pointer arithmetic — the malloc is dead
             retStr = malloc_line_pat.sub('', retStr)
@@ -887,9 +898,7 @@ def _patch_shared_arenas(retStr: str, train_c_source: str) -> str:
             continue
 
         opt_sym = f'DeeployOptNetwork_MEMORYARENA_{level}'
-        opt_malloc_pat = re.compile(
-            rf'({re.escape(opt_sym)})\s*=\s*\([^)]+\)\s*\w+\(sizeof\([^)]+\)\s*\*\s*\d+\)\s*;'
-        )
+        opt_malloc_pat = re.compile(rf'({re.escape(opt_sym)})\s*=\s*\([^)]+\)\s*\w+\(sizeof\([^)]+\)\s*\*\s*\d+\)\s*;')
         if not opt_malloc_pat.search(retStr):
             continue
 
@@ -1135,7 +1144,7 @@ def generateOptimizerTestNetwork(deployer: NetworkDeployer,
     """
     assert deployer.prepared, "An unprepared deployer was given"
 
-    os.makedirs(dumpdir, exist_ok=True)
+    os.makedirs(dumpdir, exist_ok = True)
 
     train_c_path = os.path.join(dumpdir, 'TrainingNetwork.c')
     train_c_source: Optional[str] = None
