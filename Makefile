@@ -617,7 +617,7 @@ ${TOOLCHAIN_DIR}/minimalloc:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone --recursive https://github.com/google/minimalloc.git && \
 	cd ${TOOLCHAIN_DIR}/minimalloc && git checkout ${MINIMALLOC_COMMMIT_HASH} && \
-	cmake -DCMAKE_BUILD_TYPE=Release && make -j && \
+	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=17 && make -j && \
 	mkdir -p ${MINIMALLOC_INSTALL_DIR} && cp minimalloc ${MINIMALLOC_INSTALL_DIR}
 
 ${CHIMERA_SDK_INSTALL_DIR}:
