@@ -132,7 +132,7 @@ def build_binary(config: DeeployTestConfig) -> None:
     ]
 
     # GAP9 requires the 'image' target to generate MRAM .bin files for GVSOC
-    if config.platform == 'GAP9':
+    if config.platform in ('GAP9', 'GAP9_w_NE16'):
         cmd.append("image")
 
     env = os.environ.copy()

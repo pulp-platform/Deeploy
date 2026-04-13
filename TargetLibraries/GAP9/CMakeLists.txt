@@ -80,5 +80,21 @@ endif()
 
 target_link_libraries(deeploygap9 PUBLIC pulp-nn-mixed)
 
+# NE16 accelerator (via pulp-nnx) for GAP9_w_NE16 platform
+if(platform STREQUAL "GAP9_w_NE16")
+  set(USE_NE16 ON CACHE BOOL "Use the NE16 accelerator." FORCE)
+  add_subdirectory(../third_party/pulp-nnx ${CMAKE_CURRENT_BINARY_DIR}/pulp-nnx)
+  target_link_libraries(pulp-nnx PUBLIC pmsis)
+  target_compile_options(pulp-nnx PRIVATE
+    -Wno-error
+    -Wno-implicit-int-conversion
+    -Wno-sign-conversion
+    -Wno-typedef-redefinition
+    -Wno-unused-parameter
+    -Wno-incompatible-pointer-types-discards-qualifiers
+  )
+  target_link_libraries(deeploygap9 PUBLIC pulp-nnx)
+endif()
+
 target_link_libraries(deeploygap9 PUBLIC m)
 

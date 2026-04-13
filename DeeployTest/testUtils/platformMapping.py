@@ -20,6 +20,8 @@ from Deeploy.Targets.Generic.Deployer import GenericDeployer
 from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericPlatform
 from Deeploy.Targets.MemPool.Deployer import MemPoolDeployer
 from Deeploy.Targets.MemPool.Platform import MemPoolOptimizer, MemPoolPlatform
+from Deeploy.Targets.NE16.Deployer import NE16Deployer
+from Deeploy.Targets.NE16.Platform import MemoryNE16Platform, MemoryNE16PlatformWrapper, NE16Optimizer, NE16Platform
 from Deeploy.Targets.Neureka.Deployer import NeurekaDeployer
 from Deeploy.Targets.Neureka.Platform import MemoryNeurekaPlatform, MemoryNeurekaPlatformWrapper, NeurekaOptimizer, \
     NeurekaPlatform
@@ -31,7 +33,7 @@ from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "GAP9_w_NE16"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -67,6 +69,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
     elif platformName == "Siracusa_w_neureka":
         Platform = NeurekaPlatform()
 
+    elif platformName == "GAP9_w_NE16":
+        Platform = NE16Platform()
+
     elif platformName == "Snitch":
         Platform = SnitchPlatform()
 
@@ -90,6 +95,8 @@ def setupMemoryPlatform(platform: DeploymentPlatform, memoryHierarchy: MemoryHie
         weightMemoryLevel = memoryHierarchy.memoryLevels["WeightMemory_SRAM"] \
             if "WeightMemory_SRAM" in memoryHierarchy.memoryLevels else None
         return MemoryNeurekaPlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel, weightMemoryLevel)
+    elif isinstance(platform, NE16Platform):
+        return MemoryNE16PlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel)
     if isinstance(platform, GAP9Platform):
         return MemoryGAP9PlatformWrapper(platform, memoryHierarchy, defaultTargetMemoryLevel)
     else:
@@ -206,6 +213,23 @@ def mapDeployer(platform: DeploymentPlatform,
                                    name = name,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir)
+
+    elif isinstance(platform, (NE16Platform, MemoryNE16Platform, MemoryNE16PlatformWrapper)):
+
+        if loweringOptimizer is None:
+            loweringOptimizer = NE16Optimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = NE16Deployer(graph,
+                                platform,
+                                inputTypes,
+                                loweringOptimizer,
+                                scheduler,
+                                name = name,
+                                default_channels_first = default_channels_first,
+                                deeployStateDir = deeployStateDir)
 
     elif isinstance(platform, (GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper)):
 
