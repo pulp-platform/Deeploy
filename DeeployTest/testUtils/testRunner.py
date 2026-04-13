@@ -292,7 +292,7 @@ class TestRunner():
 
     def __init__(self,
                  platform: str,
-                 simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none'],
+                 simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none'],
                  tiling: bool,
                  argument_parser: TestRunnerArgumentParser,
                  gen_args: str = "",
@@ -300,7 +300,7 @@ class TestRunner():
 
         if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none']:
             raise ValueError(
-                f"Invalid emulator {simulator} (valid options are 'gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none')!"
+                f"Invalid emulator {simulator} (valid options are 'gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none')!"
             )
 
         if tiling is not argument_parser.tiling_arguments:

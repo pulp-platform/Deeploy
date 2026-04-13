@@ -65,7 +65,7 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           dest = 'simulator',
                           type = str,
                           default = None,
-                          help = 'Simulator to use (gvsoc, banshee, qemu, vsim, host, none)\n')
+                          help = 'Simulator to use (gvsoc, banshee, qemu, vsim, host, board, none)\n')
         self.add_argument('-v', action = 'count', dest = 'verbose', default = 0, help = 'Increase verbosity level\n')
         self.add_argument('-D',
                           dest = 'cmake',
