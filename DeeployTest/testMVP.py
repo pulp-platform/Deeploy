@@ -202,7 +202,7 @@ if __name__ == '__main__':
                             - max: Initalize all variables at their maximal value.
                             - min: Initalize all variables at their minimal value.
                         """)
-    parser.add_argument('--profileTiling', action = "store_true")
+    parser.add_argument('--profileTiling', action = "store_true", help = 'Enable tiling profiling')
     parser.add_argument('--profileMicrobenchmark',
                         action = "store_true",
                         help = 'Wrap each layer with PULP perf-counter microbenchmark instrumentation')

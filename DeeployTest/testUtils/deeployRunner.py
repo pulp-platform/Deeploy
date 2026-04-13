@@ -94,6 +94,12 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           action = 'store_true',
                           default = False,
                           help = 'Enable untiled profiling (Siracusa only)\n')
+        self.add_argument('--profileMicrobenchmark',
+                          '--profile-microbenchmark',
+                          dest = 'profileMicrobenchmark',
+                          action = 'store_true',
+                          default = False,
+                          help = 'Wrap each layer with PULP perf-counter microbenchmark\n')
         self.add_argument('--toolchain',
                           metavar = '<LLVM|GCC>',
                           dest = 'toolchain',
@@ -143,9 +149,6 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
             self.add_argument('--profileTiling', action = 'store_true', help = 'Enable tiling profiling\n')
-            self.add_argument('--profileMicrobenchmark',
-                              action = 'store_true',
-                              help = 'Wrap each layer with PULP perf-counter microbenchmark\n')
             self.add_argument('--memAllocStrategy',
                               metavar = '<strategy>',
                               dest = 'memAllocStrategy',
@@ -228,8 +231,6 @@ def create_config_from_args(args: argparse.Namespace,
             gen_args_list.append("--randomizedMemoryScheduler")
         if hasattr(args, 'profileTiling') and args.profileTiling:
             gen_args_list.append("--profileTiling")
-        if hasattr(args, 'profileMicrobenchmark') and args.profileMicrobenchmark:
-            gen_args_list.append("--profileMicrobenchmark")
         if hasattr(args, 'memAllocStrategy') and args.memAllocStrategy:
             gen_args_list.append(f"--memAllocStrategy={args.memAllocStrategy}")
         if hasattr(args, 'searchStrategy') and args.searchStrategy:
@@ -239,6 +240,9 @@ def create_config_from_args(args: argparse.Namespace,
 
     if not tiling and getattr(args, 'profileUntiled', False):
         gen_args_list.append("--profileUntiled")
+
+    if getattr(args, 'profileMicrobenchmark', False):
+        gen_args_list.append("--profileMicrobenchmark")
 
     config = DeeployTestConfig(
         test_name = test_name,
