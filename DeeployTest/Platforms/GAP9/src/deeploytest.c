@@ -16,6 +16,11 @@
 // RW: Remove MAINSTACKSIZE because gap9-sdk does not use it
 #define SLAVESTACKSIZE 3800
 
+#ifdef POWER_MEASUREMENT
+unsigned int GPIOs = 89;
+#define WRITE_GPIO(x) pi_gpio_pin_write(GPIOs, x)
+#endif
+
 struct pi_device cluster_dev;
 uint32_t total_cycles = 0;
 
@@ -78,6 +83,13 @@ void RunNetworkWrapper(void *args) {
 }
 
 int main(void) {
+
+#ifdef POWER_MEASUREMENT
+  pi_pad_function_set(GPIOs, 1);
+  pi_gpio_pin_configure(GPIOs, PI_GPIO_OUTPUT);
+  pi_gpio_pin_write(GPIOs, 0);
+#endif
+
 #ifndef CI
   uint32_t core_id = pi_core_id(), cluster_id = pi_cluster_id();
   printf("[%d %d] Hello World!\n", cluster_id, core_id);
@@ -119,7 +131,16 @@ int main(void) {
 
   pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
+
+#ifdef POWER_MEASUREMENT
+  WRITE_GPIO(1);
+#endif
+
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+
+#ifdef POWER_MEASUREMENT
+  WRITE_GPIO(0);
+#endif
 
 #ifndef CI
   printf("Output:\r\n");

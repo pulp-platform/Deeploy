@@ -57,3 +57,5 @@ CHANGELOG_GEN.md
 # Container Artifacts
 .pyusbip/
 .cache/
+
+CLAUDE.md
