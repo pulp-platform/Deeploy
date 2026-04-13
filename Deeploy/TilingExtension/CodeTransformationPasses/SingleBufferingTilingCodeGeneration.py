@@ -191,5 +191,3 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
         executionBlock = super().generateLoopCode(executionBlock, metaInfo, _openLoopStatements, _ingressDMAStatements,
                                                   _egressDMAStatements, closeLoopStatements)
         return executionBlock
-
-
