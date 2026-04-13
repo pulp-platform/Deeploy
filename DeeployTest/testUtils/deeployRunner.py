@@ -94,6 +94,12 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           action = 'store_true',
                           default = False,
                           help = 'Enable untiled profiling (Siracusa only)\n')
+        self.add_argument('--profileMicrobenchmark',
+                          '--profile-microbenchmark',
+                          dest = 'profileMicrobenchmark',
+                          action = 'store_true',
+                          default = False,
+                          help = 'Wrap each layer with PULP perf-counter microbenchmark\n')
         self.add_argument('--toolchain',
                           metavar = '<LLVM|GCC>',
                           dest = 'toolchain',
@@ -234,6 +240,9 @@ def create_config_from_args(args: argparse.Namespace,
 
     if not tiling and getattr(args, 'profileUntiled', False):
         gen_args_list.append("--profileUntiled")
+
+    if getattr(args, 'profileMicrobenchmark', False):
+        gen_args_list.append("--profileMicrobenchmark")
 
     config = DeeployTestConfig(
         test_name = test_name,
