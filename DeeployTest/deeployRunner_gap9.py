@@ -15,7 +15,8 @@ if __name__ == "__main__":
         parser.add_argument('--powerMeasurement',
                             action = 'store_true',
                             default = False,
-                            help = 'Enable power measurement GPIO toggling\n')
+                            help = 'Enable GPIO toggling around the inference window for external '
+                            'power measurement (e.g. PPK2). Only meaningful with -s board.\n')
 
     sys.exit(
         main(default_platform = "GAP9",
