@@ -248,7 +248,8 @@ PULPOptimizer = TopologyOptimizer([
 
 # SCHEREMO: stdint is included before pulp_nn_kernels.h because it is supposed to be included in there, but isn't...
 _includeList = [
-    "pmsis.h", "stdint.h", "pulp_nn_kernels.h", "DeeployPULPMath.h", "mchan_siracusa.h", "dory_mem.h", "bsp/ram.h", "perf_utils.h"
+    "pmsis.h", "stdint.h", "pulp_nn_kernels.h", "DeeployPULPMath.h", "mchan_siracusa.h", "dory_mem.h", "bsp/ram.h",
+    "perf_utils.h"
 ]
 
 
