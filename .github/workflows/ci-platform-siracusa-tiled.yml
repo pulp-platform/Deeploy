@@ -56,6 +56,15 @@ jobs:
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-marker: "models and l2 and singlebuffer"
 
+  # Training tests - L2 singlebuffer
+  siracusa-training-tiled-l2-singlebuffer:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "training and l2 and singlebuffer"
+
   # Model tests - L2 doublebuffer
   siracusa-models-tiled-l2-doublebuffer:
     needs: select-env

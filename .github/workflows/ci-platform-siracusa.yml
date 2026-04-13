@@ -44,3 +44,11 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-marker: models
+
+  siracusa-training:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: training

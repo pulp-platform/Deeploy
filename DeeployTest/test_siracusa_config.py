@@ -77,3 +77,10 @@ MODEL_TESTS = [
     "Models/TinyViT/Demo",
     "Models/CNN_Linear2",
 ]
+
+# Training-enabled models (use deeployTrainingRunner / testMVPTraining pipeline).
+# Each entry is the path to a `<model>_train` directory; the matching
+# `<model>_optimizer` directory must live next to it.
+TRAINING_TESTS = [
+    "Models/Training/SimpleMLP/simplemlp_train",
+]

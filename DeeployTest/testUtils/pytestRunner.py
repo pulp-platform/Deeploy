@@ -48,6 +48,7 @@ def create_test_config(
     plot_mem_alloc: bool = False,
     randomized_mem_scheduler: bool = False,
     profile_untiled: bool = False,
+    training: bool = False,
     gen_args: Optional[List[str]] = None,
 ) -> DeeployTestConfig:
 
@@ -106,6 +107,7 @@ def create_test_config(
         toolchain_install_dir = toolchain_dir,
         cmake_args = cmake_args_list,
         gen_args = gen_args_list,
+        training = training,
     )
 
     return config

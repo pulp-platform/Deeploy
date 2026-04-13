@@ -70,6 +70,7 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "gap9_tiled: mark test as a GAP9 platform test (tiled)")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")
     config.addinivalue_line("markers", "models: mark test as a model test (full networks)")
+    config.addinivalue_line("markers", "training: mark test as a training-pipeline test (forward + backward + SGD)")
     config.addinivalue_line("markers", "singlebuffer: mark test as single-buffer configuration")
     config.addinivalue_line("markers", "doublebuffer: mark test as double-buffer configuration")
     config.addinivalue_line("markers", "l2: mark test as L2 default memory level")

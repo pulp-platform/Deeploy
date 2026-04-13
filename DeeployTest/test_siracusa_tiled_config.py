@@ -154,3 +154,9 @@ L3_DOUBLEBUFFER_MODELS = {
     "Models/CCT/FP32/CCT_2_32_32_128": [128000],
     "Models/TinyViT/Demo": [4000],
 }
+
+# Training-enabled tiled models. Maps test path -> list of L1 sizes (bytes).
+# L2 size is fixed by the runner at 2_000_000 to match the validated local run.
+L2_SINGLEBUFFER_TRAINING_MODELS = {
+    "Models/Training/SimpleMLP/simplemlp_train": [64000],
+}
