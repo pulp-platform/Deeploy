@@ -102,6 +102,7 @@ echo-bash:
 	@echo "export SPATZ_HOME=${SPATZ_INSTALL_DIR}"
 	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
 	@echo "export SOFTHIER_INSTALL_DIR=${SOFTHIER_INSTALL_DIR}"
+	@echo "export BANSHEE_INSTALL_DIR=${BANSHEE_INSTALL_DIR}"
 	@echo "export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
 	@echo "export MEMPOOL_HOME=${MEMPOOL_INSTALL_DIR}"
 	@echo "export CMAKE=$$(which cmake)"
@@ -112,9 +113,9 @@ echo-bash:
 	@echo "source ${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
 
 
-toolchain: llvm llvm-compiler-rt-riscv llvm-compiler-rt-arm picolibc-arm picolibc-riscv
+toolchain: llvm llvm-compiler-rt-riscv llvm-compiler-rt-arm picolibc-arm picolibc-riscv xtensor minimalloc # xtensor needed for gvsoc, minimalloc for tiling
 
-emulators: snitch_runtime pulp-sdk qemu banshee mempool
+emulators: snitch_runtime pulp-sdk qemu banshee mempool gvsoc
 
 ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
