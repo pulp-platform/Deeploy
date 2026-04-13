@@ -8,21 +8,30 @@
 #include "testoutputs.h"
 
 int main() {
-  const unsigned int cid = snrt_cluster_core_idx();
+  const unsigned int core_id = snrt_cluster_core_idx();
+
+  // this is what the snrt functions tell but is it real?
+  if (snrt_is_dm_core()){printf("dm core is core number %d\r\n", core_id);}
+  snrt_cluster_hw_barrier();
 
   // do it only with one of the two spatz cores
-  if (cid==0){
-    printf("Initializing network...\r\n");
+  if (snrt_is_dm_core()){
+    printf("Running on %d cores\r\n", snrt_cluster_core_num());
 
+    printf("Initializing network...\r\n");
     InitNetwork(0, 1);
 
+    // Copy inputs to allocated memory
+    printf("Copying inputs to allocated memory...\r\n");
     for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
       snrt_dma_start_1d(DeeployNetwork_inputs[buf], testInputVector[buf], DeeployNetwork_inputs_bytes[buf]);
     }
+    snrt_dma_wait_all();
 
     printf("Running network...\r\n");
     RunNetwork(0, 1);
 
+    printf("Checking Outputs...\r\n");
     int32_t tot_err = 0;
     uint32_t tot = 0;
     OUTPUTTYPE diff;
@@ -58,12 +67,7 @@ int main() {
     }
 
     printf("Errors: %d out of %d \r\n", tot_err, tot);
-
-    return tot_err;
-  } else {
-    // wait for core 0 to finish
-    snrt_cluster_hw_barrier();
-    return 0;
-  }
- 
+  } 
+  snrt_cluster_hw_barrier();
+  return 0;
 }

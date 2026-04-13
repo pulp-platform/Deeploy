@@ -7,6 +7,6 @@ if __name__ == "__main__":
         main(
             default_platform = "Spatz",
             default_simulator = "gvsoc",
-            tiling_enabled = False,
+            tiling_enabled = True,
         )
     )
