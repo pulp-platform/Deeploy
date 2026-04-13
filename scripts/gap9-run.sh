@@ -442,7 +442,7 @@ cmd_start_gap9() {
 		--privileged
 		-v /dev/bus/usb:/dev/bus/usb
 		-v "$SSH_PRIVATE_KEY":/root/.ssh/id_ed25519:ro
-		-v "$WORK_DIR/":/app/work/
+		-v "$WORK_DIR/":/app/Deeploy/
 		-v "$CACHE_FOLDER/.zsh_history":/root/.zsh_history
 		-v "$CACHE_FOLDER/ccache":/ccache
 		-e CCACHE_DIR=/ccache
@@ -453,7 +453,7 @@ cmd_start_gap9() {
 		docker_run_args+=(--platform "$DOCKER_PLATFORM")
 	fi
 
-	docker_run_args+=("$GAP9_IMAGE" "$DOCKER_SHELL" -c "cd /app/work && $DOCKER_SHELL")
+	docker_run_args+=("$GAP9_IMAGE" "$DOCKER_SHELL" -c "cd /app/Deeploy && $DOCKER_SHELL")
 
 	docker run "${docker_run_args[@]}"
 }
