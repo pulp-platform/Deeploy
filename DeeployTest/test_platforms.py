@@ -35,8 +35,9 @@ from test_siracusa_neureka_tiled_config import L3_DOUBLEBUFFER_MODELS as NEUREKA
 from test_siracusa_neureka_tiled_config import L3_DOUBLEBUFFER_MODELS_WMEM as NEUREKA_L3_DOUBLEBUFFER_MODELS_WMEM
 from test_siracusa_neureka_tiled_config import L3_SINGLEBUFFER_MODELS as NEUREKA_L3_SINGLEBUFFER_MODELS
 from test_siracusa_tiled_config import L2_DOUBLEBUFFER_KERNELS, L2_DOUBLEBUFFER_MODELS, L2_SINGLEBUFFER_KERNELS, \
-    L2_SINGLEBUFFER_MODELS, L2_SINGLEBUFFER_TRAINING_MODELS as SIRACUSA_L2_SINGLEBUFFER_TRAINING_MODELS, \
-    L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
+    L2_SINGLEBUFFER_MODELS
+from test_siracusa_tiled_config import L2_SINGLEBUFFER_TRAINING_MODELS as SIRACUSA_L2_SINGLEBUFFER_TRAINING_MODELS
+from test_siracusa_tiled_config import L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
 from test_snitch_config import DEFAULT_NUM_CORES as SNITCH_DEFAULT_NUM_CORES
 from test_snitch_config import KERNEL_TESTS as SNITCH_KERNEL_TESTS
 from test_snitch_config import MODEL_TESTS as SNITCH_MODEL_TESTS
@@ -305,8 +306,7 @@ def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
 @pytest.mark.siracusa
 @pytest.mark.training
 @pytest.mark.parametrize("test_name", SIRACUSA_TRAINING_TESTS, ids = SIRACUSA_TRAINING_TESTS)
-def test_siracusa_training(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
-                           skipsim) -> None:
+def test_siracusa_training(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
     config = create_test_config(
         test_name = test_name,
         platform = "Siracusa",
