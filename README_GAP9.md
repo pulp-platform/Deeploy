@@ -54,8 +54,31 @@ pip install -e .
 
 ```sh
 cd /app/Deeploy/DeeployTest
-python deeployRunner_gap9.py -t ./Tests/Kernels/FP32/MatMul
-python deeployRunner_tiled_gap9.py -t ./Tests/Kernels/FP32/MatMul
+
+# Run on GVSoC (default simulator)
+python deeployRunner_gap9.py        -t ./Tests/Kernels/FP32/MatMul
+python deeployRunner_tiled_gap9.py  -t ./Tests/Kernels/FP32/MatMul
+```
+
+#### Run on the GAP9 board
+
+Pass `-s board` to flash the binary to the connected board via `gapy` and run it
+(`board_<test>` CMake target). USB passthrough must already be set up — see
+[Use A Real GAP9 Board](#use-a-real-gap9-board-usbip-via-gap9-runsh) below.
+
+```sh
+python deeployRunner_gap9.py        -t ./Tests/Kernels/FP32/Add/Regular -s board
+python deeployRunner_tiled_gap9.py  -t ./Tests/Kernels/FP32/Add/Regular -s board
+```
+
+#### External power measurement (PPK2)
+
+`--powerMeasurement` toggles a GPIO around the inference window so an external
+probe (e.g. Nordic PPK2) can gate its measurement to the compute region. Only
+meaningful with `-s board`.
+
+```sh
+python deeployRunner_gap9.py -t ./Tests/Kernels/FP32/Add/Regular -s board --powerMeasurement
 ```
 
 ### Use A Real GAP9 Board (USB/IP via gap9-run.sh)
