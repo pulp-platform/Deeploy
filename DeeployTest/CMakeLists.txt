@@ -41,7 +41,7 @@ elseif(DEEPLOY_ARCH STREQUAL PULP)
     -Wno-pointer-sign
   )
 
-  if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka)
+  if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka OR platform STREQUAL Siracusa_w_redmule)
     add_subdirectory(Platforms/Siracusa)
   elseif(platform STREQUAL PULPOpen)
     add_subdirectory(Platforms/PULPOpen)

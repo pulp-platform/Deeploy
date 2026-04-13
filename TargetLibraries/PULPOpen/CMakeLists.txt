@@ -10,7 +10,7 @@ if(NOT DEFINED ENV{PULP_SDK_HOME})
   message(FATAL_ERROR "Environment variable PULP_SDK_HOME not set.")
 endif()
 
-if(platform STREQUAL "Siracusa" OR platform STREQUAL "Siracusa_w_neureka")
+if(platform STREQUAL "Siracusa" OR platform STREQUAL "Siracusa_w_neureka" OR platform STREQUAL "Siracusa_w_redmule")
   include(cmake/pulp-sdk-siracusa.cmake)
 elseif(platform STREQUAL "PULPOpen")
   include(cmake/pulp-sdk-pulp-open.cmake)

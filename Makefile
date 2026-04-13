@@ -49,7 +49,7 @@ PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
-GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
+GVSOC_COMMIT_HASH ?= 35d00d15d7249daaac0de61bd8485fba128e5959
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
@@ -465,7 +465,7 @@ snitch_runtime: ${SNITCH_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/gvsoc/gvsoc.git && \
+	git clone https://github.com/runwangdl/gvsoc.git && \
 	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
 	git submodule update --init --recursive && \
 	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt
