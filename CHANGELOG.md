@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Add Microbenchmarking Infrastructure and CI Using GVSoC CSR [#162](https://github.com/pulp-platform/Deeploy/pull/162)
 - Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
 - Fix Broken CI [#175](https://github.com/pulp-platform/Deeploy/pull/175)
 - Improve Docstring and Debugging [#160](https://github.com/pulp-platform/Deeploy/pull/160)
@@ -23,6 +24,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Shell Format pre-commit hook
 - Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
+- Per-layer microbenchmarking on PULPOpen via `--profileMicrobenchmark`: new `PULPMicrobenchmark` code-transformation pass + `perf_utils.h` helpers report cycles, instructions, stalls and cache misses per layer in `RunNetwork`
 
 ### Changed
 - Use by default `devel` container for GAP9 CI
