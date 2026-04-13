@@ -203,6 +203,9 @@ if __name__ == '__main__':
                             - min: Initalize all variables at their minimal value.
                         """)
     parser.add_argument('--profileTiling', action = "store_true")
+    parser.add_argument('--profileMicrobenchmark',
+                        action = "store_true",
+                        help = 'Wrap each layer with PULP perf-counter microbenchmark instrumentation')
     parser.add_argument('--plotMemAlloc',
                         action = 'store_true',
                         help = 'Turn on plotting of the memory allocation and save it in the deeployState folder\n')
@@ -223,6 +226,9 @@ if __name__ == '__main__':
 
     if args.profileTiling:
         verbosityCfg.tilingProfiling = True
+
+    if args.profileMicrobenchmark:
+        verbosityCfg.microbenchmarkProfiling = True
 
     onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
     graph = gs.import_onnx(onnx_graph)

@@ -24,6 +24,7 @@ from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, Conv
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
+from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPMicrobenchmark import PULPMicrobenchmark
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
@@ -103,7 +104,7 @@ ForkTransformer = CodeTransformation([
     PULPSynchCoresPass(),
     ForkClosure(writeback = False, generateStruct = True),
     TilingVariableReplacementUpdate("L1"),
-    PULPClusterTiling("L2", "L1", MchanDma(), usePerfCounters=True),  # Enable perf counters
+    PULPClusterTiling("L2", "L1", MchanDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
@@ -115,13 +116,14 @@ ForkTransformer = CodeTransformation([
     MemoryManagementGeneration("L2"),
     MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
+    PULPMicrobenchmark(),
 ])
 
 ClusterTransformer = CodeTransformation([
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False, generateStruct = True),
     TilingVariableReplacementUpdate("L1"),
-    PULPClusterTiling("L2", "L1", MchanDma(), usePerfCounters=True),  # Enable perf counters
+    PULPClusterTiling("L2", "L1", MchanDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
@@ -133,6 +135,7 @@ ClusterTransformer = CodeTransformation([
     MemoryManagementGeneration("L2"),
     MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
+    PULPMicrobenchmark(),
 ])
 
 SimpleTransformer = CodeTransformation([

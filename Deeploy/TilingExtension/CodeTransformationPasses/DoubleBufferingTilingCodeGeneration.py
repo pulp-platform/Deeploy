@@ -11,8 +11,8 @@ from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, No
 from Deeploy.TilingExtension.AsyncDma import AnydimAsyncDmaTransferAdapter, AsyncDma, Future
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration import TilingCodeGeneration
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import dictOfArrays
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import PerfCounterProfilingMixIn, \
-    ProfilingPrototypeMixIn, PrototypeTilingMixIn, TilingMetaInfo
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import ProfilingPrototypeMixIn, \
+    PrototypeTilingMixIn, TilingMetaInfo
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TilingCodegen import TilingSchedule, VariableReplacementScheme, stridesFromShape
 
@@ -363,39 +363,4 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
 
         executionBlock = super().generateLoopCode(executionBlock, metaInfo, _openLoopStatements, _ingressDMAStatements,
                                                   _egressDMAStatements, closeLoopStatements)
-        return executionBlock
-
-class PerfCounterDoubleBufferingTilingMixIn(PrototypeTilingMixIn, PerfCounterProfilingMixIn):
-    """
-    Double buffering tiling with performance counter profiling.
-    Provides detailed instruction-level statistics for each tile.
-    """
-
-    @classmethod
-    def generateSetupAndTeardownCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                                     setupStatements: List[CodeSnippet],
-                                     teardownStatements: List[CodeSnippet]) -> ExecutionBlock:
-
-        executionBlock = super().generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements,
-                                                              teardownStatements)
-
-        # Inject performance counter initialization in setup (only once, not per-tile)
-        executionBlock = cls.injectPerfCounterInit(executionBlock, metaInfo)
-
-        # Inject performance counter stop and print in teardown (only once, not per-tile)
-        executionBlock = cls.injectPerfCounterStop(executionBlock, metaInfo)
-
-        return executionBlock
-
-    @classmethod
-    def generateLoopCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
-                         openLoopStatements: List[CodeSnippet], ingressDMAStatements: List[CodeSnippet],
-                         egressDMAStatements: List[CodeSnippet],
-                         closeLoopStatements: List[CodeSnippet]) -> ExecutionBlock:
-
-        # Don't wrap kernel - perf counters measure the whole tiling loop, not individual tiles
-        # executionBlock = cls.injectPerfCounterKernelWrap(executionBlock, metaInfo)
-
-        executionBlock = super().generateLoopCode(executionBlock, metaInfo, openLoopStatements, ingressDMAStatements,
-                                                  egressDMAStatements, closeLoopStatements)
         return executionBlock

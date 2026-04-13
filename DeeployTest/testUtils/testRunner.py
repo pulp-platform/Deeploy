@@ -211,6 +211,9 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
             self.add_argument('--profileTiling', action = 'store_true', help = 'Enable tiling profiling\n')
+            self.add_argument('--profileMicrobenchmark',
+                              action = 'store_true',
+                              help = 'Wrap each layer with PULP perf-counter microbenchmark\n')
             self.add_argument('--memAllocStrategy',
                               metavar = 'memAllocStrategy',
                               dest = 'memAllocStrategy',
@@ -271,6 +274,8 @@ class TestRunnerArgumentParser(argparse.ArgumentParser):
                 command += " --randomizedMemoryScheduler"
             if self.args.profileTiling:
                 command += f" --profileTiling"
+            if self.args.profileMicrobenchmark:
+                command += f" --profileMicrobenchmark"
             if self.args.memAllocStrategy:
                 command += f" --memAllocStrategy={self.args.memAllocStrategy}"
             if self.args.plotMemAlloc:
