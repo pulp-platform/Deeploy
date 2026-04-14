@@ -18,7 +18,7 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.GAP9.DMA.L3Dma import gap9L3DmaHack
+from Deeploy.Targets.GAP9.DMA.L3Dma import GAP9L3Dma
 from Deeploy.Targets.GAP9.DMA.MchanDma import GAP9MchanDma
 # Import templates from PULPOpen and Generic
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, \
@@ -34,6 +34,7 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import 
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
+from Deeploy.Targets.GAP9.Templates import NE16GEMMTemplate
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
     FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
     FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, \
@@ -44,6 +45,7 @@ from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChe
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
     TilingVariableReplacementUpdate
+from Deeploy.Targets.GAP9.Templates import GAP9SDKDequantQuantTemplate
 
 # GAP9-specific transformer using cl_dma.h API
 GAP9Transformer = CodeTransformation([
@@ -57,7 +59,7 @@ GAP9Transformer = CodeTransformation([
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
-    PULPL3Tiling("L3", "L2", gap9L3DmaHack),  # Use GAP9-specific L3 DMA
+    PULPL3Tiling("L3", "L2", GAP9L3Dma()),  # Use GAP9-specific L3 DMA
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
@@ -76,7 +78,7 @@ GAP9ClusterTransformer = CodeTransformation([
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
-    PULPL3Tiling("L3", "L2", gap9L3DmaHack),  # Use GAP9-specific L3 DMA
+    PULPL3Tiling("L3", "L2", GAP9L3Dma()),  # Use GAP9-specific L3 DMA
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
@@ -181,6 +183,23 @@ GAP9RQSGEMM_8_Binding = [
                            PointerClass(int32_t),
                            PointerClass(int32_t)], [PointerClass(type2)]), GEMMTemplate.PULPGEMM_8_Template,
         GAP9Transformer) for type1, type2 in zip([int8_t, uint8_t, int8_t, uint8_t], [int8_t, uint8_t, uint8_t, int8_t])
+]
+
+GAP9NE16RQSGEMMBindings = [
+    NodeBinding(
+        PULPLinearChecker([PointerClass(type1),
+                           PointerClass(int8_t),
+                           PointerClass(int32_t),
+                           PointerClass(uint8_t),
+                           PointerClass(uint8_t)], [PointerClass(type2)]), NE16GEMMTemplate.referenceTemplate,
+        GAP9ClusterTransformer) for type1 in [int8_t, uint8_t] for type2 in [int8_t, uint8_t]
+]
+
+GAP9NE16GEMMInt32Bindings = [
+    NodeBinding(
+        GEMMChecker([PointerClass(type1), PointerClass(int8_t),
+                     PointerClass(int32_t)], [PointerClass(int32_t)]), NE16GEMMTemplate.int32OutputTemplate,
+        GAP9ClusterTransformer) for type1 in [int8_t, uint8_t]
 ]
 
 GAP9FloatGEMMBindings = [
@@ -386,14 +405,17 @@ GAP9GatherBindings = [
 ]
 
 GAP9QuantBindings = [
-    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), QuantTemplate.referenceTemplate,
+    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), GAP9SDKDequantQuantTemplate.fp32QuantI8Template,
+                GAP9Transformer),
+    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(uint8_t)]), GAP9SDKDequantQuantTemplate.fp32QuantU8Template,
                 GAP9Transformer),
 ]
 
 GAP9DequantBindings = [
-    NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+    NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), GAP9SDKDequantQuantTemplate.fp32DequantI8Template,
                 GAP9Transformer),
-] + [
+    NodeBinding(DequantChecker([PointerClass(uint8_t)], [PointerClass(float32_t)]), GAP9SDKDequantQuantTemplate.fp32DequantU8Template,
+                GAP9Transformer),
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 GAP9Transformer),
 ]

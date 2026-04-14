@@ -1177,3 +1177,85 @@ class DequantPatternPass(ReplaceSequentialPatternPass):
 
         name = "_RECOGNIZE_DEQUANT_PASS"
         super().__init__(graph, _recognize_dequant_fun, name)
+
+
+def _merge_dequant_quant_fun(graph: gs.Graph, match: Match, name: str):
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    dequant_node = matched_nodes[0]
+    quant_node = matched_nodes[1]
+
+    # Skip if dequant output has multiple consumers or is a graph output
+    dequant_out = dequant_node.outputs[0]
+    if len(dequant_out.outputs) > 1 or dequant_out in graph.outputs:
+        return graph
+
+    # Extract Dequant parameters (stored as Python floats)
+    s_d = float(dequant_node.attrs['scale'])
+    zp_d = float(dequant_node.attrs['zero_point'])
+
+    # Extract Quant parameters (stored as numpy arrays)
+    s_q = float(np.array(quant_node.attrs['scale']).item())
+    zp_q = float(np.array(quant_node.attrs['zero_point']).item())
+
+    signed_val = int(np.array(quant_node.attrs['signed']).item()) if 'signed' in quant_node.attrs else 1
+    signed = bool(signed_val)
+    bit_width = int(np.array(quant_node.attrs['bit_width']).item()) if 'bit_width' in quant_node.attrs else 8
+    n_levels = 2 ** bit_width
+
+    # Compute effective ratio: y_float = (x_int - zp_d) * s_d * s_q + zp_q
+    ratio = s_d * s_q
+
+    # Identity case: ratio ~= 1.0, both zero points == 0
+    EPSILON = 1e-6
+    if abs(ratio - 1.0) < EPSILON and abs(zp_d) < EPSILON and abs(zp_q) < EPSILON and signed:
+        input_tensor = dequant_node.inputs[0]
+        output_tensor = quant_node.outputs[0]
+        for downstream_node in list(output_tensor.outputs):
+            for i, inp in enumerate(downstream_node.inputs):
+                if inp == output_tensor:
+                    downstream_node.inputs[i] = input_tensor
+        dequant_node.inputs.clear()
+        dequant_node.outputs.clear()
+        quant_node.inputs.clear()
+        quant_node.outputs.clear()
+        graph.cleanup().toposort()
+        return graph
+
+    # Requantization case: convert to RequantShift
+    shift = 16
+    div_val = 2 ** shift
+
+    mul_val = int(np.round(ratio * div_val))
+    add_val = int(np.round((-zp_d * ratio + zp_q) * div_val))
+
+    mul_const = gs.Constant(name = f'{name}_mul', values = np.array([mul_val], dtype = np.int32))
+    add_const = gs.Constant(name = f'{name}_add', values = np.array([add_val], dtype = np.int32))
+
+    rqs_attrs = {
+        'div': gs.Constant(f'{name}_div', np.array(div_val)),
+        'n_levels_out': gs.Constant(f'{name}_n_levels', np.array(n_levels)),
+        'signed': gs.Constant(f'{name}_signed', np.array([signed_val])),
+    }
+
+    _inputs = [dequant_node.inputs[0], mul_const, add_const]
+    _outputs = quant_node.outputs
+
+    rqs_node = gs.Node(op = 'RequantShift', name = name, attrs = rqs_attrs)
+    graph.replaceInsertNode(_inputs, _outputs, rqs_node)
+
+    return graph
+
+
+@contextagnostic
+class DequantQuantMergePass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['dequant_out'], op = 'Dequant', name = 'dequant')
+        output = graph.layer(inputs = output, outputs = ['quant_out'], op = 'Quant', name = 'quant')
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        name = "_MERGE_DEQUANT_QUANT_PASS"
+        super().__init__(graph, _merge_dequant_quant_fun, name)

@@ -27,6 +27,7 @@ target_compile_options(network PRIVATE
     -Wno-pointer-sign
     -Wno-unknown-pragmas
     -Wno-error
+    -O3
   )
 
 target_link_options(${ProjectId} PRIVATE
