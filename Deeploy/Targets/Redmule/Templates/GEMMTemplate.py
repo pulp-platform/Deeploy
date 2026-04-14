@@ -35,7 +35,7 @@ if (${nodeName}_core_id == 0) {
         ${B_type.typeName} batch_B = ${B} + b * ${N} * ${O};
         ${C_type.typeName} batch_C = ${C} + b * ${M} * ${O};
         ${data_out_type.typeName} batch_out = ${data_out} + b * ${M} * ${O};
-        
+
         % if beta == 0:
         MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_Redmule(
             (const float32_t *) batch_A,
@@ -58,5 +58,4 @@ if (${nodeName}_core_id == 0) {
         % endif
     }
 }
-"""
-)
+""")

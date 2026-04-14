@@ -27,8 +27,6 @@ from typing import Dict, List, Tuple, Union
 
 from ortools.constraint_solver.pywrapcp import IntVar
 
-from Deeploy.DeeployTypes import NodeTemplate
-
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
@@ -41,14 +39,15 @@ class RedmuleFloatConvIm2ColTemplate(NodeTemplate):
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-        im2col_dim =  4 * 8 * (operatorRepresentation['ch_im_in'] * operatorRepresentation['dim_kernel_x'] *
+        im2col_dim = 4 * 8 * (operatorRepresentation['ch_im_in'] * operatorRepresentation['dim_kernel_x'] *
                               operatorRepresentation['dim_kernel_y'])
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
         return [(im2col_name, im2col_dim)]
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
                               operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        im2col_name, im2col_dim = RedmuleFloatConvIm2ColTemplate.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
+        im2col_name, im2col_dim = RedmuleFloatConvIm2ColTemplate.computeTransientBuffersSize(
+            ctxt, operatorRepresentation)[0]
         ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
 
         operatorRepresentation['ctxtBuffer'] = im2col_name
@@ -56,30 +55,30 @@ class RedmuleFloatConvIm2ColTemplate(NodeTemplate):
         return ctxt, operatorRepresentation, [im2col_name]
 
 
-reference2DIm2ColTemplate = RedmuleFloatConvIm2ColTemplate   ("""
-// 2D FP Conv HWC Parallel with Im2Col (Name: ${nodeName}, Op: ${nodeOp})                                               
+reference2DIm2ColTemplate = RedmuleFloatConvIm2ColTemplate("""
+// 2D FP Conv HWC Parallel with Im2Col (Name: ${nodeName}, Op: ${nodeOp})
 ${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
 ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
-for (uint32_t n=0; n<${batch}; ++n) {   
-    
+for (uint32_t n=0; n<${batch}; ++n) {
+
     Conv2d_Im2Col_fp${data_in_type.referencedType.typeWidth}_fp${weight_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}_HWC_8_Redmule(
-        ref_${data_out}_${data_in},            
-        ${dim_im_in_y},                      
-        ${dim_im_in_x},                      
-        ${ch_im_in},                          
-        ${weight},                       
-        ${dim_kernel_y},                      
-        ${dim_kernel_x},                      
-        ${stride_y},                          
-        ${stride_x},                          
-        ref_${data_out}_${data_out},         
-        ${ch_im_out},                                   
-        ${padding_y_top},                    
-        ${padding_y_bottom},                  
-        ${padding_x_left},                    
-        ${padding_x_right},                   
-        ${ctxtBuffer}       
+        ref_${data_out}_${data_in},
+        ${dim_im_in_y},
+        ${dim_im_in_x},
+        ${ch_im_in},
+        ${weight},
+        ${dim_kernel_y},
+        ${dim_kernel_x},
+        ${stride_y},
+        ${stride_x},
+        ref_${data_out}_${data_out},
+        ${ch_im_out},
+        ${padding_y_top},
+        ${padding_y_bottom},
+        ${padding_x_left},
+        ${padding_x_right},
+        ${ctxtBuffer}
     );
 
     ref_${data_out}_${data_in} += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};

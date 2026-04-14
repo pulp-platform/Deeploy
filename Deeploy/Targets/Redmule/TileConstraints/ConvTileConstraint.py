@@ -1,5 +1,3 @@
-
-
 # ----------------------------------------------------------------------
 #
 # File: ConvTileConstraint.py
@@ -34,10 +32,9 @@ from Deeploy.CommonExtensions.DataTypes import uint8_t, uint16_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
-from Deeploy.TilingExtension.TilerModel import TilerModel, PerformanceHint
+from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme
-
 
 
 class RedmuleConv2DTileConstraint(TileConstraint):
@@ -109,7 +106,7 @@ class RedmuleConv2DTileConstraint(TileConstraint):
         padding = parseDict["pads"]
 
         tilerModel.addConstraint(inputChannelVar == parseDict['ch_im_in'])
-        # RW: Conv only tiled on outchannel 
+        # RW: Conv only tiled on outchannel
         tilerModel.addConstraint(inputHeightVar == parseDict['dim_im_in_x'])
         tilerModel.addConstraint(inputWidthVar == parseDict['dim_im_in_y'])
         tilerModel.addConstraint(inputChannelVar == parseDict['ch_im_in'])
@@ -127,7 +124,6 @@ class RedmuleConv2DTileConstraint(TileConstraint):
                                                       strategy = PerformanceHint(priority = 1))
         else:
             tilerModel.addConstraint(weightOutChannelVar == weightOutChannelVar.Max(), strategy = PerformanceHint(1))
-        
 
         return tilerModel
 
@@ -243,9 +239,9 @@ class RedmuleConv2DTileConstraint(TileConstraint):
             (BatchOffset, HOffset, WOffset, COffset) = cube.offset
             (BatchSize, HSize, WSize, CSize) = cube.dims
 
-            InCube, padding_tuple = RedmuleConv2DTileConstraint.computeInputCube((weightH, weightW), pads, strides, weightC,
-                                                                          cube,
-                                                                          ctxt.lookup(varOut).shape)
+            InCube, padding_tuple = RedmuleConv2DTileConstraint.computeInputCube((weightH, weightW), pads, strides,
+                                                                                 weightC, cube,
+                                                                                 ctxt.lookup(varOut).shape)
 
             padding_left, padding_right, padding_top, padding_bottom = padding_tuple
 

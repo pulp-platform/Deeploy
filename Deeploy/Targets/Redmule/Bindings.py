@@ -26,13 +26,13 @@
 # limitations under the License.
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import  float32_t
+from Deeploy.CommonExtensions.DataTypes import float32_t
 from Deeploy.DeeployTypes import NodeBinding
-from Deeploy.Targets.Generic.TypeCheckers import MatMulChecker, ConvChecker, GEMMChecker
-from Deeploy.Targets.Redmule.Templates import MatmulTemplate, ConvTemplate, GEMMTemplate  
+from Deeploy.Targets.Generic.TypeCheckers import ConvChecker, GEMMChecker, MatMulChecker
 from Deeploy.Targets.PULPOpen.Bindings import ForkTransformer
+from Deeploy.Targets.Redmule.Templates import ConvTemplate, GEMMTemplate, MatmulTemplate
 
-RedmuleMatmulBindings =  [
+RedmuleMatmulBindings = [
     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 MatmulTemplate.referenceTemplate, ForkTransformer)
 ]

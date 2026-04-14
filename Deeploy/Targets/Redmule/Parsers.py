@@ -25,14 +25,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
 from typing import Tuple
 
 import numpy as np
 import onnx_graphsurgeon as gs
 
-from Deeploy.DeeployTypes import NetworkContext, NodeParser
+from Deeploy.DeeployTypes import NetworkContext
 from Deeploy.Targets.Generic.Parsers import MatMulParser
+
 
 class GEMMRedmuleParser(MatMulParser):
 
@@ -42,11 +42,7 @@ class GEMMRedmuleParser(MatMulParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
 
-        ret = all([
-            len(node.inputs) >= 2,
-            len(node.outputs) == 1,
-            node.attrs['alpha'] == 1
-        ])
+        ret = all([len(node.inputs) >= 2, len(node.outputs) == 1, node.attrs['alpha'] == 1])
 
         if ret:
             if 'transA' in node.attrs:
@@ -66,7 +62,7 @@ class GEMMRedmuleParser(MatMulParser):
                 self.operatorRepresentation['beta'] = node.attrs['beta']
             else:
                 self.operatorRepresentation['beta'] = 1
-        
+
         return ret
 
     def parseNodeCtxt(self,

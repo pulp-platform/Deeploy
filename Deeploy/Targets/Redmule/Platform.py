@@ -24,13 +24,12 @@
 # limitations under the License.
 
 from Deeploy.DeeployTypes import TopologyOptimizer
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPConstantBuffer, PULPOptimizer, PULPPlatform, \
+    PULPStructBuffer, PULPTransientBuffer, PULPVariableBuffer
 from Deeploy.Targets.Redmule.Engine import RedmuleEngine
-from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, \
-    PULPOptimizer, PULPPlatform, PULPStructBuffer, PULPTransientBuffer, PULPVariableBuffer, PULPConstantBuffer
 
-RedmuleOptimizer = TopologyOptimizer([
-    *PULPOptimizer.passes
-])
+RedmuleOptimizer = TopologyOptimizer([*PULPOptimizer.passes])
+
 
 class RedmulePlatform(PULPPlatform):
 
@@ -41,5 +40,3 @@ class RedmulePlatform(PULPPlatform):
                  structBuffer = PULPStructBuffer,
                  transientBuffer = PULPTransientBuffer) -> None:
         super().__init__(engines, variableBuffer, constantBuffer, structBuffer, transientBuffer)
-
-

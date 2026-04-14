@@ -26,11 +26,11 @@
 from typing import Dict, List, Tuple
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import int8_t, uint16_t, uint32_t
+from Deeploy.CommonExtensions.DataTypes import int8_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
-from Deeploy.TilingExtension.TilerModel import TilerModel, PerformanceHint
+from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme
 
@@ -100,7 +100,6 @@ class RedmuleMatmulTileConstraint(TileConstraint):
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])
         tilerModel.addConstraint(BFirstDimVar == parseDict['N'])
 
-
         # Hardware-specific constraints for 4x12 accelerator
         tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
 
@@ -123,7 +122,7 @@ class RedmuleMatmulTileConstraint(TileConstraint):
                                                       strategy = PerformanceHint(priority = 1))
         else:
             tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
-        
+
         return tilerModel
 
     @classmethod

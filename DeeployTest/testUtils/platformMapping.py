@@ -33,7 +33,9 @@ from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "Siracusa_w_redmule", "PULPOpen", "Snitch", "Chimera", "GAP9"]
+_NONSIGNPROP_PLATFORMS = [
+    "Siracusa", "Siracusa_w_neureka", "Siracusa_w_redmule", "PULPOpen", "Snitch", "Chimera", "GAP9"
+]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 

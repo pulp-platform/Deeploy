@@ -30,7 +30,10 @@ import onnx_graphsurgeon as gs
 from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
-from Deeploy.Targets.Redmule.TopologyOptimizationPasses.Passes import RedMuleAdjustWeightMemoryLayoutPass, RedMuleGEMMTransposePass
+from Deeploy.Targets.Redmule.TopologyOptimizationPasses.Passes import RedMuleAdjustWeightMemoryLayoutPass, \
+    RedMuleGEMMTransposePass
+
+
 class RedmuleDeployer(PULPDeployer):
 
     def __init__(self,
@@ -45,7 +48,7 @@ class RedmuleDeployer(PULPDeployer):
                  inputOffsets = {}):
         super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
                          default_channels_first, deeployStateDir, inputOffsets)
-        
+
         self.loweringOptimizer.passes += [
             RedMuleAdjustWeightMemoryLayoutPass("Redmule"),
             RedMuleGEMMTransposePass("Redmule")

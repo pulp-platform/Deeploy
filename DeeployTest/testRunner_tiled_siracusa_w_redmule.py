@@ -46,5 +46,4 @@ if __name__ == "__main__":
 
     testRunner.cmake_args += f" -D NUM_CORES={args.cores}"
 
-
     testRunner.run()

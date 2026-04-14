@@ -1,4 +1,3 @@
-
 # ----------------------------------------------------------------------
 #
 # File: GEMMTileConstraint.py
@@ -24,7 +23,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 
 from typing import Dict, List, Tuple
 
@@ -85,25 +83,27 @@ class RedmuleGEMMTileConstraint(TileConstraint):
     def addPolicyConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
         from Deeploy.TilingExtension.TilerModel import PerformanceHint
 
-        bufferA = ctxt.lookup(name=parseDict['A'])
-        bufferB = ctxt.lookup(name=parseDict['B'])
+        bufferA = ctxt.lookup(name = parseDict['A'])
+        bufferB = ctxt.lookup(name = parseDict['B'])
 
         tensorsShapeLen = min(len(bufferA.shape), len(bufferB.shape))
-        
+
         dimOffsetA = len(bufferA.shape) - 2
         dimOffsetB = len(bufferB.shape) - 2
 
-        AFirstDimVar = tilerModel.getTensorDimVar(tensorName=bufferA.name, dimIdx=dimOffsetA + parseDict['transA'])
-        ASecondDimVar = tilerModel.getTensorDimVar(tensorName=bufferA.name, dimIdx=dimOffsetA + 1 - parseDict['transA'])
-        BFirstDimVar = tilerModel.getTensorDimVar(tensorName=bufferB.name, dimIdx=dimOffsetB + parseDict['transB'])
-        BSecondDimVar = tilerModel.getTensorDimVar(tensorName=bufferB.name, dimIdx=dimOffsetB + 1 - parseDict['transB'])
+        AFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name, dimIdx = dimOffsetA + parseDict['transA'])
+        ASecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferA.name,
+                                                   dimIdx = dimOffsetA + 1 - parseDict['transA'])
+        BFirstDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name, dimIdx = dimOffsetB + parseDict['transB'])
+        BSecondDimVar = tilerModel.getTensorDimVar(tensorName = bufferB.name,
+                                                   dimIdx = dimOffsetB + 1 - parseDict['transB'])
 
         # VIC: We don't want to deal with intermediate results between kernel calls
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])
         tilerModel.addConstraint(BFirstDimVar == parseDict['N'])
 
-        tilerModel.addConstraint(AFirstDimVar == AFirstDimVar.Max(), strategy=PerformanceHint(1))
-        tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy=PerformanceHint(1))
+        tilerModel.addConstraint(AFirstDimVar == AFirstDimVar.Max(), strategy = PerformanceHint(1))
+        tilerModel.addConstraint(BSecondDimVar == BSecondDimVar.Max(), strategy = PerformanceHint(1))
 
         return tilerModel
 
