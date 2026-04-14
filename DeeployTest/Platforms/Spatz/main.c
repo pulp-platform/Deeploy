@@ -10,13 +10,12 @@
 int main() {
   const unsigned int core_id = snrt_cluster_core_idx();
 
-  // this is what the snrt functions tell but is it real?
+  printf("Running on %d cores\r\n", snrt_cluster_core_num());
   if (snrt_is_dm_core()){printf("dm core is core number %d\r\n", core_id);}
   snrt_cluster_hw_barrier();
 
   // do it only with one of the two spatz cores
   if (snrt_is_dm_core()){
-    printf("Running on %d cores\r\n", snrt_cluster_core_num());
 
     printf("Initializing network...\r\n");
     InitNetwork(0, 1);
@@ -29,8 +28,12 @@ int main() {
     snrt_dma_wait_all();
 
     printf("Running network...\r\n");
-    RunNetwork(0, 1);
+  }
 
+  if (snrt_is_dm_core()){RunNetwork(core_id, 2);}
+  snrt_cluster_hw_barrier();
+  
+  if (snrt_is_dm_core()){
     printf("Checking Outputs...\r\n");
     int32_t tot_err = 0;
     uint32_t tot = 0;
@@ -67,7 +70,11 @@ int main() {
     }
 
     printf("Errors: %d out of %d \r\n", tot_err, tot);
-  } 
+  }
+
+  printf("core %d arrived at the end\r\n", core_id);
   snrt_cluster_hw_barrier();
+  printf("We are after hw barrier\r\n");
+
   return 0;
 }

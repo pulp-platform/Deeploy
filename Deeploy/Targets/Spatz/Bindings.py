@@ -12,7 +12,7 @@ from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGen
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterTiling import SnitchClusterTiling
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchCoreFilter import SnitchCoreFilterPass
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterSynch import SnitchSynchCoresPass
-from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
+from Deeploy.Targets.Spatz.DMA.SpatzDma import SpatzDma
 from Deeploy.Targets.Spatz.Templates import GatherTemplate, MatMulTemplate as SpatzMatMulTemplate
 from Deeploy.Targets.Generic.Templates import MatMulTemplate, FloatMatMulTemplate
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -35,7 +35,7 @@ TiledTransformer = CodeTransformation([
     TilingCallClosure(writeback = False),
     SnitchSynchCoresPass(), # snrt_cluster_hw_barrier()
     TilingVariableReplacementUpdate("L1"),
-    SnitchClusterTiling("L2", "L1", SnitchDma()),
+    SnitchClusterTiling("L2", "L1", SpatzDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
