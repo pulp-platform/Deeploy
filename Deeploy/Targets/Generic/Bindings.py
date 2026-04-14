@@ -291,12 +291,15 @@ BasicConcatBindings = [
 BasicQuantBindings = [
     NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), QuantTemplate.referenceTemplate,
                 BasicTransformer),
+    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(uint8_t)]), QuantTemplate.referenceTemplate,
+                BasicTransformer),
 ]
 
 BasicDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 BasicTransformer),
-] + [
+    NodeBinding(DequantChecker([PointerClass(uint8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                BasicTransformer),
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 BasicTransformer),
 ]
