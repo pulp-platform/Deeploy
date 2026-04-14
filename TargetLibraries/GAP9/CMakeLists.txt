@@ -5,9 +5,17 @@
 file(GLOB_RECURSE SOURCES
   "src/**"
   "$ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_fp32/CNN_Bias_Linear_Activation_fp32.c"
-  "$ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_NE16/CNN_BasicKernels_NE16.c"
   "$ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries/CNN_Copy.c"
 )
+
+# CNN_BasicKernels_NE16 from gap9-sdk redefines NE16_REG_* macros that
+# pulp-nnx's ne16 hal also defines. For GAP9_w_NE16 we use the pulp-nnx
+# NE16 stack; for plain GAP9 (Pu DENG's NE16-Linear path) we use the SDK's.
+if(NOT platform STREQUAL "GAP9_w_NE16")
+  list(APPEND SOURCES
+    "$ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_HWPE/CNN_BasicKernels_NE16.c"
+  )
+endif()
 
 
 # Exclude dory_mem and dory_dma from SOURCES (they need different optimization)
@@ -48,7 +56,6 @@ target_include_directories(deeploygap9
   ${TILER_EMU_INC}
   ${TILER_CNN_KERNEL_PATH_FP32}
   ${TILER_CNN_KERNEL_PATH_FP16}
-  $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_NE16
   $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_SQ8
   $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries
   ${TILER_DSP_KERNEL_V2_PATH}

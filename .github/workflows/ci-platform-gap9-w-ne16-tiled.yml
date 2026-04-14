@@ -17,7 +17,7 @@ name: CI • GAP9 + NE16 (Tiled)
       docker_image_deeploy:
         description: "Deeploy Image to use"
         required: false
-        default: "ghcr.io/pulp-platform/deeploy-gap9:latest"
+        default: "ghcr.io/pulp-platform/deeploy-gap9:devel"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,9 +25,15 @@ concurrency:
 
 jobs:
   select-env:
+    # The GAP9 + NE16 image is hosted in pulp-platform's private ghcr.io
+    # registry; only upstream's self-hosted runners have credentials to
+    # pull it. On forks the docker pull always returns "denied", so skip
+    # the whole pipeline cleanly there. (Same constraint as the existing
+    # ci-platform-gap9{,-tiled}.yml jobs.)
+    if: github.repository == 'pulp-platform/Deeploy'
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || github.repository == 'pulp-platform/Deeploy' && 'ghcr.io/pulp-platform/deeploy-gap9:latest'}}
+      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:devel' }}
 
   gap9-w-ne16-kernels-tiled-singlebuffer-L2:
     needs: select-env

@@ -28,7 +28,17 @@ class NE16Platform(GAP9Platform):
                  structBuffer = GAP9StructBuffer,
                  transientBuffer = GAP9TransientBuffer) -> None:
         if engines is None:
-            engines = [NE16Engine("NE16"), GAP9ClusterEngine("GAP9Cluster")]
+            # Drop SDK NE16 headers from the cluster engine include list so the
+            # generated Network.c does not pull in CNN_BasicKernels_NE16.h /
+            # ne16_utils.h alongside pulp-nnx's ne16_task_defs.h
+            # (NE16_REG_* macros are defined in both, causing -Werror redefs).
+            cluster = GAP9ClusterEngine(
+                "GAP9Cluster",
+                includeList = [
+                    "pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h", "CNN_BasicKernels_fp32.h"
+                ],
+            )
+            engines = [NE16Engine("NE16"), cluster]
         super().__init__(engines, variableBuffer, constantBuffer, structBuffer, transientBuffer)
 
 
@@ -44,7 +54,17 @@ class MemoryNE16Platform(MemoryGAP9Platform):
                  structBuffer = GAP9StructBuffer,
                  transientBuffer = GAP9TransientBuffer) -> None:
         if engines is None:
-            engines = [NE16Engine("NE16"), GAP9ClusterEngine("GAP9Cluster")]
+            # Drop SDK NE16 headers from the cluster engine include list so the
+            # generated Network.c does not pull in CNN_BasicKernels_NE16.h /
+            # ne16_utils.h alongside pulp-nnx's ne16_task_defs.h
+            # (NE16_REG_* macros are defined in both, causing -Werror redefs).
+            cluster = GAP9ClusterEngine(
+                "GAP9Cluster",
+                includeList = [
+                    "pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h", "CNN_BasicKernels_fp32.h"
+                ],
+            )
+            engines = [NE16Engine("NE16"), cluster]
         super().__init__(memoryHierarchy, defaultTargetMemoryLevel, engines, variableBuffer, constantBuffer,
                          structBuffer, transientBuffer)
         self.weightMemoryLevel = weightMemoryLevel
