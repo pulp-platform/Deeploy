@@ -24,12 +24,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # GAP9 CI requires access to the private ghcr.io/pulp-platform/deeploy-gap9
+  # image; gate on upstream org so forks skip cleanly.
   select-env:
+    if: github.repository_owner == 'pulp-platform'
     uses: ./.github/workflows/_select-env.yml
     with:
       docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:devel' }}
 
   gap9-kernels-tiled-singlebuffer-L2:
+    if: github.repository_owner == 'pulp-platform'
     needs: select-env
     uses: ./.github/workflows/_runner-gap9-tiled.yml
     with:
@@ -38,6 +42,7 @@ jobs:
       pytest-markers: "gap9_tiled and kernels and singlebuffer and l2"
 
   gap9-kernels-tiled-doublebuffer-L2:
+    if: github.repository_owner == 'pulp-platform'
     needs: select-env
     uses: ./.github/workflows/_runner-gap9-tiled.yml
     with:
@@ -46,6 +51,7 @@ jobs:
       pytest-markers: "gap9_tiled and kernels and doublebuffer and l2"
 
   gap9-models-tiled-singlebuffer-L2:
+    if: github.repository_owner == 'pulp-platform'
     needs: select-env
     uses: ./.github/workflows/_runner-gap9-tiled.yml
     with:
@@ -54,6 +60,7 @@ jobs:
       pytest-markers: "gap9_tiled and models and singlebuffer and l2"
 
   gap9-models-tiled-doublebuffer-L2:
+    if: github.repository_owner == 'pulp-platform'
     needs: select-env
     uses: ./.github/workflows/_runner-gap9-tiled.yml
     with:
