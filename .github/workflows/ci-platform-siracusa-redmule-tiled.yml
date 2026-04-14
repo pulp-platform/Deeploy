@@ -27,7 +27,11 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
+      # RedMulE CI needs the fork's custom Docker image that bundles a
+      # GVSoC build with the light_redmule model. Fall back to
+      # runwangdl/deeploy:redmule on push/PR events (when no input is
+      # provided) rather than the upstream devel image.
+      docker_image_deeploy: ${{ inputs.docker_image_deeploy || 'ghcr.io/runwangdl/deeploy:redmule' }}
 
   siracusa-redmule-kernels-tiled-singlebuffer-L2:
     needs: select-env
