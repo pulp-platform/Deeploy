@@ -32,12 +32,12 @@ jobs:
           sphinx-build docs _build
       - name: Prepare Multipages
         uses: xeratec/gh-pages-multibranch@pr/support_tags
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.repository_owner == 'pulp-platform' }}
         with:
           directory: _build
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch'}}
+        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.repository_owner == 'pulp-platform' }}
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
