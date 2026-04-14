@@ -23,6 +23,9 @@ jobs:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.docker-image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Mark workspace as safe
         run: git config --global --add safe.directory '*'
