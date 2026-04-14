@@ -15,7 +15,7 @@ from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
 from Deeploy.Targets.CortexM.Platform import CMSISOptimizer, CMSISPlatform
 from Deeploy.Targets.GAP9.Deployer import GAP9Deployer
-from Deeploy.Targets.GAP9.Platform import GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper
+from Deeploy.Targets.GAP9.Platform import GAP9Optimizer, GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
 from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericPlatform
 from Deeploy.Targets.MemPool.Deployer import MemPoolDeployer
@@ -234,7 +234,7 @@ def mapDeployer(platform: DeploymentPlatform,
     elif isinstance(platform, (GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper)):
 
         if loweringOptimizer is None:
-            loweringOptimizer = PULPOptimizer
+            loweringOptimizer = GAP9Optimizer
 
         if default_channels_first is None:
             default_channels_first = False

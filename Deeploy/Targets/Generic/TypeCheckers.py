@@ -543,6 +543,15 @@ class QuantChecker(SignPropTypeChecker):
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
         super().__init__(input_types, output_types)
 
+    def checkOutputType(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> bool:
+        outputTypeSigned = self.output_types[0].referencedType.typeMin < 0
+        opSigned = bool(operatorRepresentation['signed'])
+        if opSigned and outputTypeSigned:
+            return True
+        if (not opSigned) and (not outputTypeSigned):
+            return True
+        return False
+
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         # Calculate number of levels based on bit_width
