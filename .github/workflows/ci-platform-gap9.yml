@@ -26,6 +26,9 @@ concurrency:
 
 jobs:
   select-env:
+    # ghcr.io/pulp-platform/deeploy-gap9 is private; only upstream's
+    # self-hosted runners have credentials. Skip cleanly on forks.
+    if: github.repository == 'pulp-platform/Deeploy'
     uses: ./.github/workflows/_select-env.yml
     with:
       docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:devel' }}
