@@ -30,8 +30,8 @@ int main() {
     printf("Running network...\r\n");
   }
 
-  if (snrt_is_dm_core()){RunNetwork(core_id, 2);}
   snrt_cluster_hw_barrier();
+  RunNetwork(core_id, 2);
   
   if (snrt_is_dm_core()){
     printf("Checking Outputs...\r\n");
