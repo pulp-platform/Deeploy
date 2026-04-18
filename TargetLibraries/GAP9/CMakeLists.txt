@@ -58,6 +58,7 @@ target_include_directories(deeploygap9
   ${TILER_CNN_KERNEL_PATH_FP16}
   $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_SQ8
   $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries
+  $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_HWPE
   ${TILER_DSP_KERNEL_V2_PATH}
   ${TILER_DSP_KERNEL_V2_PATH}/FastMathFunctions
 )
