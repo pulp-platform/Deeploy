@@ -35,7 +35,8 @@ class NE16Platform(GAP9Platform):
             cluster = GAP9ClusterEngine(
                 "GAP9Cluster",
                 includeList = [
-                    "pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h", "CNN_BasicKernels_fp32.h"
+                    "pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h", "CNN_BasicKernels_fp32.h",
+                    "CycleCounter.h"
                 ],
             )
             engines = [NE16Engine("NE16"), cluster]
@@ -61,7 +62,8 @@ class MemoryNE16Platform(MemoryGAP9Platform):
             cluster = GAP9ClusterEngine(
                 "GAP9Cluster",
                 includeList = [
-                    "pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h", "CNN_BasicKernels_fp32.h"
+                    "pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h", "CNN_BasicKernels_fp32.h",
+                    "CycleCounter.h"
                 ],
             )
             engines = [NE16Engine("NE16"), cluster]

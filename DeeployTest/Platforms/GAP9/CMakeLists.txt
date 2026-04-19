@@ -17,6 +17,9 @@ add_deeploy_executable(${ProjectId} EXCLUDE_FROM_ALL ${SOURCES})
 # add_executable(${ProjectId} ${SOURCES})
 target_include_directories(${ProjectId} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc)
 
+# Network.c needs CycleCounter.h when --profileTiling is enabled
+target_include_directories(network PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc)
+
 target_link_libraries(${ProjectId} PRIVATE network deeploylib)
 target_compile_options(${ProjectId} INTERFACE network)
 add_gvsoc_emulation(${ProjectId} "gap9.evk")
