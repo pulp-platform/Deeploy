@@ -239,6 +239,9 @@ def create_config_from_args(args: argparse.Namespace,
         if hasattr(args, 'plotMemAlloc') and args.plotMemAlloc:
             gen_args_list.append("--plotMemAlloc")
 
+    if getattr(args, 'enable_3x3', False):
+        gen_args_list.append("--enable-3x3")
+
     if not tiling and getattr(args, 'profileUntiled', False):
         gen_args_list.append("--profileUntiled")
 
