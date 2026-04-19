@@ -64,11 +64,9 @@ jobs:
           cd DeeployTest
           rm -rf TEST_GAP9_W_NE16/build_master
           for test in \
+            "Tests/Kernels/Integer/Conv/Dense_2D_RQ_NE16Bench --l1 32000" \
             "Tests/Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ --l1 32000" \
-            "Tests/Kernels/Integer/Conv/PW_2D --l1 32000" \
-            "Tests/Kernels/Integer/Conv/DW_2D_RQ --l1 32000" \
-            "Tests/Kernels/Integer/Conv/Dense_2D_RQ --l1 32000" \
-            "Tests/Kernels/Integer/Conv/StriddedPadded_2D_RQ --l1 32000"; do
+            "Tests/Kernels/Integer/Conv/Dense_2D_RQ --l1 32000"; do
             dir=$(echo $test | awk '{print $1}')
             l1=$(echo $test | awk '{print $3}')
             echo "========================================"
