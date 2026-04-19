@@ -62,6 +62,7 @@ jobs:
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
           cd DeeployTest
+          rm -rf TEST_GAP9_W_NE16/build_master
           for test in \
             "Tests/Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ --l1 32000" \
             "Tests/Kernels/Integer/Conv/PW_2D --l1 32000" \
@@ -76,7 +77,8 @@ jobs:
             python3 deeployRunner_tiled_gap9_w_ne16.py \
               -t "$dir" --l1 "$l1" \
               --toolchain GCC --toolchain-install-dir /app/install/gcc/gap9 \
-              --cores 8 --enable-3x3 --profileTiling -v 2>&1 || true
+              --cores 8 --enable-3x3 --profileTiling -v \
+              -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF 2>&1 || true
           done
           deactivate
         shell: bash
