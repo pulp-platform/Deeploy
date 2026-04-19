@@ -52,3 +52,31 @@ jobs:
           pytest test_platforms.py -v -m "${{ inputs.pytest-markers }}"
           deactivate
         shell: bash
+      - name: NE16 Profiling (cycle counts)
+        if: always()
+        run: |
+          source /app/install/gap9-sdk/.gap9-venv/bin/activate
+          source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
+          export GVSOC_INSTALL_DIR=/app/install/gap9-sdk/install/workstation
+          export GAP_RISCV_GCC_TOOLCHAIN=/app/install/gcc/gap9
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          cd DeeployTest
+          for test in \
+            "Tests/Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ --l1 32000" \
+            "Tests/Kernels/Integer/Conv/PW_2D --l1 32000" \
+            "Tests/Kernels/Integer/Conv/DW_2D_RQ --l1 32000" \
+            "Tests/Kernels/Integer/Conv/Dense_2D_RQ --l1 32000" \
+            "Tests/Kernels/Integer/Conv/StriddedPadded_2D_RQ --l1 32000"; do
+            dir=$(echo $test | awk '{print $1}')
+            l1=$(echo $test | awk '{print $3}')
+            echo "========================================"
+            echo "PROFILING: $dir (L1=$l1)"
+            echo "========================================"
+            python3 deeployRunner_tiled_gap9_w_ne16.py \
+              -t "$dir" --l1 "$l1" \
+              --toolchain GCC --toolchain-install-dir /app/install/gcc/gap9 \
+              --cores 8 --enable-3x3 --profileTiling -v 2>&1 || true
+          done
+          deactivate
+        shell: bash
