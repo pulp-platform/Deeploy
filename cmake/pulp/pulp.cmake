@@ -155,7 +155,7 @@ macro(add_pulp_open_vsim_simulation name)
 
     COMMAND ${CMAKE_COMMAND} -E env
       VSIM_RUNNER_FLAGS=+ENTRY_POINT=${ENTRY_POINT}
-      ${QUESTA} -64
+      ${QUESTA} -64 -c
         -gBAUDRATE=115200
         -gLOAD_L2=JTAG
         -permit_unmatched_virtual_intf
@@ -163,6 +163,38 @@ macro(add_pulp_open_vsim_simulation name)
         -do "source ${VSIM_PATH}/tcl_files/run.tcl;"
 
     COMMENT "Simulating ${name} with vsim"
+    POST_BUILD
+    USES_TERMINAL
+    VERBATIM
+  )
+
+  add_custom_target(vsim.gui_${name}
+    DEPENDS ${name} ${SIM_DIRS}
+    WORKING_DIRECTORY ${TARGET_BUILD_DIR}
+
+    COMMAND ${CMAKE_COMMAND} -E env
+      VSIM_PATH=${VSIM_PATH}
+      VSIM_RUNNER_FLAGS=+ENTRY_POINT=${ENTRY_POINT}
+      $ENV{PULP_SDK_HOME}/bin/stim_utils.py --binary=${TARGETS} --vectors=${TARGET_BUILD_DIR}/vectors/stim.txt
+
+    COMMAND $ENV{PULP_SDK_HOME}/bin/plp_mkflash
+      --flash-boot-binary=${TARGETS}
+      --stimuli=${TARGET_BUILD_DIR}/vectors/qspi_stim.slm
+      --flash-type=spi --qpi
+
+    COMMAND $ENV{PULP_SDK_HOME}/bin/slm_hyper.py
+      --input=${TARGET_BUILD_DIR}/vectors/qspi_stim.slm
+      --output=${TARGET_BUILD_DIR}/vectors/hyper_stim.slm
+
+    COMMAND ${CMAKE_COMMAND} -E env
+      VSIM_RUNNER_FLAGS=+ENTRY_POINT=${ENTRY_POINT}
+      ${QUESTA} -64
+        -gBAUDRATE=115200
+        -gLOAD_L2=JTAG
+        -permit_unmatched_virtual_intf
+        -do "source ${VSIM_PATH}/tcl_files/run_gui.tcl;"
+
+    COMMENT "Simulating ${name} with vsim in gui mode"
     POST_BUILD
     USES_TERMINAL
     VERBATIM

@@ -98,10 +98,12 @@ int main(void) {
   pi_cluster_task(&cluster_task, RunNetwork, NULL);
   cluster_task.stack_size = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
+  plp_idma_enable_clk();
   ResetTimer();
   StartTimer();
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
   StopTimer();
+  plp_idma_disable_clk();
 
 #ifndef CI
   printf("Output:\r\n");
