@@ -24,6 +24,8 @@ from Deeploy.TilingExtension.TilerModel import TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme
 
+from Deeploy.Targets.XDNA2.TileConstraints.DivisibilityHelper import addDivisibilityConstraints
+
 
 class XDNA2LayerNormTileConstraint(TileConstraint):
 
@@ -45,6 +47,13 @@ class XDNA2LayerNormTileConstraint(TileConstraint):
         tilerModel.addConstraint(
             tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = lastDimIdx) == lastDimLen)
 
+        # Constrain tile to exactly one row: the kernel normalises a single row
+        # per invocation (cols elements).  Multi-row tiles cause corrupted output
+        # on AIE2 hardware (llvm-aie codegen issue with row loops).
+        for dimIdx in range(lastDimIdx):
+            tilerModel.addConstraint(
+                tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = dimIdx) == 1)
+
         # Scale and bias are 1-D, matching the last dimension
         tilerModel.addConstraint(
             tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = lastDimIdx) == tilerModel.getTensorDimVar(
@@ -58,6 +67,9 @@ class XDNA2LayerNormTileConstraint(TileConstraint):
             tilerModel.addConstraint(
                 tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = idx) == tilerModel.getTensorDimVar(
                     tensorName = outputBufferName, dimIdx = idx))
+
+        # XDNA2: no remainder tiles — every dim must evenly divide the full shape
+        addDivisibilityConstraints(tilerModel, outputBufferName, ctxt)
 
         return tilerModel
 

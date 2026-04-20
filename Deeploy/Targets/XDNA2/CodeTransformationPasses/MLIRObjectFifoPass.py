@@ -27,6 +27,7 @@ import aie.ir as ir
 import numpy as np
 from aie.dialects import aie as aie_d
 
+from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
 if TYPE_CHECKING:
@@ -35,29 +36,23 @@ if TYPE_CHECKING:
 MAX_TILE_SIZE = 1024
 
 
-def _deriveTileSize(numElements: int, patternMemoryConstraint) -> int:
-    """Extract tile size from the tiling solution, or fall back to MAX_TILE_SIZE."""
-    tileSize = min(numElements, MAX_TILE_SIZE)
+def _deriveTileShape(numElements: int, patternMemoryConstraint) -> Tuple[int, ...]:
+    """Extract the N-D tile shape from the tiling solution.
 
-    if patternMemoryConstraint is not None:
-        try:
-            nodeConstraint = patternMemoryConstraint.nodeConstraints[0]
-            outputConstraints = nodeConstraint.outputTensorMemoryConstraints
-            if outputConstraints:
-                firstOutputName = list(outputConstraints.keys())[0]
-                tensorConstraint = outputConstraints[firstOutputName]
-                if "L1" in tensorConstraint.memoryConstraints:
-                    l1Constraint = tensorConstraint.memoryConstraints["L1"]
-                    if l1Constraint.shape is not None:
-                        tileSize = int(np.prod(l1Constraint.shape))
-        except (AttributeError, IndexError, KeyError):
-            pass
+    Returns the solver's ``l1Constraint.shape`` directly.
+    """
 
-    # Ensure tile_size evenly divides num_elements
-    if numElements % tileSize != 0:
-        tileSize = max(d for d in range(1, tileSize + 1) if numElements % d == 0)
-
-    return tileSize
+    nodeConstraint = patternMemoryConstraint.nodeConstraints[0]
+    outputConstraints = nodeConstraint.outputTensorMemoryConstraints
+    if outputConstraints:
+        firstOutputName = list(outputConstraints.keys())[0]
+        tensorConstraint = outputConstraints[firstOutputName]
+        if "L1" in tensorConstraint.memoryConstraints:
+            l1Constraint = tensorConstraint.memoryConstraints["L1"]
+            if l1Constraint.shape is not None:
+                return tuple(int(d) for d in l1Constraint.shape)
+    
+    raise ValueError
 
 
 class MLIRObjectFifoPass(MLIRCodeTransformationPass):
@@ -85,22 +80,28 @@ class MLIRObjectFifoPass(MLIRCodeTransformationPass):
         opRepr = mlirBlock.operatorRepresentation
         numElements = int(opRepr['size'])
 
-        # Let the template override tile-size derivation (e.g. LayerNorm
-        # forces tileSize = lastDimLength).  Fall back to the default
-        # heuristic when the template returns None.
-        overrideTileSize = template.deriveTileSize(numElements, mlirBlock.patternMemoryConstraint, opRepr)
-        if overrideTileSize is not None:
-            tileSize = overrideTileSize
-        else:
-            tileSize = _deriveTileSize(numElements, mlirBlock.patternMemoryConstraint)
+        # Read tile shape from the tiling solver.  The tile constraints
+        # are the sole authority on valid shapes.
+        tileShape = _deriveTileShape(numElements, mlirBlock.patternMemoryConstraint)
+        tileSize = int(np.prod(tileShape))
+
+        assert numElements % tileSize == 0, (
+            f"[XDNA2] Tile size {tileSize} (shape {tileShape}) does not evenly "
+            f"divide numElements {numElements}.  Fix the tile constraint.")
+
         numTiles = numElements // tileSize
 
+        mlirBlock.tileShape = tileShape
         mlirBlock.tileSize = tileSize
         mlirBlock.numTiles = numTiles
         mlirBlock.numElements = numElements
         mlirBlock.kernelFuncName = template.KERNEL_FN
         mlirBlock.kernelObjFile = template.KERNEL_OBJ
 
+        log.info(f"[XDNA2] ObjectFifo: tileShape={tileShape}, tileSize={tileSize}, "
+                 f"numTiles={numTiles}, numElements={numElements}")
+
+        # ObjectFifo memref is 1-D (flat) — the DMA and kernels work on flat buffers.
         tileTy = ir.MemRefType.get((tileSize,), ir.BF16Type.get())
         computeTile = mlirBlock.computeTile
         shimTile = mlirBlock.shimTile

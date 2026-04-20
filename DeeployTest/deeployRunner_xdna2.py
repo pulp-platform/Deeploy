@@ -106,6 +106,7 @@ if __name__ == '__main__':
         main(default_platform = "XDNA2",
              default_simulator = "host",
              tiling_enabled = True,
+             platform_specific_cmake_args = [f"-DPython3_EXECUTABLE={sys.executable}"],
              parser_setup_callback = _add_xdna2_args,
              gen_args_callback = _add_xdna2_gen_args,
              post_sim_callback = _xdna2_post_sim))

@@ -12,13 +12,14 @@ Weight and bias tensors parsed by :class:`LayerNormParser` are **not**
 streamed via ObjectFifos — only ``data_in`` and ``data_out`` appear in
 :attr:`INPUT_KEYS` / :attr:`OUTPUT_KEYS`.
 
-The kernel's ``cols`` argument equals the FIFO tile size, which is
-forced to ``lastDimLength`` via :meth:`deriveTileSize`.
+The kernel's ``cols`` argument is read from
+``operatorRepresentation['lastDimLength']``, which the tile constraint
+keeps constant (last dimension is never split).
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING
 
 import aie.ir as ir
 from aie.dialects import arith as arith_d
@@ -39,7 +40,12 @@ class XDNA2LayerNormTemplate(MLIRNodeTemplate):
 
     * ``data_in`` — acquired memref element (from ObjectFifo acquire).
     * ``data_out`` — acquired memref element (from ObjectFifo acquire).
-    * ``size`` — tile size (= ``lastDimLength``).
+    * ``size`` — tile size (flat element count, = ``lastDimLength``
+      because the tile constraint forces single-row tiles).
+
+    The tile constraint (:class:`XDNA2LayerNormTileConstraint`) forces
+    all non-last dimensions to 1, so each tile is exactly one row.
+    The kernel's ``cols`` argument therefore equals ``size``.
     """
 
     KERNEL_FN = "layer_norm_bf16_bf16_highacc"
@@ -50,23 +56,19 @@ class XDNA2LayerNormTemplate(MLIRNodeTemplate):
     def __init__(self):
         super().__init__()
 
-    def deriveTileSize(self, numElements: int, patternMemoryConstraint: Any,
-                       operatorRepresentation: 'OperatorRepresentation') -> int:
-        """Force tile size = lastDimLength so each tile is one row.
-
-        The LayerNorm kernel processes exactly one row of ``cols``
-        elements.  Tiling must not split or merge rows.
-        """
-        return int(operatorRepresentation['lastDimLength'])
-
     def emit(self, operatorRepresentation: OperatorRepresentation, **kwargs) -> None:
-        """Emit a single ``func.call`` to the high-accuracy LayerNorm kernel."""
+        """Emit a single ``func.call`` to the high-accuracy LayerNorm kernel.
+
+        The kernel takes ``cols`` = number of elements per row.  Since
+        the tile constraint guarantees single-row tiles, ``size``
+        equals ``cols``.
+        """
         i32 = ir.IntegerType.get_signless(32)
-        sizeVal = arith_d.constant(i32, int(operatorRepresentation['size']))
+        colsVal = arith_d.constant(i32, int(operatorRepresentation['size']))
         func_d.call([], self.KERNEL_FN, [
             operatorRepresentation['data_in'],
             operatorRepresentation['data_out'],
-            sizeVal,
+            colsVal,
         ])
 
 
