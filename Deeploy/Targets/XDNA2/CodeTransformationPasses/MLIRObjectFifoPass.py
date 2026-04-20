@@ -51,7 +51,7 @@ def _deriveTileShape(numElements: int, patternMemoryConstraint) -> Tuple[int, ..
             l1Constraint = tensorConstraint.memoryConstraints["L1"]
             if l1Constraint.shape is not None:
                 return tuple(int(d) for d in l1Constraint.shape)
-    
+
     raise ValueError
 
 
@@ -85,9 +85,8 @@ class MLIRObjectFifoPass(MLIRCodeTransformationPass):
         tileShape = _deriveTileShape(numElements, mlirBlock.patternMemoryConstraint)
         tileSize = int(np.prod(tileShape))
 
-        assert numElements % tileSize == 0, (
-            f"[XDNA2] Tile size {tileSize} (shape {tileShape}) does not evenly "
-            f"divide numElements {numElements}.  Fix the tile constraint.")
+        assert numElements % tileSize == 0, (f"[XDNA2] Tile size {tileSize} (shape {tileShape}) does not evenly "
+                                             f"divide numElements {numElements}.  Fix the tile constraint.")
 
         numTiles = numElements // tileSize
 

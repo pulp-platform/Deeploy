@@ -33,7 +33,9 @@ class XDNA2LayerNormParser(NodeParser):
             len(node.outputs) >= 1,
         ])
 
-    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node,
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
         data_in = ctxt.lookup(node.inputs[0].name)
         data_out = ctxt.lookup(node.outputs[0].name)

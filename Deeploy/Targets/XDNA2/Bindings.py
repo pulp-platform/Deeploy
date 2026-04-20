@@ -40,8 +40,9 @@ XDNA2SiLUBindings = [
 
 XDNA2LayerNormBindings = [
     NodeBinding(
-        XDNA2LayerNormChecker([PointerClass(bfloat16_t), PointerClass(bfloat16_t), PointerClass(bfloat16_t)],
-                              [PointerClass(bfloat16_t)]),
+        XDNA2LayerNormChecker(
+            [PointerClass(bfloat16_t), PointerClass(bfloat16_t),
+             PointerClass(bfloat16_t)], [PointerClass(bfloat16_t)]),
         LayerNormTemplate.referenceTemplate,
         XDNA2Transformer,
     )

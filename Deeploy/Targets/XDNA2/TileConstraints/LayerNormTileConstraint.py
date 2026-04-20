@@ -18,13 +18,12 @@ import numpy as np
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import uint16_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
+from Deeploy.Targets.XDNA2.TileConstraints.DivisibilityHelper import addDivisibilityConstraints
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme
-
-from Deeploy.Targets.XDNA2.TileConstraints.DivisibilityHelper import addDivisibilityConstraints
 
 
 class XDNA2LayerNormTileConstraint(TileConstraint):
@@ -51,8 +50,7 @@ class XDNA2LayerNormTileConstraint(TileConstraint):
         # per invocation (cols elements).  Multi-row tiles cause corrupted output
         # on AIE2 hardware (llvm-aie codegen issue with row loops).
         for dimIdx in range(lastDimIdx):
-            tilerModel.addConstraint(
-                tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = dimIdx) == 1)
+            tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = dimIdx) == 1)
 
         # Scale and bias are 1-D, matching the last dimension
         tilerModel.addConstraint(
