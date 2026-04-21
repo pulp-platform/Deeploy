@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <benchmark.h>
 #include "printf.h"
 
 #include "Network.h"
@@ -9,6 +10,7 @@
 
 int main() {
   const unsigned int core_id = snrt_cluster_core_idx();
+  unsigned int timer_start, timer_end, timer;
 
   printf("Running on %d cores\r\n", snrt_cluster_core_num());
   if (snrt_is_dm_core()){printf("dm core is core number %d\r\n", core_id);}
@@ -16,6 +18,7 @@ int main() {
 
   // do it only with one of the two spatz cores
   if (snrt_is_dm_core()){
+    timer_start = benchmark_get_cycle();
 
     printf("Initializing network...\r\n");
     InitNetwork(0, 1);
@@ -31,10 +34,14 @@ int main() {
   }
 
   snrt_cluster_hw_barrier();
+  if (snrt_is_dm_core()){ timer_start = benchmark_get_cycle(); }
   RunNetwork(core_id, 2);
   
   if (snrt_is_dm_core()){
-    printf("Checking Outputs...\r\n");
+    timer_end = benchmark_get_cycle();
+    timer = timer_end - timer_start;
+
+    printf("Network ran in %d cycles.\r\nChecking Outputs...\r\n", timer);
     int32_t tot_err = 0;
     uint32_t tot = 0;
     OUTPUTTYPE diff;
