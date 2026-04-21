@@ -13,6 +13,21 @@
 #include "DeeployBasicMath.h"
 #include "snrt.h"
 
+void Spatz_MatMul_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
+								 const float32_t *__restrict__ pSrcB,
+								 float32_t *__restrict__ pDstY, uint32_t M,
+								 uint32_t N, uint32_t O);
+
+// void Spatz_MatMul_fp16_fp16_fp16(const __fp16 *__restrict__ pSrcA,
+// 								 const __fp16 *__restrict__ pSrcB,
+// 								 __fp16 *__restrict__ pDstY, uint32_t M,
+// 								 uint32_t N, uint32_t O);
+// 
+// void Spatz_MatMul_fp64_fp64_fp64(const double *__restrict__ pSrcA,
+// 								 const double *__restrict__ pSrcB,
+// 								 double *__restrict__ pDstY, uint32_t M,
+// 								 uint32_t N, uint32_t O);
+
 #define BEGIN_SINGLE_CORE if (core_id == 0) {
 #define END_SINGLE_CORE }
 #define SINGLE_CORE if (core_id == 0)

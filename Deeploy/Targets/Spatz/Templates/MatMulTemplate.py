@@ -31,6 +31,7 @@ class _MatMulTemplate(NodeTemplate):
         return ctxt, operatorRepresentation, []
 
 
+# signed integer
 spatzSIMatMulTemplate = _MatMulTemplate("""
 // MatMul (Name: ${nodeName}, Op: ${nodeOp})
 ${A_type.typeName} ref_${data_out}_${A} = ${A};
@@ -54,6 +55,8 @@ for(uint32_t i=0;i<${batch};i++){
 }
 """)
 
+# supports single precision float (fp32)
+# also possible ot add half and double precision
 spatzFloatMatMulTemplate = NodeTemplate("""
 // Matmul (Name: ${nodeName}, Op: ${nodeOp})
 ${A_type.typeName} ref_${data_out}_${A} = ${A};
@@ -61,7 +64,7 @@ ${B_type.typeName} ref_${data_out}_${B} = ${B};
 ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
 for(uint32_t i=0; i<${batch}; i++){
-    MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
+    Spatz_MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
         ref_${data_out}_${A},
         ref_${data_out}_${B},
         ref_${data_out}_${data_out},

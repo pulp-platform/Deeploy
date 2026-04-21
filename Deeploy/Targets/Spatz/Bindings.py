@@ -5,7 +5,7 @@ from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import A
     MemoryManagementGeneration
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t, uint8_t
+from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t
 from Deeploy.Targets.Generic.TypeCheckers import GatherChecker, MatMulChecker
 
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
@@ -63,12 +63,11 @@ SpatzGatherBindings = [
 
 SpatzMatMulBindings = [
     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
-                SpatzMatMulTemplate.spatzSIMatMulTemplate, TiledTransformer)
-] + [
-    NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                SpatzMatMulTemplate.spatzFloatMatMulTemplate, TiledTransformer)
+                SpatzMatMulTemplate.spatzSIMatMulTemplate, TiledTransformer),
+    NodeBinding(
+        MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+        SpatzMatMulTemplate.spatzFloatMatMulTemplate, TiledTransformer)
 ]
-
 # with BEGIN_SINGLE_CORE
 # SpatzMatMulBindings = [
 #     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
