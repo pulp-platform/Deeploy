@@ -42,10 +42,9 @@ SpatzMapping = {
 }
 
 
-class SpatzaVariableBuffer(VariableBuffer):
+class SpatzVariableBuffer(VariableBuffer):
     initTemplate = GenericAllocateTemplate.referenceInitTemplate
-    allocTemplate = SpatzAllocateTemplate.referenceAllocateTemplate
-    # allocTemplate = SnitchAllocateTemplate.snitchGenericAllocate
+    allocTemplate = SpatzAllocateTemplate.spatzGenericAllocate
     deallocTemplate = SpatzFreeTemplate.spatzLocalTemplate
 
     def _bufferRepresentation(self):
@@ -64,7 +63,7 @@ class SpatzaVariableBuffer(VariableBuffer):
 
 class SpatzTransientBuffer(TransientBuffer):
     initTemplate = GenericAllocateTemplate.referenceInitTemplate
-    allocTemplate = SpatzAllocateTemplate.referenceAllocateTemplate
+    allocTemplate = SpatzAllocateTemplate.spatzGenericAllocate
     deallocTemplate = SpatzFreeTemplate.spatzLocalTemplate
 #     def _bufferRepresentation(self):
 # 
@@ -123,7 +122,7 @@ class SpatzPlatform(DeploymentPlatform):
 
     def __init__( self,
         engines = [SpatzEngine("SpatzVectorProcessor")],
-        variableBuffer = SpatzaVariableBuffer,
+        variableBuffer = SpatzVariableBuffer,
         transientBuffer = SpatzTransientBuffer,
         constantBuffer = SpatzConstantBuffer,
         structBuffer = SpatzStructBuffer,

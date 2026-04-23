@@ -21,7 +21,7 @@ from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement 
 TilingCallClosure = partial(ClosureGeneration, closureSuffix = "_tiling_closure")
 MemoryAwareFunctionCallClosure = partial(MemoryAwareClosureGeneration,
                                          closureSuffix = "_closure",
-                                         startRegion = "L2",
+                                         startRegion = "L3",
                                          endRegion = "L1")
 
 BasicTransformer = CodeTransformation(
@@ -35,7 +35,7 @@ TiledTransformer = CodeTransformation([
     TilingCallClosure(writeback = False),
     SnitchSynchCoresPass(), # snrt_cluster_hw_barrier()
     TilingVariableReplacementUpdate("L1"),
-    SnitchClusterTiling("L2", "L1", SpatzDma()),
+    SnitchClusterTiling("L3", "L1", SpatzDma()),
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),

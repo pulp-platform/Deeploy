@@ -257,11 +257,20 @@ if __name__ == '__main__':
             test_inputs = [test_inputs[0]]
             test_outputs = [test_outputs[-2]]
 
-    # Instantiate Classes Requried for Memory Level Annotation Extension
-    L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64000000)
-    L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = args.l2)
-    L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = args.l1)
-    memoryLevels = [L3, L2, L1]
+    # Instantiate Classes Required for Memory Level Annotation Extension
+    if args.platform == "Spatz":
+        # Spatz cluster has only TCDM (L1) + external DRAM (L3). No on-chip L2.
+        # Declare L1 and L3 as direct neighbours so BFS-based tile-path
+        # generation does not insert a phantom L2 staging buffer.
+        L3 = MemoryLevel(name = "L3", neighbourNames = ["L1"], size = 64000000)
+        L1 = MemoryLevel(name = "L1", neighbourNames = ["L3"], size = args.l1)
+        memoryLevels = [L3, L1]
+    else:
+        L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"],        size = 64000000)
+        L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"],  size = args.l2)
+        L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"],        size = args.l1)
+        memoryLevels = [L3, L2, L1]
+
 
     if args.neureka_wmem:
         memoryLevels.append(MemoryLevel(name = "WeightMemory_SRAM", neighbourNames = [], size = 4 * 1024 * 1024))
