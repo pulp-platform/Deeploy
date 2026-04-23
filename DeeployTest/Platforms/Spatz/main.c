@@ -12,8 +12,8 @@ int main() {
   const unsigned int core_id = snrt_cluster_core_idx();
   unsigned int timer_start, timer_end, timer;
 
-  printf("Running on %d cores\r\n", snrt_cluster_core_num());
-  if (snrt_is_dm_core()){printf("dm core is core number %d\r\n", core_id);}
+  if (core_id == 0) printf("[INFO] Running on %d cores\n", snrt_cluster_core_num());
+  if (snrt_is_dm_core()){printf("[INFO] DM core is core number %d\n", core_id);}
   snrt_cluster_hw_barrier();
 
   // do it only with one of the two spatz cores
@@ -23,12 +23,15 @@ int main() {
     printf("Initializing network...\r\n");
     InitNetwork(0, 1);
 
-    // Copy inputs to allocated memory
-    printf("Copying inputs to allocated memory...\r\n");
-    for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
-      snrt_dma_start_1d(DeeployNetwork_inputs[buf], testInputVector[buf], DeeployNetwork_inputs_bytes[buf]);
-    }
-    snrt_dma_wait_all();
+    // Copy inputs to allocated memory.
+    // DeeployNetwork_inputs[] now lives in L3 (DRAM) — same tier as testInputVector.
+    // Using memcpy rather than snrt_dma_start_1d avoids DRAM->DRAM DMA, which on                                                                   
+    // this Snitch DMA engine either hangs or leaves the channel wedged for the                                                                     
+    // subsequent L3->L1 tile DMAs in RunNetwork.                                                                                                   
+    printf("Copying inputs to allocated memory...\r\n");                                                                                            
+    for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {                                                                                
+      memcpy(DeeployNetwork_inputs[buf], testInputVector[buf], DeeployNetwork_inputs_bytes[buf]);
+    }   
 
     printf("Running network...\r\n");
   }
@@ -57,12 +60,10 @@ int main() {
 
 #if ISOUTPUTFLOAT == 1
         // RUNWANG: Allow margin of error for float32_t
-        if ((diff < -1e-4) || (diff > 1e-4)) {
+        if ((diff < -1e-4f) || (diff > 1e-4f)) {
           tot_err += 1;
-          printf("Expected: %10.6f  ", (float)expected);
-          printf("Actual: %10.6f  ", (float)actual);
-          printf("Diff: %10.6f at Index %12u in Output %u\r\n", (float)diff, i,
-                buf);
+          printf("Expected: 0x%08x  Actual: 0x%08x  Diff: 0x%08x at Index %12u in Output %u\r\n",                                                         
+            *(uint32_t*)&expected, *(uint32_t*)&actual, *(uint32_t*)&diff, i, buf);  
         }
 #else
         // RUNWANG: No margin for integer comparison
