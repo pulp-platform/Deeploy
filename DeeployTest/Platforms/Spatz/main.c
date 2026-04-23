@@ -1,6 +1,5 @@
 
 #include <stdint.h>
-#include <string.h>
 #include <benchmark.h>
 #include "printf.h"
 
@@ -23,15 +22,11 @@ int main() {
     printf("Initializing network...\r\n");
     InitNetwork(0, 1);
 
-    // Copy inputs to allocated memory.
-    // DeeployNetwork_inputs[] now lives in L3 (DRAM) — same tier as testInputVector.
-    // Using memcpy rather than snrt_dma_start_1d avoids DRAM->DRAM DMA, which on                                                                   
-    // this Snitch DMA engine either hangs or leaves the channel wedged for the                                                                     
-    // subsequent L3->L1 tile DMAs in RunNetwork.                                                                                                   
-    printf("Copying inputs to allocated memory...\r\n");                                                                                            
-    for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {                                                                                
-      memcpy(DeeployNetwork_inputs[buf], testInputVector[buf], DeeployNetwork_inputs_bytes[buf]);
-    }   
+    // Avoid the startup copy: point network inputs directly to test vectors.
+    DeeployNetwork_input_0 = (float32_t *)testInputVector[0];
+    DeeployNetwork_input_1 = (float32_t *)testInputVector[1];
+    DeeployNetwork_inputs[0] = (void *)DeeployNetwork_input_0;
+    DeeployNetwork_inputs[1] = (void *)DeeployNetwork_input_1;
 
     printf("Running network...\r\n");
   }
