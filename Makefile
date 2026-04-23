@@ -50,11 +50,10 @@ PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
-SPATZ_COMMIT_HASH ?= 9974c6aeabead537e232a0409742cb6fc534171e
+SPATZ_COMMIT_HASH ?= 6bd9f3094e237dab392983edb827105bce8e3e86
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
 # GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0 # old
 GVSOC_COMMIT_HASH ?= 209c147cbd293d5c1590694e68c489122c777acc # new
-# GVSOC_SPATZ_COMMIT_HASH ?= 209c147cbd293d5c1590694e68c489122c777acc
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
@@ -115,7 +114,7 @@ echo-bash:
 
 toolchain: llvm llvm-compiler-rt-riscv llvm-compiler-rt-arm picolibc-arm picolibc-riscv xtensor minimalloc # xtensor needed for gvsoc, minimalloc for tiling
 
-emulators: snitch_runtime pulp-sdk qemu banshee mempool gvsoc
+emulators: snitch_runtime spatz_runtime pulp-sdk qemu banshee mempool gvsoc
 
 ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
