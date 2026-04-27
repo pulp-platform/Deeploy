@@ -6,6 +6,8 @@ import os
 import re
 import shutil
 import subprocess
+import sys
+import threading
 from pathlib import Path
 
 from Deeploy.Logging import DEFAULT_LOGGER as log
@@ -202,29 +204,43 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
-    cmd_str = " ".join(cmd)
-    with subprocess.Popen(cmd_str,
-                          stdout = subprocess.PIPE,
-                          stderr = subprocess.STDOUT,
-                          shell = True,
-                          encoding = 'utf-8') as process:
+    process = subprocess.Popen(
+        cmd,
+        stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE,
+        text = True,
+        env = env,
+        bufsize = 1,
+    )
 
-        with open('out.txt', 'a', encoding = 'utf-8') as fileHandle:
-            fileHandle.write(
-                f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
+    stdout_chunks = []
+    stderr_chunks = []
 
-            result = ""
-            while True:
-                output = process.stdout.readline()
-                if output == '' and process.poll() is not None:
-                    break
-                if output:
-                    print(output.strip())
-                    result += output
-                    fileHandle.write(f"{escapeAnsi(output)}")
+    def _stream_reader(pipe, chunks, is_stderr: bool = False) -> None:
+        assert pipe is not None
+        for line in iter(pipe.readline, ''):
+            chunks.append(line)
+            if is_stderr:
+                print(line, end = '', file = sys.stderr, flush = True)
+            else:
+                print(line, end = '', flush = True)
+        pipe.close()
+
+    stdout_thread = threading.Thread(target = _stream_reader, args = (process.stdout, stdout_chunks), daemon = True)
+    stderr_thread = threading.Thread(target = _stream_reader, args = (process.stderr, stderr_chunks, True), daemon = True)
+
+    stdout_thread.start()
+    stderr_thread.start()
+
+    returncode = process.wait()
+    stdout_thread.join()
+    stderr_thread.join()
+
+    stdout = ''.join(stdout_chunks)
+    stderr = ''.join(stderr_chunks)
 
     # Parse output for error count and cycles
-    test_result = parse_test_output(result, "")
+    test_result = parse_test_output(stdout, stderr)
 
     if not test_result.success and test_result.error_count == -1:
         log.warning(f"Could not parse error count from output")

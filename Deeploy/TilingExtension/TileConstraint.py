@@ -131,7 +131,9 @@ class TileConstraint():
 
             return solution, solutionLengths
 
-        assert len(tilingSolution.outputTensorMemoryConstraints) == 1, "Expected node to have only one output!"
+        # Support multi-output nodes: use first output tensor to determine tiling structure.
+        # For operators like TopK with multiple outputs, all outputs share the same tiling pattern.
+        assert len(tilingSolution.outputTensorMemoryConstraints) >= 1, "Expected node to have at least one output!"
 
         outVar, outTensorConstraint = next(iter(tilingSolution.outputTensorMemoryConstraints.items()))
         memoryPath = list(outTensorConstraint.memoryConstraints.keys())
