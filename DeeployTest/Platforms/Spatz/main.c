@@ -22,11 +22,11 @@ int main() {
     printf("Initializing network...\r\n");
     InitNetwork(0, 1);
 
-    // Avoid the startup copy: point network inputs directly to test vectors.
-    DeeployNetwork_input_0 = (float32_t *)testInputVector[0];
-    DeeployNetwork_input_1 = (float32_t *)testInputVector[1];
-    DeeployNetwork_inputs[0] = (void *)DeeployNetwork_input_0;
-    DeeployNetwork_inputs[1] = (void *)DeeployNetwork_input_1;
+    for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {                                                                                
+      memcpy(DeeployNetwork_inputs[buf], testInputVector[buf], DeeployNetwork_inputs_bytes[buf]);
+      // DeeployNetwork_inputs[buf] = (void *)testInputVector[buf]; TODO ???
+    }   
+
 
     printf("Running network...\r\n");
   }
@@ -34,6 +34,8 @@ int main() {
   snrt_cluster_hw_barrier();
   if (snrt_is_dm_core()){ timer_start = benchmark_get_cycle(); }
   RunNetwork(core_id, 2);
+
+  snrt_cluster_hw_barrier();
   
   if (snrt_is_dm_core()){
     timer_end = benchmark_get_cycle();
@@ -57,6 +59,8 @@ int main() {
         // RUNWANG: Allow margin of error for float32_t
         if ((diff < -1e-4f) || (diff > 1e-4f)) {
           tot_err += 1;
+          printf("Expected: %f  Actual: %f  Diff: %f at Index %f in Output %u\r\n",                                                         
+            expected, actual, diff, i, buf);  
           printf("Expected: 0x%08x  Actual: 0x%08x  Diff: 0x%08x at Index %12u in Output %u\r\n",                                                         
             *(uint32_t*)&expected, *(uint32_t*)&actual, *(uint32_t*)&diff, i, buf);  
         }
