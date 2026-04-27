@@ -6,14 +6,14 @@ from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import A
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t
-from Deeploy.Targets.Generic.TypeCheckers import GatherChecker, MatMulChecker
+from Deeploy.Targets.Generic.TypeCheckers import GatherChecker, MatMulChecker, TopKChecker
 
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterTiling import SnitchClusterTiling
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchCoreFilter import SnitchCoreFilterPass
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterSynch import SnitchSynchCoresPass
 from Deeploy.Targets.Spatz.DMA.SpatzDma import SpatzDma
-from Deeploy.Targets.Spatz.Templates import GatherTemplate, MatMulTemplate as SpatzMatMulTemplate
+from Deeploy.Targets.Spatz.Templates import GatherTemplate, MatMulTemplate as SpatzMatMulTemplate, TopKTemplate
 from Deeploy.Targets.Generic.Templates import MatMulTemplate, FloatMatMulTemplate
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
     TilingVariableReplacementUpdate
@@ -45,21 +45,21 @@ TiledTransformer = CodeTransformation([
 SpatzGatherBindings = [
     NodeBinding(
         GatherChecker(
-            [PointerClass(type), PointerClass(int32_t)],
-            [PointerClass(type)]
-        ),
-        GatherTemplate.referenceTemplate,
-        BasicTransformer
-    ) for type in SignedIntegerDataTypes] + [
-    NodeBinding(
-        GatherChecker(
             [PointerClass(float32_t), PointerClass(type)],
             [PointerClass(float32_t)]
         ),
-        GatherTemplate.referenceTemplate,
-        BasicTransformer
+        GatherTemplate.tilingReferenceTemplate , TiledTransformer
     ) for type in IntegerDataTypes
 ]
+# [
+#     NodeBinding(
+#         GatherChecker(
+#             [PointerClass(type), PointerClass(int32_t)],
+#             [PointerClass(type)]
+#         ),
+#         GatherTemplate.referenceTemplate,
+#         BasicTransformer
+#     ) for type in SignedIntegerDataTypes] +
 
 SpatzMatMulBindings = [
     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
@@ -68,6 +68,14 @@ SpatzMatMulBindings = [
         MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
         SpatzMatMulTemplate.spatzFloatMatMulTemplate, TiledTransformer)
 ]
+# without tiled transformer
+# SpatzMatMulBindings = [
+#     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
+#                 SpatzMatMulTemplate.spatzSIMatMulTemplate, BasicTransformer),
+#     NodeBinding(
+#         MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+#         SpatzMatMulTemplate.spatzFloatMatMulTemplate, BasicTransformer)
+# ]
 # with BEGIN_SINGLE_CORE
 # SpatzMatMulBindings = [
 #     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
@@ -76,3 +84,14 @@ SpatzMatMulBindings = [
 #     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
 #                 FloatMatMulTemplate.referenceTemplate, TiledTransformer)
 # ]
+
+SpatzTopKBindings = [
+    NodeBinding(
+        TopKChecker(
+            [PointerClass(float32_t), PointerClass(int32_t)], # inputs
+            [PointerClass(float32_t), PointerClass(int32_t)] # outputs
+        ),
+        TopKTemplate.SpatzTilingTemplate,
+        TiledTransformer,
+    )
+]
