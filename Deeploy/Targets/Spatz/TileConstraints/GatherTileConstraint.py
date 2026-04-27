@@ -1,0 +1,80 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+from typing import Dict, List, Tuple, Union
+
+from ortools.constraint_solver.pywrapcp import IntVar
+
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation, TransientBuffer
+from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
+from Deeploy.TilingExtension.TileConstraint import TileConstraint
+from Deeploy.TilingExtension.TilerModel import TilerModel
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
+
+
+class GatherTileConstraint(TileConstraint):
+
+    @staticmethod
+    def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+
+        pointer: List[str] = []
+
+        for key, value in parseDict.items():
+            if not isinstance(value, str):
+                continue
+
+            if ctxt.is_global(value) or ctxt.is_local(value):
+                pointer.append(value)
+
+        for tensorName in pointer:
+
+            _buffer = ctxt.lookup(tensorName)
+            if isinstance(_buffer, TransientBuffer):
+                continue
+
+            tilerModel.addTensorDimToModel(ctxt, tensorName)
+
+            for idx, shapeDim in enumerate(_buffer.shape):
+                tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = tensorName, dimIdx = idx) == shapeDim)
+
+        return tilerModel
+
+    @staticmethod
+    def constructSymbolicNodeRep(tilerModel: TilerModel, parseDict: Dict,
+                                 ctxt: NetworkContext) -> Dict[str, Union[int, IntVar]]:
+
+        symbolicParseDict = parseDict.copy()
+
+        return symbolicParseDict
+
+    @classmethod
+    def serializeTilingSolution(
+            cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
+            targetMemLevel: str, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+
+        addrNames = ['data_in', 'indices', 'data_out']
+        inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
+                                                                  operatorRepresentation, addrNames)
+
+        dataInBuffer = ctxt.lookup(operatorRepresentation['data_in'])
+        indicesBuffer = ctxt.lookup(operatorRepresentation['indices'])
+
+        dataInCube = HyperRectangle(offset = (0,) * len(dataInBuffer.shape), dims = tuple(dataInBuffer.shape))
+        indicesCube = HyperRectangle(offset = (0,) * len(indicesBuffer.shape), dims = tuple(indicesBuffer.shape))
+
+        inputLoadSchedule = []
+        outputLoadSchedule = []
+
+        for out in outputCubes:
+            # Gather execution policy: load full inputs in L1, execute once, then store output tile.
+            inputLoadSchedule.append({'data_in': dataInCube, 'indices': indicesCube})
+            outputLoadSchedule.append({'data_out': out})
+
+        schedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
+        repScheme = VariableReplacementScheme({}, {})
+
+        return repScheme, schedule
