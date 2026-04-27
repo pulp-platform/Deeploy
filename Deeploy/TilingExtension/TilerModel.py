@@ -10,6 +10,7 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
 from ortools.constraint_solver.pywrapcp import IntExpr, IntVar, SolutionCollector, Solver
 
+from Deeploy.DeeployTypes import ConstantBuffer
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryLevel
@@ -169,6 +170,10 @@ class TilerModel():
             return
 
         tensor = ctxt.lookup(tensorName)
+
+        # Skip constant buffers: they don't participate in tiling and don't need num_elements variables
+        if isinstance(tensor, ConstantBuffer):
+            return
 
         tensorDimProductExpr = 1
 

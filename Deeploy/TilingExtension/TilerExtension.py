@@ -935,15 +935,15 @@ class Tiler():
 
                 parseDict = layerBinding[node.name].mapper.parser.operatorRepresentation
                 template = layerBinding[node.name].mapper.binder.template
-                print("eccomi===================")
-                print(layerBinding)
-                print(node.name)
-                print(layerBinding[node.name])
-                print(layerBinding[node.name].mapper)
-                print(layerBinding[node.name].mapper.parser)
-                print(layerBinding[node.name].mapper.binder)
-                print(layerBinding[node.name].mapper.parser.operatorRepresentation)
-                print(layerBinding[node.name].mapper.binder.template)
+                # print("eccomi===================")
+                # print(layerBinding)
+                # print(node.name)
+                # print(layerBinding[node.name])
+                # print(layerBinding[node.name].mapper)
+                # print(layerBinding[node.name].mapper.parser)
+                # print(layerBinding[node.name].mapper.binder)
+                # print(layerBinding[node.name].mapper.parser.operatorRepresentation)
+                # print(layerBinding[node.name].mapper.binder.template)
 
                 tilerModel = template.tileConstraint.addGeometricalConstraint(tilerModel,
                                                                               parseDict = parseDict,
@@ -992,7 +992,7 @@ class Tiler():
 
             patternMemSizeExpr: IntVar = 0
             for tensor in patternTensorList:
-                if not ctxt.lookup(tensor.name)._deploy:
+                if not ctxt.lookup(tensor.name)._deploy or isinstance(ctxt.lookup(tensor.name), ConstantBuffer):
                     continue
 
                 patternMemSizeExpr += tilerModel.getTensorNumberOfEltVar(
