@@ -13,7 +13,8 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/Integer/MatMul/Regular": [64000, 32000, 16000],
     "Kernels/Integer/Conv/Regular_2D_RQ": [8000, 6000, 4000],
     "Kernels/Integer/Conv/StriddedPadded_2D_RQ": [600],
-    "Kernels/Integer/Conv/DW_2D_RQ": [2561],
+    "Kernels/Integer/Conv/DW_2D_RQ": [64000, 2561],
+    "Kernels/Integer/Conv/DW_2D_RQ_8x16x16": [64000],
     "Kernels/Integer/Softmax/Regular": [800, 500, 300],
     "Kernels/Integer/Concat": [32000, 16000, 8000],
     "Kernels/Integer/Hardswish/Regular": [750],
@@ -39,6 +40,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/Integer/MatMul/Regular": [64000, 32000, 16000],
     "Kernels/Integer/Conv/Regular_2D_RQ": [8000, 6000, 5000],
     "Kernels/Integer/Conv/DW_2D_RQ": [5121],
+    "Kernels/Integer/Conv/DW_2D_RQ_8x16x16": [64000],
     "Kernels/Integer/Softmax/Regular": [1600, 1000, 600],
     "Kernels/Integer/Concat": [64000, 32000, 16000],
     "Kernels/Integer/Hardswish/Regular": [750],
@@ -64,6 +66,7 @@ L2_SINGLEBUFFER_MODELS = {
     "Models/MLPerf/KeywordSpotting": [64000],
     "Models/MLPerf/ImageClassification": [64000],
     "Models/MLPerf/AnomalyDetection": [64000],
+    "Models/MLPerf/VisualWakeWords": [64000],
 }
 
 L2_DOUBLEBUFFER_MODELS = {
@@ -72,6 +75,7 @@ L2_DOUBLEBUFFER_MODELS = {
     "Models/MLPerf/KeywordSpotting": [64000],
     "Models/MLPerf/ImageClassification": [64000],
     "Models/MLPerf/AnomalyDetection": [64000],
+    "Models/MLPerf/VisualWakeWords": [64000],
 }
 
 L3_SINGLEBUFFER_MODELS = {
