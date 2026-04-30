@@ -11,9 +11,8 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 
 class iSoftmaxPreAllocatedBuffTemplate(NodeTemplate):
 
-    @staticmethod
     def computeTransientBuffersSize(
-            ctxt: NetworkContext,
+            self, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
 
         lastDimBuffer_dim = 8 * 4 * operatorRepresentation['lastDimLength']
@@ -22,8 +21,7 @@ class iSoftmaxPreAllocatedBuffTemplate(NodeTemplate):
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
                               operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        lastDimBuffer_name, lastDimBuffer_dim = iSoftmaxPreAllocatedBuffTemplate.computeTransientBuffersSize(
-            ctxt, operatorRepresentation)[0]
+        lastDimBuffer_name, lastDimBuffer_dim = self.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
         ctxt.hoistTransientBuffer(lastDimBuffer_name, lastDimBuffer_dim)
 
         operatorRepresentation['lastDimBuffer'] = lastDimBuffer_name

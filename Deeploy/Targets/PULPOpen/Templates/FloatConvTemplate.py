@@ -14,9 +14,8 @@ class PULP2DFloatConvIm2ColTemplate(NodeTemplate):
     def __init__(self, templateStr):
         super().__init__(templateStr)
 
-    @staticmethod
     def computeTransientBuffersSize(
-            ctxt: NetworkContext,
+            self, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
         # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
         im2col_dim = (operatorRepresentation["weight_type"].typeWidth //
@@ -29,8 +28,7 @@ class PULP2DFloatConvIm2ColTemplate(NodeTemplate):
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
                               operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        im2col_name, im2col_dim = PULP2DFloatConvIm2ColTemplate.computeTransientBuffersSize(
-            ctxt, operatorRepresentation)[0]
+        im2col_name, im2col_dim = self.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
         ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
 
         operatorRepresentation['ctxtBuffer'] = im2col_name
@@ -43,9 +41,8 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
     def __init__(self, templateStr):
         super().__init__(templateStr)
 
-    @staticmethod
     def computeTransientBuffersSize(
-            ctxt: NetworkContext,
+            self, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
 
         # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
@@ -58,8 +55,7 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
                               operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        im2col_name, im2col_dim = PULP2DFloatDWConvIm2ColTemplate.computeTransientBuffersSize(
-            ctxt, operatorRepresentation)[0]
+        im2col_name, im2col_dim = self.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
         ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
 
         # Manually set the type of the im2col buffer to match the input type, since it defaults to void for transient buffers

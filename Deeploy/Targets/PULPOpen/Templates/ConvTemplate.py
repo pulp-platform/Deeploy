@@ -26,9 +26,8 @@ class PULP2DConvTemplate(NodeTemplate):
 
         return ctxt, operatorRepresentation, []
 
-    @staticmethod
     def computeTransientBuffersSize(
-            ctxt: NetworkContext,
+            self, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
         im2col_dim = 2 * 8 * (operatorRepresentation['ch_im_in'] * operatorRepresentation['dim_kernel_x'] *
                               operatorRepresentation['dim_kernel_y'])
@@ -37,7 +36,7 @@ class PULP2DConvTemplate(NodeTemplate):
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
                               operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        im2col_name, im2col_dim = PULP2DConvTemplate.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
+        im2col_name, im2col_dim = self.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
         ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
 
         operatorRepresentation['ctxtBuffer'] = im2col_name
@@ -62,9 +61,8 @@ class PULP2DDWConvTemplate(PULP2DConvTemplate):
 
         return ctxt, operatorRepresentation, []
 
-    @staticmethod
     def computeTransientBuffersSize(
-            ctxt: NetworkContext,
+            self, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
         # The depthwise pulp-nn kernel reuses one column-shaped im2col scratch
         # per core. Per core it needs `dim_kernel_x * (dim_in_y + pad_top +
@@ -101,9 +99,8 @@ class PULP1DConvTemplate(NodeTemplate):
 
         return ctxt, operatorRepresentation, []
 
-    @staticmethod
     def computeTransientBuffersSize(
-            ctxt: NetworkContext,
+            self, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
         im2col_dim = 8 * 2 * operatorRepresentation['ch_im_in'] * operatorRepresentation['dim_kernel_y']
         im2col_name = operatorRepresentation['nodeName'] + "_buffer"
@@ -111,7 +108,7 @@ class PULP1DConvTemplate(NodeTemplate):
 
     def hoistTransientBuffers(self, ctxt: NetworkContext,
                               operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        im2col_name, im2col_dim = PULP1DConvTemplate.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
+        im2col_name, im2col_dim = self.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
         ctxt.hoistTransientBuffer(im2col_name, im2col_dim)
         operatorRepresentation['ctxtBuffer'] = im2col_name
         operatorRepresentation['ctxtBufferSize'] = im2col_dim
