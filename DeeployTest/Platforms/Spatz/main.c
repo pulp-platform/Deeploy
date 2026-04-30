@@ -59,10 +59,8 @@ int main() {
         // RUNWANG: Allow margin of error for float32_t
         if ((diff < -1e-4f) || (diff > 1e-4f)) {
           tot_err += 1;
-          printf("Expected: %f  Actual: %f  Diff: %f at Index %f in Output %u\r\n",                                                         
-            expected, actual, diff, i, buf);  
-          printf("Expected: 0x%08x  Actual: 0x%08x  Diff: 0x%08x at Index %12u in Output %u\r\n",                                                         
-            *(uint32_t*)&expected, *(uint32_t*)&actual, *(uint32_t*)&diff, i, buf);  
+          // printf("Expected: %f  Actual: %f  Diff: %f at Index %12u in Output %u\r\n", expected, actual, diff, i, buf);  
+          printf("Expected: 0x%08x  Actual: 0x%08x  Diff: 0x%08x at Index %12u in Output %u\r\n", *(uint32_t*)&expected, *(uint32_t*)&actual, *(uint32_t*)&diff, i, buf);  
         }
 #else
         // RUNWANG: No margin for integer comparison

@@ -11,7 +11,7 @@ from Deeploy.Targets.Snitch.Templates import AllocateTemplate as SnitchAllocateT
 
 from Deeploy.Targets.Spatz.Bindings import SpatzGatherBindings, SpatzMatMulBindings, SpatzTopKBindings
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicMatMulBindings, BasicSoftmaxBindings, BasicTopKBindings
-from Deeploy.Targets.Spatz.Tiler import SpatzMatMulTilingBindings, SpatzGatherTilingBindings, SpatzTopKTilingBindings
+from Deeploy.Targets.Spatz.Tiler import SpatzMatMulTilingBindings, SpatzGatherTilingBindings, SpatzTopKTilingBindings, SpatzSoftmaxTilingBindings
 from Deeploy.Targets.Generic.Layers import AddLayer, GEMMLayer, SoftmaxLayer, TopKLayer, GatherLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, MatMulParser, SoftmaxParser, TopKParser, GatherParser
 
@@ -27,9 +27,13 @@ from Deeploy.Targets.Generic.Parsers import AddParser, MatMulParser, SoftmaxPars
 # print(SpatzMatMulTilingReadyBindings[1].template.tileConstraint)
 
 SpatzAddMapper = NodeMapper(AddParser(), BasicAddBindings)
+# MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 MatMulMapper = NodeMapper(MatMulParser(), SpatzMatMulTilingBindings)
-SoftmaxMapper = NodeMapper(SoftmaxParser(), BasicSoftmaxBindings)
+# SoftmaxMapper = NodeMapper(SoftmaxParser(), BasicSoftmaxBindings)
+SoftmaxMapper = NodeMapper(SoftmaxParser(), SpatzSoftmaxTilingBindings)
+# TopKMapper = NodeMapper(TopKParser(), SpatzTopKBindings)
 TopKMapper = NodeMapper(TopKParser(), SpatzTopKTilingBindings)
+# GatherMapper = NodeMapper(GatherParser(), SpatzGatherBindings)
 GatherMapper = NodeMapper(GatherParser(), SpatzGatherTilingBindings)
 
 SpatzMapping = {
