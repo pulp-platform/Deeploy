@@ -112,6 +112,7 @@ L2_SINGLEBUFFER_MODELS = {
     "Models/MLPerf/KeywordSpotting": [64000],
     "Models/MLPerf/ImageClassification": [64000],
     "Models/MLPerf/AnomalyDetection": [64000],
+    "Models/MLPerf/VisualWakeWords": [64000],
     "Models/CCT/FP32/CCT_1_16_16_8": [64000],
     "Models/TinyViT/Demo": [4000],
 }
@@ -127,6 +128,7 @@ L2_DOUBLEBUFFER_MODELS = {
     "Models/MLPerf/KeywordSpotting": [128000],
     "Models/MLPerf/ImageClassification": [128000],
     "Models/MLPerf/AnomalyDetection": [128000],
+    "Models/MLPerf/VisualWakeWords": [128000],
     "Models/CCT/FP32/CCT_1_16_16_8": [128000],
     "Models/TinyViT/Demo": [8000],
 }
