@@ -23,6 +23,8 @@ target_compile_options(deeploygap9 PUBLIC
   )
 
 target_compile_options(deeploygap9 PRIVATE
+  -Wno-incompatible-pointer-types
+  -Wno-implicit-function-declaration
   -Wno-sign-conversion
   -Wno-sign-compare
   -Wno-type-limits
