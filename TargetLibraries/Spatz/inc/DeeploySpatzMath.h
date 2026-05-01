@@ -18,6 +18,9 @@ void Spatz_MatMul_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
 								 float32_t *__restrict__ pDstY, uint32_t M,
 								 uint32_t N, uint32_t O);
 
+void Spatz_Softmax_fp32_fp32(float32_t *input, float32_t *output, int32_t size,
+                       int32_t last_dim_length);
+
 // void Spatz_MatMul_fp16_fp16_fp16(const __fp16 *__restrict__ pSrcA,
 // 								 const __fp16 *__restrict__ pSrcB,
 // 								 __fp16 *__restrict__ pDstY, uint32_t M,
