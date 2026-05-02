@@ -408,6 +408,64 @@ class GlobalAveragePoolGradParser(NodeParser):
         return ctxt, True
 
 
+class MSELossParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        pred = ctxt.lookup(node.inputs[0].name)
+        target = ctxt.lookup(node.inputs[1].name)
+        loss = ctxt.lookup(node.outputs[0].name)
+
+        num_elements = 1
+        for d in pred.shape:
+            num_elements *= d
+
+        self.operatorRepresentation['pred'] = pred.name
+        self.operatorRepresentation['target'] = target.name
+        self.operatorRepresentation['loss'] = loss.name
+        self.operatorRepresentation['num_elements'] = num_elements
+
+        return ctxt, True
+
+
+class MSELossGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return all([len(node.inputs) == 2, len(node.outputs) == 1])
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        pred = ctxt.lookup(node.inputs[0].name)
+        target = ctxt.lookup(node.inputs[1].name)
+        grad = ctxt.lookup(node.outputs[0].name)
+
+        num_elements = 1
+        for d in pred.shape:
+            num_elements *= d
+
+        self.operatorRepresentation['pred'] = pred.name
+        self.operatorRepresentation['target'] = target.name
+        self.operatorRepresentation['grad'] = grad.name
+        self.operatorRepresentation['num_elements'] = num_elements
+
+        return ctxt, True
+
+
 class AveragePool2DParser(MaxPool2DParser):
 
     def __init__(self):
