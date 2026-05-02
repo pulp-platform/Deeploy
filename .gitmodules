@@ -11,3 +11,6 @@
 [submodule "CMSIS-NN"]
 	path = TargetLibraries/CMSIS/third_party/CMSIS-NN
 	url = https://github.com/ARM-software/CMSIS-NN.git
+[submodule "TargetLibraries/PULPOpen/third_party/pulp-trainlib"]
+	path = TargetLibraries/PULPOpen/third_party/pulp-trainlib
+	url = https://github.com/runwangdl/pulp-trainlib.git

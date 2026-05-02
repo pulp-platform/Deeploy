@@ -395,6 +395,102 @@ class RQSConvLayer(ConvLayer):
         return conv + rqs
 
 
+class ConvGradXLayer(ONNXLayer):
+    """Layer for computing input gradients in convolution backward pass"""
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        """
+        ConvGradX computes gradients w.r.t. input.
+        Similar computation to ConvTranspose: for each input pixel,
+        we need to compute contributions from all output pixels in the receptive field.
+
+        Operations: kernel_h * kernel_w * ch_in * ch_out * dim_im_in_x * dim_im_in_y * 2
+        """
+        opRep = self.mapper.parser.operatorRepresentation
+
+        if "group" in opRep:
+            groups = opRep['group']
+        else:
+            groups = 1
+
+        kernel_shape = int(np.prod(opRep['kernel_shape']))
+        ch_in = opRep['ch_im_in']
+        ch_out = opRep['ch_im_out']
+
+        # Operations per input pixel
+        opsPerPx = int(kernel_shape * ch_in * ch_out / groups) * 2
+
+        # Number of input pixels (output of ConvGradX)
+        if 'dim_im_in_y' in opRep:
+            numPx = opRep['dim_im_in_x'] * opRep['dim_im_in_y']
+        else:
+            numPx = opRep['dim_im_in_x']
+
+        return numPx * opsPerPx
+
+
+class ConvGradWLayer(ONNXLayer):
+    """Layer for computing weight gradients in convolution backward pass"""
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        """
+        ConvGradW computes gradients w.r.t. weights.
+        For each weight element, we accumulate contributions from all output positions.
+
+        Weight size: kernel_h * kernel_w * ch_in * ch_out (or ch_out for DW conv)
+        For each weight: dim_im_out_x * dim_im_out_y * 2 operations
+
+        Total: kernel_h * kernel_w * ch_in * ch_out * dim_im_out_x * dim_im_out_y * 2
+        """
+        opRep = self.mapper.parser.operatorRepresentation
+
+        if "group" in opRep:
+            groups = opRep['group']
+        else:
+            groups = 1
+
+        kernel_shape = int(np.prod(opRep['kernel_shape']))
+        ch_in = opRep['ch_im_in']
+        ch_out = opRep['ch_im_out']
+
+        # Number of output spatial positions
+        if 'dim_im_out_y' in opRep:
+            num_output_positions = opRep['dim_im_out_x'] * opRep['dim_im_out_y']
+        else:
+            num_output_positions = opRep['dim_im_out_x']
+
+        # For depthwise convolution (groups == ch_in == ch_out)
+        if groups == ch_in and groups == ch_out:
+            # DW: kernel_h * kernel_w * ch_out weights
+            num_weights = kernel_shape * ch_out
+        else:
+            # Regular or grouped conv: kernel_h * kernel_w * (ch_in/groups) * ch_out weights
+            num_weights = int(kernel_shape * ch_in * ch_out / groups)
+
+        # Each weight needs to be computed from all output positions (MAC operation)
+        total_ops = num_weights * num_output_positions * 2
+
+        return total_ops
+
+
+class ConvGradBLayer(ONNXLayer):
+    """Layer for computing bias gradients in convolution backward pass"""
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        """ConvGradB: dB[c] = sum_{n,h,w} dY[n,c,h,w]."""
+        opRep = self.mapper.parser.operatorRepresentation
+        return opRep['batch'] * opRep['ch_im_out'] * opRep['dim_im_out_x'] * opRep['dim_im_out_y']
+
+
 class PadLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):

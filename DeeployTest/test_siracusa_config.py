@@ -84,6 +84,15 @@ MODEL_TESTS = [
 # so each new training kernel can be added here without growing the
 # generic kernels job.
 TRAIN_KERNEL_TESTS = [
+    # ConvGrad smoke set: one per mapper path (generic, DW, PW × X/W).
+    # Model-specific shape variants (block_*, _s2, _Stem, _R8_L3_conv2)
+    # stay on disk under Tests/Kernels/FP32/ for manual dispatch but
+    # are out of the auto-CI smoke list.
+    "Kernels/FP32/ConvGrad",
+    "Kernels/FP32/ConvGradW_DW",
+    "Kernels/FP32/ConvGradW_PW",
+    "Kernels/FP32/ConvGradX_DW",
+    "Kernels/FP32/ConvGradX_PW",
     "Kernels/FP32/AveragePoolGrad",
     "Kernels/FP32/GlobalAveragePoolGrad",
     "Kernels/FP32/Softmax/CrossEntropyGrad",

@@ -15,8 +15,10 @@ from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import 
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPAveragePool2DBindings, \
-    PULPAveragePoolGrad2DBindings, PULPConcatBindings, PULPFloatConv2DBindings, PULPFloatDWConv2DBindings, \
-    PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, PULPGatherBindings, \
+    PULPAveragePoolGrad2DBindings, PULPConcatBindings, PULPFloatConv2DBindings, PULPFloatConvGradBBindings, \
+    PULPFloatConvGradW2DBindings, PULPFloatConvGradX2DBindings, PULPFloatDWConv2DBindings, \
+    PULPFloatDWConvGradW2DBindings, PULPFloatDWConvGradX2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, \
+    PULPFloatGEMMBindings, PULPFloatPWConvGradW2DBindings, PULPFloatPWConvGradX2DBindings, PULPGatherBindings, \
     PULPGlobalAveragePool2DBindings, PULPGlobalAveragePoolGrad2DBindings, PULPiHardswishBindings, \
     PULPInPlaceAccumulatorV2Bindings, PULPiRMSNormBindings, PULPiRQSGELUBindings, PULPLayernormBinding, \
     PULPLayernormGradBinding, PULPMatMulBindings, PULPMaxPool1DBindings, PULPMaxPool2DBindings, PULPMulBindings, \
@@ -26,6 +28,9 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPAveragePool2D
     PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, \
     PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.AveragePoolTileConstraint import AveragePoolCTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.ConvGradConstraint import ConvGradBTileConstraint, \
+    ConvGradW2DTileConstraint, ConvGradX2DIm2ColHWTileConstraint, DWConvGradW2DTileConstraint, \
+    DWConvGradX2DTileConstraint, PWConvGradWTileConstraint, PWConvGradXTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv1DTileConstraint, \
     RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
@@ -182,3 +187,24 @@ PULPSliceTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSliceB
 
 PULPReduceMeanTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceMeanBindings,
                                                             tileConstraint = ReduceMeanTileConstraint())
+
+PULPConvGradX2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvGradX2DBindings,
+                                                             tileConstraint = ConvGradX2DIm2ColHWTileConstraint())
+
+PULPConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvGradW2DBindings,
+                                                             tileConstraint = ConvGradW2DTileConstraint())
+
+PULPDWConvGradX2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradX2DBindings,
+                                                               tileConstraint = DWConvGradX2DTileConstraint())
+
+PULPDWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatDWConvGradW2DBindings,
+                                                               tileConstraint = DWConvGradW2DTileConstraint())
+
+PULPPWConvGradW2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatPWConvGradW2DBindings,
+                                                               tileConstraint = PWConvGradWTileConstraint())
+
+PULPPWConvGradX2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatPWConvGradX2DBindings,
+                                                               tileConstraint = PWConvGradXTileConstraint())
+
+PULPConvGradBTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPFloatConvGradBBindings,
+                                                           tileConstraint = ConvGradBTileConstraint())
