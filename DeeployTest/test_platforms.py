@@ -26,6 +26,7 @@ from test_mempool_config import MODEL_TESTS as MEMPOOL_MODEL_TESTS
 from test_siracusa_config import DEFAULT_CORES as SIRACUSA_DEFAULT_CORES
 from test_siracusa_config import KERNEL_TESTS as SIRACUSA_KERNEL_TESTS
 from test_siracusa_config import MODEL_TESTS as SIRACUSA_MODEL_TESTS
+from test_siracusa_config import TRAIN_KERNEL_TESTS as SIRACUSA_TRAIN_KERNEL_TESTS
 from test_siracusa_config import TRAINING_TESTS as SIRACUSA_TRAINING_TESTS
 from test_siracusa_neureka_tiled_config import DEFAULT_CORES as NEUREKA_DEFAULT_CORES
 from test_siracusa_neureka_tiled_config import L2_DOUBLEBUFFER_KERNELS as NEUREKA_L2_DOUBLEBUFFER_KERNELS
@@ -288,6 +289,26 @@ def test_siracusa_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir,
 @pytest.mark.parametrize("test_name", SIRACUSA_MODEL_TESTS, ids = SIRACUSA_MODEL_TESTS)
 def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim,
                          profile_untiled) -> None:
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
+        cores = SIRACUSA_DEFAULT_CORES,
+        profile_untiled = profile_untiled,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa
+@pytest.mark.train_kernel
+@pytest.mark.parametrize("test_name", SIRACUSA_TRAIN_KERNEL_TESTS, ids = SIRACUSA_TRAIN_KERNEL_TESTS)
+def test_siracusa_train_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim,
+                                profile_untiled) -> None:
     config = create_test_config(
         test_name = test_name,
         platform = "Siracusa",

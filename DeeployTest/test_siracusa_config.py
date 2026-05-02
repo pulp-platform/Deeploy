@@ -8,7 +8,6 @@ DEFAULT_CORES = 8
 
 KERNEL_TESTS = [
     "Kernels/FP32/ReLU",
-    "Kernels/FP32/Softmax/CrossEntropyGrad",
     "Kernels/FP32/Softmax/Grad",
     "Kernels/FP32/Softmax/Regular",
     "Kernels/FP32/Add/Regular",
@@ -76,6 +75,14 @@ MODEL_TESTS = [
     "Models/MLPerf/AnomalyDetection",
     "Models/TinyViT/Demo",
     "Models/CNN_Linear2",
+]
+
+# Training-related single-op kernel tests (grad / loss / optimizer).
+# Run separately from KERNEL_TESTS via the `train_kernel` pytest marker
+# so each new training kernel can be added here without growing the
+# generic kernels job.
+TRAIN_KERNEL_TESTS = [
+    "Kernels/FP32/Softmax/CrossEntropyGrad",
 ]
 
 # Training-enabled models (use deeployTrainingRunner / testMVPTraining pipeline).
