@@ -29,22 +29,6 @@ jobs:
     with:
       docker_image_deeploy: ${{ inputs.docker_image_deeploy }}
 
-  siracusa-kernels:
-    needs: select-env
-    uses: ./.github/workflows/_runner-siracusa.yml
-    with:
-      runner: ${{ needs.select-env.outputs.runner }}
-      docker-image: ${{ needs.select-env.outputs.image }}
-      pytest-marker: kernels
-
-  siracusa-models:
-    needs: select-env
-    uses: ./.github/workflows/_runner-siracusa.yml
-    with:
-      runner: ${{ needs.select-env.outputs.runner }}
-      docker-image: ${{ needs.select-env.outputs.image }}
-      pytest-marker: models
-
   siracusa-training:
     needs: select-env
     uses: ./.github/workflows/_runner-siracusa.yml

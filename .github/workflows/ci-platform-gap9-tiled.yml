@@ -6,18 +6,15 @@
 name: CI • GAP9 (Tiled)
 
 "on":
-  push:
-    branches:
-      - "**"
-    tags:
-      - "v*.*.*"
-  pull_request:
+  # Auto-trigger disabled in TrainDeeploy fork: GAP9 has no training
+  # pytest jobs yet (only kernels / models). Re-enable by restoring
+  # the push: / pull_request: blocks once a training marker is wired in.
   workflow_dispatch:
     inputs:
       docker_image_deeploy:
         description: "Deeploy Image to use"
         required: false
-        default: "ghcr.io/pulp-platform/deeploy-gap9:devel"
+        default: "ghcr.io/runwangdl/deeploy:gap9"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,7 +24,7 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:devel' }}
+      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/runwangdl/deeploy:gap9' }}
 
   gap9-kernels-tiled-singlebuffer-L2:
     needs: select-env

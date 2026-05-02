@@ -11,7 +11,7 @@ name: Infrastructure • Generate CCache GAP9
       docker_image_deeploy:
         description: "Deeploy GAP9 Image to use"
         required: false
-        default: "ghcr.io/pulp-platform/deeploy-gap9:devel"
+        default: "ghcr.io/runwangdl/deeploy:gap9"
   schedule:
     # Runs the workflow on the default branch every day at 2AM CET to keep the cache fresh
     - cron: "0 2 * * *"
@@ -21,7 +21,7 @@ jobs:
     if: github.repository == 'pulp-platform/Deeploy'
     runs-on: ubuntu-latest
     container:
-      image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:devel' }}
+      image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/runwangdl/deeploy:gap9' }}
     steps:
       - name: Mark workspace as safe
         run: git config --global --add safe.directory '*'

@@ -6,12 +6,8 @@
 name: CI • Mempool
 
 "on":
-  push:
-    branches:
-      - "**"
-    tags:
-      - "v*.*.*"
-  pull_request:
+  # Auto-trigger disabled in TrainDeeploy fork (not training-related).
+  # Re-enable by restoring the push: / pull_request: blocks.
   workflow_dispatch:
     inputs:
       docker_image_deeploy:
