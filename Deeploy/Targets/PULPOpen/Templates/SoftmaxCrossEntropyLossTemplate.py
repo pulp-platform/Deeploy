@@ -4,27 +4,29 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
+# Canonical SoftmaxCrossEntropyLoss: emits both a scalar mean loss and the
+# per-sample log_prob tensor.
 referenceTemplate = NodeTemplate("""
 BEGIN_SINGLE_CORE
     // SoftmaxCrossEntropyLoss (Name: ${nodeName}, Op: ${nodeOp})
+    float32_t sce_total_loss = 0.0f;
     for (uint32_t i = 0; i < ${batch}; i++) {
-        float max_logit = ${logits}[i * ${num_classes} + 0];
+        float32_t sce_max_logit = ${logits}[i * ${num_classes}];
         for (uint32_t j = 1; j < ${num_classes}; j++) {
-            if (${logits}[i * ${num_classes} + j] > max_logit) {
-                max_logit = ${logits}[i * ${num_classes} + j];
-            }
+            if (${logits}[i * ${num_classes} + j] > sce_max_logit)
+                sce_max_logit = ${logits}[i * ${num_classes} + j];
         }
-
-        float32_t sum_exp = 0.0f;
-        for (uint32_t j = 0; j < ${num_classes}; j++) {
-            sum_exp += expf(${logits}[i * ${num_classes} + j] - max_logit);
-        }
-
-        for (uint32_t j = 0; j < ${num_classes}; j++) {
-            // log_prob = logit - max_logit - log(sum_exp)
-            ${log_prob}[i * ${num_classes} + j] = ${logits}[i * ${num_classes} + j] - max_logit - logf(sum_exp);
-        }
+        float32_t sce_sum_exp = 0.0f;
+        for (uint32_t j = 0; j < ${num_classes}; j++)
+            sce_sum_exp += expf(${logits}[i * ${num_classes} + j] - sce_max_logit);
+        float32_t sce_log_sum_exp = logf(sce_sum_exp);
+        for (uint32_t j = 0; j < ${num_classes}; j++)
+            ${log_prob}[i * ${num_classes} + j] =
+                ${logits}[i * ${num_classes} + j] - sce_max_logit - sce_log_sum_exp;
+        sce_total_loss += -(${logits}[i * ${num_classes} + (uint32_t)(${labels}[i])]
+                            - sce_max_logit - sce_log_sum_exp);
     }
+    ${loss}[0] = sce_total_loss / (float32_t)${batch};
 END_SINGLE_CORE
 """)
 

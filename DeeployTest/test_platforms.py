@@ -26,6 +26,7 @@ from test_mempool_config import MODEL_TESTS as MEMPOOL_MODEL_TESTS
 from test_siracusa_config import DEFAULT_CORES as SIRACUSA_DEFAULT_CORES
 from test_siracusa_config import KERNEL_TESTS as SIRACUSA_KERNEL_TESTS
 from test_siracusa_config import MODEL_TESTS as SIRACUSA_MODEL_TESTS
+from test_siracusa_config import TRAINING_TESTS as SIRACUSA_TRAINING_TESTS
 from test_siracusa_neureka_tiled_config import DEFAULT_CORES as NEUREKA_DEFAULT_CORES
 from test_siracusa_neureka_tiled_config import L2_DOUBLEBUFFER_KERNELS as NEUREKA_L2_DOUBLEBUFFER_KERNELS
 from test_siracusa_neureka_tiled_config import L2_SINGLEBUFFER_KERNELS as NEUREKA_L2_SINGLEBUFFER_KERNELS
@@ -34,7 +35,9 @@ from test_siracusa_neureka_tiled_config import L3_DOUBLEBUFFER_MODELS as NEUREKA
 from test_siracusa_neureka_tiled_config import L3_DOUBLEBUFFER_MODELS_WMEM as NEUREKA_L3_DOUBLEBUFFER_MODELS_WMEM
 from test_siracusa_neureka_tiled_config import L3_SINGLEBUFFER_MODELS as NEUREKA_L3_SINGLEBUFFER_MODELS
 from test_siracusa_tiled_config import L2_DOUBLEBUFFER_KERNELS, L2_DOUBLEBUFFER_MODELS, L2_SINGLEBUFFER_KERNELS, \
-    L2_SINGLEBUFFER_MODELS, L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
+    L2_SINGLEBUFFER_MODELS
+from test_siracusa_tiled_config import L2_SINGLEBUFFER_TRAINING_MODELS as SIRACUSA_L2_SINGLEBUFFER_TRAINING_MODELS
+from test_siracusa_tiled_config import L3_DOUBLEBUFFER_MODELS, L3_SINGLEBUFFER_MODELS
 from test_snitch_config import DEFAULT_NUM_CORES as SNITCH_DEFAULT_NUM_CORES
 from test_snitch_config import KERNEL_TESTS as SNITCH_KERNEL_TESTS
 from test_snitch_config import MODEL_TESTS as SNITCH_MODEL_TESTS
@@ -296,6 +299,56 @@ def test_siracusa_models(test_name, deeploy_test_dir, toolchain, toolchain_dir, 
         tiling = False,
         cores = SIRACUSA_DEFAULT_CORES,
         profile_untiled = profile_untiled,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa
+@pytest.mark.training
+@pytest.mark.parametrize("test_name", SIRACUSA_TRAINING_TESTS, ids = SIRACUSA_TRAINING_TESTS)
+def test_siracusa_training(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
+        cores = SIRACUSA_DEFAULT_CORES,
+        training = True,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.siracusa_tiled
+@pytest.mark.training
+@pytest.mark.singlebuffer
+@pytest.mark.l2
+@pytest.mark.parametrize(
+    "test_params",
+    generate_test_params(SIRACUSA_L2_SINGLEBUFFER_TRAINING_MODELS, "L2-singlebuffer-training"),
+    ids = param_id,
+)
+def test_siracusa_tiled_training_l2_singlebuffer(test_params, deeploy_test_dir, toolchain, toolchain_dir, cmake_args,
+                                                 skipgen, skipsim) -> None:
+    test_name, l1, _config_name = test_params
+    config = create_test_config(
+        test_name = test_name,
+        platform = "Siracusa",
+        simulator = "gvsoc",
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = SIRACUSA_DEFAULT_CORES,
+        l1 = l1,
+        l2 = 2000000,
+        default_mem_level = "L2",
+        double_buffer = False,
+        training = True,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 

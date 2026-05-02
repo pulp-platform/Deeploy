@@ -577,11 +577,11 @@ class SoftmaxCrossEntropyLossChecker(SignPropTypeChecker):
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
 
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+        return [2**(self.input_types[0].referencedType.typeWidth)] * len(self.output_types)
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
-        return [False]
+        return [False] * len(self.output_types)
 
 
 class SGDChecker(SignPropTypeChecker):
@@ -595,6 +595,32 @@ class SGDChecker(SignPropTypeChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [True]
+
+
+class InPlaceAccumulatorV2Checker(SignPropTypeChecker):
+    """Type checker for ORT InPlaceAccumulatorV2 operator (com.microsoft).
+
+    Inputs:
+        0: buffer          (float32*)
+        1: gradient        (float32*)
+        2: lazy_reset_grad (uint8_t* or bool* - 1 element)
+
+    Output:
+        0: output_buffer   (float32*)
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        # Output has same precision as the buffer input (float32)
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        # Float32 output is signed
         return [True]
 
 

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from Deeploy.Logging import DEFAULT_LOGGER as log
 
+from ..trainingUtils import add_training_cmake_flags, run_training_codegen
 from .config import DeeployTestConfig
 from .output_parser import TestResult, parse_test_output
 
@@ -26,6 +27,10 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         return
 
     script_dir = Path(__file__).parent.parent.parent
+
+    if config.training:
+        run_training_codegen(config, script_dir)
+        return
 
     if config.tiling:
         generation_script = script_dir / "testMVP.py"
@@ -101,6 +106,9 @@ def configure_cmake(config: DeeployTestConfig) -> None:
         cmd.append("-Dgvsoc_simulation=ON")
     else:
         cmd.append("-Dgvsoc_simulation=OFF")
+
+    add_training_cmake_flags(cmd, config.training, config.n_train_steps, config.n_accum_steps,
+                             config.training_num_data_inputs)
 
     # Last argument is the source directory
     script_dir = Path(__file__).parent.parent.parent

@@ -333,7 +333,8 @@ class Tiler():
                     if _buffer._memoryLevel != memoryLevel:
                         continue
 
-                    if hasattr(_buffer, "_alias") and ctxt.is_global(_buffer._alias):
+                    if hasattr(_buffer, "_alias") and ctxt.is_global(
+                            _buffer._alias) and _buffer._alias not in blockNames:
                         continue
 
                     if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:
@@ -398,10 +399,23 @@ class Tiler():
         environment variable to be set to the installation directory.
         """
 
+        blockNames = {block.name for block in memoryMap}
+
+        # In-place alias outputs whose target is in the same memoryMap share
+        # storage with the target — skip them from the MiniMalloc CSV (it
+        # rejects size-0 entries) and copy their addrSpace from the target
+        # after the solver runs.
+        aliasBlocks = {
+            block.name for block in memoryMap if getattr(ctxt.lookup(block.name), "_alias", None) in blockNames
+        }
+
         with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
             writer = csv.writer(file, lineterminator = "\n")
             writer.writerow(["id", "lower", "upper", "size"])
             for memoryBlock in memoryMap:
+
+                if memoryBlock.name in aliasBlocks:
+                    continue
 
                 _buffer = ctxt.lookup(memoryBlock.name)
                 if nodeMemoryConstraint is None:
@@ -451,6 +465,14 @@ class Tiler():
                 for memoryBlock in memoryMap:
                     if memoryBlock.name == row[0]:
                         memoryBlock._addrSpace = (int(row[-1]), int(row[-1]) + int(row[-2]))
+
+        # Resolve skipped alias blocks: copy addrSpace from the alias target.
+        targetBlocks = {block.name: block for block in memoryMap}
+        for memoryBlock in memoryMap:
+            if memoryBlock.name not in aliasBlocks:
+                continue
+            target = targetBlocks.get(ctxt.dealiasBuffer(memoryBlock.name))
+            memoryBlock._addrSpace = target._addrSpace if target is not None else (0, 0)
 
         return memoryMap
 
