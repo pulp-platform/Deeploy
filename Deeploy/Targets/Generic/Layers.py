@@ -415,6 +415,18 @@ class MaxPoolLayer(ONNXLayer):
         return total_ops
 
 
+class AveragePoolLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class AveragePoolGradLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
 class ReduceMeanLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):

@@ -329,6 +329,56 @@ class MaxPool2DParser(MaxPoolParser):
         return newCtxt, wellFormed
 
 
+class AveragePool2DParser(MaxPool2DParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = super().parseNode(node)
+        wellFormed = False
+        if ret:
+            pads = self.operatorRepresentation['pads']
+            kernel_shape = self.operatorRepresentation['kernel_shape']
+            strides = self.operatorRepresentation['strides']
+            if len(pads) == 4 and len(kernel_shape) == 2 and len(strides) == 2:
+                wellFormed = True
+            self.operatorRepresentation['padding_x_left'] = int(pads[0])
+            self.operatorRepresentation['padding_y_top'] = int(pads[1])
+            self.operatorRepresentation['padding_x_right'] = int(pads[2])
+            self.operatorRepresentation['padding_y_bottom'] = int(pads[3])
+            self.operatorRepresentation['stride_x'] = int(strides[0])
+            self.operatorRepresentation['stride_y'] = int(strides[1])
+            self.operatorRepresentation['dim_kernel_x'] = int(kernel_shape[0])
+            self.operatorRepresentation['dim_kernel_y'] = int(kernel_shape[1])
+        return wellFormed
+
+    def parseNodeCtxt(self, ctxt, node, channels_first = True):
+        newCtxt, ret = super(MaxPool2DParser, self).parseNodeCtxt(ctxt, node, channels_first)
+        wellFormed = False
+        if ret:
+            data_in = newCtxt.lookup(self.operatorRepresentation['data_in'])
+            data_out = newCtxt.lookup(self.operatorRepresentation['data_out'])
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            if channels_first:
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[3]
+                self.operatorRepresentation['ch_im_out'] = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[2]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[3]
+            else:
+                self.operatorRepresentation['ch_im_in'] = data_in.shape[3]
+                self.operatorRepresentation['dim_im_in_x'] = data_in.shape[1]
+                self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+                self.operatorRepresentation['ch_im_out'] = data_out.shape[3]
+                self.operatorRepresentation['dim_im_out_x'] = data_out.shape[1]
+                self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+            if len(data_in.shape) == 4 and len(data_out.shape) == 4:
+                wellFormed = True
+        return newCtxt, wellFormed
+
+
 class PadParser(NodeParser):
 
     def __init__(self):
