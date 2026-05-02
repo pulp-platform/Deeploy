@@ -329,6 +329,85 @@ class MaxPool2DParser(MaxPoolParser):
         return newCtxt, wellFormed
 
 
+class GlobalAveragePoolParser(NodeParser):
+    """Parser for GlobalAveragePool (NCHW).
+
+    Input:  data_in  [N, C, H, W]
+    Output: data_out [N, C, 1, 1]
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if len(node.inputs) != 1:
+            return False
+        if len(node.outputs) != 1:
+            return False
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        self.operatorRepresentation['data_in'] = ctxt.lookup(node.inputs[0].name).name
+        self.operatorRepresentation['data_out'] = ctxt.lookup(node.outputs[0].name).name
+
+        in_shape = ctxt.lookup(node.inputs[0].name).shape
+        if len(in_shape) != 4:
+            return ctxt, False
+
+        N, C, H, W = int(in_shape[0]), int(in_shape[1]), int(in_shape[2]), int(in_shape[3])
+        self.operatorRepresentation['batch'] = N
+        self.operatorRepresentation['channels'] = C
+        self.operatorRepresentation['dim_im_in_x'] = H
+        self.operatorRepresentation['dim_im_in_y'] = W
+        self.operatorRepresentation['size'] = H * W
+        return ctxt, True
+
+
+class GlobalAveragePoolGradParser(NodeParser):
+    """Parser for fused GlobalAveragePoolGrad.
+
+    Input:  dY [N, C, 1, 1]  (stored as N*C elements)
+    Output: dX [N, C, H, W]
+    Attrs:  kernel_shape=[H, W]
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if len(node.inputs) != 1:
+            return False
+        if len(node.outputs) != 1:
+            return False
+        if 'kernel_shape' not in node.attrs:
+            return False
+        kernel_shape = node.attrs['kernel_shape']
+        if len(kernel_shape) != 2:
+            return False
+        self.operatorRepresentation['H'] = int(kernel_shape[0])
+        self.operatorRepresentation['W'] = int(kernel_shape[1])
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        self.operatorRepresentation['dY'] = ctxt.lookup(node.inputs[0].name).name
+        self.operatorRepresentation['dX'] = ctxt.lookup(node.outputs[0].name).name
+
+        dy_shape = ctxt.lookup(node.inputs[0].name).shape
+        if len(dy_shape) < 2:
+            return ctxt, False
+
+        N, C = int(dy_shape[0]), int(dy_shape[1])
+        self.operatorRepresentation['batch'] = N
+        self.operatorRepresentation['channels'] = C
+        return ctxt, True
+
+
 class AveragePool2DParser(MaxPool2DParser):
 
     def __init__(self):

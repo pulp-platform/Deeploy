@@ -470,6 +470,44 @@ class AveragePoolChecker(SignPropTypeChecker):
             return [False]
 
 
+class GlobalAveragePoolChecker(SignPropTypeChecker):
+    """TypeChecker for GlobalAveragePool.
+
+    Input:  data_in  [N, C, H, W]  float32
+    Output: data_out [N, C, 1, 1]  float32
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [inputs[0].nLevels]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [inputs[0]._signed]
+
+
+class GlobalAveragePoolGradChecker(SignPropTypeChecker):
+    """TypeChecker for GlobalAveragePoolGrad.
+
+    Input:  dY [N, C, 1, 1]  float32
+    Output: dX [N, C, H, W]  float32
+    """
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
+
 class ConvChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):

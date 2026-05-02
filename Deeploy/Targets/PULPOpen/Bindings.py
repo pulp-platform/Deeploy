@@ -18,9 +18,10 @@ from Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure import Memory
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
     GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
-    GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, \
-    MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
-    RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, GlobalAveragePoolGradChecker, HardswishChecker, \
+    InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, \
+    ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, \
+    SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -30,7 +31,7 @@ from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, \
-    FloatAveragePoolTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
+    FloatAveragePoolTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatGlobalAveragePoolTemplate, \
     FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
     FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, \
     MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, \
@@ -291,6 +292,18 @@ PULPAveragePool2DBindings = [
 PULPAveragePoolGrad2DBindings = [
     NodeBinding(PULPMaxPoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatAveragePoolTemplate.referenceGradTemplate, ForkTransformer)
+]
+
+# 1 input (data_in [N,C,H,W]), 1 output (data_out [N,C,1,1])
+PULPGlobalAveragePool2DBindings = [
+    NodeBinding(GlobalAveragePoolChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatGlobalAveragePoolTemplate.globalAveragePoolTemplate, ForkTransformer)
+]
+
+# 1 input (dY [N,C,1,1]), 1 output (dX [N,C,H,W])
+PULPGlobalAveragePoolGrad2DBindings = [
+    NodeBinding(GlobalAveragePoolGradChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatGlobalAveragePoolTemplate.globalAveragePoolGradTemplate, ForkTransformer)
 ]
 
 PULPRQSConv1DBindings = [

@@ -229,13 +229,14 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
 
         if node.op in ["RequantizedConv", "Conv"]:
             spatialDims = len(node.inputs[1].shape) - 2
-        elif node.op == "MaxPool":
+        elif node.op in ["MaxPool", "AveragePool", "AveragePoolGrad"]:
             spatialDims = len(node.attrs["kernel_shape"])
         elif node.op == "Pad":
             spatialDims = 2  # Hack based on current status
         else:
             raise ValueError(f"Cannot determine spatialDims for node {node.name} with operator {node.op}")
 
+        # Insert Transpose nodes around the op's activation input/output to convert the data layout.
         permuteIn = _transformLayoutPermutation(len(tensorIn.shape), spatialDims, default_channels_first)
         graph.nodes.append(_appendTranspose(tensorIn, node, permuteIn))
 
@@ -245,7 +246,14 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         if node.op in ["Conv", "RequantizedConv"]:
             # In the case of Conv: [weights, opt. bias], RequantizedConv: [weights, mul, add, opt. shift]
             for tensor in node.inputs[1:]:
-                _transformLayoutConst(tensor, spatialDims, default_channels_first)
+                if isinstance(tensor, gs.Constant):
+                    # Inference graph: weight is a fixed constant — permute its data in-place.
+                    _transformLayoutConst(tensor, spatialDims, default_channels_first)
+                elif isinstance(tensor, gs.Variable) and tensor.shape is not None and len(tensor.shape) >= 2:
+                    # Training graph: weight is a Variable (updated by the optimizer) — cannot permute
+                    # in-place, so insert an explicit Transpose node that will run at inference/forward time.
+                    perm = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
+                    graph.nodes.append(_appendTranspose(tensor, node, perm))
 
         node.attrs["channels_first"] = default_channels_first
 
@@ -258,6 +266,24 @@ class NCHWtoNHWCMaxPoolPass(ReplaceSequentialPatternPass):
     def __init__(self, default_channels_first: bool = True):
         graph = _singleNodePattern(op = "MaxPool")
         name = "_NCHW_TO_NHWC_MAXPOOL_PASS"
+        super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
+
+
+@contextagnostic
+class NCHWtoNHWCAveragePoolPass(ReplaceSequentialPatternPass):
+
+    def __init__(self, default_channels_first: bool = True):
+        graph = _singleNodePattern(op = "AveragePool")
+        name = "_NCHW_TO_NHWC_AVERAGEPOOL_PASS"
+        super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
+
+
+@contextagnostic
+class NCHWtoNHWCAveragePoolGradPass(ReplaceSequentialPatternPass):
+
+    def __init__(self, default_channels_first: bool = True):
+        graph = _singleNodePattern(op = "AveragePoolGrad")
+        name = "_NCHW_TO_NHWC_AVERAGEPOOLGRAD_PASS"
         super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
 
 
@@ -363,6 +389,8 @@ class NCHWtoNHWCPass(SequentialPass):
         passes = [
             NCHWtoNHWCPadPass(default_channels_first),
             NCHWtoNHWCMaxPoolPass(default_channels_first),
+            NCHWtoNHWCAveragePoolPass(default_channels_first),
+            NCHWtoNHWCAveragePoolGradPass(default_channels_first),
             NCHWtoNHWCDwConvPass(default_channels_first),
             NCHWtoNHWCConvPass(default_channels_first),
         ]
@@ -376,6 +404,8 @@ class PULPNCHWtoNHWCPass(SequentialPass):
         passes = [
             NCHWtoNHWCPadPass(default_channels_first),
             NCHWtoNHWCMaxPoolPass(default_channels_first),
+            NCHWtoNHWCAveragePoolPass(default_channels_first),
+            NCHWtoNHWCAveragePoolGradPass(default_channels_first),
             PULPNCHWtoNHWCDwConvPass(default_channels_first),
             NCHWtoNHWCConvPass(default_channels_first),
         ]
@@ -533,8 +563,11 @@ def _remove_only_singleton_reduce_mean(graph: gs.Graph, match: Match, name: str)
     # Delete node if only reduction over singleton dimensions
     if 'axis' in node.attrs:
         axis = node.attrs['axis']
-    else:
+    elif len(node.inputs) > 1 and node.inputs[1] is not None and hasattr(
+            node.inputs[1], 'values') and node.inputs[1].values is not None:
         axis = node.inputs[1].values
+    else:
+        return graph  # axis unknown, skip
 
     # Check if shape information is available
     if node.inputs[0].shape is not None and all(node.inputs[0].shape[ax] == 1 for ax in axis):

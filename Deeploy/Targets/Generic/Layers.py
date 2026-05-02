@@ -427,6 +427,18 @@ class AveragePoolGradLayer(ONNXLayer):
         super().__init__(maps)
 
 
+class GlobalAveragePoolLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class GlobalAveragePoolGradLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
 class ReduceMeanLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):

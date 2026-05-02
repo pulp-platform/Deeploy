@@ -8,6 +8,7 @@ DEFAULT_CORES = 8
 
 KERNEL_TESTS = [
     "Kernels/FP32/AveragePool",
+    "Kernels/FP32/GlobalAveragePool",
     "Kernels/FP32/ReLU",
     "Kernels/FP32/Softmax/Grad",
     "Kernels/FP32/Softmax/Regular",
@@ -83,6 +84,8 @@ MODEL_TESTS = [
 # so each new training kernel can be added here without growing the
 # generic kernels job.
 TRAIN_KERNEL_TESTS = [
+    "Kernels/FP32/AveragePoolGrad",
+    "Kernels/FP32/GlobalAveragePoolGrad",
     "Kernels/FP32/Softmax/CrossEntropyGrad",
 ]
 
