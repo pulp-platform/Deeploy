@@ -95,6 +95,8 @@ TRAIN_KERNEL_TESTS = [
     "Kernels/FP32/ConvGradX_PW",
     "Kernels/FP32/AveragePoolGrad",
     "Kernels/FP32/GlobalAveragePoolGrad",
+    "Kernels/FP32/BatchNormInternal",
+    "Kernels/FP32/BatchNormalizationGrad",
     "Kernels/FP32/LayerNormGrad",
     # MaxPoolGrad: kernel + binding shipped (PR #8) but no end-to-end
     # MaxPool training graph in CI (ResNet8/DSCNN/etc use AvgPool).

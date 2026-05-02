@@ -17,11 +17,12 @@ from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation i
 from Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure import MemoryAwareClosureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
     GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
-from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
-    GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, GlobalAveragePoolGradChecker, HardswishChecker, \
-    InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolGradChecker, MSELossChecker, MulChecker, \
-    PULPConvGradBChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
-    RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormalizationGradChecker, BatchNormInternalChecker, \
+    ConcatChecker, ConvChecker, DequantChecker, GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, \
+    GlobalAveragePoolGradChecker, HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, \
+    MaxPoolGradChecker, MSELossChecker, MulChecker, PULPConvGradBChecker, QuantChecker, ReduceMeanChecker, \
+    ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, \
+    SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -31,11 +32,11 @@ from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, \
-    FloatAveragePoolTemplate, FloatConvGradTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatGlobalAveragePoolTemplate, FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, \
-    FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, \
-    GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, MSELossTemplate, MulTemplate, ReduceMeanTemplate, \
-    RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
+    FloatAveragePoolTemplate, FloatBatchNormTemplate, FloatConvGradTemplate, FloatConvTemplate, FloatGELUTemplate, \
+    FloatGemmTemplate, FloatGlobalAveragePoolTemplate, FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, \
+    FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
+    FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, MSELossTemplate, MulTemplate, \
+    ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
     SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
@@ -355,6 +356,18 @@ PULPGlobalAveragePool2DBindings = [
 PULPGlobalAveragePoolGrad2DBindings = [
     NodeBinding(GlobalAveragePoolGradChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatGlobalAveragePoolTemplate.globalAveragePoolGradTemplate, ForkTransformer)
+]
+
+# 5 inputs (X, gamma, beta, running_mean, running_var), 5 outputs (Y, urm, urv, saved_mean, saved_inv_std)
+PULPBatchNormInternalBindings = [
+    NodeBinding(BatchNormInternalChecker([PointerClass(float32_t)] * 5, [PointerClass(float32_t)] * 5),
+                FloatBatchNormTemplate.batchNormInternalTemplate, ForkTransformer)
+]
+
+# 5 inputs (dY, X, gamma, saved_mean, saved_inv_std), 3 outputs (dX, dgamma, dbeta)
+PULPBatchNormalizationGradBindings = [
+    NodeBinding(BatchNormalizationGradChecker([PointerClass(float32_t)] * 5, [PointerClass(float32_t)] * 3),
+                FloatBatchNormTemplate.batchNormGradTemplate, ForkTransformer)
 ]
 
 PULPRQSConv1DBindings = [

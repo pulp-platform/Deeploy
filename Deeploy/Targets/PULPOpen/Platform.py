@@ -13,21 +13,23 @@ from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLev
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, AveragePoolLayer, ConcatLayer, \
-    ConvGradBLayer, ConvGradWLayer, ConvGradXLayer, ConvLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, \
-    GlobalAveragePoolGradLayer, GlobalAveragePoolLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, \
-    MatMulLayer, MaxPoolGradLayer, MaxPoolLayer, MSELossGradLayer, MSELossLayer, MulLayer, PadLayer, QuantLayer, \
-    ReduceMeanLayer, ReduceSumLayer, ReluGradLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, \
-    RQSiGELULayer, RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, \
-    SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, ConcatParser, Conv2DGradBParser, \
-    DequantParser, FlattenParser, GatherParser, GELUGradParser, GELUParser, GEMMParser, GlobalAveragePoolGradParser, \
-    GlobalAveragePoolParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, \
-    MaxPool1DParser, MaxPool2DParser, MaxPoolGradParser, MSELossGradParser, MSELossParser, MulParser, Pad1DParser, \
-    Pad2DParser, QuantParser, ReduceSumParser, ReluGradParser, ReluParser, RequantShiftParser, ReshapeParser, \
-    RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, \
-    SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
-    TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
+from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, AveragePoolLayer, \
+    BatchNormalizationGradLayer, BatchNormInternalLayer, ConcatLayer, ConvGradBLayer, ConvGradWLayer, ConvGradXLayer, \
+    ConvLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, GlobalAveragePoolGradLayer, GlobalAveragePoolLayer, \
+    InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolGradLayer, MaxPoolLayer, \
+    MSELossGradLayer, MSELossLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluGradLayer, \
+    ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
+    SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
+    TransposeLayer, iHardswishLayer, iRMSNormLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, BatchNormalizationGradParser, \
+    BatchNormInternalParser, ConcatParser, Conv2DGradBParser, DequantParser, FlattenParser, GatherParser, \
+    GELUGradParser, GELUParser, GEMMParser, GlobalAveragePoolGradParser, GlobalAveragePoolParser, \
+    InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool1DParser, MaxPool2DParser, \
+    MaxPoolGradParser, MSELossGradParser, MSELossParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, \
+    ReduceSumParser, ReluGradParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, \
+    RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, \
+    SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, \
+    UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
     MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
@@ -41,7 +43,8 @@ from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser,
     PULPPWConvGradX2DParser, PULPReduceMeanParser, PULPTallGEMMParser
 from Deeploy.Targets.PULPOpen.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAveragePool2DTilingReadyBindings, \
-    PULPAveragePoolGrad2DTilingReadyBindings, PULPConcatTilingReadyBindings, PULPConv2DTilingReadyBindings, \
+    PULPAveragePoolGrad2DTilingReadyBindings, PULPBatchNormalizationGradTilingReadyBindings, \
+    PULPBatchNormInternalTilingReadyBindings, PULPConcatTilingReadyBindings, PULPConv2DTilingReadyBindings, \
     PULPConvGradBTilingReadyBindings, PULPConvGradW2DTilingReadyBindings, PULPConvGradX2DTilingReadyBindings, \
     PULPDWConv2DTilingReadyBindings, PULPDWConvGradW2DTilingReadyBindings, PULPDWConvGradX2DTilingReadyBindings, \
     PULPFlattenTilingReadyBindings, PULPFPGELUGradTilingReadyBindings, PULPFPGELUTilingReadyBindings, \
@@ -102,6 +105,8 @@ AveragePoolGrad2DMapper = NodeMapper(AveragePool2DParser(), PULPAveragePoolGrad2
 MaxPoolGrad2DMapper = NodeMapper(MaxPoolGradParser(), PULPMaxPoolGrad2DTilingReadyBindings)
 GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), PULPGlobalAveragePool2DTilingReadyBindings)
 GlobalAveragePoolGradMapper = NodeMapper(GlobalAveragePoolGradParser(), PULPGlobalAveragePoolGrad2DTilingReadyBindings)
+BatchNormInternalMapper = NodeMapper(BatchNormInternalParser(), PULPBatchNormInternalTilingReadyBindings)
+BatchNormalizationGradMapper = NodeMapper(BatchNormalizationGradParser(), PULPBatchNormalizationGradTilingReadyBindings)
 MSELossMapper = NodeMapper(MSELossParser(), PULPMSELossTilingReadyBindings)
 MSELossGradMapper = NodeMapper(MSELossGradParser(), PULPMSELossGradTilingReadyBindings)
 LayerNormMapper = NodeMapper(LayerNormParser(), PULPLayernormTilingReadyBindings)
@@ -157,6 +162,8 @@ PULPMapping = {
     'MaxPoolGrad': MaxPoolGradLayer([MaxPoolGrad2DMapper]),
     'GlobalAveragePool': GlobalAveragePoolLayer([GlobalAveragePoolMapper]),
     'GlobalAveragePoolGrad': GlobalAveragePoolGradLayer([GlobalAveragePoolGradMapper]),
+    'BatchNormInternal': BatchNormInternalLayer([BatchNormInternalMapper]),
+    'BatchNormalizationGrad': BatchNormalizationGradLayer([BatchNormalizationGradMapper]),
     'MSELoss': MSELossLayer([MSELossMapper]),
     'MSELossGrad': MSELossGradLayer([MSELossGradMapper]),
     'RequantizediGELU': RQSiGELULayer([RQGELU_int8_Mapper]),

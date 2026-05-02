@@ -3074,6 +3074,125 @@ class BatchNormParser(NodeParser):
         return ctxt, True
 
 
+class BatchNormInternalParser(NodeParser):
+    """Parser for ORT BatchNormInternal (training_mode=1).
+
+    Inputs (5):  X, scale (gamma), B (beta), running_mean, running_var
+    Outputs (5): Y, updated_running_mean, updated_running_var, saved_mean, saved_inv_std
+
+    Outputs[1,2] (updated running stats) have no consumers in the graph and are
+    allocated but never written by the kernel.
+    Outputs[3,4] (saved_mean, saved_inv_std) are consumed by BatchNormalizationGrad.
+    Their ONNX shapes are '?' — the parser infers them as [C].
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if len(node.inputs) != 5:
+            return False
+        if len(node.outputs) != 5:
+            return False
+        self.operatorRepresentation['epsilon'] = float(node.attrs.get('epsilon', 1e-5))
+        self.operatorRepresentation['momentum'] = float(node.attrs.get('momentum', 0.9))
+        self.operatorRepresentation['training_mode'] = int(node.attrs.get('training_mode', 1))
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        # Inputs
+        self.operatorRepresentation['data_in'] = ctxt.lookup(node.inputs[0].name).name
+        self.operatorRepresentation['scale'] = ctxt.lookup(node.inputs[1].name).name
+        self.operatorRepresentation['bias'] = ctxt.lookup(node.inputs[2].name).name
+        self.operatorRepresentation['running_mean'] = ctxt.lookup(node.inputs[3].name).name
+        self.operatorRepresentation['running_var'] = ctxt.lookup(node.inputs[4].name).name
+
+        # Outputs
+        self.operatorRepresentation['data_out'] = ctxt.lookup(node.outputs[0].name).name
+        self.operatorRepresentation['updated_running_mean'] = ctxt.lookup(node.outputs[1].name).name
+        self.operatorRepresentation['updated_running_var'] = ctxt.lookup(node.outputs[2].name).name
+        self.operatorRepresentation['saved_mean'] = ctxt.lookup(node.outputs[3].name).name
+        self.operatorRepresentation['saved_inv_std'] = ctxt.lookup(node.outputs[4].name).name
+
+        # Spatial shape from input[0]
+        input_shape = ctxt.lookup(node.inputs[0].name).shape
+        N = int(input_shape[0])
+        C = int(input_shape[1])
+        H_in = int(input_shape[2])
+        W_in = int(input_shape[3])
+        self.operatorRepresentation['N'] = N
+        self.operatorRepresentation['C'] = C
+        self.operatorRepresentation['H_in'] = H_in
+        self.operatorRepresentation['W_in'] = W_in
+
+        # Fix unknown shapes for saved_mean and saved_inv_std (ONNX reports '?')
+        for out_idx in [3, 4]:
+            buf = ctxt.lookup(node.outputs[out_idx].name)
+            if buf.shape is None or (hasattr(buf.shape, '__len__') and len(buf.shape) == 0):
+                buf.shape = (C,)
+
+        return ctxt, True
+
+
+class BatchNormalizationGradParser(NodeParser):
+    """Parser for ORT BatchNormalizationGrad (backward pass).
+
+    Inputs (5):  dY, X, scale (gamma), saved_mean, saved_inv_std
+    Outputs (3): dX, dgamma, dbeta
+
+    dgamma and dbeta have shape '?' in ONNX — inferred as [C] from input[2] (gamma).
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if len(node.inputs) != 5:
+            return False
+        if len(node.outputs) != 3:
+            return False
+        self.operatorRepresentation['epsilon'] = float(node.attrs.get('epsilon', 1e-5))
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        # Inputs
+        self.operatorRepresentation['dY'] = ctxt.lookup(node.inputs[0].name).name
+        self.operatorRepresentation['X'] = ctxt.lookup(node.inputs[1].name).name
+        self.operatorRepresentation['gamma'] = ctxt.lookup(node.inputs[2].name).name
+        self.operatorRepresentation['saved_mean'] = ctxt.lookup(node.inputs[3].name).name
+        self.operatorRepresentation['saved_inv_std'] = ctxt.lookup(node.inputs[4].name).name
+
+        # Outputs
+        self.operatorRepresentation['dX'] = ctxt.lookup(node.outputs[0].name).name
+        self.operatorRepresentation['dgamma'] = ctxt.lookup(node.outputs[1].name).name
+        self.operatorRepresentation['dbeta'] = ctxt.lookup(node.outputs[2].name).name
+
+        # Shape from dY (input[0])
+        dy_shape = ctxt.lookup(node.inputs[0].name).shape
+        N = int(dy_shape[0])
+        C = int(dy_shape[1])
+        H_in = int(dy_shape[2])
+        W_in = int(dy_shape[3])
+        self.operatorRepresentation['N'] = N
+        self.operatorRepresentation['C'] = C
+        self.operatorRepresentation['H_in'] = H_in
+        self.operatorRepresentation['W_in'] = W_in
+
+        # Fix unknown shapes for dgamma and dbeta (ONNX reports '?')
+        for out_idx in [1, 2]:
+            buf = ctxt.lookup(node.outputs[out_idx].name)
+            if buf.shape is None or (hasattr(buf.shape, '__len__') and len(buf.shape) == 0):
+                buf.shape = (C,)
+
+        return ctxt, True
+
+
 class ConvTransposeParser(NodeParser):
 
     def __init__(self):
