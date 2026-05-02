@@ -19,9 +19,9 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, Dequa
     GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, GlobalAveragePoolGradChecker, HardswishChecker, \
-    InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MSELossChecker, MulChecker, PULPConvGradBChecker, \
-    QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolGradChecker, MSELossChecker, MulChecker, \
+    PULPConvGradBChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
+    RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -330,6 +330,11 @@ PULPAveragePoolGrad2DBindings = [
                 FloatAveragePoolTemplate.referenceGradTemplate, ForkTransformer)
 ]
 
+PULPMaxPoolGrad2DBindings = [
+    NodeBinding(MaxPoolGradChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatMaxPoolTemplate.referenceGradTemplate, ForkTransformer)
+]
+
 PULPMSELossBindings = [
     NodeBinding(MSELossChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 MSELossTemplate.referenceTemplate, ForkTransformer)
@@ -502,18 +507,36 @@ PULPMulBindings = [
 PULPReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                               FloatReluTemplate.referenceTemplate, ForkTransformer)
 
+PULPReluGradBinding = NodeBinding(
+    ReluChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+    FloatReluTemplate.referenceGradTemplate, ForkTransformer)
+
 PULPLayernormBinding = NodeBinding(
     LayerNormChecker(
+        # inputs: data_in (X), weight (scale/gamma), bias (beta)
         [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+         PointerClass(float32_t)],
+        # outputs: data_out (Y), mean stash, inv_std_dev stash
+        [PointerClass(float32_t), PointerClass(float32_t),
+         PointerClass(float32_t)]),
+    FloatLayernormTemplate.referenceTemplate,
     ForkTransformer)
 
 PULPLayernormGradBinding = NodeBinding(
     LayerNormChecker(
-        [PointerClass(float32_t),
-         PointerClass(float32_t),
-         PointerClass(float32_t),
-         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
+        # inputs: grad_in (dY), data_in (X), weight (scale/gamma),
+        #         mean stash, inv_std_dev stash
+        [
+            PointerClass(float32_t),
+            PointerClass(float32_t),
+            PointerClass(float32_t),
+            PointerClass(float32_t),
+            PointerClass(float32_t)
+        ],
+        # outputs: grad_out (dX), weight_grad (dscale), bias_grad (dbias)
+        [PointerClass(float32_t), PointerClass(float32_t),
+         PointerClass(float32_t)]),
+    FloatLayernormTemplate.referenceGradTemplate,
     ForkTransformer)
 
 PULPFloatGELUBinding = NodeBinding(

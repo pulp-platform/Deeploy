@@ -516,6 +516,85 @@ class AveragePool2DParser(MaxPool2DParser):
         return newCtxt, wellFormed
 
 
+class MaxPoolGradParser(NodeParser):
+    """Parser for MaxPoolGrad custom training operator.
+
+    Inputs:
+        0: grad_output (dY)  - upstream gradient, shape [N, C, Ho, Wo] or [N, Ho, Wo, C]
+        1: original_input (X) - forward input, shape [N, C, Hi, Wi] or [N, Hi, Wi, C]
+    Output:
+        0: grad_input (dX)  - gradient w.r.t. forward input, same shape as original_input
+    Attributes: kernel_shape, strides, pads (same as MaxPool)
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = all([
+            'kernel_shape' in node.attrs,
+            'pads' in node.attrs,
+            'strides' in node.attrs,
+            len(node.inputs) == 2,
+            len(node.outputs) == 1,
+        ])
+
+        if ret:
+            pads = node.attrs['pads']
+            kernel_shape = node.attrs['kernel_shape']
+            strides = node.attrs['strides']
+
+            if not (len(pads) == 4 and len(kernel_shape) == 2 and len(strides) == 2):
+                return False
+
+            self.operatorRepresentation['pads'] = pads
+            self.operatorRepresentation['kernel_shape'] = kernel_shape
+            self.operatorRepresentation['strides'] = strides
+            self.operatorRepresentation['padding_x_left'] = int(pads[0])
+            self.operatorRepresentation['padding_y_top'] = int(pads[1])
+            self.operatorRepresentation['padding_x_right'] = int(pads[2])
+            self.operatorRepresentation['padding_y_bottom'] = int(pads[3])
+            self.operatorRepresentation['stride_x'] = int(strides[0])
+            self.operatorRepresentation['stride_y'] = int(strides[1])
+            self.operatorRepresentation['dim_kernel_x'] = int(kernel_shape[0])
+            self.operatorRepresentation['dim_kernel_y'] = int(kernel_shape[1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        x_in = ctxt.lookup(node.inputs[1].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['x_in'] = x_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        if channels_first:
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            self.operatorRepresentation['ch_im_in'] = data_in.shape[1]
+            self.operatorRepresentation['dim_im_in_x'] = data_in.shape[2]
+            self.operatorRepresentation['dim_im_in_y'] = data_in.shape[3]
+            self.operatorRepresentation['ch_im_out'] = data_out.shape[1]
+            self.operatorRepresentation['dim_im_out_x'] = data_out.shape[2]
+            self.operatorRepresentation['dim_im_out_y'] = data_out.shape[3]
+        else:
+            self.operatorRepresentation['batch'] = data_in.shape[0]
+            self.operatorRepresentation['ch_im_in'] = data_in.shape[3]
+            self.operatorRepresentation['dim_im_in_x'] = data_in.shape[1]
+            self.operatorRepresentation['dim_im_in_y'] = data_in.shape[2]
+            self.operatorRepresentation['ch_im_out'] = data_out.shape[3]
+            self.operatorRepresentation['dim_im_out_x'] = data_out.shape[1]
+            self.operatorRepresentation['dim_im_out_y'] = data_out.shape[2]
+
+        wellFormed = (len(data_in.shape) == 4 and len(x_in.shape) == 4 and len(data_out.shape) == 4)
+        return ctxt, wellFormed
+
+
 class PadParser(NodeParser):
 
     def __init__(self):
@@ -1304,6 +1383,33 @@ class ReluParser(NodeParser):
         return ctxt, True
 
 
+class ReluGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        upstream_grad = ctxt.lookup(node.inputs[0].name)
+        relu_input = ctxt.lookup(node.inputs[1].name)
+        relu_grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['grad_out'] = upstream_grad.name
+        self.operatorRepresentation['data_in'] = relu_input.name
+        self.operatorRepresentation['grad_in'] = relu_grad.name
+        self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
+
+        return ctxt, True
+
+
 class ReshapeParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
@@ -1897,12 +2003,11 @@ class LayerNormParser(iLayerNormParser):
 class LayerNormGradParser(iLayerNormParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
-
-        ret = all(['epsilon' in node.attrs, len(node.inputs) == 4, len(node.outputs) == 1])
-
+        # ONNX LayerNormalizationGrad has 5 inputs [dY, X, scale, mean, inv_std_dev]
+        # and 3 outputs [dX, dscale, dbias].
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 5, len(node.outputs) == 3])
         if ret:
             self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
-
         return ret
 
     def parseNodeCtxt(self,
@@ -1910,17 +2015,14 @@ class LayerNormGradParser(iLayerNormParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['grad_in', 'data_in', 'weight', 'bias']
-        outputs = ['grad_out']
-
+        inputs = ['grad_in', 'data_in', 'weight', 'mean', 'inv_std_dev']
+        outputs = ['grad_out', 'weight_grad', 'bias_grad']
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
-
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
-
         return ctxt, True
 
 

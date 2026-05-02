@@ -229,7 +229,7 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
 
         if node.op in ["RequantizedConv", "Conv"]:
             spatialDims = len(node.inputs[1].shape) - 2
-        elif node.op in ["MaxPool", "AveragePool", "AveragePoolGrad"]:
+        elif node.op in ["MaxPool", "MaxPoolGrad", "AveragePool", "AveragePoolGrad"]:
             spatialDims = len(node.attrs["kernel_shape"])
         elif node.op == "Pad":
             spatialDims = 2  # Hack based on current status
@@ -284,6 +284,15 @@ class NCHWtoNHWCAveragePoolGradPass(ReplaceSequentialPatternPass):
     def __init__(self, default_channels_first: bool = True):
         graph = _singleNodePattern(op = "AveragePoolGrad")
         name = "_NCHW_TO_NHWC_AVERAGEPOOLGRAD_PASS"
+        super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
+
+
+@contextagnostic
+class NCHWtoNHWCMaxPoolGradPass(ReplaceSequentialPatternPass):
+
+    def __init__(self, default_channels_first: bool = True):
+        graph = _singleNodePattern(op = "MaxPoolGrad")
+        name = "_NCHW_TO_NHWC_MAXPOOLGRAD_PASS"
         super().__init__(graph, partial(_NCHWtoNHWC_fun, default_channels_first = default_channels_first), name)
 
 
@@ -391,6 +400,7 @@ class NCHWtoNHWCPass(SequentialPass):
             NCHWtoNHWCMaxPoolPass(default_channels_first),
             NCHWtoNHWCAveragePoolPass(default_channels_first),
             NCHWtoNHWCAveragePoolGradPass(default_channels_first),
+            NCHWtoNHWCMaxPoolGradPass(default_channels_first),
             NCHWtoNHWCDwConvPass(default_channels_first),
             NCHWtoNHWCConvPass(default_channels_first),
         ]
@@ -406,6 +416,7 @@ class PULPNCHWtoNHWCPass(SequentialPass):
             NCHWtoNHWCMaxPoolPass(default_channels_first),
             NCHWtoNHWCAveragePoolPass(default_channels_first),
             NCHWtoNHWCAveragePoolGradPass(default_channels_first),
+            NCHWtoNHWCMaxPoolGradPass(default_channels_first),
             PULPNCHWtoNHWCDwConvPass(default_channels_first),
             NCHWtoNHWCConvPass(default_channels_first),
         ]
