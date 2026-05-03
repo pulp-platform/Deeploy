@@ -50,6 +50,8 @@ def create_test_config(
     randomized_mem_scheduler: bool = False,
     profile_untiled: bool = False,
     training: bool = False,
+    training_num_data_inputs: Optional[int] = None,
+    training_tolerance: Optional[float] = None,
     gen_args: Optional[List[str]] = None,
 ) -> DeeployTestConfig:
 
@@ -98,6 +100,9 @@ def create_test_config(
     if profile_untiled and not tiling and platform == "Siracusa":
         gen_args_list.append("--profileUntiled")
 
+    if training and training_tolerance is not None:
+        gen_args_list.append(f"--tolerance={training_tolerance}")
+
     config = DeeployTestConfig(
         test_name = test_name_clean,
         test_dir = test_dir_abs,
@@ -111,6 +116,7 @@ def create_test_config(
         cmake_args = cmake_args_list,
         gen_args = gen_args_list,
         training = training,
+        training_num_data_inputs = training_num_data_inputs,
     )
 
     return config

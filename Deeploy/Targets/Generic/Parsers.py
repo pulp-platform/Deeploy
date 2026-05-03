@@ -1987,12 +1987,15 @@ class LayerNormParser(iLayerNormParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         inputs = ['data_in', 'weight', 'bias']
-        outputs = ['data_out']
+        # ONNX LayerNormalization can have up to 3 outputs: Y, mean, inv_std_dev.
+        # The extra outputs are needed by LayerNormalizationGrad in training graphs.
+        outputs = ['data_out', 'mean', 'inv_std_dev']
 
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+            if idx < len(outputs):
+                self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]

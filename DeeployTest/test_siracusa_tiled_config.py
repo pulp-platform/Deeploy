@@ -159,4 +159,40 @@ L3_DOUBLEBUFFER_MODELS = {
 # L2 size is fixed by the runner at 2_000_000 to match the validated local run.
 L2_SINGLEBUFFER_TRAINING_MODELS = {
     "Models/Training/SimpleMLP/simplemlp_train": [64000],
+    "Models/Training/Autoencoder/autoencoder_train": [128000],
+    "Models/Training/DSCNN/dscnn_train": [128000],
+}
+
+# Training-enabled tiled models that need L3 spill (weights/activations don't
+# fit in L2). Same shape: test path -> list of L1 sizes (bytes).
+#
+# ResNet8 is intentionally NOT here: it passes locally bit-exact at
+# defaultMemLevel=L3 but its gvsoc simulation in CI hangs >30 minutes (root
+# cause unclear; suspected runner / hyperflash IO bottleneck on the CI
+# image, not a Deeploy correctness regression). Keep CCT and CCT-LoRA as
+# the L3-spill coverage until ResNet8 sim time is investigated.
+L3_SINGLEBUFFER_TRAINING_MODELS = {
+    "Models/Training/CCT/cct_train": [128000],
+    "Models/Training/CCT_LoRA/cct_lora_train": [128000],
+}
+
+# Per-model overrides for training tests.
+#
+# - num_data_inputs: required when inputs.npz has only one mini-batch (no
+#   mb1_arr_* entries) so the runner can't auto-detect.
+# - tolerance: per-model TRAINING_TOLERANCE_ABS bump for tests with known FP
+#   precision drift past the 1e-3 default. Both numbers were established
+#   locally; matching values pass on TP TrainingPlatform with the same
+#   model artifacts.
+TRAINING_MODEL_OVERRIDES = {
+    "Models/Training/CCT/cct_train": {
+        "num_data_inputs": 1,
+        # CCT step-0 forward drift ~1.5e-3 (FP reduction order on attention).
+        "tolerance": 5e-3,
+    },
+    "Models/Training/CCT_LoRA/cct_lora_train": {
+        # 32 mini-batches; worst-case is step 27 with diff ~1.2e-2 (LoRA
+        # backward through attention compounds across steps).
+        "tolerance": 1.5e-2,
+    },
 }

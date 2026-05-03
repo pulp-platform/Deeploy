@@ -12,7 +12,8 @@ from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
 
 
 class TransposeTileConstraint(TileConstraint):
@@ -58,7 +59,17 @@ class TransposeTileConstraint(TileConstraint):
         invPerm = _invertPermutation(operatorRepresentation['perm'])
         inputCubes = []
         for outCube in outputCubes:
-            inCube = _permuteHyperRectangle(outCube, invPerm)
+            # Workaround: MatMulLayer.computeShapes may inject leading batch dims into
+            # the Transpose output's ctxt shape (e.g. [K,N] → [1,K,N]) when A is 3-D.
+            # The actual Transpose only operates on the spatial (last len(invPerm)) dims;
+            # strip the extra leading batch dims before permuting so that inCube matches
+            # the real data_in (weight) shape which is not broadened.
+            numExtra = len(outCube.dims) - len(invPerm)
+            if numExtra > 0:
+                spatialCube = HyperRectangle(outCube.offset[numExtra:], outCube.dims[numExtra:])
+                inCube = _permuteHyperRectangle(spatialCube, invPerm)
+            else:
+                inCube = _permuteHyperRectangle(outCube, invPerm)
             inputCubes.append(inCube)
             for i, dim in enumerate(inCube.dims):
                 replacements[f"dimLen_{i}"].append(dim)

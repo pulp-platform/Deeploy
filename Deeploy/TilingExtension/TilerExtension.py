@@ -433,11 +433,18 @@ class Tiler():
                                 8) * nodeMemoryConstraint.tensorMemoryConstraints[
                                     memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
 
+                # Round buffer size up to a 4-byte multiple before handing it
+                # to MiniMalloc. PULP word loads/stores expect 4-byte alignment;
+                # without rounding two adjacent allocations can sit 1-3 bytes
+                # apart and the second buffer's first word straddles the last
+                # byte of the first one. Mirrors the size rounding used by the
+                # upstream Deeploy TrainingPlatform branch.
+                _alignedSize = ((int(_bufferSize) + 3) // 4) * 4
                 writer.writerow([
                     memoryBlock.name,
                     str(memoryBlock.lifetime[0]),
                     str(memoryBlock.lifetime[1] + 1),
-                    str(int(_bufferSize))
+                    str(_alignedSize)
                 ])
 
         try:

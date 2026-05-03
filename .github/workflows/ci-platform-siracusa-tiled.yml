@@ -37,3 +37,12 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-marker: "training and l2 and singlebuffer"
+
+  # Training tests - L3 singlebuffer (models that spill weights/activations to L3)
+  siracusa-training-tiled-l3-singlebuffer:
+    needs: select-env
+    uses: ./.github/workflows/_runner-siracusa-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "training and l3 and singlebuffer"

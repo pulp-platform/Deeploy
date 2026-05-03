@@ -78,13 +78,45 @@ class TilingHoistingMixIn:
                                tilingSchedules: List[TilingSchedule]) -> Tuple[ConstantBuffer, VariableBuffer]:
         stepsNumTiles = [len(tilingSchedule.outputLoadSchedule) for tilingSchedule in tilingSchedules]
 
-        cumulativeNumTiles = [0]
-        for numTiles in stepsNumTiles:
-            cumulativeNumTiles.append(cumulativeNumTiles[-1] + numTiles)
+        # Core extension: at the innermost memory level (L1), emit a per-tile
+        # boundary so each invocation of the inner closure processes exactly one
+        # tile. The outer-level (L3->L2) closure iterates N_outer times and calls
+        # inner once per iter; with the baseline cumulative layout
+        # `{0, N1, N1+N2, ...}` inner would process many tiles per call and only
+        # tolerate `len(tilingSchedules)` outer iters before reading numTiles
+        # OOB. Per-tile layout `{0,1,2,...,total}` keeps
+        # outer_iters == inner_calls == total_tiles. Outer memory levels keep
+        # cumulative layout to iterate per L2 tile.
+        # When L1 is the innermost AND there's an outer (L3) driver, each outer
+        # iter invokes the L1 closure once → use per-tile {0,1,2,...,total} so
+        # one inner-call processes one tile. When L1 is the OUTERMOST tiling
+        # level (defaultMemLevel=L2, no L3 driver), the L1 closure is called
+        # exactly once from RunNetwork and must walk all tiles itself → use
+        # cumulative {0, total}. Detect "has outer driver" via tilingSchedules
+        # length: an outer driver produces one TilingSchedule per outer iter.
+        if self.memory == "L1" and len(tilingSchedules) > 1:
+            total = sum(stepsNumTiles)
+            cumulativeNumTiles = list(range(total + 1))
+        else:
+            cumulativeNumTiles = [0]
+            for numTiles in stepsNumTiles:
+                cumulativeNumTiles.append(cumulativeNumTiles[-1] + numTiles)
 
         tileNum = self._hoistValues(ctxt, "numTiles", cumulativeNumTiles)
 
-        tileIdxPtr = ctxt.VariableBuffer(f"{self.prefix}tileIdxPtr", shape = [1])
+        tileIdxPtrName = f"{self.prefix}tileIdxPtr"
+        # Idempotent: reuse if pre-hoisted by a template's alignToContext
+        # (see _ConvGradWTemplate). That lets template rendering -- which
+        # Closure passes trigger BEFORE this tiling pass runs -- already see
+        # the real tileIdxPtr buffer name instead of a 'NULL' sentinel.
+        # Keep whatever type the pre-hoister chose so the earlier captured
+        # closure-struct field types stay consistent with the later outer-
+        # scope initTemplate declaration.
+        if ctxt.is_buffer(tileIdxPtrName):
+            tileIdxPtr = ctxt.lookup(tileIdxPtrName)
+            return (tileNum, tileIdxPtr)
+
+        tileIdxPtr = ctxt.VariableBuffer(tileIdxPtrName, shape = [1])
         ctxt.add(tileIdxPtr, "local")
 
         tileIdxPtr._type = tileNum._type
