@@ -256,12 +256,12 @@ class Neureka2DDenseConvTemplate(NeurekaConvTemplate):
             operatorRepresentation: OperatorRepresentation) -> Tuple[int, int, int, int, int, int, int, int, int, int]:
         _ = operatorRepresentation  # operatorRepresentation not accessed for now because it's just for pointwise kernels
 
-        n_channel_out_subtiles = _getNumTiles(channel_out, 28)
+        n_channel_out_subtiles = _getNumTiles(channel_out, 32)
         n_channel_in_subtiles = _getNumTiles(channel_in, 28)
         n_height_out_subtiles = _getNumTiles(height_out, 6)
         n_width_out_subtiles = _getNumTiles(width_out, 6)
 
-        channel_out_border = _getBorderTileSize(channel_out, 28)
+        channel_out_border = _getBorderTileSize(channel_out, 32)
         channel_in_border = _getBorderTileSize(channel_in, 28)
         height_out_border = _getBorderTileSize(height_out, 6)
         width_out_border = _getBorderTileSize(width_out, 6)
