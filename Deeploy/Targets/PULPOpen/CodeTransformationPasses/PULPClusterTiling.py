@@ -42,7 +42,9 @@ class PULPClusterTiling(CodeTransformationPass):
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
-        if verbose.tilingProfiling:
+        nodes = verbose.profilingNodes
+        profileThis = verbose.tilingProfiling and (nodes is None or any(s in name for s in nodes))
+        if profileThis:
             ctxt, executionBlock = self.profilingSB.apply(ctxt, executionBlock, name)
             ctxt, executionBlock = self.profilingDB.apply(ctxt, executionBlock, name)
         else:

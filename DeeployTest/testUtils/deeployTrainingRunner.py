@@ -111,6 +111,8 @@ def main(tiling_enabled: bool = False, default_platform: str = 'Siracusa', defau
             gen_args.append(f'--searchStrategy={args.searchStrategy}')
         if getattr(args, 'profileTiling', False):
             gen_args.append('--profileTiling')
+        if getattr(args, 'profileNodes', None):
+            gen_args.append(f"--profileNodes={','.join(args.profileNodes)}")
         if getattr(args, 'plotMemAlloc', False):
             gen_args.append('--plotMemAlloc')
 

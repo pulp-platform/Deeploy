@@ -150,6 +150,13 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                               action = "store_true",
                               help = 'Enable randomized memory scheduler\n')
             self.add_argument('--profileTiling', action = 'store_true', help = 'Enable tiling profiling\n')
+            self.add_argument(
+                '--profileNodes',
+                type = lambda s: s.split(','),
+                default = None,
+                metavar = 'SUBSTR[,SUBSTR...]',
+                help =
+                'With --profileTiling: restrict to nodes whose name contains any of these comma-separated substrings\n')
             self.add_argument('--memAllocStrategy',
                               metavar = '<strategy>',
                               dest = 'memAllocStrategy',
@@ -232,6 +239,8 @@ def create_config_from_args(args: argparse.Namespace,
             gen_args_list.append("--randomizedMemoryScheduler")
         if hasattr(args, 'profileTiling') and args.profileTiling:
             gen_args_list.append("--profileTiling")
+        if hasattr(args, 'profileNodes') and args.profileNodes:
+            gen_args_list.append(f"--profileNodes={','.join(args.profileNodes)}")
         if hasattr(args, 'memAllocStrategy') and args.memAllocStrategy:
             gen_args_list.append(f"--memAllocStrategy={args.memAllocStrategy}")
         if hasattr(args, 'searchStrategy') and args.searchStrategy:

@@ -258,7 +258,7 @@ def run_training_codegen(config, script_dir: Path) -> None:
         training_script = script_dir / "testMVPTraining.py"
         optimizer_script = script_dir / "testMVPOptimizer.py"
         opt_passthrough = ("--cores", "--l1", "--l2", "--defaultMemLevel", "--memAllocStrategy", "--searchStrategy",
-                           "--plotMemAlloc", "--profileTiling")
+                           "--plotMemAlloc", "--profileTiling", "--profileNodes")
         stage = "Tiled training"
     else:
         training_script = script_dir / "generateTrainingNetwork.py"

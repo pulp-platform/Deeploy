@@ -109,7 +109,14 @@ class TilingHoistingMixIn:
         # cumulative {0, total} so the single call walks every tile.
         l1_has_outer_driver = False
         if self.memory == "L1" and nodeMemoryConstraint is not None:
-            for tmc in nodeMemoryConstraint.tensorMemoryConstraints.values():
+            # Only probe input/output tensors, not intermediate (spilled) ones.
+            # Intermediate buffers (e.g. transposed activations kept alive for the
+            # backward pass) can spill to L3 under memory pressure without creating
+            # an L3 outer loop.  Including them would falsely trigger per-tile
+            # layout for nodes whose main I/O stays in L2 (e.g. DSCNN at L1=64000).
+            io_tmcs = (list(nodeMemoryConstraint.inputTensorMemoryConstraints.values()) +
+                       list(nodeMemoryConstraint.outputTensorMemoryConstraints.values()))
+            for tmc in io_tmcs:
                 if "L3" in tmc.memoryConstraints:
                     l1_has_outer_driver = True
                     break

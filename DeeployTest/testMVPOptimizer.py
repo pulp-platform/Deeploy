@@ -118,7 +118,7 @@ def generateTiledOptimizerNetwork(args) -> None:
     # 8. Prepare deployer.
     verbosityCfg = _NoVerbosity
     if args.profileTiling:
-        verbosityCfg = CodeGenVerbosity(tilingProfiling = True)
+        verbosityCfg = CodeGenVerbosity(tilingProfiling = True, profilingNodes = args.profileNodes)
     _ = deployer.prepare(verbosityCfg)
 
     # 9. Build shared-buffer maps when the training ONNX is available
@@ -173,6 +173,12 @@ if __name__ == '__main__':
     parser.add_argument("--profileTiling",
                         action = "store_true",
                         help = "Enable tiling profiling (inserts cycle counters around each tiled kernel).")
+    parser.add_argument("--profileNodes",
+                        type = lambda s: s.split(','),
+                        default = None,
+                        metavar = "SUBSTR[,SUBSTR...]",
+                        help = "With --profileTiling: restrict to nodes whose name contains any of these "
+                        "comma-separated substrings. E.g. --profileNodes=conv_stem,sgd_conv.")
     add_optimizer_training_dir_arg(parser)
     parser.add_argument("--shouldFail", action = "store_true")
     parser.set_defaults(shouldFail = False)

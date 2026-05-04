@@ -54,6 +54,8 @@ class CodeGenVerbosity:
     tilingProfiling: Optional[bool] = False  # Specifies if we should profile the tiling code
     untiledProfiling: Optional[bool] = None  #  Specifies if we should profile the untilied code
     microbenchmarkProfiling: Optional[bool] = False  # Wrap each layer with PULP perf-counter microbenchmark
+    profilingNodes: Optional[
+        list] = None  # Restrict tiling profiling to nodes whose name contains any of these substrings; None means all nodes
 
 
 _NoVerbosity = CodeGenVerbosity(None)

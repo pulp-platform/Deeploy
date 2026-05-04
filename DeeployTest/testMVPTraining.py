@@ -144,7 +144,7 @@ def generateTiledTrainingNetwork(args) -> None:
     # 10. Prepare deployer.
     verbosityCfg = _NoVerbosity
     if args.profileTiling:
-        verbosityCfg = CodeGenVerbosity(tilingProfiling = True)
+        verbosityCfg = CodeGenVerbosity(tilingProfiling = True, profilingNodes = args.profileNodes)
     _ = deployer.prepare(verbosityCfg)
 
     # 11. Resolve num_data_inputs, n_steps, n_accum.
@@ -259,6 +259,13 @@ if __name__ == '__main__':
     parser.add_argument("--profileTiling",
                         action = "store_true",
                         help = "Enable tiling profiling (inserts cycle counters around each tiled kernel).")
+    parser.add_argument(
+        "--profileNodes",
+        type = lambda s: s.split(','),
+        default = None,
+        metavar = "SUBSTR[,SUBSTR...]",
+        help = "Restrict tiling profiling to nodes whose name contains any of the given comma-separated "
+        "substrings. E.g. --profileNodes=conv_stem,ds_blocks_0_dw  (default: profile all nodes).")
     parser.add_argument("--shouldFail", action = "store_true")
     parser.set_defaults(shouldFail = False)
     args = parser.parse_args()
