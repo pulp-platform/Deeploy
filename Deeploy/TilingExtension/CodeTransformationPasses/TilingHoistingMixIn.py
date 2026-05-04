@@ -74,8 +74,11 @@ class TilingHoistingMixIn:
         ref._memoryLevel = self.memory
         return ref
 
-    def _hoistTileNumAndIdxPtr(self, ctxt: NetworkContext,
-                               tilingSchedules: List[TilingSchedule]) -> Tuple[ConstantBuffer, VariableBuffer]:
+    def _hoistTileNumAndIdxPtr(
+            self,
+            ctxt: NetworkContext,
+            tilingSchedules: List[TilingSchedule],
+            nodeMemoryConstraint: Optional['NodeMemoryConstraint'] = None) -> Tuple[ConstantBuffer, VariableBuffer]:
         stepsNumTiles = [len(tilingSchedule.outputLoadSchedule) for tilingSchedule in tilingSchedules]
 
         # Core extension: at the innermost memory level (L1), emit a per-tile
@@ -92,9 +95,25 @@ class TilingHoistingMixIn:
         # one inner-call processes one tile. When L1 is the OUTERMOST tiling
         # level (defaultMemLevel=L2, no L3 driver), the L1 closure is called
         # exactly once from RunNetwork and must walk all tiles itself → use
-        # cumulative {0, total}. Detect "has outer driver" via tilingSchedules
-        # length: an outer driver produces one TilingSchedule per outer iter.
-        if self.memory == "L1" and len(tilingSchedules) > 1:
+        # cumulative {0, total}.
+        #
+        # Detect "has outer driver": at L1 hoist time, L2 hoist has not yet run
+        # (PULPClusterTiling[L2->L1] runs before PULPL3Tiling[L3->L2] in the
+        # CodeTransformation pipeline), so we can't probe L2_numTiles buffers.
+        # Use the operator's tensor placements instead: if any of the tensors
+        # referenced by this tiling schedule has _memoryLevel == "L3", then a
+        # downstream L3 hoist will wrap this L1 closure in an L3 loop that
+        # drives `total_tiles` invocations — use per-tile {0, 1, ..., total}.
+        # If no tensors are L3-resident (defaultMemLevel=L2), the L1 closure
+        # is the outermost tile loop, called once from RunNetwork; emit
+        # cumulative {0, total} so the single call walks every tile.
+        l1_has_outer_driver = False
+        if self.memory == "L1" and nodeMemoryConstraint is not None:
+            for tmc in nodeMemoryConstraint.tensorMemoryConstraints.values():
+                if "L3" in tmc.memoryConstraints:
+                    l1_has_outer_driver = True
+                    break
+        if self.memory == "L1" and l1_has_outer_driver:
             total = sum(stepsNumTiles)
             cumulativeNumTiles = list(range(total + 1))
         else:

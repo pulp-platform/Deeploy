@@ -88,7 +88,7 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
             if not len(offsetList) == self.bufferCount:
                 return ctxt, executionBlock, False
 
-        numTiles, tileIdxPtr = self._hoistTileNumAndIdxPtr(ctxt, tilingSchedules)
+        numTiles, tileIdxPtr = self._hoistTileNumAndIdxPtr(ctxt, tilingSchedules, nodeMemoryConstraint)
         operatorRepresentation["numTiles"] = numTiles.name
         operatorRepresentation["tileIdxPtr"] = tileIdxPtr.name
 

@@ -161,7 +161,22 @@ def generateTrainingTestInputsHeader(deployer: NetworkDeployer,
             list_str = ", ".join([f'{float(x)}f' for x in values])
             buf_name = f"testInitWeight_{wi}"
             weight_entries.append(buf_name)
-            retStr += f"{typeName} {buf_name}[] = {{{list_str}}};\n"
+            # Place initial weight arrays in WEIGHTMEM_SRAM (defined in the
+            # Siracusa linker script, ~4 MB on-chip). Two reasons:
+            #   1) `.l2_data` is only ~1.94 MB after kernel-reserved space;
+            #      MobileNetV1-0.25 testInitWeight_* alone is ~830 KB and
+            #      together with the per-mb data (~432 KB) overflows L2 at
+            #      link time.
+            #   2) Even when the model fits, leaving the weights in `.l2_data`
+            #      means the harness must `l3_aware_copy` them into the L3
+            #      training buffers at boot — but Deeploy already emits a
+            #      `load_file_to_ram(buf, "N.hex")` for every L3-resident
+            #      input, and gvsoc's HyperFlash simulation is *very* slow
+            #      per-file. With ~80 hex files, the boot stalls 25+ min;
+            #      with weights baked into the binary via WEIGHTMEM_SRAM,
+            #      gvsoc loads them in one shot with the program image and
+            #      ResNet8/MobileNetV1 sim finishes in ~1 min.
+            retStr += f'{typeName} {buf_name}[] __attribute__((section(".weightmem_sram"))) = {{{list_str}}};\n'
         retStr += f"void* testInitWeights[{len(weight_entries)}] = {{{', '.join(f'(void*){e}' for e in weight_entries)}}};\n"
 
     return retStr

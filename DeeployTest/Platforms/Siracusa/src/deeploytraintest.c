@@ -102,6 +102,14 @@
 struct pi_device cluster_dev;
 
 /* -------------------------------------------------------------------------
+ * Cycle accumulators — incremented after every RunTrainingNetwork /
+ * RunOptimizerNetwork cluster dispatch.
+ * ---------------------------------------------------------------------- */
+
+static unsigned int g_train_cycles_acc = 0;
+static unsigned int g_opt_cycles_acc = 0;
+
+/* -------------------------------------------------------------------------
  * Loss storage (one value per forward pass)
  * ---------------------------------------------------------------------- */
 
@@ -159,7 +167,11 @@ static void run_optimizer_step(void) {
   pi_cluster_task(&opt_task, RunOptimizerNetwork, NULL);
   opt_task.stack_size = MAINSTACKSIZE;
   opt_task.slave_stack_size = SLAVESTACKSIZE;
+  ResetTimer();
+  StartTimer();
   pi_cluster_send_task_to_cl(&cluster_dev, &opt_task);
+  StopTimer();
+  g_opt_cycles_acc += getCycles();
 
   /* --- Step C: copy weight_updated back to training network's weight buffers
    * --- Skipped when codegen has shared the output buffer with the training
@@ -342,7 +354,11 @@ int main(void) {
       pi_cluster_task(&cluster_task, RunTrainingNetwork, NULL);
       cluster_task.stack_size = MAINSTACKSIZE;
       cluster_task.slave_stack_size = SLAVESTACKSIZE;
+      ResetTimer();
+      StartTimer();
       pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+      StopTimer();
+      g_train_cycles_acc += getCycles();
 
       /* ④ Store loss — use memcpy to avoid float registers on FC (no FPU). */
       {
@@ -380,6 +396,21 @@ int main(void) {
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
   printf("Errors: %u out of %u\r\n", (unsigned)loss_err_count,
          (unsigned)total_loss_checks);
+
+  /* ------------------------------------------------------------------
+   * Benchmark summary — parsed by benchmark_training.py
+   * ------------------------------------------------------------------ */
+
+  uint32_t weight_sram_bytes = 0;
+#if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
+  for (uint32_t _wi = 0; _wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; _wi++) {
+    weight_sram_bytes +=
+        DeeployNetwork_inputs_bytes[(uint32_t)TRAINING_NUM_DATA_INPUTS + _wi];
+  }
+#endif
+
+  printf("BENCH train_cycles=%u opt_cycles=%u weight_sram=%u\r\n",
+         g_train_cycles_acc, g_opt_cycles_acc, weight_sram_bytes);
 
   return loss_err_count == 0 ? 0 : 1;
 }

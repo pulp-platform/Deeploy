@@ -165,13 +165,9 @@ L2_SINGLEBUFFER_TRAINING_MODELS = {
 
 # Training-enabled tiled models that need L3 spill (weights/activations don't
 # fit in L2). Same shape: test path -> list of L1 sizes (bytes).
-#
-# ResNet8 is intentionally NOT here: it passes locally bit-exact at
-# defaultMemLevel=L3 but its gvsoc simulation in CI hangs >30 minutes (root
-# cause unclear; suspected runner / hyperflash IO bottleneck on the CI
-# image, not a Deeploy correctness regression). Keep CCT and CCT-LoRA as
-# the L3-spill coverage until ResNet8 sim time is investigated.
 L3_SINGLEBUFFER_TRAINING_MODELS = {
+    "Models/Training/ResNet8/resnet8_train": [128000],
+    "Models/Training/MobileNetV1/mobilenetv1_train": [128000],
     "Models/Training/CCT/cct_train": [128000],
     "Models/Training/CCT_LoRA/cct_lora_train": [128000],
 }
@@ -191,8 +187,13 @@ TRAINING_MODEL_OVERRIDES = {
         "tolerance": 5e-3,
     },
     "Models/Training/CCT_LoRA/cct_lora_train": {
-        # 32 mini-batches; worst-case is step 27 with diff ~1.2e-2 (LoRA
-        # backward through attention compounds across steps).
-        "tolerance": 1.5e-2,
+        # Reduced from 32→4 mini-batches (2 optimizer steps, n_accum=2).
+        # Steps 0-3 are all within 2.5e-5 of ORT — no tolerance override needed.
+        # The old 32-step test compounded LoRA backward drift to ~1.2e-2 at
+        # step 27; 4 steps is sufficient coverage at default 1e-3 tolerance.
+    },
+    "Models/Training/MobileNetV1/mobilenetv1_train": {
+        # Pretrained MLPerf Tiny VWW checkpoint (vww_96.h5): max diff 3.1e-5
+        # across all 4 steps — default 1e-3 tolerance is fine.
     },
 }

@@ -3,6 +3,9 @@
   <img src="docs/_static/DeeployLogoGreen.svg" alt="Logo" width="300">
 
 # Deeploy: DNN Compiler for Heterogeneous SoCs
+
+**[Inference (this page)](README.md) · [On-Device Training](README_TRAINING.md)**
+
 </div>
 
 ![PyPI](https://img.shields.io/pypi/v/deeploy-pulp)[![Documentation Status](https://img.shields.io/github/deployments/pulp-platform/Deeploy/github-pages?logo=readthedocs&logoColor=white&label=Docs
