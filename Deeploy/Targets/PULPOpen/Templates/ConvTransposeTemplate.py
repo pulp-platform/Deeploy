@@ -17,17 +17,17 @@ ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
         ref_${data_out}_${data_in},
-        ${ch_im_in}, ${dim_im_in_y}, ${dim_im_in_x},
+        ${ch_im_in}, ${dim_im_in_x}, ${dim_im_in_y},
         ${weight},
         ${ch_im_out}, ${group},
-        ${dim_kernel_y}, ${dim_kernel_x},
-        ${stride_y}, ${stride_x},
-        ${dilation_y}, ${dilation_x},
+        ${dim_kernel_x}, ${dim_kernel_y},
+        ${stride_x}, ${stride_y},
+        ${dilation_x}, ${dilation_y},
         ${padding_y_top}, ${padding_y_bottom},
         ${padding_x_left}, ${padding_x_right},
         ${bias}, ${has_bias},
         ref_${data_out}_${data_out},
-        ${dim_im_out_y}, ${dim_im_out_x}
+        ${dim_im_out_x}, ${dim_im_out_y}
     );
 
     ref_${data_out}_${data_in} += ${batchOffsetIn};
