@@ -110,10 +110,134 @@ Nota organizzativa:
 - Conclusione:
   - il problema non dipende da una mismatch di package, ma da vincoli realmente infeasible nel flusso `--doublebuffer`.
 
+## Sessione corrente (2026-05-05)
+
+Obiettivo:
+- riprendere il debug dopo i microblocchi `Autoencoder2D_MicroBlocks`;
+- confermare i target richiesti:
+  - Generic
+  - Siracusa tiled con memoria standard L3
+  - Siracusa tiled con Neureka
+- capire perche' `Encoder_mini` era stato risolto ma `Autoencoder2D` completo falliva ancora.
+
+### 11) Generic - Autoencoder2D dopo fix ConvTranspose
+- Comando:
+  - `cd /workspaces/Deeploy/DeeployTest`
+  - `PYTHONPATH=/workspaces/Deeploy python deeployRunner_generic.py -t Tests/Models/Autoencoder2D`
+- Esito: `PASSED`
+- Risultato:
+  - `Errors: 0 out of 160`
+- Nota:
+  - il backend Generic non era piu' il problema per il modello completo.
+
+### 12) Siracusa tiled L3 - Autoencoder2D prima del fix Conv FP
+- Comando:
+  - `cd /workspaces/Deeploy/DeeployTest`
+  - `PYTHONPATH=/workspaces/Deeploy python deeployRunner_tiled_siracusa.py -t Tests/Models/Autoencoder2D --defaultMemLevel=L3 --l2=3000000`
+- Esito: `FAILED`
+- Risultato:
+  - mismatch numerico completo: `Errors: 160 out of 160`
+  - runtime osservato: circa `12924041 cycles`
+- Nota:
+  - il modello compilava ed eseguiva, ma l'output finale era completamente errato.
+
+### 13) Siracusa tiled L3 + Neureka - Autoencoder2D prima del fix Conv FP
+- Comando:
+  - `cd /workspaces/Deeploy/DeeployTest`
+  - `PYTHONPATH=/workspaces/Deeploy python deeployRunner_tiled_siracusa_w_neureka.py -t Tests/Models/Autoencoder2D --defaultMemLevel=L3 --l2=3000000`
+- Esito: `FAILED`
+- Risultato:
+  - mismatch numerico completo: `Errors: 160 out of 160`
+  - runtime osservato: circa `12961863 cycles`
+- Nota:
+  - il fallimento era coerente con Siracusa tiled senza Neureka.
+
+### 14) Diagnostica per output intermedi
+- Sono stati creati test ONNX intermedi in `/tmp/deeploy_diag_auto2d` e `/tmp/deeploy_diag_auto2d_enc`.
+- Punti principali generati:
+  - encoder Conv/Pool/ReLU/Flatten/Gemm
+  - decoder Gemm/ConvTranspose/Conv/BatchNorm/last Conv/Slice
+- Osservazione iniziale:
+  - `auto_enc_linear` falliva in Siracusa tiled, ma questo non indicava un bug GEMM.
+  - Risalendo la catena, `auto_relu_enc2` era gia' errato.
+  - Risalendo ancora, `auto_conv_enc1` falliva con `Errors: 6400 out of 6400`.
+- Conclusione:
+  - la divergenza nasceva gia' dalla primissima Conv FP dell'encoder.
+  - i layer lineari dei microblocchi erano corretti; nel modello completo ricevevano input gia' corrotto.
+
+### 15) Causa trovata: overlap L1 tra bias e buffer im2col
+- Nel C generato per `auto_conv_enc1`:
+  - il kernel chiamato era `PULP_Conv2d_Im2Col_fp32_fp32_fp32_HWC`;
+  - la bias era allocata in L1 a un offset che ricadeva dentro l'area usata dal buffer transient `im2col`;
+  - il kernel parallelizza sul numero di core e usa una porzione di `im2col` per ogni core.
+- Causa tecnica:
+  - `PULP2DFloatConvIm2ColTemplate.computeTransientBuffersSize(...)` dimensionava il transient buffer usando `operatorRepresentation["n_cores"]`;
+  - nel flusso tiled questo valore poteva essere pari a `1`, mentre il C compilato/eseguito usava `NUM_CORES=8`;
+  - quindi veniva riservato spazio solo per 1 core, ma il kernel ne usava 8, sovrascrivendo la bias.
+- Effetto:
+  - la prima Conv produceva output sbagliato;
+  - tutto il resto della rete divergeva, inclusi i GEMM successivi.
+
+### 16) Verifica diagnostica dopo fix Conv FP
+- Comando:
+  - `cd /workspaces/Deeploy/DeeployTest`
+  - `PYTHONPATH=/workspaces/Deeploy python deeployRunner_tiled_siracusa.py -t /tmp/deeploy_diag_auto2d_enc/auto_conv_enc1 --defaultMemLevel=L3 --l2=3000000`
+- Esito: `PASSED`
+- Risultato:
+  - `Errors: 0 out of 6400`
+  - runtime: `583115 cycles`
+
+### 17) Generic - Autoencoder2D finale
+- Comando:
+  - `cd /workspaces/Deeploy/DeeployTest`
+  - `PYTHONPATH=/workspaces/Deeploy python deeployRunner_generic.py -t Tests/Models/Autoencoder2D`
+- Esito: `PASSED`
+- Risultato:
+  - `Errors: 0 out of 160`
+
+### 18) Siracusa tiled L3 - Autoencoder2D finale
+- Comando:
+  - `cd /workspaces/Deeploy/DeeployTest`
+  - `PYTHONPATH=/workspaces/Deeploy python deeployRunner_tiled_siracusa.py -t Tests/Models/Autoencoder2D --defaultMemLevel=L3 --l2=3000000`
+- Esito: `PASSED`
+- Risultato:
+  - `Errors: 0 out of 160`
+  - runtime: `14048962 cycles`
+
+### 19) Siracusa tiled L3 + Neureka - Autoencoder2D finale
+- Comando:
+  - `cd /workspaces/Deeploy/DeeployTest`
+  - `PYTHONPATH=/workspaces/Deeploy python deeployRunner_tiled_siracusa_w_neureka.py -t Tests/Models/Autoencoder2D --defaultMemLevel=L3 --l2=3000000`
+- Esito: `PASSED`
+- Risultato:
+  - `Errors: 0 out of 160`
+  - runtime: `14061183 cycles`
+
 ## Cambiamenti al codice (solo fix efficaci)
 
-Al momento non ci sono nuovi cambiamenti al codice da registrare in questa sessione che abbiano risolto un problema.
-I risultati ottenuti sopra derivano da variazioni di configurazione test/runtime.
+### Fix ConvTranspose stride parsing
+- File:
+  - `Deeploy/Targets/Generic/Parsers.py`
+- Modifica:
+  - nel parser comune `ConvTransposeParser`, `stride_x` e `stride_y` erano assegnati invertiti.
+  - Corretto in modo che:
+    - `stride_x = node.attrs["strides"][0]`
+    - `stride_y = node.attrs["strides"][1]` se presente, altrimenti uguale a `stride_x`
+- Impatto:
+  - risolve il caso progressivo dei microblocchi dove una Conv dopo `ConvTranspose` produceva layout/risultati errati.
+  - `Encoder_mini` passa su Generic, Siracusa tiled L3 e Siracusa tiled L3 + Neureka.
+
+### Fix dimensionamento im2col per Conv FP PULP tiled
+- File:
+  - `Deeploy/Targets/PULPOpen/Templates/FloatConvTemplate.py`
+- Modifica:
+  - `PULP2DFloatConvIm2ColTemplate.computeTransientBuffersSize(...)`
+  - `PULP2DFloatDWConvIm2ColTemplate.computeTransientBuffersSize(...)`
+  - il numero di core usato per dimensionare il transient buffer viene ora reso coerente con l'esecuzione cluster standard:
+    - `n_cores = max(int(operatorRepresentation.get("n_cores", 8)), 8)`
+- Impatto:
+  - evita overlap in L1 tra `im2col` e bias/altre tile;
+  - risolve `Autoencoder2D` completo su Siracusa tiled L3 e Siracusa tiled L3 + Neureka.
 
 ## Discussione memoria (verificata su codice generato)
 
@@ -139,3 +263,7 @@ Nel codice generato (`DeeployTest/TEST_SIRACUSA/Tests/Models/Autoencoder2D/Netwo
 - `python deeployRunner_tiled_siracusa.py -t Tests/Models/Autoencoder2D --skipsim`
 - `python deeployRunner_tiled_siracusa.py -t Tests/Models/Autoencoder2D --skipsim --defaultMemLevel=L3 --l2=3000000`
 - `python deeployRunner_tiled_siracusa.py -t Tests/Models/Autoencoder2D --defaultMemLevel=L3 --l2=3000000`
+- `PYTHONPATH=/workspaces/Deeploy python deeployRunner_generic.py -t Tests/Models/Autoencoder2D`
+- `PYTHONPATH=/workspaces/Deeploy python deeployRunner_tiled_siracusa.py -t Tests/Models/Autoencoder2D --defaultMemLevel=L3 --l2=3000000`
+- `PYTHONPATH=/workspaces/Deeploy python deeployRunner_tiled_siracusa_w_neureka.py -t Tests/Models/Autoencoder2D --defaultMemLevel=L3 --l2=3000000`
+- `PYTHONPATH=/workspaces/Deeploy python deeployRunner_tiled_siracusa.py -t /tmp/deeploy_diag_auto2d_enc/auto_conv_enc1 --defaultMemLevel=L3 --l2=3000000`

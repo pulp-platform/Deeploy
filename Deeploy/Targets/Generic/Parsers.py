@@ -2995,8 +2995,8 @@ class ConvTransposeParser(NodeParser):
 
         stride_x, stride_y = 1, 1
         if "strides" in node.attrs:
-            stride_y = node.attrs["strides"][0]
-            stride_x = node.attrs["strides"][1] if len(node.attrs["strides"]) > 1 else stride_y
+            stride_x = node.attrs["strides"][0]
+            stride_y = node.attrs["strides"][1] if len(node.attrs["strides"]) > 1 else stride_x
         self.operatorRepresentation["stride_y"] = stride_y
         self.operatorRepresentation["stride_x"] = stride_x
 
