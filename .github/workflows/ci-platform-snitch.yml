@@ -35,7 +35,7 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      pytest-marker: kernels
+      pytest-marker: "kernels"
 
   snitch-models:
     needs: select-env
@@ -43,4 +43,4 @@ jobs:
     with:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
-      pytest-marker: models
+      pytest-marker: "models"
