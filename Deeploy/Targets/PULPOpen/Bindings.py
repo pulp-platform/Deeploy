@@ -14,9 +14,9 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, DequantTemplate, \
-    FloatPadTemplate, FloatReduceSumTemplate, GatherTemplate, PadTemplate, QuantTemplate, RQSiGELUTemplate, \
-    SliceTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, \
+    DequantTemplate, FloatPadTemplate, FloatReduceSumTemplate, GatherTemplate, PadTemplate, QuantTemplate, \
+    RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DequantChecker, GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, \
     MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
@@ -184,8 +184,8 @@ PULPBatchNormBindings = [
              PointerClass(type),
              PointerClass(type),
              PointerClass(type),
-             PointerClass(type)], [PointerClass(type)]), BatchNormalizationTemplate.referenceTemplate,
-        ForkTransformer) for type in FloatDataTypes
+             PointerClass(type)], [PointerClass(type)]), BatchNormalizationTemplate.referenceTemplate, ForkTransformer)
+    for type in FloatDataTypes
 ]
 
 PULPPad1DBindings = [

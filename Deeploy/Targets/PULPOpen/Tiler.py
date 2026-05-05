@@ -17,11 +17,11 @@ from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTil
 from Deeploy.Targets.Generic.TileConstraints.UntiledTileConstraint import UntiledTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPBatchNormBindings, PULPConcatBindings, \
     PULPFloatConv2DBindings, PULPFloatConvTranspose2DBindings, PULPFloatDWConv2DBindings, PULPFloatGELUBinding, \
-    PULPFloatGELUGradBinding, PULPFloatGEMMBindings, PULPGatherBindings, PULPiHardswishBindings, \
-    PULPiRMSNormBindings, PULPiRQSGELUBindings, PULPLayernormBinding, PULPLayernormGradBinding, PULPMatMulBindings, \
-    PULPMaxPool1DBindings, PULPMaxPool2DBindings, PULPMulBindings, PULPPad1DBindings, PULPPad2DBindings, \
-    PULPReduceMeanBindings, PULPReduceSumBindings, PULPReluBinding, PULPReshapeBindings, PULPRQAddBindings, \
-    PULPRQSBindings, PULPRQSConv1DBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
+    PULPFloatGELUGradBinding, PULPFloatGEMMBindings, PULPGatherBindings, PULPiHardswishBindings, PULPiRMSNormBindings, \
+    PULPiRQSGELUBindings, PULPLayernormBinding, PULPLayernormGradBinding, PULPMatMulBindings, PULPMaxPool1DBindings, \
+    PULPMaxPool2DBindings, PULPMulBindings, PULPPad1DBindings, PULPPad2DBindings, PULPReduceMeanBindings, \
+    PULPReduceSumBindings, PULPReluBinding, PULPReshapeBindings, PULPRQAddBindings, PULPRQSBindings, \
+    PULPRQSConv1DBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
     PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, \
     PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, \
     PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
