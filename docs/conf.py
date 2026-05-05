@@ -70,6 +70,7 @@ html_context = {
         ["main", "https://pulp-platform.github.io/Deeploy"],
         ["devel", "https://pulp-platform.github.io/Deeploy/branch/devel"],
         ["v0.2.0", "https://pulp-platform.github.io/Deeploy/tag/v0.2.0"],
+        ["v0.2.1", "https://pulp-platform.github.io/Deeploy/tag/v0.2.1"],
     ],
 }
 

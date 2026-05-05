@@ -13,6 +13,7 @@ exclude: |
     | .*TEST_.*
     | .*TestFiles.*
     | .*runtime.*
+    | .*\.patch
     | .*prebuilt/.*
   )
 
@@ -71,3 +72,7 @@ repos:
       - id: yamllint
         name: Lint YAML Files
         stages: [pre-commit, pre-merge-commit, pre-push, manual]
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2
+    hooks:
+      - id: shfmt

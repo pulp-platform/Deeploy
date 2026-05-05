@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# Mark that GAP9-specific gvsoc emulation is defined
-set(GAP9_GVSOC_DEFINED TRUE)
 
 macro(add_gvsoc_emulation name target)
 
@@ -19,6 +17,7 @@ macro(add_gvsoc_emulation name target)
 
     # Check if GAPY_RUNNER_ARGS is defined and non-empty (indicates L3 with readfs files)
     if(GAPY_RUNNER_ARGS)
+
         # L3 mode: Use gapy with flash layout and readfs
         message(STATUS "[Deeploy GAP9] L3 mode: using gapy with readfs")
 
@@ -81,7 +80,6 @@ macro(add_gvsoc_emulation name target)
             USES_TERMINAL
             VERBATIM
         )
-
     else()
         # L2 mode: Use traditional gvsoc command directly (no flash/readfs)
         message(STATUS "[Deeploy GAP9] L2 mode: using traditional gvsoc without flash")

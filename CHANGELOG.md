@@ -5,6 +5,11 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Add Microbenchmarking Infrastructure and CI Using GVSoC CSR [#162](https://github.com/pulp-platform/Deeploy/pull/162)
+- Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
+- Fix Broken CI [#175](https://github.com/pulp-platform/Deeploy/pull/175)
+- Improve Docstring and Debugging [#160](https://github.com/pulp-platform/Deeploy/pull/160)
+- Add GAP9 Container Support [#163](https://github.com/pulp-platform/Deeploy/pull/163)
 - Extend Codeowners [#164](https://github.com/pulp-platform/Deeploy/pull/164)
 - Support for MaxPool1D and RQSConv1D for PULPOpen [#146](https://github.com/pulp-platform/Deeploy/pull/146)
 - Use Pre-Commit in CI [#159](https://github.com/pulp-platform/Deeploy/pull/159)
@@ -12,10 +17,23 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 
 ### Added
+- Add many missing docstrings
+- Add `__repr__()` function for `_ReferenceBuffer` class
+- GAP9 Container Support with ARM64 architecture support
+- `zsh` and `oh-my-zsh` plugin installation in containers
+- Shell Format pre-commit hook
 - Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
+- Per-layer microbenchmarking on PULPOpen via `--profileMicrobenchmark`: new `PULPMicrobenchmark` code-transformation pass + `perf_utils.h` helpers report cycles, instructions, stalls and cache misses per layer in `RunNetwork`
 
 ### Changed
+- Use by default `devel` container for GAP9 CI
+- Extend Readme platforms with GAP9 shields
+- Move `MemoryAwareClosureGeneration` pass to `MemoryLevelExtension`
+- Move `MemoryAwarePrint*` passes to `MemoryLevelExtension`
+- Make `sizeInBytes` a class property instead of a function
+- Move `AnnotateNeurekaWeightMemoryLevel` to `Neureka` specific folder
+- Cleaned up Docker flow to use a temporary build folder
 - Switch CI to use pre-commit for linting
 - Update `pulp-nnx` and `pulp-nn-mixed` submodules to their latest versions
 - PULP-NN moved to TargetLibraries third-party folder
@@ -23,9 +41,15 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added @runwangdl as a code owner
 
 ### Fixed
+- Add missing `shell: bash` directive to CI cache generation steps to ensure correct shell execution
+- Fix wrong test case in GAP9 ccache workflow (`test_gap9_tiled_kernels_l2_singlebuffer` using `MatMul/Regular` instead of `Add/Large`)
+- Fix Docker flow to fetch `*.so` git lfs files
+- Downgrade `setuptools` to `81.0.0`
 - im2col buffer size in Conv1d template
 - Fix missing dependency in pre-commit-config
 - Fix test paths in Deeploy 101 tutorial
+- Fix tiling variable replacement corrupting static arrays by changing pointer update from value copy to address reassignment
+- Reduce RunNetwork stack usage by scoping per-layer variables with braces and moving tileIdxPtr allocation into per-layer execution blocks
 
 ### Removed
 - `testDMA.py` was an old test; we now have `test_dmas.py` instead.
