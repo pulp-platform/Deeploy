@@ -93,7 +93,7 @@ class NeurekaDWConv2DParser(NeurekaConv2DBaseParser):
         if not all([
                 self.operatorRepresentation['kernel_shape'] == [3, 3],
                 self.operatorRepresentation['group'] == ch_im_out,
-                self.operatorRepresentation['group'] == ch_im_in,
+                ch_im_in == 1,
         ]):
             return False
 
