@@ -15,12 +15,12 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, \
-    DequantTemplate, FloatPadTemplate, FloatReduceSumTemplate, GatherTemplate, PadTemplate, QuantTemplate, \
-    RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
+    DequantTemplate, FloatPadTemplate, FloatReduceLogSumExpTemplate, FloatReduceSumTemplate, GatherTemplate, \
+    PadTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DequantChecker, GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, \
-    MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
-    RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    MulChecker, PadChecker, QuantChecker, ReduceLogSumExpChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, \
+    RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -361,6 +361,11 @@ PULPReduceSumBindings = [
                 FloatReduceSumTemplate.referenceTemplate, ClusterTransformer)
 ]
 
+PULPReduceLogSumExpBindings = [
+    NodeBinding(ReduceLogSumExpChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatReduceLogSumExpTemplate.referenceTemplate, ForkTransformer)
+]
+
 PULPUniformRQSBindings = [
     NodeBinding(
         PULPRequantShiftChecker([PointerClass(type), PointerClass(int32_t),
@@ -421,6 +426,9 @@ PULPTransposeBindings = [
 PULPConcatBindings = [
     NodeBinding(ConcatChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
                 ConcatTemplate.referenceTemplate, ClusterTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ConcatChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                ConcatTemplate.referenceTemplate, ClusterTransformer)
 ]
 
 PULPiRMSNormBindings = [

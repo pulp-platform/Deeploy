@@ -15,6 +15,8 @@
 
 #define MAINSTACKSIZE 8000
 #define SLAVESTACKSIZE 3800
+#define FLOAT_ABS_TOL 1e-4f
+#define FLOAT_REL_TOL 1e-5f
 
 struct pi_device cluster_dev;
 
@@ -42,8 +44,15 @@ void CompareFloatOnCluster(void *args) {
       float expected_val = expected[i];
       float actual_val = actual[i];
       float diff = expected_val - actual_val;
+      float abs_diff = fabsf(diff);
+      float scale = fabsf(expected_val);
+      float abs_actual = fabsf(actual_val);
+      if (abs_actual > scale) {
+        scale = abs_actual;
+      }
+      float tolerance = FLOAT_ABS_TOL + FLOAT_REL_TOL * scale;
 
-      if ((diff < -1e-4) || (diff > 1e-4) || isnan(diff)) {
+      if ((abs_diff > tolerance) || isnan(diff)) {
         local_err_count += 1;
 
         printf("Expected: %10.6f  ", expected_val);

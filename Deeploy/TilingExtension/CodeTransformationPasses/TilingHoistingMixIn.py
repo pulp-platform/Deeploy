@@ -70,7 +70,21 @@ class TilingHoistingMixIn:
                         shape: Tuple[int, ...] = (1,),
                         offset: Union[int, str, VariableBuffer] = 0,
                         override_type: Optional[Type[BaseType]] = None) -> _ReferenceBuffer:
-        ref = ctxt.hoistReference(self.prefix + name, reference, shape, offset, override_type)
+        refName = self.prefix + name
+        if ctxt.is_local(refName):
+            ref = ctxt.lookup(refName)
+            assert isinstance(ref, _ReferenceBuffer)
+            assert ref._referenceName == reference.name
+            assert tuple(ref.shape) == tuple(shape)
+            expectedOffset = offset.name if isinstance(offset, VariableBuffer) else offset
+            assert ref._offset == expectedOffset
+            if override_type is not None:
+                assert ref._type == PointerClass(override_type)
+            else:
+                assert ref._type == reference._type
+            return ref
+
+        ref = ctxt.hoistReference(refName, reference, shape, offset, override_type)
         ref._memoryLevel = self.memory
         return ref
 

@@ -172,7 +172,9 @@ Obiettivo:
   - il kernel parallelizza sul numero di core e usa una porzione di `im2col` per ogni core.
 - Causa tecnica:
   - `PULP2DFloatConvIm2ColTemplate.computeTransientBuffersSize(...)` dimensionava il transient buffer usando `operatorRepresentation["n_cores"]`;
-  - nel flusso tiled questo valore poteva essere pari a `1`, mentre il C compilato/eseguito usava `NUM_CORES=8`;
+  - il valore `operatorRepresentation["n_cores"]` arrivava da `generateNetwork.py --cores`;
+  - `deeployRunner.py` passava `args.cores` a CMake come `-DNUM_CORES=...`, ma non lo propagava anche agli argomenti di generazione;
+  - quindi `generateNetwork.py` usava il suo default `--cores=1`, mentre il C compilato/eseguito usava `NUM_CORES=8`;
   - quindi veniva riservato spazio solo per 1 core, ma il kernel ne usava 8, sovrascrivendo la bias.
 - Effetto:
   - la prima Conv produceva output sbagliato;
@@ -186,6 +188,10 @@ Obiettivo:
 - Risultato:
   - `Errors: 0 out of 6400`
   - runtime: `583115 cycles`
+- Verifica aggiuntiva:
+  - con `--cores=1`, il runner passa sia `-DNUM_CORES=1` a CMake sia `--cores=1` a `generateNetwork.py`;
+  - `auto_conv_enc1` passa anche a 1 core con `Errors: 0 out of 6400`;
+  - runtime osservato a 1 core: `1648612 cycles`.
 
 ### 17) Generic - Autoencoder2D finale
 - Comando:
@@ -229,14 +235,19 @@ Obiettivo:
 
 ### Fix dimensionamento im2col per Conv FP PULP tiled
 - File:
+  - `DeeployTest/testUtils/deeployRunner.py`
   - `Deeploy/Targets/PULPOpen/Templates/FloatConvTemplate.py`
 - Modifica:
+  - il runner propaga ora `--cores=...` anche ai generation args, non solo a CMake:
+    - `--cores=<args.cores>` oppure `--cores=<args.num_cores>`
   - `PULP2DFloatConvIm2ColTemplate.computeTransientBuffersSize(...)`
   - `PULP2DFloatDWConvIm2ColTemplate.computeTransientBuffersSize(...)`
-  - il numero di core usato per dimensionare il transient buffer viene ora reso coerente con l'esecuzione cluster standard:
-    - `n_cores = max(int(operatorRepresentation.get("n_cores", 8)), 8)`
+  - il numero di core usato per dimensionare il transient buffer viene letto direttamente da `operatorRepresentation["n_cores"]`, ora coerente con `NUM_CORES`.
+  - la patch conservativa usata durante il debug resta commentata nel template:
+    - `# n_cores = max(int(operatorRepresentation.get("n_cores", 8)), 8)`
 - Impatto:
   - evita overlap in L1 tra `im2col` e bias/altre tile;
+  - mantiene corretto anche il caso reale a 1 core senza allocare inutilmente per 8 core;
   - risolve `Autoencoder2D` completo su Siracusa tiled L3 e Siracusa tiled L3 + Neureka.
 
 ## Discussione memoria (verificata su codice generato)

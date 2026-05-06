@@ -18,7 +18,9 @@ class PULP2DFloatConvIm2ColTemplate(NodeTemplate):
     def computeTransientBuffersSize(
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-        n_cores = max(int(operatorRepresentation.get("n_cores", 8)), 8)
+        n_cores = int(operatorRepresentation["n_cores"])
+        # Conservative fallback used during Autoencoder2D debug:
+        # n_cores = max(int(operatorRepresentation.get("n_cores", 8)), 8)
         # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
         im2col_dim = (operatorRepresentation["weight_type"].typeWidth // 8) * n_cores * operatorRepresentation[
             'ch_im_in'] * operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']
@@ -48,7 +50,9 @@ class PULP2DFloatDWConvIm2ColTemplate(NodeTemplate):
             ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
 
-        n_cores = max(int(operatorRepresentation.get("n_cores", 8)), 8)
+        n_cores = int(operatorRepresentation["n_cores"])
+        # Conservative fallback used during Autoencoder2D debug:
+        # n_cores = max(int(operatorRepresentation.get("n_cores", 8)), 8)
         # Memory allocation for the im2col buffer can be dynamic, based on the number of cores.
         im2col_dim = (operatorRepresentation["weight_type"].typeWidth //
                       8) * n_cores * operatorRepresentation['dim_kernel_x'] * operatorRepresentation['dim_kernel_y']

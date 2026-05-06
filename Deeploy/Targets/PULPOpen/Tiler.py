@@ -19,8 +19,8 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPBatchNormBind
     PULPFloatConv2DBindings, PULPFloatConvTranspose2DBindings, PULPFloatDWConv2DBindings, PULPFloatGELUBinding, \
     PULPFloatGELUGradBinding, PULPFloatGEMMBindings, PULPGatherBindings, PULPiHardswishBindings, PULPiRMSNormBindings, \
     PULPiRQSGELUBindings, PULPLayernormBinding, PULPLayernormGradBinding, PULPMatMulBindings, PULPMaxPool1DBindings, \
-    PULPMaxPool2DBindings, PULPMulBindings, PULPPad1DBindings, PULPPad2DBindings, PULPReduceMeanBindings, \
-    PULPReduceSumBindings, PULPReluBinding, PULPReshapeBindings, PULPRQAddBindings, PULPRQSBindings, \
+    PULPMaxPool2DBindings, PULPMulBindings, PULPPad1DBindings, PULPPad2DBindings, PULPReduceLogSumExpBindings, \
+    PULPReduceMeanBindings, PULPReduceSumBindings, PULPReluBinding, PULPReshapeBindings, PULPRQAddBindings, PULPRQSBindings, \
     PULPRQSConv1DBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
     PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, \
     PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, \
@@ -162,6 +162,11 @@ PULPSoftmaxGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULP
 
 PULPReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceSumBindings,
                                                            tileConstraint = ReduceSumTileConstraint())
+
+_PULPReduceLogSumExpBindings = copy.deepcopy(PULPReduceLogSumExpBindings)
+
+PULPReduceLogSumExpTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = _PULPReduceLogSumExpBindings,
+                                                                 tileConstraint = UntiledTileConstraint())
 
 PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindings,
                                                      tileConstraint = SGDTileConstraint())
