@@ -85,7 +85,7 @@ class MLIRRuntimeSequencePass(MLIRCodeTransformationPass):
         # Await output tasks, then free input tasks
         for task in outputTasks:
             aiex_d.dma_await_task(task)
-        for task in inputTasks:
+        for task in inputTasks + outputTasks:
             aiex_d.dma_free_task(task)
 
         return ctxt, mlirBlock
