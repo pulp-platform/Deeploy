@@ -11,6 +11,8 @@ ENV LC_ALL=C.UTF-8
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 ENV LLVM_INSTALL_DIR="nope"
 
+WORKDIR /app/build
+
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     && add-apt-repository -y ppa:amd-team/xrt \
@@ -38,8 +40,10 @@ ENV XILINX_XRT=/opt/xilinx/xrt
 ENV PATH=${XILINX_XRT}/bin:${PATH}
 ENV LD_LIBRARY_PATH=${XILINX_XRT}/lib
 
-
+# Remove unused files and clean up to reduce image size
 WORKDIR /app
+RUN rm -rf /app/build
+
 COPY pyproject.toml requirements-xdna.txt ./
 RUN pip install toml-to-requirements && \
     toml-to-req --toml-file pyproject.toml && \
