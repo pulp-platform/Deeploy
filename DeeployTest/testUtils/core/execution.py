@@ -175,7 +175,7 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         binary_path = Path(config.build_dir) / "bin" / config.test_name
         cmd = [str(binary_path)]
         # Propagate verbosity to the host binary (e.g. XDNA2 main.cpp uses -v)
-        if config.verbose >= 1:
+        if config.platform == "XDNA2" and config.verbose >= 1:
             cmd.append("-v")
     else:
         # Run via CMake target
