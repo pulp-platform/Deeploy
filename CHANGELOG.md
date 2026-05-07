@@ -50,6 +50,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix test paths in Deeploy 101 tutorial
 - Fix tiling variable replacement corrupting static arrays by changing pointer update from value copy to address reassignment
 - Reduce RunNetwork stack usage by scoping per-layer variables with braces and moving tileIdxPtr allocation into per-layer execution blocks
+- Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
 
 ### Removed
 - `testDMA.py` was an old test; we now have `test_dmas.py` instead.
