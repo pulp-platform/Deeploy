@@ -36,6 +36,10 @@ void eltwise_vadd(T_in *a, T_in *b, T_out *c, int size) {
     aie::store_v(pC1, cout);
     pC1 += vec_factor;
   }
+  // Remainder loop
+  for (int i = F * vec_factor; i < size; i++) {
+    c[i] = a[i] + b[i];
+  }
   event1();
 }
 
