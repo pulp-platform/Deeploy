@@ -57,7 +57,8 @@ int main() {
 
 #if ISOUTPUTFLOAT == 1
         // RUNWANG: Allow margin of error for float32_t
-        if ((diff < -1e-4f) || (diff > 1e-4f)) {
+        // MATTIA: if diff is a quiet nan 0x7FC00000 we want to error
+        if ((diff < -1e-4f) || (diff > 1e-4f) || *(uint32_t*)&diff == 0x7FC00000) {
           tot_err += 1;
           // printf("Expected: %f  Actual: %f  Diff: %f at Index %12u in Output %u\r\n", expected, actual, diff, i, buf);  
           printf("Expected: 0x%08x  Actual: 0x%08x  Diff: 0x%08x at Index %12u in Output %u\r\n", *(uint32_t*)&expected, *(uint32_t*)&actual, *(uint32_t*)&diff, i, buf);  
