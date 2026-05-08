@@ -31,6 +31,15 @@ class InPlaceAccumulatorV2TileConstraint(BOPTileConstraint):
     def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
         tilerModel = super().addGeometricalConstraint(tilerModel, parseDict, ctxt)
 
+        # Force spatial dims (index >= 2) to full size so that minimizeRectangle
+        # can collapse them and DMA tiles stay rank ≤ 2 (L3Dma pi_cl_ram_copy_2d limit).
+        accumName = parseDict[cls.dataIn1Name]
+        shape = ctxt.lookup(accumName).shape
+        if not isinstance(shape, int) and len(shape) > 2:
+            for dimIdx in range(2, len(shape)):
+                dimVar = tilerModel.getTensorDimVar(tensorName = accumName, dimIdx = dimIdx)
+                tilerModel.addConstraint(dimVar == shape[dimIdx])
+
         # lazy_reset_grad is a scalar flag — pin full size so it is not tiled.
         lazyResetName = parseDict['lazy_reset_grad']
         tilerModel.addTensorDimToModel(ctxt, lazyResetName)
