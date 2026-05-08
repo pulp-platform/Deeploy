@@ -35,7 +35,8 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, \
     TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate, FloatPerturbNormalTemplate, \
     FloatPerturbUniformTemplate, FloatPerturbEggrollTemplate, FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate, \
-    RQSPerturbUniformTemplate, RQSPerturbRademacherTemplate
+    RQSPerturbUniformTemplate, RQSPerturbRademacherTemplate, \
+    RQSPerturbRademacher_i32_Template, RQSPerturbUniform_i32_Template
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -513,12 +514,11 @@ PULPRQSPerturbUniformBindings = [
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
         RQSPerturbUniformTemplate.referenceTemplate,
-        ForkTransformer)] + [
+        ForkTransformer),
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
-        RQSPerturbUniformTemplate.referenceTemplate,
-        ForkTransformer)
-        ]
+        RQSPerturbUniform_i32_Template.referenceTemplate,
+        ForkTransformer)]
 
 PULPPerturbEggrollBindings = [
     NodeBinding(
@@ -536,10 +536,10 @@ PULPRQSPerturbRademacherBindings = [
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
         RQSPerturbRademacherTemplate.referenceTemplate,
-        ForkTransformer)]+ [
+        ForkTransformer),
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
-        RQSPerturbRademacherTemplate.referenceTemplate,
+        RQSPerturbRademacher_i32_Template.referenceTemplate,
         ForkTransformer)]
 
 PULPPerturbTriangleBindings = [

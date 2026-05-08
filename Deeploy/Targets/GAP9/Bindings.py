@@ -42,7 +42,8 @@ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, F
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate, FloatInPlaceAccumulatorV2Template, QuantTemplate, DequantTemplate, \
     FloatPerturbEggrollTemplate, FloatPerturbUniformTemplate, FloatPerturbNormalTemplate, \
-    FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate, RQSPerturbUniformTemplate, RQSPerturbRademacherTemplate
+    FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate, RQSPerturbUniformTemplate, RQSPerturbRademacherTemplate, \
+    RQSPerturbRademacher_i32_Template, RQSPerturbUniform_i32_Template
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -460,12 +461,11 @@ GAP9RQSPerturbUniformBindings = [
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
         RQSPerturbUniformTemplate.referenceTemplate,
-        GAP9Transformer)] + [
+        GAP9Transformer),
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
-        RQSPerturbUniformTemplate.referenceTemplate,
-        GAP9Transformer)
-        ]
+        RQSPerturbUniform_i32_Template.referenceTemplate,
+        GAP9Transformer)]
 
 GAP9PerturbUniformBindings = [
     NodeBinding(
@@ -483,11 +483,10 @@ GAP9RQSPerturbRademacherBindings = [
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
         RQSPerturbRademacherTemplate.referenceTemplate,
-        GAP9Transformer)] + [
-            
+        GAP9Transformer),
     NodeBinding(
         RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
-        RQSPerturbRademacherTemplate.referenceTemplate,
+        RQSPerturbRademacher_i32_Template.referenceTemplate,
         GAP9Transformer)]
         
 

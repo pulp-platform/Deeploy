@@ -3076,6 +3076,7 @@ class RQSPerturbUniformParser(NodeParser, RQSParserInterface):
         self.operatorRepresentation['seed'] = node.attrs['seed']
         self.operatorRepresentation['size'] = np.prod(input_shape)
         self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+        self.operatorRepresentation['channel_width'] = np.prod(mul.shape)
    
         self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
         return ctxt, True
@@ -3110,6 +3111,7 @@ class RQSPerturbRademacherParser(NodeParser, RQSParserInterface):
         self.operatorRepresentation['seed'] = node.attrs['seed']
         self.operatorRepresentation['size'] = np.prod(input_shape)
         self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+        self.operatorRepresentation['channel_width'] = np.prod(mul.shape)
     
         self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
         return ctxt, True
