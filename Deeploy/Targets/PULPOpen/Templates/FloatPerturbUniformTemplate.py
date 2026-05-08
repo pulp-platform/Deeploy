@@ -29,7 +29,7 @@ uint32_t ${nodeName}_chunk_stop = (uint32_t) MIN(${nodeName}_chunk_start + ${nod
 uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop - ${nodeName}_chunk_start;
 
 // pick large enough stride to minimize correlation between nodes.
-uint32_t chunk_seed = seed + ${node_id};
+uint32_t chunk_seed = ${seed} + NUM_CORES * ${node_id} + ${nodeName}_core_id;
 ApplyUniformPerturbation((const float32_t *)  &${data_in}[${nodeName}_chunk_start],
                             (float32_t *) &${data_out}[${nodeName}_chunk_start],
                             chunk_seed,

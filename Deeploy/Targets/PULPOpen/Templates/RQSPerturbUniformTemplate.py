@@ -30,15 +30,22 @@ uint32_t ${nodeName}_chunk_stop = (uint32_t) MIN(${nodeName}_chunk_start + ${nod
 uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop - ${nodeName}_chunk_start;
 
 // Calculate the starting channel for this core's chunk of M
-uint32_t ${nodeName}_channel_start_offset = ${nodeName}_chunk_start % ${channels};
+uint32_t ${nodeName}_channel_start_offset = ${nodeName}_chunk_start % ${channel_width};
 
-uint32_t chunk_seed = seed + ${node_id};
-
+// Pick large enough stride to minimize correlation between nodes.
+uint32_t chunk_seed = ${seed} + NUM_CORES * ${node_id} + ${nodeName}_core_id;
+<%
+if isinstance(log2D, int):
+    log2Dstring = log2D
+else:
+    log2Dstring = "*"+log2D
+%>
 ApplyPerturbQuantUniform_NHWC((const int8_t *)  &${data_in}[${nodeName}_chunk_start],
                             (int8_t *) &${data_out}[${nodeName}_chunk_start],
-                            (const int32_t *) &${M}[${nodeName}_channel_start_offset],
-                            ${S},
-                            ${channels},
+                            (const int32_t *) ${mul},
+                            ${log2Dstring},
+                            ${channel_width},
                             chunk_seed,
-                            ${nodeName}_local_size);
+                            ${nodeName}_local_size,
+                            ${nodeName}_chunk_start);
 """)
