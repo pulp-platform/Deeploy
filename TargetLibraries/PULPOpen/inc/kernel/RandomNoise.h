@@ -85,7 +85,8 @@ void ApplyPerturbQuantRademacher_CHW(int8_t *__restrict__ pweights,
                             const int32_t S,             // Fixed-point shift
                             const uint32_t channel_width,
                             const uint32_t seed,
-                            const uint32_t size);
+                            const uint32_t size,
+                            const uint32_t start_offset);
 
 
 void ApplyPerturbQuantUniform_NHWC(int8_t *__restrict__ pweights,
@@ -94,7 +95,26 @@ void ApplyPerturbQuantUniform_NHWC(int8_t *__restrict__ pweights,
                                     const int32_t S,             // Fixed-point shift
                                     const uint32_t channels,
                                     const uint32_t seed,
-                                    const uint32_t size);
+                                    const uint32_t size,
+                                    const uint32_t start_offset);
+
+void ApplyPerturbQuantRademacher_i32(int32_t *__restrict__ pweights,
+                            int32_t *__restrict__ pweights_dest,
+                            const int32_t *__restrict__ M,
+                            const int32_t S,
+                            const uint32_t channel_width,
+                            const uint32_t seed,
+                            const uint32_t size,
+                            const uint32_t start_offset);
+
+void ApplyPerturbQuantUniform_i32(int32_t *__restrict__ pweights,
+                                  int32_t *__restrict__ pweights_dest,
+                                  const int32_t *__restrict__ M,
+                                  const int32_t S,
+                                  const uint32_t channels,
+                                  const uint32_t seed,
+                                  const uint32_t size,
+                                  const uint32_t start_offset);
 // Updates the weights in place according to the MeZO update rule with triangular noise.
 // Only supports qMeZO with q = 1 for now.
 // void UpdateWeightsTriangle(float32_t *__restrict__ pweights,

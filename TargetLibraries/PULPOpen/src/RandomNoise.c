@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#pragma clang optimize off
+
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
 #include <math.h>
@@ -154,61 +156,60 @@ void ApplyTrianglePerturbation(const float32_t *__restrict__ pweights,
 {
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) {epsilon *= -1.0f;}
-    for (uint32_t i = 0; i < size; i+=5) {
+    uint32_t n_full = size & ~3u;
+    uint32_t i = 0;
+    for (; i < n_full; i+=4) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
+        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        float32_t u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        float32_t u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         pweights_dest[i] = pweights[i] + (u1-u2) * epsilon;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         pweights_dest[i+1] = pweights[i+1] + (u1-u2) * epsilon;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         pweights_dest[i+2] = pweights[i+2] + (u1-u2) * epsilon;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         pweights_dest[i+3] = pweights[i+3] + (u1-u2) * epsilon;
-
+    }
+    // Remainder
+    for (; i < size; i++) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // mutate state to avoid same seed for u2.
+        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+4] = pweights[i+4] + (u1-u2) * epsilon;
+        float32_t u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
+        pweights_dest[i] = pweights[i] + (u1-u2) * epsilon;
     }
 }
 
@@ -222,60 +223,40 @@ void ApplyUniformPerturbation(const float32_t *__restrict__ pweights,
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     // sqrt(3)*2 factor already included in epsilon to match Gaussian(0, 1) l2 norm.
     if (dir == 0) {epsilon *= -1.0f;}
-    for (uint32_t i = 0; i < size; i+=7) {
+    uint32_t n_full = size & ~3u;
+    uint32_t i = 0;
+    for (; i < n_full; i+=4) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         pweights_dest[i] = pweights[i] + (u1-0.5f) * epsilon;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         pweights_dest[i+1] = pweights[i+1] + (u1-0.5f) * epsilon;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         pweights_dest[i+2] = pweights[i+2] + (u1-0.5f) * epsilon;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         pweights_dest[i+3] = pweights[i+3] + (u1-0.5f) * epsilon;
-
+    }
+    // Remainder
+    for (; i < size; i++) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+4] = pweights[i+4] + (u1-0.5f) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+5] = pweights[i+5] + (u1-0.5f) * epsilon;
-
-        rng_state ^= rng_state << 13;
-        rng_state ^= rng_state >> 17;
-        rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        pweights_dest[i+6] = pweights[i+6] + (u1-0.5f) * epsilon;
-
-        // rng_state ^= rng_state << 13;
-        // rng_state ^= rng_state >> 17;
-        // rng_state ^= rng_state << 5;
-        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // pweights_dest[i+7] = pweights[i+7] + (u1-0.5f) * epsilon;
-
-        // rng_state ^= rng_state << 13;
-        // rng_state ^= rng_state >> 17;
-        // rng_state ^= rng_state << 5;
-        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // pweights_dest[i+8] = pweights[i+8] + (u1-0.5f) * epsilon;
+        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
+        pweights_dest[i] = pweights[i] + (u1-0.5f) * epsilon;
     }
 }
 
@@ -288,44 +269,66 @@ void ApplyGaussianPerturbation(const float32_t *__restrict__ pweights,
 
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) {epsilon *= -1.0f;}
-    for (uint32_t i = 0; i < size; i+=4) {
-        // float32_t u = GaussianZigguratSample(&rng_state);
+    uint32_t n_full = size & ~3u;
+    uint32_t i = 0;
+    for (; i < n_full; i+=4) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
         float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
-        // mutate state to avoid same seed for u2.
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
         float32_t u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
-        // Perform Box-Muller transform once to get two Gaussian samples
         float32_t mag = sqrtf(-2.0f * logf(u1));
         float32_t angle = 2.0f * PI_F * u2;
-
-        float32_t z1 = mag * cosf(angle);
-        float32_t z2 = mag * sinf(angle);
-        pweights_dest[i] = pweights[i] + z1 * epsilon;
-        pweights_dest[i + 1] = pweights[i + 1] + z2 * epsilon;
-
+        pweights_dest[i]     = pweights[i]     + mag * cosf(angle) * epsilon;
+        pweights_dest[i + 1] = pweights[i + 1] + mag * sinf(angle) * epsilon;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
         u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
-        // mutate state to avoid same seed for u2.
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
         u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
-        // Perform Box-Muller transform once to get two Gaussian samples
         mag = sqrtf(-2.0f * logf(u1));
         angle = 2.0f * PI_F * u2;
-
-        z1 = mag * cosf(angle);
-        z2 = mag * sinf(angle);
-        pweights_dest[i + 2] = pweights[i + 2] + z1 * epsilon;
-        pweights_dest[i + 3] = pweights[i + 3] + z2 * epsilon;
+        pweights_dest[i + 2] = pweights[i + 2] + mag * cosf(angle) * epsilon;
+        pweights_dest[i + 3] = pweights[i + 3] + mag * sinf(angle) * epsilon;
+    }
+    // Remainder: Box-Muller produces pairs, handle 1-3 leftover elements
+    if (i < size) {
+        rng_state ^= rng_state << 13;
+        rng_state ^= rng_state >> 17;
+        rng_state ^= rng_state << 5;
+        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
+        rng_state ^= rng_state << 13;
+        rng_state ^= rng_state >> 17;
+        rng_state ^= rng_state << 5;
+        float32_t u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
+        float32_t mag = sqrtf(-2.0f * logf(u1));
+        float32_t angle = 2.0f * PI_F * u2;
+        pweights_dest[i] = pweights[i] + mag * cosf(angle) * epsilon;
+        i++;
+        if (i < size) {
+            pweights_dest[i] = pweights[i] + mag * sinf(angle) * epsilon;
+            i++;
+        }
+        if (i < size) {
+            rng_state ^= rng_state << 13;
+            rng_state ^= rng_state >> 17;
+            rng_state ^= rng_state << 5;
+            u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
+            rng_state ^= rng_state << 13;
+            rng_state ^= rng_state >> 17;
+            rng_state ^= rng_state << 5;
+            u2 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
+            mag = sqrtf(-2.0f * logf(u1));
+            angle = 2.0f * PI_F * u2;
+            pweights_dest[i] = pweights[i] + mag * cosf(angle) * epsilon;
+        }
     }
 }
 
@@ -377,171 +380,44 @@ void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
 {
     // For compatibility with existing codegen templates. Currently maps to Rademacher noise.
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    for (uint32_t i = 0; i < size; i+=5) {
-
+    uint32_t n_full = size & ~3u;
+    uint32_t i = 0;
+    for (; i < n_full; i+=4) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         p_dest[i] = u1-0.5f;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         p_dest[i+1] = u1-0.5f;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         p_dest[i+2] = u1-0.5f;
 
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
+        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
         p_dest[i+3] = u1-0.5f;
-
+    }
+    // Remainder
+    for (; i < size; i++) {
         rng_state ^= rng_state << 13;
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
-        u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        p_dest[i+4] = u1-0.5f;
-
-        // rng_state ^= rng_state << 13;
-        // rng_state ^= rng_state >> 17;
-        // rng_state ^= rng_state << 5;
-        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // p_dest[i+5] = u1-0.5f;
-
-        // rng_state ^= rng_state << 13;
-        // rng_state ^= rng_state >> 17;
-        // rng_state ^= rng_state << 5;
-        // u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF; // in [0,1]
-        // p_dest[i+6] = u1-0.5f;
-
-    }
-}
-
-void ApplyPerturbQuantRademacher_CHW(int8_t *__restrict__ pweights,
-                            int8_t *__restrict__ pweights_dest,
-                            const int32_t *__restrict__ M, // Fixed-point multipliers
-                            const int32_t S,             // Fixed-point shift
-                            const uint32_t channel_width,
-                            const uint32_t seed,
-                            const uint32_t size)
-{
-    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    const int32_t rounding = (S > 0) ? (1 << (S - 1)) : 0;
-
-    uint32_t n_full_batches = size / 32;
-    uint32_t leftover = size % 32;
-    uint32_t i = 0;
-
-    // Process full batches
-    for (uint32_t batch = 0; batch < n_full_batches; batch++) {
-        rng_state = Xorshift32(rng_state);
-        uint32_t bits = rng_state;
-        for (uint32_t b = 0; b < 32; b+=2, i+=2) {
-            int32_t r = (bits & 1) ? 1 : -1;
-            int32_t m_val = M[i % channel_width];
-            // Fixed-point multiplication: noise_q = round(r * M / 2^S)
-            int32_t noise_q = (r * m_val + rounding) >> S;
-            int32_t val = (int32_t)pweights[i] + noise_q;
-            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127); // Saturate to int8 range
-            bits >>= 1;
-            r = (bits & 1) ? 1 : -1;
-            m_val = M[i % channel_width];
-            // Fixed-point multiplication: noise_q = round(r * M / 2^S)
-            noise_q = (r * m_val + rounding) >> S;
-            val = (int32_t)pweights[i+1] + noise_q;
-            pweights_dest[i+1] = (int8_t)CLAMP(val, -127, 127); // Saturate to int8 range
-            bits >>= 1;
-        }
-    }
-
-    // Process leftover elements
-    if (leftover > 0) {
-        rng_state = Xorshift32(rng_state);
-        uint32_t bits = rng_state;
-        for (uint32_t b = 0; b < leftover; b++, i++) {
-            int32_t r = (bits & 1) ? 1 : -1;
-            int32_t m_val = M[i % channel_width];
-            int32_t noise_q = (r * m_val + rounding) >> S;
-            int32_t val = (int32_t)pweights[i] + noise_q;
-            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
-            bits >>= 1;
-        }
+        float32_t u1 = (float32_t)(rng_state) / (float32_t)0xFFFFFFFF;
+        p_dest[i] = u1-0.5f;
     }
 }
 
 
-void ApplyPerturbQuantUniform_NHWC(int8_t *__restrict__ pweights,
-                                    int8_t *__restrict__ pweights_dest,
-                                    const int32_t *__restrict__ M, // Fixed-point multipliers
-                                    const int32_t S,             // Fixed-point shift
-                                    const uint32_t channels,
-                                    const uint32_t seed,
-                                    const uint32_t size)
-{
-    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
-    const int32_t rounding = (S > 0) ? (1 << (S - 1)) : 0;
-    const uint8_t threshold = 255; // Reject if uint8_t value is >= 255
-
-    uint32_t n_full_batches = size / 4;
-    uint32_t leftover = size % 4;
-    uint32_t i = 0;
-
-    for (uint32_t batch = 0; batch < n_full_batches; batch++) {
-        uint32_t random_word;
-        int valid_word = 0;
-
-        // Loop until we get a 32-bit word where all 4 bytes are valid.
-        do {
-            rng_state = Xorshift32(rng_state);
-            random_word = rng_state;
-            valid_word = 1; // Assume it's valid initially
-            if (((random_word >> 0) & 0xFF) >= threshold ||
-                ((random_word >> 8) & 0xFF) >= threshold ||
-                ((random_word >> 16) & 0xFF) >= threshold ||
-                ((random_word >> 24) & 0xFF) >= threshold) {
-                valid_word = 0; // Invalidate if any byte is bad
-            }
-        } while (!valid_word);
-
-        // Now that we have a valid word, extract the 4 samples.
-        int32_t n_int[4];
-        n_int[0] = ((random_word >> 0) & 0xFF) % 3 - 1;
-        n_int[1] = ((random_word >> 8) & 0xFF) % 3 - 1;
-        n_int[2] = ((random_word >> 16) & 0xFF) % 3 - 1;
-        n_int[3] = ((random_word >> 24) & 0xFF) % 3 - 1;
-
-        // Apply the 4 samples
-        for (int j = 0; j < 4; j++) {
-            int32_t m_val = M[(i + j) % channels];
-            int32_t noise_q = (n_int[j] * m_val + rounding) >> S;
-            int32_t val = (int32_t)pweights[i + j] + noise_q;
-            pweights_dest[i + j] = (int8_t)CLAMP(val, -127, 127);
-        }
-        i += 4;
-    }
-    // Process leftover elements
-    for (uint32_t b = 0; b < leftover; b++, i++) {
-        uint8_t u;
-        do {
-            rng_state = Xorshift32(rng_state);
-            // Just use the lowest 8 bits for simplicity
-            u = rng_state & 0xFF;
-        } while (u >= threshold);
-        int32_t n_int = (u % 3) - 1;
-
-        int32_t m_val = M[i % channels];
-        int32_t noise_q = (n_int * m_val + rounding) >> S;
-        int32_t val = (int32_t)pweights[i] + noise_q;
-        pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
-    }
-}
 /* --------------------------- Update functions ---------------------------------- */
 
 // void UpdateWeightsTriangle(float32_t *__restrict__ pweights,
