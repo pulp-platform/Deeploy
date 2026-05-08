@@ -177,8 +177,9 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
     # Artifically add half the shift division value to implement rounding
     rounding = 2**(totalShift - 1) if totalShift > 0 else 0
 
-    # JANSNO: this can't be right-commented.
-    #rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + rounding
+    # Bake rounding into lambda so the fused bn_quant kernel rounds correctly
+    if hasattr(rqs.inputs[-1], 'values'):
+        rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + rounding
 
     _inputs = list(conv.inputs) + list(rqs.inputs[1:])
 
@@ -216,8 +217,9 @@ def _merge_gemm_rq_fun(graph: gs.Graph, match: Match, name: str):
 
     totalShift = int(np.log2(div_val))
 
-    # JANSNO: rounding here is not valid
-    #rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + 2**(totalShift - 1)
+    # Bake rounding into lambda for the fused bn_quant kernel
+    if hasattr(rqs.inputs[-1], 'values'):
+        rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + 2**(totalShift - 1)
 
     # GEMM has add
     if len(list(gemm.inputs)) == 3:
