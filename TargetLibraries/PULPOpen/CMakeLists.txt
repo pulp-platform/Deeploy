@@ -36,6 +36,13 @@ target_compile_options(deeploypulp PRIVATE
   -Wno-uninitialized
 )
 
+# Work around LLVM assembler label collision bug at -O3 for RandomNoiseQuant.c
+set_source_files_properties(
+  ${CMAKE_CURRENT_LIST_DIR}/src/RandomNoiseQuant.c
+  ${CMAKE_CURRENT_LIST_DIR}/src/RandomNoise.c
+  PROPERTIES COMPILE_FLAGS "-O2"
+)
+
 target_include_directories(deeploypulp PUBLIC ${PULP_SDK_INCLUDES})
 target_compile_options(deeploypulp PUBLIC ${PULP_SDK_COMPILE_FLAGS})
 
