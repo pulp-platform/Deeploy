@@ -235,6 +235,10 @@ def create_config_from_args(args: argparse.Namespace,
     if not tiling and getattr(args, 'profileUntiled', False):
         gen_args_list.append("--profileUntiled")
 
+    # Pass --cores to generateNetwork.py for im2col buffer sizing
+    if hasattr(args, 'cores') and args.cores:
+        gen_args_list.append(f"--cores={args.cores}")
+
     config = DeeployTestConfig(
         test_name = test_name,
         test_dir = test_dir_abs,
