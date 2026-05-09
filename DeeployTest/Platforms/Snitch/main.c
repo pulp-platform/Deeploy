@@ -25,8 +25,12 @@ int main(void) {
   uint32_t const num_compute_cores = snrt_global_compute_core_num();
 #endif
 
-  // All cores call InitNetwork: allocations inside are DM-core guarded
-  // with barriers, so all cores must participate for barrier balance.
+  // All cores must call InitNetwork: it contains snrt_cluster_hw_barrier()
+  // after each DM-core-guarded allocation. The guard + barrier is what makes
+  // the allocation multi-core safe (snrt_l1alloc/l3alloc would otherwise
+  // return divergent addresses across cores). Calling InitNetwork only from
+  // snrt_is_dm_core() would deadlock the DM core on the first internal
+  // barrier.
 #ifndef NOPRINT
   if (snrt_is_dm_core()) {
     printf("Initializing...\r\n");
