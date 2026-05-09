@@ -69,8 +69,12 @@ class SnitchTransposeTemplate(NodeTemplate):
         fRep['accessStr'] = accessStr
         fRep['data_out_shape'] = data_out_shape
 
-        # Select the best dimension to parallelize:
-        # prefer dimensions >= 8 for good load balancing, otherwise pick the largest
+        # Pick the outermost dim that has at least one element per core (>= 8):
+        # outer-dim parallelization gives each core a single contiguous slab
+        # of memory, which simplifies reasoning and reduces per-core
+        # loop-control overhead vs. fragmenting work across an inner dim.
+        # Fall back to the largest dim only when no dim is big enough for
+        # every core, so as few cores idle as possible.
         parallelDims = [idx for idx, dim in enumerate(data_out_shape) if dim >= 8]
         if len(parallelDims) > 0:
             parallelDim = parallelDims[0]
