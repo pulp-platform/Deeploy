@@ -6,31 +6,6 @@
 
 #include "DeeploySnitchMath.h"
 
-void Add_fp32(float32_t *pIn1, float32_t *pIn2, float32_t *pOut,
-              uint32_t size) {
-
-  uint32_t core_id = snrt_global_compute_core_idx();
-  uint32_t numThreads = snrt_global_compute_core_num();
-
-  uint32_t chunkSize = size / numThreads;
-  uint32_t remainder = size % numThreads;
-
-  uint32_t start, num_elements;
-  if (core_id < remainder) {
-    num_elements = chunkSize + 1;
-    start = core_id * num_elements;
-  } else {
-    num_elements = chunkSize;
-    start = core_id * chunkSize + remainder;
-  }
-
-  uint32_t end = start + num_elements;
-
-  for (uint32_t i = start; i < end; i++) {
-    pOut[i] = pIn1[i] + pIn2[i];
-  }
-}
-
 void Add_fp32_broadcast(float32_t *pIn1, float32_t *pIn2, float32_t *pOut,
                         uint32_t *out_shape, uint32_t *strides1,
                         uint32_t *strides2, uint32_t ndim, uint32_t size) {
@@ -52,6 +27,26 @@ void Add_fp32_broadcast(float32_t *pIn1, float32_t *pIn2, float32_t *pOut,
 
   uint32_t end = start + num_elements;
 
+  // Fast path: identity strides == no broadcasting needed.
+  // Avoids per-element mod/div index recovery when shapes match.
+  int is_elementwise = 1;
+  uint32_t expected_stride = 1;
+  for (int32_t d = ndim - 1; d >= 0; d--) {
+    if (strides1[d] != expected_stride || strides2[d] != expected_stride) {
+      is_elementwise = 0;
+      break;
+    }
+    expected_stride *= out_shape[d];
+  }
+
+  if (is_elementwise) {
+    for (uint32_t i = start; i < end; i++) {
+      pOut[i] = pIn1[i] + pIn2[i];
+    }
+    return;
+  }
+
+  // General broadcast path.
   for (uint32_t i = start; i < end; i++) {
     uint32_t idx1 = 0;
     uint32_t idx2 = 0;
