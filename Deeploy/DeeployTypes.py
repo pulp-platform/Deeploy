@@ -686,10 +686,10 @@ class NetworkContext():
 
     def _mangle(self, name: str, repr: bool = True) -> str:
         repStr = name
-        repStr = re.sub('\.', '_', repStr)
+        repStr = re.sub(r'\.', '_', repStr)
         repStr = re.sub(':', '_', repStr)
         if repr:
-            repStr = re.sub('\.', '_', self.name) + '_' + repStr
+            repStr = re.sub(r'\.', '_', self.name) + '_' + repStr
         return repStr
 
     def add(self, obj: VariableBuffer, ctxt: Literal['local', 'global'] = 'local', _id: str = ""):
