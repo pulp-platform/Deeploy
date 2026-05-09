@@ -4,7 +4,5 @@
 
 from . import *
 from .FloatScalarBOPTileConstraint import *
-from .GemmTileConstraint import *
 from .iNoNormTileConstraint import *
 from .iSoftmaxTileConstraint import *
-from .RqGemmTileConstraint import *

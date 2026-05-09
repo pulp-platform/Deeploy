@@ -14,8 +14,10 @@ from Deeploy.Targets.Snitch.Bindings import SnitchAddBindings, SnitchConcatBindi
     SnitchGatherBindings, SnitchGemmBindings, SnitchHardSwishBindings, SnitchiNoNormBindings, SnitchiSoftmaxBindings, \
     SnitchMatMulBindings, SnitchMulBindings, SnitchReshapeBindings, SnitchRMSNormBindings, SnitchRQAddBindings, \
     SnitchRqGemmBindings, SnitchTransposeBindings
-from Deeploy.Targets.Snitch.TileConstraints import FloatScalarBOPTileConstraint, GemmTileConstraint, \
-    iNoNormTileConstraint, iSoftmaxTileConstraint, RqGemmTileConstraint
+from Deeploy.Targets.Snitch.TileConstraints import FloatScalarBOPTileConstraint, iNoNormTileConstraint, \
+    iSoftmaxTileConstraint
+from Deeploy.Targets.Snitch.TileConstraints.GemmTileConstraint import GemmTileConstraint
+from Deeploy.Targets.Snitch.TileConstraints.RqGemmTileConstraint import RqGemmTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 SnitchiSoftmaxTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchiSoftmaxBindings,
