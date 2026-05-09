@@ -6,6 +6,7 @@ from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileCon
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iRMSNormTileConstraint import iRMSNormTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.MulTileConstraint import MulTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.GatherTileConstraint import GatherTileConstraint
@@ -14,8 +15,7 @@ from Deeploy.Targets.Snitch.Bindings import SnitchAddBindings, SnitchConcatBindi
     SnitchGatherBindings, SnitchGemmBindings, SnitchHardSwishBindings, SnitchiNoNormBindings, SnitchiSoftmaxBindings, \
     SnitchMatMulBindings, SnitchMulBindings, SnitchReshapeBindings, SnitchRMSNormBindings, SnitchRQAddBindings, \
     SnitchRqGemmBindings, SnitchTransposeBindings
-from Deeploy.Targets.Snitch.TileConstraints import FloatScalarBOPTileConstraint, iNoNormTileConstraint, \
-    iSoftmaxTileConstraint
+from Deeploy.Targets.Snitch.TileConstraints import iNoNormTileConstraint, iSoftmaxTileConstraint
 from Deeploy.Targets.Snitch.TileConstraints.GemmTileConstraint import GemmTileConstraint
 from Deeploy.Targets.Snitch.TileConstraints.RqGemmTileConstraint import RqGemmTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
@@ -41,10 +41,10 @@ SnitchHardSwishTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = Snit
                                                              tileConstraint = iHardswishTileConstraint())
 
 SnitchDivTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchDivBindings,
-                                                       tileConstraint = FloatScalarBOPTileConstraint())
+                                                       tileConstraint = MulTileConstraint())
 
 SnitchMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchMulBindings,
-                                                       tileConstraint = FloatScalarBOPTileConstraint())
+                                                       tileConstraint = MulTileConstraint())
 
 SnitchMatMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = SnitchMatMulBindings,
                                                           tileConstraint = MatMulTileConstraint())
