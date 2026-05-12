@@ -583,7 +583,8 @@ def _patch_shared_buffers(retStr: str, shared_input_map: Dict[int, int], shared_
     for level in ('L2', 'L3'):
         arena_sym = f'DeeployOptNetwork_MEMORYARENA_{level}'
         # Pattern for the malloc assignment line itself
-        malloc_line_pat = re.compile(rf'[^\n]*{re.escape(arena_sym)}\s*=\s*\([^)]+\)\s*pi_\w+_malloc\([^;]+\);\s*\n')
+        malloc_line_pat = re.compile(
+            rf'[^\n]*{re.escape(arena_sym)}\s*=\s*\([^)]+\)\s*(?:pi_\w+_malloc|cl_ram_malloc)\([^;]+\);\s*\n')
         # Pattern for any use of the arena in pointer arithmetic:
         #   (char *)ARENA + OFFSET  or  (void *)ARENA  etc.
         arena_use_pat = re.compile(rf'\(\s*(?:char|void|int8_t)\s*\*\s*\)\s*{re.escape(arena_sym)}')
