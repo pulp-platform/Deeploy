@@ -4,13 +4,10 @@
 
 macro(add_deeploy_library name)
     add_library(${ARGV})
-    list(FIND ARGV "STATIC" __deeploy_static_idx)
-    if(__deeploy_static_idx EQUAL -1)
-        add_custom_command(
-            TARGET ${name}
-            POST_BUILD
-            COMMAND ${CMAKE_OBJDUMP} -dhS $<TARGET_FILE:${name}> > $<TARGET_FILE:${name}>.s)
-    endif()
+    add_custom_command(
+        TARGET ${name}
+        POST_BUILD
+        COMMAND ${CMAKE_OBJDUMP} -dhS $<TARGET_FILE:${name}> > $<TARGET_FILE:${name}>.s)
 endmacro()
 
 macro(add_deeploy_executable name)
