@@ -14,6 +14,7 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
+from Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure import MemoryAwareClosureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, \
     DequantTemplate, FloatPadTemplate, FloatReduceLogSumExpTemplate, FloatReduceSumTemplate, GatherTemplate, \
     PadTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
