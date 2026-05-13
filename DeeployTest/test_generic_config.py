@@ -9,6 +9,7 @@ KERNEL_TESTS = [
     "Kernels/FP32/Softmax/Regular",
     "Kernels/FP32/Add/Regular",
     "Kernels/FP32/Ceil",
+    "Kernels/FP32/Clip",
     "Kernels/FP32/Conv/DW_2D_Bias",
     "Kernels/FP32/Conv/DW_2D_NoBias",
     "Kernels/FP32/Conv/DW_2D_ZeroValuedBias",

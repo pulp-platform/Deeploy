@@ -2908,3 +2908,39 @@ class CeilParser(NodeParser):
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
         return ctxt, True
+
+
+class ClipParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if node.op != 'Clip' \
+            or len(node.outputs) != 1 \
+            or (not (1 <= len(node.inputs) <= 3)):
+            return False
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+
+        # min_val and max_val only handled as constants
+        # Defaults: full float32 range
+        self.operatorRepresentation['min_val'] = -np.finfo(np.float32).max
+        self.operatorRepresentation['max_val'] = np.finfo(np.float32).max
+
+        if len(node.inputs) > 1 and node.inputs[1].name != '':
+            self.operatorRepresentation['min_val'] = float(node.inputs[1].values.item())
+        if len(node.inputs) > 2 and node.inputs[2].name != '':
+            self.operatorRepresentation['max_val'] = float(node.inputs[2].values.item())
+
+        return ctxt, True
