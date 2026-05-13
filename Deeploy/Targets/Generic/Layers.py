@@ -709,3 +709,9 @@ class ConvTransposeLayer(ONNXLayer):
             numPx = opRep['dim_im_out_x']
 
         return numPx * opsPerPx
+
+
+class CeilLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)

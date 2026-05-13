@@ -13,7 +13,7 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
-    FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
+    FloatCeilTemplate, FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
     FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, \
     FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, \
     GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, \
@@ -326,4 +326,9 @@ BasicConvTransposeBindings = [
             [PointerClass(type)]),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer) for type in FloatDataTypes
+]
+
+BasicCeilBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatCeilTemplate.referenceTemplate,
+                BasicTransformer),
 ]
