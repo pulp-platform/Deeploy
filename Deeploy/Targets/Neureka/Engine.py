@@ -4,7 +4,6 @@
 
 from typing import List
 
-import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import DeploymentEngine, NodeMapper
@@ -55,39 +54,40 @@ class NeurekaEngine(DeploymentEngine):
 
         self.enableStrides = enableStrides
 
-    def isDenseConv(self, node) -> bool:
+    @staticmethod
+    def _isSupportedConvNode(node: gs.Node) -> bool:
+        # Common N-EUREKA preconditions for all convolution flavors. Keep this
+        # structural: engine coloring runs before Deeploy has reliable type info.
         return node.op in ["Conv", "RequantizedConv"] and \
+            len(node.inputs) > 1 and \
             isinstance(node.inputs[1], gs.Constant) and \
-            node.attrs['kernel_shape'] == [3, 3] and \
-            node.attrs['dilations'] == [1, 1] and \
-            node.attrs['group'] == 1 and \
-            (node.attrs['strides'] == [1, 1] or self.enableStrides)
+            node.attrs.get('dilations') == [1, 1]
+
+    def _hasSupportedStrides(self, node: gs.Node) -> bool:
+        # Strided convolutions are opt-in because not every N-EUREKA setup enables
+        # them, while unit strides are always supported.
+        return node.attrs.get('strides') == [1, 1] or self.enableStrides
+
+    def isDenseConv(self, node) -> bool:
+        return self._isSupportedConvNode(node) and \
+            node.attrs.get('kernel_shape') == [3, 3] and \
+            node.attrs.get('group', 1) == 1 and \
+            self._hasSupportedStrides(node)
 
     def isPWConv(self, node) -> bool:
-        return node.op in ["Conv", "RequantizedConv"] and \
-            isinstance(node.inputs[1], gs.Constant) and \
-            node.attrs['kernel_shape'] == [1, 1] and \
-            node.attrs['dilations'] == [1, 1] and \
-            (node.attrs['strides'] == [1, 1] or self.enableStrides)
+        return self._isSupportedConvNode(node) and \
+            node.attrs.get('kernel_shape') == [1, 1] and \
+            self._hasSupportedStrides(node)
 
     def isDWConv(self, node) -> bool:
-        return node.op in ["Conv", "RequantizedConv"] and \
-            isinstance(node.inputs[1], gs.Constant) and \
-            node.attrs['kernel_shape'] == [3, 3] and \
-            node.attrs['dilations'] == [1, 1] and \
-            node.attrs['group'] != 1 and \
-            (node.attrs['strides'] == [1, 1] or self.enableStrides)
-
-    @staticmethod
-    def _isIntegerTensor(tensor: gs.Tensor) -> bool:
-        dtype = getattr(tensor, "dtype", None)
-        return dtype is not None and np.issubdtype(np.dtype(dtype), np.integer)
-
-    def _hasSupportedTensorTypes(self, node: gs.Node) -> bool:
-        tensors = list(node.inputs) + list(node.outputs)
-        return all(self._isIntegerTensor(tensor) for tensor in tensors)
+        return self._isSupportedConvNode(node) and \
+            node.attrs.get('kernel_shape') == [3, 3] and \
+            node.attrs.get('group', 1) != 1 and \
+            self._hasSupportedStrides(node)
 
     def canExecute(self, node: gs.Node) -> bool:
-        if not self._hasSupportedTensorTypes(node):
-            return False
+        # Engine coloring runs before Deeploy type inference, and ONNX dtype annotations
+        # are not reliable for quantized graphs or for Neureka-supported FP models.
+        # Keep this as a structural hardware-capability check; parsers and bindings
+        # validate the concrete type semantics later.
         return self.isPWConv(node) or self.isDWConv(node) or self.isDenseConv(node)
