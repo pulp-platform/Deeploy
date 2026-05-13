@@ -40,8 +40,14 @@ void Spatz_MatMul_fp32_fp32_fp32(const float32_t *__restrict__ a,
   // const unsigned int num_cores = snrt_cluster_core_num(); = 2 for spatz
   const unsigned int cid = snrt_cluster_core_idx();
 
-  unsigned int m_start = (M / 2) * cid;
-  unsigned int m_end = (M / 2) * (cid + 1);
+  unsigned int m_start, m_end;
+  if (cid == 0){
+    m_start = 0;
+    m_end = (M/2);
+  } else {
+    m_start = (M/2);
+    m_end = M;
+  }
 
   if (M <= 4) {
     matmul_2xVL(c, a, b, m_start, m_end, N, P, 0, P);
