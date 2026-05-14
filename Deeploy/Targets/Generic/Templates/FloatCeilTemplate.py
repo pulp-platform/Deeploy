@@ -1,14 +1,23 @@
 # SPDX-FileCopyrightText: 2021 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
+import numpy as np
 
-from Deeploy.DeeployTypes import NodeTemplate
+from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
-referenceTemplate = NodeTemplate("""
-// Add (Name: ${nodeName}, Op: ${nodeOp})
-BEGIN_SINGLE_CORE
-    for (uint32_t i = 0; i < ${size}; i++) {
-        ${data_out}[i] = ceilf(${data_in}[i]);
-    }
-END_SINGLE_CORE
+
+class _CeilTemplate(NodeTemplate):
+
+    def alignToContext(self, ctxt: NetworkContext,
+                       operatorRepresentation: OperatorRepresentation) -> tuple[NetworkContext, dict, list[str]]:
+
+        data_in = ctxt.lookup(operatorRepresentation['data_in'])
+        operatorRepresentation['size'] = int(np.prod(data_in.shape))
+        operatorRepresentation['type_width'] = data_in._type.referencedType.typeWidth
+        return ctxt, operatorRepresentation, []
+
+
+referenceTemplate = _CeilTemplate("""
+// Ceil (Name: ${nodeName}, Op: ${nodeOp})
+Ceil_fp${type_width}_fp${type_width}(${data_in}, ${data_out}, ${size});
 """)

@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
-from typing import Dict, List, Tuple
-
 import numpy as np
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
@@ -10,17 +8,15 @@ from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresent
 
 class _ClipTemplate(NodeTemplate):
 
-    def alignToContext(self, ctxt, operatorRepresentation):
+    def alignToContext(self, ctxt: NetworkContext,
+                       operatorRepresentation: OperatorRepresentation) -> tuple[NetworkContext, dict, list[str]]:
         data_in = ctxt.lookup(operatorRepresentation['data_in'])
         operatorRepresentation['size'] = int(np.prod(data_in.shape))
+        operatorRepresentation['type_width'] = data_in._type.referencedType.typeWidth
         return ctxt, operatorRepresentation, []
 
 
 referenceTemplate = _ClipTemplate("""
 // Clip (Name: ${nodeName}, Op: ${nodeOp})
-BEGIN_SINGLE_CORE
-    for (uint32_t i = 0; i < ${size}; i++){
-        ${data_out}[i] = fmaxf(${min_val}f, fminf(${max_val}f, ${data_in}[i]));
-    }
-END_SINGLE_CORE
+Clip_fp${type_width}_fp${type_width}(${data_in}, ${data_out}, ${min_val}, ${max_val}, ${size});
 """)

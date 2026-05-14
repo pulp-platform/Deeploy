@@ -22,7 +22,6 @@
 
 #include <ctype.h>
 #include <inttypes.h>
-#include <math.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -34,6 +33,8 @@
 #include "utils.h"
 
 #include "kernel/BatchNorm.h"
+#include "kernel/Ceil.h"
+#include "kernel/Clip.h"
 #include "kernel/ConvTranspose1d_fp32.h"
 #include "kernel/Convolution.h"
 #include "kernel/DWConvolution.h"
