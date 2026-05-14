@@ -1057,7 +1057,7 @@ def test_gap9_w_ne16_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir,
         l1 = l1,
         default_mem_level = "L2",
         double_buffer = False,
-        gen_args = ["--enable-3x3"],
+        gen_args = ["--enable-3x3", "--enableStrides"],
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 
