@@ -42,6 +42,13 @@ def _ne16_adjust_gemm_weight_layout_fun(graph: gs.Graph, match: Match, name: str
     matched_nodes = list(match.nodes_map.values())
     node = matched_nodes[0]
 
+    # Only act on NE16-colored nodes. Cluster-bound Gemm/RequantizedGemm (e.g.
+    # AnomalyDetection's 10 Gemm+RQ layers in the MLPerf gap9-tiled model
+    # tests) must keep Deeploy's original mul / bias / no-scale_n layout so
+    # pulp_nn_linear stays bit-exact with the int8 reference outputs.
+    if node.attrs.get("engine") != "NE16":
+        return graph
+
     # Weight is input[1] for both Gemm and RequantizedGemm
     weightTensor = node.inputs[1]
 
