@@ -57,5 +57,6 @@
 #include "kernel/Sigmoid.h"
 #include "kernel/Softmax.h"
 #include "kernel/Sqrt.h"
+#include "kernel/Swish.h"
 
 #endif //__DEEPLOY_BASIC_MATH_HEADER_

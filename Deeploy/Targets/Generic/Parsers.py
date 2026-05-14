@@ -2926,3 +2926,13 @@ class SigmoidParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'Sigmoid'
+
+
+class SwishParser(UnaryElementWiseParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = all([super().parseNode(node), node.op == 'Swish', 'alpha' in node.attrs])
+        if ret:
+            self.operatorRepresentation['alpha'] = node.attrs['alpha']
+            return True
+        return False

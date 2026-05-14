@@ -732,3 +732,7 @@ class ExpLayer(ONNXLayer):
 
 class SigmoidLayer(ONNXLayer):
     pass
+
+
+class SwishLayer(ONNXLayer):
+    pass
