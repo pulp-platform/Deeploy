@@ -2920,3 +2920,9 @@ class ExpParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'Exp'
+
+
+class SigmoidParser(UnaryElementWiseParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and node.op == 'Sigmoid'

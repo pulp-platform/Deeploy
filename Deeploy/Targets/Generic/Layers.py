@@ -728,3 +728,7 @@ class ClipLayer(ONNXLayer):
 
 class ExpLayer(ONNXLayer):
     pass
+
+
+class SigmoidLayer(ONNXLayer):
+    pass
