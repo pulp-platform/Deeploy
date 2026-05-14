@@ -717,6 +717,12 @@ class CeilLayer(ONNXLayer):
         super().__init__(maps)
 
 
+class FloorLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
 class ClipLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
