@@ -7,8 +7,6 @@ from typing import Callable, Dict, Type
 import onnx_graphsurgeon as gs
 
 from Deeploy.AbstractDataTypes import Pointer
-from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    NCHWtoNHWCPass, PULPNCHWtoNHWCPass
 from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Targets.GAP9.Deployer import GAP9Deployer
 from Deeploy.Targets.NE16.TopologyOptimizationPasses.Passes import ConvEngineDiscolorationPass, NE16OptimizationPass
@@ -29,10 +27,10 @@ class NE16Deployer(GAP9Deployer):
         super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
                          default_channels_first, deeployStateDir, inputOffsets)
 
-        if self.Platform.engines[0].enable3x3:
-            for idx in range(len(self.loweringOptimizer.passes)):
-                if isinstance(self.loweringOptimizer.passes[idx], PULPNCHWtoNHWCPass):
-                    self.loweringOptimizer.passes[idx] = NCHWtoNHWCPass(self.default_channels_first)
+        # Keep the global PULPNCHWtoNHWCPass for DW convs (cluster-compatible NHWC).
+        # NE16-colored DW convs are fixed up to NE16 NHWC layout inside
+        # NE16OptimizationPass below. This avoids breaking cluster-fallback DW convs
+        # (stride-2 layers) when --enable-3x3 is on for mixed-engine graphs.
 
         self.loweringOptimizer.passes += [
             ConvEngineDiscolorationPass(),

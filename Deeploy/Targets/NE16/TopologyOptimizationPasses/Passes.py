@@ -15,7 +15,7 @@ from Deeploy.CommonExtensions.OptimizationPasses.Matchers import Match, NonBranc
 from Deeploy.CommonExtensions.OptimizationPasses.PassClasses import ReplaceSequentialPatternPass, SequentialPass, \
     contextagnostic
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    RemoveGlobalOutputReshapePass, _createReshape
+    RemoveGlobalOutputReshapePass, _appendTranspose, _createReshape, _transformLayoutPermutation
 from Deeploy.EngineExtension.OptimizationPasses.TopologyOptimizationPasses.EngineColoringPasses import \
     EngineDiscolorationPass
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, ReshapeMergePass
@@ -266,11 +266,67 @@ class ConvEngineDiscolorationPass(EngineDiscolorationPass):
         super().__init__(pattern, "_CONV_ENGINE_DISCOLORATION_PASS", matcher = NonBranchingMatcher(regex_op = True))
 
 
+def _ne16_dw_layout_fixup_fun(graph: gs.Graph, match: Match, name: str, ne16EngineName: str):
+    """Convert NE16-colored DW conv from PULP NHWC layout to NE16 NHWC layout.
+
+    After PULPNCHWtoNHWCPass runs, every DW conv has:
+      - weight in PULP NHWC layout (cout, H, W, cin/g)
+      - input NOT transposed (PULP DW kernel convention)
+
+    NE16 DW expects:
+      - weight in NE16 NHWC layout (cin/g=1, H, W, cout)
+      - input in NHWC layout
+
+    For NE16-colored DW convs we do both adjustments here. Cluster-colored
+    DW convs (e.g. stride-2 fallbacks when --enable-3x3 is on) are left
+    untouched, so the PULP cluster path still works.
+    """
+    node = list(match.nodes_map.values())[0]
+    if node.op not in ("Conv", "RequantizedConv"):
+        return graph
+    if node.attrs.get("group", 1) == 1:
+        return graph
+    if node.attrs.get("engine") != ne16EngineName:
+        return graph
+    if len(node.inputs) < 2 or not isinstance(node.inputs[1], gs.Constant):
+        return graph
+
+    weightTensor = node.inputs[1]
+    if weightTensor.values.ndim != 4:
+        return graph
+
+    # Weight: (cout, H, W, cin/g=1) -> (cin/g=1, H, W, cout)
+    weightTensor.values = weightTensor.values.transpose(3, 1, 2, 0)
+
+    # PULP DW NHWC doesn't insert an input transpose; NE16 DW needs NHWC input.
+    tensorIn = node.inputs[0]
+    spatialDims = 2
+    permuteIn = _transformLayoutPermutation(len(tensorIn.shape), spatialDims, False)
+    graph.nodes.append(_appendTranspose(tensorIn, node, permuteIn))
+
+    return graph
+
+
+@contextagnostic
+class NE16DwLayoutFixupPass(ReplaceSequentialPatternPass):
+
+    def __init__(self, ne16EngineName: str):
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['out'], op = 'RequantizedConv|Conv', name = 'node')
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        super().__init__(graph, partial(_ne16_dw_layout_fixup_fun, ne16EngineName = ne16EngineName),
+                         "_NE16_DW_LAYOUT_FIXUP_PASS", NonBranchingMatcher(regex_op = True))
+
+
 @contextagnostic
 class NE16OptimizationPass(SequentialPass):
 
     def __init__(self, default_channels_first: bool, ne16EngineName: str):
-        super().__init__(NE16AdjustWeightMemoryLayoutPass(default_channels_first, ne16EngineName),
+        super().__init__(NE16DwLayoutFixupPass(ne16EngineName),
+                         NE16AdjustWeightMemoryLayoutPass(default_channels_first, ne16EngineName),
                          NE16ReshapePointwiseConvolutionPass(default_channels_first, ne16EngineName),
                          ReshapeMergePass(),
                          ReshapeConstOptPass(),
