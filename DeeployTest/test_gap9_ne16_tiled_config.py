@@ -31,7 +31,15 @@ L2_DOUBLEBUFFER_KERNELS = {
 }
 
 L2_SINGLEBUFFER_MODELS = {
-    "Models/MLPerf/VisualWakeWords": [60000],
+    "Models/MLPerf/VisualWakeWords": [128000],
+}
+
+L2_DOUBLEBUFFER_MODELS = {
+    # L1 budget reduced from full 128KB because the runtime allocator overhead
+    # plus double-buffered tiles exceeds 128KB for this model — empirically
+    # tiles solved for >=100KB fail at runtime ("Allocation failed for
+    # allocator 2"). 90KB is the largest budget that runs.
+    "Models/MLPerf/VisualWakeWords": [90000],
 }
 
 L3_SINGLEBUFFER_MODELS = {}

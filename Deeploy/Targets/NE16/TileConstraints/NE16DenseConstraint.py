@@ -213,12 +213,21 @@ class NE16DenseConv2DTileConstraint(TileConstraint):
         assert isinstance(weightBuffer, VariableBuffer)
         weightShape = weightBuffer.shape
 
+        # NE16-encoded weight rank depends on conv kind: PW/DW are rank 3
+        # (cout, cinMajor, bits * H*W * cinMinorBytes), Dense 3x3 is rank 4
+        # (cout, cinMajor, bits, H*W * cinMinorBytes). The rectangle must match
+        # the buffer rank — otherwise _legalizeTransfers left-pads with size-1
+        # dims and the cout offset shifts onto cinMajor, breaking double-buffer
+        # tiling on stride-2 Dense (cout > tile size).
+        weightRank = len(weightShape)
+        weightFullTail = tuple(weightShape[1:])
+
         if hasattr(weightBuffer, "_memoryLevel") and weightBuffer._memoryLevel == "WeightMemory_SRAM":
             replacements['weight_addr_offset'] = []
             replacementTypes['weight_addr_offset'] = PointerClass(uint32_t)
             for absoluteCube in absoluteOutputCubes:
                 COffset, CSize = absoluteCube.absoluteOffset[-1], absoluteCube.rectangle.dims[-1]
-                WeightCube = HyperRectangle((COffset, 0, 0), (CSize, weightShape[-2], weightShape[-1]))
+                WeightCube = HyperRectangle((COffset,) + (0,) * (weightRank - 1), (CSize,) + weightFullTail)
                 replacements['weight_addr_offset'].append(calculateFlatOffsetInBytes(WeightCube, weightBuffer))
         else:
             inputWeightBaseOffsets, outputWeightBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
@@ -228,7 +237,7 @@ class NE16DenseConv2DTileConstraint(TileConstraint):
 
             for cube, load in zip(outputCubes, inputLoadSchedule):
                 COffset, CSize = cube.offset[-1], cube.dims[-1]
-                load['weight'] = HyperRectangle((COffset, 0, 0), (CSize, weightShape[-2], weightShape[-1]))
+                load['weight'] = HyperRectangle((COffset,) + (0,) * (weightRank - 1), (CSize,) + weightFullTail)
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
