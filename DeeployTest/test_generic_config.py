@@ -47,6 +47,7 @@ KERNEL_TESTS = [
     "Kernels/FP32/ReduceMean/NoKeepDims/ReduceMean_Add",
     "Kernels/FP32/Reshape/SkipConnection",
     "Kernels/FP32/Sqrt",
+    "Kernels/FP32/Sub",
     "Kernels/FP32/Transpose",
     # Integer Kernels
     "Kernels/Integer/Softmax/Regular",
@@ -66,6 +67,7 @@ KERNEL_TESTS = [
     "Kernels/Integer/ReduceMean",
     "Kernels/Integer/ReduceSum",
     "Kernels/Integer/Slice",
+    "Kernels/Integer/Sub",
     # Special test from TinyViT model layers
     "Models/TinyViT/5M/Layers/FP32/ReduceMean",
     # Mixed Precision / Quantization

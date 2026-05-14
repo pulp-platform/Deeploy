@@ -492,6 +492,9 @@ class AddParser(NodeParser):
         return ctxt, True
 
 
+SubParser = AddParser
+
+
 class ReduceParser(NodeParser):
 
     def __init__(self):

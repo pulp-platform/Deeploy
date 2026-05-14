@@ -188,6 +188,9 @@ class AddLayer(ONNXLayer):
         return self.mapper.parser.operatorRepresentation['size']
 
 
+SubLayer = AddLayer
+
+
 class MatMulLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
