@@ -43,9 +43,8 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantPars
     TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, DequantQuantMergePass, \
-    IntegerDivRequantMergePass, MatMulAddMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, \
-    QuantPatternPass, RQSSplitPass, SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, \
-    iHardswishRequantMergePass
+    IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, \
+    RQSSplitPass, SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Bindings import PULPDMASliceBindings, PULPDWConv1DBinding, PULPReduceMeanBindings, \
     PULPRQSConv1DBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
@@ -144,8 +143,7 @@ GAP9Mapping = {
         PULPRQSConvLayer([GAP9_Conv2DMapper, GAP9_DWConv2DMapper, GAP9_Conv1DMapper, GAP9_DWConv1DMapper]),
     'RequantizedGemm':
         PULPRQSGEMMLayer([GAP9_NE16GEMMMapper, GAP9_MatrixVecMapper, GAP9_TallGEMMMapper, GAP9_GEMMMapper]),
-    'Gemm':
-        # GAP9_NE16GEMMInt32Mapper would also belong here for int8/uint8 Gemm,
+    'Gemm':  # GAP9_NE16GEMMInt32Mapper would also belong here for int8/uint8 Gemm,
         # but it shares the same GEMMParser class as the other mappers; the
         # deployer keys candidate-bindings by parser class, so listing it
         # alongside FloatGEMM / GEMMDequant masks them for FP32 / dequant
