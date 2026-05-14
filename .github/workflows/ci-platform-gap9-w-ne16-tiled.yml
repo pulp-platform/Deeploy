@@ -50,3 +50,19 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-markers: "gap9_w_ne16_tiled and kernels and doublebuffer and l2"
+
+  gap9-w-ne16-models-tiled-singlebuffer-L2:
+    needs: select-env
+    uses: ./.github/workflows/_runner-gap9-w-ne16-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-markers: "gap9_w_ne16_tiled and models and singlebuffer and l2"
+
+  gap9-w-ne16-models-tiled-doublebuffer-L2:
+    needs: select-env
+    uses: ./.github/workflows/_runner-gap9-w-ne16-tiled.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-markers: "gap9_w_ne16_tiled and models and doublebuffer and l2"
