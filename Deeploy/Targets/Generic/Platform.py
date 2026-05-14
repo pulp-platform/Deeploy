@@ -9,19 +9,19 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBindings, BasicCeilBindings, \
     BasicClipBindings, BasicConcatBindings, BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, \
     BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, \
-    BasicFloorBindings, BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, BasicITAPartialSoftmaxBinding, \
-    BasicITASoftmaxBinding, BasicLayerNormBindings, BasicMatMulBindings, BasicMaxPool1DBindings, \
-    BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicPowBindings, \
-    BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, \
-    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, \
-    BasicSqrtBindings, BasicSubBindings, BasicTransposeBindings, DummyBinding
+    BasicExpBindings, BasicFloorBindings, BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, \
+    BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, BasicLayerNormBindings, BasicMatMulBindings, \
+    BasicMaxPool1DBindings, BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
+    BasicPowBindings, BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, \
+    BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, \
+    BasicSoftmaxBindings, BasicSqrtBindings, BasicSubBindings, BasicTransposeBindings, DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, BatchNormalizationLayer, CeilLayer, ClipLayer, ConcatLayer, \
-    ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, FloorLayer, GatherLayer, GELULayer, \
-    GEMMLayer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, PowLayer, QuantLayer, \
-    ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
-    SliceLayer, SoftmaxLayer, SqrtLayer, SubLayer, TransposeLayer
+    ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, ExpLayer, FloorLayer, GatherLayer, \
+    GELULayer, GEMMLayer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, PowLayer, \
+    QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, \
+    RQSiGELULayer, SliceLayer, SoftmaxLayer, SqrtLayer, SubLayer, TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, BatchNormParser, CeilParser, ClipParser, ConcatParser, \
-    ConvTranspose1DParser, DebugParser, DequantParser, DivParser, DummyParser, FlattenParser, FloorParser, \
+    ConvTranspose1DParser, DebugParser, DequantParser, DivParser, DummyParser, ExpParser, FlattenParser, FloorParser, \
     GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, \
     GenericGEMMParser, GenericMaxPool2DParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, \
     MatMulParser, MaxPool1DParser, MulParser, Pad1DParser, Pad2DParser, PowParser, QuantParser, ReduceMeanParser, \
@@ -77,6 +77,7 @@ SliceMapper = NodeMapper(SliceParser(), BasicSliceBindings)
 CeilMapper = NodeMapper(CeilParser(), BasicCeilBindings)
 FloorMapper = NodeMapper(FloorParser(), BasicFloorBindings)
 ClipMapper = NodeMapper(ClipParser(), BasicClipBindings)
+ExpMapper = NodeMapper(ExpParser(), BasicExpBindings)
 
 # Dummy nodes are intended for development purposes only!
 # They should always generate compiler errors to not accidentally end up in production code
@@ -127,6 +128,7 @@ GenericMapping = {
     'Ceil': CeilLayer([CeilMapper]),
     'Floor': FloorLayer([FloorMapper]),
     'Clip': ClipLayer([ClipMapper]),
+    'Exp': ExpLayer([ExpMapper]),
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel

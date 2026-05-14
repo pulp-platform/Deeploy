@@ -11,6 +11,23 @@ import onnx_graphsurgeon as gs
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
 
 
+class UnaryElementWiseParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return len(node.inputs) == 1 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+        return ctxt, True
+
+
 class ConcatParser(NodeParser):
 
     def __init__(self):
@@ -1095,29 +1112,10 @@ class UnsqueezeParser(NodeParser):
         return ctxt, True
 
 
-class ReluParser(NodeParser):
+class ReluParser(UnaryElementWiseParser):
 
-    def __init__(self):
-        super().__init__()
-
-    def parseNode(self, node: gs.Node) -> (bool):
-
-        ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
-
-        return ret
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = np.prod(data_in.shape)
-
-        return ctxt, True
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and node.op == 'Relu'
 
 
 class ReshapeParser(NodeParser):
@@ -2868,79 +2866,28 @@ class ConvTranspose1DParser(ConvTransposeParser):
         return ctxt, False
 
 
-class SqrtParser(NodeParser):
-
-    def __init__(self):
-        super().__init__()
+class SqrtParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
-        return node.op == 'Sqrt' and len(node.inputs) == 1 and len(node.outputs) == 1
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
-
-        return ctxt, True
+        return super().parseNode(node) and node.op == 'Sqrt'
 
 
-class CeilParser(NodeParser):
-
-    def __init__(self):
-        super().__init__()
+class CeilParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
-        return node.op == 'Ceil' and len(node.inputs) == 1 and len(node.outputs) == 1
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
-        return ctxt, True
+        return super().parseNode(node) and node.op == 'Ceil'
 
 
-class FloorParser(NodeParser):
-
-    def __init__(self):
-        super().__init__()
+class FloorParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
-        return node.op == 'Floor' and len(node.inputs) == 1 and len(node.outputs) == 1
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
-        return ctxt, True
+        return super().parseNode(node) and node.op == 'Floor'
 
 
-class ClipParser(NodeParser):
-
-    def __init__(self):
-        super().__init__()
+class ClipParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
+        # Clip allows 1–3 inputs (optional min/max constants), so we can't use super()
         if node.op != 'Clip' \
             or len(node.outputs) != 1 \
             or (not (1 <= len(node.inputs) <= 3)):
@@ -2952,11 +2899,9 @@ class ClipParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        self.operatorRepresentation['data_in'] = data_in.name
-        self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+        ctxt, ok = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ok:
+            return ctxt, False
 
         # min_val and max_val only handled as constants
         # Defaults: full float32 range
@@ -2969,3 +2914,9 @@ class ClipParser(NodeParser):
             self.operatorRepresentation['max_val'] = float(node.inputs[2].values.item())
 
         return ctxt, True
+
+
+class ExpParser(UnaryElementWiseParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and node.op == 'Exp'
