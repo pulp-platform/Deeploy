@@ -112,7 +112,10 @@ GAP9Optimizer = TopologyOptimizer(
         QuantPatternPass(),
         DequantPatternPass(),
         DequantQuantMergePass(),
-        MatMulAddMergePass(),
+        # MatMulAddMergePass(),  # fuses to Gemm with transA=transB=0 — wrong layout
+        # for MatMul inputs that don't share Gemm semantics; FP32
+        # SkipConnection regressed from 0/16 to 16/16 errors under it.
+        # Leave MatMul and Add separate (matches devel base behavior).
         SkipEmptyConcatPass(),
         SkipUnityRequantPass(previous_op_regex = "Concat", num_inputs = 2),
         SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),
@@ -142,7 +145,14 @@ GAP9Mapping = {
     'RequantizedGemm':
         PULPRQSGEMMLayer([GAP9_NE16GEMMMapper, GAP9_MatrixVecMapper, GAP9_TallGEMMMapper, GAP9_GEMMMapper]),
     'Gemm':
-        GEMMLayer([GAP9_NE16GEMMInt32Mapper, GAP9_FloatGEMMMapper, GAP9_GEMMDequantMapper]),
+        # GAP9_NE16GEMMInt32Mapper would also belong here for int8/uint8 Gemm,
+        # but it shares the same GEMMParser class as the other mappers; the
+        # deployer keys candidate-bindings by parser class, so listing it
+        # alongside FloatGEMM / GEMMDequant masks them for FP32 / dequant
+        # paths and the whole graph fails to map. The int8/uint8 path is
+        # already covered by RequantizedGemm above; keep plain Gemm for FP
+        # and dequant flavours only.
+        GEMMLayer([GAP9_FloatGEMMMapper, GAP9_GEMMDequantMapper]),
     'Gelu':
         GELULayer([GAP9_GELUMapper]),
     'LayerNormalization':
