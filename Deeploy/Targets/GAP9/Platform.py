@@ -52,8 +52,8 @@ from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
     PULPTallGEMMParser
-from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPConvRequantMergePass, \
-    PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
+from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
+    PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
 # Create GAP9-specific NodeMappers
 GAP9_RQAddMapper = NodeMapper(RQAddParser(), GAP9RQAddTilingReadyBindings)
@@ -126,7 +126,7 @@ GAP9Optimizer = TopologyOptimizer(
         MergeConstAddAndRequantPass(),
         PULPGEMMRequantMergePass(),
         PULPMatMulRequantMergePass(),
-        # PULPAddRequantMergePass(),
+        PULPAddRequantMergePass(),
         RemoveEmptyConvBiasPass(),
         RemoveOnlySingletonReduceMeanPass(),
         NE16AdjustGEMMWeightLayoutPass(),

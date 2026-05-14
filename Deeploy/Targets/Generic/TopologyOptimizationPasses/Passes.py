@@ -844,7 +844,18 @@ def _split_rqs_fun(graph: gs.Graph, match: Match, name: str, splitSet: List[str]
         if isinstance(var, gs.Variable):
             postSplitInput = var
         else:
-            postSplitInput = gs.Constant(name = f"{t1.name}_split_{idx}", values = var.values.copy().reshape(-1,))
+            # The standalone RequantShift kernel binding expects integer mul/add
+            # (int32). Source ONNX often stores them as float32 even when the
+            # values are integer-valued, because they get folded into the
+            # preceding Conv/Gemm's bias path which handles the cast inline.
+            # After splitting, these constants survive standalone, so cast the
+            # values to int32 when they are integer-valued. Otherwise the
+            # parser-side type checker rejects every integer binding and
+            # parsing backtracks out of the whole graph.
+            values = var.values.copy().reshape(-1,)
+            if values.dtype != np.int32 and np.array_equal(values, np.round(values)):
+                values = values.astype(np.int32)
+            postSplitInput = gs.Constant(name = f"{t1.name}_split_{idx}", values = values)
         postSplitInputs.append(postSplitInput)
 
     for idx, node in enumerate(originalNode.outputs.copy()):
