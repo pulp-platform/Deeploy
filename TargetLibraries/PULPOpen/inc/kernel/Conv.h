@@ -96,8 +96,7 @@ void PULP_PWConvGradW2d_fp32_fp32_fp32_CHW(
 void PULP_PWConvGradX2d_fp32_fp32_fp32_CHW(
     const float *__restrict__ pGradOut, uint32_t H_out, uint32_t W_out,
     uint32_t C_out, const float *__restrict__ pWeight, uint32_t C_in,
-    float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in,
-    float *__restrict__ pTransposeBuffer, uint32_t transposeBufferSize);
+    float *__restrict__ pGradIn, uint32_t H_in, uint32_t W_in);
 
 void PULP_DWConvGradX2d_fp32_fp32_fp32_CHW_tiled(
     const float *__restrict__ pGradOut,

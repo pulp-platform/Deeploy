@@ -552,6 +552,17 @@ class PULPPWConvGradX2DParser(PULPConvGradX2DParser):
         if kernel_shape != [1, 1]:
             return False
 
+        # The PW ConvGradX kernel (direct dX[ci, hw] = sum_co W[co, ci] *
+        # dY[co, hw]) implicitly assumes dX and dY share the same spatial
+        # extent — i.e. stride == 1. Stride>1 1x1 convolutions (e.g.
+        # ResNet8 downsample shortcuts) need the sparse-write semantics
+        # `dX[ci, stride*y, stride*x] = ...` which only the im2col-tiled
+        # general kernel implements correctly, so reject them here and let
+        # them fall through to ConvGradX2DIm2ColHWTileConstraint.
+        strides = self.operatorRepresentation.get('strides', [1, 1])
+        if list(strides) != [1, 1]:
+            return False
+
         return wellFormed and True
 
 

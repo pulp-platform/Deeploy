@@ -353,33 +353,18 @@ for (uint32_t n=0; n<${batch}; ++n) {
 
 
 class PULP2DFloatPWConvGradXTemplate(NodeTemplate):
+    """PW (1x1) ConvGradX template.
+
+    The direct PULP_PWConvGradX2d_fp32_fp32_fp32_CHW kernel parallelises over
+    Cin and streams W rows / dY rows contiguously, so no weight-transpose
+    scratch is required. Allocating a Cin*Cout transient (the old
+    transpose buffer) used to eat ~64 KB of L1 for the MobileNetV1
+    block 6-10 PW layers and forced the tiler to fragment Cin/H/W into
+    ~36 tiles per layer; removing it lets the tiler pick coarse tiles.
+    """
 
     def __init__(self, templateStr):
         super().__init__(templateStr)
-
-    @staticmethod
-    def computeTransientBuffersSize(
-            ctxt: NetworkContext,
-            operatorRepresentation: OperatorRepresentation) -> List[Tuple[str, Union[int, IntVar]]]:
-        # Transpose buffer for weight matrix transpose (C_out x C_in)
-        # For pointwise convolution, kernel size is 1x1
-        bt_dim = (operatorRepresentation["weight_type"].typeWidth // 8) * \
-                 operatorRepresentation['ch_im_in'] * operatorRepresentation['ch_im_out']
-
-        bt_name = operatorRepresentation['nodeName'] + "_transpose_buffer"
-
-        return [(bt_name, bt_dim)]
-
-    def hoistTransientBuffers(self, ctxt: NetworkContext,
-                              operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        bt_name, bt_dim = PULP2DFloatPWConvGradXTemplate.computeTransientBuffersSize(ctxt, operatorRepresentation)[0]
-
-        ctxt.hoistTransientBuffer(bt_name, bt_dim)
-
-        operatorRepresentation['transposeBuffer'] = bt_name
-        operatorRepresentation['transposeBufferSize'] = bt_dim
-
-        return ctxt, operatorRepresentation, [bt_name]
 
 
 referencePWConvGradW2DTemplate = _ConvGradWTemplate("""
@@ -424,8 +409,7 @@ for (uint32_t n=0; n<${batch}; ++n) {
         ref_${grad_in}_${weight},
         ${ch_im_in},
         ref_${grad_in}_out,
-        ${dim_im_in_x}, ${dim_im_in_y},
-        ${transposeBuffer}, ${transposeBufferSize}
+        ${dim_im_in_x}, ${dim_im_in_y}
     );
 
     ref_${grad_in}_${grad_out} += ${ch_im_out} * ${dim_im_out_y} * ${dim_im_out_x};

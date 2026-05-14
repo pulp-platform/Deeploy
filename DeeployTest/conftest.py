@@ -3,13 +3,25 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import re
 from pathlib import Path
+from typing import Any, Dict, List
 
 import coloredlogs
 import pytest
 
 from Deeploy.Logging import DEFAULT_FMT
 from Deeploy.Logging import DEFAULT_LOGGER as log
+
+# Accumulates per-test runtime cycles for the end-of-session perf summary.
+# Populated by pytest_runtest_logreport (runs on the xdist master, so this
+# is single-process even with parallel workers).
+_PERF_RESULTS: List[Dict[str, Any]] = []
+
+# Inference harness format
+_RUNTIME_CYCLES_RE = re.compile(r"Runtime:\s*(\d+)\s*cycles")
+# Training harness format: train + optimizer step cycles + (optional) weight sram
+_BENCH_RE = re.compile(r"BENCH\s+train_cycles=(\d+)(?:\s+opt_cycles=(\d+))?(?:\s+weight_sram=(\d+))?")
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -158,3 +170,128 @@ def toolchain(request):
 def cmake_args(request):
     """Return additional CMake arguments."""
     return request.config.getoption("--cmake-args")
+
+
+# ---------------------------------------------------------------------------
+# Performance summary hooks
+#
+# pytest_runtest_logreport runs on the xdist master for every worker's report,
+# so we can collect per-test runtime cycles in a single process. The Markdown
+# summary is emitted to GITHUB_STEP_SUMMARY at session end so PR check pages
+# show a perf table inline.
+# ---------------------------------------------------------------------------
+
+
+def pytest_runtest_logreport(report: pytest.TestReport) -> None:
+    """Scrape runtime cycles from each test's captured stdout/stderr.
+
+    Two harness formats are recognised:
+      * inference  : ``Runtime: N cycles``
+      * training   : ``BENCH train_cycles=N opt_cycles=N weight_sram=N``
+    """
+    if report.when != "call":
+        return
+    if report.outcome not in ("passed", "failed"):
+        return
+
+    blob = "\n".join(filter(None, [
+        getattr(report, "capstdout", None),
+        getattr(report, "capstderr", None),
+    ]))
+    if not blob:
+        return
+
+    # Prefer the BENCH line when present (training tests); fall back to the
+    # inference-style Runtime line. Use the LAST match in each case so any
+    # warm-up prints are overridden by the final number.
+    bench = None
+    for m in _BENCH_RE.finditer(blob):
+        bench = m
+    runtime = None
+    for m in _RUNTIME_CYCLES_RE.finditer(blob):
+        runtime = m
+
+    entry: Dict[str, Any] = {
+        "nodeid": report.nodeid,
+        "outcome": report.outcome,
+    }
+    if bench is not None:
+        entry["train_cycles"] = int(bench.group(1))
+        if bench.group(2):
+            entry["opt_cycles"] = int(bench.group(2))
+        if bench.group(3):
+            entry["weight_sram"] = int(bench.group(3))
+    elif runtime is not None:
+        entry["runtime_cycles"] = int(runtime.group(1))
+    else:
+        return  # no cycle data captured
+
+    _PERF_RESULTS.append(entry)
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:  # noqa: ARG001
+    """Print a terminal perf table and write GITHUB_STEP_SUMMARY Markdown."""
+    if not _PERF_RESULTS:
+        return
+
+    results = sorted(_PERF_RESULTS, key = lambda r: r["nodeid"])
+
+    # --- terminal block ---
+    terminalreporter.write_sep("=", "Performance Summary")
+    for r in results:
+        mark = "PASS" if r["outcome"] == "passed" else "FAIL"
+        if "train_cycles" in r:
+            extras = f"train={r['train_cycles']:>12,} cyc"
+            if "opt_cycles" in r:
+                extras += f"  opt={r['opt_cycles']:>10,} cyc"
+            if "weight_sram" in r:
+                extras += f"  weight_sram={r['weight_sram']:>8,} B"
+            terminalreporter.write_line(f"  [{mark}] {r['nodeid']:60s}  {extras}")
+        elif "runtime_cycles" in r:
+            terminalreporter.write_line(f"  [{mark}] {r['nodeid']:60s}  runtime={r['runtime_cycles']:>12,} cyc")
+
+    # --- GitHub Actions step summary (Markdown) ---
+    gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not gh_summary:
+        return
+
+    has_training = any("train_cycles" in r for r in results)
+    has_inference = any("runtime_cycles" in r for r in results)
+
+    lines: List[str] = ["## Performance Summary", ""]
+
+    if has_training:
+        lines += [
+            "### Training",
+            "",
+            "| Test | Status | train_cycles | opt_cycles | weight_sram |",
+            "|---|:---:|---:|---:|---:|",
+        ]
+        for r in results:
+            if "train_cycles" not in r:
+                continue
+            status = ":white_check_mark:" if r["outcome"] == "passed" else ":x:"
+            opt = f"{r['opt_cycles']:,}" if "opt_cycles" in r else "—"
+            sram = f"{r['weight_sram']:,}" if "weight_sram" in r else "—"
+            lines.append(f"| `{r['nodeid']}` | {status} | {r['train_cycles']:,} | {opt} | {sram} |")
+        lines.append("")
+
+    if has_inference:
+        lines += [
+            "### Inference",
+            "",
+            "| Test | Status | Runtime (cycles) |",
+            "|---|:---:|---:|",
+        ]
+        for r in results:
+            if "runtime_cycles" not in r:
+                continue
+            status = ":white_check_mark:" if r["outcome"] == "passed" else ":x:"
+            lines.append(f"| `{r['nodeid']}` | {status} | {r['runtime_cycles']:,} |")
+        lines.append("")
+
+    try:
+        with open(gh_summary, "a") as f:
+            f.write("\n".join(lines) + "\n")
+    except OSError as e:
+        terminalreporter.write_line(f"[perf-summary] Could not write GITHUB_STEP_SUMMARY: {e}")
