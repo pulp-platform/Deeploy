@@ -744,3 +744,11 @@ class HardSigmoidLayer(ONNXLayer):
 
 class HardSwishLayer(ONNXLayer):
     pass
+
+
+class InstanceNormLayer(ONNXLayer):
+    pass
+
+
+class GroupNormLayer(ONNXLayer):
+    pass

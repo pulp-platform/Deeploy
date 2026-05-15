@@ -2951,3 +2951,52 @@ class HardSwishParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'HardSwish'
+
+
+class NormalizationParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if not all([
+                len(node.inputs) == 3,
+                len(node.outputs) == 1,
+        ]):
+            return False
+
+        self.operatorRepresentation['epsilon'] = node.attrs.get('epsilon', 1e-5)
+
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        data_in = ctxt.lookup(node.inputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['scale'] = ctxt.lookup(node.inputs[1].name).name
+        self.operatorRepresentation['bias'] = ctxt.lookup(node.inputs[2].name).name
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = ctxt.lookup(node.outputs[0].name).name
+        self.operatorRepresentation['batch_size'] = data_in.shape[0]
+        self.operatorRepresentation['num_channels'] = data_in.shape[1]
+        self.operatorRepresentation['spatial'] = np.prod(data_in.shape[2:])
+        return ctxt, True
+
+
+class InstanceNormParser(NormalizationParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and node.op == 'InstanceNormalization'
+
+
+class GroupNormParser(NormalizationParser):
+
+    # TODO: attribute stash_type not handled
+    def parseNode(self, node: gs.Node) -> bool:
+        if not all([
+                super().parseNode(node),
+                node.op == 'GroupNormalization',
+                'num_groups' in node.attrs,
+        ]):
+            return False
+        self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
+        return True
