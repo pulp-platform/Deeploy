@@ -34,10 +34,11 @@ void AveragePool2d_fp32_fp32(float32_t const *__restrict__ src,
           for (uint32_t kh = 0; kh < kernel_h; kh++) {
             for (uint32_t kw = 0; kw < kernel_w; kw++) {
 
-              int32_t h_in = h_out * stride_h + kh - pad_top;
-              int32_t w_in = w_out * stride_w + kw - pad_left;
+              int32_t h_in = (int32_t)(h_out * stride_h + kh) - pad_top;
+              int32_t w_in = (int32_t)(w_out * stride_w + kw) - pad_left;
 
-              if (h_in >= 0 && h_in < H && w_in >= 0 && w_in < W) {
+              if (h_in >= 0 && h_in < (int32_t)H && w_in >= 0 &&
+                  w_in < (int32_t)W) {
                 sum += src[((n * C + c) * H + h_in) * W + w_in];
                 count++;
               }
@@ -72,9 +73,9 @@ void AveragePool1d_fp32_fp32(float32_t const *__restrict__ src,
 
         for (uint32_t k = 0; k < kernel_len; k++) {
 
-          uint32_t l_in = l_out * stride + k - pad_left;
+          int32_t l_in = (int32_t)(l_out * stride + k) - (int32_t)pad_left;
 
-          if (l_in >= 0 && l_in < L) {
+          if (l_in >= 0 && l_in < (int32_t)L) {
             sum += src[(n * C + c) * L + l_in];
             count++;
           }
