@@ -736,3 +736,11 @@ class SigmoidLayer(ONNXLayer):
 
 class SwishLayer(ONNXLayer):
     pass
+
+
+class HardSigmoidLayer(ONNXLayer):
+    pass
+
+
+class HardSwishLayer(ONNXLayer):
+    pass
