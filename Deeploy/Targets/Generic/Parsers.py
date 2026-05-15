@@ -2930,13 +2930,11 @@ class SigmoidParser(UnaryElementWiseParser):
 
 class SwishParser(UnaryElementWiseParser):
 
-    # TODO: make alpha optional (as in ONNX standard)
     def parseNode(self, node: gs.Node) -> bool:
-        ret = all([super().parseNode(node), node.op == 'Swish', 'alpha' in node.attrs])
-        if ret:
-            self.operatorRepresentation['alpha'] = node.attrs['alpha']
-            return True
-        return False
+        if not (super().parseNode(node) and node.op == 'Swish'):
+            return False
+        self.operatorRepresentation['alpha'] = node.attrs.get('alpha', 1.0)
+        return True
 
 
 class HardSigmoidParser(UnaryElementWiseParser):
