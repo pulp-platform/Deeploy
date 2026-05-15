@@ -715,52 +715,96 @@ class ConvTransposeLayer(ONNXLayer):
 
 
 class CeilLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
 
 
 class FloorLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
 
 
 class ClipLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size'] * 2  # compare vs min and max
 
 
 class ExpLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
 
 
 class SigmoidLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        # σ(x) = 1 / (1 + exp(-x)): neg, exp, add, div
+        return self.mapper.parser.operatorRepresentation['size'] * 4
 
 
 class SwishLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        # x * σ(x): 4 ops for sigmoid + 1 mul
+        return self.mapper.parser.operatorRepresentation['size'] * 5
 
 
 class HardSigmoidLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        # max(0, min(1, α·x + β)): mul, add, clip(min), clip(max)
+        return self.mapper.parser.operatorRepresentation['size'] * 4
 
 
 class HardSwishLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        # x * HardSigmoid(x): 4 ops for hard sigmoid + 1 mul
+        return self.mapper.parser.operatorRepresentation['size'] * 5
 
 
 class InstanceNormLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        # per element: mean-sum(1) + variance(sub+sq+add=3) + normalize(sub+div=2) + affine(mul+add=2) = 8
+        # per (batch, channel): mean(div=1) + variance(sqrt+div=2) = 3
+        opRep = self.mapper.parser.operatorRepresentation
+        B, C, S = int(opRep['batch_size']), int(opRep['num_channels']), int(opRep['spatial'])
+        return B * C * (S * 8 + 3)
 
 
 class GroupNormLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        # same structure as InstanceNorm: 8 ops/element + 3 ops per (batch, channel)
+        opRep = self.mapper.parser.operatorRepresentation
+        B, C, S = int(opRep['batch_size']), int(opRep['num_channels']), int(opRep['spatial'])
+        return B * C * (S * 8 + 3)
 
 
 class AveragePoolLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+        kernel_elements = int(np.prod(opRep['kernel_shape']))
+        # (kernel_elements - 1) additions + 1 division per output element
+        return opRep['data_out_size'] * kernel_elements
 
 
 class GlobalAveragePoolLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+        # (spatial_size - 1) additions + 1 division per output channel
+        return int(opRep['batch_size'] * opRep['num_channels'] * opRep['spatial_size'])
 
 
 class GlobalMaxPoolLayer(ONNXLayer):
-    pass
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+        # (spatial_size - 1) comparisons per output channel
+        return int(opRep['batch_size'] * opRep['num_channels'] * (opRep['spatial_size'] - 1))

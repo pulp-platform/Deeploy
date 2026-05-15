@@ -3058,6 +3058,7 @@ class AveragePoolParser(NodeParser):
 
         self.operatorRepresentation['batch_size'] = data_in.shape[0]
         self.operatorRepresentation['num_channels'] = data_in.shape[1]
+        self.operatorRepresentation['data_out_size'] = int(np.prod(data_out.shape))
 
         spatial_shape = data_in.shape[2:]
         if len(self.operatorRepresentation['kernel_shape']) != len(spatial_shape):

@@ -14,8 +14,9 @@ void AveragePool2d_fp32_fp32(float32_t const *__restrict__ src,
                              uint32_t pad_top, uint32_t pad_left,
                              uint32_t pad_bottom, uint32_t pad_right) {
 
-  if (N == 0 || C == 0 || H < kernel_h || W < kernel_w || stride_h == 0 ||
-      stride_w == 0) {
+  if (N == 0 || C == 0 || stride_h == 0 || stride_w == 0 ||
+      (H + pad_top + pad_bottom) < kernel_h ||
+      (W + pad_left + pad_right) < kernel_w) {
     return;
   }
 
@@ -33,8 +34,8 @@ void AveragePool2d_fp32_fp32(float32_t const *__restrict__ src,
           for (uint32_t kh = 0; kh < kernel_h; kh++) {
             for (uint32_t kw = 0; kw < kernel_w; kw++) {
 
-              uint32_t h_in = h_out * stride_h + kh - pad_top;
-              uint32_t w_in = w_out * stride_w + kw - pad_left;
+              int32_t h_in = h_out * stride_h + kh - pad_top;
+              int32_t w_in = w_out * stride_w + kw - pad_left;
 
               if (h_in >= 0 && h_in < H && w_in >= 0 && w_in < W) {
                 sum += src[((n * C + c) * H + h_in) * W + w_in];
