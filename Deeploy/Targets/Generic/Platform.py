@@ -6,10 +6,11 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Lowe
     RemoveEmptyConvBiasPass, RemoveOnlySingletonReduceMeanPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBindings, BasicCeilBindings, \
-    BasicClipBindings, BasicConcatBindings, BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, \
-    BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, \
-    BasicExpBindings, BasicFloorBindings, BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, \
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicAveragePool1DBindings, BasicAveragePool2DBindings, \
+    BasicBatchNormBindings, BasicCeilBindings, BasicClipBindings, BasicConcatBindings, BasicConv1DBindings, \
+    BasicConv2DBindings, BasicConvTransposeBindings, BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, \
+    BasicDWConv1DBinding, BasicDWConv2DBindings, BasicExpBindings, BasicFloorBindings, BasicGatherBindings, \
+    BasicGELUBindings, BasicGEMMBindings, BasicGlobalAveragePoolBindings, BasicGlobalMaxPoolBindings, \
     BasicGroupNormBindings, BasicHardSigmoidBindings, BasicHardSwishBindings, BasicInstanceNormBindings, \
     BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, BasicLayerNormBindings, BasicMatMulBindings, \
     BasicMaxPool1DBindings, BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
@@ -17,21 +18,21 @@ from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBin
     BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSigmoidBindings, \
     BasicSliceBindings, BasicSoftmaxBindings, BasicSqrtBindings, BasicSubBindings, BasicSwishBindings, \
     BasicTransposeBindings, DummyBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, BatchNormalizationLayer, CeilLayer, ClipLayer, ConcatLayer, \
-    ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, ExpLayer, FloorLayer, GatherLayer, \
-    GELULayer, GEMMLayer, GroupNormLayer, InstanceNormLayer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, \
-    MulLayer, PadLayer, PowLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, \
-    ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SigmoidLayer, SliceLayer, SoftmaxLayer, SqrtLayer, SubLayer, \
-    SwishLayer, TransposeLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, BatchNormParser, CeilParser, ClipParser, ConcatParser, \
-    ConvTranspose1DParser, DebugParser, DequantParser, DivParser, DummyParser, ExpParser, FlattenParser, FloorParser, \
-    GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, \
-    GenericGEMMParser, GenericMaxPool2DParser, GroupNormParser, HardSigmoidParser, HardSwishParser, \
-    InstanceNormParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, MatMulParser, \
-    MaxPool1DParser, MulParser, Pad1DParser, Pad2DParser, PowParser, QuantParser, ReduceMeanParser, ReduceSumParser, \
-    ReluParser, RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SigmoidParser, SliceParser, \
-    SoftmaxParser, SqrtParser, SubParser, SwishParser, TransposeParser, UnsqueezeParser, iLayerNormParser, \
-    iSoftmaxParser
+from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolLayer, BatchNormalizationLayer, CeilLayer, ClipLayer, \
+    ConcatLayer, ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, ExpLayer, FloorLayer, \
+    GatherLayer, GELULayer, GEMMLayer, GlobalAveragePoolLayer, GlobalMaxPoolLayer, GroupNormLayer, InstanceNormLayer, \
+    ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, PowLayer, QuantLayer, ReduceMeanLayer, \
+    ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SigmoidLayer, \
+    SliceLayer, SoftmaxLayer, SqrtLayer, SubLayer, SwishLayer, TransposeLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool1DParser, AveragePool2DParser, BatchNormParser, \
+    CeilParser, ClipParser, ConcatParser, ConvTranspose1DParser, DebugParser, DequantParser, DivParser, DummyParser, \
+    ExpParser, FlattenParser, FloorParser, GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, \
+    GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, GlobalAveragePoolParser, \
+    GlobalMaxPoolParser, GroupNormParser, HardSigmoidParser, HardSwishParser, InstanceNormParser, IntegerDivParser, \
+    ITAMaxParser, ITAPartialMaxParser, LayerNormParser, MatMulParser, MaxPool1DParser, MulParser, Pad1DParser, \
+    Pad2DParser, PowParser, QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, \
+    ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SigmoidParser, SliceParser, SoftmaxParser, SqrtParser, \
+    SubParser, SwishParser, TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
@@ -89,6 +90,10 @@ HardSigmoidMapper = NodeMapper(HardSigmoidParser(), BasicHardSigmoidBindings)
 HardSwishMapper = NodeMapper(HardSwishParser(), BasicHardSwishBindings)
 InstanceNormMapper = NodeMapper(InstanceNormParser(), BasicInstanceNormBindings)
 GroupNormMapper = NodeMapper(GroupNormParser(), BasicGroupNormBindings)
+AveragePool1DMapper = NodeMapper(AveragePool1DParser(), BasicAveragePool1DBindings)
+AveragePool2DMapper = NodeMapper(AveragePool2DParser(), BasicAveragePool2DBindings)
+GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), BasicGlobalAveragePoolBindings)
+GlobalMaxPoolMapper = NodeMapper(GlobalMaxPoolParser(), BasicGlobalMaxPoolBindings)
 
 # Dummy nodes are intended for development purposes only!
 # They should always generate compiler errors to not accidentally end up in production code
@@ -146,6 +151,9 @@ GenericMapping = {
     'HardSwish': SwishLayer([HardSwishMapper]),
     'InstanceNormalization': InstanceNormLayer([InstanceNormMapper]),
     'GroupNormalization': GroupNormLayer([GroupNormMapper]),
+    'AveragePool': AveragePoolLayer([AveragePool1DMapper, AveragePool2DMapper]),
+    'GlobalAveragePool': GlobalAveragePoolLayer([GlobalAveragePoolMapper]),
+    'GlobalMaxPool': GlobalMaxPoolLayer([GlobalMaxPoolMapper]),
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel

@@ -32,6 +32,7 @@
 #include "types.h"
 #include "utils.h"
 
+#include "kernel/AveragePool.h"
 #include "kernel/BatchNorm.h"
 #include "kernel/Ceil.h"
 #include "kernel/Clip.h"
@@ -43,6 +44,8 @@
 #include "kernel/Floor.h"
 #include "kernel/GELU.h"
 #include "kernel/Gemm.h"
+#include "kernel/GlobalAveragePool.h"
+#include "kernel/GlobalMaxPool.h"
 #include "kernel/GroupNorm.h"
 #include "kernel/HardSigmoid.h"
 #include "kernel/HardSwish.h"

@@ -3000,3 +3000,120 @@ class GroupNormParser(NormalizationParser):
             return False
         self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
         return True
+
+
+class AveragePoolParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        if not all([
+                node.op == 'AveragePool',
+                len(node.inputs) == 1,
+                len(node.outputs) == 1,
+                'kernel_shape' in node.attrs,
+        ]):
+            return False
+
+        kernel_shape = node.attrs['kernel_shape']
+        spatial_ndim = len(kernel_shape)
+
+        auto_pad = node.attrs.get('auto_pad', 'NOTSET')
+        ceil_mode = node.attrs.get('ceil_mode', 0)
+        count_include_pad = node.attrs.get('count_include_pad ', 0)
+        dilations = node.attrs.get('dilations', (1,) * spatial_ndim)
+        strides = node.attrs.get('strides', (1,) * spatial_ndim)
+        pads = node.attrs.get('pads', (0,) * (2 * spatial_ndim))
+
+        if not all([
+                auto_pad == 'NOTSET',  # TODO: implement other values
+                ceil_mode == 0,  # TODO: implement other values
+                count_include_pad == 0,  # TODO: implement other values
+                all([d == 1 for d in dilations]),  # TODO: implement other values
+                len(dilations) == spatial_ndim,
+                len(strides) == spatial_ndim,
+                len(pads) == 2 * spatial_ndim,
+                all([s > 0 for s in strides]),
+        ]):
+            return False
+
+        self.operatorRepresentation['kernel_shape'] = kernel_shape
+        self.operatorRepresentation['auto_pad'] = auto_pad
+        self.operatorRepresentation['ceil_mode'] = ceil_mode
+        self.operatorRepresentation['count_include_pad'] = count_include_pad
+        self.operatorRepresentation['dilations'] = dilations
+        self.operatorRepresentation['strides'] = strides
+        self.operatorRepresentation['pads'] = pads
+
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        self.operatorRepresentation['batch_size'] = data_in.shape[0]
+        self.operatorRepresentation['num_channels'] = data_in.shape[1]
+
+        spatial_shape = data_in.shape[2:]
+        if len(self.operatorRepresentation['kernel_shape']) != len(spatial_shape):
+            return ctxt, False
+
+        if len(spatial_shape) == 1:
+            self.operatorRepresentation['length'] = spatial_shape[0]
+        elif len(spatial_shape) == 2:
+            self.operatorRepresentation['height'] = spatial_shape[0]
+            self.operatorRepresentation['width'] = spatial_shape[1]
+        else:
+            return ctxt, False
+
+        return ctxt, True
+
+
+class AveragePool1DParser(AveragePoolParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and len(node.attrs['kernel_shape']) == 1
+
+
+class AveragePool2DParser(AveragePoolParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and len(node.attrs['kernel_shape']) == 2
+
+
+class GlobalPoolParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return len(node.inputs) == 1 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['batch_size'] = data_in.shape[0]
+        self.operatorRepresentation['num_channels'] = data_in.shape[1]
+        self.operatorRepresentation['spatial_size'] = np.prod(data_in.shape[2:])
+
+        return ctxt, True
+
+
+class GlobalAveragePoolParser(GlobalPoolParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and node.op == 'GlobalAveragePool'
+
+
+class GlobalMaxPoolParser(GlobalPoolParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and node.op == 'GlobalMaxPool'

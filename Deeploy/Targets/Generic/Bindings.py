@@ -13,8 +13,9 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
-    FloatCeilTemplate, FloatClipTemplate, FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatExpTemplate, \
-    FloatFloorTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatGroupNormTemplate, FloatHardSigmoidTemplate, \
+    FloatAveragePoolTemplate, FloatCeilTemplate, FloatClipTemplate, FloatConvTemplate, FloatDivTemplate, \
+    FloatDWConvTemplate, FloatExpTemplate, FloatFloorTemplate, FloatGELUTemplate, FloatGemmTemplate, \
+    FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, FloatGroupNormTemplate, FloatHardSigmoidTemplate, \
     FloatHardSwishTemplate, FloatInstanceNormTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
     FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, \
     FloatReluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, FloatSubTemplate, \
@@ -398,4 +399,24 @@ BasicGroupNormBindings = [
             [PointerClass(float32_t), PointerClass(float32_t),
              PointerClass(float32_t)], [PointerClass(float32_t)]), FloatGroupNormTemplate.referenceTemplate,
         BasicTransformer),
+]
+
+BasicAveragePool1DBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate1d, BasicTransformer)
+]
+
+BasicAveragePool2DBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate2d, BasicTransformer)
+]
+
+BasicGlobalAveragePoolBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatGlobalAveragePoolTemplate.referenceTemplate, BasicTransformer)
+]
+
+BasicGlobalMaxPoolBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatGlobalMaxPoolTemplate.referenceTemplate, BasicTransformer)
 ]

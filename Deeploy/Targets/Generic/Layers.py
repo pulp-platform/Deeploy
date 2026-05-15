@@ -752,3 +752,15 @@ class InstanceNormLayer(ONNXLayer):
 
 class GroupNormLayer(ONNXLayer):
     pass
+
+
+class AveragePoolLayer(ONNXLayer):
+    pass
+
+
+class GlobalAveragePoolLayer(ONNXLayer):
+    pass
+
+
+class GlobalMaxPoolLayer(ONNXLayer):
+    pass
