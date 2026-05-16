@@ -58,7 +58,8 @@ void AveragePool1d_fp32_fp32(float32_t const *__restrict__ src,
                              uint32_t stride, uint32_t pad_left,
                              uint32_t pad_right) {
 
-  if (N == 0 || C == 0 || L < kernel_len || stride == 0) {
+  if (N == 0 || C == 0 || stride == 0 ||
+      (L + pad_left + pad_right) < kernel_len) {
     return;
   }
 
@@ -80,7 +81,8 @@ void AveragePool1d_fp32_fp32(float32_t const *__restrict__ src,
             count++;
           }
         }
-        dst[(n * C + c) * L_out + l_out] = sum / (float32_t)count;
+        uint32_t i = (n * C + c) * L_out + l_out;
+        dst[i] = (count == 0) ? 0.0f : (sum / (float32_t)count);
       }
     }
   }

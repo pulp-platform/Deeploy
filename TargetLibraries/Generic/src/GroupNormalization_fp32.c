@@ -14,8 +14,14 @@ void GroupNormalization_fp32_fp32(
     uint32_t spatial, // spatial dimension (L or H*W or D*H*W, etc.)
     uint32_t num_groups, float32_t epsilon) {
 
+  if (num_groups == 0 || spatial == 0 || (num_channels % num_groups) != 0) {
+    return;
+  }
   uint32_t channels_per_group = num_channels / num_groups;
   uint32_t group_elements = channels_per_group * spatial;
+  if (group_elements == 0) {
+    return;
+  }
   uint32_t slice = num_channels * spatial; // elements per batch
 
   for (uint32_t n = 0; n < batch_size; ++n) {

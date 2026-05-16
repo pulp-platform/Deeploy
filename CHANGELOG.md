@@ -16,7 +16,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Deeploy-GAP9 Platform [#143](https://github.com/pulp-platform/Deeploy/pull/143)
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 - Fix for python error when using python 3.12.11 [#189]( https://github.com/pulp-platform/Deeploy/pull/189)
-- Add support for Operators for Generic target needed in MAGIA [#193]( https://github.com/pulp-platform/Deeploy/pull/189)
+- Add support for Operators for Generic target needed in MAGIA [#193]( https://github.com/pulp-platform/Deeploy/pull/193)
 
 ### Added
 - Add many missing docstrings

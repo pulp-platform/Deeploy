@@ -2908,9 +2908,9 @@ class ClipParser(UnaryElementWiseParser):
         self.operatorRepresentation['min_val'] = -np.finfo(np.float32).max
         self.operatorRepresentation['max_val'] = np.finfo(np.float32).max
 
-        if len(node.inputs) > 1 and node.inputs[1].name != '':
+        if len(node.inputs) > 1 and isinstance(node.inputs[1], gs.Constant) and node.inputs[1].name != '':
             self.operatorRepresentation['min_val'] = float(node.inputs[1].values.item())
-        if len(node.inputs) > 2 and node.inputs[2].name != '':
+        if len(node.inputs) > 2 and isinstance(node.inputs[2], gs.Constant) and node.inputs[2].name != '':
             self.operatorRepresentation['max_val'] = float(node.inputs[2].values.item())
 
         return ctxt, True
@@ -3019,7 +3019,7 @@ class AveragePoolParser(NodeParser):
 
         auto_pad = node.attrs.get('auto_pad', 'NOTSET')
         ceil_mode = node.attrs.get('ceil_mode', 0)
-        count_include_pad = node.attrs.get('count_include_pad ', 0)
+        count_include_pad = node.attrs.get('count_include_pad', 0)
         dilations = node.attrs.get('dilations', (1,) * spatial_ndim)
         strides = node.attrs.get('strides', (1,) * spatial_ndim)
         pads = node.attrs.get('pads', (0,) * (2 * spatial_ndim))

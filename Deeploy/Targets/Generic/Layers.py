@@ -741,21 +741,21 @@ class ExpLayer(ONNXLayer):
 class SigmoidLayer(ONNXLayer):
 
     def computeOps(self):
-        # σ(x) = 1 / (1 + exp(-x)): neg, exp, add, div
+        # sigmoid(x) = 1 / (1 + exp(-x)): neg, exp, add, div
         return self.mapper.parser.operatorRepresentation['size'] * 4
 
 
 class SwishLayer(ONNXLayer):
 
     def computeOps(self):
-        # x * σ(x): 4 ops for sigmoid + 1 mul
+        # x * sigmoid(x): 4 ops for sigmoid + 1 mul
         return self.mapper.parser.operatorRepresentation['size'] * 5
 
 
 class HardSigmoidLayer(ONNXLayer):
 
     def computeOps(self):
-        # max(0, min(1, α·x + β)): mul, add, clip(min), clip(max)
+        # max(0, min(1, alpha*x + beta)): mul, add, clip(min), clip(max)
         return self.mapper.parser.operatorRepresentation['size'] * 4
 
 
