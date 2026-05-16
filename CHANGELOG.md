@@ -16,6 +16,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Deeploy-GAP9 Platform [#143](https://github.com/pulp-platform/Deeploy/pull/143)
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 - Fix for python error when using python 3.12.11 [#189]( https://github.com/pulp-platform/Deeploy/pull/189)
+- Add support for Operators for Generic target needed in MAGIA [#193]( https://github.com/pulp-platform/Deeploy/pull/189)
 
 ### Added
 - Add many missing docstrings
@@ -26,6 +27,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 - Per-layer microbenchmarking on PULPOpen via `--profileMicrobenchmark`: new `PULPMicrobenchmark` code-transformation pass + `perf_utils.h` helpers report cycles, instructions, stalls and cache misses per layer in `RunNetwork`
+- Add support for the Generic target for the following operators [Ceil](https://onnx.ai/onnx/operators/onnx__Ceil.html), [Floor](https://onnx.ai/onnx/operators/onnx__Floor.html), [Clip](https://onnx.ai/onnx/operators/onnx__Clip.html), [Sub](https://onnx.ai/onnx/operators/onnx__Sub.html), [Exp](https://onnx.ai/onnx/operators/onnx__Exp.html), [Sigmoid](https://onnx.ai/onnx/operators/onnx__Sigmoid.html), [Swish](https://onnx.ai/onnx/operators/onnx__Swish.html), [HardSigmoid](https://onnx.ai/onnx/operators/onnx__HardSigmoid.html), [HardSwish](https://onnx.ai/onnx/operators/onnx__HardSwish.html), [InstanceNormalization](https://onnx.ai/onnx/operators/onnx__InstanceNormalization.html), [GroupNormalization](https://onnx.ai/onnx/operators/onnx__GroupNormalization.html), [AveragePool](https://onnx.ai/onnx/operators/onnx__AveragePool.html), [GlobalAveragePool](https://onnx.ai/onnx/operators/onnx__GlobalAveragePool.html), [GlobalMaxPool](https://onnx.ai/onnx/operators/onnx__GlobalMaxPool.html).
 
 ### Changed
 - Use by default `devel` container for GAP9 CI
