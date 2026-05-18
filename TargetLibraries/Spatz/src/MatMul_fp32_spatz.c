@@ -31,7 +31,8 @@ void matmul_8xVL(float *c, const float *a, const float *b,
 // }
 
 /*
-a * b = c
+ a * b = c
+mxn nxp mxp
 */
 void Spatz_MatMul_fp32_fp32_fp32(const float32_t *__restrict__ a,
                                  const float32_t *__restrict__ b,
@@ -40,20 +41,20 @@ void Spatz_MatMul_fp32_fp32_fp32(const float32_t *__restrict__ a,
   // const unsigned int num_cores = snrt_cluster_core_num(); = 2 for spatz
   const unsigned int cid = snrt_cluster_core_idx();
 
-  unsigned int m_start, m_end;
+  unsigned int p_start, p_end;
   if (cid == 0){
-    m_start = 0;
-    m_end = (M/2);
+    p_start = 0;
+    p_end = (P/2);
   } else {
-    m_start = (M/2);
-    m_end = M;
+    p_start = (P/2);
+    p_end = P;
   }
 
   if (M <= 4) {
-    matmul_2xVL(c, a, b, m_start, m_end, N, P, 0, P);
+    matmul_2xVL(c, a, b, 0, M, N, P, p_start, p_end);
   } else if (M <= 8) {
-    matmul_4xVL(c, a, b, m_start, m_end, N, P, 0, P);
+    matmul_4xVL(c, a, b, 0, M, N, P, p_start, p_end);
   } else {
-    matmul_8xVL(c, a, b, m_start, m_end, N, P, 0, P);
+    matmul_8xVL(c, a, b, 0, M, N, P, p_start, p_end);
   }
 }
