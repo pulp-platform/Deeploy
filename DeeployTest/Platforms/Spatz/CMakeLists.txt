@@ -14,6 +14,7 @@ set(SPATZ_BENCHMARK_INCLUDE_DIR
     ${SPATZ_HOME}/sw/spatzBenchmarks/include
 )
 target_include_directories(${ProjectId} PRIVATE ${SPATZ_BENCHMARK_INCLUDE_DIR})
+target_include_directories(network PUBLIC ${SPATZ_BENCHMARK_INCLUDE_DIR})
 
 target_link_libraries(${ProjectId} PRIVATE network deeploylib)
 target_compile_options(${ProjectId} INTERFACE network)
