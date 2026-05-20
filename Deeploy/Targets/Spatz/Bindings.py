@@ -52,7 +52,7 @@ SpatzGatherBindings = [
             [PointerClass(float32_t), PointerClass(type)],
             [PointerClass(float32_t)]
         ),
-        GatherTemplate.memcpyReferenceTemplate,
+        GatherTemplate.memcpyDualCoreTemplate,
         TiledTransformer
     ) for type in IntegerDataTypes
 ]
