@@ -1,0 +1,19 @@
+SoCDAML-PartIII:¨
+G
+data_indata_outiLeakyReLU_0"
+iLeakyReLU*
+
+mul *
+shift iLeakyReLU_single_nodeZ!
+data_in
+
+
+
+@
+@b"
+data_out
+
+
+
+@
+@B
