@@ -68,19 +68,20 @@ class SpatzTransientBuffer(TransientBuffer):
     initTemplate = GenericAllocateTemplate.referenceInitTemplate
     allocTemplate = SpatzAllocateTemplate.spatzGenericAllocate
     deallocTemplate = SpatzFreeTemplate.spatzLocalTemplate
-#     def _bufferRepresentation(self):
-# 
-#         if hasattr(self, "_memoryLevel"):
-#             memoryLevel = self._memoryLevel
-#         else:
-#             memoryLevel = None
-# 
-#         return {
-#             "type": self._type,
-#             "name": self.name,
-#             "size": self.size,
-#             "_memoryLevel": memoryLevel
-#         }
+
+    def _bufferRepresentation(self):
+
+        if hasattr(self, "_memoryLevel"):
+            memoryLevel = self._memoryLevel
+        else:
+            memoryLevel = None
+
+        return {
+            "type": self._type,
+            "name": self.name,
+            "size": self.size,
+            "_memoryLevel": memoryLevel
+        }
 
 
 class SpatzConstantBuffer(ConstantBuffer):

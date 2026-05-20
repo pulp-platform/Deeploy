@@ -3,6 +3,8 @@ from functools import partial
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration
+from Deeploy.Targets.Spatz.CodeTransformationPasses.Benchmarking import SpatzBenchmarkInnerPass, SpatzBenchmarkOuterPass
+
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.DataTypes import IntegerDataTypes, SignedIntegerDataTypes, float32_t, int8_t, int32_t
@@ -30,16 +32,18 @@ BasicTransformer = CodeTransformation(
     FutureGeneration()])
 
 TiledTransformer = CodeTransformation([
-    SnitchCoreFilterPass("compute"),
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False),
     SnitchSynchCoresPass(), # snrt_cluster_hw_barrier()
+    SpatzBenchmarkInnerPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
     TilingVariableReplacementUpdate("L1"),
     SnitchClusterTiling("L3", "L1", SpatzDma()),
+    SpatzBenchmarkOuterPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
-    MemoryManagementGeneration()
+    MemoryManagementGeneration("L3"),
+    MemoryManagementGeneration(),
 ])
 
 SpatzGatherBindings = [
@@ -48,7 +52,7 @@ SpatzGatherBindings = [
             [PointerClass(float32_t), PointerClass(type)],
             [PointerClass(float32_t)]
         ),
-        GatherTemplate.tilingReferenceTemplate,
+        GatherTemplate.memcpyReferenceTemplate,
         TiledTransformer
     ) for type in IntegerDataTypes
 ]
