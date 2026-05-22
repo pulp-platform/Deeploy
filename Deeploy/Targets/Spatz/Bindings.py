@@ -12,7 +12,6 @@ from Deeploy.Targets.Generic.TypeCheckers import GatherChecker, MatMulChecker, T
 
 from Deeploy.CommonExtensions.CodeTransformationPasses.Closure import ClosureGeneration, MemoryAwareClosureGeneration
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterTiling import SnitchClusterTiling
-from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchCoreFilter import SnitchCoreFilterPass
 from Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterSynch import SnitchSynchCoresPass
 from Deeploy.Targets.Spatz.DMA.SpatzDma import SpatzDma
 from Deeploy.Targets.Spatz.Templates import GatherTemplate, MatMulTemplate as SpatzMatMulTemplate, TopKTemplate, SoftmaxTemplate
@@ -46,17 +45,33 @@ TiledTransformer = CodeTransformation([
     MemoryManagementGeneration(),
 ])
 
+DynamicDMATransformer = CodeTransformation([
+    TilingVariableReplacement("L1"),
+    # TilingCallClosure(writeback = False),
+    SnitchSynchCoresPass(), # snrt_cluster_hw_barrier()
+    SpatzBenchmarkInnerPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
+    TilingVariableReplacementUpdate("L1"),
+    SnitchClusterTiling("L3", "L1", SpatzDma()),
+    SpatzBenchmarkOuterPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
+    ArgumentStructGeneration(),
+    MemoryManagementGeneration("L1"),
+    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
+    MemoryManagementGeneration("L3"),
+    MemoryManagementGeneration(),
+])
+
 SpatzGatherBindings = [
     NodeBinding(
         GatherChecker(
             [PointerClass(float32_t), PointerClass(type)],
             [PointerClass(float32_t)]
         ),
-        GatherTemplate.memcpyDualCoreTemplate,
-        TiledTransformer
+        GatherTemplate.dynamicDMAtemplate,
+        DynamicDMATransformer
     ) for type in IntegerDataTypes
 ]
-# [
+
+# SpatzGatherBindings = [
 #     NodeBinding(
 #         GatherChecker(
 #             [PointerClass(type), PointerClass(int32_t)],

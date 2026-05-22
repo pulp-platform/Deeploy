@@ -13,7 +13,6 @@ from Deeploy.TilingExtension.TilerModel import TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme
 
-
 class GatherTileConstraint(TileConstraint):
 
     @staticmethod
@@ -29,7 +28,6 @@ class GatherTileConstraint(TileConstraint):
                 pointer.append(value)
 
         for tensorName in pointer:
-
             _buffer = ctxt.lookup(tensorName)
             if isinstance(_buffer, TransientBuffer):
                 continue
@@ -56,7 +54,11 @@ class GatherTileConstraint(TileConstraint):
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
 
-        addrNames = ['data_in', 'indices', 'data_out']
+        # Dynamic-DMA Gather policy:
+        # - DMA only indices into local memory
+        # - Do NOT DMA the full data_in tile into local memory
+        # - DMA the output tile back to external memory
+        addrNames = ['indices', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
 
@@ -70,8 +72,10 @@ class GatherTileConstraint(TileConstraint):
         outputLoadSchedule = []
 
         for out in outputCubes:
-            # Gather execution policy: load full inputs in L1, execute once, then store output tile.
-            inputLoadSchedule.append({'data_in': dataInCube, 'indices': indicesCube})
+            # Gather execution policy (dynamic DMA): load indices in L1, execute once, then store output tile.
+            # data_in stays in external memory; selected rows are fetched directly into the local output buffer.
+            _ = dataInCube  # Keep for clarity; intentionally unused in this schedule.
+            inputLoadSchedule.append({'indices': indicesCube})
             outputLoadSchedule.append({'data_out': out})
 
         schedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
