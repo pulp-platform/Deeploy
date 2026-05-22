@@ -10,6 +10,12 @@ import numpy as np
 from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, OperatorRepresentation, Shape
 
 
+class SingleOperationPerElementLayer(ONNXLayer):
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+
 class ConcatLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
@@ -168,10 +174,7 @@ class RequantShiftLayer(ONNXLayer):
         return self.mapper.parser.operatorRepresentation['size'] * 3  # One add, one mul, one div
 
 
-class AddLayer(ONNXLayer):
-
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
+class AddLayer(SingleOperationPerElementLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
@@ -183,9 +186,6 @@ class AddLayer(ONNXLayer):
 
         outputShapes = [inputShapes[0]]
         return (inputShapes, outputShapes)
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
 
 
 SubLayer = AddLayer
@@ -332,10 +332,7 @@ class RQGEMMLayer(GEMMLayer):
         return gemm + rqs
 
 
-class MulLayer(ONNXLayer):
-
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
+class MulLayer(SingleOperationPerElementLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
@@ -348,9 +345,6 @@ class MulLayer(ONNXLayer):
         else:
             inputShapes[0] = inputShapes[1]
         return (inputShapes, outputShapes)
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
 
 
 class ConvLayer(ONNXLayer):
@@ -441,13 +435,8 @@ class ReduceSumLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
 
-class ReluLayer(ONNXLayer):
-
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
+class ReluLayer(SingleOperationPerElementLayer):
+    pass
 
 
 class LayerNormLayer(ONNXLayer):
@@ -714,28 +703,23 @@ class ConvTransposeLayer(ONNXLayer):
         return numPx * opsPerPx
 
 
-class CeilLayer(ONNXLayer):
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
+class CeilLayer(SingleOperationPerElementLayer):
+    pass
 
 
-class FloorLayer(ONNXLayer):
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
+class FloorLayer(SingleOperationPerElementLayer):
+    pass
 
 
 class ClipLayer(ONNXLayer):
 
     def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size'] * 2  # compare vs min and max
+        # compare vs min and max
+        return self.mapper.parser.operatorRepresentation['size'] * 2
 
 
-class ExpLayer(ONNXLayer):
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
+class ExpLayer(SingleOperationPerElementLayer):
+    pass
 
 
 class SigmoidLayer(ONNXLayer):

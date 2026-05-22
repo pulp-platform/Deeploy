@@ -2903,15 +2903,21 @@ class ClipParser(UnaryElementWiseParser):
         if not ok:
             return ctxt, False
 
-        # min_val and max_val only handled as constants
-        # Defaults: full float32 range
-        self.operatorRepresentation['min_val'] = -np.finfo(np.float32).max
-        self.operatorRepresentation['max_val'] = np.finfo(np.float32).max
-
-        if len(node.inputs) > 1 and isinstance(node.inputs[1], gs.Constant) and node.inputs[1].name != '':
-            self.operatorRepresentation['min_val'] = float(node.inputs[1].values.item())
-        if len(node.inputs) > 2 and isinstance(node.inputs[2], gs.Constant) and node.inputs[2].name != '':
-            self.operatorRepresentation['max_val'] = float(node.inputs[2].values.item())
+        # optional inputs min_val and max_val
+        if len(node.inputs) > 1:
+            if node.inputs[1].name == '':  # no input: default min float32
+                self.operatorRepresentation['min_val'] = -np.finfo(np.float32).max
+            elif isinstance(node.inputs[1], gs.Constant):  # constant: just read it
+                self.operatorRepresentation['min_val'] = float(node.inputs[1].values.item())
+            else:  # variable: get name from context
+                self.operatorRepresentation['min_val'] = ctxt.lookup(node.inputs[1].name).name
+        if len(node.inputs) > 2:
+            if node.inputs[2].name == '':  # no input: default max float32
+                self.operatorRepresentation['max_val'] = np.finfo(np.float32).max
+            elif isinstance(node.inputs[2], gs.Constant):  # constant: just read it
+                self.operatorRepresentation['max_val'] = float(node.inputs[2].values.item())
+            else:  # variable: get name from context
+                self.operatorRepresentation['max_val'] = ctxt.lookup(node.inputs[2].name).name
 
         return ctxt, True
 
@@ -2990,7 +2996,6 @@ class InstanceNormParser(NormalizationParser):
 
 class GroupNormParser(NormalizationParser):
 
-    # TODO: attribute stash_type not handled
     def parseNode(self, node: gs.Node) -> bool:
         if not all([
                 super().parseNode(node),
@@ -2999,6 +3004,7 @@ class GroupNormParser(NormalizationParser):
         ]):
             return False
         self.operatorRepresentation['num_groups'] = node.attrs['num_groups']
+        self.operatorRepresentation['stash_type'] = node.attrs.get('stash_type', 1)
         return True
 
 

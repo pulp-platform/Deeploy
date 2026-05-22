@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 ETH Zurich and University of Bologna
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,6 +10,9 @@ void GlobalMaxPool_fp32_fp32(float32_t const *__restrict__ src,
                              float32_t *__restrict__ dst, uint32_t N,
                              uint32_t C, uint32_t spatial_size) {
 
+  if (spatial_size == 0) {
+    return; // invalid shape for max pooling; avoid access to x[0]
+  }
   for (uint32_t n = 0; n < N; n++) {
     for (uint32_t c = 0; c < C; c++) {
 
