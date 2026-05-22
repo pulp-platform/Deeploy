@@ -63,6 +63,17 @@ ${A_type.typeName} ref_${data_out}_${A} = ${A};
 ${B_type.typeName} ref_${data_out}_${B} = ${B};
 ${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
 
+% if batch==1:
+Spatz_MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
+    ref_${data_out}_${A},
+    ref_${data_out}_${B},
+    ref_${data_out}_${data_out},
+    ${M},
+    ${N},
+    ${O}
+);
+
+% else:
 for(uint32_t i=0; i<${batch}; i++){
     Spatz_MatMul_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(
         ref_${data_out}_${A},
@@ -77,4 +88,5 @@ for(uint32_t i=0; i<${batch}; i++){
     ref_${data_out}_${B} += ${N} * ${O};
     ref_${data_out}_${data_out} += ${M} * ${O};
 }
+% endif
 """)
