@@ -34,10 +34,10 @@ TiledTransformer = CodeTransformation([
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False),
     SnitchSynchCoresPass(), # snrt_cluster_hw_barrier()
-    SpatzBenchmarkInnerPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
+    # SpatzBenchmarkInnerPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
     TilingVariableReplacementUpdate("L1"),
     SnitchClusterTiling("L3", "L1", SpatzDma()),
-    SpatzBenchmarkOuterPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
+    # SpatzBenchmarkOuterPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
@@ -49,10 +49,10 @@ DynamicDMATransformer = CodeTransformation([
     TilingVariableReplacement("L1"),
     # TilingCallClosure(writeback = False),
     SnitchSynchCoresPass(), # snrt_cluster_hw_barrier()
-    SpatzBenchmarkInnerPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
+    # SpatzBenchmarkInnerPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
     TilingVariableReplacementUpdate("L1"),
     SnitchClusterTiling("L3", "L1", SpatzDma()),
-    SpatzBenchmarkOuterPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
+    # SpatzBenchmarkOuterPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
     ArgumentStructGeneration(),
     MemoryManagementGeneration("L1"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
