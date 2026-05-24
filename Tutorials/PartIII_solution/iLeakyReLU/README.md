@@ -60,15 +60,15 @@ cd /app/Deeploy/Tutorials/PartIII_solution/iLeakyReLU
 ./deploy.sh
 cd /app/Deeploy/DeeployTest
 
-echo "=== Baseline (1 core, scalar, untiled) ===";  python testRunner_siracusa.py       -t Tests/iLeakyReLU --cores=1 2>&1 | grep -E "Runtime|Errors"
-echo "=== Step 4   (8 cores, scalar, untiled) ==="; python testRunner_siracusa.py       -t Tests/iLeakyReLU --cores=8 2>&1 | grep -E "Runtime|Errors"
-echo "=== Step 5   (8 cores, scalar, tiled)   ==="; python testRunner_tiled_siracusa.py -t Tests/iLeakyReLU --cores=8 --l1=32768 --defaultMemLevel=L2 2>&1 | grep -E "Runtime|Errors"
+echo "=== Baseline (1 core, scalar, untiled) ===";  python deeployRunner_siracusa.py       -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=1 2>&1 | grep -E "Runtime|Errors"
+echo "=== Step 4   (8 cores, scalar, untiled) ==="; python deeployRunner_siracusa.py       -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 2>&1 | grep -E "Runtime|Errors"
+echo "=== Step 5   (8 cores, scalar, tiled)   ==="; python deeployRunner_tiled_siracusa.py -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 --l1=32768 --defaultMemLevel=L2 2>&1 | grep -E "Runtime|Errors"
 
 cd /app/Deeploy/Tutorials/PartIII_solution/iLeakyReLU
 ./deploy.sh simd
 cd /app/Deeploy/DeeployTest
 
-echo "=== Step 6   (8 cores, SIMD,   tiled)   ==="; python testRunner_tiled_siracusa.py -t Tests/iLeakyReLU --cores=8 --l1=32768 --defaultMemLevel=L2 2>&1 | grep -E "Runtime|Errors"
+echo "=== Step 6   (8 cores, SIMD,   tiled)   ==="; python deeployRunner_tiled_siracusa.py -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 --l1=32768 --defaultMemLevel=L2 2>&1 | grep -E "Runtime|Errors"
 ```
 
 ### Expected output

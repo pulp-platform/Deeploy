@@ -9,7 +9,8 @@
 
 # Neural Network Deeployment on the PULP Platform
 Author: *Victor J.B Jung* <br>
-Date: 27th May 2025
+        *Viviane Potocnik* (Part III) <br>
+Date: 27th May 2025 (Parts I–II) · 28th May 2026 (Part III)
 
 ## Installation
 
@@ -45,6 +46,18 @@ python deeployRunner_snitch.py -t Tests/Kernels/Integer/Add/Regular
 python deeployRunner_siracusa.py -t Tests/Kernels/Integer/Add/Regular --cores=8
 ```
 Once all these basic tests are passed, we can jump into the basics of Deeploy.
+
+## Installation (SoCDAML course)
+
+Students in ETH Zürich's *Systems-on-Chip for Data Analytics and Machine Learning* course use a Singularity sandbox container preinstalled on the lab machines instead of Docker. Build the sandbox container with:
+```
+singularity build --sandbox /scratch/$USER/DeeployContainer/ /home/soc_042fs25/deeploy-container-socdaml.sif
+```
+Then you can find Deeploy's source code in `/scratch/$USER/DeeployContainer/app/Deeploy`. To spawn a shell from the container, run:
+```
+singularity shell --writable --cleanenv --contain /scratch/$USER/DeeployContainer/
+```
+Then navigate to the `DeeployTest` folder with `cd /app/Deeploy/DeeployTest`. Validate the install with the same five `deeployRunner_*.py` commands listed above.
 
 ## Deeploy 101
 
@@ -244,5 +257,262 @@ To use the NPU, you can use the `deeployRunner_tiled_siracusa_w_neureka.py`. The
 
 </details>
 <br>
+
+## Adding a New Operator
+
+So far you've used Deeploy as a black box: you fed in ONNX graphs and looked at the C it spat out. In this last hour you'll open the box and add your own operator from scratch, which will be the an int8 LeakyReLU. You will be walking through every stage of the compiler that the previous sections merely showed you in passing. By the end you'll have written a parser, a C kernel, a Mako template, a tiling constraint and (if you're quick) an XPULP SIMD intrinsic version. We stay on the Siracusa platform throughout — same target as the previous section — so every `deeployRunner_*` command below uses the Siracusa runner.
+
+> 💡 **Recommended background:** the internal Deeploy training guide (Parts 1–2) covers the main classes (Parser / Mapper / Binding / Template / TypeChecker / TileConstraint) you're about to touch. Reference PRs to skim: [#25](https://github.com/pulp-platform/Deeploy/pull/25) (basic op on Generic), [#26](https://github.com/pulp-platform/Deeploy/pull/26) (adding tiling + PULP), [#29](https://github.com/pulp-platform/Deeploy/pull/29) (multi-op for a real model).
+
+### The operator
+
+`iLeakyReLU` is an elementwise unary that approximates the standard LeakyReLU using only integer arithmetic:
+
+$$
+\text{out}[i] = \begin{cases} \text{in}[i] & \text{if } \text{in}[i] \ge 0 \\ \lfloor (\text{mul} \cdot \text{in}[i]) / 2^{\text{shift}} \rfloor & \text{otherwise} \end{cases}
+$$
+
+With `mul=1, shift=3` you get a slope of $\alpha \approx 0.125$, which is close enough to the standard 0.01 that quantized networks tolerate well.
+
+### What we provide
+
+A starting kit lives under `Tutorials/PartIII_skeletons/iLeakyReLU/`. Each file contains the surrounding boilerplate plus `TODO(student)` markers. You'll fill the blanks **in place** (no need to copy them anywhere yet). In the steps below, each file then gets *installed* into a specific location in the live source tree (every skeleton's header comment names that destination). If you get stuck, the full reference is in `Tutorials/PartIII_solution/iLeakyReLU/`. We rely on your independence, and only peek **after** you've tried. Otherwise you won't have any learning effect.
+
+> ✅ **Task:** Open every file in `Tutorials/PartIII_skeletons/iLeakyReLU/` and read its header comment. Note where each one will eventually be installed (e.g. parser → `Deeploy/Targets/Generic/Parsers.py`, kernel → `TargetLibraries/PULPOpen/src/`). Don't edit anything yet. Just get an idea of how operators are structured in Deeploy.
+
+### Step 1: Generate the ONNX graph + golden values
+
+The script `generate.py` (already complete) builds a single-node ONNX with the `op_type` `iLeakyReLU` plus matching `inputs.npz` / `outputs.npz`. Run it once and check the produced files:
+
+```
+cd Tutorials/PartIII_skeletons/iLeakyReLU
+python generate.py
+mkdir -p ../../../DeeployTest/Tests/Kernels/Integer/LeakyReLU/Regular
+cp network.onnx inputs.npz outputs.npz ../../../DeeployTest/Tests/Kernels/Integer/LeakyReLU/Regular/
+```
+
+> ✅ **Task:** Open `network.onnx` in Netron and check that the node has op_type `iLeakyReLU` and `mul`/`shift` attributes.
+
+### Step 2: Write the parser
+
+Open `iLeakyReLUParser.py` and fill in `parseNode` (validate attrs + inputs) and `parseNodeCtxt` (extract input/output tensor names and `size`). Paste the finished class into `Deeploy/Targets/Generic/Parsers.py`.
+
+Test in *verbose* mode:
+```
+cd DeeployTest
+python deeployRunner_siracusa.py -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 -vv
+```
+
+This first run will fail later in the pipeline (no template/binding/kernel yet) but you should see your parser fire and accept the node. Use `-vvv` if you want even more diagnostics from the build system and simulator.
+
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Hint</span></summary>
+
+ > Pattern to copy: `iHardswishParser` in `Deeploy/Targets/Generic/Parsers.py`. Its only attrs are `one_over_six / three / six` — same shape as your `mul / shift`. The `iRMSNormParser` higher up in the same file is also useful.
+
+</details>
+
+### Step 3: Write the C kernel (plain C)
+
+In `iLeakyReLU.c` the per-core chunking is given. Fill the inner loop:
+```c
+int32_t x  = (int32_t)pIn[i];
+int32_t lo = (mul * x) >> shift;
+pOut[i]    = (int8_t)((x >= 0) ? x : lo);
+```
+
+Drop the finished `.c` into `TargetLibraries/PULPOpen/src/`. Drop the header (`iLeakyReLU.h`, already complete) into `TargetLibraries/PULPOpen/inc/kernel/`. Then add **one line** to `TargetLibraries/PULPOpen/inc/DeeployPULPMath.h`:
+```c
+#include "kernel/iLeakyReLU.h"
+```
+
+> ⚠️ The PULPOpen CMakeLists auto-globs `src/**`, so you don't need to touch it. You **do** need that aggregator include in `DeeployPULPMath.h` though.
+
+### Step 4: Template, binding, mapper
+
+Three small pieces wire the parser to the kernel.
+
+**1. Template.** Fill in the Mako body of `iLeakyReLUTemplate.py` so it emits a single call to your C kernel. Drop the finished file into `Deeploy/Targets/PULPOpen/Templates/`. Pattern to copy: `Deeploy/Targets/PULPOpen/Templates/iSoftmaxTemplate.py`.
+
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+
+ > ```python
+ > referenceTemplate = _iLeakyReLUTemplate("""
+ > // iLeakyReLU (Name: ${nodeName}, Op: ${nodeOp})
+ > PULPiLeakyReLU_i8_i8(${data_in}, ${data_out}, ${size}, ${mul}, ${shift});
+ > """)
+ > ```
+ > Mako `${...}` substitutions come straight from `self.operatorRepresentation` (populated by your parser). `nodeName` / `nodeOp` are auto-filled by Deeploy.
+
+</details>
+
+**2. Binding.** In `Deeploy/Targets/PULPOpen/Bindings.py`, define a `PULPiLeakyReLUBindings` list. A binding is a 3-tuple of *(TypeChecker, Template, CodeTransformation)*. For our `int8 → int8` op, reuse `ReluChecker` (same `int8 → int8` signature) and `ForkTransformer` (forks the kernel call across the 8 cluster cores). Also add the matching import for your template.
+
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+
+ > Near the other `from Deeploy.Targets.PULPOpen.Templates import` line, add:
+ > ```python
+ > from Deeploy.Targets.PULPOpen.Templates import iLeakyReLUTemplate
+ > ```
+ > Then append the binding list:
+ > ```python
+ > PULPiLeakyReLUBindings = [
+ >     NodeBinding(
+ >         ReluChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
+ >         iLeakyReLUTemplate.referenceTemplate,
+ >         ForkTransformer)
+ > ]
+ > ```
+ > **Why `ReluChecker`?** It's the simplest existing checker that accepts an `int8` input and produces an `int8` output. You could write your own `iLeakyReLUChecker`, but the signature would be identical, so reusing the existing one keeps the lab focused on the kernel side. **Why `ForkTransformer`?** It wraps the emitted kernel call into `pi_cl_team_fork(NUM_CORES, ...)`, which is exactly what our multi-core kernel expects.
+
+</details>
+
+**3. Mapper.** In `Deeploy/Targets/PULPOpen/Platform.py`, define `iLeakyReLUMapper` (a `NodeMapper` that pairs your parser with the binding list) and register the ONNX op name in `PULPMapping`. Reuse `iHardswishLayer` (a trivial `ONNXLayer` that does no extra shape/cost work, i.e. same shape as ours).
+
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+
+ > Imports near the existing Hardswish ones:
+ > ```python
+ > from Deeploy.Targets.Generic.Parsers import iLeakyReLUParser   # add to the list
+ > from Deeploy.Targets.Generic.Layers  import iHardswishLayer    # already imported
+ > ```
+ > Mapper definition (next to `iHardswishMapper`):
+ > ```python
+ > iLeakyReLUMapper = NodeMapper(iLeakyReLUParser(), PULPiLeakyReLUBindings)
+ > ```
+ > `PULPMapping` entry (next to `'iHardswish'`):
+ > ```python
+ > 'iLeakyReLU': iHardswishLayer([iLeakyReLUMapper]),
+ > ```
+
+</details>
+
+Test untiled execution on Siracusa:
+```
+python deeployRunner_siracusa.py -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8
+```
+Do you observe any mismatches? How many cycles does the execution take?
+
+### Step 5: Tiling constraint
+
+Open `iLeakyReLUTileConstraint.py`. It already subclasses `UnaryTileConstraint`, so the geometry (input dim == output dim per axis) and the schedule serializer come for free. Leave the body empty for now (the performance constraint comes in Step 6a).
+
+Drop the file into `Deeploy/Targets/PULPOpen/TileConstraints/`. Then **register the tiling-ready binding** in `Deeploy/Targets/PULPOpen/Tiler.py`: wrap your binding list with `TilingReadyNodeBindings(...)` so Deeploy knows which constraint to apply, and finally update the mapper in `Platform.py` to use the tiling-ready variant.
+
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+
+ > In `Tiler.py`, add the imports near the other tile-constraint imports:
+ > ```python
+ > from Deeploy.Targets.PULPOpen.TileConstraints.iLeakyReLUTileConstraint \
+ >     import iLeakyReLUTileConstraint
+ > from Deeploy.Targets.PULPOpen.Bindings import PULPiLeakyReLUBindings
+ > ```
+ > Then append the binding bundle:
+ > ```python
+ > PULPiLeakyReLUTilingReadyBindings = TilingReadyNodeBindings(
+ >     nodeBindings  = PULPiLeakyReLUBindings,
+ >     tileConstraint = iLeakyReLUTileConstraint())
+ > ```
+ > In `Platform.py`, change the mapper to use the tiling-ready bindings:
+ > ```python
+ > iLeakyReLUMapper = NodeMapper(iLeakyReLUParser(), PULPiLeakyReLUTilingReadyBindings)
+ > ```
+ > Reference pattern: `PULPiHardswishTilingReadyBindings` in the same file.
+
+</details>
+
+Run the tiled flow:
+```
+python deeployRunner_tiled_siracusa.py -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 --l1=32768 --defaultMemLevel=L2
+```
+
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Hint on the constraint itself</span></summary>
+
+ > If you want a worked example of a unary quantized op, see `Deeploy/Targets/Generic/TileConstraints/iHardswishTileConstraint.py`.
+
+</details>
+
+How long does the execution take, i.e. how many cycles? What do you observe? Did you expect this result?
+
+### Step 6: Add a performance constraint, then go SIMD
+
+In this final step you'll add a tile-size constraint that aligns work with the SIMD width, then swap the plain-C kernel for a PULP-intrinsics version.
+
+**(a) Performance constraint.** Go back to `iLeakyReLUTileConstraint.py` and add the multiple-of-16 constraint. `addMinTileSizeConstraint` looks up `parseDict[varName]` as the original axis size, so the parser must expose it. The easiest is to inject it from inside the constraint:
+
+```python
+inputShape = ctxt.lookup(parseDict['data_in']).shape
+lastDim    = len(inputShape) - 1
+lastDimVar = tilerModel.getTensorDimVar(tensorName=parseDict['data_in'], dimIdx=lastDim)
+if inputShape[lastDim] >= 16:
+    dimKey = f'dim_{lastDim}'
+    parseDict[dimKey] = int(inputShape[lastDim])
+    tilerModel.addMinTileSizeConstraint(parseDict, dimKey, lastDimVar, 16)
+```
+
+Re-run with `--profileTiling`. The tile shape on the innermost dim now snaps to a multiple of 16; the per-core chunk is therefore a multiple of 4, i.e. exactly what the SIMD kernel needs.
+
+**(b) PULP SIMD intrinsics.** Replace the scalar kernel with `iLeakyReLU_simd.c`. The trick: LeakyReLU has a closed-form identity that fits the XPULP intrinsic set perfectly. Because arithmetic right shift makes a negative value *less* negative (or zero) and doesn't change the sign of a non-negative value:
+
+$$\text{LeakyReLU}(x) = \max(x,\; x \gg \text{shift})$$
+
+So if you compute `x >> shift` on a packed `v4s` and feed both into `__builtin_pulp_max4`, you get LeakyReLU branch-free in just two packed operations per 4 lanes: load → packed shift → packed max → store:
+
+```c
+v4s x = vIn[i];
+v4s s = x >> shift;                       // GCC vector ext: per-lane shift
+vOut[i] = __builtin_pulp_max4(x, s);      // single packed signed max
+```
+
+The SIMD kernel ignores `mul` (assumes `mul == 1`); the generator picks `mul=1, shift=3` so the formula is identical.
+
+Re-run with `--profileTiling`. Compare per-tile kernel cycles to your scalar baseline.
+
+> ✅ **Task:** Quantify the speedup vs the scalar kernel. Why isn't it exactly 4×?
+
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+
+ > In our reference run (`--l1=32768`, shape `(1,16,64,64)`) the end-to-end runtime drops from **108 090 cycles (scalar)** to **43 005 cycles (SIMD)** — a clean **2.51×**. Why not exactly 4×? Two reasons. **(1)** The XPULP V2 toolchain doesn't expose a packed-byte *arithmetic* right shift builtin, so `v4s s = x >> shift` is lowered by the compiler to four scalar lane shifts. The real SIMD wins come from packed `v4s` loads/stores (1 instruction vs 4) and `__builtin_pulp_max4` (1 instruction vs 4 compare+select). **(2)** Even if the shift were packed, end-to-end time also includes DMA traffic and per-tile bookkeeping, which don't shrink with SIMD. To approach 4× you'd need either a hardware packed-byte shift (the `pv.sra.sci.b` instruction *exists* in XPULP V2 but isn't exposed as a builtin in this toolchain), inline assembly against it, or a different formulation (e.g. constant-shift lookup, or a kernel using `__builtin_pulp_avgu4` restricted to `shift=1`). The full intrinsics inventory lives in `TargetLibraries/PULPOpen/third_party/pulp-nn-mixed/XpulpV2/32bit/include/pulp_nn_utils.h`.
+
+</details>
+
+### Stacked speedup
+
+To wrap up, measure your own cycle counts at each step and compute the speedups vs the single-core untiled baseline and step-to-step. Grab the missing baseline numbers with:
+
+```
+python deeployRunner_siracusa.py        -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=1                                                # baseline
+python deeployRunner_siracusa.py        -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8                                                # Step 4
+python deeployRunner_tiled_siracusa.py  -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 --l1=32768 --defaultMemLevel=L2                # Step 5 (scalar)
+python deeployRunner_tiled_siracusa.py  -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 --l1=32768 --defaultMemLevel=L2                # Step 6 (after deploying SIMD kernel)
+```
+
+> ✅ **Task:** Build a table comparing each step's cycle count to the baseline and to the previous step. Which transformation contributes the most? Is SIMD or parallelism the bigger lever for this op?
+
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+
+ > Our reference run on shape `(1, 16, 64, 64)` = 65 536 elements with `--l1=32768`:
+ >
+ > | Step | Configuration | Cycles | vs baseline | vs previous step |
+ > |------|---|---|---|---|
+ > | baseline | 1 core, scalar, untiled | 2 492 970 | 1.00× | — |
+ > | Step 4 | 8 cores, scalar, untiled | 313 541 | **7.95×** | 7.95× |
+ > | Step 5 | 8 cores, scalar, tiled       | 108 090 | **23.06×** | 2.90× |
+ > | Step 6 | 8 cores, SIMD,  tiled        |  43 005 | **57.97×** | 2.51× |
+ >
+ > Most of the win comes from parallelizing across cores (Step 4) and moving the working set into L1 (Step 5). SIMD is the last lever to pull and contributes ~2.5× on top. The takeaway: for memory-bound elementwise ops, **getting data close to the compute (Step 5)** and **using all the cores (Step 4)** dwarf the SIMD win. Always choose your optimization order accordingly when you tackle a new operator.
+
+</details>
+
+Congratulations! You just added a brand-new operator to Deeploy and traced it from ONNX all the way to optimized SIMD-accelerated C on the Siracusa cluster. The same workflow scales to any new ONNX operator you'd want to deploy.
+
+---
 
 Et voilà, this is the end of the tutorial. Thank you for following it until the end. If you are interested in learning more about Deeploy or the SoCs we develop at the [PULP Platform](https://pulp-platform.org/), please reach out!

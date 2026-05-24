@@ -26,7 +26,7 @@ TEMPLATES_DIR="$ROOT/Deeploy/Targets/PULPOpen/Templates"
 TILECONSTR_DIR="$ROOT/Deeploy/Targets/PULPOpen/TileConstraints"
 KERNEL_SRC_DIR="$ROOT/TargetLibraries/PULPOpen/src"
 KERNEL_INC_DIR="$ROOT/TargetLibraries/PULPOpen/inc/kernel"
-TESTS_DIR="$ROOT/DeeployTest/Tests/iLeakyReLU"
+TESTS_DIR="$ROOT/DeeployTest/Tests/Kernels/Integer/LeakyReLU/Regular"
 
 case "$MODE" in
   undo)
@@ -211,7 +211,6 @@ fi
 
 echo
 echo "Done. Now run the verification tests from DeeployTest/:"
-echo "  python testRunner_generic.py        -t Tests/iLeakyReLU -vv"
-echo "  python testRunner_siracusa.py       -t Tests/iLeakyReLU --cores=8"
-echo "  python testRunner_tiled_siracusa.py -t Tests/iLeakyReLU --cores=8 --l1=64000 --defaultMemLevel=L2"
-echo "  python testRunner_tiled_siracusa.py -t Tests/iLeakyReLU --cores=8 --l1=64000 --defaultMemLevel=L2 --doublebuffer --profileTiling"
+echo "  python deeployRunner_siracusa.py        -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=1                  # baseline"
+echo "  python deeployRunner_siracusa.py        -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8                  # Step 4"
+echo "  python deeployRunner_tiled_siracusa.py  -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 --l1=32768 --defaultMemLevel=L2   # Step 5/6"
