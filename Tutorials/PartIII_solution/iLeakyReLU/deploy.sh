@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
 # ----------------------------------------------------------------------
 # deploy.sh - apply the TA solution into the live Deeploy source tree.
 #
@@ -29,29 +32,32 @@ KERNEL_INC_DIR="$ROOT/TargetLibraries/PULPOpen/inc/kernel"
 TESTS_DIR="$ROOT/DeeployTest/Tests/Kernels/Integer/LeakyReLU/Regular"
 
 case "$MODE" in
-  undo)
-    echo "Undoing iLeakyReLU additions (file copies only)..."
-    rm -rf "$TESTS_DIR"
-    rm -f "$KERNEL_SRC_DIR/iLeakyReLU.c"
-    rm -f "$KERNEL_INC_DIR/iLeakyReLU.h"
-    rm -f "$TEMPLATES_DIR/iLeakyReLUTemplate.py"
-    rm -f "$TILECONSTR_DIR/iLeakyReLUTileConstraint.py"
-    echo "Note: hand-patches in Parsers.py / Bindings.py / Platform.py / Tiler.py / DeeployPULPMath.h were NOT removed."
-    echo "If you need a fully clean tree, use: git checkout -- Deeploy/Targets TargetLibraries/PULPOpen/inc/DeeployPULPMath.h"
-    exit 0
-    ;;
-  scalar|simd) ;;
-  *) echo "Unknown mode '$MODE'. Try: scalar | simd | undo"; exit 1;;
+undo)
+	echo "Undoing iLeakyReLU additions (file copies only)..."
+	rm -rf "$TESTS_DIR"
+	rm -f "$KERNEL_SRC_DIR/iLeakyReLU.c"
+	rm -f "$KERNEL_INC_DIR/iLeakyReLU.h"
+	rm -f "$TEMPLATES_DIR/iLeakyReLUTemplate.py"
+	rm -f "$TILECONSTR_DIR/iLeakyReLUTileConstraint.py"
+	echo "Note: hand-patches in Parsers.py / Bindings.py / Platform.py / Tiler.py / DeeployPULPMath.h were NOT removed."
+	echo "If you need a fully clean tree, use: git checkout -- Deeploy/Targets TargetLibraries/PULPOpen/inc/DeeployPULPMath.h"
+	exit 0
+	;;
+scalar | simd) ;;
+*)
+	echo "Unknown mode '$MODE'. Try: scalar | simd | undo"
+	exit 1
+	;;
 esac
 
 echo "[1/6] Copy test artifacts -> $TESTS_DIR"
 mkdir -p "$TESTS_DIR"
 for f in network.onnx inputs.npz outputs.npz; do
-  if [ ! -f "$HERE/$f" ]; then
-    echo "  ERROR: $f not found in $HERE - run 'python generate.py' first." >&2
-    exit 1
-  fi
-  cp "$HERE/$f" "$TESTS_DIR/"
+	if [ ! -f "$HERE/$f" ]; then
+		echo "  ERROR: $f not found in $HERE - run 'python generate.py' first." >&2
+		exit 1
+	fi
+	cp "$HERE/$f" "$TESTS_DIR/"
 done
 
 echo "[2/6] Copy kernel header -> $KERNEL_INC_DIR/iLeakyReLU.h"
@@ -59,29 +65,29 @@ cp "$HERE/iLeakyReLU.h" "$KERNEL_INC_DIR/iLeakyReLU.h"
 
 echo "[3/6] Copy kernel source ($MODE) -> $KERNEL_SRC_DIR/iLeakyReLU.c"
 if [ "$MODE" = "simd" ]; then
-  cp "$HERE/iLeakyReLU_simd.c" "$KERNEL_SRC_DIR/iLeakyReLU.c"
+	cp "$HERE/iLeakyReLU_simd.c" "$KERNEL_SRC_DIR/iLeakyReLU.c"
 else
-  cp "$HERE/iLeakyReLU.c"      "$KERNEL_SRC_DIR/iLeakyReLU.c"
+	cp "$HERE/iLeakyReLU.c" "$KERNEL_SRC_DIR/iLeakyReLU.c"
 fi
 
 echo "[4/6] Copy template + tile constraint"
-cp "$HERE/iLeakyReLUTemplate.py"       "$TEMPLATES_DIR/iLeakyReLUTemplate.py"
+cp "$HERE/iLeakyReLUTemplate.py" "$TEMPLATES_DIR/iLeakyReLUTemplate.py"
 cp "$HERE/iLeakyReLUTileConstraint.py" "$TILECONSTR_DIR/iLeakyReLUTileConstraint.py"
 
 echo "[5/6] Patch DeeployPULPMath.h (idempotent)"
 if ! grep -q 'kernel/iLeakyReLU.h' "$PULPMATH_H"; then
-  # Insert before the final #endif
-  awk '
+	# Insert before the final #endif
+	awk '
     /^#endif/ && !done { print "#include \"kernel/iLeakyReLU.h\""; done=1 }
     { print }
-  ' "$PULPMATH_H" > "$PULPMATH_H.tmp" && mv "$PULPMATH_H.tmp" "$PULPMATH_H"
+  ' "$PULPMATH_H" >"$PULPMATH_H.tmp" && mv "$PULPMATH_H.tmp" "$PULPMATH_H"
 fi
 
 echo "[6/6] Patch Parsers.py / Bindings.py / Tiler.py / Platform.py (idempotent)"
 
 # --- Generic/Parsers.py: append iLeakyReLUParser if absent
 if ! grep -q 'class iLeakyReLUParser' "$PARSERS"; then
-  cat >> "$PARSERS" <<'PARSER_EOF'
+	cat >>"$PARSERS" <<'PARSER_EOF'
 
 
 class iLeakyReLUParser(NodeParser):
@@ -117,8 +123,8 @@ fi
 
 # --- PULPOpen/Bindings.py: append PULPiLeakyReLUBindings if absent
 if ! grep -q 'PULPiLeakyReLUBindings' "$BINDINGS"; then
-  # Add template import next to other PULPOpen template imports.
-  python3 - <<PY
+	# Add template import next to other PULPOpen template imports.
+	python3 - <<PY
 import re, pathlib
 p = pathlib.Path("$BINDINGS")
 src = p.read_text()
@@ -131,7 +137,7 @@ if new == src:
     new = src + "\nfrom Deeploy.Targets.PULPOpen.Templates import iLeakyReLUTemplate\n"
 p.write_text(new)
 PY
-  cat >> "$BINDINGS" <<'BIND_EOF'
+	cat >>"$BINDINGS" <<'BIND_EOF'
 
 
 PULPiLeakyReLUBindings = [
@@ -145,7 +151,7 @@ fi
 
 # --- PULPOpen/Tiler.py: append TilingReady bindings + import
 if ! grep -q 'PULPiLeakyReLUTilingReadyBindings' "$TILER"; then
-  python3 - <<PY
+	python3 - <<PY
 import pathlib
 p = pathlib.Path("$TILER")
 src = p.read_text()
@@ -168,7 +174,7 @@ fi
 
 # --- PULPOpen/Platform.py: register parser/layer import + mapper + PULPMapping entry
 if ! grep -q 'iLeakyReLUMapper' "$PLATFORM"; then
-  PLATFORM_FILE="$PLATFORM" python3 - <<'PY'
+	PLATFORM_FILE="$PLATFORM" python3 - <<'PY'
 import os, pathlib
 p = pathlib.Path(os.environ["PLATFORM_FILE"])
 src = p.read_text()

@@ -20,6 +20,8 @@
 #              (mul*x) >> shift   otherwise
 # With mul=1, shift=3 this approximates alpha = 0.125.
 # ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
@@ -27,11 +29,12 @@ import onnx
 from onnx import TensorProto, helper
 
 SHAPE = (1, 16, 64, 64)  # NCHW; 65 536 elements -> big enough that
-                         # double-buffering's DMA/kernel overlap dominates
-                         # per-tile bookkeeping, so DB visibly beats SB.
-MUL   = 1
+# double-buffering's DMA/kernel overlap dominates
+# per-tile bookkeeping, so DB visibly beats SB.
+MUL = 1
 SHIFT = 3
-SEED  = 0xC0FFEE
+SEED = 0xC0FFEE
+
 
 def golden(x, mul, shift):
     """Reference int8 LeakyReLU. Arithmetic right shift on negative ints
@@ -42,47 +45,50 @@ def golden(x, mul, shift):
     out = np.where(pos >= 0, pos, neg)
     return np.clip(out, -128, 127).astype(np.int8)
 
+
 def build_onnx():
-    in_value  = helper.make_tensor_value_info('data_in',  TensorProto.INT8, SHAPE)
+    in_value = helper.make_tensor_value_info('data_in', TensorProto.INT8, SHAPE)
     out_value = helper.make_tensor_value_info('data_out', TensorProto.INT8, SHAPE)
 
     node = helper.make_node(
         op_type = 'iLeakyReLU',
-        inputs  = ['data_in'],
+        inputs = ['data_in'],
         outputs = ['data_out'],
-        name    = 'iLeakyReLU_0',
-        mul     = MUL,
-        shift   = SHIFT,
+        name = 'iLeakyReLU_0',
+        mul = MUL,
+        shift = SHIFT,
     )
 
     graph = helper.make_graph(
-        nodes   = [node],
-        name    = 'iLeakyReLU_single_node',
-        inputs  = [in_value],
+        nodes = [node],
+        name = 'iLeakyReLU_single_node',
+        inputs = [in_value],
         outputs = [out_value],
     )
 
-    model = helper.make_model(graph, producer_name='SoCDAML-PartIII')
+    model = helper.make_model(graph, producer_name = 'SoCDAML-PartIII')
     model.opset_import[0].version = 13
     model.ir_version = 7
     return model
 
+
 def main():
     rng = np.random.default_rng(SEED)
-    x   = rng.integers(low=-128, high=127, size=SHAPE, dtype=np.int8)
-    y   = golden(x, MUL, SHIFT)
+    x = rng.integers(low = -128, high = 127, size = SHAPE, dtype = np.int8)
+    y = golden(x, MUL, SHIFT)
 
     model = build_onnx()
     onnx.save(model, 'network.onnx')
     # Deeploy convention: npz tensors saved as int64 (the test harness
     # casts to float64 then to the ONNX dtype). Storing int8 directly
     # confuses the buffer-population path.
-    np.savez('inputs.npz',  input=x.astype(np.int64))
-    np.savez('outputs.npz', output=y.astype(np.int64))
+    np.savez('inputs.npz', input = x.astype(np.int64))
+    np.savez('outputs.npz', output = y.astype(np.int64))
 
     print(f"Wrote network.onnx (shape={SHAPE}, mul={MUL}, shift={SHIFT})")
     print(f"Wrote inputs.npz  : keys=['input']  shape={x.shape}  int64,  int8-range=[{x.min()}, {x.max()}]")
     print(f"Wrote outputs.npz : keys=['output'] shape={y.shape}  int64,  int8-range=[{y.min()}, {y.max()}]")
+
 
 if __name__ == '__main__':
     main()

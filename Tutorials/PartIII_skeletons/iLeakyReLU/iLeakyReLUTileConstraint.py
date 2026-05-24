@@ -8,6 +8,8 @@
 # you need for an elementwise op. You only have to subclass it. In
 # Step 6a you'll add a performance constraint on top.
 # ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 
 from typing import Dict

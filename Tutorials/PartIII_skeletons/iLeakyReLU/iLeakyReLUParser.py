@@ -7,6 +7,8 @@
 # Imports already present in that file (math, numpy as np,
 # onnx_graphsurgeon as gs, NodeParser, NetworkContext).
 # ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 
 
@@ -22,10 +24,7 @@ class iLeakyReLUParser(NodeParser):
         # self.operatorRepresentation as ints and return True.
         return False
 
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True):
+    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True):
         # TODO(student): look up the input and output tensors from ctxt
         # using node.inputs[0].name / node.outputs[0].name, and populate
         # self.operatorRepresentation with:

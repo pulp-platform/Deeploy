@@ -5,6 +5,8 @@
 # Parser for the iLeakyReLU op. Appended to:
 #   Deeploy/Targets/Generic/Parsers.py
 # ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 
 # (in Generic/Parsers.py the following imports already exist:
@@ -19,26 +21,23 @@ class iLeakyReLUParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         wellFormed = all([
-            len(node.inputs)  == 1,
+            len(node.inputs) == 1,
             len(node.outputs) == 1,
-            'mul'   in node.attrs,
+            'mul' in node.attrs,
             'shift' in node.attrs,
         ])
 
         if not wellFormed:
             return False
 
-        self.operatorRepresentation['mul']   = int(node.attrs['mul'])
+        self.operatorRepresentation['mul'] = int(node.attrs['mul'])
         self.operatorRepresentation['shift'] = int(node.attrs['shift'])
         return True
 
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True):
-        data_in  = ctxt.lookup(node.inputs[0].name)
+    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True):
+        data_in = ctxt.lookup(node.inputs[0].name)
         data_out = ctxt.lookup(node.outputs[0].name)
-        self.operatorRepresentation['data_in']  = data_in.name
+        self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['data_out'] = data_out.name
-        self.operatorRepresentation['size']     = int(np.prod(data_in.shape))
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
         return ctxt, True

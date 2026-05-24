@@ -14,7 +14,7 @@
 
 #include "DeeployPULPMath.h"
 
-void PULPiLeakyReLU_i8_i8(int8_t *pIn, int8_t *pOut, uint32_t size,
-                          int32_t mul, int32_t shift);
+void PULPiLeakyReLU_i8_i8(int8_t *pIn, int8_t *pOut, uint32_t size, int32_t mul,
+                          int32_t shift);
 
 #endif // __DEEPLOY_KERNEL_ILEAKYRELU_H_

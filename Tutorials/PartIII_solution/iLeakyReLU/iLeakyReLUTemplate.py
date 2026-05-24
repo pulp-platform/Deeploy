@@ -7,6 +7,8 @@
 # Drop this file into:
 #   Deeploy/Targets/PULPOpen/Templates/iLeakyReLUTemplate.py
 # ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 
 from Deeploy.DeeployTypes import NodeTemplate

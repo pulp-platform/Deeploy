@@ -7,6 +7,8 @@
 # Drop this file into:
 #   Deeploy/Targets/PULPOpen/TileConstraints/iLeakyReLUTileConstraint.py
 # ----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 
 from typing import Dict
@@ -30,9 +32,9 @@ class iLeakyReLUTileConstraint(UnaryTileConstraint):
         tilerModel = UnaryTileConstraint.addGeometricalConstraint(tilerModel, parseDict, ctxt)
 
         inputBufferName = parseDict['data_in']
-        inputShape      = ctxt.lookup(inputBufferName).shape
-        lastDim         = len(inputShape) - 1
-        lastDimVar      = tilerModel.getTensorDimVar(tensorName=inputBufferName, dimIdx=lastDim)
+        inputShape = ctxt.lookup(inputBufferName).shape
+        lastDim = len(inputShape) - 1
+        lastDimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = lastDim)
 
         # Force the tiled inner dimension to be a multiple of 16. This
         # ensures (per-core chunk) is a multiple of 4 once split across
