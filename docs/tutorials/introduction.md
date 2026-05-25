@@ -49,15 +49,70 @@ Once all these basic tests are passed, we can jump into the basics of Deeploy.
 
 ## Installation (SoCDAML course)
 
-Students in ETH Zürich's *Systems-on-Chip for Data Analytics and Machine Learning* course use a Singularity sandbox container preinstalled on the lab machines instead of Docker. Build the sandbox container with:
+Students in ETH Zürich's *Systems-on-Chip for Data Analytics and Machine Learning* course use Singularity instead of Docker, because the lab machines don't expose the Docker daemon. **Each student builds their own writable sandbox in their scratch directory** — there is no shared `.sif` you can copy from another account.
+
+The Singularity equivalent of the Docker command
+```bash
+docker run -it --name deeploy_main -v $(pwd):/app/Deeploy ghcr.io/pulp-platform/deeploy:main
 ```
-singularity build --sandbox /scratch/$USER/DeeployContainer/ /home/soc_042fs25/deeploy-container-socdaml.sif
+is the four-step sequence below. The key part of the translation: Docker's `-v $(pwd):/app/Deeploy` (bind-mount the host clone) becomes Singularity's `--bind "$SCRATCH/Deeploy:/app/Deeploy"`.
+
+### 1. Choose a writable scratch directory
+On most lab machines this is `/scratch/$USER`. If it doesn't exist for you, fall back to a subdirectory of the course scratch:
+```bash
+SCRATCH=/scratch/$USER
+[ -d "$SCRATCH" ] || SCRATCH=/scratch/deeploy/$USER
+mkdir -p "$SCRATCH" && cd "$SCRATCH"
 ```
-Then you can find Deeploy's source code in `/scratch/$USER/DeeployContainer/app/Deeploy`. To spawn a shell from the container, run:
+
+### 2. Clone the lab branch on the host
+This keeps your edits visible outside the container, exactly like the host clone you'd use with Docker:
+```bash
+git clone -b fs26ex https://github.com/viv-eth/Deeploy.git
+cd Deeploy && git submodule update --init --recursive && cd ..
 ```
-singularity shell --writable --cleanenv --contain /scratch/$USER/DeeployContainer/
+
+### 3. Build the writable Singularity sandbox
+Pull the public Deeploy Docker image and convert it into a writable sandbox under your scratch (takes ~5-10 min the first time):
+```bash
+singularity build --sandbox DeeployContainer/ docker://ghcr.io/pulp-platform/deeploy:main
 ```
-Then navigate to the `DeeployTest` folder with `cd /app/Deeploy/DeeployTest`. Validate the install with the same five `deeployRunner_*.py` commands listed above.
+
+### 4. Pre-create the bind-mount target inside the sandbox
+Writable Singularity sandboxes don't auto-create bind-mount targets (read-only `.sif` images do, via overlay). The Deeploy image has `/app/` but no `/app/Deeploy/` subdirectory, so you need to create it once:
+```bash
+mkdir -p "$SCRATCH/DeeployContainer/app/Deeploy"
+```
+
+### 5. Spawn a shell in the container, with your Deeploy clone bind-mounted
+You **must** have completed steps 3 and 4 before this works.`singularity shell` opens an *existing* sandbox, it doesn't create one. Re-run this command every time you log back in:
+```bash
+singularity shell --bind "$SCRATCH/Deeploy:/app/Deeploy" \
+                  --writable --cleanenv \
+                  "$SCRATCH/DeeployContainer/"
+```
+The `--bind` flag mounts your host clone at `/app/Deeploy` inside the container, i.e.the direct equivalent of Docker's `-v` flag.
+
+If you forget to pre-create the target you'll see:
+```
+FATAL: ... destination /app/Deeploy doesn't exist in container
+```
+That means you need to run the `mkdir -p` from step 4 first.
+
+**When the shell opens, you will land in `/home/$USER`** (Apptainer auto-mounts your host home, and your host CWD `$SCRATCH` doesn't exist as a path inside the container). To get to your Deeploy code, navigate to the bind-mount target:
+```bash
+cd /app/Deeploy
+ls   # should show CHANGELOG.md, CMakeLists.txt, Deeploy/, DeeployTest/, ...
+```
+
+### 6. Install Deeploy in editable mode
+Inside the container:
+```bash
+cd /app/Deeploy
+pip install -e .
+```
+
+Then navigate to `DeeployTest/` and validate the install with the same five `deeployRunner_*.py` commands listed in the general install above.
 
 ## Deeploy 101
 
