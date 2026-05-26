@@ -155,6 +155,25 @@ def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
     return retStr
 
 
+def _generateBindExternalInputs(deployer: NetworkDeployer) -> str:
+    """Generate a bind function for all global network input buffers."""
+    inputs = deployer.inputs()
+
+    retStr = "void DeeployNetwork_BindExternalInputs(void **external_inputs) {\n"
+    retStr += "  // NOTE: This is a hack to avoid the memcpy in main.c from \n"
+    retStr += "  // testInputVector to DeeployNetwork_inputs, since they are both in L3\n"
+
+    for index, node in enumerate(inputs):
+        typeName = node._type.referencedType.typeName
+        retStr += f"  DeeployNetwork_input_{index} = ({typeName} *)external_inputs[{index}];\n"
+
+    for index in range(len(inputs)):
+        retStr += f"  DeeployNetwork_inputs[{index}] = (void *)DeeployNetwork_input_{index};\n"
+
+    retStr += "}\n"
+    return retStr
+
+
 def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: CodeGenVerbosity) -> str:
     retStr = ""
 
@@ -209,19 +228,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
     """
 
     # TODO: make this work only for spatz and with the correct number of unputs every time
-    retStr += """
-void DeeployNetwork_BindExternalInputs(void **external_inputs) {
-  // NOTE: This is a zero-copy convenience for test harnesses.
-  // It intentionally does not modify output pointers.
-  DeeployNetwork_input_0 = (float32_t *)external_inputs[0];
-  DeeployNetwork_input_1 = (float32_t *)external_inputs[1];
-//   DeeployNetwork_input_2 = (float32_t *)external_inputs[2];
-
-  DeeployNetwork_inputs[0] = (void *)DeeployNetwork_input_0;
-  DeeployNetwork_inputs[1] = (void *)DeeployNetwork_input_1;
-//   DeeployNetwork_inputs[2] = (void *)DeeployNetwork_input_2;
-}
-"""
+    retStr += _generateBindExternalInputs(deployer)
 
     return retStr
 
