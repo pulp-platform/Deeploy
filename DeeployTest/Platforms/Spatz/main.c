@@ -1,11 +1,23 @@
 
 #include <stdint.h>
+#include <stddef.h>
 #include <benchmark.h>
 #include "printf.h"
 
 #include "Network.h"
 #include "testinputs.h"
 #include "testoutputs.h"
+
+#ifndef DEEPLOY_ZERO_COPY_TEST_INPUTS
+#define DEEPLOY_ZERO_COPY_TEST_INPUTS 1
+#endif
+
+// Optional: some generated networks provide this helper to avoid copying
+// test inputs into Deeploy-owned buffers.
+#ifndef DEEPLOYNETWORK_HAS_BIND_EXTERNAL_INPUTS
+void DeeployNetwork_BindExternalInputs(void **external_inputs) __attribute__((weak));
+#endif
+
 
 int main() {
   const unsigned int core_id = snrt_cluster_core_idx();
@@ -17,21 +29,28 @@ int main() {
 
   // do it only with one of the two spatz cores
   if (snrt_is_dm_core()){
-    timer_start = benchmark_get_cycle();
-
     printf("Initializing network...\r\n");
     InitNetwork(0, 1);
 
-    for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {                                                                                
+    // printf("Copying inputs to l3 buffer...\r\n");
+#if DEEPLOY_ZERO_COPY_TEST_INPUTS
+    if (DeeployNetwork_BindExternalInputs) {
+      DeeployNetwork_BindExternalInputs(testInputVector);
+    } else {
+      for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
+        memcpy(DeeployNetwork_inputs[buf], testInputVector[buf], DeeployNetwork_inputs_bytes[buf]);
+      }
+    }
+#else
+    for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
       memcpy(DeeployNetwork_inputs[buf], testInputVector[buf], DeeployNetwork_inputs_bytes[buf]);
-      // DeeployNetwork_inputs[buf] = (void *)testInputVector[buf]; TODO ???
-    }   
-
+    }
+#endif
 
     printf("Running network...\r\n");
   }
-
   snrt_cluster_hw_barrier();
+
   if (snrt_is_dm_core()){ timer_start = benchmark_get_cycle(); }
   RunNetwork(core_id, 2);
 

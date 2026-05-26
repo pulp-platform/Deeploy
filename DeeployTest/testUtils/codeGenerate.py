@@ -208,6 +208,21 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
     }
     """
 
+    # TODO: make this work only for spatz and with the correct number of unputs every time
+    retStr += """
+void DeeployNetwork_BindExternalInputs(void **external_inputs) {
+  // NOTE: This is a zero-copy convenience for test harnesses.
+  // It intentionally does not modify output pointers.
+  DeeployNetwork_input_0 = (float32_t *)external_inputs[0];
+  DeeployNetwork_input_1 = (float32_t *)external_inputs[1];
+//   DeeployNetwork_input_2 = (float32_t *)external_inputs[2];
+
+  DeeployNetwork_inputs[0] = (void *)DeeployNetwork_input_0;
+  DeeployNetwork_inputs[1] = (void *)DeeployNetwork_input_1;
+//   DeeployNetwork_inputs[2] = (void *)DeeployNetwork_input_2;
+}
+"""
+
     return retStr
 
 
