@@ -19,23 +19,28 @@ class GatherTileConstraint(TileConstraint):
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
         pointer: List[str] = []
-
         for key, value in parseDict.items():
+            print(key, value)
             if not isinstance(value, str):
                 continue
 
             if ctxt.is_global(value) or ctxt.is_local(value):
                 pointer.append(value)
 
-        for tensorName in pointer:
-            _buffer = ctxt.lookup(tensorName)
-            if isinstance(_buffer, TransientBuffer):
-                continue
+                print("Processing the tensor: ", value)
+                _buffer = ctxt.lookup(value)
+                if isinstance(_buffer, TransientBuffer):
+                    continue
 
-            tilerModel.addTensorDimToModel(ctxt, tensorName)
+                tilerModel.addTensorDimToModel(ctxt, value)
 
-            for idx, shapeDim in enumerate(_buffer.shape):
-                tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = tensorName, dimIdx = idx) == shapeDim)
+                # no tile contraint for data_in, because is not moved by the tiling engine
+                if key == 'data_in':
+                    continue
+
+                for idx, shapeDim in enumerate(_buffer.shape):
+                    print("Adding the constraint of ", shapeDim)
+                    tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = value, dimIdx = idx) == shapeDim)
 
         return tilerModel
 
