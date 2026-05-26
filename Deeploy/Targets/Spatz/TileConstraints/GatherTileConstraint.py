@@ -20,14 +20,12 @@ class GatherTileConstraint(TileConstraint):
 
         pointer: List[str] = []
         for key, value in parseDict.items():
-            print(key, value)
             if not isinstance(value, str):
                 continue
 
             if ctxt.is_global(value) or ctxt.is_local(value):
                 pointer.append(value)
 
-                print("Processing the tensor: ", value)
                 _buffer = ctxt.lookup(value)
                 if isinstance(_buffer, TransientBuffer):
                     continue
@@ -39,7 +37,6 @@ class GatherTileConstraint(TileConstraint):
                     continue
 
                 for idx, shapeDim in enumerate(_buffer.shape):
-                    print("Adding the constraint of ", shapeDim)
                     tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = value, dimIdx = idx) == shapeDim)
 
         return tilerModel
