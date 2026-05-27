@@ -3,7 +3,7 @@ from typing import Dict, List, Tuple
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
-SpatzTilingTemplate = NodeTemplate("""
+selectionSortTemplate = NodeTemplate("""
 // TopK node: finds the top ${k_value} values and their indices
 // Assumes 1D input 
 ${data_in_type.referencedType.typeName} *values_tmp = snrt_l1alloc(sizeof(${data_in_type.referencedType.typeName})*${data_in_size});
@@ -34,4 +34,18 @@ for (uint32_t i = 0; i < ${k_value}; ++i) {
 	((${values_out_type.referencedType.typeName}*)${values_out})[i] = values_tmp[i];
 	((${indices_out_type.referencedType.typeName}*)${indices_out})[i] = indices_tmp[i];
 }
+""")
+
+minHeapTemplate = NodeTemplate("""
+float32_t *heap_values = snrt_l1alloc(sizeof(float32_t) * ${k_value});
+int32_t *heap_indices = snrt_l1alloc(sizeof(int32_t) * ${k_value});
+
+compute_topk_min_heap(${data_in},
+						${values_out},
+						${indices_out},
+						${k_value},
+						${data_in_size},
+						heap_values,
+						heap_indices);
+
 """)

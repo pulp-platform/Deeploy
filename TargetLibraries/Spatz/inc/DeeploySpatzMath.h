@@ -21,6 +21,10 @@ void Spatz_MatMul_fp32_fp32_fp32(const float32_t *__restrict__ pSrcA,
 void Spatz_Softmax_fp32_fp32(float32_t *input, float32_t *output, int32_t size,
                        int32_t last_dim_length);
 
+
+void compute_topk_min_heap(float32_t *data_in, float32_t *values_out, int32_t *indices_out,
+		uint32_t k, uint32_t n, float32_t *heap_values, int32_t *heap_indices);
+
 // void Spatz_MatMul_fp16_fp16_fp16(const __fp16 *__restrict__ pSrcA,
 // 								 const __fp16 *__restrict__ pSrcB,
 // 								 __fp16 *__restrict__ pDstY, uint32_t M,

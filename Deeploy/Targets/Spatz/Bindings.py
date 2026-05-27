@@ -99,7 +99,7 @@ SpatzTopKBindings = [
             [PointerClass(float32_t), PointerClass(int32_t)], # inputs
             [PointerClass(float32_t), PointerClass(int32_t)] # outputs
         ),
-        TopKTemplate.SpatzTilingTemplate,
+        TopKTemplate.minHeapTemplate,
         TiledTransformer,
     )
 ]
