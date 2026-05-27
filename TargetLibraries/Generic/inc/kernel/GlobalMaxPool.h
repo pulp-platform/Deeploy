@@ -10,7 +10,7 @@
 #include "DeeployBasicMath.h"
 
 /******************************************************************************/
-/*                                Average Pool                                */
+/*                            Global Max Pool                                 */
 /******************************************************************************/
 void GlobalMaxPool_fp32_fp32(float32_t const *__restrict__ src,
                              float32_t *__restrict__ dst, uint32_t N,

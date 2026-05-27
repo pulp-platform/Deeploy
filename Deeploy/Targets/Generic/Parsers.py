@@ -2903,18 +2903,18 @@ class ClipParser(UnaryElementWiseParser):
         if not ok:
             return ctxt, False
 
-        # optional inputs min_val and max_val
+        # defaults when optional inputs are omitted
+        self.operatorRepresentation['min_val'] = -np.finfo(np.float32).max
+        self.operatorRepresentation['max_val'] = np.finfo(np.float32).max
+
+        # override defaults when min_val and max_val are available
         if len(node.inputs) > 1:
-            if node.inputs[1].name == '':  # no input: default min float32
-                self.operatorRepresentation['min_val'] = -np.finfo(np.float32).max
-            elif isinstance(node.inputs[1], gs.Constant):  # constant: just read it
+            if isinstance(node.inputs[1], gs.Constant):  # constant: just read it
                 self.operatorRepresentation['min_val'] = float(node.inputs[1].values.item())
             else:  # variable: get name from context
                 self.operatorRepresentation['min_val'] = ctxt.lookup(node.inputs[1].name).name
         if len(node.inputs) > 2:
-            if node.inputs[2].name == '':  # no input: default max float32
-                self.operatorRepresentation['max_val'] = np.finfo(np.float32).max
-            elif isinstance(node.inputs[2], gs.Constant):  # constant: just read it
+            if isinstance(node.inputs[2], gs.Constant):  # constant: just read it
                 self.operatorRepresentation['max_val'] = float(node.inputs[2].values.item())
             else:  # variable: get name from context
                 self.operatorRepresentation['max_val'] = ctxt.lookup(node.inputs[2].name).name
