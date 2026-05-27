@@ -1,9 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2022 ETH Zurich and University of Bologna
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include "DeeployBasicMath.h"
 #include <math.h>
 
