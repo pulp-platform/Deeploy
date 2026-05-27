@@ -45,21 +45,6 @@ TiledTransformer = CodeTransformation([
     MemoryManagementGeneration(),
 ])
 
-DynamicDMATransformer = CodeTransformation([
-    TilingVariableReplacement("L1"),
-    # TilingCallClosure(writeback = False),
-    SnitchSynchCoresPass(), # snrt_cluster_hw_barrier()
-    # SpatzBenchmarkInnerPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
-    TilingVariableReplacementUpdate("L1"),
-    SnitchClusterTiling("L3", "L1", SpatzDma()),
-    # SpatzBenchmarkOuterPass(), # <- attention: increases runtime and benchmarks only when tiling loop has one iteration
-    ArgumentStructGeneration(),
-    MemoryManagementGeneration("L1"),
-    MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
-    MemoryManagementGeneration("L3"),
-    MemoryManagementGeneration(),
-])
-
 SpatzGatherBindings = [
     NodeBinding(
         GatherChecker(
@@ -67,7 +52,7 @@ SpatzGatherBindings = [
             [PointerClass(float32_t)]
         ),
         GatherTemplate.dynamicDMAtemplate,
-        DynamicDMATransformer
+        TiledTransformer
     ) for type in IntegerDataTypes
 ]
 

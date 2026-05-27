@@ -80,7 +80,7 @@ int main() {
         if ((diff < -1e-4f) || (diff > 1e-4f) || *(uint32_t*)&diff == 0x7FC00000) {
           tot_err += 1;
           // printf("Expected: %f  Actual: %f  Diff: %f at Index %12u in Output %u\r\n", expected, actual, diff, i, buf);  
-          printf("Expected: 0x%08x  Actual: 0x%08x  Diff: 0x%08x at Index %12u in Output %u\r\n", *(uint32_t*)&expected, *(uint32_t*)&actual, *(uint32_t*)&diff, i, buf);  
+          printf("Expected: 0x%08x  Actual: 0x%08x  Diff: 0x%08x at Index %4u in Output %u\r\n", *(uint32_t*)&expected, *(uint32_t*)&actual, *(uint32_t*)&diff, i, buf);  
         }
 #else
         // RUNWANG: No margin for integer comparison
