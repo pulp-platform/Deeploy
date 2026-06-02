@@ -1,0 +1,34 @@
+pytorch2.0.1:Ì
+)
+Q
+K/MatMul_output_0/MatMul"MatMul
+E
+/MatMul_output_0/Softmax_output_0/Softmax"Softmax*
+axis 
+,
+/Softmax_output_0
+VA	/MatMul_1"MatMul	torch_jitZ
+Q
+
+
+@Z
+K
+	
+@
+€ Z
+V
+	
+€ 
+@b
+A
+
+
+@j#
+/MatMul_output_0
+	
+
+€ j$
+/Softmax_output_0
+	
+
+€ B
