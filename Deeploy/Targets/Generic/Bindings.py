@@ -13,13 +13,16 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
-    FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, \
-    FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, \
-    GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, \
-    MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
-    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, TransposeTemplate, \
-    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    FloatAveragePoolTemplate, FloatCeilTemplate, FloatClipTemplate, FloatConvTemplate, FloatDivTemplate, \
+    FloatDWConvTemplate, FloatExpTemplate, FloatFloorTemplate, FloatGELUTemplate, FloatGemmTemplate, \
+    FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, FloatGroupNormTemplate, FloatHardSigmoidTemplate, \
+    FloatHardSwishTemplate, FloatInstanceNormTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
+    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, \
+    FloatReluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, FloatSubTemplate, \
+    FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
+    MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
+    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, SubTemplate, \
+    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
     LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, \
@@ -52,6 +55,17 @@ BasicAddBindings = [
 ] + [
     NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatAddTemplate.referenceTemplate, BasicTransformer)
+]
+
+# using AddChecker since they are exactly the same
+BasicSubBindings = [
+    NodeBinding(AddChecker([PointerClass(type1), PointerClass(type2)], [PointerClass(int32_t)]),
+                SubTemplate.referenceTemplate, BasicTransformer)
+    for type1 in IntegerDataTypes
+    for type2 in IntegerDataTypes
+] + [
+    NodeBinding(AddChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatSubTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicConv1DBindings = [
@@ -326,4 +340,83 @@ BasicConvTransposeBindings = [
             [PointerClass(type)]),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer) for type in FloatDataTypes
+]
+
+BasicCeilBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatCeilTemplate.referenceTemplate,
+                BasicTransformer),
+]
+
+BasicFloorBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatFloorTemplate.referenceTemplate, BasicTransformer),
+]
+
+BasicClipBindings = [
+    NodeBinding(
+        DummyChecker(
+            [PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(float32_t)], [PointerClass(float32_t)]), FloatClipTemplate.referenceTemplate,
+        BasicTransformer),
+]
+
+BasicExpBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatExpTemplate.referenceTemplate,
+                BasicTransformer),
+]
+
+BasicSigmoidBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatSigmoidTemplate.referenceTemplate, BasicTransformer),
+]
+
+BasicSwishBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatSwishTemplate.referenceTemplate, BasicTransformer),
+]
+
+BasicHardSigmoidBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatHardSigmoidTemplate.referenceTemplate, BasicTransformer),
+]
+
+BasicHardSwishBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatHardSwishTemplate.referenceTemplate, BasicTransformer),
+]
+
+BasicInstanceNormBindings = [
+    NodeBinding(
+        DummyChecker(
+            [PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(float32_t)], [PointerClass(float32_t)]), FloatInstanceNormTemplate.referenceTemplate,
+        BasicTransformer),
+]
+
+BasicGroupNormBindings = [
+    NodeBinding(
+        DummyChecker(
+            [PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(float32_t)], [PointerClass(float32_t)]), FloatGroupNormTemplate.referenceTemplate,
+        BasicTransformer),
+]
+
+BasicAveragePool1DBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate1d, BasicTransformer)
+]
+
+BasicAveragePool2DBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatAveragePoolTemplate.referenceTemplate2d, BasicTransformer)
+]
+
+BasicGlobalAveragePoolBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatGlobalAveragePoolTemplate.referenceTemplate, BasicTransformer)
+]
+
+BasicGlobalMaxPoolBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatGlobalMaxPoolTemplate.referenceTemplate, BasicTransformer)
 ]
