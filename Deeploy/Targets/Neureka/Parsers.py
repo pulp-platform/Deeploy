@@ -87,13 +87,19 @@ class NeurekaDWConv2DParser(NeurekaConv2DBaseParser):
         if not super().parseNode(node):
             return False
 
-        ch_im_out = node.inputs[1].shape[0]
-        ch_im_in = node.inputs[1].shape[1]
+        weights = node.inputs[1]
 
+        # weigths reshaped by the weigths encoder into
+        # (cout, cinMajor, bits, weightBandwidthBytes)
+        # where:
+        # - cout: 1 by definition (it is cin from ONNX)
+        # - cinMajor: number of tiles over the channels
+        # - bits: weight bit width (only 8 is supported)
+        # - weightBandwidthBytes: which is 32 in Siracusa
         if not all([
                 self.operatorRepresentation['kernel_shape'] == [3, 3],
-                self.operatorRepresentation['group'] == ch_im_out,
-                ch_im_in == 1,
+                len(weights.shape) == 4,
+                weights.shape[0] == 1,  # ch_im_out
         ]):
             return False
 

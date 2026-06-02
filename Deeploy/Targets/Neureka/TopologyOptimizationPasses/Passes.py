@@ -34,9 +34,6 @@ def _weightEncode(weight: npt.NDArray[np.uint8], bits: int, depthwise: bool = Fa
     _NEUREKA_CIN_SUBTILE_1x1 = 32
     _NEUREKA_CIN_SUBTILE_3x3 = 28
 
-    if depthwise:
-        weight = weight.transpose(1, 0, 2, 3)  # Swap cout and cin
-
     cout, cin, height, width = weight.shape
     cinSubtile = (_NEUREKA_CIN_SUBTILE_3x3 if height == 3 else _NEUREKA_CIN_SUBTILE_1x1)
 
