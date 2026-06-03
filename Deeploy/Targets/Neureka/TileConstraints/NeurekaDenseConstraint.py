@@ -219,9 +219,8 @@ class NeurekaDenseConv2DTileConstraint(TileConstraint):
             for absoluteCube in absoluteOutputCubes:
                 COffset, CSize = absoluteCube.absoluteOffset[-1], absoluteCube.rectangle.dims[-1]
                 # WeightCube = HyperRectangle((COffset, 0, 0), (CSize, weightShape[-2], weightShape[-1]))
-                WeightCube = HyperRectangle(
-                    (COffset, 0, 0, 0),
-                    (CSize, weightShape[-3], weightShape[-2], weightShape[-1]))
+                WeightCube = HyperRectangle((COffset, 0, 0, 0),
+                                            (CSize, weightShape[-3], weightShape[-2], weightShape[-1]))
                 replacements['weight_addr_offset'].append(calculateFlatOffsetInBytes(WeightCube, weightBuffer))
         else:
             inputWeightBaseOffsets, outputWeightBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
@@ -231,7 +230,8 @@ class NeurekaDenseConv2DTileConstraint(TileConstraint):
 
             for cube, load in zip(outputCubes, inputLoadSchedule):
                 COffset, CSize = cube.offset[-1], cube.dims[-1]
-                load['weight'] = HyperRectangle((COffset, 0, 0), (CSize, weightShape[-2], weightShape[-1]))
+                load['weight'] = HyperRectangle((COffset, 0, 0, 0),
+                                                (CSize, weightShape[-3], weightShape[-2], weightShape[-1]))
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
