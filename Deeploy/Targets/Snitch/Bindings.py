@@ -19,8 +19,9 @@ from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, DivC
 from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
     SnitchSynchCoresPass
 from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
+from Deeploy.Targets.Generic.Templates import ReshapeTemplate
 from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, FloatMatMulTemplate, \
-    ReshapeTemplate, RQAddTemplate, TransposeTemplate, iSoftmaxTemplate
+    RQAddTemplate, TransposeTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Snitch.Templates.FloatAddTemplate import referenceTemplate as FloatAddTemplate
 from Deeploy.Targets.Snitch.Templates.FloatDivTemplate import referenceTemplate as FloatDivTemplate
 from Deeploy.Targets.Snitch.Templates.FloatHardSwishTemplate import referenceTemplate as FloatHardSwishTemplate
