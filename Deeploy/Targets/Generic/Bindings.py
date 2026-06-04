@@ -18,9 +18,9 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, FloatGroupNormTemplate, FloatHardSigmoidTemplate, \
     FloatHardSwishTemplate, FloatInstanceNormTemplate, FloatLayernormTemplate, FloatLeakyReluTemplate, \
     FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, \
-    FloatReduceMeanTemplate, FloatReluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, \
-    FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, \
-    ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
+    FloatReduceMeanTemplate, FloatReluTemplate, FloatSeluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, \
+    FloatSqrtTemplate, FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
+    ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
     ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
     RQSiGELUTemplate, SliceTemplate, SubTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
@@ -388,6 +388,11 @@ BasicHardSwishBindings = [
 
 BasicEluBindings = [
     NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatEluTemplate.referenceTemplate,
+                BasicTransformer),
+]
+
+BasicSeluBindings = [
+    NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), FloatSeluTemplate.referenceTemplate,
                 BasicTransformer),
 ]
 

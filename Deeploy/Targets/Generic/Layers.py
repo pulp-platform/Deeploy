@@ -759,6 +759,15 @@ class EluLayer(ONNXLayer):
         return self.mapper.parser.operatorRepresentation['size'] * 3
 
 
+class SeluLayer(ONNXLayer):
+
+    def computeOps(self):
+        # input > 0 -> y = gamma * x: mul
+        # input <=0 -> y = gamma * alpha * (expf(x) - 1): exp, add, 2 mul
+        # consider the worst case, which is 4 ops
+        return self.mapper.parser.operatorRepresentation['size'] * 4
+
+
 class LeakyReluLayer(SingleOperationPerElementLayer):
     pass
 

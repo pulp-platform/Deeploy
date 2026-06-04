@@ -62,6 +62,7 @@
 #include "kernel/RQHardswish.h"
 #include "kernel/Relu.h"
 #include "kernel/RequantShift.h"
+#include "kernel/Selu.h"
 #include "kernel/Sigmoid.h"
 #include "kernel/Softmax.h"
 #include "kernel/Sqrt.h"
