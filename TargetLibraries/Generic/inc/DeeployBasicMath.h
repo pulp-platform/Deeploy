@@ -52,6 +52,7 @@
 #include "kernel/HardSwish.h"
 #include "kernel/InstanceNorm.h"
 #include "kernel/Layernorm.h"
+#include "kernel/LeakyRelu.h"
 #include "kernel/MatMul.h"
 #include "kernel/MaxPool.h"
 #include "kernel/Pow.h"

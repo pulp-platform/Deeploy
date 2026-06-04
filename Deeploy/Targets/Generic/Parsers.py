@@ -2968,6 +2968,15 @@ class EluParser(UnaryElementWiseParser):
         return True
 
 
+class LeakyReluParser(UnaryElementWiseParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if not (super().parseNode(node) and node.op == 'LeakyRelu'):
+            return False
+        self.operatorRepresentation['alpha'] = node.attrs.get('alpha', 0.01)
+        return True
+
+
 class NormalizationParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
