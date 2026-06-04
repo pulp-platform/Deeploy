@@ -10,35 +10,22 @@
 #include "DeeploySnitchMath.h"
 
 /*
- * Element-wise Multiplication (FP32)
+ * Element-wise Multiplication (FP32) with optional scalar broadcasting.
  *
- * Computes: output[i] = input1[i] * input2[i]
+ * is_scalar == 0:  output[i] = input1[i] * input2[i]
+ * is_scalar != 0:  output[i] = input1[i] * input2[0]   (input2 read as scalar)
  *
- * input1:         First input tensor (float32)
- * input2:         Second input tensor (float32)
- * output:         Output tensor (same shape as input1)
- * size:           Total number of elements
+ * input1:    First input tensor (float32)
+ * input2:    Second input tensor (float32). Only input2[0] is read when
+ *            is_scalar != 0.
+ * output:    Output tensor (same shape as input1)
+ * size:      Total number of elements
+ * is_scalar: Non-zero selects the scalar-broadcast branch.
  *
  * multi-core      = yes
  * parallelization = element-wise
  */
 void Mul_fp32(float32_t *input1, float32_t *input2, float32_t *output,
-              uint32_t size);
-
-/*
- * Element-wise Multiplication with scalar broadcasting (FP32)
- *
- * Computes: output[i] = input1[i] * scalar
- *
- * input1:         Input tensor (float32)
- * scalar:         Scalar multiplier (float32)
- * output:         Output tensor (same shape as input1)
- * size:           Total number of elements
- *
- * multi-core      = yes
- * parallelization = element-wise
- */
-void Mul_fp32_scalar(float32_t *input1, float32_t scalar, float32_t *output,
-                     uint32_t size);
+              uint32_t size, uint32_t is_scalar);
 
 #endif // __DEEPLOY_MATH_MUL_FP32_KERNEL_HEADER_

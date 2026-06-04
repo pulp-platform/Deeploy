@@ -5,12 +5,5 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate(r"""
-% if is_scalar:
-{
-    float32_t scalar = ${B}[0];
-    Div_fp32_scalar(${A}, scalar, ${C}, ${size});
-}
-% else:
-Div_fp32(${A}, ${B}, ${C}, ${size});
-% endif
+Div_fp32(${A}, ${B}, ${C}, ${size}, ${1 if is_scalar else 0});
 """)
