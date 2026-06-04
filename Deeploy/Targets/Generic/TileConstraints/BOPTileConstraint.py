@@ -17,11 +17,21 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
 
 
 class BOPTileConstraint(TileConstraint):
-    """Tile constraint class for binary operators, i.e. operators that use two input tensors of equal dimensions.
+    """Tile constraint class for binary operators, i.e. operators that have exactly 2 inputs and 1 output.
 
     When the second input is a scalar (total size 1), it is kept full-size and only
     the first input and the output are tiled together. This supports ONNX
     broadcasting in operators that have a corresponding scalar kernel.
+
+    Warning:
+        Broadcasting support is partial -- only the case of a fully-scalar
+        second input (np.prod(input2.shape) == 1) is handled. Other ONNX
+        broadcasting patterns -- input1 scalar, partial broadcasting such
+        as (N, 1) + (1, M), single-dim broadcasting such as (N, M, K) +
+        (N, 1, K), or rank-mismatched shapes such as (N, M) + (M,) --
+        fall through to the non-scalar branch, where the dim-equality
+        constraints will fail to satisfy. Operators that need full ONNX
+        broadcasting must use a different tile constraint.
     """
 
     dataIn1Name = 'data_in_1'  #: str: Name of the first input tensor as defined by the operator's parser
