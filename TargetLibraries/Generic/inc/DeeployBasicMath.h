@@ -40,6 +40,7 @@
 #include "kernel/Convolution.h"
 #include "kernel/DWConvolution.h"
 #include "kernel/Div.h"
+#include "kernel/Elu.h"
 #include "kernel/Exp.h"
 #include "kernel/Floor.h"
 #include "kernel/GELU.h"

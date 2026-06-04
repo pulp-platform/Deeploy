@@ -750,6 +750,15 @@ class HardSwishLayer(ONNXLayer):
         return self.mapper.parser.operatorRepresentation['size'] * 5
 
 
+class EluLayer(ONNXLayer):
+
+    def computeOps(self):
+        # input > 0 -> y = x (just an assignment)
+        # input <=0 -> y = alpha * (expf(x) - 1): exp, add, mul
+        # consider the worst case, which is 3 ops
+        return self.mapper.parser.operatorRepresentation['size'] * 3
+
+
 class InstanceNormLayer(ONNXLayer):
 
     def computeOps(self):

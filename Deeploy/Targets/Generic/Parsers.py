@@ -2959,6 +2959,15 @@ class HardSwishParser(UnaryElementWiseParser):
         return super().parseNode(node) and node.op == 'HardSwish'
 
 
+class EluParser(UnaryElementWiseParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if not (super().parseNode(node) and node.op == 'Elu'):
+            return False
+        self.operatorRepresentation['alpha'] = node.attrs.get('alpha', 1.0)
+        return True
+
+
 class NormalizationParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
