@@ -816,6 +816,19 @@ class GlobalMaxPoolLayer(ONNXLayer):
         return int(opRep['batch_size'] * opRep['num_channels'] * (opRep['spatial_size'] - 1))
 
 
+class Col2ImLayer(ONNXLayer):
+
+    def computeOps(self):
+        # Col2Im iterates over every element of the input tensor and adds it
+        # into the corresponding output position. The total number of
+        # accumulations is exactly the number of input elements which is
+        # N × C × block_volume × L
+        rep = self.mapper.parser.operatorRepresentation
+        block_volume = int(np.prod(rep['block_shape']))
+        L = int(np.prod(rep['col_dims']))
+        return rep['batch_size'] * rep['channels'] * block_volume * L
+
+
 class ScatterLayer(ONNXLayer):
 
     def computeOps(self):

@@ -3195,3 +3195,86 @@ class ScatterParser(NodeParser):
         self.operatorRepresentation['indices_shape'] = list(indices.shape)
 
         return ctxt, True
+
+
+class Col2ImParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        if not all([node.op == 'Col2Im', len(node.inputs) == 3, len(node.outputs) == 1]):
+            return False
+
+        # Deeploy is a static ahead-of-time code generator: shape tensors that
+        # appear as C compound literals in the emitted code must be known at
+        # parse time.
+        # image_shape / block_shape are therefore assumed to be constant and
+        # are not supported as variables
+        if not isinstance(node.inputs[1], gs.Constant) or not isinstance(node.inputs[2], gs.Constant):
+            return False
+
+        image_shape = node.inputs[1].values.astype(int).tolist()
+        block_shape = node.inputs[2].values.astype(int).tolist()
+        spatial_dims = len(image_shape)
+
+        if spatial_dims <= 0:
+            return False
+
+        dilations = list(node.attrs.get('dilations', [1] * spatial_dims))
+        pads = list(node.attrs.get('pads', [0] * (2 * spatial_dims)))
+        strides = list(node.attrs.get('strides', [1] * spatial_dims))
+
+        if not all([
+                len(dilations) == spatial_dims,
+                len(pads) == 2 * spatial_dims,
+                len(strides) == spatial_dims,
+                all(s > 0 for s in image_shape),
+                all(s > 0 for s in block_shape),
+                all(d > 0 for d in dilations),
+                all(p >= 0 for p in pads),
+                all(s > 0 for s in strides),
+        ]):
+            return False
+
+        col_dims = [(image_shape[p] + pads[p] + pads[p + spatial_dims] - dilations[p] *
+                     (block_shape[p] - 1) - 1) // strides[p] + 1 for p in range(spatial_dims)]
+        if any(d <= 0 for d in col_dims):
+            return False
+
+        self.operatorRepresentation['col_dims'] = col_dims
+        self.operatorRepresentation['image_shape'] = image_shape
+        self.operatorRepresentation['block_shape'] = block_shape
+        self.operatorRepresentation['spatial_dims'] = spatial_dims
+        self.operatorRepresentation['dilations'] = dilations
+        self.operatorRepresentation['pads'] = pads
+        self.operatorRepresentation['strides'] = strides
+
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in: VariableBuffer = ctxt.lookup(node.inputs[0].name)
+        data_out: VariableBuffer = ctxt.lookup(node.outputs[0].name)
+
+        image_shape = self.operatorRepresentation['image_shape']
+        block_shape = self.operatorRepresentation['block_shape']
+        col_dims = self.operatorRepresentation['col_dims']
+
+        N, C = data_out.shape[0], data_out.shape[1]
+        block_volume = int(np.prod(block_shape))
+        L = int(np.prod(col_dims))
+
+        if list(data_in.shape) != [N, C * block_volume, L]:
+            return ctxt, False
+
+        if list(data_out.shape) != [N, C] + image_shape:
+            return ctxt, False
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['batch_size'] = N
+        self.operatorRepresentation['channels'] = C
+
+        return ctxt, True

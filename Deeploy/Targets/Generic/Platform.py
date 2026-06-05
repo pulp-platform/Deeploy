@@ -7,28 +7,28 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Lowe
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicAveragePool1DBindings, BasicAveragePool2DBindings, \
-    BasicBatchNormBindings, BasicCeilBindings, BasicClipBindings, BasicConcatBindings, BasicConv1DBindings, \
-    BasicConv2DBindings, BasicConvTransposeBindings, BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, \
-    BasicDWConv1DBinding, BasicDWConv2DBindings, BasicEluBindings, BasicExpBindings, BasicFloorBindings, \
-    BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, BasicGlobalAveragePoolBindings, \
-    BasicGlobalMaxPoolBindings, BasicGroupNormBindings, BasicHardSigmoidBindings, BasicHardSwishBindings, \
-    BasicInstanceNormBindings, BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, BasicLayerNormBindings, \
-    BasicLeakyReluBindings, BasicMatMulBindings, BasicMaxPool1DBindings, BasicMaxPool2DBindings, BasicMulBindings, \
-    BasicPad1DBindings, BasicPad2DBindings, BasicPowBindings, BasicQuantBindings, BasicReduceMeanBindings, \
-    BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, \
-    BasicRQSGELUBinding, BasicScatterBindings, BasicSeluBindings, BasicSigmoidBindings, BasicSliceBindings, \
-    BasicSoftmaxBindings, BasicSqrtBindings, BasicSubBindings, BasicSwishBindings, BasicTransposeBindings, \
-    DummyBinding
+    BasicBatchNormBindings, BasicCeilBindings, BasicClipBindings, BasicCol2ImBindings, BasicConcatBindings, \
+    BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, BasicDebugPrintBindings, \
+    BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicEluBindings, \
+    BasicExpBindings, BasicFloorBindings, BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, \
+    BasicGlobalAveragePoolBindings, BasicGlobalMaxPoolBindings, BasicGroupNormBindings, BasicHardSigmoidBindings, \
+    BasicHardSwishBindings, BasicInstanceNormBindings, BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, \
+    BasicLayerNormBindings, BasicLeakyReluBindings, BasicMatMulBindings, BasicMaxPool1DBindings, \
+    BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicPowBindings, \
+    BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, \
+    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicScatterBindings, BasicSeluBindings, \
+    BasicSigmoidBindings, BasicSliceBindings, BasicSoftmaxBindings, BasicSqrtBindings, BasicSubBindings, \
+    BasicSwishBindings, BasicTransposeBindings, DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolLayer, BatchNormalizationLayer, CeilLayer, ClipLayer, \
-    ConcatLayer, ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, EluLayer, ExpLayer, \
-    FloorLayer, GatherLayer, GELULayer, GEMMLayer, GlobalAveragePoolLayer, GlobalMaxPoolLayer, GroupNormLayer, \
-    InstanceNormLayer, ITAMaxLayer, LayerNormLayer, LeakyReluLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, \
-    PowLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, \
-    RQIntegerDivLayer, RQSiGELULayer, ScatterLayer, SeluLayer, SigmoidLayer, SliceLayer, SoftmaxLayer, SqrtLayer, \
-    SubLayer, SwishLayer, TransposeLayer
+    Col2ImLayer, ConcatLayer, ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, EluLayer, \
+    ExpLayer, FloorLayer, GatherLayer, GELULayer, GEMMLayer, GlobalAveragePoolLayer, GlobalMaxPoolLayer, \
+    GroupNormLayer, InstanceNormLayer, ITAMaxLayer, LayerNormLayer, LeakyReluLayer, MatMulLayer, MaxPoolLayer, \
+    MulLayer, PadLayer, PowLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, \
+    ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, ScatterLayer, SeluLayer, SigmoidLayer, SliceLayer, SoftmaxLayer, \
+    SqrtLayer, SubLayer, SwishLayer, TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool1DParser, AveragePool2DParser, BatchNormParser, \
-    CeilParser, ClipParser, ConcatParser, ConvTranspose1DParser, DebugParser, DequantParser, DivParser, DummyParser, \
-    EluParser, ExpParser, FlattenParser, FloorParser, GatherParser, GELUParser, GenericConv1DParser, \
+    CeilParser, ClipParser, Col2ImParser, ConcatParser, ConvTranspose1DParser, DebugParser, DequantParser, DivParser, \
+    DummyParser, EluParser, ExpParser, FlattenParser, FloorParser, GatherParser, GELUParser, GenericConv1DParser, \
     GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, \
     GlobalAveragePoolParser, GlobalMaxPoolParser, GroupNormParser, HardSigmoidParser, HardSwishParser, \
     InstanceNormParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, LeakyReluParser, \
@@ -101,6 +101,7 @@ AveragePool2DMapper = NodeMapper(AveragePool2DParser(), BasicAveragePool2DBindin
 GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), BasicGlobalAveragePoolBindings)
 GlobalMaxPoolMapper = NodeMapper(GlobalMaxPoolParser(), BasicGlobalMaxPoolBindings)
 ScatterMapper = NodeMapper(ScatterParser(), BasicScatterBindings)
+Col2ImMapper = NodeMapper(Col2ImParser(), BasicCol2ImBindings)
 
 # Dummy nodes are intended for development purposes only!
 # They should always generate compiler errors to not accidentally end up in production code
@@ -166,6 +167,7 @@ GenericMapping = {
     'GlobalMaxPool': GlobalMaxPoolLayer([GlobalMaxPoolMapper]),
     'Scatter': ScatterLayer([ScatterMapper]),
     'ScatterElements': ScatterLayer([ScatterMapper]),
+    'Col2Im': Col2ImLayer([Col2ImMapper]),
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel

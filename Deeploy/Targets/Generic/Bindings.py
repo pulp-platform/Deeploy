@@ -11,19 +11,19 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
     int8_t, int32_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
-    ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
-    FloatAveragePoolTemplate, FloatCeilTemplate, FloatClipTemplate, FloatConvTemplate, FloatDivTemplate, \
-    FloatDWConvTemplate, FloatEluTemplate, FloatExpTemplate, FloatFloorTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, FloatGroupNormTemplate, FloatHardSigmoidTemplate, \
-    FloatHardSwishTemplate, FloatInstanceNormTemplate, FloatLayernormTemplate, FloatLeakyReluTemplate, \
-    FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, \
-    FloatReduceMeanTemplate, FloatReluTemplate, FloatSeluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, \
-    FloatSqrtTemplate, FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
-    ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
-    ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
-    RQSiGELUTemplate, ScatterTemplate, SliceTemplate, SubTemplate, TransposeTemplate, iGELUTemplate, \
-    iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, Col2ImTemplate, ConcatTemplate, \
+    ConvTemplate, ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, \
+    FloatAddTemplate, FloatAveragePoolTemplate, FloatCeilTemplate, FloatClipTemplate, FloatConvTemplate, \
+    FloatDivTemplate, FloatDWConvTemplate, FloatEluTemplate, FloatExpTemplate, FloatFloorTemplate, FloatGELUTemplate, \
+    FloatGemmTemplate, FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, FloatGroupNormTemplate, \
+    FloatHardSigmoidTemplate, FloatHardSwishTemplate, FloatInstanceNormTemplate, FloatLayernormTemplate, \
+    FloatLeakyReluTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, \
+    FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSeluTemplate, FloatSigmoidTemplate, \
+    FloatSoftmaxTemplate, FloatSqrtTemplate, FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, \
+    IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, \
+    PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, \
+    RQIntegerDivTemplate, RQSiGELUTemplate, ScatterTemplate, SliceTemplate, SubTemplate, TransposeTemplate, \
+    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
     LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, PassThroughTypeChecker, QuantChecker, \
@@ -435,6 +435,13 @@ BasicGlobalAveragePoolBindings = [
 BasicGlobalMaxPoolBindings = [
     NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatGlobalMaxPoolTemplate.referenceTemplate, BasicTransformer)
+]
+
+BasicCol2ImBindings = [
+    NodeBinding(
+        PassThroughTypeChecker([PointerClass(type), PointerClass(int32_t),
+                                PointerClass(int32_t)], [PointerClass(type)]), Col2ImTemplate.referenceTemplate,
+        BasicTransformer) for type in (int8_t, uint8_t, float32_t)
 ]
 
 BasicScatterBindings = [
