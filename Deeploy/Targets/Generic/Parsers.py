@@ -3152,3 +3152,46 @@ class GlobalMaxPoolParser(GlobalPoolParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'GlobalMaxPool'
+
+
+class ScatterParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        if not all([
+                node.op == 'Scatter' or node.op == 'ScatterElements',
+                len(node.inputs) == 3,
+                len(node.outputs) == 1,
+        ]):
+            return False
+
+        axis = node.attrs.get('axis', 0)
+        reduction = node.attrs.get('reduction', 'none')
+
+        if reduction not in ('none', 'add', 'mul', 'max', 'min'):
+            return False
+
+        self.operatorRepresentation['axis'] = axis
+        self.operatorRepresentation['reduction'] = reduction
+
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        indices = ctxt.lookup(node.inputs[1].name)
+        updates = ctxt.lookup(node.inputs[2].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['indices'] = indices.name
+        self.operatorRepresentation['updates'] = updates.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        self.operatorRepresentation['ndim'] = len(data_in.shape)
+        self.operatorRepresentation['data_shape'] = list(data_in.shape)
+        self.operatorRepresentation['indices_shape'] = list(indices.shape)
+
+        return ctxt, True

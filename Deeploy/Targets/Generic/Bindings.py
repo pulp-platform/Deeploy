@@ -22,13 +22,13 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     FloatSqrtTemplate, FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, \
     ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
     ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
-    RQSiGELUTemplate, SliceTemplate, SubTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate
+    RQSiGELUTemplate, ScatterTemplate, SliceTemplate, SubTemplate, TransposeTemplate, iGELUTemplate, \
+    iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
-    LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, \
-    ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, \
-    SoftmaxChecker, TransposeChecker
+    LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, PassThroughTypeChecker, QuantChecker, \
+    ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, \
+    SliceChecker, SoftmaxChecker, TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -435,4 +435,11 @@ BasicGlobalAveragePoolBindings = [
 BasicGlobalMaxPoolBindings = [
     NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatGlobalMaxPoolTemplate.referenceTemplate, BasicTransformer)
+]
+
+BasicScatterBindings = [
+    NodeBinding(
+        PassThroughTypeChecker(
+            [PointerClass(type), PointerClass(int32_t), PointerClass(type)], [PointerClass(type)]),
+        ScatterTemplate.referenceTemplate, BasicTransformer) for type in (int8_t, uint8_t, float32_t)
 ]

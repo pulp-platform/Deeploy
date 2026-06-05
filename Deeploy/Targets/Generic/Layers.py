@@ -814,3 +814,15 @@ class GlobalMaxPoolLayer(ONNXLayer):
         opRep = self.mapper.parser.operatorRepresentation
         # (spatial_size - 1) comparisons per output channel
         return int(opRep['batch_size'] * opRep['num_channels'] * (opRep['spatial_size'] - 1))
+
+
+class ScatterLayer(ONNXLayer):
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+        if opRep.get('reduction', 'none') == 'none':
+            # no arithmetic operations
+            return 0
+        else:
+            # 1 op per index element
+            return int(np.prod(opRep['indices_shape']))

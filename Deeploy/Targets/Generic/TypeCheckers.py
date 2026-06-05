@@ -2,19 +2,49 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Optional, Sequence, Type
+from typing import List, Optional
 
 import numpy as np
 
-from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
 from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
 
 
-class ConcatChecker(SignPropTypeChecker):
+class DummyChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> List[int]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+
+class PassThroughTypeChecker(SignPropTypeChecker):
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+        return [inputs[0].nLevels]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [bool(inputs[0]._signed)]
+
+
+SliceChecker = PassThroughTypeChecker
+TransposeChecker = PassThroughTypeChecker
+PadChecker = PassThroughTypeChecker
+GatherChecker = PassThroughTypeChecker
+ReshapeChecker = PassThroughTypeChecker
+MaxPoolChecker = PassThroughTypeChecker
+DebugPrintChecker = PassThroughTypeChecker
+
+
+class SignedOutputTypeChecker(SignPropTypeChecker):
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
+        return [True]
+
+
+class ConcatChecker(SignPropTypeChecker):
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
@@ -34,61 +64,7 @@ class ConcatChecker(SignPropTypeChecker):
             return [False]
 
 
-class SliceChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
-        return [inputs[0].nLevels]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
-        if inputs[0]._signed:
-            return [True]
-        else:
-            return [False]
-
-
-class TransposeChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
-        return [inputs[0].nLevels]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
-        if inputs[0]._signed:
-            return [True]
-        else:
-            return [False]
-
-
-class PadChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [inputs[0].nLevels]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        if inputs[0]._signed:
-            return [True]
-        else:
-            return [False]
-
-
 class AddChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -102,44 +78,7 @@ class AddChecker(SignPropTypeChecker):
             return [False]
 
 
-class GatherChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [inputs[0].nLevels]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        if inputs[0]._signed:
-            return [True]
-        else:
-            return [False]
-
-
-class ReshapeChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [inputs[0].nLevels]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        if inputs[0]._signed:
-            return [True]
-        else:
-            return [False]
-
-
 class MHSAChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -150,28 +89,14 @@ class MHSAChecker(SignPropTypeChecker):
         return [True]
 
 
-class CLCAChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+class CLCAChecker(DummyChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
 
 
-class LinearAttentionChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+class LinearAttentionChecker(DummyChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
@@ -179,9 +104,6 @@ class LinearAttentionChecker(SignPropTypeChecker):
 
 
 class GEMMChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -195,14 +117,7 @@ class GEMMChecker(SignPropTypeChecker):
         return [True]
 
 
-class LayerNormChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+class LayerNormChecker(DummyChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
@@ -210,9 +125,6 @@ class LayerNormChecker(SignPropTypeChecker):
 
 
 class MulChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -228,9 +140,6 @@ class MulChecker(SignPropTypeChecker):
 
 class DivChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [2**(self.output_types[0].referencedType.typeWidth)]
@@ -245,9 +154,6 @@ class DivChecker(SignPropTypeChecker):
 
 class RQIntegerDivChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [2**(self.output_types[0].referencedType.typeWidth)]
@@ -261,9 +167,6 @@ class RQIntegerDivChecker(SignPropTypeChecker):
 
 
 class MatMulChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -281,9 +184,6 @@ class MatMulChecker(SignPropTypeChecker):
 
 class RQMatMulChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [operatorRepresentation['n_levels']]
@@ -295,9 +195,6 @@ class RQMatMulChecker(SignPropTypeChecker):
 
 class RQGEMMChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [operatorRepresentation['n_levels']]
@@ -307,14 +204,7 @@ class RQGEMMChecker(SignPropTypeChecker):
         return [bool(operatorRepresentation["signed"])]
 
 
-class ReduceMeanChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+class ReduceMeanChecker(DummyChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
@@ -325,9 +215,6 @@ class ReduceMeanChecker(SignPropTypeChecker):
 
 
 class ReduceSumChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -343,9 +230,6 @@ class ReduceSumChecker(SignPropTypeChecker):
 
 class ReluChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs, operatorRepresentation):
         return [2**(self.input_types[0].referencedType.typeWidth)]
 
@@ -354,14 +238,7 @@ class ReluChecker(SignPropTypeChecker):
         return [False]
 
 
-class SoftmaxChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+class SoftmaxChecker(DummyChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
@@ -369,9 +246,6 @@ class SoftmaxChecker(SignPropTypeChecker):
 
 
 class iNoNormChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -385,14 +259,7 @@ class iNoNormChecker(SignPropTypeChecker):
             return [False]
 
 
-class GELUChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+class GELUChecker(DummyChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
@@ -404,9 +271,6 @@ class GELUChecker(SignPropTypeChecker):
 
 class HardswishChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [2**(4 * self.input_types[0].referencedType.typeWidth)]
@@ -419,31 +283,7 @@ class HardswishChecker(SignPropTypeChecker):
             return [False]
 
 
-class RQHardswishChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        if inputs[0]._signed:
-            return [True]
-        else:
-            return [False]
-
-
-class MaxPoolChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [inputs[0].nLevels]
+class RQHardswishChecker(DummyChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
@@ -454,9 +294,6 @@ class MaxPoolChecker(SignPropTypeChecker):
 
 
 class ConvChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -476,9 +313,6 @@ class ConvChecker(SignPropTypeChecker):
 
 class RequantShiftChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [operatorRepresentation['n_levels']]
@@ -488,37 +322,7 @@ class RequantShiftChecker(SignPropTypeChecker):
         return [operatorRepresentation["signed"]]
 
 
-class DummyChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
-
-
-class DebugPrintChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [inputs[0].nLevels]
-
-    def _inferSignedness(self, inputs: List[VariableBuffer],
-                         operatorRepresentation: OperatorRepresentation) -> List[bool]:
-        if inputs[0]._signed:
-            return [True]
-        else:
-            return [False]
-
-
 class RQAddChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
@@ -540,9 +344,6 @@ class RQAddChecker(SignPropTypeChecker):
 
 class QuantChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         # Calculate number of levels based on bit_width
@@ -557,9 +358,6 @@ class QuantChecker(SignPropTypeChecker):
 
 class DequantChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [2**(self.output_types[0].referencedType.typeWidth)]
@@ -570,9 +368,6 @@ class DequantChecker(SignPropTypeChecker):
 
 
 class SoftmaxCrossEntropyLossChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
 
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
@@ -586,9 +381,6 @@ class SoftmaxCrossEntropyLossChecker(SignPropTypeChecker):
 
 class SGDChecker(SignPropTypeChecker):
 
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
         return [2**(self.input_types[0].referencedType.typeWidth)]
@@ -598,14 +390,7 @@ class SGDChecker(SignPropTypeChecker):
         return [True]
 
 
-class BatchNormChecker(SignPropTypeChecker):
-
-    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
-        super().__init__(input_types, output_types)
-
-    def _inferNumLevels(self, inputs: List[VariableBuffer],
-                        operatorRepresentation: OperatorRepresentation) -> List[int]:
-        return [2**(self.input_types[0].referencedType.typeWidth)]
+class BatchNormChecker(DummyChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
