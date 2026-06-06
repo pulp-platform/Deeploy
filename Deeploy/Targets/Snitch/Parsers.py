@@ -112,8 +112,14 @@ class SnitchAddParser(AddParser):
     pass
 
 
-class SnitchDivParser(DivParser):
-    """Inherits from Generic DivParser and adds scalar detection."""
+class _ScalarElementwiseMixin:
+    """Shared parsing for FP32 Div/Mul on Snitch.
+
+    The kernels (Div_fp32/Mul_fp32) only support equal-shape element-wise
+    operation or a scalar second operand (they read input2[0]); there is no
+    broadcasting kernel. Reject any genuine broadcast so unsupported shapes
+    fail to bind instead of generating out-of-bounds reads.
+    """
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -125,34 +131,20 @@ class SnitchDivParser(DivParser):
 
         shape1 = list(ctxt.lookup(node.inputs[0].name).shape)
         shape2 = list(ctxt.lookup(node.inputs[1].name).shape)
-        out_shape = list(ctxt.lookup(node.outputs[0].name).shape)
 
-        self.operatorRepresentation['size'] = int(np.prod(out_shape))
-        self.operatorRepresentation['input1_is_scalar'] = (np.prod(shape1) == 1)
-        self.operatorRepresentation['input2_is_scalar'] = (np.prod(shape2) == 1)
-        self.operatorRepresentation['is_scalar'] = (np.prod(shape1) == 1 or np.prod(shape2) == 1)
-
-        return ctxt, True
-
-
-class SnitchMulParser(MulParser):
-    """Inherits from Generic MulParser and adds scalar detection."""
-
-    def parseNodeCtxt(self,
-                      ctxt: NetworkContext,
-                      node: gs.Node,
-                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        ctxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
-        if not ret:
+        second_is_scalar = (np.prod(shape2) == 1)
+        if shape1 != shape2 and not second_is_scalar:
             return ctxt, False
 
-        shape1 = list(ctxt.lookup(node.inputs[0].name).shape)
-        shape2 = list(ctxt.lookup(node.inputs[1].name).shape)
-        out_shape = list(ctxt.lookup(node.outputs[0].name).shape)
-
-        self.operatorRepresentation['size'] = int(np.prod(out_shape))
-        self.operatorRepresentation['input1_is_scalar'] = (np.prod(shape1) == 1)
-        self.operatorRepresentation['input2_is_scalar'] = (np.prod(shape2) == 1)
-        self.operatorRepresentation['is_scalar'] = (np.prod(shape1) == 1 or np.prod(shape2) == 1)
+        self.operatorRepresentation['size'] = int(np.prod(shape1))
+        self.operatorRepresentation['is_scalar'] = second_is_scalar
 
         return ctxt, True
+
+
+class SnitchDivParser(_ScalarElementwiseMixin, DivParser):
+    pass
+
+
+class SnitchMulParser(_ScalarElementwiseMixin, MulParser):
+    pass
