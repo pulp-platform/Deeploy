@@ -289,13 +289,28 @@ class FloatImmediate(Immediate[Union[float, Iterable[float]], _ImmediateType]):
                 continue
 
             # Check if exponent is representable.
-            if (cls.typeExponentOffset + exponent) > cls.typeExponentMax or (cls.typeExponentOffset + exponent) < 0:
+            biased_exp = cls.typeExponentOffset + exponent
+            if biased_exp > cls.typeExponentMax:
                 return False
-
-            # Check if mantissa is representable. Implicit assumption is that cls.typeMantissa < 52 (like in FP64)
-            truncated_mantissa = 1 + math.floor((2**cls.typeMantissa) * (mantissa - 1)) / (2**cls.typeMantissa)
-            if math.fabs(truncated_mantissa - mantissa) > 0.0:
-                return False
+            elif biased_exp >= 1:
+                # Normal number: check if mantissa is representable.
+                # Implicit assumption is that cls.typeMantissa < 52 (like in FP64)
+                truncated_mantissa = 1 + math.floor((2**cls.typeMantissa) * (mantissa - 1)) / (2**cls.typeMantissa)
+                if math.fabs(truncated_mantissa - mantissa) > 0.0:
+                    return False
+            else:
+                # Subnormal candidate (biased_exp <= 0).
+                # Minimum subnormal has biased_exp = 1 - typeMantissa (one ULP above zero).
+                if biased_exp < (1 - cls.typeMantissa):
+                    return False
+                # Value = mantissa * 2^exponent must be an integer multiple of the subnormal LSB
+                # (2^(1 - typeExponentOffset - typeMantissa)). The number of LSBs is:
+                #   mantissa * 2^(biased_exp - 1 + typeMantissa)
+                # which must be an exact integer for the value to be representable.
+                shift = biased_exp - 1 + cls.typeMantissa
+                mantissa_bits_float = mantissa * (2**shift)
+                if math.fabs(mantissa_bits_float - round(mantissa_bits_float)) > 0.0:
+                    return False
 
         return True
 
