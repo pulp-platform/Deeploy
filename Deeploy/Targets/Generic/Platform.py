@@ -12,25 +12,25 @@ from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicBatchNormBin
     BasicGELUBindings, BasicGEMMBindings, BasicInPlaceAccumulatorV2Bindings, BasicITAPartialSoftmaxBinding, \
     BasicITASoftmaxBinding, BasicLayerNormBindings, BasicMatMulBindings, BasicMaxPool1DBindings, \
     BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicPowBindings, \
-    BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, \
+    BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, BasicRelu6Binding, BasicReshapeBindings, \
     BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSliceBindings, BasicSoftmaxBindings, \
     BasicSqrtBindings, BasicTransposeBindings, DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, BatchNormalizationLayer, ConcatLayer, ConvLayer, \
     ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, GatherLayer, GELULayer, GEMMLayer, \
     InPlaceAccumulatorV2Layer, ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, PowLayer, \
-    QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, \
+    QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, Relu6Layer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, \
     RQSiGELULayer, SliceLayer, SoftmaxLayer, SqrtLayer, TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, BatchNormParser, ConcatParser, ConvTranspose1DParser, \
     DebugParser, DequantParser, DivParser, DummyParser, FlattenParser, GatherParser, GELUParser, GenericConv1DParser, \
     GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, \
     InPlaceAccumulatorV2Parser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, MatMulParser, \
     MaxPool1DParser, MulParser, Pad1DParser, Pad2DParser, PowParser, QuantParser, ReduceMeanParser, ReduceSumParser, \
-    ReluParser, RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, SoftmaxParser, \
+    ReluParser, Relu6Parser, RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SliceParser, SoftmaxParser, \
     SqrtParser, TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, ExtractPaddingFromConvPass, \
-    ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
-    iGELURequantMergePass
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ClipToRelu6Pass, DequantPatternPass, \
+    ExtractPaddingFromConvPass, ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, \
+    QuantPatternPass, iGELURequantMergePass
 
 AddMapper = NodeMapper(AddParser(), BasicAddBindings)
 Conv1DMapper = NodeMapper(GenericConv1DParser(), BasicConv1DBindings)
@@ -60,6 +60,7 @@ Pad2DMapper = NodeMapper(Pad2DParser(), BasicPad2DBindings)
 ReduceMeanMapper = NodeMapper(ReduceMeanParser(), BasicReduceMeanBindings)
 ReduceSumMapper = NodeMapper(ReduceSumParser(), BasicReduceSumBindings)
 ReluMapper = NodeMapper(ReluParser(), [BasicReluBinding])
+Relu6Mapper = NodeMapper(Relu6Parser(), [BasicRelu6Binding])
 RequantShiftMapper = NodeMapper(RequantShiftParser(), BasicRQSBindings)
 ReshapeMapper = NodeMapper(ReshapeParser(), BasicReshapeBindings)
 RQGELUMapper = NodeMapper(RQSiGELUParser(), [BasicRQSGELUBinding])
@@ -108,6 +109,7 @@ GenericMapping = {
     'ReduceMean': ReduceMeanLayer([ReduceMeanMapper]),
     'ReduceSum': ReduceSumLayer([ReduceSumMapper]),
     'Relu': ReluLayer([ReluMapper]),
+    'Relu6': Relu6Layer([Relu6Mapper]),
     'RequantizediGELU': RQSiGELULayer([RQGELUMapper]),
     'RequantShift': RequantShiftLayer([RequantShiftMapper]),
     'Reshape': ReshapeLayer([ReshapeMapper]),
@@ -160,6 +162,7 @@ GenericOptimizer = TopologyOptimizer(
     [
         QuantPatternPass(),
         DequantPatternPass(),
+        ClipToRelu6Pass(),
         iGELURequantMergePass(),
         MatMulAddMergePass(),
         MergeConstAddAndRequantPass(),

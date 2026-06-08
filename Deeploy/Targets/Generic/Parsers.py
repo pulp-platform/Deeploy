@@ -1117,6 +1117,10 @@ class ReluParser(NodeParser):
         return ctxt, True
 
 
+class Relu6Parser(ReluParser):
+    pass
+
+
 class ReluGradParser(NodeParser):
 
     def __init__(self):

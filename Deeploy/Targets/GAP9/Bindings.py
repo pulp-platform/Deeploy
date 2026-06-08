@@ -25,7 +25,7 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, Float
     FloatReduceSumTemplate, GatherTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate, DebugPrintTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
-    QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
+    QuantChecker, ReduceMeanChecker, ReluChecker, Relu6Checker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
     SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, InPlaceAccumulatorV2Checker, DebugPrintChecker, \
     PerturbZOChecker,RQSPerturbZOChecker
 from Deeploy.Targets.PULPOpen.Bindings import ForkClosure, L3MemoryAwareFunctionCallClosure, \
@@ -37,7 +37,7 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
     FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
-    FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, \
+    FloatMulTemplate, FloatReluTemplate, FloatRelu6Template, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, \
     MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate, FloatInPlaceAccumulatorV2Template, QuantTemplate, DequantTemplate, \
@@ -381,6 +381,9 @@ GAP9MulBindings = [
 GAP9ReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                               FloatReluTemplate.referenceTemplate, GAP9Transformer)
 
+GAP9Relu6Binding = NodeBinding(Relu6Checker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                               FloatRelu6Template.referenceTemplate, GAP9Transformer)
+
 GAP9ReluGradBinding = NodeBinding(
     ReluChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),    
     FloatReluTemplate.referenceGradTemplate, GAP9Transformer)
@@ -432,6 +435,7 @@ GAP9DequantBindings = [
     NodeBinding(DequantChecker([PointerClass(uint8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 GAP9Transformer)
 ]
+
 
 GAP9InPlaceAccumulatorV2Bindings = [
     NodeBinding(

@@ -18,7 +18,7 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, Dequa
     GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, \
-    MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, \
+    MatMulChecker, MulChecker, QuantChecker, ReduceMeanChecker, ReluChecker, Relu6Checker, ReshapeChecker, RQAddChecker, \
     RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, \
     PerturbZOChecker,RQSPerturbZOChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -30,7 +30,7 @@ from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
     FloatGELUTemplate, FloatGemmTemplate, FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
-    FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, \
+    FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatRelu6Template, FloatSoftmaxTemplate, GEMMTemplate, \
     MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, \
     RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, \
     TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate, FloatPerturbNormalTemplate, \
@@ -441,6 +441,9 @@ PULPMulBindings = [
 PULPReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                               FloatReluTemplate.referenceTemplate, ForkTransformer)
 
+PULPRelu6Binding = NodeBinding(Relu6Checker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                               FloatRelu6Template.referenceTemplate, ForkTransformer)
+
 PULPReluGradBinding = NodeBinding(
     ReluChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),    
     FloatReluTemplate.referenceGradTemplate, ForkTransformer)
@@ -497,6 +500,7 @@ PULPDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(uint32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 ForkTransformer)
 ]
+
 
 PULPPerturbNormalBindings = [
     NodeBinding(

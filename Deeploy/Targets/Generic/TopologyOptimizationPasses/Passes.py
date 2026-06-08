@@ -1183,3 +1183,44 @@ class DequantPatternPass(ReplaceSequentialPatternPass):
 
         name = "_RECOGNIZE_DEQUANT_PASS"
         super().__init__(graph, _recognize_dequant_fun, name)
+
+
+def _clip_to_relu_fun(graph: gs.Graph, match: Match, name: str):
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    clip_node = matched_nodes[0]
+
+    # Only replace Clip(min=0, ...) — leave negative-min clips (quant bounds) untouched
+    if len(clip_node.inputs) < 2 or not isinstance(clip_node.inputs[1], gs.Constant):
+        return graph
+    min_val = float(clip_node.inputs[1].values.flatten()[0])
+    if min_val != 0.0:
+        return graph
+
+    # Clip(0, 6) → Relu6; Clip(0, anything_else) → Relu
+    max_val = None
+    if len(clip_node.inputs) > 2 and isinstance(clip_node.inputs[2], gs.Constant):
+        max_val = float(clip_node.inputs[2].values.flatten()[0])
+
+    if max_val == 6.0:
+        node = gs.Node(op = 'Relu6', name = name)
+    else:
+        node = gs.Node(op = 'Relu', name = name)
+
+    graph.replaceInsertNode([clip_node.inputs[0]], clip_node.outputs, node)
+    return graph
+
+
+@contextagnostic
+class ClipToRelu6Pass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_0')
+
+        clip_output = graph.layer(inputs = [_input], outputs = ['clip_out'], op = 'Clip', name = 'clip')
+
+        graph.outputs.append(clip_output)
+        graph.inputs.append(_input)
+
+        name = "_CLIP_TO_RELU6_PASS"
+        super().__init__(graph, _clip_to_relu_fun, name)

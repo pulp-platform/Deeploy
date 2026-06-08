@@ -354,6 +354,10 @@ class ReluChecker(SignPropTypeChecker):
         return [False]
 
 
+class Relu6Checker(ReluChecker):
+    pass
+
+
 class SoftmaxChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):

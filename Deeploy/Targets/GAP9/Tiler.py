@@ -13,7 +13,7 @@ import copy
 from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9ConcatBindings, GAP9FloatConv2DBindings, \
     GAP9FloatDWConv2DBindings, GAP9FloatGELUBinding, GAP9FloatGEMMBindings, GAP9GatherBindings, \
     GAP9iHardswishBindings, GAP9iRMSNormBindings, GAP9iRQSGELUBindings, GAP9LayernormBinding, GAP9MatMulBindings, \
-    GAP9MaxPool2DBindings, GAP9MulBindings, GAP9ReduceSumBindings, GAP9ReluBinding, GAP9ReshapeBindings, \
+    GAP9MaxPool2DBindings, GAP9MulBindings, GAP9ReduceSumBindings, GAP9ReluBinding, GAP9Relu6Binding, GAP9ReshapeBindings, \
     GAP9RQAddBindings, GAP9RQSBindings, GAP9RQSConv2DBindings, GAP9RQSDWConv2DBindings, GAP9RQSGEMMBindings, \
     GAP9RQSiHardswishBindings, GAP9RQSMatrixVecBindings, GAP9RQSTallGEMMBindings, GAP9SGDBindings, \
     GAP9SoftmaxBindings, GAP9SoftmaxCrossEntropyLossBindings, GAP9SoftmaxCrossEntropyLossGradBindings, \
@@ -101,6 +101,7 @@ GAP9QuantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9QuantB
 GAP9DequantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9DequantBindings,
                                                         tileConstraint = UnaryTileConstraint())
 
+
 GAP9RQSTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9RQSBindings,
                                                      tileConstraint = RequantShiftTileConstraint())
 
@@ -130,6 +131,9 @@ GAP9MulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9MulBindi
 
 GAP9ReluTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [GAP9ReluBinding],
                                                       tileConstraint = UnaryTileConstraint())
+
+GAP9Relu6TilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [GAP9Relu6Binding],
+                                                       tileConstraint = UnaryTileConstraint())
 
 GAP9LayernormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [GAP9LayernormBinding],
                                                            tileConstraint = LayernormTileConstraint())

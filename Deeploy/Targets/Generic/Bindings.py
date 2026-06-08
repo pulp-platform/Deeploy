@@ -15,7 +15,7 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
     FloatConvTemplate, FloatDivTemplate, FloatDWConvTemplate, FloatGELUTemplate, FloatGemmTemplate, \
     FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
-    FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
+    FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatRelu6Template, \
     FloatSoftmaxTemplate, FloatSqrtTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, \
     ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
     ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
@@ -24,7 +24,7 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
     InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, \
-    QuantChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, \
+    QuantChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, Relu6Checker, RequantShiftChecker, ReshapeChecker, \
     RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
@@ -226,6 +226,9 @@ BasicReduceSumBindings = [
 BasicReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                                FloatReluTemplate.referenceTemplate, BasicTransformer)
 
+BasicRelu6Binding = NodeBinding(Relu6Checker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                                FloatRelu6Template.referenceTemplate, BasicTransformer)
+
 BasicReshapeBindings = [
     NodeBinding(ReshapeChecker([PointerClass(type), PointerClass(int32_t)], [PointerClass(type)]),
                 ReshapeTemplate.referenceTemplate, ReshapeSkipTransformer) for type in IntegerDataTypes
@@ -296,6 +299,7 @@ BasicDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 BasicTransformer),
 ]
+
 
 BasicBatchNormBindings = [
     NodeBinding(

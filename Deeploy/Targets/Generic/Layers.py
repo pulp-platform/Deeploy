@@ -447,6 +447,10 @@ class ReluLayer(ONNXLayer):
         return self.mapper.parser.operatorRepresentation['size']
 
 
+class Relu6Layer(ReluLayer):
+    pass
+
+
 class LayerNormLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):

@@ -25,6 +25,24 @@ void PULP_Relu_fp32_fp32(float32_t *input, float32_t *output, uint32_t size) {
   }
 }
 
+void PULP_Relu6_fp32_fp32(float32_t *input, float32_t *output, uint32_t size) {
+
+  int8_t core_id = pi_core_id();
+  int8_t log2Core = LOG2(NUM_CORES);
+
+  int32_t chunk = (size >> log2Core) + ((size & (NUM_CORES - 1)) != 0);
+  int32_t start = MIN(chunk * core_id, size);
+  int32_t end = MIN(start + chunk, size);
+  int32_t local_size = end - start;
+
+  float32_t *local_input = input + start;
+  float32_t *local_output = output + start;
+
+  for (int32_t i = 0; i < local_size; i++) {
+    local_output[i] = MIN(MAX(local_input[i], 0.0f), 6.0f);
+  }
+}
+
 void PULP_ReluGrad_fp32_fp32(float32_t *grad_out, float32_t *data_in, 
                               float32_t *grad_in, uint32_t size) {
 
