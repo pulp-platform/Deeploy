@@ -102,6 +102,9 @@ int main(void) {
 
   pi_cluster_task(&cluster_task, InitNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
+  printf("[Deeploy] nb_cores=%d slave_stack=%d stacks_total=%d\r\n",
+         cluster_task.nb_cores, cluster_task.slave_stack_size,
+         cluster_task.nb_cores * cluster_task.slave_stack_size);
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
 #ifndef CI
