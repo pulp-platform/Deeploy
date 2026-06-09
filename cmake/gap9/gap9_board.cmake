@@ -36,22 +36,27 @@ macro(add_board_deployment name target)
         --openocd-cable=${GAP9_SDK_HOME}/utils/openocd_tools/tcl/gapuino_ftdi.cfg
         --openocd-script=${GAP9_SDK_HOME}/utils/openocd_tools/tcl/gap9revb.tcl
         --openocd-tools=${GAP9_SDK_HOME}/utils/openocd_tools
-        --binary=${DEEPLOY_BINARY}
         --work-dir=${BOARD_WORKDIR}
         --multi-flash-content=${FLASH_LAYOUT}
         --flash-size=67108864
         --flash-property=${FSBL_BINARY}@mram:fsbl:binary
         --flash-property=${SSBL_BINARY}@mram:ssbl:binary
-        --flash-property=${DEEPLOY_BINARY}@mram:app:binary run
-        --py-stack
+        --flash-property=${DEEPLOY_BINARY}@mram:app:binary
     )
 
-    # Add readfs files if provided
+    # Add readfs files if provided (MUST come before the subcommand appended below)
     if(GAPY_RUNNER_ARGS)
         list(LENGTH GAPY_RUNNER_ARGS num_readfs_files)
         message(STATUS "[Deeploy GAP9] Adding ${num_readfs_files} readfs file(s)")
         list(APPEND GAPY_CMD ${GAPY_RUNNER_ARGS})
     endif()
+
+    # Subcommand + binary go LAST, after all --flash-property options
+    list(APPEND GAPY_CMD
+        --py-stack
+        image flash run
+        --binary=${DEEPLOY_BINARY}
+    )
 
     # Convert list to string for printing
     string(REPLACE ";" " " GAPY_CMD_STR "${GAPY_CMD}")

@@ -47,6 +47,16 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
         values = _shapeBroadcast(deployer.ctxt, values, bufferName)
 
         buffer = deployer.ctxt.lookup(bufferName)
+
+        # When the input lives in L3, its data is delivered at runtime from
+        # the readfs hex file (load_file_to_ram) and every L3-capable harness
+        # skips the testInputVector memcpy for external (L3) addresses. Emitting
+        # the data here would just duplicate the whole input tensor inside the
+        # binary, so keep a NULL placeholder to preserve testInputVector[]
+        # indexing without storing the data twice.
+        if getattr(buffer, "_memoryLevel", None) == "L3":
+            vectors.append("NULL")
+            continue
         typeName = buffer._type.referencedType.typeName
         typeWidth = buffer._type.referencedType.typeWidth
 
