@@ -5,13 +5,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
-<<<<<<< HEAD
-=======
 - Add Microbenchmarking Infrastructure and CI Using GVSoC CSR [#162](https://github.com/pulp-platform/Deeploy/pull/162)
 - Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
 - Fix Broken CI [#175](https://github.com/pulp-platform/Deeploy/pull/175)
 - Improve Docstring and Debugging [#160](https://github.com/pulp-platform/Deeploy/pull/160)
->>>>>>> gap9-l3-board-readfs-fix
 - Add GAP9 Container Support [#163](https://github.com/pulp-platform/Deeploy/pull/163)
 - Extend Codeowners [#164](https://github.com/pulp-platform/Deeploy/pull/164)
 - Support for MaxPool1D and RQSConv1D for PULPOpen [#146](https://github.com/pulp-platform/Deeploy/pull/146)
@@ -23,11 +20,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix GAP9 L3 Board Tests: readfs Flash Ordering and Duplicate Input Data [#196](https://github.com/pulp-platform/Deeploy/pull/196)
 
 ### Added
-<<<<<<< HEAD
-=======
 - Add many missing docstrings
 - Add `__repr__()` function for `_ReferenceBuffer` class
->>>>>>> gap9-l3-board-readfs-fix
 - GAP9 Container Support with ARM64 architecture support
 - `zsh` and `oh-my-zsh` plugin installation in containers
 - Shell Format pre-commit hook
@@ -37,15 +31,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Add support for the Generic target for the following operators [Ceil](https://onnx.ai/onnx/operators/onnx__Ceil.html), [Floor](https://onnx.ai/onnx/operators/onnx__Floor.html), [Clip](https://onnx.ai/onnx/operators/onnx__Clip.html), [Sub](https://onnx.ai/onnx/operators/onnx__Sub.html), [Exp](https://onnx.ai/onnx/operators/onnx__Exp.html), [Sigmoid](https://onnx.ai/onnx/operators/onnx__Sigmoid.html), [Swish](https://onnx.ai/onnx/operators/onnx__Swish.html), [HardSigmoid](https://onnx.ai/onnx/operators/onnx__HardSigmoid.html), [HardSwish](https://onnx.ai/onnx/operators/onnx__HardSwish.html), [InstanceNormalization](https://onnx.ai/onnx/operators/onnx__InstanceNormalization.html), [GroupNormalization](https://onnx.ai/onnx/operators/onnx__GroupNormalization.html), [AveragePool](https://onnx.ai/onnx/operators/onnx__AveragePool.html), [GlobalAveragePool](https://onnx.ai/onnx/operators/onnx__GlobalAveragePool.html), [GlobalMaxPool](https://onnx.ai/onnx/operators/onnx__GlobalMaxPool.html).
 
 ### Changed
-<<<<<<< HEAD
-=======
 - Use by default `devel` container for GAP9 CI
 - Extend Readme platforms with GAP9 shields
 - Move `MemoryAwareClosureGeneration` pass to `MemoryLevelExtension`
 - Move `MemoryAwarePrint*` passes to `MemoryLevelExtension`
 - Make `sizeInBytes` a class property instead of a function
 - Move `AnnotateNeurekaWeightMemoryLevel` to `Neureka` specific folder
->>>>>>> gap9-l3-board-readfs-fix
 - Cleaned up Docker flow to use a temporary build folder
 - Switch CI to use pre-commit for linting
 - Update `pulp-nnx` and `pulp-nn-mixed` submodules to their latest versions
