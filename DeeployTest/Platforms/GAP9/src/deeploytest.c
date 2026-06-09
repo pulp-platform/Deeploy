@@ -44,6 +44,9 @@ void CompareFloatOnCluster(void *args) {
     int *err_count = compare_args->err_count;
 
     int local_err_count = 0;
+    int nan_count = 0, inf_count = 0, first_bad = -1;
+    float amin = 0.0f, amax = 0.0f;
+    int seen_finite = 0;
 
     for (int i = 0; i < num_elements; i++) {
       float expected_val = expected[i];
@@ -51,14 +54,43 @@ void CompareFloatOnCluster(void *args) {
       float diff = expected_val - actual_val;
       int is_err = (diff < -1e-4) || (diff > 1e-4) || isnan(diff);
 
+      if (isnan(actual_val)) {
+        nan_count += 1;
+        if (first_bad < 0)
+          first_bad = i;
+      } else if (isinf(actual_val)) {
+        inf_count += 1;
+        if (first_bad < 0)
+          first_bad = i;
+      } else {
+        if (!seen_finite) {
+          amin = amax = actual_val;
+          seen_finite = 1;
+        } else {
+          if (actual_val < amin)
+            amin = actual_val;
+          if (actual_val > amax)
+            amax = actual_val;
+        }
+      }
+
       if (is_err) {
         local_err_count += 1;
       }
 
-      printf("Out %u[%6d] expected: %12.6f  actual: %12.6f  diff: %12.6f%s\r\n",
-             output_buf_index, i, expected_val, actual_val, diff,
-             is_err ? "  <-- ERR" : "");
+      // Full per-element dump only for small outputs (e.g. final classifier)
+      if (num_elements <= 32) {
+        printf("Out %u[%4d] expected: %12.6f  actual: %12.6f  diff: %12.6f%s\r\n",
+               output_buf_index, i, expected_val, actual_val, diff,
+               is_err ? "  <-- ERR" : "");
+      }
     }
+
+    // Compact summary — works for any tensor size (use for NaN bisection)
+    printf("[SUMMARY] Out %u: n=%d errs=%d nan=%d inf=%d first_bad=%d "
+           "actual_min=%.6f actual_max=%.6f\r\n",
+           output_buf_index, num_elements, local_err_count, nan_count,
+           inf_count, first_bad, amin, amax);
 
     *err_count = local_err_count;
   }
