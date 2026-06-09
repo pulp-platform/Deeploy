@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+import sys
 
 from Deeploy.Logging import DEFAULT_LOGGER as log
 
