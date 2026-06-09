@@ -7,13 +7,13 @@ from typing import Dict, List, Tuple
 import numpy as np
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import uint16_t
+from Deeploy.CommonExtensions.DataTypes import uint16_t, uint32_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
-    VariableReplacementScheme
+    VariableReplacementScheme, calculateFlatOffset, stridesFromShape
 
 
 class RQSPerturbTileConstraint(TileConstraint):
@@ -62,11 +62,20 @@ class RQSPerturbTileConstraint(TileConstraint):
 
         rqCubes = []
 
-        replacements = {"size": [], "channel_width": []}
+        replacements = {"size": [], "channel_width": [], "tile_seed_offset": []}
         replacementTypes = {
             "size": PointerClass(uint16_t),
             "channel_width": PointerClass(uint16_t),
+            "tile_seed_offset": PointerClass(uint32_t),  # uint32: global offsets exceed uint16
         }
+
+        # Per-tile global element offset, so the RNG seed differs between tiles.
+        outShape = ctxt.lookup(operatorRepresentation['data_out']).shape
+        if isinstance(outShape, int):  # 1-D buffers store shape as a bare int
+            outShape = (outShape,)
+        outStrides = stridesFromShape(outShape)
+        for absCube in absoluteOutputCubes:
+            replacements['tile_seed_offset'].append(calculateFlatOffset(absCube.absoluteOffset, outStrides))
 
         for cube in inputCubes:
             

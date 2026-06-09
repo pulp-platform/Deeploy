@@ -13,7 +13,8 @@ from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme, \
+    calculateFlatOffset, stridesFromShape
 
 
 class EggrollTileConstraint(TileConstraint):
@@ -66,14 +67,23 @@ class EggrollTileConstraint(TileConstraint):
                                                                   operatorRepresentation, addrNames)
 
         
-        replacements = {"inputDimVar0": [], "inputDimVar1": [], "size": []}
-        replacementTypes = {"inputDimVar0": PointerClass(uint32_t), "inputDimVar1": PointerClass(uint32_t), "size": PointerClass(uint32_t)}
+        replacements = {"inputDimVar0": [], "inputDimVar1": [], "size": [], "tile_seed_offset": []}
+        replacementTypes = {"inputDimVar0": PointerClass(uint32_t), "inputDimVar1": PointerClass(uint32_t), "size": PointerClass(uint32_t), "tile_seed_offset": PointerClass(uint32_t)}
+
+        # Per-tile global element offset, so the RNG seed differs between tiles.
+        outShape = ctxt.lookup(operatorRepresentation['data_out']).shape
+        if isinstance(outShape, int):  # 1-D buffers store shape as a bare int
+            outShape = (outShape,)
+        outStrides = stridesFromShape(outShape)
 
         for cube in outputCubes:
             newSize = np.prod(cube.dims)
             replacements["size"].append(newSize)
             replacements['inputDimVar0'].append(cube.dims[0])
             replacements['inputDimVar1'].append(cube.dims[1])
+
+        for absCube in absoluteOutputCubes:
+            replacements['tile_seed_offset'].append(calculateFlatOffset(absCube.absoluteOffset, outStrides))
 
 
         inputLoadSchedule = []

@@ -49,6 +49,7 @@ from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileCo
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RQSPerturbTileConstraint import RQSPerturbTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.PerturbTileConstraint import PerturbTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 PULPRQSConv1DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSConv1DBindings,
@@ -174,19 +175,19 @@ PULPReduceMeanTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPR
                                                             tileConstraint = ReduceMeanTileConstraint())
 
 PULPPerturbNormalTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbNormalBindings,
-                                                                tileConstraint = UnaryTileConstraint())
+                                                                tileConstraint = PerturbTileConstraint())
 
 PULPPerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbUniformBindings,
-                                                                 tileConstraint = UnaryTileConstraint())
+                                                                 tileConstraint = PerturbTileConstraint())
 
 PULPPerturbEggrollTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbEggrollBindings,
                                                                 tileConstraint = EggrollTileConstraint())
 
 PULPPerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbRademacherBindings,
-                                                                 tileConstraint = UnaryTileConstraint())
+                                                                 tileConstraint = PerturbTileConstraint())
 
 PULPPerturbTriangleTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbTriangleBindings,
-                                                                tileConstraint = UnaryTileConstraint())
+                                                                tileConstraint = PerturbTileConstraint())
 
 PULPRQSPerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSPerturbUniformBindings,
                                                                  tileConstraint = RQSPerturbTileConstraint())

@@ -16,6 +16,8 @@ class _RQSPerturbRademacherTemplate(NodeTemplate):
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
         # Add the node's unique ID to help create a unique seed.
         operatorRepresentation['node_id'] = operatorRepresentation['nodeIdx']
+        # Per-tile seed offset (overridden per-tile when tiled; 0 when not tiled)
+        operatorRepresentation['tile_seed_offset'] = 0
         return ctxt, operatorRepresentation, []
 
 
@@ -34,7 +36,7 @@ uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop - ${nodeName}_chunk_sta
 uint32_t ${nodeName}_channel_start_offset = ${nodeName}_chunk_start % ${channel_width};
 
 // Pick large enough stride to minimize correlation between nodes.
-uint32_t chunk_seed = ${seed} + NUM_CORES * ${node_id} + ${nodeName}_core_id;
+uint32_t chunk_seed = (${seed} + NUM_CORES * ${node_id} + ${nodeName}_core_id) ^ (${tile_seed_offset} * 0x9E3779B1u);
 <%
 if isinstance(log2D, int):
     log2Dstring = log2D
