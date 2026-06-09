@@ -35,6 +35,8 @@ jobs:
     container:
       image: ${{ needs.select-env.outputs.image }}
     steps:
+      - name: Mark workspace as safe
+        run: git config --global --add safe.directory '*'
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -49,6 +51,8 @@ jobs:
     container:
       image: ${{ needs.select-env.outputs.image }}
     steps:
+      - name: Mark workspace as safe
+        run: git config --global --add safe.directory '*'
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:

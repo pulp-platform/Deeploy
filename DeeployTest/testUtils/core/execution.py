@@ -7,7 +7,6 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from Deeploy.Logging import DEFAULT_LOGGER as log
@@ -265,6 +264,12 @@ def escapeAnsi(line):
     ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
     return ansi_escape.sub('', line)
 
+# Source: https://stackoverflow.com/a/38662876
+def escapeAnsi(line):
+    ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
+    return ansi_escape.sub('', line)
+
+
 def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     """
     Run simulation and parse output.
@@ -337,41 +342,26 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
-    # For gvsoc + script wrapper: cmd is already a list for Popen (shell=False).
-    # For all other simulators: join into a string and run with shell=True.
-    if config.simulator == 'gvsoc' and config.platform != 'GAP9':
-        process = subprocess.Popen(cmd,
-                                    stdout = subprocess.PIPE,
-                                    stderr = subprocess.STDOUT,
-                                    shell = False,
-                                    encoding = 'utf-8')
-    else:
-        cmd_str = " ".join(cmd)
-        process = subprocess.Popen(cmd_str,
-                                    stdout = subprocess.PIPE,
-                                    stderr = subprocess.STDOUT,
-                                    shell = True,
-                                    encoding = 'utf-8')
+    cmd_str = " ".join(cmd)
+    with subprocess.Popen(cmd_str,
+                          stdout = subprocess.PIPE,
+                          stderr = subprocess.STDOUT,
+                          shell = True,
+                          encoding = 'utf-8') as process:
 
-    fileHandle = open('out.txt', 'a', encoding = 'utf-8')
-    fileHandle.write(
-        f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
+        with open('out.txt', 'a', encoding = 'utf-8') as fileHandle:
+            fileHandle.write(
+                f"################## Testing {config.test_dir} on {config.platform} Platform ##################\n")
 
-    result = ""
-    while True:
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-            break
-        if output:
-            # Filter script(1) header/footer lines added by the PTY wrapper
-            if output.startswith('Script started on ') or output.startswith('Script done on '):
-                continue
-            print(output.strip(), flush=True)
-            result += output
-            fileHandle.write(f"{escapeAnsi(output)}")
-
-    fileHandle.write("")
-    fileHandle.close()
+            result = ""
+            while True:
+                output = process.stdout.readline()
+                if output == '' and process.poll() is not None:
+                    break
+                if output:
+                    print(output.strip())
+                    result += output
+                    fileHandle.write(f"{escapeAnsi(output)}")
 
     # Parse output for error count and cycles
     test_result = parse_test_output(result, "")

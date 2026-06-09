@@ -68,6 +68,45 @@ log_success() {
 	echo -e "\033[0;32m[SUCCESS]\033[0m $*"
 }
 
+# Resolve USBIP_HOST to an IP usable from the host network namespace.
+# On Linux, host.docker.internal doesn't resolve natively (no Docker Desktop DNS).
+resolve_usbip_host() {
+	local host="$1"
+	# Already an IP address — return as-is
+	if [[ "$host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		echo "$host"
+		return
+	fi
+	# On non-Linux (macOS/Windows), Docker Desktop resolves host.docker.internal natively
+	if [[ "$(uname -s)" != "Linux" ]]; then
+		echo "$host"
+		return
+	fi
+	# Linux: try standard DNS resolution
+	local ip
+	ip=$(getent hosts "$host" 2>/dev/null | awk '{print $1; exit}')
+	if [[ -n "$ip" ]]; then
+		echo "$ip"
+		return
+	fi
+	# Fallback for host.docker.internal on native Linux Docker:
+	# use the docker0 bridge interface or Docker bridge network gateway
+	if [[ "$host" == "host.docker.internal" ]]; then
+		ip=$(ip -4 addr show docker0 2>/dev/null | sed -n 's/.*inet \([0-9.]*\).*/\1/p' | head -1)
+		if [[ -n "$ip" ]]; then
+			echo "$ip"
+			return
+		fi
+		ip=$(docker network inspect bridge -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}' 2>/dev/null | head -1)
+		if [[ -n "$ip" ]]; then
+			echo "$ip"
+			return
+		fi
+	fi
+	# Last resort: return hostname as-is
+	echo "$host"
+}
+
 # Display help message
 show_help() {
 	cat <<EOF
@@ -291,6 +330,7 @@ cmd_start_usbip_daemon() {
 		--privileged \
 		--pid=host \
 		--name usbip-devmgr \
+		--add-host=host.docker.internal:host-gateway \
 		-e USBIP_HOST="$USBIP_HOST" \
 		-e USBIP_VENDOR="$USBIP_VENDOR" \
 		-e USBIP_PRODUCT="$USBIP_PRODUCT" \
@@ -304,29 +344,25 @@ cmd_attach_usbip() {
 	# First detach any existing attachment
 	cmd_detach_usbip || true
 
-	log_info "Attaching USB device to usbip-devmgr..."
-	docker exec \
-        -e USBIP_HOST="$USBIP_HOST" \
-        -e USBIP_VENDOR="$USBIP_VENDOR" \
-        -e USBIP_PRODUCT="$USBIP_PRODUCT" \
-        usbip-devmgr /bin/sh -lc 'nsenter -t1 -m sh -lc "
-        if ! usbip list -r \"$USBIP_HOST\" 2>/dev/null; then
-            echo \"Error: Cannot connect to usbip server at $USBIP_HOST\"
-            exit 1
-        fi
-        
-        BUSID=\$(usbip list -r \"$USBIP_HOST\" 2>/dev/null \
+	# Resolve hostname to IP on the host side (avoids DNS issues inside nsenter on Linux)
+	local usbip_host_ip
+	usbip_host_ip=$(resolve_usbip_host "$USBIP_HOST")
+	log_info "Attaching USB device to usbip-devmgr (host: $usbip_host_ip)..."
+
+	docker exec -i \
+		-e USBIP_HOST="$usbip_host_ip" \
+		-e USBIP_VENDOR="$USBIP_VENDOR" \
+		-e USBIP_PRODUCT="$USBIP_PRODUCT" \
+		usbip-devmgr /bin/sh -lc 'nsenter -t1 -m sh -lc "
+        usbip list -r \"$USBIP_HOST\" || { echo \"usbip list failed\"; exit 1; }
+        BUSID=\$(usbip list -r \"$USBIP_HOST\" \
             | grep \"$USBIP_VENDOR:$USBIP_PRODUCT\" \
             | head -n1 \
-            | awk \"{print \\\$1}\" \
-            | sed \"s/:$//\")
-        
+            | cut -d\":\" -f1 \
+            | xargs)
         if [ -z \"\$BUSID\" ]; then
-            echo \"Error: USB device $USBIP_VENDOR:$USBIP_PRODUCT not found\"
             exit 1
         fi
-        
-        echo \"Found device at bus ID: \$BUSID\"
         usbip attach -r \"$USBIP_HOST\" -b \"\$BUSID\"
     "'
 
@@ -406,7 +442,7 @@ cmd_start_gap9() {
 		--privileged
 		-v /dev/bus/usb:/dev/bus/usb
 		-v "$SSH_PRIVATE_KEY":/root/.ssh/id_ed25519:ro
-		-v "$WORK_DIR/":/app/work/
+		-v "$WORK_DIR/":/app/Deeploy/
 		-v "$CACHE_FOLDER/.zsh_history":/root/.zsh_history
 		-v "$CACHE_FOLDER/ccache":/ccache
 		-e CCACHE_DIR=/ccache
@@ -417,7 +453,7 @@ cmd_start_gap9() {
 		docker_run_args+=(--platform "$DOCKER_PLATFORM")
 	fi
 
-	docker_run_args+=("$GAP9_IMAGE" "$DOCKER_SHELL" -c "cd /app/work && $DOCKER_SHELL")
+	docker_run_args+=("$GAP9_IMAGE" "$DOCKER_SHELL" -c "cd /app/Deeploy && $DOCKER_SHELL")
 
 	docker run "${docker_run_args[@]}"
 }
@@ -469,28 +505,28 @@ cmd_start_tmux() {
 
 	log_info "Creating tmux session: $session_name"
 
-	# Create new session with three panes (usbip-host, usbip-daemon, gap9)
-	tmux new-session -d -s "$session_name" -x 200 -y 50
+	# Create session and capture pane IDs (agnostic of base-index / pane-base-index)
+	# Layout: gap9 (left) | usbip-host (top-right)
+	#                      | usbip-daemon (bottom-right)
+	local pane_gap9 pane_usbip_host pane_usbip_daemon
+	pane_gap9=$(tmux new-session -d -s "$session_name" -x 200 -y 50 -P -F '#{pane_id}')
+	pane_usbip_host=$(tmux split-window -t "$pane_gap9" -h -P -F '#{pane_id}')
+	pane_usbip_daemon=$(tmux split-window -t "$pane_usbip_host" -v -P -F '#{pane_id}')
 
-	# First pane: run pyusbip server
+	tmux send-keys -t "$pane_usbip_host" "alias stop='$script_path$opts_escaped stop'" Enter
+	tmux send-keys -t "$pane_usbip_host" "$script_path$opts_escaped start-usbip-host" Enter
+	tmux send-keys -t "$pane_usbip_daemon" "alias stop='$script_path$opts_escaped stop'" Enter
+	tmux send-keys -t "$pane_usbip_daemon" "$script_path$opts_escaped start-usbip-daemon" Enter
+	tmux send-keys -t "$pane_usbip_daemon" "$script_path$opts_escaped attach-usbip" Enter
+	tmux send-keys -t "$pane_gap9" "alias stop='$script_path$opts_escaped stop'" Enter
+	tmux send-keys -t "$pane_gap9" "$script_path$opts_escaped start-gap9" Enter
 
-	# Second pane: run main orchestration (with delay to let server start)
-	tmux split-window -t "$session_name:0" -h
-	tmux split-window -t "$session_name:0" -v
-	tmux send-keys -t "$session_name:0.1" "alias stop='$script_path$opts_escaped stop'" Enter
-	tmux send-keys -t "$session_name:0.1" "$script_path$opts_escaped start-usbip-host" Enter
-	tmux send-keys -t "$session_name:0.2" "alias stop='$script_path$opts_escaped stop'" Enter
-	tmux send-keys -t "$session_name:0.2" "$script_path$opts_escaped start-usbip-daemon" Enter
-	tmux send-keys -t "$session_name:0.2" "$script_path$opts_escaped attach-usbip" Enter
-	tmux send-keys -t "$session_name:0.0" "alias stop='$script_path$opts_escaped stop'" Enter
-	tmux send-keys -t "$session_name:0.0" "$script_path$opts_escaped start-gap9" Enter
-
-	# Select the first pane
-	tmux select-pane -t "$session_name:0.0"
+	# Focus the main GAP9 pane
+	tmux select-pane -t "$pane_gap9"
 
 	log_success "tmux session created: $session_name"
 	log_info "Attaching to session..."
-	log_info "To detach: Ctrl+B then D"
+	log_info "To detach: prefix + D"
 	log_info "To kill session: tmux kill-session -t $session_name"
 
 	# Attach to the session

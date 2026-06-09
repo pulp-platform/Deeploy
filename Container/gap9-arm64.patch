@@ -1,18 +1,18 @@
 diff --git a/.gitignore b/.gitignore
-index 6e751e203..d9091f1b1 100644
+index 2d63047dd..221d67f8b 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -57,3 +57,5 @@ gaptest_reports/
+@@ -56,3 +56,5 @@ gaptest_reports/
  # Release script dry-run output
  release_dry_run/
  artifact.txt
 +
 +.gap9-venv
 diff --git a/Makefile b/Makefile
-index 1dbab3578..60467d1d6 100644
+index ff1ca8d6a..9b30be6fe 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -119,7 +119,7 @@ openocd.checkout:
+@@ -118,7 +118,7 @@ openocd.checkout:
  	fi
  
  openocd.build: openocd.checkout
@@ -22,64 +22,34 @@ index 1dbab3578..60467d1d6 100644
  
  openocd.checkout.gap9.5:
 diff --git a/configs/common.sh b/configs/common.sh
-index bd1f6ffea..e63faefa0 100644
+index ccb7d5f0c..2606972bf 100644
 --- a/configs/common.sh
 +++ b/configs/common.sh
-@@ -178,3 +178,5 @@ if [ -n "$GAP_SDK_CI_BUILD" -a -z "$GAP_SDK_CI_DISABLE_GITHUB_ENV" ]; then
+@@ -294,3 +294,5 @@ if [ -n "$GAP_SDK_CI_BUILD" -a -z "$GAP_SDK_CI_DISABLE_GITHUB_ENV" -a -n "$GITHU
+         fi
+     done
  fi
- # There must a newline here since the build version is appended in the release process
- export GAP_SDK_VERSION=release-v5.21.1
 +
 +export WITH_EMPTY_SFU=1
-diff --git a/install_python_deps.sh b/install_python_deps.sh
-index cac3e1885..578bb5f71 100755
---- a/install_python_deps.sh
-+++ b/install_python_deps.sh
-@@ -69,7 +69,7 @@ then
-         python -m pip install -r tools/nntool/tests/requirements.txt
-     fi
- 
--    python -m pip install -r tools/audio-framework/requirements.txt
-+    # python -m pip install -r tools/audio-framework/requirements.txt
-     python -m pip install -r utils/gapy_v2/requirements.txt
-     python -m pip install -r doc/requirements.txt
- 
-diff --git a/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py b/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
-index 62ee5cac2..d872073f7 100644
---- a/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
-+++ b/utils/gapy_v2/bin/gapylib/chips/gap/gap9_v2/board_runner.py
-@@ -342,7 +342,7 @@ class Openocd():
-         else:
-             raise RuntimeError('Failed to connect to openocd after 30 retries')
- 
--        self.telnet = pexpect.spawn(f'telnet localhost {port}', encoding='utf-8', echo=False)
-+        self.telnet = pexpect.spawn(f'telnet host.docker.internal {port}', encoding='utf-8', echo=False)
-         match = self.telnet.expect(['Open On-Chip Debugger'], timeout=None)
- 
-     def write(self, addr: int, value: int):
-diff --git a/utils/openocd_tools/tcl/gap9revb.tcl b/utils/openocd_tools/tcl/gap9revb.tcl
-index 9e67f67c7..697483112 100644
---- a/utils/openocd_tools/tcl/gap9revb.tcl
-+++ b/utils/openocd_tools/tcl/gap9revb.tcl
-@@ -24,8 +24,8 @@ proc jtag_init {} {
-     #gap_reset 0 100
- 
-     # wait for jtag ready
--    poll_confreg 0x1
--    echo "INIT: confreg polling done"
-+    # poll_confreg 0x1
-+    # echo "INIT: confreg polling done"
- 
-     #UNCOMMENT IF YOU UNCOMMENT gap_init 1
-     #gap_start 1
-@@ -39,8 +39,8 @@ proc init_reset {mode} {
-     #targets $::_FC
-     gap_reset 1 100
-     # wait for jtag ready
--    poll_confreg 0x1
--    echo "RESET: confreg polling done"
-+    # poll_confreg 0x1
-+    # echo "RESET: confreg polling done"
-     jtag arp_init
- }
- 
+diff --git a/merged_requirements.txt b/merged_requirements.txt
+index bf711ddbf..ec08bfe0b 100644
+--- a/merged_requirements.txt
++++ b/merged_requirements.txt
+@@ -2,7 +2,7 @@ Cython>=0.29.21
+ Mako>=1.1.3
+ Ninja
+ Pillow>=7.2.0
+-PyQt5
++# PyQt5
+ PyYAML>=6.0.1
+ QGraphViz
+ Sphinx<7.2.0,>=3.0.0
+@@ -48,7 +48,7 @@ ptyprocess>=0.7.0
+ pybind11>=2.6
+ pycryptodome
+ pyelftools>=0.29
+-pyqt5
++# pyqt5
+ pyserial>=3.5
+ pytablewriter>=1.2.0
+ python-dateutil>=2.7

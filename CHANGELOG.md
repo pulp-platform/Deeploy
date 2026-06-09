@@ -5,32 +5,67 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+<<<<<<< HEAD
+=======
+- Add Microbenchmarking Infrastructure and CI Using GVSoC CSR [#162](https://github.com/pulp-platform/Deeploy/pull/162)
+- Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
+- Fix Broken CI [#175](https://github.com/pulp-platform/Deeploy/pull/175)
+- Improve Docstring and Debugging [#160](https://github.com/pulp-platform/Deeploy/pull/160)
+>>>>>>> gap9-l3-board-readfs-fix
 - Add GAP9 Container Support [#163](https://github.com/pulp-platform/Deeploy/pull/163)
 - Extend Codeowners [#164](https://github.com/pulp-platform/Deeploy/pull/164)
 - Support for MaxPool1D and RQSConv1D for PULPOpen [#146](https://github.com/pulp-platform/Deeploy/pull/146)
 - Use Pre-Commit in CI [#159](https://github.com/pulp-platform/Deeploy/pull/159)
 - Deeploy-GAP9 Platform [#143](https://github.com/pulp-platform/Deeploy/pull/143)
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
+- Fix for python error when using python 3.12.11 [#189]( https://github.com/pulp-platform/Deeploy/pull/189)
+- Add support for Operators for Generic target needed in MAGIA [#193]( https://github.com/pulp-platform/Deeploy/pull/193)
+- Fix GAP9 L3 Board Tests: readfs Flash Ordering and Duplicate Input Data [#196](https://github.com/pulp-platform/Deeploy/pull/196)
 
 ### Added
+<<<<<<< HEAD
+=======
+- Add many missing docstrings
+- Add `__repr__()` function for `_ReferenceBuffer` class
+>>>>>>> gap9-l3-board-readfs-fix
 - GAP9 Container Support with ARM64 architecture support
 - `zsh` and `oh-my-zsh` plugin installation in containers
 - Shell Format pre-commit hook
 - Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
+- Per-layer microbenchmarking on PULPOpen via `--profileMicrobenchmark`: new `PULPMicrobenchmark` code-transformation pass + `perf_utils.h` helpers report cycles, instructions, stalls and cache misses per layer in `RunNetwork`
+- Add support for the Generic target for the following operators [Ceil](https://onnx.ai/onnx/operators/onnx__Ceil.html), [Floor](https://onnx.ai/onnx/operators/onnx__Floor.html), [Clip](https://onnx.ai/onnx/operators/onnx__Clip.html), [Sub](https://onnx.ai/onnx/operators/onnx__Sub.html), [Exp](https://onnx.ai/onnx/operators/onnx__Exp.html), [Sigmoid](https://onnx.ai/onnx/operators/onnx__Sigmoid.html), [Swish](https://onnx.ai/onnx/operators/onnx__Swish.html), [HardSigmoid](https://onnx.ai/onnx/operators/onnx__HardSigmoid.html), [HardSwish](https://onnx.ai/onnx/operators/onnx__HardSwish.html), [InstanceNormalization](https://onnx.ai/onnx/operators/onnx__InstanceNormalization.html), [GroupNormalization](https://onnx.ai/onnx/operators/onnx__GroupNormalization.html), [AveragePool](https://onnx.ai/onnx/operators/onnx__AveragePool.html), [GlobalAveragePool](https://onnx.ai/onnx/operators/onnx__GlobalAveragePool.html), [GlobalMaxPool](https://onnx.ai/onnx/operators/onnx__GlobalMaxPool.html).
 
 ### Changed
+<<<<<<< HEAD
+=======
+- Use by default `devel` container for GAP9 CI
+- Extend Readme platforms with GAP9 shields
+- Move `MemoryAwareClosureGeneration` pass to `MemoryLevelExtension`
+- Move `MemoryAwarePrint*` passes to `MemoryLevelExtension`
+- Make `sizeInBytes` a class property instead of a function
+- Move `AnnotateNeurekaWeightMemoryLevel` to `Neureka` specific folder
+>>>>>>> gap9-l3-board-readfs-fix
 - Cleaned up Docker flow to use a temporary build folder
 - Switch CI to use pre-commit for linting
 - Update `pulp-nnx` and `pulp-nn-mixed` submodules to their latest versions
 - PULP-NN moved to TargetLibraries third-party folder
 - Aligned CLI commands across the project
 - Added @runwangdl as a code owner
+- Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
 
 ### Fixed
+- Add missing `shell: bash` directive to CI cache generation steps to ensure correct shell execution
+- Fix wrong test case in GAP9 ccache workflow (`test_gap9_tiled_kernels_l2_singlebuffer` using `MatMul/Regular` instead of `Add/Large`)
+- Fix Docker flow to fetch `*.so` git lfs files
+- Downgrade `setuptools` to `81.0.0`
 - im2col buffer size in Conv1d template
 - Fix missing dependency in pre-commit-config
 - Fix test paths in Deeploy 101 tutorial
+- Fix tiling variable replacement corrupting static arrays by changing pointer update from value copy to address reassignment
+- Reduce RunNetwork stack usage by scoping per-layer variables with braces and moving tileIdxPtr allocation into per-layer execution blocks
+- Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
+- Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
 
 ### Removed
 - `testDMA.py` was an old test; we now have `test_dmas.py` instead.

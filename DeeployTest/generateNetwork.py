@@ -141,6 +141,7 @@ def generateNetwork(args):
     verbosityCfg = _NoVerbosity
     if isinstance(platform, PULPPlatform):
         verbosityCfg.untiledProfiling = args.profileUntiled
+        verbosityCfg.microbenchmarkProfiling = args.profileMicrobenchmark
 
     # Parse graph and infer output levels and signedness
     _ = deployer.prepare(verbosityCfg)
@@ -172,6 +173,11 @@ if __name__ == '__main__':
                         dest = 'profileUntiled',
                         default = False,
                         help = 'Profile Untiled for L2\n')
+    parser.add_argument('--profileMicrobenchmark',
+                        action = 'store_true',
+                        dest = 'profileMicrobenchmark',
+                        default = False,
+                        help = 'Wrap each layer with PULP perf-counter microbenchmark\n')
     parser.add_argument('--input-type-map',
                         nargs = '*',
                         default = [],

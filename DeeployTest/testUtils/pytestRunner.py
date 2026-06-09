@@ -32,7 +32,7 @@ def get_worker_id() -> str:
 def create_test_config(
     test_name: str,
     platform: str,
-    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none'],
+    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none'],
     deeploy_test_dir: str,
     toolchain: str,
     toolchain_dir: Optional[str],
@@ -46,6 +46,7 @@ def create_test_config(
     mem_alloc_strategy: str = "MiniMalloc",
     search_strategy: str = "random-max",
     profile_tiling: bool = False,
+    profile_microbenchmark: bool = False,
     plot_mem_alloc: bool = False,
     randomized_mem_scheduler: bool = False,
     profile_untiled: bool = False,
@@ -87,6 +88,8 @@ def create_test_config(
             gen_args_list.append(f"--searchStrategy={search_strategy}")
         if profile_tiling:
             gen_args_list.append("--profileTiling")
+        if profile_microbenchmark:
+            gen_args_list.append("--profileMicrobenchmark")
         if plot_mem_alloc:
             gen_args_list.append("--plotMemAlloc")
         if randomized_mem_scheduler:

@@ -18,51 +18,54 @@ macro(add_board_deployment name target)
     set(FLASH_LAYOUT "${GAP9_SDK_HOME}/utils/layouts/default_layout_multi_readfs.json")
     set(FSBL_BINARY "${GAP9_SDK_HOME}/install/target/bin/fsbl")
     set(SSBL_BINARY "${GAP9_SDK_HOME}/install/target/bin/ssbl")
-    
     make_directory(${BOARD_WORKDIR})
 
     if(NOT DEFINED GAP9_SDK_HOME)
         message(FATAL_ERROR "Environment variable GAP_SDK_HOME not set")
     endif()
-    
+
     # Command to run on board
-    set(GAPY_CMD 
+    set(GAPY_CMD
         ${GAPY}
         --target=gap9.evk
         --platform=board
-        --target-property=boot.flash_device=mram 
-        --target-property=boot.mode=flash 
-        --target-dir=${GAP9_SDK_HOME}/utils/gapy_v2/targets 
-        --openocd-cable=${GAP9_SDK_HOME}/utils/openocd_tools/tcl/gapuino_ftdi.cfg 
-        --openocd-script=${GAP9_SDK_HOME}/utils/openocd_tools/tcl/gap9revb.tcl 
-        --openocd-tools=${GAP9_SDK_HOME}/utils/openocd_tools 
-        --binary=${DEEPLOY_BINARY}
+        --target-property=boot.flash_device=mram
+        --target-property=boot.mode=flash
+        --target-dir=${GAP9_SDK_HOME}/utils/gapy_v2/targets
+        --openocd-cable=${GAP9_SDK_HOME}/utils/openocd_tools/tcl/gapuino_ftdi.cfg
+        --openocd-script=${GAP9_SDK_HOME}/utils/openocd_tools/tcl/gap9revb.tcl
+        --openocd-tools=${GAP9_SDK_HOME}/utils/openocd_tools
         --work-dir=${BOARD_WORKDIR}
         --multi-flash-content=${FLASH_LAYOUT}
         --flash-size=67108864
         --flash-property=${FSBL_BINARY}@mram:fsbl:binary
         --flash-property=${SSBL_BINARY}@mram:ssbl:binary
         --flash-property=${DEEPLOY_BINARY}@mram:app:binary
-        --py-stack
-        flash run
     )
 
-    # Add readfs files if provided
+    # Add readfs files if provided (MUST come before the subcommand appended below)
     if(GAPY_RUNNER_ARGS)
         list(LENGTH GAPY_RUNNER_ARGS num_readfs_files)
         message(STATUS "[Deeploy GAP9] Adding ${num_readfs_files} readfs file(s)")
         list(APPEND GAPY_CMD ${GAPY_RUNNER_ARGS})
     endif()
 
+    # Subcommand + binary go LAST, after all --flash-property options
+    list(APPEND GAPY_CMD
+        --py-stack
+        image flash run
+        --binary=${DEEPLOY_BINARY}
+    )
+
     # Convert list to string for printing
     string(REPLACE ";" " " GAPY_CMD_STR "${GAPY_CMD}")
-    
+
     add_custom_target(board_${name}
         DEPENDS ${name}
         WORKING_DIRECTORY ${BOARD_WORKDIR}
         COMMAND bash -c "${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/*.bin ${BOARD_WORKDIR}/ 2>/dev/null || true"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-            ${GAP9_SDK_HOME}/utils/efuse/GAP9/efuse_hyper_preload.data 
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${GAP9_SDK_HOME}/utils/efuse/GAP9/efuse_hyper_preload.data
             ${BOARD_WORKDIR}/chip.efuse_preload.data
         COMMAND ${CMAKE_COMMAND} -E echo "=========================================="
         COMMAND ${CMAKE_COMMAND} -E echo "[Deeploy GAP9] Executing gapy command to run on board:"

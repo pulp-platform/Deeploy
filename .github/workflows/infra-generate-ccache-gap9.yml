@@ -11,7 +11,7 @@ name: Infrastructure • Generate CCache GAP9
       docker_image_deeploy:
         description: "Deeploy GAP9 Image to use"
         required: false
-        default: "ghcr.io/pulp-platform/deeploy-gap9:latest"
+        default: "ghcr.io/pulp-platform/deeploy-gap9:devel"
   schedule:
     # Runs the workflow on the default branch every day at 2AM CET to keep the cache fresh
     - cron: "0 2 * * *"
@@ -21,8 +21,10 @@ jobs:
     if: github.repository == 'pulp-platform/Deeploy'
     runs-on: ubuntu-latest
     container:
-      image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:latest' }}
+      image: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-gap9:devel' }}
     steps:
+      - name: Mark workspace as safe
+        run: git config --global --add safe.directory '*'
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -36,6 +38,7 @@ jobs:
           deactivate
 
       - name: Generate CCache for GAP9
+        shell: bash
         run: |
           source /app/install/gap9-sdk/.gap9-venv/bin/activate
           source /app/install/gap9-sdk/configs/gap9_evk_audio.sh || true
@@ -44,7 +47,7 @@ jobs:
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
           pytest 'test_platforms.py::test_gap9_kernels[Kernels/Integer/Add/Regular]' --skipsim
-          pytest 'test_platforms.py::test_gap9_tiled_kernels_l2_singlebuffer[Kernels/Integer/Add/Large-5000-L2-singlebuffer]' --skipsim
+          pytest 'test_platforms.py::test_gap9_tiled_kernels_l2_singlebuffer[Kernels/Integer/MatMul/Regular-64000-L2-singlebuffer]' --skipsim
           deactivate
 
       - name: Clean and Upload CCache

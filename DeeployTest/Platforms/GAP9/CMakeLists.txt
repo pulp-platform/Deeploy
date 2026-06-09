@@ -51,6 +51,10 @@ endif()
 add_gvsoc_emulation(${ProjectId} "gap9.evk")
 add_board_deployment(${ProjectId} "gap9.evk")
 
+if(POWER_MEASUREMENT)
+  target_compile_definitions(${ProjectId} PRIVATE POWER_MEASUREMENT)
+endif()
+
 # RW: Waive sign comparison warnings from pulp_nn_utils.h
 target_compile_options(${NETWORK_LIB} PRIVATE
     -Wno-sign-compare

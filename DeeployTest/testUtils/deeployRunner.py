@@ -65,7 +65,8 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           dest = 'simulator',
                           type = str,
                           default = None,
-                          help = 'Simulator to use (gvsoc, banshee, qemu, vsim, host, none)\n')
+                          help = 'Simulator to use: gvsoc, banshee, qemu, vsim, host, none — '
+                          'or "board" to flash and run on the physical target (GAP9 only)\n')
         self.add_argument('-v', action = 'count', dest = 'verbose', default = 0, help = 'Increase verbosity level\n')
         self.add_argument('-D',
                           dest = 'cmake',
@@ -94,6 +95,12 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           action = 'store_true',
                           default = False,
                           help = 'Enable untiled profiling (Siracusa only)\n')
+        self.add_argument('--profileMicrobenchmark',
+                          '--profile-microbenchmark',
+                          dest = 'profileMicrobenchmark',
+                          action = 'store_true',
+                          default = False,
+                          help = 'Wrap each layer with PULP perf-counter microbenchmark\n')
         self.add_argument('--toolchain',
                           metavar = '<LLVM|GCC>',
                           dest = 'toolchain',
@@ -238,6 +245,8 @@ def create_config_from_args(args: argparse.Namespace,
     # Pass --cores to generateNetwork.py for im2col buffer sizing
     if hasattr(args, 'cores') and args.cores:
         gen_args_list.append(f"--cores={args.cores}")
+    if getattr(args, 'profileMicrobenchmark', False):
+        gen_args_list.append("--profileMicrobenchmark")
 
     config = DeeployTestConfig(
         test_name = test_name,
@@ -407,6 +416,9 @@ def main(default_platform: Optional[str] = None,
 
     if hasattr(args, 'num_clusters'):
         platform_specific_cmake_args.append(f"-DNUM_CLUSTERS={args.num_clusters}")
+
+    if hasattr(args, 'powerMeasurement') and args.powerMeasurement:
+        platform_specific_cmake_args.append("-DPOWER_MEASUREMENT=ON")
 
     if platform == 'GAP9':
         platform_specific_cmake_args.append("-D SIMULATOR=" + simulator)
