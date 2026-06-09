@@ -15,7 +15,7 @@ import onnx_graphsurgeon as gs
 import pytest
 from testUtils.codeGenerate import generateTestNetwork
 from testUtils.graphDebug import generateDebugConfig
-from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
+from testUtils.platformMapping import deferPerturbNodes, mapDeployer, mapPlatform, setupMemoryPlatform
 from testUtils.testRunner import TestGeneratorArgumentParser
 from testUtils.tilingUtils import DBOnlyL3Tiler, DBTiler, SBTiler
 from testUtils.typeMapping import inferTypeAndOffset
@@ -36,7 +36,9 @@ from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 # Inner list represent the patter over which we tile
 def _mockScheduler(graph: gs.Graph) -> List[List[gs.Node]]:
 
-    schedule = [[node] for node in graph.nodes]
+    # Defer ZO perturbation nodes to just before their consumer to minimize the
+    # lifetime of the perturbed weight copies (see deferPerturbNodes).
+    schedule = [[node] for node in deferPerturbNodes(list(graph.nodes))]
 
     return schedule
 

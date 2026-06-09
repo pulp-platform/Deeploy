@@ -24,4 +24,12 @@ MODEL_TESTS = [
     "Models/MLPerf/KeywordSpotting",
     "Models/MLPerf/ImageClassification",
     "Models/MLPerf/AnomalyDetection",
+    "Models/TSDR",
+    "Models/QTSDR",
+    "Models/TSDRZO",
+    "Models/QTSDRZO",
+    "Models/MCUNet",
+    "Models/QMCUNet",
+    "Models/MCUNetZO",
+    "Models/QMCUNetZO",
 ]
