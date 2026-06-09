@@ -288,7 +288,6 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         cmd = [str(binary_path)]
 
     elif config.simulator == 'gvsoc' and config.platform != 'GAP9':
-        # VJUNG: Is this really necessary?
         # Run gvsoc directly instead of through cmake to avoid USES_TERMINAL
         # pipe buffering — cmake's USES_TERMINAL connects gvsoc to the real
         # terminal, bypassing our pipe and causing apparent hangs.
@@ -304,8 +303,21 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
             f"--target={gvsoc_target}",
             f"--binary={binary_path}",
             f"--work-dir={workdir}",
-            "image", "flash", "run",
         ]
+        hex_dir = Path(config.gen_dir) / 'hex'
+        if hex_dir.is_dir():
+            for hex_file in sorted(hex_dir.glob('*.hex')):
+                cmd.append(f"--flash-property={hex_file}@hyperflash:readfs:files")
+        cmd += ["image", "flash", "run"]
+        # gvsoc_launcher (the C++ simulation binary spawned by gvsoc) uses fully-
+        # buffered stdout when its stdout is a pipe, preventing real-time output.
+        # Wrap in `script -q -e` to allocate a PTY, which forces line-buffered
+        # output so the readline loop below receives data as it is generated.
+        # Pass inner command as a properly-shell-quoted string to `script -c`
+        # using shell=False so there is no double-quoting ambiguity.
+        import shlex as _shlex
+        gvsoc_inner = ' '.join(_shlex.quote(c) for c in cmd)
+        cmd = ['script', '-q', '-e', '-c', gvsoc_inner, '/dev/null']
 
     elif config.simulator == 'banshee':
         if config.verbose == 1:
@@ -325,12 +337,21 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
-    cmd_str = " ".join(cmd)
-    process = subprocess.Popen(cmd_str,
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.STDOUT,
-                                shell = True,
-                                encoding = 'utf-8')
+    # For gvsoc + script wrapper: cmd is already a list for Popen (shell=False).
+    # For all other simulators: join into a string and run with shell=True.
+    if config.simulator == 'gvsoc' and config.platform != 'GAP9':
+        process = subprocess.Popen(cmd,
+                                    stdout = subprocess.PIPE,
+                                    stderr = subprocess.STDOUT,
+                                    shell = False,
+                                    encoding = 'utf-8')
+    else:
+        cmd_str = " ".join(cmd)
+        process = subprocess.Popen(cmd_str,
+                                    stdout = subprocess.PIPE,
+                                    stderr = subprocess.STDOUT,
+                                    shell = True,
+                                    encoding = 'utf-8')
 
     fileHandle = open('out.txt', 'a', encoding = 'utf-8')
     fileHandle.write(
@@ -342,7 +363,10 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         if output == '' and process.poll() is not None:
             break
         if output:
-            print(output.strip())
+            # Filter script(1) header/footer lines added by the PTY wrapper
+            if output.startswith('Script started on ') or output.startswith('Script done on '):
+                continue
+            print(output.strip(), flush=True)
             result += output
             fileHandle.write(f"{escapeAnsi(output)}")
 
