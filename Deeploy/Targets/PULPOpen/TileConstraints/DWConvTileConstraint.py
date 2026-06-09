@@ -116,7 +116,7 @@ class RQDWConv2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(outputWidthVar >= 1 + max([pads[1], pads[3]]))
 
         tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'] + pads[0], strategy = PerformanceHint(1))
-        tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_y'] + pads[1], strategy = PerformanceHint(1))
+        tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'] + pads[1], strategy = PerformanceHint(1))
 
         tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
         tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
