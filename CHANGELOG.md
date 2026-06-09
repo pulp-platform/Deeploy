@@ -17,6 +17,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
 - Fix for python error when using python 3.12.11 [#189]( https://github.com/pulp-platform/Deeploy/pull/189)
 - Add support for Operators for Generic target needed in MAGIA [#193]( https://github.com/pulp-platform/Deeploy/pull/193)
+- Fix GAP9 L3 Board Tests: readfs Flash Ordering and Duplicate Input Data [#196](https://github.com/pulp-platform/Deeploy/pull/196)
 
 ### Added
 - Add many missing docstrings
@@ -42,6 +43,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - PULP-NN moved to TargetLibraries third-party folder
 - Aligned CLI commands across the project
 - Added @runwangdl as a code owner
+- Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
 
 ### Fixed
 - Add missing `shell: bash` directive to CI cache generation steps to ensure correct shell execution
@@ -54,6 +56,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix tiling variable replacement corrupting static arrays by changing pointer update from value copy to address reassignment
 - Reduce RunNetwork stack usage by scoping per-layer variables with braces and moving tileIdxPtr allocation into per-layer execution blocks
 - Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
+- Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
 
 ### Removed
 - `testDMA.py` was an old test; we now have `test_dmas.py` instead.
