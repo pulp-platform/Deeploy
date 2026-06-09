@@ -1119,7 +1119,9 @@ class ReluParser(UnaryElementWiseParser):
 
 
 class Relu6Parser(ReluParser):
-    pass
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return UnaryElementWiseParser.parseNode(self, node) and node.op == 'Relu6'
 
 
 class ReluGradParser(NodeParser):
