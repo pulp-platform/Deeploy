@@ -26,19 +26,11 @@ class GAP9L3DmaFuture(Future):
 
 class GAP9L3Dma(AsyncDma):
 
-    # NOTE: The GAP9 OctoSPI 2-D strided DMA (pi_cl_ram_copy_2d) is broken on real
-    # silicon for genuine multi-line transfers — it works in GVSoC's functional DMA
-    # model but delivers garbage on hardware (NaN/inf/FLT_MAX in conv outputs at
-    # --defaultMemLevel=L3). 1-D contiguous copies work correctly. So we decompose
-    # every 2-D transfer into a loop of 1-D pi_cl_ram_copy line copies. The future
-    # request is reused per line, so each line is waited on before the next reuses it.
     _transferTemplates = {
         2:
-            NodeTemplate("""
-for (uint32_t _gap9_l3_line = 0; _gap9_l3_line < (${transfer_size}) / (${length}); _gap9_l3_line++) {
-    pi_cl_ram_copy(get_ram_ptr(), (uint32_t)${ext} + _gap9_l3_line * (${stride}), (void *)((char *)${loc} + _gap9_l3_line * (${length})), ${length}, ${ext2loc}, &${future});
-    pi_cl_ram_copy_wait(&${future});
-}""")
+            NodeTemplate(
+                "pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)${ext}, ${loc}, ${transfer_size}, ${stride}, ${length}, ${ext2loc}, &${future});"
+            )
     }
     _waitingStrategy = PerTensorWaitingStrategy(GAP9L3DmaFuture)
 
