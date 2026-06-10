@@ -239,6 +239,27 @@ void ZeroArenas(void *arg) {
   printf("[ZEROFILL] L1/L2 arenas zeroed (%u + %u B)\r\n",
          (unsigned)DeeployNetwork_MEMORYARENA_L1_len,
          (unsigned)DeeployNetwork_MEMORYARENA_L2_len);
+
+  // Zero the L3 *scratch* region (everything after the loaded input): this is
+  // where the conv reads its transposed input and where the network output
+  // lands. The input itself (L3[0 .. input_0_len)) is preserved so the run is
+  // valid. If the FLT_MAX/NaN garbage is uninitialized L3 read-before-write,
+  // this makes the board match GVSoC.
+  {
+    uint8_t *l3_base = (uint8_t *)DeeployNetwork_MEMORYARENA_L3;
+    const uint32_t start = DeeployNetwork_input_0_len * (uint32_t)sizeof(float32_t);
+    const uint32_t total = DeeployNetwork_MEMORYARENA_L3_len;
+    const uint32_t CHUNK = 4096;
+    uint8_t *zbuf = (uint8_t *)pi_l2_malloc(CHUNK);
+    for (uint32_t i = 0; i < CHUNK; i++)
+      zbuf[i] = 0;
+    for (uint32_t off = start; off < total; off += CHUNK) {
+      uint32_t n = (total - off) < CHUNK ? (total - off) : CHUNK;
+      cl_ram_write((void *)(l3_base + off), zbuf, n);
+    }
+    pi_l2_free(zbuf, CHUNK);
+    printf("[ZEROFILL] L3 scratch zeroed [%u..%u)\r\n", (unsigned)start, (unsigned)total);
+  }
 }
 
 void ZeroArenasCl(void *arg) { pi_cl_team_fork(NUM_CORES, ZeroArenas, arg); }
