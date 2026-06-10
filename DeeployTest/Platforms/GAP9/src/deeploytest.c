@@ -322,6 +322,19 @@ void DumpConvOut(void *arg) {
     printf(" %.5f", tmp[i]);
   printf("\r\n");
   pi_l2_free(tmp, CH * sizeof(float32_t));
+
+  // Conv weight/bias L2 staging (last tile = channel 15). The output transpose
+  // uses lower L2 offsets, so +62016/+62124 should still hold the conv's last
+  // loaded weights. Expected (valid): 0.22640 0.32617 0.12632 0.21337 -0.16103
+  // 0.07972 0.27983 -0.15921 ; bias[15]=0.13946. Garbage (~1e38) => weight load.
+  {
+    volatile float32_t *wl2 = (volatile float32_t *)((char *)DeeployNetwork_MEMORYARENA_L2 + 62016);
+    volatile float32_t *bl2 = (volatile float32_t *)((char *)DeeployNetwork_MEMORYARENA_L2 + 62124);
+    printf("[WSTAGE] L2 weight[0..7]:");
+    for (uint32_t i = 0; i < 8; i++)
+      printf(" %.5f", wl2[i]);
+    printf("  bias[0]=%.5f\r\n", bl2[0]);
+  }
 }
 
 void DumpConvOutCl(void *arg) { pi_cl_team_fork(NUM_CORES, DumpConvOut, arg); }
