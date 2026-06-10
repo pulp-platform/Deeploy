@@ -222,6 +222,27 @@ void L3SelfTestCl(void *arg) {
   pi_cl_team_fork(NUM_CORES, L3SelfTest, arg);
 }
 
+// ---- DEBUG: zero L1/L2 arenas to emulate GVSoC (remove after test) ----
+// If the on-board FLT_MAX/NaN garbage is caused by the conv reading/scattering
+// an uninitialized L1 tile (e.g. an under-written output tile), zeroing the
+// scratch arenas before RunNetwork makes the board match GVSoC. Runs on the
+// cluster so it can write cluster-L1; L1/L2 hold no persistent data between
+// InitNetwork and RunNetwork (weights/inputs live in L3), so this is safe.
+void ZeroArenas(void *arg) {
+  (void)arg;
+  if (pi_core_id() != 0)
+    return;
+  for (uint32_t i = 0; i < DeeployNetwork_MEMORYARENA_L1_len; i++)
+    DeeployNetwork_MEMORYARENA_L1[i] = 0;
+  for (uint32_t i = 0; i < DeeployNetwork_MEMORYARENA_L2_len; i++)
+    DeeployNetwork_MEMORYARENA_L2[i] = 0;
+  printf("[ZEROFILL] L1/L2 arenas zeroed (%u + %u B)\r\n",
+         (unsigned)DeeployNetwork_MEMORYARENA_L1_len,
+         (unsigned)DeeployNetwork_MEMORYARENA_L2_len);
+}
+
+void ZeroArenasCl(void *arg) { pi_cl_team_fork(NUM_CORES, ZeroArenas, arg); }
+
 int main(void) {
 
 #ifdef POWER_MEASUREMENT
@@ -287,6 +308,14 @@ int main(void) {
   WRITE_GPIO(0);
   WRITE_GPIO(1);
 
+
+  // ---- DEBUG: zero scratch arenas before the run (remove after test) ----
+  {
+    struct pi_cluster_task zero_task;
+    pi_cluster_task(&zero_task, ZeroArenasCl, NULL);
+    zero_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &zero_task);
+  }
 
   pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
