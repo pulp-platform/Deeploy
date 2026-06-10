@@ -115,6 +115,113 @@ void RunNetworkWrapper(void *args) {
   StopTimer();
 }
 
+// ---- One-shot L3/OctoSPI cluster-DMA self-test (diagnostic) ----
+// Writes a known byte ramp into an L3 buffer, then reads it back three ways via
+// the SAME pi_cl_ram_copy_2d API and verifies each against the ramp:
+//   (a) one large contiguous block        (length == size)
+//   (b) one small contiguous block        (200 B)
+//   (c) strided gather 80x200 B @ stride 384  (the conv NCHW->NHWC transpose pattern)
+// All three pass under GVSoC. On the board, whichever FAILs pinpoints the
+// broken OctoSPI access pattern (contiguous vs small vs strided).
+void L3SelfTest(void *arg) {
+  (void)arg;
+  if (pi_core_id() != 0)
+    return;
+
+  const uint32_t STRIDE = 384, LINE = 200, NLINES = 80;
+  const uint32_t REGION = NLINES * STRIDE; // 30720 B written to L3
+  const uint32_t SSZ = NLINES * LINE;      // 16000 B gathered by the strided read
+
+  uint8_t *src = (uint8_t *)pi_l2_malloc(REGION);
+  uint8_t *dst = (uint8_t *)pi_l2_malloc(REGION);
+  uint8_t *sdst = (uint8_t *)pi_l2_malloc(SSZ);
+  if (!src || !dst || !sdst) {
+    printf("[L3TEST] L2 alloc failed\r\n");
+    return;
+  }
+  for (uint32_t i = 0; i < REGION; i++)
+    src[i] = (uint8_t)(i & 0xFF);
+
+  void *l3 = cl_ram_malloc(REGION);
+  cl_ram_write(l3, src, REGION); // contiguous write of the ramp into L3
+
+  int bad;
+
+  // (a) large contiguous read-back (single line: length == size)
+  for (uint32_t i = 0; i < REGION; i++)
+    dst[i] = 0xAA;
+  {
+    pi_cl_ram_req_t req = {0};
+    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)l3, dst, REGION, REGION, REGION, 1, &req);
+    pi_cl_ram_copy_wait(&req);
+  }
+  bad = -1;
+  for (uint32_t i = 0; i < REGION; i++)
+    if (dst[i] != (uint8_t)(i & 0xFF)) {
+      bad = (int)i;
+      break;
+    }
+  if (bad < 0)
+    printf("[L3TEST] (a) contiguous %u B       : PASS\r\n", REGION);
+  else
+    printf("[L3TEST] (a) contiguous %u B       : FAIL @%d got %u exp %u\r\n", REGION, bad, dst[bad],
+           (unsigned)(bad & 0xFF));
+
+  // (b) small contiguous read (single 200 B line)
+  for (uint32_t i = 0; i < LINE; i++)
+    sdst[i] = 0xAA;
+  {
+    pi_cl_ram_req_t req = {0};
+    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)l3, sdst, LINE, LINE, LINE, 1, &req);
+    pi_cl_ram_copy_wait(&req);
+  }
+  bad = -1;
+  for (uint32_t i = 0; i < LINE; i++)
+    if (sdst[i] != (uint8_t)(i & 0xFF)) {
+      bad = (int)i;
+      break;
+    }
+  if (bad < 0)
+    printf("[L3TEST] (b) small contiguous %u B  : PASS\r\n", LINE);
+  else
+    printf("[L3TEST] (b) small contiguous %u B  : FAIL @%d got %u exp %u\r\n", LINE, bad, sdst[bad],
+           (unsigned)(bad & 0xFF));
+
+  // (c) strided gather: NLINES lines of LINE bytes at STRIDE (conv-transpose pattern)
+  for (uint32_t i = 0; i < SSZ; i++)
+    sdst[i] = 0xAA;
+  {
+    pi_cl_ram_req_t req = {0};
+    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)l3, sdst, SSZ, STRIDE, LINE, 1, &req);
+    pi_cl_ram_copy_wait(&req);
+  }
+  bad = -1;
+  for (uint32_t L = 0; L < NLINES && bad < 0; L++)
+    for (uint32_t k = 0; k < LINE; k++)
+      if (sdst[L * LINE + k] != (uint8_t)((L * STRIDE + k) & 0xFF)) {
+        bad = (int)(L * LINE + k);
+        break;
+      }
+  if (bad < 0)
+    printf("[L3TEST] (c) strided %ux%u@%u    : PASS\r\n", NLINES, LINE, STRIDE);
+  else {
+    uint32_t L = (uint32_t)bad / LINE, k = (uint32_t)bad % LINE;
+    printf("[L3TEST] (c) strided %ux%u@%u    : FAIL line %u byte %u got %u exp %u\r\n", NLINES, LINE, STRIDE, L, k,
+           sdst[bad], (unsigned)((L * STRIDE + k) & 0xFF));
+  }
+
+  cl_ram_free(l3, REGION);
+  pi_l2_free(src, REGION);
+  pi_l2_free(dst, REGION);
+  pi_l2_free(sdst, SSZ);
+}
+
+// Run the self-test via team fork (same path as CompareFloatOnCluster, whose
+// core-0 printf reaches the UART; a bare cluster-task printf does not surface).
+void L3SelfTestCl(void *arg) {
+  pi_cl_team_fork(NUM_CORES, L3SelfTest, arg);
+}
+
 int main(void) {
 
 #ifdef POWER_MEASUREMENT
@@ -139,6 +246,14 @@ int main(void) {
 #ifndef NOFLASH
   open_fs();
 #endif
+
+  // --- L3/OctoSPI DMA diagnostic (remove after debugging) ---
+  {
+    struct pi_cluster_task l3test_task;
+    pi_cluster_task(&l3test_task, L3SelfTestCl, NULL);
+    l3test_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &l3test_task);
+  }
 
   printf("Intializing\r\n");
 
