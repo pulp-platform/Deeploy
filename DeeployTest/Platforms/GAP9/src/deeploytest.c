@@ -260,6 +260,24 @@ void ZeroArenas(void *arg) {
     pi_l2_free(zbuf, CHUNK);
     printf("[ZEROFILL] L3 scratch zeroed [%u..%u)\r\n", (unsigned)start, (unsigned)total);
   }
+
+  // DEBUG: read the loaded input back from L3 to verify the flash->L3 (readfs)
+  // load path on silicon. GVSoC is correct with the identical binary+hex, so if
+  // these bytes are wrong on the board the data load is the culprit; if they are
+  // correct, the divergence is in the compute (FPU/kernels). Expected (0.hex):
+  //   -0.45539  0.77912  0.17873  -0.73684  -0.98076  0.26855  0.18290  -2.02323
+  {
+    const uint32_t N = 8, BYTES = N * (uint32_t)sizeof(float32_t);
+    float32_t *tmp = (float32_t *)pi_l2_malloc(BYTES);
+    pi_cl_ram_req_t req = {0};
+    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)DeeployNetwork_input_0, tmp, BYTES, BYTES, BYTES, 1, &req);
+    pi_cl_ram_copy_wait(&req);
+    printf("[DUMP] input_0[0..7]:");
+    for (uint32_t i = 0; i < N; i++)
+      printf(" %.5f", tmp[i]);
+    printf("\r\n");
+    pi_l2_free(tmp, BYTES);
+  }
 }
 
 void ZeroArenasCl(void *arg) { pi_cl_team_fork(NUM_CORES, ZeroArenas, arg); }
