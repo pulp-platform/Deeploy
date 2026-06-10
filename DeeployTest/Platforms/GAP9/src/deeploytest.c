@@ -282,6 +282,50 @@ void ZeroArenas(void *arg) {
 
 void ZeroArenasCl(void *arg) { pi_cl_team_fork(NUM_CORES, ZeroArenas, arg); }
 
+// ---- DEBUG: scan the conv's pre-transpose output in L3 after the run ----
+// output_pre_transposed lives at L3+0 (== DeeployNetwork_input_0's address) and
+// is NOT overwritten by the final output transpose (which writes output_0 at
+// L3+147456). So reading it post-run shows whether the conv ALREADY produced
+// FLT_MAX/NaN (=> conv kernel is the culprit) or is clean (=> output transpose).
+void DumpConvOut(void *arg) {
+  (void)arg;
+  if (pi_core_id() != 0)
+    return;
+  const uint32_t N = 36864, CH = 1024;
+  float32_t *tmp = (float32_t *)pi_l2_malloc(CH * sizeof(float32_t));
+  float mn = 1e30f, mx = -1e30f;
+  uint32_t nanc = 0, infc = 0;
+  for (uint32_t off = 0; off < N; off += CH) {
+    uint32_t n = (N - off) < CH ? (N - off) : CH;
+    pi_cl_ram_req_t req = {0};
+    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)((char *)DeeployNetwork_input_0 + off * 4), tmp, n * 4, n * 4, n * 4, 1, &req);
+    pi_cl_ram_copy_wait(&req);
+    for (uint32_t i = 0; i < n; i++) {
+      float v = tmp[i];
+      if (isnan(v))
+        nanc++;
+      else if (isinf(v))
+        infc++;
+      else {
+        if (v < mn)
+          mn = v;
+        if (v > mx)
+          mx = v;
+      }
+    }
+  }
+  printf("[CONVOUT] pre-transpose @L3+0: nan=%u inf=%u min=%f max=%f first:", (unsigned)nanc, (unsigned)infc, mn, mx);
+  pi_cl_ram_req_t req = {0};
+  pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)DeeployNetwork_input_0, tmp, 32, 32, 32, 1, &req);
+  pi_cl_ram_copy_wait(&req);
+  for (uint32_t i = 0; i < 8; i++)
+    printf(" %.5f", tmp[i]);
+  printf("\r\n");
+  pi_l2_free(tmp, CH * sizeof(float32_t));
+}
+
+void DumpConvOutCl(void *arg) { pi_cl_team_fork(NUM_CORES, DumpConvOut, arg); }
+
 int main(void) {
 
 #ifdef POWER_MEASUREMENT
@@ -365,6 +409,14 @@ int main(void) {
 
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
   WRITE_GPIO(0);
+
+  // ---- DEBUG: scan conv pre-transpose output after the run (remove later) ----
+  {
+    struct pi_cluster_task dump_task;
+    pi_cluster_task(&dump_task, DumpConvOutCl, NULL);
+    dump_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &dump_task);
+  }
 
 #ifdef POWER_MEASUREMENT
   WRITE_GPIO(0);
