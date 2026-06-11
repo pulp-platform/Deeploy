@@ -146,6 +146,10 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
 
         executionBlock = cls.injectPrintCycleDiff(executionBlock, metaInfo)
 
+        # addLeft last => frontmost statement of the node: fires before DMA-future
+        # init / L3 alloc, so a setup-phase hang is still attributed to this node.
+        executionBlock.addLeft(cls._liveNodeBeacon, {"nodeName": metaInfo.nodeName, "phase": "ENTER (setup/alloc)"})
+
         return executionBlock
 
     @classmethod

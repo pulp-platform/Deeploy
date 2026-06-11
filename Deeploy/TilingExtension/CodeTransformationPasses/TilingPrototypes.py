@@ -176,6 +176,14 @@ class ProfilingPrototypeMixIn(ABC):
     if (pi_core_id() == 0) { printf("[TRACE] ${nodeName} tile %u: ${phase}\\r\\n", ${tileIdxVar}); }
     """)
 
+    # Node-level beacon (no tile index). Emitted at the very start of a node's
+    # generated code -- before any DMA-future init or L3 buffer allocation -- so
+    # a hang in the *setup* phase (before the first tile beacon) is still pinned
+    # to the offending node.
+    _liveNodeBeacon = NodeTemplate("""
+    if (pi_core_id() == 0) { printf("[TRACE-NODE] ${nodeName}: ${phase}\\r\\n"); }
+    """)
+
     _measurementArrayDeclaration = NodeTemplate("""
     uint32_t ${measurements}[${totalNumTiles}];
     """)

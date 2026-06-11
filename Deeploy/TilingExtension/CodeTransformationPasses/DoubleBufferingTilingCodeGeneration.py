@@ -317,6 +317,10 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
 
         executionBlock = cls.injectPrintCycleDiff(executionBlock, metaInfo)
 
+        # addLeft last => frontmost statement of the node: fires before DMA-future
+        # init / L3 alloc, so a setup-phase hang is still attributed to this node.
+        executionBlock.addLeft(cls._liveNodeBeacon, {"nodeName": metaInfo.nodeName, "phase": "ENTER (setup/alloc)"})
+
         return executionBlock
 
     @classmethod
@@ -336,6 +340,12 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
                 "tileIdxVar": tileIdxVar
             }))
         _openLoopStatements.append(CodeSnippet(cls._measureConditionEnd, {}))
+        _openLoopStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "ingress DMA start",
+                "tileIdxVar": tileIdxVar
+            }))
         _openLoopStatements += openLoopStatements[1:]
 
         _ingressDMAStatements = []
@@ -343,6 +353,12 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
         _ingressDMAStatements.append(
             CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "tileIdxVar": tileIdxVar
+            }))
+        _ingressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "ingress done -> kernel start",
                 "tileIdxVar": tileIdxVar
             }))
 
@@ -354,11 +370,23 @@ class ProfilingDoubleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
                 "measurements": f"{nodeName}_egress_dma_wait_start_measurements",
                 "tileIdxVar": f"{tileIdxVar}"
             }))
+        _egressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "kernel done -> egress DMA start",
+                "tileIdxVar": tileIdxVar
+            }))
         _egressDMAStatements += egressDMAStatements
         _egressDMAStatements.append(
             CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_egress_dma_wait_end_measurements",
                 "tileIdxVar": f"{tileIdxVar}"
+            }))
+        _egressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "egress done (tile complete)",
+                "tileIdxVar": tileIdxVar
             }))
 
         executionBlock = super().generateLoopCode(executionBlock, metaInfo, _openLoopStatements, _ingressDMAStatements,
