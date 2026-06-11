@@ -135,6 +135,8 @@ size_t load_file_to_ram(const void *dest, const char *filename) {
   size_t remaining_size = size;
 
   size_t offset = 0;
+  float fb0[8];     // first 32 bytes as read from flash (file start)
+  int captured = 0;
   do {
 
     remaining_size = size - offset;
@@ -143,9 +145,31 @@ size_t load_file_to_ram(const void *dest, const char *filename) {
     pi_cl_fs_req_t req;
     pi_cl_fs_read(fd, buffer, load_size, &req);
     pi_cl_fs_wait(&req);
+    if (!captured && load_size >= 32) {
+      for (int i = 0; i < 8; i++)
+        fb0[i] = ((const float *)buffer)[i];
+      captured = 1;
+    }
     cl_ram_write(dest + offset, buffer, load_size);
     offset += load_size;
   } while (offset < size);
+
+  // ---- DEBUG: discriminate flash-read-garbage vs L3-write-not-persisted ----
+  // fb0 = file's first 8 floats as read from flash; l3rb = same bytes read back
+  // from L3 (`dest`) after the write. If flash is sane but l3rb is garbage =>
+  // the L3 write didn't persist at this address on silicon. If flash is already
+  // garbage => readfs returned garbage for this (2nd/3rd) file.
+  {
+    float rb[8];
+    cl_ram_read(rb, (void *)dest, 32);
+    printf("[LOADDBG] %s dest=0x%08x size=%u flash:", filename, (unsigned)(uint32_t)dest, (unsigned)size);
+    for (int i = 0; i < 8; i++)
+      printf(" %.5f", fb0[i]);
+    printf("  l3rb:");
+    for (int i = 0; i < 8; i++)
+      printf(" %.5f", rb[i]);
+    printf("\r\n");
+  }
 
   return offset;
 }
