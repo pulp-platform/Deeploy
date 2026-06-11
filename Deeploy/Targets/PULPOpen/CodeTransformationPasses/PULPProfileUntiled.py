@@ -11,15 +11,6 @@ from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, Execu
 
 class PULPProfileUntiled(CodeTransformationPass):
 
-    # Whole-node entry beacon. This pass wraps every node's execution block --
-    # tiled or untiled -- so it is the one place that catches a hang in an
-    # *untiled* node (which never enters the L3/cluster tiling codegen and is
-    # therefore invisible to the per-tile beacons). The last "[NODE-ENTER]" on
-    # the UART pinpoints the frozen node regardless of how it was lowered.
-    _nodeEnterBeacon = NodeTemplate("""
-    if (pi_core_id() == 0) { printf("[NODE-ENTER] ${nodeName}\\r\\n"); }
-    """)
-
     def __init__(self):
         self.profileUntiled = ProfilingCodeGeneration()
 
@@ -30,11 +21,36 @@ class PULPProfileUntiled(CodeTransformationPass):
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
 
         # Also activate under tilingProfiling so a single --profileTiling run
-        # gets whole-node entry/exit markers in addition to per-tile beacons.
+        # gets whole-node "took N cycles" markers in addition to per-tile beacons.
         if verbose.untiledProfiling or verbose.tilingProfiling:
             ctxt, executionBlock = self.profileUntiled.apply(ctxt, executionBlock, name)
-            # addLeft last => frontmost statement of the node, printed before the
-            # getCycles wrap and before any tiling setup/alloc.
+
+        return ctxt, executionBlock
+
+
+class PULPNodeBeacon(CodeTransformationPass):
+    """Outermost per-node entry beacon.
+
+    Placed as the *last* pass in a transformer so its ``addLeft`` statement is the
+    frontmost code emitted for the node -- before the inter-node L3 memory
+    management (cl_ram_malloc/free) and any tiling/closure setup. This is the only
+    beacon that survives a hang in the L3 allocation/free that happens *between*
+    nodes, which is invisible to PULPProfileUntiled (inside the L3 mem-management
+    wrap) and to the per-tile beacons. The last "[NODE-ENTER]" on the UART pins
+    the frozen node regardless of how it was lowered (tiled, untiled, or skip).
+    """
+
+    _nodeEnterBeacon = NodeTemplate("""
+    if (pi_core_id() == 0) { printf("[NODE-ENTER] ${nodeName}\\r\\n"); }
+    """)
+
+    def apply(self,
+              ctxt: NetworkContext,
+              executionBlock: ExecutionBlock,
+              name: str,
+              verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
+
+        if verbose.untiledProfiling or verbose.tilingProfiling:
             executionBlock.addLeft(self._nodeEnterBeacon, {"nodeName": name})
 
         return ctxt, executionBlock
