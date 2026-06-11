@@ -174,6 +174,41 @@ size_t load_file_to_ram(const void *dest, const char *filename) {
   return offset;
 }
 
+// DEBUG: scan a readfs file in chunks via the normal FS read and find the byte
+// offset where data turns from sane floats (|v|<100) to garbage (nan/inf/huge).
+// Run on 0.hex (input): we only ever verified its first 32 B; its tail sits in
+// flash right before 1.hex. Maps the corruption boundary on the known-good path.
+void fs_scan_file(const char *filename) {
+  pi_fs_file_t *fd = pi_fs_open(&fs, filename, 0);
+  if (fd == NULL) {
+    printf("[FSSCAN] %s OPEN FAILED\r\n", filename);
+    return;
+  }
+  const uint32_t CH = 2048;
+  uint32_t size = fd->size;
+  int first_bad = -1;
+  uint32_t total_bad = 0;
+  for (uint32_t off = 0; off < size; off += CH) {
+    uint32_t n = (size - off) < CH ? (size - off) : CH;
+    pi_fs_seek(fd, off);
+    pi_fs_read(fd, buffer, n);
+    const float *f = (const float *)buffer;
+    uint32_t bad = 0;
+    for (uint32_t i = 0; i < n / 4; i++) {
+      float v = f[i];
+      if (!(v > -100.0f && v < 100.0f)) { // catches nan/inf/huge
+        bad++;
+        if (first_bad < 0)
+          first_bad = (int)(off + i * 4);
+      }
+    }
+    total_bad += bad;
+  }
+  printf("[FSSCAN] %s size=%u first_bad_byte=%d total_bad_floats=%u\r\n", filename, (unsigned)size, first_bad,
+         (unsigned)total_bad);
+  pi_fs_close(fd);
+}
+
 // DEBUG: read the three readfs files in REVERSE order (weight, bias, input)
 // using the FC-side pi_fs_read (the loader uses the CLUSTER pi_cl_fs_read). Runs
 // in FC context (call from main after open_fs). Discriminates:

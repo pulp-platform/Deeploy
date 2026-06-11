@@ -451,6 +451,7 @@ int main(void) {
   open_fs();
   // DEBUG: localise the multi-file readfs garbage bug (remove after debugging).
   fs_order_test();
+  fs_scan_file("0.hex"); // map where the input file goes garbage (if at all)
 #endif
 
   // --- L3/OctoSPI DMA diagnostic (remove after debugging) ---
