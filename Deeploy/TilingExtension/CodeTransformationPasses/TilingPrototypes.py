@@ -168,6 +168,14 @@ class ProfilingPrototypeMixIn(ABC):
     ${measurements}[${tileIdxVar}] = getCycles();
     """)
 
+    # Live, immediately-flushed progress beacon printed *inside* the tile loop.
+    # Unlike the cycle measurements (stored in arrays and printed at teardown),
+    # this prints synchronously at each phase boundary, so when a tile deadlocks
+    # the last beacon on the UART pinpoints exactly which sub-phase hung.
+    _liveBeacon = NodeTemplate("""
+    if (pi_core_id() == 0) { printf("[TRACE] ${nodeName} tile %u: ${phase}\\r\\n", ${tileIdxVar}); }
+    """)
+
     _measurementArrayDeclaration = NodeTemplate("""
     uint32_t ${measurements}[${totalNumTiles}];
     """)

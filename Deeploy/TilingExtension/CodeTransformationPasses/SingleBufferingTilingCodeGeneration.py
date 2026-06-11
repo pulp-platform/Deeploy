@@ -163,6 +163,12 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
                 "measurements": f"{nodeName}_ingress_dma_wait_start_measurements",
                 "tileIdxVar": tileIdxVar
             }))
+        _openLoopStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "ingress DMA start",
+                "tileIdxVar": tileIdxVar
+            }))
         _openLoopStatements += openLoopStatements[1:]
 
         _ingressDMAStatements = []
@@ -170,6 +176,12 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
         _ingressDMAStatements.append(
             CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "tileIdxVar": tileIdxVar
+            }))
+        _ingressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "ingress done -> kernel start",
                 "tileIdxVar": tileIdxVar
             }))
 
@@ -181,10 +193,22 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
                 "measurements": f"{nodeName}_egress_dma_wait_start_measurements",
                 "tileIdxVar": tileIdxVar
             }))
+        _egressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "kernel done -> egress DMA start",
+                "tileIdxVar": tileIdxVar
+            }))
         _egressDMAStatements += egressDMAStatements
         _egressDMAStatements.append(
             CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_egress_dma_wait_end_measurements",
+                "tileIdxVar": tileIdxVar
+            }))
+        _egressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "egress done (tile complete)",
                 "tileIdxVar": tileIdxVar
             }))
 
