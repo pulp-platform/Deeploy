@@ -339,6 +339,93 @@ void DumpConvOut(void *arg) {
 
 void DumpConvOutCl(void *arg) { pi_cl_team_fork(NUM_CORES, DumpConvOut, arg); }
 
+// ---- DEBUG: scan the conv WEIGHT buffer at its L3 SOURCE, before the run ----
+// The weight tensor is cl_ram_malloc'd right after the 294912-byte L3 arena, so
+// it lands at ~ MEMORYARENA_L3 + 294912 (linear OctoSPI allocator). We scan an
+// 8 KB window from there and search for the known ch15 weight value 0.22640 to
+// (a) locate the buffer and (b) check whether the weights are INTACT in L3.
+//   - intact here  => weights are fine in L3, corrupted on the conv's L3->L2 read.
+//   - garbage here => alloc/load bug: the bytes never landed correctly in L3.
+// Expected weights[405..412] (ch15): 0.22640 0.32617 0.12632 0.21337 -0.16103
+// 0.07972 0.27983 -0.15921 ; bias just after the 432 weight floats: bias[15]=0.13946.
+void DumpWeightL3(void *arg) {
+  (void)arg;
+  if (pi_core_id() != 0)
+    return;
+  uint8_t *arena = (uint8_t *)DeeployNetwork_MEMORYARENA_L3;
+  printf("[WL3] arena base addr = 0x%08x\r\n", (unsigned)(uint32_t)arena);
+
+  // The OctoSPI allocator (cl_ram_malloc) hands out DESCENDING addresses, so the
+  // 1728-byte conv weight buffer (allocated right after the arena) sits directly
+  // below it: weight base == arena - 1728 (verified on GVSoC). Read it directly
+  // and check whether the 432 weight floats are intact/finite at the L3 SOURCE.
+  {
+    const uint32_t WN = 432; // weight floats (16 outch * 3 inch * 3 * 3)
+    float32_t *wbuf = (float32_t *)pi_l2_malloc(WN * sizeof(float32_t));
+    pi_cl_ram_req_t rw = {0};
+    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)(arena - 1728), wbuf, WN * 4, WN * 4, WN * 4, 1, &rw);
+    pi_cl_ram_copy_wait(&rw);
+    uint32_t wn = 0, wi = 0;
+    float wmn = 1e30f, wmx = -1e30f;
+    for (uint32_t i = 0; i < WN; i++) {
+      float v = wbuf[i];
+      if (isnan(v))
+        wn++;
+      else if (isinf(v))
+        wi++;
+      else {
+        if (v < wmn)
+          wmn = v;
+        if (v > wmx)
+          wmx = v;
+      }
+    }
+    printf("[WL3] @arena-1728 SOURCE weights: nan=%u inf=%u min=%f max=%f\r\n", (unsigned)wn, (unsigned)wi, wmn, wmx);
+    printf("[WL3] w[0..7]:");
+    for (uint32_t i = 0; i < 8; i++)
+      printf(" %.5f", wbuf[i]);
+    printf("  w[405..408](ch15):");
+    for (uint32_t i = 405; i < 409; i++)
+      printf(" %.5f", wbuf[i]);
+    printf("\r\n");
+    pi_l2_free(wbuf, WN * sizeof(float32_t));
+  }
+
+  // Cross-check: narrow self-locating search for the 0.22640 signature.
+  const int32_t LO = -16384, HI = 16384; // bytes, relative to arena base (board-safe)
+  const uint32_t CH = 2048;              // floats per chunk (8 KB)
+  float32_t *tmp = (float32_t *)pi_l2_malloc(CH * sizeof(float32_t));
+
+  int found_off = 0x7fffffff;
+  for (int32_t off = LO; off < HI; off += (int32_t)(CH * 4)) {
+    pi_cl_ram_req_t req = {0};
+    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)(arena + off), tmp, CH * 4, CH * 4, CH * 4, 1, &req);
+    pi_cl_ram_copy_wait(&req);
+    for (uint32_t i = 0; i < CH; i++) {
+      float d = tmp[i] - 0.22640f;
+      if (d < 0.0003f && d > -0.0003f) {
+        found_off = off + (int32_t)(i * 4);
+        // ch15 weight starts at float index 405 in the 432-float buffer, so the
+        // weight buffer base is found_off - 405*4. Dump 8 floats from there.
+        int32_t wbase = found_off - 405 * 4;
+        pi_cl_ram_req_t r2 = {0};
+        pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)(arena + wbase), tmp, 32, 32, 32, 1, &r2);
+        pi_cl_ram_copy_wait(&r2);
+        printf("[WL3] FOUND sig at off=%d (weight base off=%d) w[0..7]:", (int)found_off, (int)wbase);
+        for (uint32_t k = 0; k < 8; k++)
+          printf(" %.5f", tmp[k]);
+        printf("\r\n");
+        pi_l2_free(tmp, CH * sizeof(float32_t));
+        return;
+      }
+    }
+  }
+  printf("[WL3] signature 0.22640 NOT found in scanned window\r\n");
+  pi_l2_free(tmp, CH * sizeof(float32_t));
+}
+
+void DumpWeightL3Cl(void *arg) { pi_cl_team_fork(NUM_CORES, DumpWeightL3, arg); }
+
 int main(void) {
 
 #ifdef POWER_MEASUREMENT
@@ -411,6 +498,14 @@ int main(void) {
     pi_cluster_task(&zero_task, ZeroArenasCl, NULL);
     zero_task.slave_stack_size = SLAVESTACKSIZE;
     pi_cluster_send_task_to_cl(&cluster_dev, &zero_task);
+  }
+
+  // ---- DEBUG: dump the conv weight buffer at its L3 source, pre-run ----
+  {
+    struct pi_cluster_task wl3_task;
+    pi_cluster_task(&wl3_task, DumpWeightL3Cl, NULL);
+    wl3_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &wl3_task);
   }
 
   pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
