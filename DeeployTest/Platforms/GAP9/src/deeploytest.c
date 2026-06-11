@@ -449,6 +449,8 @@ int main(void) {
   mem_init();
 #ifndef NOFLASH
   open_fs();
+  // DEBUG: localise the multi-file readfs garbage bug (remove after debugging).
+  fs_order_test();
 #endif
 
   // --- L3/OctoSPI DMA diagnostic (remove after debugging) ---

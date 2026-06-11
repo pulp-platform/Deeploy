@@ -174,6 +174,31 @@ size_t load_file_to_ram(const void *dest, const char *filename) {
   return offset;
 }
 
+// DEBUG: read the three readfs files in REVERSE order (weight, bias, input)
+// using the FC-side pi_fs_read (the loader uses the CLUSTER pi_cl_fs_read). Runs
+// in FC context (call from main after open_fs). Discriminates:
+//   - 1.hex correct here but garbage in load  => cluster-read or read-ORDER bug.
+//   - 1.hex garbage here too                  => data not in flash (flash/image bug).
+void fs_order_test(void) {
+  const char *names[3] = {"1.hex", "2.hex", "0.hex"};
+  for (int f = 0; f < 3; f++) {
+    pi_fs_file_t *fd = pi_fs_open(&fs, names[f], 0);
+    if (fd == NULL) {
+      printf("[FSORDER] %s: OPEN FAILED\r\n", names[f]);
+      continue;
+    }
+    uint8_t local[32];
+    pi_fs_seek(fd, 0);
+    int32_t n = pi_fs_read(fd, local, 32);
+    const float *lf = (const float *)local;
+    printf("[FSORDER] %s (FC read, order#%d) size=%u n=%d:", names[f], f, (unsigned)fd->size, (int)n);
+    for (int i = 0; i < 8; i++)
+      printf(" %.5f", lf[i]);
+    printf("\r\n");
+    pi_fs_close(fd);
+  }
+}
+
 size_t load_file_to_local(const void *dest, const char *filename) {
   pi_fs_file_t *fd = pi_fs_open(&fs, filename, 0);
   if (fd == NULL) {
