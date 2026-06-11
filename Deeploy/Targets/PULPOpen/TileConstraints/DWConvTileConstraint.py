@@ -112,11 +112,17 @@ class RQDWConv2DTileConstraint(TileConstraint):
 
         # VIC: Constraint the minimum tile size such that we can apply at least one kernel on it
         # SCHEREMO: Account for padding - needed for MobileNetv1
-        tilerModel.addConstraint(outputHeightVar >= 1 + max([pads[0], pads[2]]))
-        tilerModel.addConstraint(outputWidthVar >= 1 + max([pads[1], pads[3]]))
+        # JS: Clamp the minimum to the full (untiled) spatial dimension: when the kernel is
+        # larger than the feature map (e.g. a 7x7 DWConv on a 3x3 late-stage map), the
+        # "one full kernel" minimum would exceed the available size and make the model
+        # infeasible. In that case the only valid tile is the whole dimension.
+        tilerModel.addConstraint(outputHeightVar >= min(1 + max([pads[0], pads[2]]), outputBuffer.shape[1]))
+        tilerModel.addConstraint(outputWidthVar >= min(1 + max([pads[1], pads[3]]), outputBuffer.shape[2]))
 
-        tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'] + pads[0], strategy = PerformanceHint(1))
-        tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'] + pads[1], strategy = PerformanceHint(1))
+        tilerModel.addConstraint(inputHeightVar >= min(parseDict['dim_kernel_x'] + pads[0], inputBuffer.shape[2]),
+                                 strategy = PerformanceHint(1))
+        tilerModel.addConstraint(inputWidthVar >= min(parseDict['dim_kernel_y'] + pads[1], inputBuffer.shape[3]),
+                                 strategy = PerformanceHint(1))
 
         tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
         tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
