@@ -44,9 +44,6 @@ void CompareFloatOnCluster(void *args) {
     int *err_count = compare_args->err_count;
 
     int local_err_count = 0;
-    int nan_count = 0, inf_count = 0, first_bad = -1;
-    float amin = 0.0f, amax = 0.0f;
-    int seen_finite = 0;
 
     for (int i = 0; i < num_elements; i++) {
       float expected_val = expected[i];
@@ -54,43 +51,14 @@ void CompareFloatOnCluster(void *args) {
       float diff = expected_val - actual_val;
       int is_err = (diff < -1e-4) || (diff > 1e-4) || isnan(diff);
 
-      if (isnan(actual_val)) {
-        nan_count += 1;
-        if (first_bad < 0)
-          first_bad = i;
-      } else if (isinf(actual_val)) {
-        inf_count += 1;
-        if (first_bad < 0)
-          first_bad = i;
-      } else {
-        if (!seen_finite) {
-          amin = amax = actual_val;
-          seen_finite = 1;
-        } else {
-          if (actual_val < amin)
-            amin = actual_val;
-          if (actual_val > amax)
-            amax = actual_val;
-        }
-      }
-
       if (is_err) {
         local_err_count += 1;
       }
 
-      // Full per-element dump only for small outputs (e.g. final classifier)
-      if (num_elements <= 32) {
-        printf("Out %u[%4d] expected: %12.6f  actual: %12.6f  diff: %12.6f%s\r\n",
-               output_buf_index, i, expected_val, actual_val, diff,
-               is_err ? "  <-- ERR" : "");
-      }
+      printf("Out %u[%6d] expected: %12.6f  actual: %12.6f  diff: %12.6f%s\r\n",
+             output_buf_index, i, expected_val, actual_val, diff,
+             is_err ? "  <-- ERR" : "");
     }
-
-    // Compact summary — works for any tensor size (use for NaN bisection)
-    printf("[SUMMARY] Out %u: n=%d errs=%d nan=%d inf=%d first_bad=%d "
-           "actual_min=%.6f actual_max=%.6f\r\n",
-           output_buf_index, num_elements, local_err_count, nan_count,
-           inf_count, first_bad, amin, amax);
 
     *err_count = local_err_count;
   }
@@ -115,317 +83,6 @@ void RunNetworkWrapper(void *args) {
   StopTimer();
 }
 
-// ---- One-shot L3/OctoSPI cluster-DMA self-test (diagnostic) ----
-// Writes a known byte ramp into an L3 buffer, then reads it back three ways via
-// the SAME pi_cl_ram_copy_2d API and verifies each against the ramp:
-//   (a) one large contiguous block        (length == size)
-//   (b) one small contiguous block        (200 B)
-//   (c) strided gather 80x200 B @ stride 384  (the conv NCHW->NHWC transpose pattern)
-// All three pass under GVSoC. On the board, whichever FAILs pinpoints the
-// broken OctoSPI access pattern (contiguous vs small vs strided).
-void L3SelfTest(void *arg) {
-  (void)arg;
-  if (pi_core_id() != 0)
-    return;
-
-  const uint32_t STRIDE = 384, LINE = 200, NLINES = 80;
-  const uint32_t REGION = NLINES * STRIDE; // 30720 B written to L3
-  const uint32_t SSZ = NLINES * LINE;      // 16000 B gathered by the strided read
-
-  uint8_t *src = (uint8_t *)pi_l2_malloc(REGION);
-  uint8_t *dst = (uint8_t *)pi_l2_malloc(REGION);
-  uint8_t *sdst = (uint8_t *)pi_l2_malloc(SSZ);
-  if (!src || !dst || !sdst) {
-    printf("[L3TEST] L2 alloc failed\r\n");
-    return;
-  }
-  for (uint32_t i = 0; i < REGION; i++)
-    src[i] = (uint8_t)(i & 0xFF);
-
-  void *l3 = cl_ram_malloc(REGION);
-  cl_ram_write(l3, src, REGION); // contiguous write of the ramp into L3
-
-  int bad;
-
-  // (a) large contiguous read-back (single line: length == size)
-  for (uint32_t i = 0; i < REGION; i++)
-    dst[i] = 0xAA;
-  {
-    pi_cl_ram_req_t req = {0};
-    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)l3, dst, REGION, REGION, REGION, 1, &req);
-    pi_cl_ram_copy_wait(&req);
-  }
-  bad = -1;
-  for (uint32_t i = 0; i < REGION; i++)
-    if (dst[i] != (uint8_t)(i & 0xFF)) {
-      bad = (int)i;
-      break;
-    }
-  if (bad < 0)
-    printf("[L3TEST] (a) contiguous %u B       : PASS\r\n", REGION);
-  else
-    printf("[L3TEST] (a) contiguous %u B       : FAIL @%d got %u exp %u\r\n", REGION, bad, dst[bad],
-           (unsigned)(bad & 0xFF));
-
-  // (b) small contiguous read (single 200 B line)
-  for (uint32_t i = 0; i < LINE; i++)
-    sdst[i] = 0xAA;
-  {
-    pi_cl_ram_req_t req = {0};
-    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)l3, sdst, LINE, LINE, LINE, 1, &req);
-    pi_cl_ram_copy_wait(&req);
-  }
-  bad = -1;
-  for (uint32_t i = 0; i < LINE; i++)
-    if (sdst[i] != (uint8_t)(i & 0xFF)) {
-      bad = (int)i;
-      break;
-    }
-  if (bad < 0)
-    printf("[L3TEST] (b) small contiguous %u B  : PASS\r\n", LINE);
-  else
-    printf("[L3TEST] (b) small contiguous %u B  : FAIL @%d got %u exp %u\r\n", LINE, bad, sdst[bad],
-           (unsigned)(bad & 0xFF));
-
-  // (c) strided gather: NLINES lines of LINE bytes at STRIDE (conv-transpose pattern)
-  for (uint32_t i = 0; i < SSZ; i++)
-    sdst[i] = 0xAA;
-  {
-    pi_cl_ram_req_t req = {0};
-    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)l3, sdst, SSZ, STRIDE, LINE, 1, &req);
-    pi_cl_ram_copy_wait(&req);
-  }
-  bad = -1;
-  for (uint32_t L = 0; L < NLINES && bad < 0; L++)
-    for (uint32_t k = 0; k < LINE; k++)
-      if (sdst[L * LINE + k] != (uint8_t)((L * STRIDE + k) & 0xFF)) {
-        bad = (int)(L * LINE + k);
-        break;
-      }
-  if (bad < 0)
-    printf("[L3TEST] (c) strided %ux%u@%u    : PASS\r\n", NLINES, LINE, STRIDE);
-  else {
-    uint32_t L = (uint32_t)bad / LINE, k = (uint32_t)bad % LINE;
-    printf("[L3TEST] (c) strided %ux%u@%u    : FAIL line %u byte %u got %u exp %u\r\n", NLINES, LINE, STRIDE, L, k,
-           sdst[bad], (unsigned)((L * STRIDE + k) & 0xFF));
-  }
-
-  cl_ram_free(l3, REGION);
-  pi_l2_free(src, REGION);
-  pi_l2_free(dst, REGION);
-  pi_l2_free(sdst, SSZ);
-}
-
-// Run the self-test via team fork (same path as CompareFloatOnCluster, whose
-// core-0 printf reaches the UART; a bare cluster-task printf does not surface).
-void L3SelfTestCl(void *arg) {
-  pi_cl_team_fork(NUM_CORES, L3SelfTest, arg);
-}
-
-// ---- DEBUG: zero L1/L2 arenas to emulate GVSoC (remove after test) ----
-// If the on-board FLT_MAX/NaN garbage is caused by the conv reading/scattering
-// an uninitialized L1 tile (e.g. an under-written output tile), zeroing the
-// scratch arenas before RunNetwork makes the board match GVSoC. Runs on the
-// cluster so it can write cluster-L1; L1/L2 hold no persistent data between
-// InitNetwork and RunNetwork (weights/inputs live in L3), so this is safe.
-void ZeroArenas(void *arg) {
-  (void)arg;
-  if (pi_core_id() != 0)
-    return;
-  for (uint32_t i = 0; i < DeeployNetwork_MEMORYARENA_L1_len; i++)
-    DeeployNetwork_MEMORYARENA_L1[i] = 0;
-  for (uint32_t i = 0; i < DeeployNetwork_MEMORYARENA_L2_len; i++)
-    DeeployNetwork_MEMORYARENA_L2[i] = 0;
-  printf("[ZEROFILL] L1/L2 arenas zeroed (%u + %u B)\r\n",
-         (unsigned)DeeployNetwork_MEMORYARENA_L1_len,
-         (unsigned)DeeployNetwork_MEMORYARENA_L2_len);
-
-  // Zero the L3 *scratch* region (everything after the loaded input): this is
-  // where the conv reads its transposed input and where the network output
-  // lands. The input itself (L3[0 .. input_0_len)) is preserved so the run is
-  // valid. If the FLT_MAX/NaN garbage is uninitialized L3 read-before-write,
-  // this makes the board match GVSoC.
-  {
-    uint8_t *l3_base = (uint8_t *)DeeployNetwork_MEMORYARENA_L3;
-    const uint32_t start = DeeployNetwork_input_0_len * (uint32_t)sizeof(float32_t);
-    const uint32_t total = DeeployNetwork_MEMORYARENA_L3_len;
-    const uint32_t CHUNK = 4096;
-    uint8_t *zbuf = (uint8_t *)pi_l2_malloc(CHUNK);
-    for (uint32_t i = 0; i < CHUNK; i++)
-      zbuf[i] = 0;
-    for (uint32_t off = start; off < total; off += CHUNK) {
-      uint32_t n = (total - off) < CHUNK ? (total - off) : CHUNK;
-      cl_ram_write((void *)(l3_base + off), zbuf, n);
-    }
-    pi_l2_free(zbuf, CHUNK);
-    printf("[ZEROFILL] L3 scratch zeroed [%u..%u)\r\n", (unsigned)start, (unsigned)total);
-  }
-
-  // DEBUG: read the loaded input back from L3 to verify the flash->L3 (readfs)
-  // load path on silicon. GVSoC is correct with the identical binary+hex, so if
-  // these bytes are wrong on the board the data load is the culprit; if they are
-  // correct, the divergence is in the compute (FPU/kernels). Expected (0.hex):
-  //   -0.45539  0.77912  0.17873  -0.73684  -0.98076  0.26855  0.18290  -2.02323
-  {
-    const uint32_t N = 8, BYTES = N * (uint32_t)sizeof(float32_t);
-    float32_t *tmp = (float32_t *)pi_l2_malloc(BYTES);
-    pi_cl_ram_req_t req = {0};
-    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)DeeployNetwork_input_0, tmp, BYTES, BYTES, BYTES, 1, &req);
-    pi_cl_ram_copy_wait(&req);
-    printf("[DUMP] input_0[0..7]:");
-    for (uint32_t i = 0; i < N; i++)
-      printf(" %.5f", tmp[i]);
-    printf("\r\n");
-    pi_l2_free(tmp, BYTES);
-  }
-}
-
-void ZeroArenasCl(void *arg) { pi_cl_team_fork(NUM_CORES, ZeroArenas, arg); }
-
-// ---- DEBUG: scan the conv's pre-transpose output in L3 after the run ----
-// output_pre_transposed lives at L3+0 (== DeeployNetwork_input_0's address) and
-// is NOT overwritten by the final output transpose (which writes output_0 at
-// L3+147456). So reading it post-run shows whether the conv ALREADY produced
-// FLT_MAX/NaN (=> conv kernel is the culprit) or is clean (=> output transpose).
-void DumpConvOut(void *arg) {
-  (void)arg;
-  if (pi_core_id() != 0)
-    return;
-  const uint32_t N = 36864, CH = 1024;
-  float32_t *tmp = (float32_t *)pi_l2_malloc(CH * sizeof(float32_t));
-  float mn = 1e30f, mx = -1e30f;
-  uint32_t nanc = 0, infc = 0;
-  for (uint32_t off = 0; off < N; off += CH) {
-    uint32_t n = (N - off) < CH ? (N - off) : CH;
-    pi_cl_ram_req_t req = {0};
-    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)((char *)DeeployNetwork_input_0 + off * 4), tmp, n * 4, n * 4, n * 4, 1, &req);
-    pi_cl_ram_copy_wait(&req);
-    for (uint32_t i = 0; i < n; i++) {
-      float v = tmp[i];
-      if (isnan(v))
-        nanc++;
-      else if (isinf(v))
-        infc++;
-      else {
-        if (v < mn)
-          mn = v;
-        if (v > mx)
-          mx = v;
-      }
-    }
-  }
-  printf("[CONVOUT] pre-transpose @L3+0: nan=%u inf=%u min=%f max=%f first:", (unsigned)nanc, (unsigned)infc, mn, mx);
-  pi_cl_ram_req_t req = {0};
-  pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)DeeployNetwork_input_0, tmp, 32, 32, 32, 1, &req);
-  pi_cl_ram_copy_wait(&req);
-  for (uint32_t i = 0; i < 8; i++)
-    printf(" %.5f", tmp[i]);
-  printf("\r\n");
-  pi_l2_free(tmp, CH * sizeof(float32_t));
-
-  // Conv weight/bias L2 staging (last tile = channel 15). The output transpose
-  // uses lower L2 offsets, so +62016/+62124 should still hold the conv's last
-  // loaded weights. Expected (valid): 0.22640 0.32617 0.12632 0.21337 -0.16103
-  // 0.07972 0.27983 -0.15921 ; bias[15]=0.13946. Garbage (~1e38) => weight load.
-  {
-    volatile float32_t *wl2 = (volatile float32_t *)((char *)DeeployNetwork_MEMORYARENA_L2 + 62016);
-    volatile float32_t *bl2 = (volatile float32_t *)((char *)DeeployNetwork_MEMORYARENA_L2 + 62124);
-    printf("[WSTAGE] L2 weight[0..7]:");
-    for (uint32_t i = 0; i < 8; i++)
-      printf(" %.5f", wl2[i]);
-    printf("  bias[0]=%.5f\r\n", bl2[0]);
-  }
-}
-
-void DumpConvOutCl(void *arg) { pi_cl_team_fork(NUM_CORES, DumpConvOut, arg); }
-
-// ---- DEBUG: scan the conv WEIGHT buffer at its L3 SOURCE, before the run ----
-// The weight tensor is cl_ram_malloc'd right after the 294912-byte L3 arena, so
-// it lands at ~ MEMORYARENA_L3 + 294912 (linear OctoSPI allocator). We scan an
-// 8 KB window from there and search for the known ch15 weight value 0.22640 to
-// (a) locate the buffer and (b) check whether the weights are INTACT in L3.
-//   - intact here  => weights are fine in L3, corrupted on the conv's L3->L2 read.
-//   - garbage here => alloc/load bug: the bytes never landed correctly in L3.
-// Expected weights[405..412] (ch15): 0.22640 0.32617 0.12632 0.21337 -0.16103
-// 0.07972 0.27983 -0.15921 ; bias just after the 432 weight floats: bias[15]=0.13946.
-void DumpWeightL3(void *arg) {
-  (void)arg;
-  if (pi_core_id() != 0)
-    return;
-  uint8_t *arena = (uint8_t *)DeeployNetwork_MEMORYARENA_L3;
-  printf("[WL3] arena base addr = 0x%08x\r\n", (unsigned)(uint32_t)arena);
-
-  // The OctoSPI allocator (cl_ram_malloc) hands out DESCENDING addresses, so the
-  // 1728-byte conv weight buffer (allocated right after the arena) sits directly
-  // below it: weight base == arena - 1728 (verified on GVSoC). Read it directly
-  // and check whether the 432 weight floats are intact/finite at the L3 SOURCE.
-  {
-    const uint32_t WN = 432; // weight floats (16 outch * 3 inch * 3 * 3)
-    float32_t *wbuf = (float32_t *)pi_l2_malloc(WN * sizeof(float32_t));
-    pi_cl_ram_req_t rw = {0};
-    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)(arena - 1728), wbuf, WN * 4, WN * 4, WN * 4, 1, &rw);
-    pi_cl_ram_copy_wait(&rw);
-    uint32_t wn = 0, wi = 0;
-    float wmn = 1e30f, wmx = -1e30f;
-    for (uint32_t i = 0; i < WN; i++) {
-      float v = wbuf[i];
-      if (isnan(v))
-        wn++;
-      else if (isinf(v))
-        wi++;
-      else {
-        if (v < wmn)
-          wmn = v;
-        if (v > wmx)
-          wmx = v;
-      }
-    }
-    printf("[WL3] @arena-1728 SOURCE weights: nan=%u inf=%u min=%f max=%f\r\n", (unsigned)wn, (unsigned)wi, wmn, wmx);
-    printf("[WL3] w[0..7]:");
-    for (uint32_t i = 0; i < 8; i++)
-      printf(" %.5f", wbuf[i]);
-    printf("  w[405..408](ch15):");
-    for (uint32_t i = 405; i < 409; i++)
-      printf(" %.5f", wbuf[i]);
-    printf("\r\n");
-    pi_l2_free(wbuf, WN * sizeof(float32_t));
-  }
-
-  // Cross-check: narrow self-locating search for the 0.22640 signature.
-  const int32_t LO = -16384, HI = 16384; // bytes, relative to arena base (board-safe)
-  const uint32_t CH = 2048;              // floats per chunk (8 KB)
-  float32_t *tmp = (float32_t *)pi_l2_malloc(CH * sizeof(float32_t));
-
-  int found_off = 0x7fffffff;
-  for (int32_t off = LO; off < HI; off += (int32_t)(CH * 4)) {
-    pi_cl_ram_req_t req = {0};
-    pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)(arena + off), tmp, CH * 4, CH * 4, CH * 4, 1, &req);
-    pi_cl_ram_copy_wait(&req);
-    for (uint32_t i = 0; i < CH; i++) {
-      float d = tmp[i] - 0.22640f;
-      if (d < 0.0003f && d > -0.0003f) {
-        found_off = off + (int32_t)(i * 4);
-        // ch15 weight starts at float index 405 in the 432-float buffer, so the
-        // weight buffer base is found_off - 405*4. Dump 8 floats from there.
-        int32_t wbase = found_off - 405 * 4;
-        pi_cl_ram_req_t r2 = {0};
-        pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t)(arena + wbase), tmp, 32, 32, 32, 1, &r2);
-        pi_cl_ram_copy_wait(&r2);
-        printf("[WL3] FOUND sig at off=%d (weight base off=%d) w[0..7]:", (int)found_off, (int)wbase);
-        for (uint32_t k = 0; k < 8; k++)
-          printf(" %.5f", tmp[k]);
-        printf("\r\n");
-        pi_l2_free(tmp, CH * sizeof(float32_t));
-        return;
-      }
-    }
-  }
-  printf("[WL3] signature 0.22640 NOT found in scanned window\r\n");
-  pi_l2_free(tmp, CH * sizeof(float32_t));
-}
-
-void DumpWeightL3Cl(void *arg) { pi_cl_team_fork(NUM_CORES, DumpWeightL3, arg); }
-
 int main(void) {
 
 #ifdef POWER_MEASUREMENT
@@ -449,18 +106,7 @@ int main(void) {
   mem_init();
 #ifndef NOFLASH
   open_fs();
-  // DEBUG: localise the multi-file readfs garbage bug (remove after debugging).
-  fs_order_test();
-  fs_scan_file("0.hex"); // map where the input file goes garbage (if at all)
 #endif
-
-  // --- L3/OctoSPI DMA diagnostic (remove after debugging) ---
-  {
-    struct pi_cluster_task l3test_task;
-    pi_cluster_task(&l3test_task, L3SelfTestCl, NULL);
-    l3test_task.slave_stack_size = SLAVESTACKSIZE;
-    pi_cluster_send_task_to_cl(&cluster_dev, &l3test_task);
-  }
 
   printf("Intializing\r\n");
 
@@ -495,22 +141,6 @@ int main(void) {
   WRITE_GPIO(1);
 
 
-  // ---- DEBUG: zero scratch arenas before the run (remove after test) ----
-  {
-    struct pi_cluster_task zero_task;
-    pi_cluster_task(&zero_task, ZeroArenasCl, NULL);
-    zero_task.slave_stack_size = SLAVESTACKSIZE;
-    pi_cluster_send_task_to_cl(&cluster_dev, &zero_task);
-  }
-
-  // ---- DEBUG: dump the conv weight buffer at its L3 source, pre-run ----
-  {
-    struct pi_cluster_task wl3_task;
-    pi_cluster_task(&wl3_task, DumpWeightL3Cl, NULL);
-    wl3_task.slave_stack_size = SLAVESTACKSIZE;
-    pi_cluster_send_task_to_cl(&cluster_dev, &wl3_task);
-  }
-
   pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
 
@@ -520,14 +150,6 @@ int main(void) {
 
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
   WRITE_GPIO(0);
-
-  // ---- DEBUG: scan conv pre-transpose output after the run (remove later) ----
-  {
-    struct pi_cluster_task dump_task;
-    pi_cluster_task(&dump_task, DumpConvOutCl, NULL);
-    dump_task.slave_stack_size = SLAVESTACKSIZE;
-    pi_cluster_send_task_to_cl(&cluster_dev, &dump_task);
-  }
 
 #ifdef POWER_MEASUREMENT
   WRITE_GPIO(0);

@@ -25,10 +25,4 @@ void cl_ram_write(void *dest, void *src, size_t size);
 size_t load_file_to_ram(const void *dest, const char *filename);
 size_t load_file_to_local(const void *dest, const char *filename);
 
-// DEBUG: FC-side read-order test to localise the multi-file readfs garbage bug.
-void fs_order_test(void);
-
-// DEBUG: scan a readfs file for the byte offset where data turns to garbage.
-void fs_scan_file(const char *filename);
-
 #endif // __MEM_H__
