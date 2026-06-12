@@ -192,10 +192,10 @@ void Spatz_MatMul_fp32_fp32_fp32(const float32_t *__restrict__ a,
   const unsigned int cid = snrt_cluster_core_idx();
 
   if (M == 1) {
-    // TODO make this be more specific, probably needs to me N>4*P or some other constant
+    // TODO make this be more specific, probably needs to me N>5*P or some other constant
     int cols_core0 = P / 2;
     int cols_core1 = P - cols_core0; // Safely gets the remainder if P is odd
-    if (N>P){
+    if (N>4*P){
       if (cid == 0) {
           gemv_col_reduction_dual_core(a, b, c, N, cols_core0, P);
       } else {
