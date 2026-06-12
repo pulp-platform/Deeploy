@@ -35,9 +35,9 @@ void gemv_v32b_m4(float *a, float *b, float *c, int N, int P) {
     asm volatile("vfmul.vf v16, v8, %0" ::"f"(a[0]));   
 
     for (int row = 1; row < N; row++) {
-      b_ += P;                                     
+      b_ += P;
       asm volatile("vle32.v v8, (%0)" ::"r"(b_));
-      asm volatile("vfmacc.vf v16, %0, v8" ::"f"(a[row]));  
+      asm volatile("vfmacc.vf v16, %0, v8" ::"f"(a[row]));
     }
 
     asm volatile("vse32.v v16, (%0)" ::"r"(c + p));
@@ -54,12 +54,9 @@ void Spatz_MatMul_fp32_fp32_fp32(const float32_t *__restrict__ a,
   const unsigned int cid = snrt_cluster_core_idx();
 
   if (M == 1) {
-    printf("a: 0x%x, b: 0x%x, c: 0x%x\n", (uint32_t)a, (uint32_t)b, (uint32_t)c);
-      if (cid==0){
-       gemv_v32b_m4(a, b, c, N, P);
-      }
-
-    // }
+    if (cid == 0) {
+      gemv_v32b_m4(a, b, c, N, P);
+    }
   } else {
     unsigned int p_start, p_end;
     if (cid == 0){ p_start = 0; p_end = (P/2);

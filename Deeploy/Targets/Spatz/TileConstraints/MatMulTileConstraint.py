@@ -86,6 +86,21 @@ class MatMulTileConstraint(TileConstraint):
         tilerModel.addConstraint(ASecondDimVar == parseDict['N'])
         tilerModel.addConstraint(BFirstDimVar == parseDict['N'])
 
+        # Spatz row-stride alignment: the kernel loads B rows / stores output rows at
+        # a stride of O elements. On this Spatz config every row base must be 64-bit
+        # aligned, otherwise a chained vector load corrupts the upper lanes. So force
+        # the O tile size to be a multiple of (8 / elemBytes) (fp32 -> 2). With an even
+        # original O the remainder tile is even too (even - even*k = even), so every
+        # tile's row stride stays 8-byte aligned. (Odd original O is unsupported: its
+        # remainder tile is odd and would be misaligned.)
+        outputBuffer = ctxt.lookup(name = parseDict['data_out'])
+        elemBytes = outputBuffer._type.referencedType.typeWidth // 8
+        modulo = 8 // elemBytes
+        if modulo > 1:
+            outputODimVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name,
+                                                       dimIdx = len(outputBuffer.shape) - 1)
+            tilerModel.addTileSizeDivisibleConstraint(parseDict, "O", outputODimVar, modulo)
+
         return tilerModel
 
     @classmethod
