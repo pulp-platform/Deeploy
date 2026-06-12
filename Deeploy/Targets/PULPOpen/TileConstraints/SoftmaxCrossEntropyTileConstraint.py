@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import copy
 from typing import Dict, List, Tuple, Union
 
 from ortools.constraint_solver.pywrapcp import IntVar
@@ -17,10 +18,18 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
 
 
 class SoftmaxCrossEntropyTileConstraint(TileConstraint):
+    """TileConstraint for SoftmaxCrossEntropyLoss (2 outputs: loss + log_prob).
+
+    Both batch and num_classes are pinned to their full size by
+    addPolicyConstraint, so SCE itself is never tiled — the sole purpose of
+    the wrapTilingSolution override is to bypass the base-class single-output
+    assertion and carry the scalar loss buffer through the DMA schedule.
+    """
 
     dataIn1Name = 'logits'
     dataIn2Name = 'labels'
     dataOutName = 'log_prob'
+    dataLossName = 'loss'
 
     @classmethod
     def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
@@ -108,8 +117,53 @@ class SoftmaxCrossEntropyTileConstraint(TileConstraint):
 
         return variableReplacementSchedule, tilingSchedule
 
+    @classmethod
+    def wrapTilingSolution(
+            cls, tilingSolution: NodeMemoryConstraint, targetMemLevel: str, ctxt: NetworkContext,
+            operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, List[TilingSchedule]]:
+        """Override the base-class single-output wrapper.
+
+        SoftmaxCrossEntropyLoss emits two outputs (loss + log_prob) but the
+        base-class wrapTilingSolution asserts exactly one.  We run the base
+        wrapper on a log_prob-only slice of the tiling solution and then patch
+        the scalar loss address / rectangle back into each resulting schedule.
+
+        Grad subclasses that do not have a scalar loss output fall straight
+        through to the base-class behaviour.
+        """
+        lossVar = operatorRepresentation.get(cls.dataLossName, '')
+
+        # No scalar loss output (e.g. Grad subclass) — plain base-class path.
+        if not lossVar or lossVar not in tilingSolution.outputTensorMemoryConstraints:
+            return super().wrapTilingSolution(tilingSolution, targetMemLevel, ctxt, operatorRepresentation)
+
+        # Log_prob-only slice of the tiling solution so the single-output
+        # assertion in the base class passes.
+        logProbVar = operatorRepresentation[cls.dataOutName]
+        singleOutputSolution = copy.deepcopy(tilingSolution)
+        singleOutputSolution.outputTensorMemoryConstraints = {
+            logProbVar: tilingSolution.outputTensorMemoryConstraints[logProbVar]
+        }
+
+        varReplacement, tilingSchedules = super().wrapTilingSolution(singleOutputSolution, targetMemLevel, ctxt,
+                                                                     operatorRepresentation)
+
+        # Patch the scalar loss into each schedule's output list.
+        lossAddr = TileConstraint.getBaseAddr(tilingSolution, targetMemLevel, lossVar)
+        if lossAddr == [None]:
+            return varReplacement, tilingSchedules
+
+        lossRect = HyperRectangle((0,), (1,))
+        for schedule in tilingSchedules:
+            schedule.outputBaseOffsets[cls.dataLossName] = lossAddr
+            for step in schedule.outputLoadSchedule:
+                step[cls.dataLossName] = lossRect
+
+        return varReplacement, tilingSchedules
+
 
 class SoftmaxCrossEntropyGradTileConstraint(SoftmaxCrossEntropyTileConstraint):
     dataIn1Name = 'log_prob'
     dataIn2Name = 'labels'
     dataOutName = 'grad'
+    dataLossName = ''  # no scalar loss output — fall through to base wrapper

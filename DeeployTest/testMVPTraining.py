@@ -1,0 +1,274 @@
+# SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+import hashlib
+import json
+import os
+import sys
+
+import numpy as np
+import onnx
+import onnx_graphsurgeon as gs
+from testUtils.codeGenerateTraining import generateTrainingTestNetwork
+from testUtils.platformMapping import mapDeployer, mapPlatform, setupMemoryPlatform
+from testUtils.testRunner import TestGeneratorArgumentParser
+from testUtils.tilingUtils import TrainingSBTiler
+from testUtils.trainingUtils import _GRAD_ACC, _infer_data_size, _infer_n_accum, _infer_num_data_inputs, \
+    _infer_total_mb, _load_reference_losses, _mockScheduler, add_training_inference_args
+from testUtils.typeMapping import inferTypeAndOffset
+
+from Deeploy.AbstractDataTypes import PointerClass
+from Deeploy.CommonExtensions.DataTypes import float32_t, uint8_t
+from Deeploy.DeeployTypes import CodeGenVerbosity, _NoVerbosity
+from Deeploy.Logging import DEFAULT_LOGGER as log
+from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
+from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryDeployerWrapper
+from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
+    AnnotateIOMemoryLevel
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
+from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
+
+
+def generateTiledTrainingNetwork(args) -> None:
+    log.debug("Arguments: %s", args)
+
+    # 1. Load network.onnx (training graph with forward + backward ops).
+    onnx_graph = onnx.load_model(f'{args.dir}/network.onnx')
+    graph = gs.import_onnx(onnx_graph)
+
+    # 1a. Strip UNDEFINED-typed unused optional outputs (e.g. MaxPool mask indices).
+    _stripped = False
+    for node in graph.nodes:
+        filtered = [out for out in node.outputs if not (out.dtype == 0 and len(out.outputs) == 0)]
+        if len(filtered) < len(node.outputs):
+            node.outputs = filtered
+            _stripped = True
+    if _stripped:
+        graph.cleanup()
+        log.debug("Stripped UNDEFINED-typed unused optional outputs from graph nodes")
+
+    # 2. Load inputs.npz.
+    inputs_path = f'{args.dir}/inputs.npz'
+    inputs = np.load(inputs_path)
+
+    # 3. Platform setup.
+    platform, signProp = mapPlatform(args.platform)
+    log.debug(f"Platform: {platform} (sign: {signProp})")
+
+    clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
+    for cluster in clusters:
+        cluster.n_cores = args.cores
+
+    # 4. Identify grad acc buf positions in the ONNX graph.
+    graph_input_names = [inp.name for inp in onnx_graph.graph.input]
+    grad_acc_set = {i for i, n in enumerate(graph_input_names) if _GRAD_ACC in n}
+    non_grad_indices = [i for i in range(len(graph_input_names)) if i not in grad_acc_set]
+
+    base_keys = sorted(k for k in inputs.files if not k.startswith('mb') and not k.startswith('meta_'))
+    npz_base = [inputs[k] for k in base_keys]
+
+    if len(npz_base) != len(non_grad_indices):
+        raise ValueError(f"inputs.npz has {len(npz_base)} base entries but network.onnx has "
+                         f"{len(non_grad_indices)} non-grad-buf inputs. "
+                         f"Re-generate inputs.npz with the updated exporter.")
+
+    # 5. Build inputTypes / inputOffsets for ALL graph input positions.
+    inputTypes = {}
+    inputOffsets = {}
+
+    npz_idx = 0
+    for graph_idx in range(len(graph_input_names)):
+        if graph_idx in grad_acc_set:
+            inputTypes[f"input_{graph_idx}"] = PointerClass(float32_t)
+            inputOffsets[f"input_{graph_idx}"] = 0
+        else:
+            arr = npz_base[npz_idx]
+            npz_idx += 1
+            if arr.dtype == bool or arr.dtype == np.bool_:
+                inputTypes[f"input_{graph_idx}"] = PointerClass(uint8_t)
+                inputOffsets[f"input_{graph_idx}"] = 0
+            elif arr.dtype in (np.float32, np.float64):
+                inputTypes[f"input_{graph_idx}"] = PointerClass(float32_t)
+                inputOffsets[f"input_{graph_idx}"] = 0
+            elif np.prod(arr.shape) == 0:
+                # Zero-sized input (ONNX allows shape (0, ...) for optional
+                # placeholders).  No data to infer from, but downstream still
+                # looks up input_{idx} by key, so populate with a trivial default.
+                inputTypes[f"input_{graph_idx}"] = PointerClass(float32_t)
+                inputOffsets[f"input_{graph_idx}"] = 0
+            else:
+                values = arr.reshape(-1).astype(np.float32)
+                _type, offset = inferTypeAndOffset(values, signProp = False)
+                inputTypes[f"input_{graph_idx}"] = _type
+                inputOffsets[f"input_{graph_idx}"] = offset
+
+    # 6. Create deployer with _mockScheduler (required for TilerDeployerWrapper).
+    _DEEPLOYSTATEDIR = os.path.join(args.dumpdir, "deeployStates")
+
+    deployer = mapDeployer(platform,
+                           graph,
+                           inputTypes,
+                           name = "DeeployTrainingNetwork",
+                           deeployStateDir = _DEEPLOYSTATEDIR,
+                           inputOffsets = inputOffsets,
+                           scheduler = _mockScheduler)
+
+    # 7. Set up memory hierarchy.
+    L3 = MemoryLevel(name = "L3", neighbourNames = ["L2"], size = 64_000_000)
+    L2 = MemoryLevel(name = "L2", neighbourNames = ["L3", "L1"], size = args.l2)
+    L1 = MemoryLevel(name = "L1", neighbourNames = ["L2"], size = args.l1)
+    memoryHierarchy = MemoryHierarchy([L3, L2, L1])
+    memoryHierarchy.setDefaultMemoryLevel(args.defaultMemLevel)
+
+    defaultTargetMemLevel = L1
+    defaultIoMemLevel = memoryHierarchy.memoryLevels[args.defaultMemLevel]
+
+    # 8. Wrap with memory-level annotation.
+    deployer.Platform = setupMemoryPlatform(deployer.Platform, memoryHierarchy, defaultTargetMemLevel)
+
+    deployer = MemoryDeployerWrapper(deployer, [
+        AnnotateIOMemoryLevel(defaultIoMemLevel.name),
+        AnnotateDefaultMemoryLevel(memoryHierarchy),
+    ])
+
+    # 9. Wrap with tiler (TrainingSBTiler: SB strategy + extended input lifetimes for backward pass).
+    unique_params = f"{args.dumpdir}_L1{args.l1}_L2{args.l2}_{args.defaultMemLevel}"
+    testIdentifier = hashlib.md5(unique_params.encode()).hexdigest()[:16]
+
+    deployer = TilerDeployerWrapper(deployer, TrainingSBTiler, testName = testIdentifier, workDir = args.dumpdir)
+    deployer.tiler.visualizeMemoryAlloc = args.plotMemAlloc
+    deployer.tiler.memoryAllocStrategy = args.memAllocStrategy
+    deployer.tiler.searchStrategy = args.searchStrategy
+
+    # 10. Prepare deployer.
+    verbosityCfg = _NoVerbosity
+    if args.profileTiling:
+        verbosityCfg = CodeGenVerbosity(tilingProfiling = True)
+    _ = deployer.prepare(verbosityCfg)
+
+    # 11. Resolve num_data_inputs, n_steps, n_accum.
+    num_data = args.num_data_inputs
+    if num_data is None:
+        num_data = _infer_num_data_inputs(inputs_path)
+        log.info(f"Auto-detected num_data_inputs={num_data} from inputs.npz")
+
+    n_steps = args.n_steps
+    n_accum = args.n_accum
+    if n_steps is None or n_accum is None:
+        total_mb = _infer_total_mb(inputs_path)
+        log.info(f"Auto-detected total_mb={total_mb} from inputs.npz")
+        if n_steps is None and n_accum is None:
+            n_accum = _infer_n_accum(inputs_path)
+            n_steps = max(1, total_mb // n_accum)
+        elif n_steps is None:
+            n_steps = max(1, total_mb // n_accum)
+        else:
+            n_accum = max(1, total_mb // n_steps)
+
+    log.info(f"Training config: n_steps={n_steps} n_accum={n_accum} num_data_inputs={num_data}")
+
+    # 12. Build unique_mb_data from npz.
+    total_mb = n_steps * n_accum
+    data_size = _infer_data_size(inputs_path)
+    log.info(f"Data cycling: data_size={data_size}, total_mb={total_mb}")
+    mb0_data = list(npz_base[:num_data])
+
+    unique_mb_data = []
+    for mb in range(data_size):
+        if mb == 0:
+            unique_mb_data.append(mb0_data)
+        else:
+            mb_row = []
+            for buf_idx in range(num_data):
+                key = f"mb{mb}_arr_{buf_idx:04d}"
+                mb_row.append(inputs[key] if key in inputs else mb0_data[buf_idx])
+            unique_mb_data.append(mb_row)
+
+    # Grad acc buf info for testinputs.h.
+    if grad_acc_set:
+        sorted_grad = sorted(grad_acc_set)
+        grad_buf_start_idx = sorted_grad[0]
+    else:
+        grad_buf_start_idx = -1
+    num_grad_inputs = len(grad_acc_set)
+
+    if grad_buf_start_idx > num_data:
+        init_weights = list(npz_base[num_data:grad_buf_start_idx])
+    else:
+        init_weights = []
+
+    # 13. Load reference losses.
+    reference_losses = _load_reference_losses(args.dir)
+
+    # 14. Generate output files.
+    os.makedirs(args.dumpdir, exist_ok = True)
+
+    generateTrainingTestNetwork(deployer,
+                                unique_mb_data,
+                                args.dumpdir,
+                                verbosityCfg,
+                                n_steps = n_steps,
+                                n_accum = n_accum,
+                                num_data_inputs = num_data,
+                                grad_buf_start_idx = grad_buf_start_idx,
+                                num_grad_inputs = num_grad_inputs,
+                                learning_rate = args.learning_rate,
+                                reference_losses = reference_losses,
+                                init_weights = init_weights,
+                                data_size = data_size,
+                                tolerance_abs = args.tolerance_abs)
+
+    # 15. Write resolved config for execution.py to pick up.
+    meta = {
+        "n_train_steps": n_steps,
+        "n_accum_steps": n_accum,
+        "training_num_data_inputs": num_data,
+    }
+    meta_path = os.path.join(args.dumpdir, "training_meta.json")
+    with open(meta_path, 'w') as f:
+        json.dump(meta, f, indent = 2)
+    log.info(f"Training meta written to {meta_path}: {meta}")
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    parser = TestGeneratorArgumentParser(description = "Deeploy Tiled Training Code Generation Utility.")
+    parser.add_argument("--cores", type = int, default = 1, help = "Number of cluster cores. Default: 1.")
+    add_training_inference_args(parser)
+    parser.add_argument("--l1", type = int, default = 64_000, help = "L1 size in bytes. Default: 64000.")
+    parser.add_argument("--l2", type = int, default = 1_024_000, help = "L2 size in bytes. Default: 1024000.")
+    parser.add_argument("--defaultMemLevel",
+                        type = str,
+                        default = "L2",
+                        help = "Default memory level for IO buffers. Default: L2.")
+    parser.add_argument("--memAllocStrategy",
+                        type = str,
+                        default = "MiniMalloc",
+                        help = "Memory allocation strategy. Default: MiniMalloc.")
+    parser.add_argument("--searchStrategy",
+                        type = str,
+                        default = "random-max",
+                        help = "CP solver search strategy. Default: random-max.")
+    parser.add_argument("--plotMemAlloc",
+                        action = "store_true",
+                        help = "Save memory allocation plots in the deeployStates folder.")
+    parser.add_argument("--profileTiling",
+                        action = "store_true",
+                        help = "Enable tiling profiling (inserts cycle counters around each tiled kernel).")
+    parser.add_argument("--shouldFail", action = "store_true")
+    parser.set_defaults(shouldFail = False)
+    args = parser.parse_args()
+
+    try:
+        generateTiledTrainingNetwork(args)
+    except Exception:
+        if args.shouldFail:
+            print("\033[92mTiled training network generation ended, failed as expected!\033[0m")
+            sys.exit(0)
+        raise
+    if args.shouldFail:
+        raise RuntimeError("Expected to fail!")

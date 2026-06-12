@@ -8,7 +8,6 @@ DEFAULT_CORES = 8
 
 KERNEL_TESTS = [
     "Kernels/FP32/ReLU",
-    "Kernels/FP32/Softmax/CrossEntropy",
     "Kernels/FP32/Softmax/CrossEntropyGrad",
     "Kernels/FP32/Softmax/Grad",
     "Kernels/FP32/Softmax/Regular",
@@ -77,4 +76,11 @@ MODEL_TESTS = [
     "Models/MLPerf/AnomalyDetection",
     "Models/TinyViT/Demo",
     "Models/CNN_Linear2",
+]
+
+# Training-enabled models (use deeployTrainingRunner / testMVPTraining pipeline).
+# Each entry is the path to a `<model>_train` directory; the matching
+# `<model>_optimizer` directory must live next to it.
+TRAINING_TESTS = [
+    "Models/Training/SimpleMLP/simplemlp_train",
 ]

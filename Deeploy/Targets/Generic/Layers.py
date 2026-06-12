@@ -484,6 +484,22 @@ class SGDLayer(ONNXLayer):
         super().__init__(maps)
 
 
+class InPlaceAccumulatorV2Layer(ONNXLayer):
+    """Layer for ORT InPlaceAccumulatorV2 operator (com.microsoft).
+
+    Gradient accumulation with optional reset:
+        if lazy_reset_grad: out = gradient
+        else:               out = buffer + gradient
+    """
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        # One conditional check + one element-wise op (copy or add) per element
+        return self.mapper.parser.operatorRepresentation['size']
+
+
 class LinearAttentionLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
