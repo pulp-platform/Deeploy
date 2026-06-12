@@ -83,7 +83,10 @@ class MemoryScheduler():
     _COSTVARIABLENAME = "H"
     _COSTPRODUCTNAME = "costProduct"
 
-    byteAlignment = 4
+    # 8-byte (64-bit) alignment: required on Spatz so vector loads land on 64-bit
+    # boundaries (a misaligned vle that gets chained corrupts upper lanes). 8 is a
+    # superset of the previous 4-byte requirement, so it stays correct on other targets.
+    byteAlignment = 8
 
     @staticmethod
     def overlap(lifetimeA: Tuple[int, int], lifetimeB: Tuple[int, int]) -> bool:

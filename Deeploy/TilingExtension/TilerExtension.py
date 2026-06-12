@@ -398,6 +398,12 @@ class Tiler():
         environment variable to be set to the installation directory.
         """
 
+        # MiniMalloc has no alignment flag, so allocate in units of byteAlignment:
+        # round sizes/capacity down/up to alignment units and scale offsets back to
+        # bytes. This guarantees every returned buffer offset is byteAlignment-aligned
+        # (required on Spatz so vector loads land on 64-bit boundaries).
+        alignment = MemoryScheduler.byteAlignment
+
         with open(f"{self._minimalloc_input}.csv", mode = "w", newline = "") as file:
             writer = csv.writer(file, lineterminator = "\n")
             writer.writerow(["id", "lower", "upper", "size"])
@@ -419,11 +425,14 @@ class Tiler():
                                 8) * nodeMemoryConstraint.tensorMemoryConstraints[
                                     memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
 
+                # Size in alignment units (rounded up) so offsets come back aligned.
+                _bufferSizeAligned = (int(_bufferSize) + alignment - 1) // alignment
+
                 writer.writerow([
                     memoryBlock.name,
                     str(memoryBlock.lifetime[0]),
                     str(memoryBlock.lifetime[1] + 1),
-                    str(int(_bufferSize))
+                    str(_bufferSizeAligned)
                 ])
 
         try:
@@ -432,8 +441,8 @@ class Tiler():
             raise KeyError("MINIMALLOC_INSTALL_DIR symbol not found!")
 
         minimallocOutput = subprocess.run([
-            f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity}", f"--input={self._minimalloc_input}.csv",
-            f"--output={self._minimalloc_output}.csv"
+            f"{minimallocInstallDir}/minimalloc", f"--capacity={capacity // alignment}",
+            f"--input={self._minimalloc_input}.csv", f"--output={self._minimalloc_output}.csv"
         ],
                                           capture_output = True,
                                           text = True)
@@ -450,7 +459,10 @@ class Tiler():
             for row in reader:
                 for memoryBlock in memoryMap:
                     if memoryBlock.name == row[0]:
-                        memoryBlock._addrSpace = (int(row[-1]), int(row[-1]) + int(row[-2]))
+                        # Scale offset/size back from alignment units to bytes (offsets are
+                        # therefore multiples of `alignment`).
+                        memoryBlock._addrSpace = (int(row[-1]) * alignment,
+                                                  (int(row[-1]) + int(row[-2])) * alignment)
 
         return memoryMap
 
