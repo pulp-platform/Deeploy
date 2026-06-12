@@ -1,43 +1,26 @@
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import List
 import numpy as np
 
 from Deeploy.DeeployTypes import VariableBuffer, TransientBuffer, ConstantBuffer, StructBuffer, \
     NodeMapper, NodeTemplate, TopologyOptimizer, DeploymentEngine, DeploymentPlatform
 
-from Deeploy.Targets.Generic.Templates import AllocateTemplate as GenericAllocateTemplate
 from Deeploy.Targets.Spatz.Templates import AllocateTemplate as SpatzAllocateTemplate
 from Deeploy.Targets.Spatz.Templates import FreeTemplate as SpatzFreeTemplate
-from Deeploy.Targets.Snitch.Templates import AllocateTemplate as SnitchAllocateTemplate, FreeTemplate as SnitchFreeTemplate
 
-from Deeploy.Targets.Spatz.Bindings import SpatzGatherBindings, SpatzMatMulBindings, SpatzTopKBindings
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicMatMulBindings, BasicSoftmaxBindings, BasicTopKBindings
 from Deeploy.Targets.Spatz.Tiler import SpatzMatMulTilingBindings, SpatzGatherTilingBindings, SpatzTopKTilingBindings, SpatzSoftmaxTilingBindings
-from Deeploy.Targets.Generic.Layers import AddLayer, GEMMLayer, SoftmaxLayer, TopKLayer, GatherLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, MatMulParser, SoftmaxParser, TopKParser, GatherParser
+from Deeploy.Targets.Generic.Layers import GEMMLayer, SoftmaxLayer, TopKLayer, GatherLayer
+from Deeploy.Targets.Generic.Parsers import MatMulParser, SoftmaxParser, TopKParser, GatherParser
 
-# # print(SpatzMatMulBindings)
-# # for binding in SpatzMatMulBindings:
-# #     print(binding.template.tileConstraint)
-# 
-# print(SpatzMatMulTilingReadyBindings)
-# for binding in SpatzMatMulTilingReadyBindings:
-#     print(binding.template.tileConstraint)
-# 
-# print(SpatzMatMulTilingReadyBindings[0].template.tileConstraint)
-# print(SpatzMatMulTilingReadyBindings[1].template.tileConstraint)
-
-SpatzAddMapper = NodeMapper(AddParser(), BasicAddBindings)
-# MatMulMapper = NodeMapper(MatMulParser(), BasicMatMulBindings)
 MatMulMapper = NodeMapper(MatMulParser(), SpatzMatMulTilingBindings)
-# SoftmaxMapper = NodeMapper(SoftmaxParser(), BasicSoftmaxBindings)
 SoftmaxMapper = NodeMapper(SoftmaxParser(), SpatzSoftmaxTilingBindings)
-# TopKMapper = NodeMapper(TopKParser(), SpatzTopKBindings)
 TopKMapper = NodeMapper(TopKParser(), SpatzTopKTilingBindings)
-# GatherMapper = NodeMapper(GatherParser(), SpatzGatherBindings)
 GatherMapper = NodeMapper(GatherParser(), SpatzGatherTilingBindings)
 
 SpatzMapping = {
-    'Add': AddLayer([SpatzAddMapper]),
     'MatMul': GEMMLayer([MatMulMapper]),
     'Softmax': SoftmaxLayer([SoftmaxMapper]),
     'TopK': TopKLayer([TopKMapper]),
@@ -46,7 +29,7 @@ SpatzMapping = {
 
 
 class SpatzVariableBuffer(VariableBuffer):
-    initTemplate = GenericAllocateTemplate.referenceInitTemplate
+    initTemplate = SpatzAllocateTemplate.spatzInitTemplate
     allocTemplate = SpatzAllocateTemplate.spatzGenericAllocate
     deallocTemplate = SpatzFreeTemplate.spatzLocalTemplate
 
@@ -65,7 +48,7 @@ class SpatzVariableBuffer(VariableBuffer):
         }
 
 class SpatzTransientBuffer(TransientBuffer):
-    initTemplate = GenericAllocateTemplate.referenceInitTemplate
+    initTemplate = SpatzAllocateTemplate.spatzInitTemplate
     allocTemplate = SpatzAllocateTemplate.spatzGenericAllocate
     deallocTemplate = SpatzFreeTemplate.spatzLocalTemplate
 
@@ -85,9 +68,9 @@ class SpatzTransientBuffer(TransientBuffer):
 
 
 class SpatzConstantBuffer(ConstantBuffer):
-    initTemplate = SnitchAllocateTemplate.snitchGenericGlobalInitTemplate
+    initTemplate = SpatzAllocateTemplate.spatzGlobalInitTemplate
     allocTemplate = NodeTemplate("")
-    deallocTemplate = NodeTemplate("") # const not deallocated
+    deallocTemplate = NodeTemplate("")
 
     def _bufferRepresentation(self):
         operatorRepresentation = super()._bufferRepresentation()
@@ -103,16 +86,16 @@ class SpatzConstantBuffer(ConstantBuffer):
 
 
 class SpatzStructBuffer(StructBuffer):
-    initTemplate = GenericAllocateTemplate.referenceStructInitTemplate
-    allocTemplate = GenericAllocateTemplate.referenceStructAllocateTemplate
-    deallocTemplate = NodeTemplate("") # struct not deallocated ?
+    initTemplate = SpatzAllocateTemplate.spatzStructInitTemplate
+    allocTemplate = SpatzAllocateTemplate.spatzStructAllocateTemplate
+    deallocTemplate = NodeTemplate("")
 
 
 SpatzOptimizer = TopologyOptimizer([
-    # TODO add something ?
 ], name = "SpatzOptimizer")
 
 includeList = [
+    "snrt.h",
     "DeeploySpatzMath.h",
 ]
 
