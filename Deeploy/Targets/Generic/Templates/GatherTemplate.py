@@ -17,8 +17,8 @@ for (uint32_t i=0; i<${batch}; ++i) {
 % else:
 for (uint32_t i=0; i<${batch}; ++i) {
     for (uint32_t j=0; j<${num_indices}; ++j) {
-        memcpy(${data_out} + i * (${num_indices} * ${axis_length}) + j * ${axis_length}, 
-               ${data_in} + i * ${batch_length} + ${indices}[j] * ${axis_length}, 
+        memcpy(${data_out} + i * (${num_indices} * ${axis_length}) + j * ${axis_length},
+               ${data_in} + i * ${batch_length} + ${indices}[j] * ${axis_length},
                ${axis_length} * ${width});
     }
 }

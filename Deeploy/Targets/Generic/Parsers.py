@@ -1025,11 +1025,11 @@ class GatherParser(NodeParser):
         self.operatorRepresentation['batch'] = int(np.prod(shape[:axis])) if axis > 0 else 1
         self.operatorRepresentation['batch_length'] = int(np.prod(shape[axis:]))
         self.operatorRepresentation['axis_length'] = int(np.prod(shape[axis + 1:])) if axis + 1 < len(shape) else 1
-        
+
         if self.operatorRepresentation['num_indices'] == 1:
             try:
                 self.operatorRepresentation['index'] = int(node.inputs[1].values.item())
-            except Exception:
+            except AttributeError:
                 self.operatorRepresentation['index'] = f"{self.operatorRepresentation['indices']}[0]"
         else:
             self.operatorRepresentation['index'] = 0 # in this case is not used but is needed for mako template
