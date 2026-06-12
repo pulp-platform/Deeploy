@@ -36,16 +36,14 @@ for (uint32_t i = 0; i < ${k_value}; ++i) {
 }
 """)
 
+# compute_topk_vector_instructions
 minHeapTemplate = NodeTemplate("""
-float32_t *heap_values = snrt_l1alloc(sizeof(float32_t) * ${k_value});
-int32_t *heap_indices = snrt_l1alloc(sizeof(int32_t) * ${k_value});
-
-compute_topk_min_heap(${data_in},
-						${values_out},
-						${indices_out},
-						${k_value},
-						${data_in_size},
-						heap_values,
-						heap_indices);
+compute_topk_min_heap(
+    ${k_value},
+    ${data_in_size},
+    ${data_in},
+    ${values_out},
+    ${indices_out}
+);
 
 """)
