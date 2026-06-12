@@ -4,7 +4,7 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
-referenceInitTemplate = NodeTemplate("${type.typeName} ${name}; // variable buffer of size ${size}\n")
+referenceInitTemplate = NodeTemplate("${type.typeName} ${name};\n")
 referenceAllocateTemplate = NodeTemplate(
     "${name} = (${type.typeName}) deeploy_malloc(${type.referencedType.typeWidth//8} * ${size});\n")
 
