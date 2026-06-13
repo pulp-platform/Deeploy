@@ -26,7 +26,7 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import P
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPMicrobenchmark import PULPMicrobenchmark
-from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPNodeBeacon, PULPProfileUntiled
+from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import PULPProfileUntiled
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
@@ -49,8 +49,8 @@ _clusterEntryClosureCallTemplate = NodeTemplate("""
 static struct pi_cluster_task cluster_task;
 
 pi_cluster_task(&cluster_task, ${closureName}, &${closureStructArgName});
-cluster_task.stack_size = 5000;
-cluster_task.slave_stack_size = 3800;
+cluster_task.stack_size = 14000;
+cluster_task.slave_stack_size = 2000;
 pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 //pi_cluster_close(&cluster_dev);
 """)
@@ -63,8 +63,7 @@ SkipTransformer = CodeTransformation(
     [ArgumentStructGeneration(),
      MemoryPassthroughGeneration("L.*"),
      MemoryPassthroughGeneration(),
-     FutureGeneration(),
-     PULPNodeBeacon()])
+     FutureGeneration()])
 
 FunctionCallClosure = partial(ClosureGeneration, closureSuffix = "_closure")
 ClusterClosure = partial(ClosureGeneration,
@@ -100,8 +99,7 @@ MemoryAwareForkTransformer = CodeTransformation([
     MemoryManagementGeneration("L1"),
     FunctionCallClosure(writeback = True),
     MemoryManagementGeneration("L2"),
-    MemoryManagementGeneration(),
-    PULPNodeBeacon()
+    MemoryManagementGeneration()
 ])
 
 ForkTransformer = CodeTransformation([
@@ -123,7 +121,6 @@ ForkTransformer = CodeTransformation([
     MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
     PULPMicrobenchmark(),
-    PULPNodeBeacon(),
 ])
 
 ClusterTransformer = CodeTransformation([
@@ -143,14 +140,12 @@ ClusterTransformer = CodeTransformation([
     MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
     PULPMicrobenchmark(),
-    PULPNodeBeacon(),
 ])
 
 SimpleTransformer = CodeTransformation([
     MemoryManagementGeneration("L2"),
     MemoryManagementGeneration("L3.*"),
     MemoryManagementGeneration(),
-    PULPNodeBeacon(),
 ])
 
 PULPDMASliceBindings = [

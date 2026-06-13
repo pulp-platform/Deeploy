@@ -14,7 +14,7 @@
 #include "testoutputs.h"
 
 // RW: Remove MAINSTACKSIZE because gap9-sdk does not use it
-#define SLAVESTACKSIZE 3800
+#define SLAVESTACKSIZE 2000
 #define WRITE_GPIO(x) pi_gpio_pin_write(89, x)
 
 #ifdef POWER_MEASUREMENT

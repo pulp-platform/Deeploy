@@ -37,6 +37,8 @@ from Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint import Soft
     iSoftmaxTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint import LayernormGradTileConstraint, \
     LayernormTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.DMASafeTileConstraints import PULPTransposeTileConstraint, \
+    PULPUnaryTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMulTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint import MaxPoolCTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ReduceMeanConstraint import ReduceMeanTileConstraint
@@ -109,7 +111,7 @@ PULPUniformRQSTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPU
                                                             tileConstraint = UnaryTileConstraint())
 
 PULPTransposeTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPTransposeBindings,
-                                                           tileConstraint = TransposeTileConstraint())
+                                                           tileConstraint = PULPTransposeTileConstraint())
 
 PULPAddTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPAddBindings,
                                                      tileConstraint = AddTileConstraint())
@@ -196,8 +198,8 @@ PULPRQSPerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindin
                                                                  tileConstraint = RQSPerturbTileConstraint())
 
 PULPQuantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPQuantBindings,
-                                                        tileConstraint = UnaryTileConstraint())
+                                                        tileConstraint = PULPUnaryTileConstraint())
 
 PULPDequantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPDequantBindings,
-                                                        tileConstraint = UnaryTileConstraint())
+                                                        tileConstraint = PULPUnaryTileConstraint())
 
