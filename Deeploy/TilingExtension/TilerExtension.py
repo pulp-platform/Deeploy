@@ -419,11 +419,17 @@ class Tiler():
                                 8) * nodeMemoryConstraint.tensorMemoryConstraints[
                                     memoryBlock.name].memoryConstraints[memoryLevel].multiBufferCoefficient
 
+                # Round up to 4-byte alignment so that all subsequent
+                # allocations start at a 4-byte aligned offset. Without this,
+                # a 1-byte buffer (e.g. uint8_t label input) placed first in
+                # an L3 arena shifts every subsequent float32_t allocation by
+                # 1 byte, causing unaligned memory accesses and on-board hangs.
+                _alignedBufferSize = int(np.ceil(int(_bufferSize) / 4) * 4)
                 writer.writerow([
                     memoryBlock.name,
                     str(memoryBlock.lifetime[0]),
                     str(memoryBlock.lifetime[1] + 1),
-                    str(int(_bufferSize))
+                    str(_alignedBufferSize)
                 ])
 
         try:
