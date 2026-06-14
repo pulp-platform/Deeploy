@@ -31,11 +31,20 @@ uint32_t ${nodeName}_chunk_stop = (uint32_t) MIN(${nodeName}_chunk_start + ${nod
 uint32_t ${nodeName}_local_size = ${nodeName}_chunk_stop - ${nodeName}_chunk_start;
 
 uint32_t chunk_seed = (${seed} + NUM_CORES * ${node_id} + ${nodeName}_core_id) ^ (${tile_seed_offset} * 0x9E3779B1u);
+#ifdef USE_SEQUENTIAL_RADEMACHER
+ApplySequentialRademacherPerturbation((const float32_t *)  &${data_in}[${nodeName}_chunk_start],
+                                (float32_t *) &${data_out}[${nodeName}_chunk_start],
+                                chunk_seed,
+                                perturbation_sign, // globally defined in DeedeployTest main
+                                ${nodeName}_local_size,
+                                ${eps}f);
+#else
 ApplyRademacherPerturbation((const float32_t *)  &${data_in}[${nodeName}_chunk_start],
                                 (float32_t *) &${data_out}[${nodeName}_chunk_start],
                                 chunk_seed,
                                 perturbation_sign, // globally defined in DeedeployTest main
                                 ${nodeName}_local_size,
                                 ${eps}f);
+#endif
 
 """)

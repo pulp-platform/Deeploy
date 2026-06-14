@@ -374,6 +374,50 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
     }
 }
 
+void ApplySequentialRademacherPerturbation(const float32_t *__restrict__ pweights,
+                            float32_t *__restrict__ pweights_dest,
+                            uint32_t seed,
+                            uint32_t dir,
+                            uint32_t size,
+                            float32_t epsilon) {
+
+    // Rademacher (+/-1) perturbation that, unlike ApplyRademacherPerturbation,
+    // consumes only the LSB of the Xorshift state and advances the PRNG once per
+    // element -- exactly the stepping scheme used by ApplyUniformPerturbation.
+    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+    if (dir == 0) epsilon *= -1.0f;
+    uint32_t n_full = size & ~3u;
+    uint32_t i = 0;
+    for (; i < n_full; i+=4) {
+        rng_state ^= rng_state << 13;
+        rng_state ^= rng_state >> 17;
+        rng_state ^= rng_state << 5;
+        pweights_dest[i]   = pweights[i]   + ((rng_state & 1u) ? epsilon : -epsilon);
+
+        rng_state ^= rng_state << 13;
+        rng_state ^= rng_state >> 17;
+        rng_state ^= rng_state << 5;
+        pweights_dest[i+1] = pweights[i+1] + ((rng_state & 1u) ? epsilon : -epsilon);
+
+        rng_state ^= rng_state << 13;
+        rng_state ^= rng_state >> 17;
+        rng_state ^= rng_state << 5;
+        pweights_dest[i+2] = pweights[i+2] + ((rng_state & 1u) ? epsilon : -epsilon);
+
+        rng_state ^= rng_state << 13;
+        rng_state ^= rng_state >> 17;
+        rng_state ^= rng_state << 5;
+        pweights_dest[i+3] = pweights[i+3] + ((rng_state & 1u) ? epsilon : -epsilon);
+    }
+    // Remainder
+    for (; i < size; i++) {
+        rng_state ^= rng_state << 13;
+        rng_state ^= rng_state >> 17;
+        rng_state ^= rng_state << 5;
+        pweights_dest[i] = pweights[i] + ((rng_state & 1u) ? epsilon : -epsilon);
+    }
+}
+
 void GenEggrollPerturbation(float32_t *__restrict__ p_dest,
                             uint32_t seed,
                             uint32_t size)

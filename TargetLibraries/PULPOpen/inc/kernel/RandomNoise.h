@@ -77,6 +77,15 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon);
 
+// Rademacher perturbation using only the LSB of the Xorshift state, advancing the
+// PRNG once per element (same stepping as ApplyUniformPerturbation).
+void ApplySequentialRademacherPerturbation(const float32_t *__restrict__ pweights,
+                            float32_t *__restrict__ pweights_dest,
+                            uint32_t seed,
+                            uint32_t dir,
+                            uint32_t size,
+                            float32_t epsilon);
+
 static inline float u32_to_u01_open(uint32_t u);
 
 void ApplyPerturbQuantRademacher_CHW(int8_t *__restrict__ pweights,
