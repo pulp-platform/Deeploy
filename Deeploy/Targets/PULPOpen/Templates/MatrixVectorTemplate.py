@@ -43,8 +43,11 @@ int8_t* ref_${nodeName}_${B} = ${B};
 
 int8_t* ref_${nodeName}_${data_out} = ${data_out} + (${nodeName}_chunk_start * ${O}*${M});
 
+if (${nodeName}_core_id == 0) { printf("[MV] ${nodeName} c0 enter start=%d stop=%d\\r\\n", (int)${nodeName}_chunk_start, (int)${nodeName}_chunk_stop); }
 for (uint32_t i=${nodeName}_chunk_start;i<${nodeName}_chunk_stop;i++){
+     if (${nodeName}_core_id == 0) { printf("[MV] ${nodeName} c0 i=%u pre-gemv\\r\\n", i); }
      gemv_s8_s8_plp(ref_${nodeName}_${A}, NULL, ref_${nodeName}_${data_out}, ref_${nodeName}_${B}, ${mul}, ${C}, 1, ${log2D}, ${N}, ${O}, 1, 1);
+     if (${nodeName}_core_id == 0) { printf("[MV] ${nodeName} c0 i=%u post-gemv\\r\\n", i); }
      ref_${nodeName}_${A} += (${M}*${N});
      ref_${nodeName}_${data_out} += (${O}*${M});
 
