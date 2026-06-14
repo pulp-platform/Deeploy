@@ -154,4 +154,30 @@ void matmul_fp32_opt(const float32_t *__restrict__ pSrcA,
                      float32_t *__restrict__ pDstY, uint32_t M, uint32_t N,
                      uint32_t O);
 
+/*
+ * Matrix multiplication ----------------------------------
+ * kernel     = matmul_fp32_ssr_frep
+ * data type  = 32-bit float
+ * multi-core = yes (splits M rows across compute cores internally)
+ * accel      = SSR streams (DM0/DM1) + FREP 8x FMA
+ * unrolling  = 8 columns
+ * cleanup    = yes
+ */
+void matmul_fp32_ssr_frep(const float32_t *__restrict__ pSrcA,
+                          const float32_t *__restrict__ pSrcB,
+                          float32_t *__restrict__ pDstY, uint32_t M, uint32_t N,
+                          uint32_t O);
+
+/*
+ * Matrix multiplication ----------------------------------
+ * kernel     = matmul_fp32_ssr_frep_oparallel
+ * data type  = 32-bit float
+ * multi-core = yes (splits O-tiles across cores; keeps cores busy when M=1)
+ * accel      = SSR streams (DM0/DM1) + FREP 8x FMA (v2f32)
+ */
+void matmul_fp32_ssr_frep_oparallel(const float32_t *__restrict__ pSrcA,
+                                    const float32_t *__restrict__ pSrcB,
+                                    float32_t *__restrict__ pDstY, uint32_t M,
+                                    uint32_t N, uint32_t O);
+
 #endif //__DEEPLOY_MATH_MATMUL_KERNEL_HEADER_

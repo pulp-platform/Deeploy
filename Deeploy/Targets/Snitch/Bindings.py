@@ -26,7 +26,7 @@ from Deeploy.Targets.Snitch.Templates.FloatAddTemplate import referenceTemplate 
 from Deeploy.Targets.Snitch.Templates.FloatDivTemplate import referenceTemplate as FloatDivTemplate
 from Deeploy.Targets.Snitch.Templates.FloatHardSwishTemplate import referenceTemplate as FloatHardSwishTemplate
 from Deeploy.Targets.Snitch.Templates.FloatMulTemplate import referenceTemplate as FloatMulTemplate
-from Deeploy.Targets.Snitch.Templates.FloatRMSNormTemplate import referenceTemplate as FloatRMSNormTemplate
+from Deeploy.Targets.Snitch.Templates.FloatRMSNormTemplate import ssrFrepTemplate as FloatRMSNormTemplate
 from Deeploy.Targets.Snitch.Templates.FloatSoftmaxTemplate import FloatSoftmax_Template
 from Deeploy.Targets.Snitch.Templates.GemmTemplate import SnitchGemm_Template
 from Deeploy.Targets.Snitch.Templates.RqGemmTemplate import SnitchRqGemm_Template
@@ -133,7 +133,7 @@ SnitchMatMulBindings = [
     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                 MatMulTemplate.referenceTemplate, TiledTransformer),
     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatMatMulTemplate.referenceTemplate, TiledTransformer)
+                FloatMatMulTemplate.ssrFrepTemplate, TiledTransformer)
 ]
 
 # Concat Bindings (Tiled)

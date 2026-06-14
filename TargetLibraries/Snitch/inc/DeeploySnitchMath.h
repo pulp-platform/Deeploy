@@ -23,6 +23,10 @@
 
 #include "snrt.h"
 
+// Packed pair of fp32 lanes (8 bytes), matching the 64-bit SSR/FPU register
+// width used by the vectorized (vfXXX.s) Snitch kernels.
+typedef float v2f32 __attribute__((vector_size(8)));
+
 #include "kernel/Add.h"
 #include "kernel/Div.h"
 #include "kernel/Gemm.h"

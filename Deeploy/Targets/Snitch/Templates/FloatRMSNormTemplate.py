@@ -31,3 +31,12 @@ RMSNorm_fp32(${data_in}, ${weight}, ${data_out}, ${size}, ${lastDimLength}, ${ep
 """
 
 referenceTemplate = FloatRMSNormTemplate(FloatRMSNormTemplateStr)
+
+# SSR + FREP variant: sum-of-squares reduction streams via SSR + FREP register
+# accumulate (no DM2 write stream); scale/output stays a normal-store loop.
+# Requires operands in TCDM/L1 (tiled flow).
+FloatRMSNormSSRTemplateStr = r"""
+RMSNorm_fp32_ssr_frep(${data_in}, ${weight}, ${data_out}, ${size}, ${lastDimLength}, ${eps});
+"""
+
+ssrFrepTemplate = FloatRMSNormTemplate(FloatRMSNormSSRTemplateStr)

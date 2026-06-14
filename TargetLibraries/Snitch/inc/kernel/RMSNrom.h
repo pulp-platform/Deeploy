@@ -28,4 +28,13 @@
 void RMSNorm_fp32(float32_t *data_in, float32_t *weight, float32_t *data_out,
                   uint32_t size, uint32_t lastDimLength, float32_t eps);
 
+/*
+ * RMSNorm (FP32), sum-of-squares reduction via SSR read + FREP vfmac.s
+ * (register accumulate, no DM2 write stream). Output scale uses normal stores.
+ * Falls back to scalar reduction for odd lastDimLength. Requires TCDM/L1 (tiled).
+ */
+void RMSNorm_fp32_ssr_frep(float32_t *data_in, float32_t *weight,
+                           float32_t *data_out, uint32_t size,
+                           uint32_t lastDimLength, float32_t eps);
+
 #endif // __DEEPLOY_MATH_RMSNORM_KERNEL_HEADER_
