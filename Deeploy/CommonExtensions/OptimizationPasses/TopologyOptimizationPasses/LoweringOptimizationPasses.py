@@ -349,9 +349,11 @@ def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_ch
         for tensor in node.inputs[1:]:
             if isinstance(tensor, gs.Constant):
                 _transformLayoutConst(tensor, spatialDims, default_channels_first)
-            else:
+            elif tensor.shape is not None and len(tensor.shape) >= 2:
                 # Runtime-produced tensor (e.g. a ZO-perturbed weight): we can't
                 # permute it in place, so insert a Transpose before the conv.
+                # Per-channel vectors (mul/add/shift, rank < 2) need no layout
+                # change, matching the early-return in _transformLayoutConst.
                 perm = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
                 graph.nodes.append(_appendTranspose(tensor, node, perm))
 
