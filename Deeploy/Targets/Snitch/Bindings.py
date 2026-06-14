@@ -133,7 +133,7 @@ SnitchMatMulBindings = [
     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                 MatMulTemplate.referenceTemplate, TiledTransformer),
     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-                FloatMatMulTemplate.ssrFrepTemplate, TiledTransformer)
+                FloatMatMulTemplate.referenceTemplate, TiledTransformer)
 ]
 
 # Concat Bindings (Tiled)
