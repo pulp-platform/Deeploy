@@ -21,11 +21,16 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
     # DEBUG: live progress beacons, emitted UNCONDITIONALLY (independent of
     # --profileTiling), so the normal build prints where it is. The last beacon
     # on the UART before a hang pinpoints the node + sub-phase that deadlocked.
+    # NOTE: intentionally UNGUARDED (no `if (pi_core_id() == 0)`). The closure
+    # setup/ingress code runs on a single core whose id is NOT 0, so a `==0`
+    # guard suppresses every beacon (which is why the profiling beacons never
+    # printed). The unguarded profiling SUMMARY prints DO appear, so a bare
+    # printf here matches that and fires exactly once per phase.
     _traceNodeBeacon = NodeTemplate("""
-    if (pi_core_id() == 0) { printf("[TRACE-NODE] ${nodeName}: ${phase}\\r\\n"); }
+    printf("[TRACE-NODE] ${nodeName}: ${phase}\\r\\n");
     """)
     _traceBeacon = NodeTemplate("""
-    if (pi_core_id() == 0) { printf("[TRACE] ${nodeName} tile %u: ${phase}\\r\\n", ${tileIdxVar}); }
+    printf("[TRACE] ${nodeName} tile %u: ${phase}\\r\\n", ${tileIdxVar});
     """)
 
     def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
