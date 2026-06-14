@@ -43,11 +43,16 @@ int8_t* ref_${nodeName}_${B} = ${B};
 
 int8_t* ref_${nodeName}_${data_out} = ${data_out} + (${nodeName}_chunk_start * ${O}*${M});
 
-printf("[MV] ${nodeName} c%d enter start=%d stop=%d\\r\\n", (int)${nodeName}_core_id, (int)${nodeName}_chunk_start, (int)${nodeName}_chunk_stop);
+// DEBUG: print-free progress markers in L2 (printf can't be used here: the FC
+// is blocked in pi_cluster_wait and can't drain cluster printf, so it deadlocks).
+// Read with openocd: mdw &deeploy_dbg_progress 9. Encoding per core: 0xE.. = entered,
+// else value = (i<<1)|phase  (phase 0 = pre-gemv, 1 = post-gemv).
+extern volatile unsigned int deeploy_dbg_progress[9];
+deeploy_dbg_progress[${nodeName}_core_id] = 0xE0000000u;
 for (uint32_t i=${nodeName}_chunk_start;i<${nodeName}_chunk_stop;i++){
-     printf("[MV] ${nodeName} c%d i=%u pre-gemv\\r\\n", (int)${nodeName}_core_id, i);
+     deeploy_dbg_progress[${nodeName}_core_id] = (i << 1);
      gemv_s8_s8_plp(ref_${nodeName}_${A}, NULL, ref_${nodeName}_${data_out}, ref_${nodeName}_${B}, ${mul}, ${C}, 1, ${log2D}, ${N}, ${O}, 1, 1);
-     printf("[MV] ${nodeName} c%d i=%u post-gemv\\r\\n", (int)${nodeName}_core_id, i);
+     deeploy_dbg_progress[${nodeName}_core_id] = (i << 1) | 1u;
      ref_${nodeName}_${A} += (${M}*${N});
      ref_${nodeName}_${data_out} += (${O}*${M});
 

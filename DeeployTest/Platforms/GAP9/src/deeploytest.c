@@ -25,6 +25,11 @@ unsigned int GPIOs = 89;
 struct pi_device cluster_dev;
 uint32_t total_cycles = 0;
 
+// DEBUG: print-free per-core progress markers, written from cluster kernels and
+// read via openocd (`mdw &deeploy_dbg_progress 9`). Lives in L2 so it persists
+// even when the cluster powers down. Index = pi_core_id().
+volatile unsigned int deeploy_dbg_progress[9] = {0};
+
 typedef struct {
   void *expected;
   void *actual;
