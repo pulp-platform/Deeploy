@@ -32,7 +32,7 @@ int8_t ${nodeName}_core_id = pi_core_id();
 int8_t ${nodeName}_log2Core = log2(NUM_CORES);
 int16_t ${nodeName}_chunk = (${int(batch)} >> ${nodeName}_log2Core) + ((${int(batch)} & (NUM_CORES-1))!=0);
 int16_t ${nodeName}_chunk_start = MIN(${nodeName}_chunk*${nodeName}_core_id, ${int(batch)});
-int16_t ${nodeName}_chunk_stop = MIN(${nodeName}_chunk_start + ${nodeName}_chunk, ${int(batch)} + 1);
+int16_t ${nodeName}_chunk_stop = MIN(${nodeName}_chunk_start + ${nodeName}_chunk, ${int(batch)});
 
 int8_t* ref_${nodeName}_${A} = ${A} + (${nodeName}_chunk_start * ${M}*${N});
 % if W_batched:
