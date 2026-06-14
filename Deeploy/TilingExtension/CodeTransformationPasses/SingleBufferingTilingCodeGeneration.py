@@ -5,8 +5,8 @@
 from typing import Dict, List, Set, Tuple
 
 from Deeploy.AbstractDataTypes import VoidType
-from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, OperatorRepresentation, VariableBuffer, \
-    _ReferenceBuffer
+from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, NodeTemplate, OperatorRepresentation, \
+    VariableBuffer, _ReferenceBuffer
 from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration import TilingCodeGeneration
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import dictOfArrays
@@ -17,6 +17,16 @@ from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule
 
 
 class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
+
+    # DEBUG: live progress beacons, emitted UNCONDITIONALLY (independent of
+    # --profileTiling), so the normal build prints where it is. The last beacon
+    # on the UART before a hang pinpoints the node + sub-phase that deadlocked.
+    _traceNodeBeacon = NodeTemplate("""
+    if (pi_core_id() == 0) { printf("[TRACE-NODE] ${nodeName}: ${phase}\\r\\n"); }
+    """)
+    _traceBeacon = NodeTemplate("""
+    if (pi_core_id() == 0) { printf("[TRACE] ${nodeName} tile %u: ${phase}\\r\\n", ${tileIdxVar}); }
+    """)
 
     def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
         super().__init__(externalMemory, localMemory, dma, 1)
@@ -116,6 +126,40 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
         teardownStatements.extend([f.deinit() for f in ingressFutures | egressFutures])
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
+
+        # DEBUG: unconditional live beacons bracketing each phase. "ingress done"
+        # is appended AFTER the future.wait()s, so if it never prints the hang is
+        # in the L2<-external DMA wait of that tile.
+        _beaconNodeName = operatorRepresentation['nodeName'] + f"_{self.externalMemory}"
+        setupStatements.insert(
+            0, CodeSnippet(self._traceNodeBeacon, {
+                "nodeName": _beaconNodeName,
+                "phase": "ENTER (setup/alloc)"
+            }))
+        ingressDMAStatements.insert(
+            0, CodeSnippet(self._traceBeacon, {
+                "nodeName": _beaconNodeName,
+                "phase": "ingress DMA start",
+                "tileIdxVar": "TILING_I"
+            }))
+        ingressDMAStatements.append(
+            CodeSnippet(self._traceBeacon, {
+                "nodeName": _beaconNodeName,
+                "phase": "ingress done -> kernel start",
+                "tileIdxVar": "TILING_I"
+            }))
+        egressDMAStatements.insert(
+            0, CodeSnippet(self._traceBeacon, {
+                "nodeName": _beaconNodeName,
+                "phase": "kernel done -> egress DMA start",
+                "tileIdxVar": "TILING_I"
+            }))
+        egressDMAStatements.append(
+            CodeSnippet(self._traceBeacon, {
+                "nodeName": _beaconNodeName,
+                "phase": "egress done (tile complete)",
+                "tileIdxVar": "TILING_I"
+            }))
 
         metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'] + f"_{self.externalMemory}",
                                   nodeOps = operatorRepresentation['nodeOps'],
