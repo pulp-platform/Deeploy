@@ -386,6 +386,8 @@ void ApplySequentialRademacherPerturbation(const float32_t *__restrict__ pweight
     // Rademacher (+/-1) perturbation that, unlike ApplyRademacherPerturbation,
     // consumes only the LSB of the Xorshift state and advances the PRNG once per
     // element -- exactly the stepping scheme used by ApplyUniformPerturbation.
+    int8_t core_id = pi_core_id();
+    int8_t log2Core = LOG2(NUM_CORES);
 
     perf_stats_t perf_start, perf_end, perf_total;
 
@@ -394,7 +396,7 @@ void ApplySequentialRademacherPerturbation(const float32_t *__restrict__ pweight
         perf_bench_init();
         perf_bench_start();
         perf_bench_read(&perf_start);
-        
+
     }
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) epsilon *= -1.0f;
