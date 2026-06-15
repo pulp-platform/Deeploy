@@ -339,16 +339,6 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon) {
 
-    perf_stats_t perf_start, perf_end, perf_total;
-
-    // Initialize and start performance counters (only core 0)
-    if (core_id == 0) {
-        perf_bench_init();
-        perf_bench_start();
-        perf_bench_read(&perf_start);
-    }
-
-
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) epsilon *= -1.0f;
 
@@ -383,16 +373,7 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
         }
     }
 
-    if (core_id == 0) {
-        perf_bench_stop();
-        perf_bench_read(&perf_end);
-        perf_bench_diff(&perf_total, &perf_end, &perf_start);
-
-        char label[100];
-        snprintf(label, sizeof(label), "Perturb Rad seq seed=%u N=%u",
-                seed, size);
-        perf_bench_print(label, &perf_total);
-    }
+    
 }
 
 void ApplySequentialRademacherPerturbation(const float32_t *__restrict__ pweights,
@@ -405,6 +386,16 @@ void ApplySequentialRademacherPerturbation(const float32_t *__restrict__ pweight
     // Rademacher (+/-1) perturbation that, unlike ApplyRademacherPerturbation,
     // consumes only the LSB of the Xorshift state and advances the PRNG once per
     // element -- exactly the stepping scheme used by ApplyUniformPerturbation.
+
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+        
+    }
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) epsilon *= -1.0f;
     uint32_t n_full = size & ~3u;
@@ -436,6 +427,17 @@ void ApplySequentialRademacherPerturbation(const float32_t *__restrict__ pweight
         rng_state ^= rng_state >> 17;
         rng_state ^= rng_state << 5;
         pweights_dest[i] = pweights[i] + ((rng_state & 1u) ? epsilon : -epsilon);
+    }
+    
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Rad seq seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
     }
 }
 
