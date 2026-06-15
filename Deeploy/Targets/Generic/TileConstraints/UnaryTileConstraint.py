@@ -27,10 +27,20 @@ class UnaryTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         input1Shape = ctxt.lookup(inputBuffer1Name).shape
+        outputShape = ctxt.lookup(outputBufferName).shape
+        lenIn = 1 if isinstance(input1Shape, int) else len(input1Shape)
+        lenOut = 1 if isinstance(outputShape, int) else len(outputShape)
 
-        for dim in range(len(input1Shape)):
-            inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
-            outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
+        # Tie corresponding axes RIGHT-aligned (trailing dims). When input and output
+        # ranks differ (e.g. perturb input (128,128) vs output (1,128,128)), the matching
+        # axes are the trailing ones; left-aligned positional tying mismatched input.dim0
+        # (128) with the leading unit dim (1), letting the input tile collapse to a tiny
+        # buffer while its DMA loads the full output tile -> OOB heap/cluster overrun.
+        # For equal ranks this is identical to the previous positional tie.
+        overlap = min(lenIn, lenOut)
+        for k in range(overlap):
+            inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = lenIn - 1 - k)
+            outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = lenOut - 1 - k)
 
             tilerModel.addConstraint(inputDim1Var == outputDimVar)
 
