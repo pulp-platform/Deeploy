@@ -55,6 +55,10 @@ if(POWER_MEASUREMENT)
   target_compile_definitions(${ProjectId} PRIVATE POWER_MEASUREMENT)
 endif()
 
+if(USE_SEQUENTIAL_RADEMACHER)
+  target_compile_definitions(${NETWORK_LIB} PRIVATE USE_SEQUENTIAL_RADEMACHER)
+endif()
+
 # RW: Waive sign comparison warnings from pulp_nn_utils.h
 target_compile_options(${NETWORK_LIB} PRIVATE
     -Wno-sign-compare
