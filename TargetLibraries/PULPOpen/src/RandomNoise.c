@@ -339,6 +339,16 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
                             uint32_t size,
                             float32_t epsilon) {
 
+    perf_stats_t perf_start, perf_end, perf_total;
+
+    // Initialize and start performance counters (only core 0)
+    if (core_id == 0) {
+        perf_bench_init();
+        perf_bench_start();
+        perf_bench_read(&perf_start);
+    }
+
+
     uint32_t rng_state = (seed * 1664525u) + 1013904223u;
     if (dir == 0) epsilon *= -1.0f;
 
@@ -371,6 +381,17 @@ void ApplyRademacherPerturbation(const float32_t *__restrict__ pweights,
             pweights_dest[i] = pweights[i] + r * epsilon;
             bits >>= 1;
         }
+    }
+
+    if (core_id == 0) {
+        perf_bench_stop();
+        perf_bench_read(&perf_end);
+        perf_bench_diff(&perf_total, &perf_end, &perf_start);
+
+        char label[100];
+        snprintf(label, sizeof(label), "Perturb Rad seq seed=%u N=%u",
+                seed, size);
+        perf_bench_print(label, &perf_total);
     }
 }
 
