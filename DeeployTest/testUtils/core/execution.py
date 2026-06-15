@@ -289,9 +289,11 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     if config.verbose >= 3:
         env["VERBOSE"] = "1"
 
+    use_shell = True
     if config.simulator == 'host':
         binary_path = Path(config.build_dir) / "bin" / config.test_name
         cmd = [str(binary_path)]
+        use_shell = False
 
     elif config.simulator == 'gvsoc' and config.platform != 'GAP9':
         # Run gvsoc directly instead of through cmake to avoid USES_TERMINAL
@@ -324,6 +326,7 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         import shlex as _shlex
         gvsoc_inner = ' '.join(_shlex.quote(c) for c in cmd)
         cmd = ['script', '-q', '-e', '-c', gvsoc_inner, '/dev/null']
+        use_shell = False
 
     elif config.simulator == 'banshee':
         if config.verbose == 1:
@@ -343,11 +346,11 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
 
     log.debug(f"[Execution] Simulation command: {' '.join(cmd)}")
 
-    cmd_str = " ".join(cmd)
-    with subprocess.Popen(cmd_str,
+    popen_cmd = cmd if not use_shell else " ".join(cmd)
+    with subprocess.Popen(popen_cmd,
                           stdout = subprocess.PIPE,
                           stderr = subprocess.STDOUT,
-                          shell = True,
+                          shell = use_shell,
                           encoding = 'utf-8') as process:
 
         with open('out.txt', 'a', encoding = 'utf-8') as fileHandle:
@@ -360,12 +363,15 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
                 if output == '' and process.poll() is not None:
                     break
                 if output:
-                    print(output.strip())
+                    # Filter script(1) header/footer lines added by the PTY wrapper
+                    if output.startswith('Script started on ') or output.startswith('Script done on '):
+                        continue
+                    print(output.rstrip('\r\n'))
                     result += output
                     fileHandle.write(f"{escapeAnsi(output)}")
 
     # Parse output for error count and cycles
-    test_result = parse_test_output(result, "")
+    test_result = parse_test_output(result, "", returncode=process.returncode)
 
     if not test_result.success and test_result.error_count == -1:
         log.warning(f"Could not parse error count from output")

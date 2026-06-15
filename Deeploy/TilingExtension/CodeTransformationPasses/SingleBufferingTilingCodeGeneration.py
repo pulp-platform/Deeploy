@@ -132,39 +132,7 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
 
-        # DEBUG: unconditional live beacons bracketing each phase. "ingress done"
-        # is appended AFTER the future.wait()s, so if it never prints the hang is
-        # in the L2<-external DMA wait of that tile.
-        _beaconNodeName = operatorRepresentation['nodeName'] + f"_{self.externalMemory}"
-        setupStatements.insert(
-            0, CodeSnippet(self._traceNodeBeacon, {
-                "nodeName": _beaconNodeName,
-                "phase": "ENTER (setup/alloc)"
-            }))
-        ingressDMAStatements.insert(
-            0, CodeSnippet(self._traceBeacon, {
-                "nodeName": _beaconNodeName,
-                "phase": "ingress DMA start",
-                "tileIdxVar": "TILING_I"
-            }))
-        ingressDMAStatements.append(
-            CodeSnippet(self._traceBeacon, {
-                "nodeName": _beaconNodeName,
-                "phase": "ingress done -> kernel start",
-                "tileIdxVar": "TILING_I"
-            }))
-        egressDMAStatements.insert(
-            0, CodeSnippet(self._traceBeacon, {
-                "nodeName": _beaconNodeName,
-                "phase": "kernel done -> egress DMA start",
-                "tileIdxVar": "TILING_I"
-            }))
-        egressDMAStatements.append(
-            CodeSnippet(self._traceBeacon, {
-                "nodeName": _beaconNodeName,
-                "phase": "egress done (tile complete)",
-                "tileIdxVar": "TILING_I"
-            }))
+        # DEBUG beacons disabled for the GVSoC debug-model run (speed / no printf).
 
         metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'] + f"_{self.externalMemory}",
                                   nodeOps = operatorRepresentation['nodeOps'],
