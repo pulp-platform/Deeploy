@@ -130,5 +130,10 @@ void gemv_s8_s8_plp(int8_t *pIn, int8_t *pBias, int8_t *pOut, int8_t *pWeight,
       }
     }
   }
-  pi_cl_team_barrier();
+  // NOTE: no pi_cl_team_barrier() here. gemv_s8_s8_plp is called once per output
+  // row inside a PER-CORE chunk loop (MatrixVectorTemplate / TallGEMMTemplate),
+  // and cores get UNEQUAL chunks (e.g. 101 rows / 8 cores = 13..13,10). A barrier
+  // here is hit a different number of times per core, so the short-chunk core
+  // finishes early and the others deadlock waiting for it. The caller's cluster
+  // fork already barriers once after the whole chunk, which is the correct sync.
 }
