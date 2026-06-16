@@ -30,8 +30,9 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantPars
     PerturbRademacherParser, PerturbTriangleParser, RQSPerturbRademacherParser, RQSPerturbUniformParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ClipToRelu6Pass, DequantPatternPass, \
-    IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, \
-    RQSSplitPass, SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+    FoldRelu6RequantRoundtripPass, IntegerDivRequantMergePass, MergeConstAddAndRequantPass, \
+    MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, SkipEmptyConcatPass, SkipUnityRequantPass, \
+    iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Bindings import PULPDMASliceBindings, \
     PULPDWConv1DBinding, PULPSoftmaxCrossEntropyLossDualOutputBindings, PULPReluGradBinding
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
@@ -259,6 +260,7 @@ PULPOptimizer = TopologyOptimizer([
     QuantPatternPass(),
     DequantPatternPass(),
     ClipToRelu6Pass(),
+    FoldRelu6RequantRoundtripPass(),
     SkipEmptyConcatPass(),
     SkipUnityRequantPass(previous_op_regex = "Concat", num_inputs = 2),
     SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),

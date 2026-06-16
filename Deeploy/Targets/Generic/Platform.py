@@ -35,8 +35,8 @@ from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool1DParser, Aver
     SubParser, SwishParser, TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser , InPlaceAccumulatorV2Parser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ClipToRelu6Pass, DequantPatternPass, \
-    ExtractPaddingFromConvPass, ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, \
-    QuantPatternPass, iGELURequantMergePass
+    ExtractPaddingFromConvPass, ExtractPaddingFromPoolPass, FoldRelu6RequantRoundtripPass, MatMulAddMergePass, \
+    MergeConstAddAndRequantPass, QuantPatternPass, iGELURequantMergePass
 
 AddMapper = NodeMapper(AddParser(), BasicAddBindings)
 SubMapper = NodeMapper(SubParser(), BasicSubBindings)
@@ -198,6 +198,7 @@ GenericOptimizer = TopologyOptimizer(
         QuantPatternPass(),
         DequantPatternPass(),
         ClipToRelu6Pass(),
+        FoldRelu6RequantRoundtripPass(),
         iGELURequantMergePass(),
         MatMulAddMergePass(),
         MergeConstAddAndRequantPass(),
