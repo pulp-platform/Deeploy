@@ -1263,7 +1263,13 @@ def _fold_relu6_requant_roundtrip_fun(graph: gs.Graph, match: Match, name: str):
     # this requant produce an *unsigned* output (the native pulp_nn ReLU path).
     # Relu6's upper bound 6 maps to round(6/scale) = 6 * q_scale_stored, which is
     # >> the unsigned max here, so the ceiling is inactive and unsigned == ReLU.
-    rqs.attrs['signed'] = np.array([0], dtype = np.int32)
+    # Mutate in place so the attribute keeps its original container type (a
+    # gs.Constant), which the RQS-conv parser reads via `.values`.
+    signed_attr = rqs.attrs['signed']
+    if hasattr(signed_attr, 'values'):
+        signed_attr.values = np.zeros_like(signed_attr.values)
+    else:
+        rqs.attrs['signed'] = np.zeros_like(np.asarray(signed_attr))
 
     # Bypass the float round-trip: the RequantShift output now feeds whatever
     # consumed the Quant output. Then detach and remove the three float ops.
