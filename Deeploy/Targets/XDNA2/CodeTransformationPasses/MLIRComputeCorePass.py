@@ -59,7 +59,6 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
     def apply(self, ctxt: NetworkContext, mlirBlock: MLIRExecutionBlock,
               name: str) -> Tuple[NetworkContext, MLIRExecutionBlock]:
         computeTile = mlirBlock.computeTile
-        kernelObj = mlirBlock.kernelObjFile
         tileSize = mlirBlock.tileSize
         numTiles = mlirBlock.numTiles
         opRepr = mlirBlock.operatorRepresentation
@@ -69,7 +68,7 @@ class MLIRComputeCorePass(MLIRCodeTransformationPass):
         firstKey = self.inputTensorKeys[0]
         tileTy = mlirBlock.fifoTypes[firstKey]
 
-        @aie_d.core(computeTile, link_with = kernelObj)
+        @aie_d.core(computeTile)
         def _core():
             subviewTy = aie_d.ObjectFifoSubviewType.get(tileTy)
             for _ in scf_d.for_(0, 0x7FFFFFFFFFFFFFFF, 1):

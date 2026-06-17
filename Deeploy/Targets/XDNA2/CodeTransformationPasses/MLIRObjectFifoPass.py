@@ -135,6 +135,6 @@ class MLIRObjectFifoPass(MLIRCodeTransformationPass):
         else:
             # Default: binary elementwise  (in1, in2, out, size)
             argTypes = [tileTy, tileTy, tileTy, i32]
-        aie_d.external_func(self.kernelFuncName, argTypes)
+        aie_d.external_func(self.kernelFuncName, argTypes, link_with = self.kernelObjFile)
 
         return ctxt, mlirBlock
