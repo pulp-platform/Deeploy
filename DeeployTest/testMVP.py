@@ -124,6 +124,7 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
     if args.doublebuffer:
         assert args.defaultMemLevel in ["L3", "L2"]
         if args.defaultMemLevel == "L3":
+            # for double buffering on spatz set this to DBTiler 
             deployer = TilerDeployerWrapper(deployer, DBOnlyL3Tiler, testName = testIdentifier, workDir = args.dumpdir)
         else:
             deployer = TilerDeployerWrapper(deployer, DBTiler, testName = testIdentifier, workDir = args.dumpdir)
