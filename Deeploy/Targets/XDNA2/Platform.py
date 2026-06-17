@@ -20,12 +20,6 @@ XDNA2AddMapper = NodeMapper(AddParser(), XDNA2AddBindings)
 # Tiling-ready mapper for tiled deployment
 XDNA2AddTilableMapper = NodeMapper(AddParser(), XDNA2AddTilingReadyBindings)
 
-# Standard mapping (used when tiling is disabled)
-XDNA2Mapping = {
-    'Add': AddLayer([XDNA2AddMapper]),
-}
-
-# Tiling-ready mapping (used when tiling is enabled)
 XDNA2TilingMapping = {
     'Add': AddLayer([XDNA2AddTilableMapper]),
 }
@@ -64,7 +58,7 @@ XDNA2Optimizer = TopologyOptimizer([], name = "XDNA2Optimizer")
 
 class XDNA2Engine(DeploymentEngine):
 
-    def __init__(self, name: str = "XDNA2", Mapping = XDNA2Mapping, initCode: str = "", includeList = None) -> None:
+    def __init__(self, name: str = "XDNA2", Mapping = XDNA2TilingMapping, initCode: str = "", includeList = None) -> None:
         if includeList is None:
             includeList = []
         super().__init__(name, Mapping, initCode, includeList)
@@ -79,7 +73,7 @@ class XDNA2AIECoreEngine(DeploymentEngine):
 
     def __init__(self,
                  name: str = "XDNA2_AIE_Core",
-                 Mapping = XDNA2Mapping,
+                 Mapping = XDNA2TilingMapping,
                  initCode: str = "",
                  includeList = None,
                  preferredMemoryLevel: str = "L1") -> None:
