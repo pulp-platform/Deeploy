@@ -58,7 +58,11 @@ XDNA2Optimizer = TopologyOptimizer([], name = "XDNA2Optimizer")
 
 class XDNA2Engine(DeploymentEngine):
 
-    def __init__(self, name: str = "XDNA2", Mapping = XDNA2TilingMapping, initCode: str = "", includeList = None) -> None:
+    def __init__(self,
+                 name: str = "XDNA2",
+                 Mapping = XDNA2TilingMapping,
+                 initCode: str = "",
+                 includeList = None) -> None:
         if includeList is None:
             includeList = []
         super().__init__(name, Mapping, initCode, includeList)
