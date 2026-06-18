@@ -116,6 +116,7 @@ void ApplyPerturbQuantRademacher_i32(int32_t *__restrict__ pweights,
                             const uint32_t size,
                             const uint32_t start_offset);
 
+
 void ApplyPerturbQuantUniform_i32(int32_t *__restrict__ pweights,
                                   int32_t *__restrict__ pweights_dest,
                                   const int32_t *__restrict__ M,

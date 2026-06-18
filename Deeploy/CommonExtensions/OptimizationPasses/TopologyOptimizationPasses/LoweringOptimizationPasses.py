@@ -237,8 +237,17 @@ def _transposeMatMulInputs_fun(graph: gs.Graph, match: Match, name: str):
     # Prepend transpose on B if it's not transposed
     if node.attrs['transB'] == 0:
         tensorB = node.inputs[1]
-        perm = _swapLastTwoDimsPermutation(len(tensorB.shape))
-        graph.nodes.append(_appendTranspose(tensorB, node, perm))
+        # If B is already produced by a Transpose that swaps the last two dims
+        # (e.g. a pre-transposed perturbed GEMM weight), fold it into transB=1
+        # by reading the Transpose's input directly, instead of materialising a
+        # second runtime transpose + its buffer.
+        producer = tensorB.inputs[0] if len(tensorB.inputs) == 1 else None
+        if producer is not None and producer.op == "Transpose" and \
+                list(producer.attrs.get("perm", [])) == _swapLastTwoDimsPermutation(len(producer.inputs[0].shape)):
+            node.inputs[1] = producer.inputs[0]
+        else:
+            perm = _swapLastTwoDimsPermutation(len(tensorB.shape))
+            graph.nodes.append(_appendTranspose(tensorB, node, perm))
         node.attrs['transB'] = True
 
     return graph
