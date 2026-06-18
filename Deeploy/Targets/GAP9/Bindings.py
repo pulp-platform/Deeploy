@@ -18,7 +18,7 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.GAP9.DMA.L3Dma import gap9L3DmaHack
+from Deeploy.Targets.GAP9.DMA.L3Dma import GAP9L3Dma, gap9L3DmaHack
 from Deeploy.Targets.GAP9.DMA.MchanDma import GAP9MchanDma
 # Import templates from PULPOpen and Generic
 from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, \
@@ -57,7 +57,9 @@ GAP9Transformer = CodeTransformation([
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
-    PULPL3Tiling("L3", "L2", gap9L3DmaHack),  # Use GAP9-specific L3 DMA
+    # SB -> blocking gap9L3DmaHack (safe for strided 2D L3 transfers); DB ->
+    # async GAP9L3Dma for real L3<->L2 prefetch overlap.
+    PULPL3Tiling("L3", "L2", gap9L3DmaHack, dbDma = GAP9L3Dma()),
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
@@ -76,7 +78,9 @@ GAP9ClusterTransformer = CodeTransformation([
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
-    PULPL3Tiling("L3", "L2", gap9L3DmaHack),  # Use GAP9-specific L3 DMA
+    # SB -> blocking gap9L3DmaHack (safe for strided 2D L3 transfers); DB ->
+    # async GAP9L3Dma for real L3<->L2 prefetch overlap.
+    PULPL3Tiling("L3", "L2", gap9L3DmaHack, dbDma = GAP9L3Dma()),
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
