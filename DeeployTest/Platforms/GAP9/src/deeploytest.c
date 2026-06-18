@@ -16,6 +16,18 @@
 // RW: Remove MAINSTACKSIZE because gap9-sdk does not use it
 #define SLAVESTACKSIZE 3800
 
+/* On-chip memory windows. HyperRAM/L3 (cl_ram_malloc) is NOT CPU-addressable,
+ * so a raw memcpy / CPU-deref of an L3 pointer faults ("Invalid fetch") on real
+ * silicon — GVSoC models HyperRAM as flat RAM and hides the bug. Only the real
+ * on-chip ranges may be touched directly by the FC. The previous `>=
+ * 0x10000000` / `< 0x10000000` tests wrongly matched HyperRAM (≥ 0x10000000)
+ * too. */
+#define IS_L1(ptr)                                                             \
+  ((uint32_t)(ptr) >= 0x10000000u && (uint32_t)(ptr) < 0x10040000u)
+#define IS_L2(ptr)                                                             \
+  (((uint32_t)(ptr) >= 0x1C000000u && (uint32_t)(ptr) < 0x1C200000u) ||        \
+   IS_L1(ptr))
+
 #ifdef POWER_MEASUREMENT
 unsigned int GPIOs = 89;
 #define WRITE_GPIO(x) pi_gpio_pin_write(GPIOs, x)
@@ -119,7 +131,11 @@ int main(void) {
   printf("Initialized\r\n");
 #endif
   for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
-    if ((uint32_t)DeeployNetwork_inputs[buf] >= 0x10000000) {
+    /* L3 inputs are loaded at runtime from the readfs hex inside InitNetwork
+     * (testInputVector[buf] == NULL) and already live in HyperRAM, which the FC
+     * cannot memcpy into — skip them. Only on-chip (L1/L2) inputs are copied
+     * from the baked testInputVector. */
+    if (testInputVector[buf] != NULL && IS_L2(DeeployNetwork_inputs[buf])) {
       memcpy(DeeployNetwork_inputs[buf], testInputVector[buf],
              DeeployNetwork_inputs_bytes[buf]);
     }
@@ -156,7 +172,10 @@ int main(void) {
   for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
     tot_tested += DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE);
 
-    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x10000000) {
+    /* L3 outputs live in HyperRAM (not CPU-addressable) — DMA them into an L2
+     * scratch before the compare. On-chip (L1/L2) outputs are compared in
+     * place. */
+    if (!IS_L2(DeeployNetwork_outputs[buf])) {
       compbuf = pi_l2_malloc(DeeployNetwork_outputs_bytes[buf]);
       ram_read(compbuf, DeeployNetwork_outputs[buf],
                DeeployNetwork_outputs_bytes[buf]);
@@ -194,7 +213,7 @@ int main(void) {
         }
       }
     }
-    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x10000000) {
+    if (!IS_L2(DeeployNetwork_outputs[buf])) {
       pi_l2_free(compbuf, DeeployNetwork_outputs_bytes[buf]);
     }
   }
