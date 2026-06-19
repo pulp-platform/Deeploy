@@ -116,6 +116,19 @@ void ApplyPerturbQuantRademacher_i32(int32_t *__restrict__ pweights,
                             const uint32_t size,
                             const uint32_t start_offset);
 
+// As ApplyPerturbQuantRademacher_CHW, but for weights stored output-channel
+// first ([out, in], GEMM kernel layout): indexes the per-output-channel scale M
+// by (position / channel_width) instead of (position % channel_width), keeping
+// it in bounds for non-square GEMM weights.
+void ApplyPerturbQuantRademacher_CHW_ChannelFirst(int8_t *__restrict__ pweights,
+                            int8_t *__restrict__ pweights_dest,
+                            const int32_t *__restrict__ M,
+                            const int32_t S,
+                            const uint32_t channel_width,
+                            const uint32_t seed,
+                            const uint32_t size,
+                            const uint32_t start_offset);
+
 
 void ApplyPerturbQuantUniform_i32(int32_t *__restrict__ pweights,
                                   int32_t *__restrict__ pweights_dest,

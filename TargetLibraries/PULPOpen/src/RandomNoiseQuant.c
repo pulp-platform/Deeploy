@@ -176,6 +176,55 @@ void ApplyPerturbQuantRademacher_i32(int32_t *__restrict__ pweights,
     }
 }
 
+// Variant of ApplyPerturbQuantRademacher_CHW for weights stored output-channel
+// first ([out, in], the GEMM kernel layout). The per-output-channel scale M is
+// indexed by (position / channel_width) = the output-channel (row) index
+// instead of (position % channel_width) = the inner (column) index. This keeps
+// the per-channel scale in bounds for non-square GEMM weights (where in > out),
+// for which the '%' kernel reads M out of bounds.
+void ApplyPerturbQuantRademacher_CHW_ChannelFirst(int8_t *__restrict__ pweights,
+                            int8_t *__restrict__ pweights_dest,
+                            const int32_t *__restrict__ M,
+                            const int32_t S,
+                            const uint32_t channel_width,
+                            const uint32_t seed,
+                            const uint32_t size,
+                            const uint32_t start_offset)
+{
+    uint32_t rng_state = (seed * 1664525u) + 1013904223u;
+    const int32_t rounding = (S > 0) ? (1 << (S - 1)) : 0;
+
+    uint32_t n_full_batches = size / 32;
+    uint32_t leftover = size % 32;
+    uint32_t i = 0;
+
+    for (uint32_t batch = 0; batch < n_full_batches; batch++) {
+        rng_state = Xorshift32(rng_state);
+        uint32_t bits = rng_state;
+        for (uint32_t b = 0; b < 32; b++, i++) {
+            int32_t r = (bits & 1) ? 1 : -1;
+            int32_t m_val = M[(start_offset + i) / channel_width];
+            int32_t noise_q = (r * m_val + rounding) >> S;
+            int32_t val = (int32_t)pweights[i] + noise_q;
+            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
+            bits >>= 1;
+        }
+    }
+
+    if (leftover > 0) {
+        rng_state = Xorshift32(rng_state);
+        uint32_t bits = rng_state;
+        for (uint32_t b = 0; b < leftover; b++, i++) {
+            int32_t r = (bits & 1) ? 1 : -1;
+            int32_t m_val = M[(start_offset + i) / channel_width];
+            int32_t noise_q = (r * m_val + rounding) >> S;
+            int32_t val = (int32_t)pweights[i] + noise_q;
+            pweights_dest[i] = (int8_t)CLAMP(val, -127, 127);
+            bits >>= 1;
+        }
+    }
+}
+
 void ApplyPerturbQuantUniform_i32(int32_t *__restrict__ pweights,
                                   int32_t *__restrict__ pweights_dest,
                                   const int32_t *__restrict__ M,
