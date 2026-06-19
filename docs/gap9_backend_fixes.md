@@ -145,6 +145,28 @@ mchan is one-channel-per-transfer, so wait per tensor, not per direction.
 
 ---
 
+## 7. Build-time memory gate
+
+**Files:** `DeeployTest/testUtils/gap9_memcheck.py`,
+`DeeployTest/testUtils/core/execution.py`
+
+**Problem.** L1/L2 over-subscription on GAP9 surfaces as a multi-minute GVSoC hang
+(`os_evt_release`) or a wild-pointer crash far from the cause — slow and opaque.
+The tiler does not model the CC master stack, PE slave stacks, or the promoted
+pool, so it can't catch it.
+
+**Fix.** `gap9_memcheck.py` models every consumer of L1 and L2 (tile arena, CC
+stack from `cc_stack_size`, PE slave stacks, ELF sections, promoted pool) and
+scans `InitNetwork` for the `pi_l2_malloc`-after-`cl_ram_malloc` alloc-order race.
+`run_complete_test` runs it after the build and before the simulation (GAP9 only),
+so over-subscription fails in seconds with the exact knob to turn. Bypass with
+`DEPLOY_SKIP_MEMCHECK=1`.
+
+**Takeaway.** Validate the full L1/L2 budget at build time — the stacks and pools
+the tiler ignores are exactly what overflow.
+
+---
+
 *All changes verified on GVSoC with `MatMul --defaultMemLevel L3` (`Errors: 0 out
 of 256`). On-chip (L1/L2) behaviour is unchanged; only the L3 / stack / DMA paths
 differ.*
