@@ -27,6 +27,7 @@ Usage:
 import glob
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -34,7 +35,37 @@ import sys
 L1_SIZE = 128 * 1024  # 131072  TCDM
 L2_SIZE = 0x190000  # 1572864 (1.5 MB), link.gap9.ld
 L1_MIN_HEADROOM = 1024  # warn if free L1 < this (stacks have runtime slop)
-READELF = "/app/install/gcc/gap9/bin/riscv32-unknown-elf-readelf"
+
+
+def _resolve_readelf():
+    """Locate a usable readelf. Any readelf reads ELF section headers (`-SW`),
+    so a GCC, LLVM, or system binary all work -- the install path differs per
+    machine, so don't hardcode it."""
+    # 1) explicit override
+    env = os.environ.get("READELF")
+    if env and (os.path.isfile(env) or shutil.which(env)):
+        return env
+    # 2) the configured GAP9 GCC toolchain (GAP_RISCV_GCC_TOOLCHAIN/bin/...)
+    gcc = os.environ.get("GAP_RISCV_GCC_TOOLCHAIN")
+    if gcc:
+        cand = os.path.join(gcc, "bin", "riscv32-unknown-elf-readelf")
+        if os.path.isfile(cand):
+            return cand
+    # 3) LLVM's readelf (the GAP9 builds use LLVM)
+    llvm = os.environ.get("LLVM_INSTALL_DIR")
+    if llvm:
+        cand = os.path.join(llvm, "bin", "llvm-readelf")
+        if os.path.isfile(cand):
+            return cand
+    # 4) anything on PATH, then a last-resort default
+    for name in ("riscv32-unknown-elf-readelf", "llvm-readelf", "readelf"):
+        found = shutil.which(name)
+        if found:
+            return found
+    return "readelf"
+
+
+READELF = _resolve_readelf()
 
 
 def die(msg, code = 2):
