@@ -839,3 +839,17 @@ class ScatterLayer(ONNXLayer):
         else:
             # 1 op per index element
             return int(np.prod(opRep['indices_shape']))
+
+
+class ResizeLayer(ONNXLayer):
+
+    def computeOps(self):
+        rep = self.mapper.parser.operatorRepresentation
+        size = rep['batch_size'] * rep['channels'] * int(np.prod(rep['output_shape']))
+        spatial_dims: int = rep['spatial_dims']
+        ops = 0  # default: Nearest-neighbour is a pure copy — no arithmetic operations.
+        if rep['mode'] == 'linear':  # 2^spatial_dims multiply-accumulates per output element.
+            ops = size * (1 << spatial_dims)
+        elif rep['mode'] == 'cubic':  # 4^spatial_dims multiply-accumulates per output element.
+            ops = size * (4**spatial_dims)
+        return ops

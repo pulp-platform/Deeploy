@@ -22,8 +22,8 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     FloatSoftmaxTemplate, FloatSqrtTemplate, FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, \
     IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, \
     PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, \
-    RQIntegerDivTemplate, RQSiGELUTemplate, ScatterTemplate, SliceTemplate, SubTemplate, TransposeTemplate, \
-    iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    ResizeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, ScatterTemplate, SliceTemplate, SubTemplate, \
+    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
     LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, PassThroughTypeChecker, QuantChecker, \
@@ -449,4 +449,9 @@ BasicScatterBindings = [
         PassThroughTypeChecker(
             [PointerClass(type), PointerClass(int32_t), PointerClass(type)], [PointerClass(type)]),
         ScatterTemplate.referenceTemplate, BasicTransformer) for type in (int8_t, uint8_t, float32_t)
+]
+
+BasicResizeBindings = [
+    NodeBinding(PassThroughTypeChecker([PointerClass(type)], [PointerClass(type)]), ResizeTemplate.referenceTemplate,
+                BasicTransformer) for type in (int8_t, uint8_t, float32_t)
 ]

@@ -3278,3 +3278,110 @@ class Col2ImParser(NodeParser):
         self.operatorRepresentation['channels'] = C
 
         return ctxt, True
+
+
+class ResizeParser(NodeParser):
+
+    @staticmethod
+    def _is_empty(input: gs.Variable | gs.Constant | None) -> bool:
+        if input is None:
+            return True
+        if isinstance(input, gs.Constant):
+            return input.values.size <= 0
+        if isinstance(input, gs.Variable):
+            return input.shape is None
+        return True
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        if not all([node.op == 'Resize', len(node.inputs) >= 1, len(node.outputs) == 1]):
+            return False
+
+        antialias = node.attrs.get('antialias', 0)
+        axes = node.attrs.get('axes', None)  # None -> all axes
+        coord_mode = node.attrs.get('coordinate_transformation_mode', 'half_pixel')
+        cubic_coeff_a = node.attrs.get('cubic_coeff_a', -0.75)
+        exclude_outside = node.attrs.get('exclude_outside', 0)
+        extrapolation_value = node.attrs.get('extrapolation_value', 0.0)
+        keep_aspect_ratio_policy = node.attrs.get('keep_aspect_ratio_policy', 'stretch')
+        mode = node.attrs.get('mode', 'nearest')
+        nearest_mode = node.attrs.get('nearest_mode', 'round_prefer_floor')
+
+        if not all([
+                coord_mode in ('half_pixel', 'half_pixel_symmetric', 'pytorch_half_pixel', 'align_corners',
+                               'asymmetric', 'tf_crop_and_resize'),
+                keep_aspect_ratio_policy in ('stretch', 'not_larger', 'not_smaller'),
+                mode in ('nearest', 'linear', 'cubic'),
+                nearest_mode in ('floor', 'ceil', 'round_prefer_floor', 'round_prefer_ceil'),
+        ]):
+            return False
+
+        self.operatorRepresentation['antialias'] = antialias
+        self.operatorRepresentation['axes'] = axes
+        self.operatorRepresentation['coord_mode'] = coord_mode
+        self.operatorRepresentation['cubic_coeff_a'] = cubic_coeff_a
+        self.operatorRepresentation['exclude_outside'] = exclude_outside
+        self.operatorRepresentation['extrapolation_value'] = extrapolation_value
+        self.operatorRepresentation['keep_aspect_ratio_policy'] = keep_aspect_ratio_policy
+        self.operatorRepresentation['mode'] = mode
+        self.operatorRepresentation['nearest_mode'] = nearest_mode
+
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in: VariableBuffer = ctxt.lookup(node.inputs[0].name)
+        data_out: VariableBuffer = ctxt.lookup(node.outputs[0].name)
+
+        if not all([
+                len(data_in.shape) == len(data_out.shape),  # same ndims
+                all(s > 0 for s in data_in.shape),  # no empty dim
+                all(s > 0 for s in data_out.shape),  # no empty dim
+                len(data_in.shape) > 2,  # at least batch, channels, one spatial dim
+                data_in.shape[:2] == data_out.shape[:2],  # batch_size and channels are unchanged
+        ]):
+            return ctxt, False
+
+        roi: gs.Variable | gs.Constant | None = node.inputs[1] if len(node.inputs) > 1 else None
+        scales: gs.Constant | None = node.inputs[2] if len(node.inputs) > 2 else None
+        sizes: gs.Constant | None = node.inputs[3] if len(node.inputs) > 3 else None
+
+        has_scales = not self._is_empty(scales)
+        has_sizes = not self._is_empty(sizes)
+
+        if any([
+                # ONNX requires exactly one of scales / sizes to be non-empty
+                has_scales and has_sizes,
+            (not has_scales) and (not has_sizes),
+                # scales and sizes assumed constants otherwise output shape
+                # cannot be inferred at parsing time
+                has_scales and not isinstance(scales, gs.Constant),
+                has_sizes and not isinstance(sizes, gs.Constant),
+        ]):
+            return ctxt, False
+
+        if not self._is_empty(roi):
+            if isinstance(roi, gs.Constant):
+                _roi = roi.values.tolist()
+            elif isinstance(roi, gs.Variable):
+                _roi = ctxt.lookup(roi.name).name
+            else:
+                return ctxt, False
+        else:
+            _roi = None
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['batch_size'] = data_in.shape[0]
+        self.operatorRepresentation['channels'] = data_in.shape[1]
+        self.operatorRepresentation['spatial_dims'] = len(data_in.shape[2:])
+        self.operatorRepresentation['input_shape'] = list(data_in.shape[2:])
+        self.operatorRepresentation['output_shape'] = list(data_out.shape[2:])
+        self.operatorRepresentation['roi'] = _roi
+        self.operatorRepresentation['scales'] = scales.values.tolist() if has_scales else None
+        self.operatorRepresentation['sizes'] = sizes.values.tolist() if has_sizes else None
+
+        return ctxt, True

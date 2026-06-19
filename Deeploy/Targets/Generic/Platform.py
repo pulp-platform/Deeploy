@@ -16,16 +16,16 @@ from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicAveragePool1
     BasicLayerNormBindings, BasicLeakyReluBindings, BasicMatMulBindings, BasicMaxPool1DBindings, \
     BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, BasicPowBindings, \
     BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, \
-    BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicScatterBindings, BasicSeluBindings, \
-    BasicSigmoidBindings, BasicSliceBindings, BasicSoftmaxBindings, BasicSqrtBindings, BasicSubBindings, \
-    BasicSwishBindings, BasicTransposeBindings, DummyBinding
+    BasicResizeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicScatterBindings, \
+    BasicSeluBindings, BasicSigmoidBindings, BasicSliceBindings, BasicSoftmaxBindings, BasicSqrtBindings, \
+    BasicSubBindings, BasicSwishBindings, BasicTransposeBindings, DummyBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolLayer, BatchNormalizationLayer, CeilLayer, ClipLayer, \
     Col2ImLayer, ConcatLayer, ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, EluLayer, \
     ExpLayer, FloorLayer, GatherLayer, GELULayer, GEMMLayer, GlobalAveragePoolLayer, GlobalMaxPoolLayer, \
     GroupNormLayer, InstanceNormLayer, ITAMaxLayer, LayerNormLayer, LeakyReluLayer, MatMulLayer, MaxPoolLayer, \
     MulLayer, PadLayer, PowLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, \
-    ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, ScatterLayer, SeluLayer, SigmoidLayer, SliceLayer, SoftmaxLayer, \
-    SqrtLayer, SubLayer, SwishLayer, TransposeLayer
+    ReshapeLayer, ResizeLayer, RQIntegerDivLayer, RQSiGELULayer, ScatterLayer, SeluLayer, SigmoidLayer, SliceLayer, \
+    SoftmaxLayer, SqrtLayer, SubLayer, SwishLayer, TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool1DParser, AveragePool2DParser, BatchNormParser, \
     CeilParser, ClipParser, Col2ImParser, ConcatParser, ConvTranspose1DParser, DebugParser, DequantParser, DivParser, \
     DummyParser, EluParser, ExpParser, FlattenParser, FloorParser, GatherParser, GELUParser, GenericConv1DParser, \
@@ -33,9 +33,9 @@ from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool1DParser, Aver
     GlobalAveragePoolParser, GlobalMaxPoolParser, GroupNormParser, HardSigmoidParser, HardSwishParser, \
     InstanceNormParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, LeakyReluParser, \
     MatMulParser, MaxPool1DParser, MulParser, Pad1DParser, Pad2DParser, PowParser, QuantParser, ReduceMeanParser, \
-    ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, RQIntegerDivParser, RQSiGELUParser, ScatterParser, \
-    SeluParser, SigmoidParser, SliceParser, SoftmaxParser, SqrtParser, SubParser, SwishParser, TransposeParser, \
-    UnsqueezeParser, iLayerNormParser, iSoftmaxParser
+    ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, ResizeParser, RQIntegerDivParser, RQSiGELUParser, \
+    ScatterParser, SeluParser, SigmoidParser, SliceParser, SoftmaxParser, SqrtParser, SubParser, SwishParser, \
+    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
@@ -102,6 +102,7 @@ GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), BasicGlobalAvera
 GlobalMaxPoolMapper = NodeMapper(GlobalMaxPoolParser(), BasicGlobalMaxPoolBindings)
 ScatterMapper = NodeMapper(ScatterParser(), BasicScatterBindings)
 Col2ImMapper = NodeMapper(Col2ImParser(), BasicCol2ImBindings)
+ResizeMapper = NodeMapper(ResizeParser(), BasicResizeBindings)
 
 # Dummy nodes are intended for development purposes only!
 # They should always generate compiler errors to not accidentally end up in production code
@@ -165,6 +166,7 @@ GenericMapping = {
     'AveragePool': AveragePoolLayer([AveragePool1DMapper, AveragePool2DMapper]),
     'GlobalAveragePool': GlobalAveragePoolLayer([GlobalAveragePoolMapper]),
     'GlobalMaxPool': GlobalMaxPoolLayer([GlobalMaxPoolMapper]),
+    'Resize': ResizeLayer([ResizeMapper]),
     'Scatter': ScatterLayer([ScatterMapper]),
     'ScatterElements': ScatterLayer([ScatterMapper]),
     'Col2Im': Col2ImLayer([Col2ImMapper]),
