@@ -16,6 +16,24 @@
 // RW: Remove MAINSTACKSIZE because gap9-sdk does not use it
 #define SLAVESTACKSIZE 3800
 
+/* L1-memory knob A — place the cluster slave (PE) stacks in L2 instead of L1.
+ * The GAP9 SDK pi_cl_l1_malloc's the slave stacks only when task->stacks ==
+ * NULL
+ * (__pi_cluster_task_set_stack in the SDK cluster driver); handing it our own
+ * buffer makes it skip that L1 allocation, freeing ~30 KB of L1 (8 cores x
+ * SLAVESTACKSIZE) for the Deeploy tile arena. The static array lands in .bss
+ * (L2). Use SET_SLAVE_STACK(task) instead of setting slave_stack_size directly.
+ * Knob B (alternative): shrink the SDK's own L1 slave stacks via
+ * CONFIG_CL_SLAVE_CORE_STACK_SIZE in the sdk .config (see sdk_gvsoc.config). */
+#define CLUSTER_MAX_CORES 9
+static uint8_t cluster_slave_stacks[SLAVESTACKSIZE * CLUSTER_MAX_CORES]
+    __attribute__((aligned(16)));
+#define SET_SLAVE_STACK(task)                                                  \
+  do {                                                                         \
+    (task).slave_stack_size = SLAVESTACKSIZE;                                  \
+    (task).stacks = cluster_slave_stacks;                                      \
+  } while (0)
+
 /* On-chip memory windows. HyperRAM/L3 (cl_ram_malloc) is NOT CPU-addressable,
  * so a raw memcpy / CPU-deref of an L3 pointer faults ("Invalid fetch") on real
  * silicon — GVSoC models HyperRAM as flat RAM and hides the bug. Only the real
@@ -110,6 +128,17 @@ int main(void) {
 
   pi_cluster_conf_init(&conf);
   conf.id = 0;
+  /* L1-memory knob C — cluster-controller (CC / master) stack size. The CC
+   * stack is carved from the bottom of L1 (grows down toward the L1 base). The
+   * SDK default PI_CL_CC_STACK_SIZE (0x800 = 2 KB) can be too small for deep
+   * tiling call chains and overflows below the L1 base (silent clobber /
+   * invalid write). pi_cluster_task takes the size from conf.cc_stack_size (NOT
+   * the AutoTiler-only CONFIG_CL_MASTER_CORE_STACK_SIZE kconfig). Override per
+   * build with -DCC_STACK_SIZE=<bytes> (see CMakeLists). */
+#ifndef CC_STACK_SIZE
+#define CC_STACK_SIZE 8192
+#endif
+  conf.cc_stack_size = CC_STACK_SIZE;
   pi_open_from_conf(&cluster_dev, &conf);
   if (pi_cluster_open(&cluster_dev))
     return -1;
@@ -124,7 +153,7 @@ int main(void) {
   struct pi_cluster_task cluster_task;
 
   pi_cluster_task(&cluster_task, InitNetworkWrapper, NULL);
-  cluster_task.slave_stack_size = SLAVESTACKSIZE;
+  SET_SLAVE_STACK(cluster_task);
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
 #ifndef CI
@@ -146,7 +175,7 @@ int main(void) {
 #endif
 
   pi_cluster_task(&cluster_task, RunNetworkWrapper, NULL);
-  cluster_task.slave_stack_size = SLAVESTACKSIZE;
+  SET_SLAVE_STACK(cluster_task);
 
 #ifdef POWER_MEASUREMENT
   WRITE_GPIO(1);
@@ -193,7 +222,7 @@ int main(void) {
       float_compare_args.err_count = (int *)&float_error_count;
 
       pi_cluster_task(&cluster_task, CL_CompareFloat, &float_compare_args);
-      cluster_task.slave_stack_size = SLAVESTACKSIZE;
+      SET_SLAVE_STACK(cluster_task);
       pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
       tot_err += float_error_count;
