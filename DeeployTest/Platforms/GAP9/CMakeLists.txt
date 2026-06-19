@@ -57,6 +57,7 @@ endif()
 
 if(USE_SEQUENTIAL_RADEMACHER)
   target_compile_definitions(${NETWORK_LIB} PRIVATE USE_SEQUENTIAL_RADEMACHER)
+endif()
 # L1-memory knob — size the cluster-controller (CC / master) stack from the build.
 # Example (CI / command line): cmake ... -DCC_STACK_SIZE=8192  (see deeploytest.c).
 if(CC_STACK_SIZE)
