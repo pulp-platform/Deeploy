@@ -1118,6 +1118,39 @@ class ReluParser(UnaryElementWiseParser):
         return super().parseNode(node) and node.op == 'Relu'
 
 
+class Relu6Parser(ReluParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return UnaryElementWiseParser.parseNode(self, node) and node.op == 'Relu6'
+
+
+class ReluGradParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        upstream_grad = ctxt.lookup(node.inputs[0].name)
+        relu_input = ctxt.lookup(node.inputs[1].name)
+        relu_grad = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['grad_out'] = upstream_grad.name
+        self.operatorRepresentation['data_in'] = relu_input.name
+        self.operatorRepresentation['grad_in'] = relu_grad.name
+        self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
+
+        return ctxt, True
+
+
 class ReshapeParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
@@ -1296,7 +1329,10 @@ class Conv2DParser(ConvParser):
 
         if ret:
             if 'kernel_shape' not in node.attrs:
-                node.attrs['kernel_shape'] = node.inputs[1].shape[-2:]
+                if self.operatorRepresentation['channels_first']:
+                    node.attrs['kernel_shape'] = node.inputs[1].shape[-2:]
+                else:
+                    node.attrs['kernel_shape'] = node.inputs[1].shape[1:3]
             self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
             self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
             self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
@@ -1695,12 +1731,17 @@ class LayerNormParser(iLayerNormParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         inputs = ['data_in', 'weight', 'bias']
+        # ONNX LayerNormalization can have up to 3 outputs: Y, mean, inv_std_dev.
+        # The extra outputs are needed by LayerNormalizationGrad in training graphs.
+        
+        # JanSno: Revert to single output layernorm
+        # outputs = ['data_out', 'mean', 'inv_std_dev']
         outputs = ['data_out']
-
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
         for idx, outputNode in enumerate(node.outputs):
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+            if idx < len(outputs):
+                self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
@@ -1712,7 +1753,9 @@ class LayerNormGradParser(iLayerNormParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
 
-        ret = all(['epsilon' in node.attrs, len(node.inputs) == 4, len(node.outputs) == 1])
+        # ONNX LayerNormalizationGrad has 5 inputs [dY, X, scale, mean, inv_std_dev]
+        # and 3 outputs [dX, dscale, dbias].
+        ret = all(['epsilon' in node.attrs, len(node.inputs) == 5, len(node.outputs) == 3])
 
         if ret:
             self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
@@ -1724,8 +1767,12 @@ class LayerNormGradParser(iLayerNormParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['grad_in', 'data_in', 'weight', 'bias']
-        outputs = ['grad_out']
+        # inputs: [dY, X, scale, mean, inv_std_dev]
+        # mean and inv_std_dev are not passed to the kernel (recomputed internally),
+        # but are mapped so Deeploy can track them.
+        inputs = ['grad_in', 'data_in', 'weight', 'mean', 'inv_std_dev']
+        # outputs: [dX, dscale, dbias]
+        outputs = ['grad_out', 'weight_grad', 'bias_grad']
 
         for idx, inputNode in enumerate(node.inputs):
             self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
@@ -2618,7 +2665,8 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> bool:
 
-        ret = all([len(node.inputs) == 2, len(node.outputs) == 1])
+        # Accept 1 output (log_prob only) or 2 outputs (loss + log_prob)
+        ret = all([len(node.inputs) == 2, len(node.outputs) in (1, 2)])
 
         return ret
 
@@ -2629,7 +2677,15 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
 
         logits = ctxt.lookup(node.inputs[0].name)
         labels = ctxt.lookup(node.inputs[1].name)
-        log_prob = ctxt.lookup(node.outputs[0].name)
+        if len(node.outputs) == 2:
+            # Dual-output: outputs[0]=loss (scalar), outputs[1]=log_prob
+            loss = ctxt.lookup(node.outputs[0].name)
+            log_prob = ctxt.lookup(node.outputs[1].name)
+            self.operatorRepresentation['loss'] = loss.name
+        else:
+            # Single-output (legacy): outputs[0]=log_prob
+            log_prob = ctxt.lookup(node.outputs[0].name)
+            self.operatorRepresentation['loss'] = ''
         self.operatorRepresentation['logits'] = logits.name
         self.operatorRepresentation['labels'] = labels.name
         self.operatorRepresentation['log_prob'] = log_prob.name
@@ -3080,6 +3136,93 @@ class AveragePoolParser(NodeParser):
 
         return ctxt, True
 
+class InPlaceAccumulatorV2Parser(NodeParser):
+    """Parser for ORT InPlaceAccumulatorV2 operator (com.microsoft).
+
+    Semantics:
+        if lazy_reset_grad: out = gradient          (reset)
+        else:               out = buffer + gradient  (accumulate)
+
+    Inputs:
+        0: buffer          - current accumulation buffer (float tensor)
+        1: gradient        - new gradient to accumulate (float tensor, same shape)
+        2: lazy_reset_grad - reset flag; if true, overwrite; else add (bool[1])
+
+    Output:
+        0: output_buffer   - updated accumulation buffer (float tensor)
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        # Require exactly 3 inputs (buffer, gradient, lazy_reset_grad) and 1 output
+        return len(node.inputs) == 3 and len(node.outputs) == 1
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        buffer = ctxt.lookup(node.inputs[0].name)
+        gradient = ctxt.lookup(node.inputs[1].name)
+        lazy_reset_grad = ctxt.lookup(node.inputs[2].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['accum_buffer'] = buffer.name
+        self.operatorRepresentation['gradient'] = gradient.name
+        self.operatorRepresentation['lazy_reset_grad'] = lazy_reset_grad.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = int(np.prod(buffer.shape))
+        
+        return ctxt, True
+    
+class PerturbNormalParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        ret = all([len(node.inputs) == 1,
+                   len(node.outputs) == 1,
+                     'seed' in node.attrs,
+                     'eps' in node.attrs,
+                     'idx' in node.attrs])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        input_shape = data_in.shape
+        if isinstance(data_in.shape, int):
+            input_shape = tuple(input_shape, )
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['seed'] = node.attrs['seed']
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+        self.operatorRepresentation['eps'] = node.attrs['eps']
+        return ctxt, True
+
+class PerturbUniformParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 1,
+                   len(node.outputs) == 1,
+                   'low' in node.attrs,
+                   'high' in node.attrs,
+                    'seed' in node.attrs,
+                    'eps' in node.attrs,
+                    'idx' in node.attrs])
+        return ret
 
 class AveragePool1DParser(AveragePoolParser):
 
@@ -3112,6 +3255,172 @@ class GlobalPoolParser(NodeParser):
         self.operatorRepresentation['spatial_size'] = np.prod(data_in.shape[2:])
 
         return ctxt, True
+
+class RQSPerturbUniformParser(NodeParser, RQSParserInterface):
+    
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2,
+                   len(node.outputs) == 1,
+                    'seed' in node.attrs,
+                    'idx' in node.attrs])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        mul = ctxt.lookup(node.inputs[1].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        input_shape = data_in.shape
+        if isinstance(data_in.shape, int):
+            input_shape = tuple(input_shape, )
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['mul'] = mul.name
+        self.operatorRepresentation['seed'] = node.attrs['seed']
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+        self.operatorRepresentation['channel_width'] = np.prod(mul.shape)
+   
+        self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
+        return ctxt, True
+    
+class RQSPerturbRademacherParser(NodeParser, RQSParserInterface):
+    
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 2,
+                   len(node.outputs) == 1,
+                    'seed' in node.attrs,
+                    'idx' in node.attrs])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        mul = ctxt.lookup(node.inputs[1].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        input_shape = data_in.shape
+        if isinstance(data_in.shape, int):
+            input_shape = tuple(input_shape, )
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['mul'] = mul.name
+        self.operatorRepresentation['seed'] = node.attrs['seed']
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+        self.operatorRepresentation['channel_width'] = np.prod(mul.shape)
+    
+        self.operatorRepresentation['log2D'] = int(math.log2(node.attrs['div']))
+        return ctxt, True
+    
+class PerturbEggrollParser(NodeParser):
+    
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 1,
+                   len(node.outputs) == 1,
+                   'seed' in node.attrs,
+                   'idx' in node.attrs])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        shape_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['shape_in'] = shape_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['seed'] = node.attrs['seed']
+        self.operatorRepresentation['size'] = shape_in.values[0]
+        assert len(shape_in.values) == 2, f"Expected input to be 2D, got {len(shape_in.values)}D"
+        assert shape_in.values[1] == 1, f"Expected second dimension of input to be 1, got {shape_in.values[1]}"
+        self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+        return ctxt, True
+    
+class PerturbRademacherParser(NodeParser):
+    
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 1,
+                   len(node.outputs) == 1,
+                   'seed' in node.attrs,
+                   'eps' in node.attrs,
+                   'idx' in node.attrs])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        input_shape = data_in.shape
+        if isinstance(data_in.shape, int):
+            input_shape = tuple(input_shape, )
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['seed'] = node.attrs['seed']
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+        self.operatorRepresentation['eps'] = node.attrs['eps']
+        return ctxt, True
+    
+    
+class PerturbTriangleParser(NodeParser):
+    
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 1,
+                   len(node.outputs) == 1,
+                   'seed' in node.attrs,
+                   'eps' in node.attrs,
+                   'idx' in node.attrs])
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        input_shape = data_in.shape
+        if isinstance(data_in.shape, int):
+            input_shape = tuple(input_shape, )
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['seed'] = node.attrs['seed']
+        self.operatorRepresentation['size'] = np.prod(input_shape)
+        self.operatorRepresentation['nodeIdx'] = node.attrs['idx']
+        self.operatorRepresentation['eps'] = node.attrs['eps']
+
+        return ctxt, True
+     
 
 
 class GlobalAveragePoolParser(GlobalPoolParser):

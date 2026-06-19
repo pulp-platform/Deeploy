@@ -6,8 +6,16 @@ include_directories(${GENERATED_SOURCE})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(network OBJECT ${GENERATED_SOURCE}/Network.c)
-target_link_libraries(network PUBLIC deeploylib)
+if(TRAINING)
+  add_library(training_network OBJECT ${GENERATED_SOURCE}/TrainingNetwork.c)
+  target_link_libraries(training_network PUBLIC deeploylib)
+  # Optimizer network (SGD kernel, compiled separately to allow different prefix)
+  add_library(optimizer_network OBJECT ${GENERATED_SOURCE}/OptimizerNetwork.c)
+  target_link_libraries(optimizer_network PUBLIC deeploylib)
+else()
+  add_library(network OBJECT ${GENERATED_SOURCE}/Network.c)
+  target_link_libraries(network PUBLIC deeploylib)
+endif()
 
 if(platform STREQUAL MemPool)
   add_subdirectory(Platforms/MemPool)
@@ -29,7 +37,12 @@ elseif(DEEPLOY_ARCH STREQUAL PULP)
   )
 
   if (NOT HEXLIST)
-    target_compile_options(network PUBLIC -DNOFLASH)
+    if(TRAINING)
+      target_compile_options(training_network PUBLIC -DNOFLASH)
+      target_compile_options(optimizer_network PUBLIC -DNOFLASH)
+    else()
+      target_compile_options(network PUBLIC -DNOFLASH)
+    endif()
   else()
     gvsoc_flags_add_files_to_hyperflash(GVSOC_HEX_HYPERFLASH_FLAGS HEXLIST)
     list(APPEND GVSOC_EXTRA_FLAGS ${GVSOC_HEX_HYPERFLASH_FLAGS})
@@ -37,9 +50,12 @@ elseif(DEEPLOY_ARCH STREQUAL PULP)
 
   # SCHEREMO: Waive warnings
   # Pointer sign warnings are caused by the data width abstraction used in Deeploy. Signedness is not explicitly modelled, as this is handled by kernels
-  target_compile_options(network PRIVATE
-    -Wno-pointer-sign
-  )
+  if(TRAINING)
+    target_compile_options(training_network PRIVATE -Wno-pointer-sign)
+    target_compile_options(optimizer_network PRIVATE -Wno-pointer-sign)
+  else()
+    target_compile_options(network PRIVATE -Wno-pointer-sign)
+  endif()
 
   if(platform STREQUAL Siracusa OR platform STREQUAL Siracusa_w_neureka)
     add_subdirectory(Platforms/Siracusa)
@@ -61,7 +77,14 @@ elseif(platform STREQUAL GAP9)
   if (NOT HEXLIST)
     # L2 mode: No flash/readfs files
     # Data lives in L2 memory only
-    target_compile_options(network PUBLIC -DNOFLASH)
+
+    if(TRAINING)
+      target_compile_options(training_network PRIVATE -DNOFLASH -Wno-pointer-sign -Wno-sign-compare)
+      target_compile_options(optimizer_network PRIVATE -DNOFLASH -Wno-pointer-sign -Wno-sign-compare)
+    else()
+      target_compile_options(network PRIVATE -DNOFLASH)
+    endif()
+
     message(STATUS "[Deeploy GAP9] L2 mode: No hex files found, -DNOFLASH set")
     message(STATUS "[Deeploy GAP9] If you expect L3 mode, ensure Python codegen created hex files in ${GENERATED_SOURCE}/hex/")
   else()

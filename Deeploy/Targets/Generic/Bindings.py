@@ -15,19 +15,20 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     ConvTransposeTemplate, DebugPrintTemplate, DequantTemplate, DummyTemplate, DWConvTemplate, FloatAddTemplate, \
     FloatAveragePoolTemplate, FloatCeilTemplate, FloatClipTemplate, FloatConvTemplate, FloatDivTemplate, \
     FloatDWConvTemplate, FloatExpTemplate, FloatFloorTemplate, FloatGELUTemplate, FloatGemmTemplate, \
-    FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, FloatGroupNormTemplate, FloatHardSigmoidTemplate, \
-    FloatHardSwishTemplate, FloatInstanceNormTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
-    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, \
-    FloatReluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, FloatSubTemplate, \
-    FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
-    MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
-    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, SubTemplate, \
-    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    FloatInPlaceAccumulatorV2Template, FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, \
+    FloatGroupNormTemplate, FloatHardSigmoidTemplate, FloatHardSwishTemplate, FloatInstanceNormTemplate, \
+    FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, \
+    FloatPowTemplate, FloatReduceMeanTemplate, FloatReluTemplate ,FloatRelu6Template, FloatSigmoidTemplate, \
+    FloatSoftmaxTemplate, FloatSqrtTemplate, FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, \
+    IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, \
+    PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, \
+    RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, SubTemplate, TransposeTemplate, iGELUTemplate, \
+    iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
-    LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, \
-    ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, \
-    SoftmaxChecker, TransposeChecker
+    InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, \
+    QuantChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, Relu6Checker, RequantShiftChecker, ReshapeChecker, \
+    RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -156,12 +157,7 @@ BasicITASoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [Poi
 BasicITAPartialSoftmaxBinding = NodeBinding(SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
                                             ITAPartialMaxTemplate.referenceTemplate, BasicTransformer)
 
-BasicLayerNormBindings = [
-    NodeBinding(
-        LayerNormChecker([PointerClass(int8_t), PointerClass(int32_t),
-                          PointerClass(int32_t)], [PointerClass(int8_t)]), iLayernormTemplate.referenceTemplate,
-        BasicTransformer)
-] + [
+BasicLayerNormBindings =  [
     NodeBinding(
         LayerNormChecker(
             [PointerClass(float32_t), PointerClass(float32_t),
@@ -244,6 +240,9 @@ BasicReduceSumBindings = [
 BasicReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                                FloatReluTemplate.referenceTemplate, BasicTransformer)
 
+BasicRelu6Binding = NodeBinding(Relu6Checker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                                FloatRelu6Template.referenceTemplate, BasicTransformer)
+
 BasicReshapeBindings = [
     NodeBinding(ReshapeChecker([PointerClass(type), PointerClass(int32_t)], [PointerClass(type)]),
                 ReshapeTemplate.referenceTemplate, ReshapeSkipTransformer) for type in IntegerDataTypes
@@ -315,6 +314,7 @@ BasicDequantBindings = [
                 BasicTransformer),
 ]
 
+
 BasicBatchNormBindings = [
     NodeBinding(
         BatchNormChecker(
@@ -340,6 +340,16 @@ BasicConvTransposeBindings = [
             [PointerClass(type)]),
         ConvTransposeTemplate.referenceTemplate,
         BasicTransformer) for type in FloatDataTypes
+]
+
+# InPlaceAccumulatorV2: buffer (float32) + gradient (float32) + lazy_reset_grad (uint8) -> out (float32)
+BasicInPlaceAccumulatorV2Bindings = [
+    NodeBinding(
+        InPlaceAccumulatorV2Checker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(uint8_t)],
+            [PointerClass(float32_t)]),
+        FloatInPlaceAccumulatorV2Template.referenceTemplate,
+        BasicTransformer)
 ]
 
 BasicCeilBindings = [

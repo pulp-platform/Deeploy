@@ -147,6 +147,7 @@ size_t load_file_to_ram(const void *dest, const char *filename) {
     offset += load_size;
   } while (offset < size);
 
+  pi_fs_close(fd);
   return offset;
 }
 
@@ -172,5 +173,6 @@ size_t load_file_to_local(const void *dest, const char *filename) {
     offset += load_size;
   }
 
+  pi_fs_close(fd);
   return offset;
 }

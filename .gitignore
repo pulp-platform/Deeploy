@@ -52,6 +52,8 @@ DeeployTest/Tests/**/*.json
 DeeployTest/Tests/**/generateTest.py
 DeeployTest/out.txt
 
+venv/
+**/.venv/
 CHANGELOG_GEN.md
 
 # Container Artifacts

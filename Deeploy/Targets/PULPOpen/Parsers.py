@@ -26,7 +26,7 @@ class PULPConv2DParser(RQSConv2DParser):
                 self.operatorRepresentation['group'] == 1,
                 self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
                 self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
-                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+                # self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
                 len(node.inputs) == 4,
                 'shift' in node.attrs,
             ])
@@ -61,6 +61,38 @@ class PULPConv2DParser(RQSConv2DParser):
 
         return ctxt, False
 
+class PULPIntConv2DParser(Conv2DParser):
+
+    def __init__(self, noBiasHoisting = True):
+        super().__init__(noBiasHoisting)
+
+    def parseNode(self, node: gs.Node) -> (bool):
+
+        wellFormed = super().parseNode(node)
+        if wellFormed:
+            ret = all([
+                # Current PULP kernel only supports grouping of 1
+                self.operatorRepresentation['group'] == 1,
+
+                # Make sure padding is symmetric (left==right, top==bottom)
+                # but top/bottom can differ from left/right
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],  # top == bottom
+                self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],  # left == right
+
+                # Check number of inputs
+                # 2 inputs if no bias, 3 if layer has bias
+                len(node.inputs) in [2, 3],
+            ])
+
+            # Extract additional attributes
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+
+            return ret
+        return False
+
 
 class PULPFPConv2DParser(Conv2DParser):
 
@@ -75,10 +107,10 @@ class PULPFPConv2DParser(Conv2DParser):
                 # Current PULP kernel only supports grouping of 1
                 self.operatorRepresentation['group'] == 1,
 
-                # Make sure padding is square
-                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
-                self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
-                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+                # Make sure padding is symmetric (left==right, top==bottom)
+                # but top/bottom can differ from left/right
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],  # top == bottom
+                self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],  # left == right
 
                 # Check number of inputs
                 # 2 inputs if no bias, 3 if layer has bias
@@ -133,10 +165,10 @@ class PULPFPDWConv2DParser(Conv2DParser):
         if wellFormed:
             # Check if the node is a depthwise convolution
             ret = all([
-                # Make sure padding is square
-                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],
-                self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],
-                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][1],
+                # Make sure padding is symmetric (left==right, top==bottom)
+                # but top/bottom can differ from left/right
+                self.operatorRepresentation['pads'][0] == self.operatorRepresentation['pads'][2],  # top == bottom
+                self.operatorRepresentation['pads'][1] == self.operatorRepresentation['pads'][3],  # left == right
 
                 # Check number of inputs
                 # 2 inputs if no bias, 3 if layer has bias

@@ -13,16 +13,19 @@ from Deeploy.Targets.Generic.TileConstraints.NOPTileConstraint import NOPTileCon
 from Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint import RQSiGELUTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint import RQSiHardswishTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.TransposeTileConstraint import TransposeTileConstraint
+from Deeploy.Targets.Generic.TileConstraints.EggrollTileConstraint import EggrollTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint import UnaryTileConstraint
 from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPConcatBindings, PULPFloatConv2DBindings, \
     PULPFloatDWConv2DBindings, PULPFloatGELUBinding, PULPFloatGELUGradBinding, PULPFloatGEMMBindings, \
-    PULPGatherBindings, PULPiHardswishBindings, PULPiRMSNormBindings, PULPiRQSGELUBindings, PULPLayernormBinding, \
+    PULPGatherBindings, PULPiHardswishBindings, PULPInPlaceAccumulatorV2Bindings, PULPiRMSNormBindings, PULPiRQSGELUBindings, PULPLayernormBinding, \
     PULPLayernormGradBinding, PULPMatMulBindings, PULPMaxPool1DBindings, PULPMaxPool2DBindings, PULPMulBindings, \
-    PULPReduceMeanBindings, PULPReduceSumBindings, PULPReluBinding, PULPReshapeBindings, PULPRQAddBindings, \
+    PULPReduceMeanBindings, PULPReduceSumBindings, PULPReluBinding, PULPRelu6Binding, PULPReshapeBindings, PULPRQAddBindings, \
     PULPRQSBindings, PULPRQSConv1DBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
     PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, \
     PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, \
-    PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
+    PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings, PULPPerturbNormalBindings, PULPPerturbUniformBindings, \
+    PULPPerturbEggrollBindings, PULPPerturbRademacherBindings, PULPPerturbTriangleBindings, PULPRQSPerturbRademacherBindings, \
+    PULPRQSPerturbUniformBindings, PULPQuantBindings, PULPDequantBindings
 from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTileConstraint, RQConv1DTileConstraint, \
     RQConv2DTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.DWConvTileConstraint import DWConv2DTileConstraint, \
@@ -34,15 +37,21 @@ from Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint import Soft
     iSoftmaxTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint import LayernormGradTileConstraint, \
     LayernormTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.DMASafeTileConstraints import PULPTransposeTileConstraint, \
+    PULPUnaryTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MatMulTileConstraint import MatMulTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint import MaxPoolCTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ReduceMeanConstraint import ReduceMeanTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint import ReduceSumTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import RequantShiftTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.InPlaceAccumulatorV2TileConstraint import \
+    InPlaceAccumulatorV2TileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import SGDTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.RQSPerturbTileConstraint import RQSPerturbTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.PerturbTileConstraint import PerturbTileConstraint
 from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
 
 PULPRQSConv1DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSConv1DBindings,
@@ -102,7 +111,7 @@ PULPUniformRQSTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPU
                                                             tileConstraint = UnaryTileConstraint())
 
 PULPTransposeTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPTransposeBindings,
-                                                           tileConstraint = TransposeTileConstraint())
+                                                           tileConstraint = PULPTransposeTileConstraint())
 
 PULPAddTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPAddBindings,
                                                      tileConstraint = AddTileConstraint())
@@ -124,6 +133,9 @@ PULPMulTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPMulBindi
 
 PULPReluTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPReluBinding],
                                                       tileConstraint = UnaryTileConstraint())
+
+PULPRelu6TilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPRelu6Binding],
+                                                       tileConstraint = UnaryTileConstraint())
 
 PULPLayernormTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = [PULPLayernormBinding],
                                                            tileConstraint = LayernormTileConstraint())
@@ -155,8 +167,39 @@ PULPReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRe
 PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindings,
                                                      tileConstraint = SGDTileConstraint())
 
+PULPInPlaceAccumulatorV2TilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPInPlaceAccumulatorV2Bindings, tileConstraint = InPlaceAccumulatorV2TileConstraint())
+
 PULPSliceTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSliceBindings,
                                                        tileConstraint = SliceTileConstraint())
 
 PULPReduceMeanTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceMeanBindings,
                                                             tileConstraint = ReduceMeanTileConstraint())
+
+PULPPerturbNormalTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbNormalBindings,
+                                                                tileConstraint = PerturbTileConstraint())
+
+PULPPerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbUniformBindings,
+                                                                 tileConstraint = PerturbTileConstraint())
+
+PULPPerturbEggrollTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbEggrollBindings,
+                                                                tileConstraint = EggrollTileConstraint())
+
+PULPPerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbRademacherBindings,
+                                                                 tileConstraint = PerturbTileConstraint())
+
+PULPPerturbTriangleTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPPerturbTriangleBindings,
+                                                                tileConstraint = PerturbTileConstraint())
+
+PULPRQSPerturbUniformTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSPerturbUniformBindings,
+                                                                 tileConstraint = RQSPerturbTileConstraint())
+
+PULPRQSPerturbRademacherTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSPerturbRademacherBindings,
+                                                                 tileConstraint = RQSPerturbTileConstraint())
+
+PULPQuantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPQuantBindings,
+                                                        tileConstraint = PULPUnaryTileConstraint())
+
+PULPDequantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPDequantBindings,
+                                                        tileConstraint = PULPUnaryTileConstraint())
+

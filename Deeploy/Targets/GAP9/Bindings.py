@@ -18,15 +18,16 @@ from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes,
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
-from Deeploy.Targets.GAP9.DMA.L3Dma import gap9L3DmaHack
+from Deeploy.Targets.GAP9.DMA.L3Dma import GAP9L3Dma, gap9L3DmaHack
 from Deeploy.Targets.GAP9.DMA.MchanDma import GAP9MchanDma
 # Import templates from PULPOpen and Generic
-from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceMeanTemplate, \
-    FloatReduceSumTemplate, GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, FloatReduceMeanTemplate, \
+    FloatReduceSumTemplate, GatherTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate, DebugPrintTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
     GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
-    QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+    QuantChecker, ReduceMeanChecker, ReluChecker, Relu6Checker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
+    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker, InPlaceAccumulatorV2Checker, DebugPrintChecker, \
+    PerturbZOChecker,RQSPerturbZOChecker
 from Deeploy.Targets.PULPOpen.Bindings import ForkClosure, L3MemoryAwareFunctionCallClosure, \
     MemoryAwareForkTransformer, MemoryAwareFunctionCallClosure, TilingCallClosure
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -36,10 +37,13 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
     FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
-    FloatMulTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, \
+    FloatMulTemplate, FloatReluTemplate, FloatRelu6Template, FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, \
     MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, \
     SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
-    iRMSNormTemplate, iSoftmaxTemplate
+    iRMSNormTemplate, iSoftmaxTemplate, FloatInPlaceAccumulatorV2Template, QuantTemplate, DequantTemplate, \
+    FloatPerturbEggrollTemplate, FloatPerturbUniformTemplate, FloatPerturbNormalTemplate, \
+    FloatPerturbRademacherTemplate, FloatPerturbTriangleTemplate, RQSPerturbUniformTemplate, RQSPerturbRademacherTemplate, \
+    RQSPerturbRademacher_i32_Template, RQSPerturbUniform_i32_Template
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -57,7 +61,9 @@ GAP9Transformer = CodeTransformation([
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
-    PULPL3Tiling("L3", "L2", gap9L3DmaHack),  # Use GAP9-specific L3 DMA
+    # SB -> blocking gap9L3DmaHack (safe for strided 2D L3 transfers); DB ->
+    # async GAP9L3Dma for real L3<->L2 prefetch overlap.
+    PULPL3Tiling("L3", "L2", gap9L3DmaHack, dbDma = GAP9L3Dma()),
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
@@ -76,7 +82,9 @@ GAP9ClusterTransformer = CodeTransformation([
     MemoryManagementGeneration("L1"),
     TilingVariableReplacement("L2"),
     MemoryAwareFunctionCallClosure(writeback = False, generateStruct = True),
-    PULPL3Tiling("L3", "L2", gap9L3DmaHack),  # Use GAP9-specific L3 DMA
+    # SB -> blocking gap9L3DmaHack (safe for strided 2D L3 transfers); DB ->
+    # async GAP9L3Dma for real L3<->L2 prefetch overlap.
+    PULPL3Tiling("L3", "L2", gap9L3DmaHack, dbDma = GAP9L3Dma()),
     PULPProfileUntiled(),
     ArgumentStructGeneration(),
     L3MemoryAwareFunctionCallClosure(writeback = False),
@@ -328,6 +336,9 @@ GAP9TransposeBindings = [
 GAP9ConcatBindings = [
     NodeBinding(ConcatChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
                 ConcatTemplate.referenceTemplate, GAP9ClusterTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ConcatChecker([PointerClass(float_type), PointerClass(float_type)], [PointerClass(float_type)]),
+                ConcatTemplate.referenceTemplate, GAP9ClusterTransformer) for float_type in FloatDataTypes
 ]
 
 GAP9iRMSNormBindings = [
@@ -358,6 +369,10 @@ GAP9iRQSGELUBindings = [
         GAP9ClusterTransformer)
 ]
 
+GAP9FloatGELUGradBinding = NodeBinding(
+    GELUChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+    FloatGELUTemplate.referenceGradTemplate, GAP9Transformer)
+
 GAP9MulBindings = [
     NodeBinding(MulChecker([PointerClass(typeA), PointerClass(typeB)], [PointerClass(int32_t)]),
                 MulTemplate.referenceTemplate, GAP9Transformer)
@@ -370,10 +385,36 @@ GAP9MulBindings = [
 GAP9ReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                               FloatReluTemplate.referenceTemplate, GAP9Transformer)
 
+GAP9Relu6Binding = NodeBinding(Relu6Checker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                               FloatRelu6Template.referenceTemplate, GAP9Transformer)
+
+GAP9ReluGradBinding = NodeBinding(
+    ReluChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),    
+    FloatReluTemplate.referenceGradTemplate, GAP9Transformer)
+
 GAP9LayernormBinding = NodeBinding(
     LayerNormChecker(
+        # inputs: grad_in (dY), data_in (X), weight (scale/gamma),
+        #         mean stash, inv_std_dev stash
         [PointerClass(float32_t), PointerClass(float32_t),
-         PointerClass(float32_t)], [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+         PointerClass(float32_t)],
+        # outputs: data_out (Y), mean stash, inv_std_dev stash
+        [PointerClass(float32_t)]), FloatLayernormTemplate.referenceTemplate,
+    GAP9Transformer)
+
+GAP9LayernormGradBinding = NodeBinding(
+    LayerNormChecker(
+        # inputs: grad_in (dY), data_in (X), weight (scale/gamma),
+        #         mean stash, inv_std_dev stash
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)],
+        # outputs: grad_out (dX), weight_grad (dscale), bias_grad (dbias)
+        [PointerClass(float32_t),
+         PointerClass(float32_t),
+         PointerClass(float32_t)]), FloatLayernormTemplate.referenceGradTemplate,
     GAP9Transformer)
 
 GAP9FloatGELUBinding = NodeBinding(
@@ -393,7 +434,78 @@ GAP9QuantBindings = [
 GAP9DequantBindings = [
     NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 GAP9Transformer),
-] + [
     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
                 GAP9Transformer),
+    NodeBinding(DequantChecker([PointerClass(uint8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                GAP9Transformer)
 ]
+
+
+GAP9InPlaceAccumulatorV2Bindings = [
+    NodeBinding(
+        InPlaceAccumulatorV2Checker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(uint8_t)], [PointerClass(float32_t)]),
+        FloatInPlaceAccumulatorV2Template.referenceTemplate, GAP9Transformer)
+]
+
+GAP9SoftmaxCrossEntropyLossDualOutputBindings = [
+    NodeBinding(
+        SoftmaxCrossEntropyLossChecker([PointerClass(float32_t), PointerClass(type)],
+                                       [PointerClass(float32_t), PointerClass(float32_t)]),
+        SoftmaxCrossEntropyLossTemplate.referenceDualOutputTemplate, GAP9Transformer) for type in IntegerDataTypes
+]
+
+GAP9BasicDebugPrintBindings = [
+    NodeBinding(DebugPrintChecker([PointerClass(float32_t)], [PointerClass(float32_t)]), DebugPrintTemplate.referenceTemplate,
+                GAP9Transformer)
+]
+GAP9PerturbNormalBindings = [
+    NodeBinding(
+        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatPerturbNormalTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9RQSPerturbUniformBindings = [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+        RQSPerturbUniformTemplate.referenceTemplate,
+        GAP9Transformer),
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
+        RQSPerturbUniform_i32_Template.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9PerturbUniformBindings = [
+    NodeBinding(
+        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatPerturbUniformTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9PerturbEggrollBindings = [
+    NodeBinding(
+        PerturbZOChecker([PointerClass(int32_t)], [PointerClass(float32_t)]),
+        FloatPerturbEggrollTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9RQSPerturbRademacherBindings = [
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int8_t), PointerClass(int32_t)], [PointerClass(int8_t)]),
+        RQSPerturbRademacherTemplate.referenceTemplate,
+        GAP9Transformer),
+    NodeBinding(
+        RQSPerturbZOChecker([PointerClass(int32_t), PointerClass(int32_t)], [PointerClass(int32_t)]),
+        RQSPerturbRademacher_i32_Template.referenceTemplate,
+        GAP9Transformer)]
+        
+
+GAP9PerturbRademacherBindings = [
+    NodeBinding(
+        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatPerturbRademacherTemplate.referenceTemplate,
+        GAP9Transformer)]
+
+GAP9PerturbTriangleBindings = [
+    NodeBinding( 
+        PerturbZOChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+        FloatPerturbTriangleTemplate.referenceTemplate,
+        GAP9Transformer)]

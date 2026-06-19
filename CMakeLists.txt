@@ -36,7 +36,6 @@ elseif(platform STREQUAL PULPOpen)
 elseif(platform STREQUAL GAP9)
   message(STATUS "Building for platform 'GAP9'")
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
   # Select SDK config based on simulator type
   if(SIMULATOR STREQUAL "board")
     set(ENV{KCONFIG_CONFIG} DeeployTest/Platforms/GAP9/sdk_board.config)
@@ -45,7 +44,6 @@ elseif(platform STREQUAL GAP9)
     set(ENV{KCONFIG_CONFIG} DeeployTest/Platforms/GAP9/sdk_gvsoc.config)
     message(STATUS "[GAP9] Using GVSoC SDK configuration")
   endif()
-
   include($ENV{GAP_SDK_HOME}/utils/cmake/setup.cmake)
 elseif(platform STREQUAL Generic)
   message(STATUS "Building for platform 'Generic'")

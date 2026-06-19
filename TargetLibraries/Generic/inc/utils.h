@@ -48,6 +48,12 @@ void PrintMatrix_u32_NCHW(uint32_t const *__restrict__ pSrcA, uint32_t N,
 void PrintMatrix_u32_NHWC(uint32_t const *__restrict__ pSrcA, uint32_t N,
                           uint32_t C, uint32_t H, uint32_t W, uint32_t offset);
 
+void PrintMatrix_fp32_NCHW(float const *__restrict__ pSrcA, uint32_t N,
+                           uint32_t C, uint32_t H, uint32_t W, float offset);
+
+void PrintMatrix_fp32_NHWC(float const *__restrict__ pSrcA, uint32_t N,
+                           uint32_t C, uint32_t H, uint32_t W, float offset);
+
 void PrintArray_s8(int8_t const *__restrict__ pSrcA, uint32_t N,
                    int32_t offset);
 

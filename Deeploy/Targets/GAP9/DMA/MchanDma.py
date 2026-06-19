@@ -6,7 +6,7 @@ import math
 from typing import Dict, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DirectionWaitingStrategy, DmaDirection, Future
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, PerTensorWaitingStrategy
 
 
 class MchanTransferFuture(Future):
@@ -36,7 +36,16 @@ class GAP9MchanDma(AsyncDma):
                 "{ mchan_transfer_t __mchan_tmp = { .cmd = ${cmd}, .size = ${size}, .loc = ${loc}, .ext = ${ext}, .ext_size_1d = ${size_1d}, .ext_stride_1d = ${stride_2d} }; mchan_transfer_push_2d(__mchan_tmp); }"
             ),
     }
-    _waitingStrategy = DirectionWaitingStrategy(MchanTransferFuture, "transfer")
+    # PerTensor, NOT Direction: GAP9 mchan allocates a fresh channel on every
+    # descriptor enqueue (each mchan_transfer_push_* writes a new descriptor and
+    # the hardware advances to the next channel). DirectionWaitingStrategy shares
+    # ONE future (one mchan_transfer_get_id) across all same-direction tensors of
+    # a tile, so a tile with >1 input (e.g. weight + grad) emits one get_id but
+    # multiple pushes -> the 2nd+ transfers run on channels that are never waited
+    # nor freed -> mchan_transfer_wait() hangs forever. PerTensor gives each tensor
+    # its own get_id immediately before its push, matching mchan's
+    # 1 get_id : 1 push : 1 wait : 1 free contract.
+    _waitingStrategy = PerTensorWaitingStrategy(MchanTransferFuture)
 
     def __init__(self, transferTemplates: Dict[int, NodeTemplate] = _transferTemplates) -> None:
         super().__init__(transferTemplates)

@@ -35,6 +35,10 @@ def _convert_requant_to_cmsis_fun(graph: gs.Graph, match: Match, name: str):
     if 'Emulate_CMSIS_RequantShift' in rqs.attrs:
         return graph
 
+    # Skip if inputs are not constants (e.g., when modified by perturbation nodes)
+    if not isinstance(rqs.inputs[-1], gs.Constant) or not isinstance(rqs.inputs[-2], gs.Constant):
+        return graph
+
     # WIESEP: Because CMSIS performs add-multiply-divide and we normally do multiply-add-divide
     #         we can emulate the same behavior by rounding the MUL value
     rqs.inputs[-1].values = np.round(copy.deepcopy(rqs.inputs[-1].values) /

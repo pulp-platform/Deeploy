@@ -1,19 +1,46 @@
 # SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
-#
 # SPDX-License-Identifier: Apache-2.0
 
 set(ProjectId ${TESTNAME})
 
-file(GLOB_RECURSE SOURCES
-    src/CycleCounter.c
-    src/deeploytest.c
-)
+option(TRAINING "Use training harness instead of inference harness" OFF)
+
+# Compile-time training parameters (override via -D on cmake command line)
+set(N_TRAIN_STEPS "1" CACHE STRING "Number of optimizer steps")
+set(N_ACCUM_STEPS "1" CACHE STRING "Number of mini-batches per optimizer step")
+set(TRAINING_NUM_DATA_INPUTS "2" CACHE STRING "Number of data inputs per mini-batch")
+
+if(TRAINING)
+    file(GLOB_RECURSE SOURCES
+        src/CycleCounter.c
+        src/deeploytraintest.c
+    )
+    set(NETWORK_LIB training_network)
+else()
+    file(GLOB_RECURSE SOURCES
+        src/CycleCounter.c
+        src/deeploytest.c
+    )
+    set(NETWORK_LIB network)
+endif()
 
 add_deeploy_executable(${ProjectId} EXCLUDE_FROM_ALL ${SOURCES})
 target_include_directories(${ProjectId} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc)
 
-target_link_libraries(${ProjectId} PRIVATE network deeploylib)
-target_compile_options(${ProjectId} INTERFACE network)
-add_gvsoc_emulation(${ProjectId} "siracusa")
+if(TRAINING)
+    target_link_libraries(${ProjectId} PRIVATE ${NETWORK_LIB} optimizer_network deeploylib)
+else()
+    target_link_libraries(${ProjectId} PRIVATE ${NETWORK_LIB} deeploylib)
+endif()
+target_compile_options(${ProjectId} INTERFACE ${NETWORK_LIB})
 
+if(TRAINING)
+    target_compile_definitions(${ProjectId} PRIVATE
+        N_TRAIN_STEPS=${N_TRAIN_STEPS}
+        N_ACCUM_STEPS=${N_ACCUM_STEPS}
+        TRAINING_NUM_DATA_INPUTS=${TRAINING_NUM_DATA_INPUTS}
+    )
+endif()
+
+add_gvsoc_emulation(${ProjectId} "siracusa")
 link_compile_dump(${TESTNAME})

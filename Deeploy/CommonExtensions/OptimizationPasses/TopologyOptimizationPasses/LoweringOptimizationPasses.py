@@ -183,6 +183,42 @@ def _transformLayoutDwWeightConst(const: gs.Constant, targetChannelsFirst: bool)
     const.values = const.values.transpose(perm)
 
 
+def _foldLayoutIntoPerturb(weightVar: gs.Variable, spatialDims: int, targetChannelsFirst: bool) -> bool:
+    """MeZO weights are produced at runtime by a Perturb node, so the NCHW->NHWC
+    layout change cannot be folded into a constant. Rather than emit a runtime
+    Transpose (which materialises a *second* full-size weight buffer next to the
+    Perturb output), push the permutation into the Perturb node's constant base
+    weight at compile time and relabel the Perturb output's shape.
+
+    This is layout-preserving for the perturbation because:
+      * Perturbation is elementwise, so the output shape tracks the input shape.
+      * For a conv weight the permutation keeps axis 0 (output channels) fixed
+        (e.g. [Cout,Cin,H,W]->[Cout,H,W,Cin]), so the per-output-channel requant
+        `mul` mapping used by the RQS perturb (channel_width = size // dims[0])
+        is unchanged; only the intra-channel element order is reordered.
+
+    Precondition: the ZO loop must be self-consistent in this layout (the +eps,
+    -eps and weight-update steps all read the same seed against the same buffer),
+    or any host-side gradient reconstruction must use the same NHWC element order.
+    Returns True iff the fold was applied; callers fall back to a runtime
+    Transpose otherwise.
+    """
+    if weightVar.shape is None or len(weightVar.shape) < 2:
+        return False
+    if len(weightVar.inputs) != 1:
+        return False
+    perturbNode = weightVar.inputs[0]
+    if "Perturb" not in perturbNode.op:
+        return False
+    baseWeight = perturbNode.inputs[0]  # data_in: the constant base weight
+    if not isinstance(baseWeight, gs.Constant) or list(baseWeight.shape) != list(weightVar.shape):
+        return False
+    perm = _transformLayoutPermutation(len(weightVar.shape), spatialDims, targetChannelsFirst)
+    baseWeight.values = baseWeight.values.transpose(perm)
+    weightVar.shape = _permute(weightVar.shape, perm)
+    return True
+
+
 def _transposeMatMulInputs_fun(graph: gs.Graph, match: Match, name: str):
     node = next(iter((match.nodes_map.values())))
 
@@ -201,8 +237,17 @@ def _transposeMatMulInputs_fun(graph: gs.Graph, match: Match, name: str):
     # Prepend transpose on B if it's not transposed
     if node.attrs['transB'] == 0:
         tensorB = node.inputs[1]
-        perm = _swapLastTwoDimsPermutation(len(tensorB.shape))
-        graph.nodes.append(_appendTranspose(tensorB, node, perm))
+        # If B is already produced by a Transpose that swaps the last two dims
+        # (e.g. a pre-transposed perturbed GEMM weight), fold it into transB=1
+        # by reading the Transpose's input directly, instead of materialising a
+        # second runtime transpose + its buffer.
+        producer = tensorB.inputs[0] if len(tensorB.inputs) == 1 else None
+        if producer is not None and producer.op == "Transpose" and \
+                list(producer.attrs.get("perm", [])) == _swapLastTwoDimsPermutation(len(producer.inputs[0].shape)):
+            node.inputs[1] = producer.inputs[0]
+        else:
+            perm = _swapLastTwoDimsPermutation(len(tensorB.shape))
+            graph.nodes.append(_appendTranspose(tensorB, node, perm))
         node.attrs['transB'] = True
 
     return graph
@@ -245,8 +290,20 @@ def _NCHWtoNHWC_fun(graph: gs.Graph, match: Match, name: str, default_channels_f
         if node.op in ["Conv", "RequantizedConv"]:
             # In the case of Conv: [weights, opt. bias], RequantizedConv: [weights, mul, add, opt. shift]
             for tensor in node.inputs[1:]:
-                _transformLayoutConst(tensor, spatialDims, default_channels_first)
+                # Standard case: The weight is a direct constant input.
+                if isinstance(tensor, gs.Constant):
+                    _transformLayoutConst(tensor, spatialDims, default_channels_first)
 
+                # MeZO case: the weight is produced at runtime by a Perturb node.
+                elif isinstance(tensor, gs.Variable) and tensor.shape is not None and len(tensor.shape) > 1:
+                    # Prefer folding the layout change into the Perturb node's
+                    # constant base weight so we don't materialise a second
+                    # full-size transposed weight buffer in L3.
+                    if not _foldLayoutIntoPerturb(tensor, spatialDims, default_channels_first):
+                        # Fall back to a runtime Transpose (non-constant base or
+                        # shape mismatch we can't safely fold).
+                        permute_temp = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
+                        graph.nodes.append(_appendTranspose(tensor, node, permute_temp))
         node.attrs["channels_first"] = default_channels_first
 
     return graph
@@ -340,7 +397,15 @@ def _PULP_NCHWtoNHWC_dw_fun(graph: gs.Graph, match: Match, name: str, default_ch
 
         # RequantizedConv: [weights, mul, add, opt. shift]
         for tensor in node.inputs[1:]:
-            _transformLayoutConst(tensor, spatialDims, default_channels_first)
+            if isinstance(tensor, gs.Constant):
+                _transformLayoutConst(tensor, spatialDims, default_channels_first)
+            elif tensor.shape is not None and len(tensor.shape) >= 2:
+                # Runtime-produced tensor (e.g. a ZO-perturbed weight): we can't
+                # permute it in place, so insert a Transpose before the conv.
+                # Per-channel vectors (mul/add/shift, rank < 2) need no layout
+                # change, matching the early-return in _transformLayoutConst.
+                perm = _transformLayoutPermutation(len(tensor.shape), spatialDims, default_channels_first)
+                graph.nodes.append(_appendTranspose(tensor, node, perm))
 
         node.attrs["channels_first"] = default_channels_first
 

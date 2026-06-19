@@ -43,17 +43,9 @@ BEGIN_SINGLE_CORE
     deeploy_log("[DEBUG] ${tensor_type} ${tensor_name} (Buffer ${data_in}, Signed: ${data_in_signed}):\\r\\n");
 
     %if channels_first:
-    %if data_in_signed:
-        PrintMatrix_s${data_in_type.referencedType.typeWidth}_NCHW(${data_in}, ${batch}, ${dim_im_in_ch}, ${dim_im_in_x}, ${dim_im_in_y}, ${offset});
+        PrintMatrix_fp32_NCHW((float *) ${data_in}, ${batch}, ${dim_im_in_ch}, ${dim_im_in_x}, ${dim_im_in_y}, ${offset});
     %else:
-        PrintMatrix_u${data_in_type.referencedType.typeWidth}_NCHW((uint${data_in_type.referencedType.typeWidth}_t *) ${data_in}, ${batch}, ${dim_im_in_ch}, ${dim_im_in_x}, ${dim_im_in_y}, ${offset});
-    %endif
-    %else:
-    %if data_in_signed:
-        PrintMatrix_s${data_in_type.referencedType.typeWidth}_NHWC(${data_in}, ${batch}, ${dim_im_in_ch}, ${dim_im_in_x}, ${dim_im_in_y}, ${offset});
-    %else:
-        PrintMatrix_u${data_in_type.referencedType.typeWidth}_NHWC((uint${data_in_type.referencedType.typeWidth}_t *) ${data_in}, ${batch}, ${dim_im_in_ch}, ${dim_im_in_x}, ${dim_im_in_y}, ${offset});
-    %endif
+        PrintMatrix_fp32_NHWC((float *) ${data_in}, ${batch}, ${dim_im_in_ch}, ${dim_im_in_x}, ${dim_im_in_y}, ${offset});
     %endif
 END_SINGLE_CORE
 """)

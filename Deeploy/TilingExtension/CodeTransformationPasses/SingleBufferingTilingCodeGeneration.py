@@ -5,18 +5,33 @@
 from typing import Dict, List, Set, Tuple
 
 from Deeploy.AbstractDataTypes import VoidType
-from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, OperatorRepresentation, VariableBuffer, \
-    _ReferenceBuffer
+from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, NodeTemplate, OperatorRepresentation, \
+    VariableBuffer, _ReferenceBuffer
 from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration import TilingCodeGeneration
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import dictOfArrays
-from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import ProfilingPrototypeMixIn, \
-    PrototypeTilingMixIn, TilingMetaInfo
+from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import PerfCounterProfilingMixIn, \
+    ProfilingPrototypeMixIn, PrototypeTilingMixIn, TilingMetaInfo
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint, TensorMemoryConstraint
 from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule, VariableReplacementScheme
 
 
 class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
+
+    # DEBUG: live progress beacons, emitted UNCONDITIONALLY (independent of
+    # --profileTiling), so the normal build prints where it is. The last beacon
+    # on the UART before a hang pinpoints the node + sub-phase that deadlocked.
+    # NOTE: intentionally UNGUARDED (no `if (pi_core_id() == 0)`). The closure
+    # setup/ingress code runs on a single core whose id is NOT 0, so a `==0`
+    # guard suppresses every beacon (which is why the profiling beacons never
+    # printed). The unguarded profiling SUMMARY prints DO appear, so a bare
+    # printf here matches that and fires exactly once per phase.
+    _traceNodeBeacon = NodeTemplate("""
+    printf("[TRACE-NODE] ${nodeName}: ${phase}\\r\\n");
+    """)
+    _traceBeacon = NodeTemplate("""
+    printf("[TRACE] ${nodeName} tile %u: ${phase}\\r\\n", ${tileIdxVar});
+    """)
 
     def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
         super().__init__(externalMemory, localMemory, dma, 1)
@@ -117,6 +132,8 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
         closeLoopStatements = [CodeSnippet(self._closeTileLoopTemplate, {**operatorRepresentation})]
 
+        # DEBUG beacons disabled for the GVSoC debug-model run (speed / no printf).
+
         metaInfo = TilingMetaInfo(nodeName = operatorRepresentation['nodeName'] + f"_{self.externalMemory}",
                                   nodeOps = operatorRepresentation['nodeOps'],
                                   numTiles = operatorRepresentation['numTiles'],
@@ -146,6 +163,10 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
 
         executionBlock = cls.injectPrintCycleDiff(executionBlock, metaInfo)
 
+        # addLeft last => frontmost statement of the node: fires before DMA-future
+        # init / L3 alloc, so a setup-phase hang is still attributed to this node.
+        executionBlock.addLeft(cls._liveNodeBeacon, {"nodeName": metaInfo.nodeName, "phase": "ENTER (setup/alloc)"})
+
         return executionBlock
 
     @classmethod
@@ -163,6 +184,12 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
                 "measurements": f"{nodeName}_ingress_dma_wait_start_measurements",
                 "tileIdxVar": tileIdxVar
             }))
+        _openLoopStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "ingress DMA start",
+                "tileIdxVar": tileIdxVar
+            }))
         _openLoopStatements += openLoopStatements[1:]
 
         _ingressDMAStatements = []
@@ -170,6 +197,12 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
         _ingressDMAStatements.append(
             CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_ingress_dma_wait_end_measurements",
+                "tileIdxVar": tileIdxVar
+            }))
+        _ingressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "ingress done -> kernel start",
                 "tileIdxVar": tileIdxVar
             }))
 
@@ -181,13 +214,61 @@ class ProfilingSingleBufferingTilingMixIn(PrototypeTilingMixIn, ProfilingPrototy
                 "measurements": f"{nodeName}_egress_dma_wait_start_measurements",
                 "tileIdxVar": tileIdxVar
             }))
+        _egressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "kernel done -> egress DMA start",
+                "tileIdxVar": tileIdxVar
+            }))
         _egressDMAStatements += egressDMAStatements
         _egressDMAStatements.append(
             CodeSnippet(cls._measureCycles, {
                 "measurements": f"{nodeName}_egress_dma_wait_end_measurements",
                 "tileIdxVar": tileIdxVar
             }))
+        _egressDMAStatements.append(
+            CodeSnippet(cls._liveBeacon, {
+                "nodeName": nodeName,
+                "phase": "egress done (tile complete)",
+                "tileIdxVar": tileIdxVar
+            }))
 
         executionBlock = super().generateLoopCode(executionBlock, metaInfo, _openLoopStatements, _ingressDMAStatements,
                                                   _egressDMAStatements, closeLoopStatements)
+        return executionBlock
+
+
+class PerfCounterSingleBufferingTilingMixIn(PrototypeTilingMixIn, PerfCounterProfilingMixIn):
+    """
+    Single buffering tiling with performance counter profiling.
+    Provides detailed instruction-level statistics for each tile.
+    """
+
+    @classmethod
+    def generateSetupAndTeardownCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
+                                     setupStatements: List[CodeSnippet],
+                                     teardownStatements: List[CodeSnippet]) -> ExecutionBlock:
+
+        executionBlock = super().generateSetupAndTeardownCode(executionBlock, metaInfo, setupStatements,
+                                                              teardownStatements)
+
+        # Inject performance counter initialization in setup (only once, not per-tile)
+        executionBlock = cls.injectPerfCounterInit(executionBlock, metaInfo)
+
+        # Inject performance counter stop and print in teardown (only once, not per-tile)
+        executionBlock = cls.injectPerfCounterStop(executionBlock, metaInfo)
+
+        return executionBlock
+
+    @classmethod
+    def generateLoopCode(cls, executionBlock: ExecutionBlock, metaInfo: TilingMetaInfo,
+                         openLoopStatements: List[CodeSnippet], ingressDMAStatements: List[CodeSnippet],
+                         egressDMAStatements: List[CodeSnippet],
+                         closeLoopStatements: List[CodeSnippet]) -> ExecutionBlock:
+
+        # Don't wrap kernel - perf counters measure the whole tiling loop, not individual tiles
+        # executionBlock = cls.injectPerfCounterKernelWrap(executionBlock, metaInfo)
+
+        executionBlock = super().generateLoopCode(executionBlock, metaInfo, openLoopStatements, ingressDMAStatements,
+                                                  egressDMAStatements, closeLoopStatements)
         return executionBlock

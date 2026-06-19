@@ -18,7 +18,6 @@ macro(add_board_deployment name target)
     set(FLASH_LAYOUT "${GAP9_SDK_HOME}/utils/layouts/default_layout_multi_readfs.json")
     set(FSBL_BINARY "${GAP9_SDK_HOME}/install/target/bin/fsbl")
     set(SSBL_BINARY "${GAP9_SDK_HOME}/install/target/bin/ssbl")
-
     make_directory(${BOARD_WORKDIR})
 
     if(NOT DEFINED GAP9_SDK_HOME)

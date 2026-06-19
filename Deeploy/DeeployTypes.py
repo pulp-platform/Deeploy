@@ -344,7 +344,7 @@ class VariableBuffer():
             next = queue.pop()
             buffNext = ctxt.lookup(next)
             assert isinstance(buffNext, VariableBuffer)
-            live |= buffNext._live
+            live |= buffNext._live or (next in ctxt.globalObjects)
             visited.add(next)
             queue |= buffNext.aliases - visited
         return live
@@ -359,7 +359,10 @@ class VariableBuffer():
             Size of this VariableBuffer in bytes
 
         """
-        return (math.prod(self.shape) * (self._type.referencedType.typeWidth)) // 8
+        if isinstance(self.shape, int):
+            return (self.shape * (self._type.referencedType.typeWidth)) // 8
+        else:
+            return (math.prod(self.shape) * (self._type.referencedType.typeWidth)) // 8
 
 
 class TransientBuffer(VariableBuffer):
@@ -1322,6 +1325,10 @@ class NodeTypeChecker():
                         reference._instance = _type(inputNode.name, ctxt)
                 else:
                     retCheck &= reference._type.referencedType == _type.referencedType
+            
+            # if node.name == "GradientAccumulator1_InPlaceAccumulatorV2_backward" and retCheck == False:
+            #     import IPython; IPython.embed()
+        
         return retCheck
 
     def typeInferGlobalCtxt(self, ctxt: NetworkContext, node: gs.Node) -> NetworkContext:
@@ -2099,11 +2106,15 @@ class ONNXLayer():
             # Update shapes and types of tensors in onnx graph based on type inference after binding
             for node in (self.node.inputs + self.node.outputs):
                 if ctxt.is_local(node.name):
+                    if not hasattr(ctxt.localObjects[node.name], '_type'):
+                        continue  # skip untyped buffers (e.g. ReduceSum axes, MaxPool mask)
                     node.shape = ctxt.localObjects[node.name].shape
                     npType = self._broadcastToNpType(ctxt.localObjects[node.name]._type)
                     if npType is not None:
                         node.dtype = npType
                 elif ctxt.is_global(node.name):
+                    if not hasattr(ctxt.globalObjects[node.name], '_type'):
+                        continue  # skip untyped global buffers
                     npType = self._broadcastToNpType(ctxt.globalObjects[node.name]._type)
                     if isinstance(ctxt.globalObjects[node.name], ConstantBuffer):
                         if isinstance(node, gs.Constant):
@@ -2854,6 +2865,12 @@ class NetworkContainer():
             if isinstance(node, StructBuffer):
                 continue
 
+            # Skip local buffers that were registered but never typed (e.g. optional ONNX
+            # outputs like the MaxPool indices/mask tensor).  These are not referenced by any
+            # template and must not be emitted as C declarations.
+            if not hasattr(node, '_type'):
+                continue
+
             name = node.name
             node.name = self.ctxt._mangle(node.name)
             callStack += node.init()
@@ -2898,10 +2915,11 @@ class NetworkContainer():
 
         callStack += "static const uint32_t " + self.ctxt._mangle("num_inputs") + f" = {len(inputs)};"
         callStack += "static const uint32_t " + self.ctxt._mangle("num_outputs") + f" = {len(outputs)};"
-
+        callStack += "static const uint32_t seed = 12345;"  # fixed seed for reproducibility
+        callStack += "static const uint32_t perturbation_sign = 1;"  # fixed sign for reproducibility
         callStack += "extern void* " + self.ctxt._mangle("inputs") + f"[{len(inputs)}];"
         callStack += "extern void* " + self.ctxt._mangle("outputs") + f"[{len(outputs)}];"
-
+    
         callStack += "static const uint32_t " + self.ctxt._mangle("inputs_bytes") + f"[{len(inputs)}] = " + "{"
 
         numBytes = []
@@ -2954,6 +2972,8 @@ class NetworkContainer():
         callStack = ''
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
+                if not hasattr(node, '_type'):
+                    continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -2999,6 +3019,8 @@ class NetworkContainer():
 
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
+                if not hasattr(node, '_type'):
+                    continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -3063,6 +3085,8 @@ class NetworkContainer():
         for engine in self.Platform.engines:
             for include in engine.includeList:
                 includeStr += ["#include \"" + include + "\""]
+            if engine.name == "GAP9Cluster":
+                includeStr += ["#include \"kernel/RandomNoise.h\""]
         return ("\n").join(includeStr)
 
     def generateEngineInitializationCode(self) -> str:
@@ -3124,6 +3148,10 @@ class NetworkContainer():
             if tensor.dtype != tensor.export_dtype:
                 tensor.values = tensor.values.astype(tensor.export_dtype)
 
+        # JANSNO: Shapes of tensors should never be an int.
+        for tensor in self.graph.tensors().values():
+            if tensor.shape is not None and isinstance(tensor.shape, int):
+                tensor.shape = tensor.shape = [tensor.shape]
         model = gs.export_onnx(self.graph)
 
         # Annotate additional information in doc_string of tensors
@@ -3536,6 +3564,8 @@ class NetworkDeployer(NetworkContainer):
                 if isinstance(_buffer, ConstantBuffer) or (isinstance(_buffer, VariableBuffer) and _buffer._deploy):
                     # SCHEREMO: We only
                     if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level == "None":
+                        if not hasattr(_buffer, '_type'):
+                            continue  # skip untyped buffers (e.g. ReduceSum axes constants)
                         staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
                     else:
                         log.warning(f"Buffer {_buffer.name} does not have a valid memory level")

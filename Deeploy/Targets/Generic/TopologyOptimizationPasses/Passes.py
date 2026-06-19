@@ -668,6 +668,12 @@ def _split_transposes_fun(graph: gs.Graph, match: Match, name: str):
 
     perm = t1.attrs['perm']
     inputVar = t1.inputs[0]
+
+    # If the Transpose input has no producer (it is a graph input variable),
+    # we cannot rewrite the producer's output → skip splitting.
+    if not t1.inputs[0].inputs:
+        return graph
+
     inputNode = t1.inputs[0].inputs[0]
 
     originalNode = t1.outputs[0]
@@ -1177,3 +1183,124 @@ class DequantPatternPass(ReplaceSequentialPatternPass):
 
         name = "_RECOGNIZE_DEQUANT_PASS"
         super().__init__(graph, _recognize_dequant_fun, name)
+
+
+def _clip_to_relu_fun(graph: gs.Graph, match: Match, name: str):
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    clip_node = matched_nodes[0]
+
+    # Only replace Clip(min=0, ...) — leave negative-min clips (quant bounds) untouched
+    if len(clip_node.inputs) < 2 or not isinstance(clip_node.inputs[1], gs.Constant):
+        return graph
+    min_val = float(clip_node.inputs[1].values.flatten()[0])
+    if min_val != 0.0:
+        return graph
+
+    # Clip(0, 6) → Relu6; Clip(0, anything_else) → Relu
+    max_val = None
+    if len(clip_node.inputs) > 2 and isinstance(clip_node.inputs[2], gs.Constant):
+        max_val = float(clip_node.inputs[2].values.flatten()[0])
+
+    if max_val == 6.0:
+        node = gs.Node(op = 'Relu6', name = name)
+    else:
+        node = gs.Node(op = 'Relu', name = name)
+
+    graph.replaceInsertNode([clip_node.inputs[0]], clip_node.outputs, node)
+    return graph
+
+
+@contextagnostic
+class ClipToRelu6Pass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_0')
+
+        clip_output = graph.layer(inputs = [_input], outputs = ['clip_out'], op = 'Clip', name = 'clip')
+
+        graph.outputs.append(clip_output)
+        graph.inputs.append(_input)
+
+        name = "_CLIP_TO_RELU6_PASS"
+        super().__init__(graph, _clip_to_relu_fun, name)
+
+
+def _fold_relu6_requant_roundtrip_fun(graph: gs.Graph, match: Match, name: str):
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    rqs, dequant, relu6, quant = matched_nodes[0], matched_nodes[1], matched_nodes[2], matched_nodes[3]
+
+    # Pattern: RequantShift -> Dequant -> Relu6 -> Quant. Relu6 has no integer
+    # kernel, so it strands the Dequant/Quant as a float32 round-trip. When the
+    # Dequant and Quant are inverse (same scale & zero-point), that round-trip is
+    # an identity, and Dequant(x*s) -> clip(.,0,6) -> Quant(/s) is exactly an
+    # integer Relu6 on the RequantShift's output. So bake the clamp into the
+    # preceding RequantShift (where a requant belongs, right after the Conv) and
+    # delete the float ops entirely.
+    if not all(k in dequant.attrs for k in ('scale', 'zero_point')):
+        return graph
+    if not all(k in quant.attrs for k in ('scale', 'zero_point')):
+        return graph
+
+    d_scale = float(np.asarray(dequant.attrs['scale']).flatten()[0])
+    d_zp = float(np.asarray(dequant.attrs['zero_point']).flatten()[0])
+    q_scale_stored = float(np.asarray(quant.attrs['scale']).flatten()[0])  # QuantPatternPass stores 1/scale
+    q_zp = float(np.asarray(quant.attrs['zero_point']).flatten()[0])
+    if q_scale_stored <= 0:
+        return graph
+    q_scale = 1.0 / q_scale_stored
+
+    # Only safe to delete the round-trip when it is a true identity rescale.
+    if not (np.isclose(d_scale, q_scale) and np.isclose(d_zp, q_zp)):
+        return graph
+
+    if 'signed' not in rqs.attrs:
+        return graph
+
+    # The RequantShift merges into the fused pulp_nn conv, whose output clamp is
+    # set purely by output signedness (flag_relu is always on): unsigned output
+    # clamps to [0, n_levels-1] -> a ReLU. So encode the folded Relu6 by making
+    # this requant produce an *unsigned* output (the native pulp_nn ReLU path).
+    # Relu6's upper bound 6 maps to round(6/scale) = 6 * q_scale_stored, which is
+    # >> the unsigned max here, so the ceiling is inactive and unsigned == ReLU.
+    # Mutate in place so the attribute keeps its original container type (a
+    # gs.Constant), which the RQS-conv parser reads via `.values`.
+    signed_attr = rqs.attrs['signed']
+    if hasattr(signed_attr, 'values'):
+        signed_attr.values = np.zeros_like(signed_attr.values)
+    else:
+        rqs.attrs['signed'] = np.zeros_like(np.asarray(signed_attr))
+
+    # Bypass the float round-trip: the RequantShift output now feeds whatever
+    # consumed the Quant output. Then detach and remove the three float ops.
+    rqs_out = rqs.outputs[0]
+    quant_out = quant.outputs[0]
+    for consumer in list(quant_out.outputs):
+        for idx, tensor in enumerate(consumer.inputs):
+            if tensor is quant_out:
+                consumer.inputs[idx] = rqs_out
+    for node in (dequant, relu6, quant):
+        node.inputs.clear()
+        node.outputs.clear()
+        graph.nodes.remove(node)
+
+    return graph
+
+
+@contextagnostic
+class FoldRelu6RequantRoundtripPass(ReplaceSequentialPatternPass):
+    # Eliminates the float32 Dequant->Relu6->Quant round-trip (Relu6 has no
+    # integer kernel) by folding its [0, 6] clamp into the preceding
+    # RequantShift's output clamp, keeping the activation int8 end-to-end.
+    def __init__(self):
+        graph = gs.Graph()
+        _input = gs.Variable(name = 'input_1')
+        output = graph.layer(inputs = [_input], outputs = ['rqs_out'], op = 'RequantShift', name = 'rqs1')
+        output = graph.layer(inputs = output, outputs = ['deq_out'], op = 'Dequant', name = 'deq1')
+        output = graph.layer(inputs = output, outputs = ['relu6_out'], op = 'Relu6', name = 'relu6')
+        output = graph.layer(inputs = output, outputs = ['quant_out'], op = 'Quant', name = 'quant1')
+        graph.outputs.append(output)
+        graph.inputs.append(_input)
+
+        name = "_FOLD_RELU6_REQUANT_ROUNDTRIP_PASS"
+        super().__init__(graph, _fold_relu6_requant_roundtrip_fun, name)

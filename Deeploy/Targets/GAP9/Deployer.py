@@ -17,6 +17,7 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentPlatform, NodeTemplate, TopologyOptimizer, VariableBuffer
 from Deeploy.Targets.GAP9.Bindings import GAP9ClusterTransformer, GAP9SimpleTransformer, GAP9Transformer
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import DebugPrintPass
 from Deeploy.Targets.PULPOpen.Deployer import PULPDeployer
 
 # GAP9-specific L3 RAM allocation and loading templates

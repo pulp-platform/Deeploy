@@ -14,23 +14,27 @@ from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import Me
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELUGradLayer, GELULayer, \
-    GEMMLayer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, QuantLayer, \
-    ReduceMeanLayer, ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, \
-    RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, \
-    SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer
+    GEMMLayer, InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, \
+    PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, Relu6Layer, RequantShiftLayer, ReshapeLayer, \
+    RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, SliceLayer, SoftmaxCrossEntropyLossGradLayer, \
+    SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, TransposeLayer, iHardswishLayer, iRMSNormLayer, ReluGradLayer, \
+    PerturbNormalLayer, PerturbUniformLayer, PerturbEggrollLayer, PerturbRademacherLayer, PerturbTriangleLayer, \
+    RQSPerturbUniformLayer, RQSPerturbRademacherLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantParser, FlattenParser, GatherParser, \
-    GELUGradParser, GELUParser, GEMMParser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool1DParser, \
-    MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluParser, \
+    GELUGradParser, GELUParser, GEMMParser, InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool1DParser, \
+    MaxPool2DParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, ReduceSumParser, ReluParser, Relu6Parser, \
     RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, RQSiGELUParser, RQSiHardswishParser, \
     SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, \
     SoftmaxParser, TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, \
-    iSoftmaxParser
+    iSoftmaxParser, ReluGradParser,  PerturbNormalParser, PerturbUniformParser, PerturbEggrollParser, \
+    PerturbRademacherParser, PerturbTriangleParser, RQSPerturbRademacherParser, RQSPerturbUniformParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, IntegerDivRequantMergePass, \
-    MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, \
-    SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
-from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
-    PULPDWConv1DBinding
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ClipToRelu6Pass, DequantPatternPass, \
+    FoldRelu6RequantRoundtripPass, IntegerDivRequantMergePass, MergeConstAddAndRequantPass, \
+    MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, RQSSplitPass, SkipEmptyConcatPass, SkipUnityRequantPass, \
+    iGELURequantMergePass, iHardswishRequantMergePass
+from Deeploy.Targets.PULPOpen.Bindings import PULPDMASliceBindings, \
+    PULPDWConv1DBinding, PULPSoftmaxCrossEntropyLossDualOutputBindings, PULPReluGradBinding
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
@@ -43,13 +47,17 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPiRQSGELUTilingReadyBindings, PULPLayernormGradTilingReadyBindings, PULPLayernormTilingReadyBindings, \
     PULPMatMulTilingReadyBindings, PULPMaxPool1DTilingReadyBindings, PULPMaxPool2DTilingReadyBindings, \
     PULPMulTilingReadyBindings, PULPReduceMeanTilingReadyBindings, PULPReduceSumTilingReadyBindings, \
-    PULPReluTilingReadyBindings, PULPRQAddTilingReadyBindings, PULPRQSConv1DTilingReadyBindings, \
+    PULPReluTilingReadyBindings, PULPRelu6TilingReadyBindings, PULPRQAddTilingReadyBindings, PULPRQSConv1DTilingReadyBindings, \
     PULPRQSConv2DTilingReadyBindings, PULPRQSDWConv2DTilingReadyBindings, PULPRQSGEMMTilingReadyBindings, \
     PULPRQSiHardswishTilingReadyBindings, PULPRQSMatrixVecTilingReadyBindings, PULPRQSTallGEMMTilingReadyBindings, \
     PULPRQSTilingReadyBindings, PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, \
     PULPSoftmaxCrossEntropyGradTilingReadyBindings, PULPSoftmaxCrossEntropyTilingReadyBindings, \
     PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, PULPTransposeTilingReadyBindings, \
-    PULPUniformRQSTilingReadyBindings
+    PULPUniformRQSTilingReadyBindings, PULPInPlaceAccumulatorV2TilingReadyBindings, \
+    PULPPerturbNormalTilingReadyBindings, PULPPerturbUniformTilingReadyBindings, \
+    PULPPerturbEggrollTilingReadyBindings, PULPPerturbRademacherTilingReadyBindings, PULPPerturbTriangleTilingReadyBindings, \
+    PULPRQSPerturbUniformTilingReadyBindings, PULPRQSPerturbRademacherTilingReadyBindings,\
+    PULPQuantTilingReadyBindings, PULPDequantTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -90,9 +98,19 @@ MaxPool2DMapper = NodeMapper(MaxPool2DParser(), PULPMaxPool2DTilingReadyBindings
 LayerNormMapper = NodeMapper(LayerNormParser(), PULPLayernormTilingReadyBindings)
 LayerNormGradMapper = NodeMapper(LayerNormGradParser(), PULPLayernormGradTilingReadyBindings)
 ReluMapper = NodeMapper(ReluParser(), PULPReluTilingReadyBindings)
+Relu6Mapper = NodeMapper(Relu6Parser(), PULPRelu6TilingReadyBindings)
+ReluGradMapper = NodeMapper(ReluGradParser(), [PULPReluGradBinding])
 SoftmaxMapper = NodeMapper(SoftmaxParser(), PULPSoftmaxTilingReadyBindings)
 SoftmaxGradMapper = NodeMapper(SoftmaxGradParser(), PULPSoftmaxGradTilingReadyBindings)
 Softmax_int8_Mapper = NodeMapper(iSoftmaxParser(), PULPSoftmaxTilingReadyBindings)
+PerturbNormalMapper = NodeMapper(PerturbNormalParser(), PULPPerturbNormalTilingReadyBindings)
+PerturbUniformMapper = NodeMapper(PerturbUniformParser(), PULPPerturbUniformTilingReadyBindings)
+PerturbEggrollMapper = NodeMapper(PerturbEggrollParser(), PULPPerturbEggrollTilingReadyBindings)
+PerturbRademacherMapper = NodeMapper(PerturbRademacherParser(), PULPPerturbRademacherTilingReadyBindings)
+PerturbTriangleMapper = NodeMapper(PerturbTriangleParser(), PULPPerturbTriangleTilingReadyBindings)
+RQSPerturbUniformMapper = NodeMapper(RQSPerturbUniformParser(), PULPRQSPerturbUniformTilingReadyBindings)
+RQSPerturbRademacherMapper = NodeMapper(RQSPerturbRademacherParser(), PULPRQSPerturbRademacherTilingReadyBindings)
+
 
 ConcatMapper = NodeMapper(ConcatParser(), PULPConcatTilingReadyBindings)
 
@@ -105,11 +123,15 @@ iRMSNormMapper = NodeMapper(iRMSNormParser(), PULPiRMSNormTilingReadyBindings)
 iHardswishMapper = NodeMapper(iHardswishParser(), PULPiHardswishTilingReadyBindings)
 RQSiHardswishMapper = NodeMapper(RQSiHardswishParser(), PULPRQSiHardswishTilingReadyBindings)
 SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(), PULPSoftmaxCrossEntropyTilingReadyBindings)
+# Dual-output mapper (loss + log_prob): tried first; falls back to single-output mapper for 1-output nodes
+SoftmaxCrossEntropyLossDualOutputMapper = NodeMapper(SoftmaxCrossEntropyLossParser(),
+                                                     PULPSoftmaxCrossEntropyLossDualOutputBindings)
 SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
                                                PULPSoftmaxCrossEntropyGradTilingReadyBindings)
 SGDMapper = NodeMapper(SGDParser(), PULPSGDTilingReadyBindings)
-QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
-DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
+InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), PULPInPlaceAccumulatorV2TilingReadyBindings)
+QuantMapper = NodeMapper(QuantParser(), PULPQuantTilingReadyBindings)
+DequantMapper = NodeMapper(DequantParser(), PULPDequantTilingReadyBindings)
 GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
 PULPMapping = {
     'Conv': ConvLayer([FPConv2DMapper, FPDWConv2DMapper]),
@@ -136,6 +158,8 @@ PULPMapping = {
     'Mul': MulLayer([MulMapper]),
     'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
     'Relu': ReluLayer([ReluMapper]),
+    'Relu6': Relu6Layer([Relu6Mapper]),
+    'ReluGrad': ReluGradLayer([ReluGradMapper]),
     'Reshape': ReshapeLayer([ReshapeMapper]),
     'Squeeze': ReshapeLayer([UnsqueezeMapper]),
     'Transpose': TransposeLayer([TransposeMapper]),
@@ -149,9 +173,17 @@ PULPMapping = {
     'Quant': QuantLayer([QuantMapper]),
     'Dequant': QuantLayer([DequantMapper]),
     'SoftmaxGrad': SoftmaxGradLayer([SoftmaxGradMapper]),
-    'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossMapper]),
+    'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossMapper, SoftmaxCrossEntropyLossDualOutputMapper]),
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
-    'SGD': SGDLayer([SGDMapper])
+    'SGD': SGDLayer([SGDMapper]),
+    'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper]),
+    'PerturbNormal': PerturbNormalLayer([PerturbNormalMapper]),
+    'PerturbUniform': PerturbUniformLayer([PerturbUniformMapper]),
+    'PerturbEggroll': PerturbEggrollLayer([PerturbEggrollMapper]),
+    'PerturbRademacher': PerturbRademacherLayer([PerturbRademacherMapper]),
+    'PerturbTriangle': PerturbTriangleLayer([PerturbTriangleMapper]),
+    'RQSPerturbUniform': RQSPerturbUniformLayer([RQSPerturbUniformMapper]),
+    'RQSPerturbRademacher': RQSPerturbRademacherLayer([RQSPerturbRademacherMapper])
 }
 
 
@@ -227,6 +259,8 @@ class PULPStructBuffer(StructBuffer):
 PULPOptimizer = TopologyOptimizer([
     QuantPatternPass(),
     DequantPatternPass(),
+    ClipToRelu6Pass(),
+    FoldRelu6RequantRoundtripPass(),
     SkipEmptyConcatPass(),
     SkipUnityRequantPass(previous_op_regex = "Concat", num_inputs = 2),
     SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),

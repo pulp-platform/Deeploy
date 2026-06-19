@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Callable, Dict, Optional, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
 import onnx_graphsurgeon as gs
 
@@ -35,8 +35,46 @@ _NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch"
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
+def deferPerturbNodes(nodes: List[gs.Node]) -> List[gs.Node]:
+    """Re-order a topologically-sorted node list so each ZO perturbation node is
+    scheduled as late as possible: immediately before its earliest consumer.
+
+    Perturbation nodes (PerturbNormal, PerturbUniform, RQSPerturb*, ...) produce a
+    non-in-place perturbed copy of a weight tensor. That copy stays alive from the
+    moment the perturb node runs until its consumer runs. Because perturb nodes only
+    depend on constants, ``toposort`` hoists all of them to the front, keeping every
+    copy alive for almost the whole network and inflating peak memory. Moving each
+    perturb node to just before its consumer minimizes the copy's lifetime.
+
+    The input is assumed to already be a valid topological order; the result is also a
+    valid topological order (perturb nodes have no node-producer inputs, so moving them
+    later never violates a dependency).
+    """
+    isPerturb = lambda n: "Perturb" in n.op
+    perturb = [n for n in nodes if isPerturb(n)]
+    base = [n for n in nodes if not isPerturb(n)]
+    pos = {id(n): i for i, n in enumerate(base)}
+    before: Dict[int, List[gs.Node]] = {id(n): [] for n in base}
+    leftover: List[gs.Node] = []
+
+    for p in perturb:
+        consumers = [c for c in p.outputs[0].outputs if id(c) in pos]
+        if not consumers:
+            # Consumer fused/removed during lowering: keep the node defensively.
+            leftover.append(p)
+            continue
+        earliest = min(consumers, key = lambda c: pos[id(c)])
+        before[id(earliest)].append(p)
+
+    out: List[gs.Node] = list(leftover)
+    for n in base:
+        out.extend(before[id(n)])
+        out.append(n)
+    return out
+
+
 def defaultScheduler(graph: gs.Graph):
-    return graph.nodes
+    return deferPerturbNodes(list(graph.nodes))
 
 
 def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
