@@ -15,7 +15,6 @@ class SnitchBarrierFuture(Future):
     _waitTemplate = NodeTemplate("if (snrt_is_dm_core()) snrt_dma_wait_all();")
 
 
-# LMACAN: TODO: Add single transfer waiting
 class SnitchFuture(Future):
     _initTemplate = NodeTemplate("snrt_dma_txid_t ${name} = (snrt_dma_txid_t) -1;")
 
