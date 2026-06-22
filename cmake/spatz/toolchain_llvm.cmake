@@ -47,7 +47,7 @@ add_compile_options(
 
 # Link options matching user command
 add_link_options(
-    # -target riscv32-unknown-elf
+    -target riscv32-unknown-elf
     -mcpu=snitch
     -march=${ISA}
     -mabi=ilp32d
