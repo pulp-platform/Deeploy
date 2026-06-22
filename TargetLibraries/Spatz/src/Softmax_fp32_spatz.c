@@ -77,45 +77,6 @@ float32_t myinv(float32_t x){
     return y;
 }
 
-void oldSpatz_Softmax_fp32_fp32(float32_t *input, float32_t *output, int32_t size, int32_t last_dim_length) {
-  const unsigned int cid = snrt_cluster_core_idx();
-  int32_t batch_size = size / last_dim_length;
-  // divide in two cores
-  unsigned int items_per_core = (batch_size + 1) / 2;
-
-  unsigned int b_start, b_end;
-
-  if (cid == 0) {
-      b_start = 0;
-      b_end   = items_per_core;
-  } else {
-      b_start = items_per_core;
-      // Core 1 always ends at the total batch size
-      b_end   = batch_size;
-  }
-  for (int b = b_start; b < b_end; b++) {
-    float32_t max_val = -inf;
-    float sum = 0.0f;
-
-    for (int i = 0; i < last_dim_length; i++) {
-      if (input[b * last_dim_length + i] > max_val) {
-        max_val = input[b * last_dim_length + i];
-      }
-    }
-
-    for (int i = 0; i < last_dim_length; i++) {
-      float32_t exp_val = input[b * last_dim_length + i] - max_val;
-      output[b * last_dim_length + i] = expf_nodiv_reduced(exp_val);
-      sum += output[b * last_dim_length + i];
-    }
-
-    float32_t sum_1 = myinv(sum);
-    for (int i = 0; i < last_dim_length; i++) {
-      output[b * last_dim_length + i] = output[b * last_dim_length + i] * sum_1;
-    }
-  }
-}
-
 void Spatz_Softmax_fp32_fp32(float32_t *input, float32_t *output, int32_t size, int32_t last_dim_length) {
   const unsigned int cid = snrt_cluster_core_idx();
   // two cores divided on the vector lenght
