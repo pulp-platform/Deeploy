@@ -479,7 +479,7 @@ ${TOOLCHAIN_DIR}/spatz:
 ${SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/spatz
 	mkdir -p ${SPATZ_INSTALL_DIR}
 	cp -r ${TOOLCHAIN_DIR}/spatz/ ${SPATZ_INSTALL_DIR}/../
-	cd ${SPATZ_INSTALL_DIR} 
+	cd ${SPATZ_INSTALL_DIR} && \
 	make all -j8 && \
 	python3.6 -m venv .venv && \
 	.venv/bin/pip install jsonref jsonschema jstyleson dataclasses hjson mako && \
@@ -584,7 +584,7 @@ ${QEMU_INSTALL_DIR}: ${TOOLCHAIN_DIR}/qemu
 	cd ${TOOLCHAIN_DIR}/qemu/ && \
 	mkdir -p build && cd build && \
 	../configure --target-list=arm-softmmu,arm-linux-user,riscv32-softmmu,riscv32-linux-user \
-	--prefix=${QEMU_INSTALL_DIR} && \
+	--prefix=${QEMU_INSTALL_DIR} --disable-werror && \
 	make -j && \
 	make install
 
