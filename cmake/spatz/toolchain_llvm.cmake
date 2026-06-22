@@ -35,6 +35,9 @@ add_compile_options(
     
     -march=${ISA}
     -mabi=ilp32d
+    # Newlib headers: prefer $GCC_INSTALL_DIR (set by util/iis-env.sh to the
+    # cluster's spatz-gcc) over a source-built GNU toolchain inside spatz.
+    # -isystem $ENV{GCC_INSTALL_DIR}/riscv32-unknown-elf/include
     -isystem ${SPATZ_HOME}/sw/toolchain/riscv-gnu-toolchain/riscv-newlib/newlib/libc/include
     
     # Optimization and debug
@@ -65,7 +68,6 @@ add_link_options(
     --gcc-toolchain=/usr/pack/riscv-1.0-kgf/spatz-gcc-7.1.1
 )
 
-# User command linked: -lm -lgcc -lm -lgcc libsnRuntime-cluster.a
 # libsnRuntime-cluster.a is handled by our target_link_libraries(deeployspatz INTERFACE spatz-runtime)
 link_libraries(
     -lm -lgcc -lm -lgcc
