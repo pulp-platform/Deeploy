@@ -662,45 +662,46 @@ class ConvTransposeLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-        """
-        Infers output shapes for ConvTranspose using only static info.
-        - inputShapes[0]: input tensor shape (e.g., [N, C_in, W] for 1D, [N, C_in, H, W] for 2D)
-        - inputShapes[1]: weight tensor shape (e.g., [C_in, C_out // group, kW] for 1D)
-        - outputShapes[0]: output tensor shape (to be updated)
-        """
         newInputShapes = list(inputShapes)
-        newOutputShapes = list(outputShapes)
+
+        input_shape = inputShapes[0]  # [N, C_in, d0, ...]
+        weight_shape = inputShapes[1]  # [C_in, C_out//group, k0, ...]
         group = operatorRepresentation.get('group', 1)
-        weight_shape = inputShapes[1]
 
-        if newOutputShapes and len(newOutputShapes[0]) >= 2:
-            # For 1D: weight_shape = [C_in, C_out // group, kW]
-            # For 2D: weight_shape = [C_in, C_out // group, kH, kW]
-            ch_out = weight_shape[1] * group
-            if channels_first:
-                newOutputShapes[0][1] = ch_out
-            else:
-                newOutputShapes[0][-1] = ch_out
+        batch = input_shape[0]
+        spatial_in = list(input_shape[2:]) if channels_first else list(input_shape[1:-1])
+        ndim = len(spatial_in)
 
-        return newInputShapes, newOutputShapes
+        kernel_shape = list(weight_shape[2:])
+        C_out = weight_shape[1] * group
+
+        strides = operatorRepresentation.get('strides') or [1] * ndim
+        dilations = operatorRepresentation.get('dilations') or [1] * ndim
+        output_padding = operatorRepresentation.get('output_padding') or [0] * ndim
+        pads = operatorRepresentation.get('pads') or [0] * (2 * ndim)
+
+        spatial_out = [(spatial_in[d] - 1) * strides[d] - pads[d] - pads[d + ndim] + dilations[d] *
+                       (kernel_shape[d] - 1) + output_padding[d] + 1 for d in range(ndim)]
+
+        if channels_first:
+            output_shape = [batch, C_out] + spatial_out
+        else:
+            output_shape = [batch] + spatial_out + [C_out]
+
+        return newInputShapes, [output_shape]
 
     def computeOps(self):
-        opRep = self.mapper.parser.operatorRepresentation
+        rep = self.mapper.parser.operatorRepresentation
 
-        groups = opRep.get('group', 1)
-        kernel_shape = np.prod(opRep['kernel_shape'])  # es. [3, 3] -> 9
-        ch_in = opRep['ch_im_in']
-        ch_out = opRep['ch_im_out']
+        group = rep.get('group', 1)
+        kernel_shape = np.prod(rep['kernel_shape'])  # es. [3, 3] -> 9
+        channels = rep['channels']
+        feature_maps = rep['feature_maps']
 
-        opsPerPx = int(kernel_shape * ch_in * ch_out / groups) * 2
+        ops_per_px = int(kernel_shape * feature_maps * channels // group) * 2
+        num_px = np.prod(rep['output_shape'])
 
-        # ConvTranspose upscales spatial dims, quindi num pixel viene da output
-        if 'dim_im_out_y' in opRep:
-            numPx = opRep['dim_im_out_x'] * opRep['dim_im_out_y']
-        else:
-            numPx = opRep['dim_im_out_x']
-
-        return numPx * opsPerPx
+        return num_px * ops_per_px
 
 
 class CeilLayer(SingleOperationPerElementLayer):

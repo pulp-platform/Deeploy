@@ -8,9 +8,9 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicAveragePool1DBindings, BasicAveragePool2DBindings, \
     BasicBatchNormBindings, BasicCeilBindings, BasicClipBindings, BasicCol2ImBindings, BasicConcatBindings, \
-    BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, BasicDebugPrintBindings, \
-    BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, BasicEluBindings, \
-    BasicExpBindings, BasicFloorBindings, BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, \
+    BasicConv1DBindings, BasicConv2DBindings, BasicConvTranspose1DBindings, BasicConvTranspose2DBindings, \
+    BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, \
+    BasicEluBindings, BasicExpBindings, BasicFloorBindings, BasicGatherBindings, BasicGELUBindings, BasicGEMMBindings, \
     BasicGlobalAveragePoolBindings, BasicGlobalMaxPoolBindings, BasicGroupNormBindings, BasicHardSigmoidBindings, \
     BasicHardSwishBindings, BasicInstanceNormBindings, BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, \
     BasicLayerNormBindings, BasicLeakyReluBindings, BasicMatMulBindings, BasicMaxPool1DBindings, \
@@ -27,15 +27,15 @@ from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolLayer, BatchNorm
     ReshapeLayer, ResizeLayer, RQIntegerDivLayer, RQSiGELULayer, ScatterLayer, SeluLayer, SigmoidLayer, SliceLayer, \
     SoftmaxLayer, SqrtLayer, SubLayer, SwishLayer, TransposeLayer
 from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool1DParser, AveragePool2DParser, BatchNormParser, \
-    CeilParser, ClipParser, Col2ImParser, ConcatParser, ConvTranspose1DParser, DebugParser, DequantParser, DivParser, \
-    DummyParser, EluParser, ExpParser, FlattenParser, FloorParser, GatherParser, GELUParser, GenericConv1DParser, \
-    GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, \
-    GlobalAveragePoolParser, GlobalMaxPoolParser, GroupNormParser, HardSigmoidParser, HardSwishParser, \
-    InstanceNormParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, LeakyReluParser, \
-    MatMulParser, MaxPool1DParser, MulParser, Pad1DParser, Pad2DParser, PowParser, QuantParser, ReduceMeanParser, \
-    ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, ResizeParser, RQIntegerDivParser, RQSiGELUParser, \
-    ScatterParser, SeluParser, SigmoidParser, SliceParser, SoftmaxParser, SqrtParser, SubParser, SwishParser, \
-    TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
+    CeilParser, ClipParser, Col2ImParser, ConcatParser, ConvTranspose1DParser, ConvTranspose2DParser, DebugParser, \
+    DequantParser, DivParser, DummyParser, EluParser, ExpParser, FlattenParser, FloorParser, GatherParser, GELUParser, \
+    GenericConv1DParser, GenericConv2DParser, GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, \
+    GenericMaxPool2DParser, GlobalAveragePoolParser, GlobalMaxPoolParser, GroupNormParser, HardSigmoidParser, \
+    HardSwishParser, InstanceNormParser, IntegerDivParser, ITAMaxParser, ITAPartialMaxParser, LayerNormParser, \
+    LeakyReluParser, MatMulParser, MaxPool1DParser, MulParser, Pad1DParser, Pad2DParser, PowParser, QuantParser, \
+    ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, ReshapeParser, ResizeParser, \
+    RQIntegerDivParser, RQSiGELUParser, ScatterParser, SeluParser, SigmoidParser, SliceParser, SoftmaxParser, \
+    SqrtParser, SubParser, SwishParser, TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
@@ -81,7 +81,8 @@ UnsqueezeMapper = NodeMapper(UnsqueezeParser(), BasicReshapeBindings)
 QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
 DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
 BatchNormalizationMapper = NodeMapper(BatchNormParser(), BasicBatchNormBindings)
-ConvTransposeMapper = NodeMapper(ConvTranspose1DParser(), BasicConvTransposeBindings)
+ConvTranspose1DMapper = NodeMapper(ConvTranspose1DParser(), BasicConvTranspose1DBindings)
+ConvTranspose2DMapper = NodeMapper(ConvTranspose2DParser(), BasicConvTranspose2DBindings)
 SliceMapper = NodeMapper(SliceParser(), BasicSliceBindings)
 CeilMapper = NodeMapper(CeilParser(), BasicCeilBindings)
 FloorMapper = NodeMapper(FloorParser(), BasicFloorBindings)
@@ -151,7 +152,7 @@ GenericMapping = {
     'Quant': QuantLayer([QuantMapper]),
     'Dequant': DequantLayer([DequantMapper]),
     'BatchNormalization': BatchNormalizationLayer([BatchNormalizationMapper]),
-    'ConvTranspose': ConvTransposeLayer([ConvTransposeMapper]),
+    'ConvTranspose': ConvTransposeLayer([ConvTranspose1DMapper, ConvTranspose2DMapper]),
     'Ceil': CeilLayer([CeilMapper]),
     'Floor': FloorLayer([FloorMapper]),
     'Clip': ClipLayer([ClipMapper]),

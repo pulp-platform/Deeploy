@@ -22,7 +22,7 @@ void GlobalAveragePool_fp32_fp32(float32_t const *__restrict__ src,
       for (uint32_t i = 0; i < spatial_size; ++i) {
         sum += x[i];
       }
-      dst[n * C + c] = sum / spatial_size;
+      dst[n * C + c] = sum / (float32_t)spatial_size;
     }
   }
 }
