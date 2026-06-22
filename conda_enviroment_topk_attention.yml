@@ -1,4 +1,4 @@
-name: /scratch/mmm/.conda/envs/deeploy_conda_venv2
+name: ~/.conda/envs/deeploy_conda_venv
 channels:
   - defaults
 dependencies:
@@ -78,4 +78,4 @@ dependencies:
       - typing-extensions==4.15.0
       - urllib3==2.6.3
       - wcwidth==0.6.0
-prefix: /scratch/mmm/.conda/envs/deeploy_conda_venv2
+prefix: ~/.conda/envs/deeploy_conda_venv
