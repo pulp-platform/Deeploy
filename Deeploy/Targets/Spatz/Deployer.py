@@ -36,13 +36,3 @@ class SpatzDeployer(SignPropDeployer):
                          name,
                          default_channels_first = default_channels_first,
                          deeployStateDir = deeployStateDir)
-
-#         self.inputOffsets = inputOffsets
-# 
-#         self.loweringOptimizer.passes += [
-#             TransposeMatmulInputsPass(),
-#             NCHWtoNHWCPass(self.default_channels_first),
-#             TransposeMergePass(),
-#             TransposeConstOptPass(),
-#             DebugPrintMergePass()
-#         ]

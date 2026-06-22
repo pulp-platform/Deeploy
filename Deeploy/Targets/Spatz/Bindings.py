@@ -56,16 +56,6 @@ SpatzGatherBindings = [
     ) for type in IntegerDataTypes
 ]
 
-# SpatzGatherBindings = [
-#     NodeBinding(
-#         GatherChecker(
-#             [PointerClass(type), PointerClass(int32_t)],
-#             [PointerClass(type)]
-#         ),
-#         GatherTemplate.referenceTemplate,
-#         BasicTransformer
-#     ) for type in SignedIntegerDataTypes] +
-
 # with tiled transformer
 SpatzMatMulBindings = [
     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
@@ -74,8 +64,9 @@ SpatzMatMulBindings = [
         MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
         SpatzMatMulTemplate.spatzFloatMatMulTemplate, TiledTransformer)
 ]
-'''
+
 # without tiled transformer
+'''
 SpatzMatMulBindings = [
     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
                 SpatzMatMulTemplate.spatzSIMatMulTemplate, BasicTransformer),
@@ -83,14 +74,6 @@ SpatzMatMulBindings = [
         MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
         SpatzMatMulTemplate.spatzFloatMatMulTemplate, BasicTransformer)
 ]
-# with BEGIN_SINGLE_CORE
-# SpatzMatMulBindings = [
-#     NodeBinding(MatMulChecker([PointerClass(int8_t), PointerClass(int8_t)], [PointerClass(int32_t)]),
-#                 MatMulTemplate.referenceTemplate, TiledTransformer)
-# ] + [
-#     NodeBinding(MatMulChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
-#                 FloatMatMulTemplate.referenceTemplate, TiledTransformer)
-# ]
 '''
 
 SpatzTopKBindings = [
@@ -112,10 +95,3 @@ SpatzSoftmaxBindings = [
         TiledTransformer
     )
 ]
-# [
-#     NodeBinding(
-#         SoftmaxChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
-#         SoftmaxTemplate.integerTilingTemplate,
-#         TiledTransformer
-#     )
-# ]
