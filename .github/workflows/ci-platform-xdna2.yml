@@ -28,4 +28,4 @@ jobs:
     uses: ./.github/workflows/_runner-xdna2.yml
     with:
       pytest-marker: "kernels"
-      docker-image: ${{ inputs.docker_image_deeploy || ghcr.io/pulp-platform/deeploy-xdna:devel }}
+      docker-image: ${{ inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-xdna:devel' }}
