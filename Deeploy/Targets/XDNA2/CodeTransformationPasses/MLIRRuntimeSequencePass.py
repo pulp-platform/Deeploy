@@ -22,7 +22,7 @@ import aie.ir as ir
 from aie.dialects import aie as aie_d
 from aie.dialects import aiex as aiex_d
 
-from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
+from Deeploy.MLIRAIETypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
 if TYPE_CHECKING:
     from Deeploy.DeeployTypes import NetworkContext

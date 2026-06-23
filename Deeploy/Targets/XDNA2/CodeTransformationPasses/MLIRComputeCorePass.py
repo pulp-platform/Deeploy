@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING, List, Tuple
 from aie.dialects import aie as aie_d
 from aie.dialects import scf as scf_d
 
-from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
+from Deeploy.MLIRAIETypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
 if TYPE_CHECKING:
     from Deeploy.DeeployTypes import NetworkContext

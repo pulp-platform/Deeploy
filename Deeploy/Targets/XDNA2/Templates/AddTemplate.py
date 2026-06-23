@@ -22,7 +22,7 @@ import aie.ir as ir
 from aie.dialects import arith as arith_d
 from aie.dialects import func as func_d
 
-from Deeploy.MLIRDataTypes import MLIRNodeTemplate
+from Deeploy.MLIRAIETypes import MLIRNodeTemplate
 
 if TYPE_CHECKING:
     from Deeploy.DeeployTypes import OperatorRepresentation

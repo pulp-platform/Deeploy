@@ -27,7 +27,7 @@ import aie.ir as ir
 import numpy as np
 from aie.dialects import aie as aie_d
 
-from Deeploy.MLIRDataTypes import MLIRCodeTransformationPass, MLIRExecutionBlock
+from Deeploy.MLIRAIETypes import MLIRCodeTransformationPass, MLIRExecutionBlock
 
 if TYPE_CHECKING:
     from Deeploy.DeeployTypes import NetworkContext

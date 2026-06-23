@@ -31,7 +31,7 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Logging import DEFAULT_LOGGER as log
-from Deeploy.MLIRDataTypes import MLIRCodeTransformation, MLIRExecutionBlock, MLIRNodeTemplate
+from Deeploy.MLIRAIETypes import MLIRCodeTransformation, MLIRExecutionBlock, MLIRNodeTemplate
 
 
 class XDNA2Deployer(SignPropDeployer):
