@@ -14,10 +14,10 @@ name: CI • XDNA2
   pull_request:
   workflow_dispatch:
     inputs:
-      docker_image:
-        description: "XDNA2 Docker image (must be pre-built on the runner)"
+      docker_image_deeploy:
+        description: "XDNA2 Deeploy Docker Image to use"
         required: false
-        default: "deeploy-xdna:local"
+        default: "ghcr.io/pulp-platform/deeploy-xdna:devel"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,4 +28,4 @@ jobs:
     uses: ./.github/workflows/_runner-xdna2.yml
     with:
       pytest-marker: "kernels"
-      docker-image: ${{ inputs.docker_image || 'deeploy-xdna:local' }}
+      docker-image: ${{ inputs.docker_image_deeploy || ghcr.io/pulp-platform/deeploy-xdna:devel }}
