@@ -61,7 +61,7 @@ class _ArgumentDefaultMetavarTypeFormatter(argparse.ArgumentDefaultsHelpFormatte
 
 class TestGeneratorArgumentParser(argparse.ArgumentParser):
 
-    def __init__(self, description = None):
+    def __init__(self, tiling_arguments: bool = False, description = None):
 
         formatter = _ArgumentDefaultMetavarTypeFormatter
 
@@ -69,6 +69,8 @@ class TestGeneratorArgumentParser(argparse.ArgumentParser):
             super().__init__(description = "Test Utility.", formatter_class = formatter)
         else:
             super().__init__(description = description, formatter_class = formatter)
+
+        self.tiling_arguments = tiling_arguments
 
         self.add_argument('-t',
                           metavar = '<dir>',
@@ -89,6 +91,27 @@ class TestGeneratorArgumentParser(argparse.ArgumentParser):
                           default = './TestFiles',
                           help = 'Set the output dump folder\n')
         self.add_argument('-v', action = 'count', dest = 'verbose', default = 0, help = 'Increase verbosity level\n')
+
+        # Tiling-related arguments (for XDNA2 and other tiled platforms)
+        if self.tiling_arguments:
+            self.add_argument('--l1',
+                              metavar = '<size>',
+                              dest = 'l1',
+                              type = int,
+                              default = None,
+                              help = 'Set L1 memory size in bytes (enables tiling if specified).\n')
+            self.add_argument('--l3',
+                              metavar = '<size>',
+                              dest = 'l3',
+                              type = int,
+                              default = None,
+                              help = 'Set L3 memory size in bytes.\n')
+            self.add_argument('--defaultMemLevel',
+                              metavar = '<level>',
+                              dest = 'defaultMemLevel',
+                              type = str,
+                              default = "L3",
+                              help = 'Set default memory level (default: L3)\n')
 
         self.args = None
 

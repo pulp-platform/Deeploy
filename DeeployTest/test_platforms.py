@@ -42,6 +42,7 @@ from test_snitch_tiled_config import L2_SINGLEBUFFER_KERNELS as SNITCH_L2_SINGLE
 from test_softhier_config import DEFAULT_NUM_CLUSTERS as SOFTHIER_DEFAULT_NUM_CLUSTERS
 from test_softhier_config import KERNEL_TESTS as SOFTHIER_KERNEL_TESTS
 from test_softhier_config import MODEL_TESTS as SOFTHIER_MODEL_TESTS
+from test_xdna2_config import KERNEL_TESTS as XDNA2_KERNEL_TESTS
 from testUtils.pytestRunner import create_test_config, run_and_assert_test
 
 
@@ -116,6 +117,11 @@ PLATFORM_CONFIGS = {
         "kernel_tests": GAP9_KERNEL_TESTS,
         "model_tests": GAP9_MODEL_TESTS,
         "default_num_cores": GAP9_DEFAULT_NUM_CORES,
+    },
+    "xdna2": {
+        "platform": "XDNA2",
+        "simulator": "host",
+        "kernel_tests": XDNA2_KERNEL_TESTS,
     },
 }
 
@@ -985,5 +991,23 @@ def test_gap9_tiled_models_l3_doublebuffer(test_params, deeploy_test_dir, toolch
         l1 = l1,
         default_mem_level = "L3",
         double_buffer = True,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.xdna2
+@pytest.mark.kernels
+@pytest.mark.parametrize("test_name", XDNA2_KERNEL_TESTS, ids = XDNA2_KERNEL_TESTS)
+def test_xdna2_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    platform_config = PLATFORM_CONFIGS["xdna2"]
+    config = create_test_config(
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = False,
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)

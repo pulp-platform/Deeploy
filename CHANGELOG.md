@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- XDNA2 Platform Support [#179](https://github.com/pulp-platform/Deeploy/pull/179)
 - Add Microbenchmarking Infrastructure and CI Using GVSoC CSR [#162](https://github.com/pulp-platform/Deeploy/pull/162)
 - Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
 - Fix Broken CI [#175](https://github.com/pulp-platform/Deeploy/pull/175)
@@ -20,6 +21,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix GAP9 L3 Board Tests: readfs Flash Ordering and Duplicate Input Data [#196](https://github.com/pulp-platform/Deeploy/pull/196)
 
 ### Added
+- XDNA2 (AIE2p) platform beta: first MLIR backend for Deeploy, targeting AMD/Xilinx NPU2 with a single BF16 Add kernel
+- `MLIRNodeTemplate` and `MLIRCodeTransformation` base classes for MLIR-emitting backends
+- Auto-tiling with L1 memory constraints for XDNA2
+- XRT-based testbench with BF16 ULP tolerance comparison
+- Docker container (`Dockerfile.deeploy-xdna`) and GitHub Actions build workflow
+- CI workflow for XDNA2 on self-hosted runner
 - Add many missing docstrings
 - Add `__repr__()` function for `_ReferenceBuffer` class
 - GAP9 Container Support with ARM64 architecture support
@@ -31,6 +38,9 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Add support for the Generic target for the following operators [Ceil](https://onnx.ai/onnx/operators/onnx__Ceil.html), [Floor](https://onnx.ai/onnx/operators/onnx__Floor.html), [Clip](https://onnx.ai/onnx/operators/onnx__Clip.html), [Sub](https://onnx.ai/onnx/operators/onnx__Sub.html), [Exp](https://onnx.ai/onnx/operators/onnx__Exp.html), [Sigmoid](https://onnx.ai/onnx/operators/onnx__Sigmoid.html), [Swish](https://onnx.ai/onnx/operators/onnx__Swish.html), [HardSigmoid](https://onnx.ai/onnx/operators/onnx__HardSigmoid.html), [HardSwish](https://onnx.ai/onnx/operators/onnx__HardSwish.html), [InstanceNormalization](https://onnx.ai/onnx/operators/onnx__InstanceNormalization.html), [GroupNormalization](https://onnx.ai/onnx/operators/onnx__GroupNormalization.html), [AveragePool](https://onnx.ai/onnx/operators/onnx__AveragePool.html), [GlobalAveragePool](https://onnx.ai/onnx/operators/onnx__GlobalAveragePool.html), [GlobalMaxPool](https://onnx.ai/onnx/operators/onnx__GlobalMaxPool.html).
 
 ### Changed
+- `aie.dialects` API: move `link_with` from `aie_d.core()` to `aie_d.external_func()` (mlir-aie v1.3.2)
+- Decouple XDNA requirements (`requirements-xdna.txt`) from base dev requirements
+- Make `aie` import optional to not enforce mlir-aie package installation for non-XDNA users
 - Use by default `devel` container for GAP9 CI
 - Extend Readme platforms with GAP9 shields
 - Move `MemoryAwareClosureGeneration` pass to `MemoryLevelExtension`
