@@ -2724,7 +2724,6 @@ class InPlaceAccumulatorV2Parser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # Require exactly 3 inputs (buffer, gradient, lazy_reset_grad) and 1 output
         return len(node.inputs) == 3 and len(node.outputs) == 1
 
     def parseNodeCtxt(self,

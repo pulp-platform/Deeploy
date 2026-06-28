@@ -4,8 +4,7 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
-# Canonical SoftmaxCrossEntropyLoss: emits both a scalar mean loss and the
-# per-sample log_prob tensor.
+# Two outputs (scalar mean loss + per-sample log_prob), matching the ORT signature.
 referenceTemplate = NodeTemplate("""
 BEGIN_SINGLE_CORE
     // SoftmaxCrossEntropyLoss (Name: ${nodeName}, Op: ${nodeOp})

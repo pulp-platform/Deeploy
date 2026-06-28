@@ -29,6 +29,9 @@ class InPlaceAccumulatorV2TileConstraint(BOPTileConstraint):
 
     @classmethod
     def addGeometricalConstraint(cls, tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
+        # BOPTileConstraint forces accum_buffer and gradient to identical tile dims
+        # per axis (inputDim1 == inputDim2 == outputDim) — this is what makes the
+        # elementwise acc += grad valid; the two inputs are always tiled together.
         tilerModel = super().addGeometricalConstraint(tilerModel, parseDict, ctxt)
 
         # lazy_reset_grad is a scalar flag — pin full size so it is not tiled.

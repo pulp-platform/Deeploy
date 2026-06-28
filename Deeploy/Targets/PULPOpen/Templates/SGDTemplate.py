@@ -26,15 +26,20 @@ class _PULPSGDTemplate(NodeTemplate):
         weight = ctxt.lookup(operatorRepresentation['weight'])
         weight_updated = ctxt.lookup(operatorRepresentation['weight_updated'])
 
+        # Liveness: bidirectional alias keeps both buffers live (has_live_aliases).
         weight.aliases.add(weight_updated.name)
         weight_updated.aliases.add(weight.name)
+        # Resolution: _alias lets the tiler / MemoryScheduler resolve
+        # weight_updated to weight's memory block (unravelReference), so the tiled
+        # egress DMA writes the update back into weight's L2/L3 buffer.
         weight_updated._alias = weight.name
 
-        # Make weight_updated share weight's allocation (no separate malloc),
-        # regardless of which memory level (L2 or L3) weight is placed in.
-        # The egress DMA then writes updated weights back to weight's address.
+        # weight_updated reuses weight's storage (in whichever memory level weight
+        # lives in) rather than getting its own arena slot, so the untiled write
+        # lands in weight's buffer — the one the next forward pass reads from.
         weight_updated.allocTemplate = NodeTemplate(" ${name} = (${type.typeName}) " + str(weight._instance) + ";")
-        weight_updated.deallocTemplate = NodeTemplate("")
+        # No deallocTemplate override needed: MemoryAllocation skips the dealloc of
+        # any buffer with live aliases, and weight is a live input.
         return ctxt, operatorRepresentation, []
 
 
