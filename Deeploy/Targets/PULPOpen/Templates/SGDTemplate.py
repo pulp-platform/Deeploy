@@ -26,20 +26,17 @@ class _PULPSGDTemplate(NodeTemplate):
         weight = ctxt.lookup(operatorRepresentation['weight'])
         weight_updated = ctxt.lookup(operatorRepresentation['weight_updated'])
 
-        # Proper aliasing (post Fix-aliasing PR): the bidirectional `aliases` set
-        # is what links the two buffers — kept live by has_live_aliases, resolved
-        # to one allocation by the memory allocator.
+        # Link weight_updated to weight: the bidirectional `aliases` set keeps both
+        # live (has_live_aliases), and the allocTemplate override below points
+        # weight_updated at weight's storage. No tiler-level `_alias` is needed —
+        # the allocTemplate override resolves the aliasing on its own (unlike
+        # Reshape, which has no allocTemplate override and does rely on `_alias`).
         weight.aliases.add(weight_updated.name)
         weight_updated.aliases.add(weight.name)
-        # HACK: Tiling wasn't updated in the Fix-aliasing PR to read the `aliases`
-        #       set, so we still have to set `_alias` for the tiler/MemoryScheduler
-        #       to resolve weight_updated -> weight's memory block. Remove once
-        #       tiling reads `aliases` (same hack as PULPOpen/Templates/ReshapeTemplate).
-        weight_updated._alias = weight.name
 
         # weight_updated reuses weight's storage (in whichever memory level weight
-        # lives in) rather than getting its own arena slot, so the untiled write
-        # lands in weight's buffer — the one the next forward pass reads from.
+        # lives in) rather than getting its own arena slot, so the write lands in
+        # weight's buffer — the one the next forward pass reads from.
         weight_updated.allocTemplate = NodeTemplate(" ${name} = (${type.typeName}) " + str(weight._instance) + ";")
         # No deallocTemplate override needed: MemoryAllocation skips the dealloc of
         # any buffer with live aliases, and weight is a live input.

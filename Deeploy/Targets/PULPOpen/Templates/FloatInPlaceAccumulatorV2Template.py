@@ -35,13 +35,11 @@ class _PULPInPlaceAccumulatorV2Template(NodeTemplate):
         accum_buffer = ctxt.lookup(operatorRepresentation['accum_buffer'])
         data_out = ctxt.lookup(operatorRepresentation['data_out'])
 
-        # Proper aliasing (post Fix-aliasing PR): the bidirectional `aliases` set.
+        # data_out is a symbolic in-place output aliased to accum_buffer (which the
+        # kernel accumulates into directly). The bidirectional `aliases` set keeps
+        # both live; no tiler-level `_alias` is needed.
         accum_buffer.aliases.add(data_out.name)
         data_out.aliases.add(accum_buffer.name)
-        # HACK: Tiling still reads `_alias` (not yet migrated to `aliases`), so we
-        #       set it too. Remove once tiling reads `aliases` (same hack as
-        #       PULPOpen/Templates/ReshapeTemplate).
-        data_out._alias = accum_buffer.name
 
         return ctxt, operatorRepresentation, []
 
