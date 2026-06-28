@@ -26,12 +26,15 @@ class _PULPSGDTemplate(NodeTemplate):
         weight = ctxt.lookup(operatorRepresentation['weight'])
         weight_updated = ctxt.lookup(operatorRepresentation['weight_updated'])
 
-        # Liveness: bidirectional alias keeps both buffers live (has_live_aliases).
+        # Proper aliasing (post Fix-aliasing PR): the bidirectional `aliases` set
+        # is what links the two buffers — kept live by has_live_aliases, resolved
+        # to one allocation by the memory allocator.
         weight.aliases.add(weight_updated.name)
         weight_updated.aliases.add(weight.name)
-        # Resolution: _alias lets the tiler / MemoryScheduler resolve
-        # weight_updated to weight's memory block (unravelReference), so the tiled
-        # egress DMA writes the update back into weight's L2/L3 buffer.
+        # HACK: Tiling wasn't updated in the Fix-aliasing PR to read the `aliases`
+        #       set, so we still have to set `_alias` for the tiler/MemoryScheduler
+        #       to resolve weight_updated -> weight's memory block. Remove once
+        #       tiling reads `aliases` (same hack as PULPOpen/Templates/ReshapeTemplate).
         weight_updated._alias = weight.name
 
         # weight_updated reuses weight's storage (in whichever memory level weight
