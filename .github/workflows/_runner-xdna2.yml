@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: _runner-xdna2
+
+"on":
+  workflow_call:
+    inputs:
+      pytest-marker:
+        required: true
+        type: string
+      docker-image:
+        required: false
+        type: string
+
+jobs:
+  test-runner-xdna2:
+    runs-on: xdna2-npu
+    # NOTE: We cannot use the `container:` directive here because
+    # GitHub Actions does not support `--device` flags required for
+    # NPU access (/dev/accel/accel0). Instead we use explicit
+    # `docker run` commands.
+    steps:
+      - name: Fix workspace permissions
+        shell: bash
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/workspace \
+            ${{ inputs.docker-image }} \
+            chown -R $(id -u):$(id -g) /workspace || true
+
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Run Tests in Docker
+        shell: bash
+        run: |
+          docker run --rm \
+            --device /dev/accel/accel0 \
+            --ulimit memlock=-1 \
+            -v /opt/xilinx:/opt/xilinx \
+            -v "${{ github.workspace }}":/app/Deeploy \
+            -w /app/Deeploy \
+            ${{ inputs.docker-image }} \
+            bash -c "
+              pip install -e . &&
+              cd DeeployTest &&
+              pytest test_platforms.py -v -m 'xdna2 and ${{ inputs.pytest-marker }}'
+            "

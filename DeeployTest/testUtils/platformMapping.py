@@ -31,7 +31,7 @@ from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
 _SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
-_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9"]
+_NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "XDNA2"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
 
@@ -75,6 +75,10 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Chimera":
         Platform = ChimeraPlatform()
+
+    elif platformName == "XDNA2":
+        from Deeploy.Targets.XDNA2.Platform import XDNA2Platform
+        Platform = XDNA2Platform()
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -274,6 +278,30 @@ def mapDeployer(platform: DeploymentPlatform,
                                    deeployStateDir = deeployStateDir)
 
     else:
-        raise RuntimeError(f"Deployer for platform {platform} is not implemented")
+        # Lazy-import XDNA2 to avoid requiring mlir-aie on non-XDNA2 platforms
+        try:
+            from Deeploy.Targets.XDNA2.Deployer import XDNA2Deployer
+            from Deeploy.Targets.XDNA2.Platform import MemoryXDNA2Platform, MemoryXDNA2PlatformWrapper, \
+                XDNA2Optimizer, XDNA2Platform
+        except ImportError:
+            raise RuntimeError(f"Deployer for platform {platform} is not implemented")
+
+        if not isinstance(platform, (XDNA2Platform, MemoryXDNA2Platform, MemoryXDNA2PlatformWrapper)):
+            raise RuntimeError(f"Deployer for platform {platform} is not implemented")
+
+        if loweringOptimizer is None:
+            loweringOptimizer = XDNA2Optimizer
+
+        if default_channels_first is None:
+            default_channels_first = False
+
+        deployer = XDNA2Deployer(graph,
+                                 platform,
+                                 inputTypes,
+                                 loweringOptimizer,
+                                 scheduler,
+                                 name = name,
+                                 default_channels_first = default_channels_first,
+                                 deeployStateDir = deeployStateDir)
 
     return deployer

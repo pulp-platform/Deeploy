@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+--extra-index-url https://github.com/Xilinx/mlir-aie/releases/expanded_assets/v1.3.2
+--extra-index-url https://github.com/Xilinx/llvm-aie/releases/expanded_assets/nightly
+--extra-index-url https://pypi.org/simple
+
+mlir_aie
+llvm-aie
