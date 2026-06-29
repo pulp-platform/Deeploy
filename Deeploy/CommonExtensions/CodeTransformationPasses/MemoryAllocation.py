@@ -31,12 +31,7 @@ class _ArgStructAllocateTemplate(NodeTemplate):
 
 _stackAllocateTemplate = partial(
     _ArgStructAllocateTemplate,
-    # Declare the argument struct `static` (off-stack), then assign. The cluster
-    # fork runtime writes its descriptor near the top of the CC/master stack; a
-    # stack-local arg struct placed there can be clobbered before the forked
-    # cores read it (observed as a GAP9 cluster-fork crash). Static storage keeps
-    # it stable for the lifetime of the forked call.
-    templateStr = "static ${structDict.typeName} ${name}; ${name} = (${structDict.typeName}) ${str(structDict)};")
+    templateStr = "${structDict.typeName} ${name} = (${structDict.typeName}) ${str(structDict)};")
 
 
 class ArgumentStructGeneration(CodeTransformationPass, IntrospectiveCodeTransformationMixIn):
