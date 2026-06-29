@@ -93,7 +93,15 @@ The example demonstrates all three with comments.
 - **Knob A — slave (PE) stacks → L2.** The SDK `pi_cl_l1_malloc`'s the PE stacks
   only when `task->stacks == NULL`. Hand it a static buffer (`SET_SLAVE_STACK`,
   a `.bss` array → L2) and it skips that L1 allocation, freeing ~30 KB of L1
-  (8 cores × `SLAVESTACKSIZE`).
+  (8 cores × `SLAVESTACKSIZE`). **But this is *not* free:** the PE stacks are
+  written hot (every call/spill), so moving them to L2 costs **+22…63 % train
+  cycles** (measured: AE +38 %, DSCNN +34 %, ResNet8 +24 %, MNv1 +23 %).
+  **Prefer Knob B:** the FP32 kernels keep working sets in explicit L1 buffers, so
+  the real per-core stack need is <256 B vs the 3800 B default — shrink
+  `SLAVESTACKSIZE` to ~512 B and keep the stacks **in L1** (`stacks == NULL`),
+  which reclaims ~26 KB of the 30 KB *without* the L2 penalty. Use L2 stacks
+  (this knob) only when the L1 is so full the arena needs every byte (e.g. CCT,
+  whose big gemms also make the L1-vs-L2 stack difference negligible anyway).
 - **Knob B — shrink the SDK's L1 slave stacks.** `CONFIG_CL_SLAVE_CORE_STACK_SIZE`
   in the sdk `.config` (alternative to Knob A; use one or the other).
 - **Knob C — cluster-controller stack size.** The CC stack grows down from the L1
@@ -164,6 +172,50 @@ so over-subscription fails in seconds with the exact knob to turn. Bypass with
 
 **Takeaway.** Validate the full L1/L2 budget at build time — the stacks and pools
 the tiler ignores are exactly what overflow.
+
+---
+
+## 8. Tiling + DMA descriptor tables live in L2 — a (near-free) L1 win
+
+**Where:** the tiler emits, per tiled node, two kinds of control table, both
+`static PI_L2` (→ `.data` in L2):
+- **tiling metadata** — `DeeployNetwork_TILING_CODEGEN_*` arrays: `numTiles`,
+  per-tensor `cumByteOffset`, tile geometry / transfer lengths.
+- **DMA descriptor tables** — the `…_cmd[]` arrays holding each tile's L3/L2
+  transfer addresses (consumed when programming the L3↔L2 / L2↔L1 DMA).
+
+Because they are `PI_L2`, they sit in L2, **not** L1 — so they cost the tile arena
+nothing. How much L1 that saves grows with the net (measured, FP32 training):
+
+| model | tiling metadata | DMA descriptor tables | **total L1 saved** |
+|---|---|---|---|
+| Autoencoder | 283 B | 0 B (no L3) | 283 B |
+| DSCNN | 473 B | 24 B | 497 B |
+| ResNet8 | 1733 B | 816 B | **2.5 KB** |
+| MobileNetV1 | 5341 B | 1792 B | **7.0 KB** |
+| CCT | 10452 B | 1432 B | **11.6 KB** |
+
+The DMA tables are a real fraction (ResNet8 32 %, MNv1 25 %). For the L1-starved
+nets this is load-bearing: **CCT's L1 is full** (`arena 122000 + cc_stack 8192 =
+130192 / 131072`), so the 11.6 KB the L2 tables keep out of L1 is exactly the
+headroom it cannot spare.
+
+**What does keeping them in L2 cost?** Almost nothing — the cluster only *reads*
+a few hundred to ~12 KB of metadata, spread across all tiles. Measured by
+relocating Autoencoder's tables `PI_L2 → PI_CL_L1` (into L1) and re-running:
+
+| Autoencoder tables in… | train cycles |
+|---|---|
+| **L2** (default) | 3,111,938 |
+| L1 | 3,093,012 |
+
+→ moving them to L1 is only **0.6 % faster**, i.e. the L2-access cost is in the
+noise. So the tables belong in L2: they free up to 11.6 KB of L1 at ~0 cycle cost.
+
+**Takeaway.** Tables in L2 are the *opposite* trade from PE stacks in L2 (Knob A
+above): tables are read-mostly and tiny relative to their L1 value, so L2 is the
+right home; stacks are written hot every call, so L2 is expensive for them. Place
+read-mostly control data in L2, keep hot working/stack data in L1.
 
 ---
 
