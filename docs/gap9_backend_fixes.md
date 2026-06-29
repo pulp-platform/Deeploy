@@ -31,13 +31,20 @@ ordering matters because the last `COMPILE_OPTIONS` wins.
 
 ---
 
-## 2. (info) Tiling + DMA descriptor tables live in L2 — and what L1 that saves
+## 2. Tiling + DMA descriptor tables: emit `const`, and they live in L2
 
-No code change — this documents an existing, deliberate property of the GAP9 tiled
-codegen that is easy to miss when budgeting L1.
+**File:** `Deeploy/Targets/GAP9/Templates/AllocateTemplate.py`
 
-**What.** Per tiled node the tiler emits two kinds of static control table, both
-`static PI_L2` (→ `.data` in L2, **not** L1):
+**Code change.** The GAP9 global-init templates emitted the compile-time-initialized
+arrays as `static PI_L2 … = {…}`. These include the per-tile control tables — the
+tiling metadata and the DMA descriptor tables — which are **read-only lookup tables**
+(the cluster controller only reads them to drive the tiling loop and program DMAs).
+Emit them `static const PI_L2 … = {…}`. Correct (they are never written), it lets the
+toolchain treat them as immutable read-only data, and it documents intent. Verified:
+all 228 tables of a model go `const`, builds with **0** const-discard, runs identically.
+
+**Why they live in L2 (and what L1 that saves).** Both table kinds are `PI_L2`
+(→ `.data` in L2, **not** L1):
 - **tiling metadata** — `DeeployNetwork_TILING_CODEGEN_*` arrays: `numTiles`,
   per-tensor `cumByteOffset`, tile geometry / transfer lengths.
 - **DMA descriptor tables** — the `…_cmd[]` arrays holding each tile's L3/L2 transfer

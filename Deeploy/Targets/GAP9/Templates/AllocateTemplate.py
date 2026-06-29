@@ -15,10 +15,10 @@ gap9L1AllocateTemplate = NodeTemplate(
     "${name} = (${type.typeName}) pi_l1_malloc((void *) 0, sizeof(${type.referencedType.typeName}) * ${size});\n")
 
 gap9L2GlobalInitTemplate = NodeTemplate(
-    "static PI_L2 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
+    "static const PI_L2 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
 
 gap9L1GlobalInitTemplate = NodeTemplate(
-    "static PI_L1 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
+    "static const PI_L1 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
 
 gap9L2GlobalAllocateTemplate = NodeTemplate("")
 
@@ -43,9 +43,9 @@ static PI_L2 ${type.typeName} ${name};\n
 
 gap9GenericGlobalInitTemplate = NodeTemplate("""
 % if _memoryLevel == "L1":
-static PI_L1 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
+static const PI_L1 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
 % elif _memoryLevel == "L2" or _memoryLevel is None:
-static PI_L2 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
+static const PI_L2 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
 % elif _memoryLevel == "L3":
 // ${name} is allocated in L3 \n
 static PI_L2 ${type.referencedType.typeName}* ${name};
