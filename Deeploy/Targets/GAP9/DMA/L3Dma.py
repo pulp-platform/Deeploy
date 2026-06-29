@@ -6,8 +6,7 @@ import math
 from typing import Dict, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, BlockingDmaFromAsyncDmaAdapter, DmaDirection, Future, \
-    PerTensorWaitingStrategy
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, PerTensorWaitingStrategy
 
 
 class GAP9L3DmaFuture(Future):
@@ -60,6 +59,5 @@ class GAP9L3Dma(AsyncDma):
         return operatorRepresentation
 
 
-# Blocking adapter for L3 DMA (used in GAP9 L3 tiling)
-# gap9L3DmaHack = BlockingDmaFromAsyncDmaAdapter(GAP9L3Dma())
+# Async L3 DMA for GAP9 L3 tiling
 gap9L3DmaHack = GAP9L3Dma()
