@@ -12,16 +12,16 @@ from Deeploy.CommonExtensions.DataTypes import float32_t, int8_t, int32_t, uint8
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure import MemoryAwareClosureGeneration
-from Deeploy.Targets.Generic.Templates import ConcatTemplate, GatherTemplate, MatMulTemplate, iNoNormTemplate
+from Deeploy.Targets.Generic.Templates import ConcatTemplate, GatherTemplate, MatMulTemplate, ReshapeTemplate, \
+    iNoNormTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, DivChecker, GatherChecker, GEMMChecker, \
     HardswishChecker, MatMulChecker, MulChecker, ReshapeChecker, RMSNormChecker, RQAddChecker, SoftmaxChecker, \
     TransposeChecker, iNoNormChecker
 from Deeploy.Targets.Snitch.CodeTransformationPasses import SnitchClusterTiling, SnitchCoreFilterPass, \
     SnitchSynchCoresPass
 from Deeploy.Targets.Snitch.DMA.SnitchDma import SnitchDma
-from Deeploy.Targets.Generic.Templates import ReshapeTemplate
-from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, FloatMatMulTemplate, \
-    RQAddTemplate, TransposeTemplate, iSoftmaxTemplate
+from Deeploy.Targets.Snitch.Templates import AddTemplate, FloatGemmTemplate, FloatMatMulTemplate, RQAddTemplate, \
+    TransposeTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Snitch.Templates.FloatAddTemplate import referenceTemplate as FloatAddTemplate
 from Deeploy.Targets.Snitch.Templates.FloatDivTemplate import referenceTemplate as FloatDivTemplate
 from Deeploy.Targets.Snitch.Templates.FloatHardSwishTemplate import referenceTemplate as FloatHardSwishTemplate
@@ -39,12 +39,13 @@ MemoryAwareFunctionCallClosure = partial(MemoryAwareClosureGeneration,
                                          startRegion = "L2",
                                          endRegion = "L1")
 
-SkipTransformer = CodeTransformation(
-    [SnitchSynchCoresPass(),
-     ArgumentStructGeneration(),
-     MemoryPassthroughGeneration("L.*"),
-     MemoryPassthroughGeneration(),
-     FutureGeneration()])
+SkipTransformer = CodeTransformation([
+    SnitchSynchCoresPass(),
+    ArgumentStructGeneration(),
+    MemoryPassthroughGeneration("L.*"),
+    MemoryPassthroughGeneration(),
+    FutureGeneration()
+])
 
 TiledTransformer = CodeTransformation([
     SnitchCoreFilterPass("compute"),

@@ -633,5 +633,3 @@ class RMSNormChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
-

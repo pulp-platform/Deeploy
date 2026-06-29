@@ -27,12 +27,9 @@ class _FloatAddTemplate(NodeTemplate):
             operatorRepresentation['strides1'] = natural_strides
             operatorRepresentation['strides2'] = natural_strides
 
-        operatorRepresentation['strides1_str'] = '{' + ', '.join(map(str,
-                                                                     operatorRepresentation['strides1'])) + '}'
-        operatorRepresentation['strides2_str'] = '{' + ', '.join(map(str,
-                                                                     operatorRepresentation['strides2'])) + '}'
-        operatorRepresentation['out_shape_str'] = '{' + ', '.join(map(str,
-                                                                      operatorRepresentation['out_shape'])) + '}'
+        operatorRepresentation['strides1_str'] = '{' + ', '.join(map(str, operatorRepresentation['strides1'])) + '}'
+        operatorRepresentation['strides2_str'] = '{' + ', '.join(map(str, operatorRepresentation['strides2'])) + '}'
+        operatorRepresentation['out_shape_str'] = '{' + ', '.join(map(str, operatorRepresentation['out_shape'])) + '}'
 
         return ctxt, operatorRepresentation, []
 

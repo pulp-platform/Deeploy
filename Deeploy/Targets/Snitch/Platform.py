@@ -10,7 +10,7 @@ from Deeploy.AbstractDataTypes import Pointer, PointerClass, VoidType
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.Targets.Generic.Bindings import BasicLayerNormBindings, BasicPad1DBindings, BasicPad2DBindings, \
-    BasicReshapeBindings, BasicRQIntegerDivBinding
+    BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, DivLayer, GatherLayer, GEMMLayer, HardSwishLayer, \
     LayerNormLayer, MatMulLayer, MulLayer, PadLayer, ReshapeLayer, RMSNormLayer, RQGEMMLayer, RQIntegerDivLayer, \
     SoftmaxLayer, TransposeLayer, iNoNormLayer
@@ -22,8 +22,8 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import AddRequant
     IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, RQSSplitPass, \
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Platform import RQAddMapper
-from Deeploy.Targets.Snitch.Parsers import SnitchAddParser, SnitchDivParser, SnitchGEMMParser, \
-    SnitchHardSwishParser, SnitchMulParser, SnitchRMSNormParser, SnitchRQGEMMParser
+from Deeploy.Targets.Snitch.Parsers import SnitchAddParser, SnitchDivParser, SnitchGEMMParser, SnitchHardSwishParser, \
+    SnitchMulParser, SnitchRMSNormParser, SnitchRQGEMMParser
 from Deeploy.Targets.Snitch.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Snitch.Tiler import SnitchAddTileReadyBindings, SnitchConcatTilingReadyBindings, \
     SnitchDivTilingReadyBindings, SnitchGatherTilingReadyBindings, SnitchGemmTilingReadyBindings, \

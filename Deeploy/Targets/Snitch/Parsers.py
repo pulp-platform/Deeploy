@@ -109,8 +109,6 @@ class SnitchHardSwishParser(iHardswishParser):
 class SnitchAddParser(AddParser):
     """Inherits from Generic AddParser which already handles broadcasting."""
 
-    pass
-
 
 class _ScalarElementwiseMixin:
     """Shared parsing for FP32 Div/Mul on Snitch.

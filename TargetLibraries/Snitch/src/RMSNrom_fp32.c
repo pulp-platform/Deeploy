@@ -102,7 +102,8 @@ void RMSNorm_fp32_ssr_frep(float32_t *data_in, float32_t *weight,
       v2f32 acc = {0.0f, 0.0f};
       snrt_ssr_loop_1d(SNRT_SSR_DM0, npairs, sizeof(float32_t) * 2);
       // Reset the repeat count: a prior SSR kernel (e.g. matmul) may have left
-      // snrt_ssr_repeat(DM0, >1) set; it persists and would re-read each element.
+      // snrt_ssr_repeat(DM0, >1) set; it persists and would re-read each
+      // element.
       snrt_ssr_repeat(SNRT_SSR_DM0, 1);
       snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_1D, in_ptr);
       snrt_ssr_enable();
