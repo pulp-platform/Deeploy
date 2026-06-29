@@ -12,10 +12,10 @@ DEFAULT_NUM_CORES = 9
 # Format: {test_name: [L1_sizes]}
 L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Add/Scalar": [2000, 5000, 10000],
-    "Kernels/FP32/Div": [2000, 5000, 10000],
+    "Kernels/FP32/Div/Regular": [2000, 5000, 10000],
     "Kernels/FP32/Div/Scalar": [2000, 5000, 10000],
     "Kernels/FP32/Hardswish": [2000, 5000, 10000],
-    "Kernels/FP32/Mul": [2000, 5000, 10000],
+    "Kernels/FP32/Mul/Regular": [2000, 5000, 10000],
     "Kernels/FP32/Mul/Scalar": [2000, 5000, 10000],
     "Kernels/FP32/RMSNorm/single_fused_op": [2000, 5000, 10000],
     "Kernels/FP32/Softmax/Regular": [2000, 5000, 10000],

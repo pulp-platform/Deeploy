@@ -14,7 +14,7 @@ KERNEL_TESTS = [
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias", "Kernels/FP32/Conv/DW_2D_Bias", "Kernels/FP32/Conv/DW_2D_NoBias",
     "Kernels/FP32/Conv/DW_2D_ZeroValuedBias", "Kernels/FP32/LayerNorm", "Kernels/FP32/ReLU",
     "Kernels/FP32/MaxPool/Regular_2D", "Kernels/FP32/MatMul", "Kernels/FP32/Softmax/Regular", "Kernels/FP32/Transpose",
-    "Kernels/FP32/Mul", "Kernels/Mixed/Dequant", "Kernels/Mixed/Quant", "Kernels/FP32/ReduceSum",
+    "Kernels/FP32/Mul/Regular", "Kernels/Mixed/Dequant", "Kernels/Mixed/Quant", "Kernels/FP32/ReduceSum",
     "Kernels/FP32/Reshape/SkipConnection"
 ]
 
