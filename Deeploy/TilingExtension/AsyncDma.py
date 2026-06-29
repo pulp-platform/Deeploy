@@ -266,6 +266,13 @@ class AnydimAsyncDmaTransferAdapter:
                                          strideExt[-kernelRank:], strideLoc[-kernelRank:], direction, future)
 
             callStack.extend(dma_code)
+            # The decomposed sub-transfers all share the single per-tensor request
+            # handle (future). Under an asynchronous DMA the in-flight copies would
+            # overwrite that handle before it is waited -> request reuse -> overrun /
+            # hang. Wait for each sub-transfer before issuing the next so only one is
+            # ever in flight on the shared handle. This serializes the (rank > kernel-
+            # rank) decomposition only; non-decomposed transfers stay fully async.
+            callStack.append(future.wait())
             callStack.append(CodeSnippet(self.NestedForLoopCloseTemplate(nestedLoopDepth), {}))
             return callStack
         elif kernelRank == transferRank:
