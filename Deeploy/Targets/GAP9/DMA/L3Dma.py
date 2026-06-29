@@ -21,7 +21,6 @@ class GAP9L3DmaFuture(Future):
     _waitTemplate = NodeTemplate("""
     if (${name}.size != 0) {
         pi_cl_ram_copy_wait(&${name});
-        ${name}.size = 0;
     }""")
 
 
@@ -30,7 +29,7 @@ class GAP9L3Dma(AsyncDma):
     _transferTemplates = {
         2:
             NodeTemplate(
-                "pi_cl_ram_copy_2d(get_ram_ptr(), (uint32_t) ${ext}, ${loc}, ${transfer_size}, ${stride}, ${length}, ${ext2loc}, &${future});"
+                "pi_cl_ram_copy_2d(get_ram_ptr(), ${ext}, ${loc}, ${transfer_size}, ${stride}, ${length}, ${ext2loc}, &${future});"
             )
     }
     _waitingStrategy = PerTensorWaitingStrategy(GAP9L3DmaFuture)

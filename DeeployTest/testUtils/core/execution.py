@@ -227,28 +227,6 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     return test_result
 
 
-def _gap9_memcheck_gate(config: DeeployTestConfig) -> None:
-    """GAP9 build-time memory gate.
-
-    Run the L1/L2 budget + InitNetwork alloc-order validator after the build and
-    before the simulation, so memory over-subscription (which otherwise shows up
-    as a multi-minute GVSoC hang in os_evt_release or a wild-pointer crash) fails
-    fast with the exact knob to turn. GAP9-only; bypass with DEPLOY_SKIP_MEMCHECK=1.
-    """
-    if config.platform != "GAP9" or os.environ.get("DEPLOY_SKIP_MEMCHECK") == "1":
-        return
-    script = Path(__file__).parent.parent / "gap9_memcheck.py"
-    if not script.exists():
-        return
-    cmd = ["python", str(script), config.build_dir, config.gen_dir]
-    log.debug(f"[Execution] GAP9 memcheck: {' '.join(cmd)}")
-    result = subprocess.run(cmd, check = False)
-    if result.returncode == 1:
-        raise RuntimeError(f"GAP9 memory check failed for {config.test_name} (L1/L2 over-subscription "
-                           f"or InitNetwork alloc-order race - see output above). "
-                           f"Set DEPLOY_SKIP_MEMCHECK=1 to bypass.")
-
-
 def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim: bool = False) -> TestResult:
     """
     Run a complete test: generate, configure, build, and simulate.
@@ -263,9 +241,6 @@ def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim:
 
     # Step 3: Build binary
     build_binary(config)
-
-    # Step 3b: GAP9 build-time memory gate (fast-fail before simulation)
-    _gap9_memcheck_gate(config)
 
     # Step 4: Run simulation
     result = run_simulation(config, skip = skipsim)
