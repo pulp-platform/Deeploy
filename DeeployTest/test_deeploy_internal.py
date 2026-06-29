@@ -384,12 +384,22 @@ def test_gap9_constant_tables_are_const():
 
     t = SimpleNamespace(referencedType = SimpleNamespace(typeName = "uint8_t"))
     rendered = {
-        "generic/L2": A.gap9GenericGlobalInitTemplate.template.render(
-            type = t, name = "DeeployNetwork_TILING_CODEGEN_x", size = 2, values = "0, 1", _memoryLevel = "L2"),
-        "generic/L1": A.gap9GenericGlobalInitTemplate.template.render(
-            type = t, name = "DeeployNetwork_TILING_CODEGEN_x", size = 2, values = "0, 1", _memoryLevel = "L1"),
-        "L2": A.gap9L2GlobalInitTemplate.template.render(type = t, name = "tbl", size = 1, values = "0"),
-        "L1": A.gap9L1GlobalInitTemplate.template.render(type = t, name = "tbl", size = 1, values = "0"),
+        "generic/L2":
+            A.gap9GenericGlobalInitTemplate.template.render(type = t,
+                                                            name = "DeeployNetwork_TILING_CODEGEN_x",
+                                                            size = 2,
+                                                            values = "0, 1",
+                                                            _memoryLevel = "L2"),
+        "generic/L1":
+            A.gap9GenericGlobalInitTemplate.template.render(type = t,
+                                                            name = "DeeployNetwork_TILING_CODEGEN_x",
+                                                            size = 2,
+                                                            values = "0, 1",
+                                                            _memoryLevel = "L1"),
+        "L2":
+            A.gap9L2GlobalInitTemplate.template.render(type = t, name = "tbl", size = 1, values = "0"),
+        "L1":
+            A.gap9L1GlobalInitTemplate.template.render(type = t, name = "tbl", size = 1, values = "0"),
     }
     for label, out in rendered.items():
         assert "static const PI_L" in out, f"{label}: constant table not emitted `const`:\n{out}"
