@@ -64,6 +64,7 @@ class NeurekaPWConv2DTileConstraint(TileConstraint):
         weightBuffer = ctxt.lookup(name = parseDict['weight'])
         outputBuffer = ctxt.lookup(name = parseDict['data_out'])
 
+        outputBatchVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = 0)
         inputHeightVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 1)
         inputWidthVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 2)
         inputChannelVar = tilerModel.getTensorDimVar(tensorName = inputBuffer.name, dimIdx = 3)
@@ -75,6 +76,9 @@ class NeurekaPWConv2DTileConstraint(TileConstraint):
         outputHeightVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = 1)
         outputWidthVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = 2)
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = outputBuffer.name, dimIdx = 3)
+
+        # Neureka has no batch counter: process one batch element per dispatch
+        tilerModel.addConstraint(outputBatchVar == 1)
 
         strides = parseDict["strides"]
         padding = parseDict["pads"]
