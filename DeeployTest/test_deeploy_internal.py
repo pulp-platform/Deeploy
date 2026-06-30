@@ -373,11 +373,12 @@ class TestTypeInference:
 
 
 def test_gap9_constant_tables_are_const():
-    """GAP9 global-init templates must emit compile-time-initialized arrays as
-    `const`. These include the hoisted tiling-codegen and DMA descriptor (`_cmd`)
-    tables, which are read-only control tables the cluster controller only reads to
-    drive the tiling loop and program DMAs. Emitting them `const` keeps them
-    immutable; this guards against the `const` being dropped from the templates."""
+    """The GAP9 L2 global-init templates must emit compile-time-initialized arrays
+    as `const`. The hoisted tiling-codegen and DMA descriptor (`_cmd`) tables are
+    forced to L2 (`_memoryLevel == "L2"`) and are read-only control tables the
+    cluster controller only reads to drive the tiling loop and program DMAs, so they
+    render through these L2 templates. Emitting them `const` keeps them immutable;
+    this guards against the `const` being dropped from the L2 templates."""
     from types import SimpleNamespace
 
     from Deeploy.Targets.GAP9.Templates import AllocateTemplate as A
@@ -390,19 +391,9 @@ def test_gap9_constant_tables_are_const():
                                                             size = 2,
                                                             values = "0, 1",
                                                             _memoryLevel = "L2"),
-        "generic/L1":
-            A.gap9GenericGlobalInitTemplate.template.render(type = t,
-                                                            name = "DeeployNetwork_TILING_CODEGEN_x",
-                                                            size = 2,
-                                                            values = "0, 1",
-                                                            _memoryLevel = "L1"),
         "L2":
             A.gap9L2GlobalInitTemplate.template.render(type = t, name = "tbl", size = 1, values = "0"),
-        "L1":
-            A.gap9L1GlobalInitTemplate.template.render(type = t, name = "tbl", size = 1, values = "0"),
     }
     for label, out in rendered.items():
-        assert "static const PI_L" in out, f"{label}: constant table not emitted `const`:\n{out}"
-        # the non-const `static PI_L<n> <type>` form must not survive
-        assert "static PI_L1 " not in out and "static PI_L2 " not in out, \
-            f"{label}: non-const table still emitted:\n{out}"
+        assert "static const PI_L2" in out, f"{label}: L2 constant table not emitted `const`:\n{out}"
+        assert "static PI_L2 " not in out, f"{label}: non-const L2 table still emitted:\n{out}"

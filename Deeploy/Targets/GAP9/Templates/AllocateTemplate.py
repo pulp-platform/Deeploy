@@ -18,7 +18,7 @@ gap9L2GlobalInitTemplate = NodeTemplate(
     "static const PI_L2 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
 
 gap9L1GlobalInitTemplate = NodeTemplate(
-    "static const PI_L1 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
+    "static PI_L1 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
 
 gap9L2GlobalAllocateTemplate = NodeTemplate("")
 
@@ -43,7 +43,7 @@ static PI_L2 ${type.typeName} ${name};\n
 
 gap9GenericGlobalInitTemplate = NodeTemplate("""
 % if _memoryLevel == "L1":
-static const PI_L1 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
+static PI_L1 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
 % elif _memoryLevel == "L2" or _memoryLevel is None:
 static const PI_L2 ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
 % elif _memoryLevel == "L3":
