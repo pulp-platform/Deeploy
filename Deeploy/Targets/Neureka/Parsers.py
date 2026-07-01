@@ -4,6 +4,7 @@
 
 from typing import Tuple
 
+import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
@@ -189,9 +190,24 @@ class NeurekaRQSPWConv2DParser(NeurekaPWConv2DParser, RQSParserInterface):
         if not ret:
             return ctxt, False
 
-        inputs = ['data_in', 'weight', 'mul', 'add']
-        for idx, inputNode in enumerate(node.inputs):
-            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
+        data_in = ctxt.lookup(node.inputs[0].name)
+        weight = ctxt.lookup(node.inputs[1].name)
+        mul = ctxt.lookup(node.inputs[2].name)
+        add = ctxt.lookup(node.inputs[3].name)
+
+        # The Neureka PW conv's RQS unit only supports per-tensor or
+        # per-output-channel requantization: mul/add must have either 1
+        # element or one element per output channel (weight's dim 0).
+        out_channels = weight.shape[0]
+        for tensor in (mul, add):
+            size = int(np.prod(tensor.shape))
+            if size not in (1, out_channels):
+                return ctxt, False
+
+        self.operatorRepresentation['data_in'] = data_in
+        self.operatorRepresentation['weight'] = weight
+        self.operatorRepresentation['mul'] = mul
+        self.operatorRepresentation['add'] = add
 
         return newCtxt, True
 
