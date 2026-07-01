@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import itertools
 import math
 from functools import partial
 from typing import Generator, List, Tuple
@@ -167,57 +166,45 @@ class NeurekaAdjustWeightMemoryLayoutPass(ReplaceSequentialPatternPass):
             NonBranchingMatcher(regex_op = True))
 
 
-def _findAllMultiplicands(x: int) -> List[int]:
-    multiplicands = []
-    tmpX = x
-    for i in range(2, math.ceil(math.sqrt(x))):  # Ceil cause range doesn't include the last number
-        while tmpX % i == 0:
-            multiplicands.append(i)
-            tmpX = tmpX / i
-
-    if x // math.prod(multiplicands) > 1:
-        multiplicands.append(x // math.prod(multiplicands))
-
-    return multiplicands
+def _spatialFactorPairs(n: int) -> Generator[Tuple[int, int], None, None]:
+    """Yield every (a, b) with a * b == n and a >= b."""
+    for b in range(1, math.isqrt(n) + 1):
+        if n % b == 0:
+            yield n // b, b
 
 
-def _findAllReshapeOptions(dim: int) -> Generator[Tuple[int, int], None, None]:
-    multiplicands = _findAllMultiplicands(dim)
-    for combLen in range(1, 1 + (len(multiplicands) // 2)):
-        for comb in itertools.combinations(multiplicands, combLen):
-            a = math.prod(comb)
-            b = dim // a
-            yield a, b
+def _nSubtiles(height: int, width: int) -> int:
+    """Number of 6x6 N-EUREKA HW subtiles needed to cover a (height, width) plane."""
+    return math.ceil(height / 6) * math.ceil(width / 6)
 
 
-def _nSubtiles(dims: Tuple[int, int]):
-    return math.ceil(dims[0] / 6) * math.ceil(dims[1] / 6)
+def _bestSpatialReshape(n: int) -> Tuple[int, int]:
+    """Find the (height, width) factorization of n needing the fewest 6x6 HW subtiles.
+
+    Ties are broken toward the more square-like factorization, since that also
+    tends to reduce padding waste in the border subtiles.
+    """
+    best = (n, 1)
+    bestCost = _nSubtiles(*best)
+    bestBalance = abs(best[0] - best[1])
+
+    for candidate in _spatialFactorPairs(n):
+        cost = _nSubtiles(*candidate)
+        balance = abs(candidate[0] - candidate[1])
+        if cost < bestCost or (cost == bestCost and balance < bestBalance):
+            best, bestCost, bestBalance = candidate, cost, balance
+
+    return best
 
 
-def _findLowestNumberOfSubtilesReshapeOptions(dim: int) -> List[Tuple[int, int]]:
-    lowestNumberOfSubtiles = dim
-    bestOptions: List[Tuple[int, int]] = [(dim, 1)]
-    for option in _findAllReshapeOptions(dim):
-        nSubtiles = _nSubtiles(option)
-        if nSubtiles < lowestNumberOfSubtiles:
-            lowestNumberOfSubtiles = nSubtiles
-            bestOptions = [option]
-        elif nSubtiles == lowestNumberOfSubtiles:
-            bestOptions.append(option)
-    return bestOptions
+def _extractSpatialDims(shape: List[int], channels_first: bool) -> List[int]:
+    return shape[-2:] if channels_first else shape[-3:-1]
 
 
-def _bestReshapeOption(dim: int) -> Tuple[int, int]:
-    smallestDim = dim
-    biggestDim = 1
-    for option in _findLowestNumberOfSubtilesReshapeOptions(dim):
-        if option[0] < smallestDim:
-            smallestDim = option[0]
-            biggestDim = option[1]
-        elif option[1] < smallestDim:
-            smallestDim = option[1]
-            biggestDim = option[0]
-    return biggestDim, smallestDim
+def _replaceSpatialDims(shape: List[int], newSpatialDims: Tuple[int, int], channels_first: bool) -> List[int]:
+    if channels_first:
+        return shape[:-2] + list(newSpatialDims)
+    return shape[:-3] + list(newSpatialDims) + shape[-1:]
 
 
 def _neureka_reshape_pointwise_convolution_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool,
@@ -225,40 +212,32 @@ def _neureka_reshape_pointwise_convolution_fun(graph: gs.Graph, match: Match, na
     matched_nodes = list(match.nodes_map.values())
     node = matched_nodes[0]
 
-    if not ("engine" in node.attrs and node.attrs["engine"] == neurekaEngineName):
+    if not all([
+            node.attrs.get("engine") == neurekaEngineName,
+            node.attrs["kernel_shape"] == [1, 1],
+    ]):
         return graph
 
-    if not (node.attrs["kernel_shape"] == [1, 1]):
-        return graph
-
-    if "channels_first" in node.attrs:
-        channels_first = node.attrs["channels_first"]
-    else:
-        channels_first = default_channels_first
-
-    def extractSpatialDims(shape: List[int]) -> List[int]:
-        if channels_first:
-            return shape[-2:]
-        else:
-            return shape[-3:-1]
-
-    def replaceSpatialDims(shape: List[int], newSpatialDims: Tuple[int, int]) -> List[int]:
-        if channels_first:
-            return shape[:-2] + list(newSpatialDims)
-        else:
-            return shape[:-3] + list(newSpatialDims) + shape[-1:]
+    channels_first = bool(node.attrs.get("channels_first", default_channels_first))
 
     _input = node.inputs[0]
-    spatialDims = extractSpatialDims(_input.shape)
-    newSpatialDims = _bestReshapeOption(math.prod(spatialDims))
-    newInputShape = replaceSpatialDims(_input.shape, newSpatialDims)
+    output = node.outputs[0]
 
+    inputSpatialDims = _extractSpatialDims(_input.shape, channels_first)
+    outputSpatialDims = _extractSpatialDims(output.shape, channels_first)
+    if math.prod(inputSpatialDims) != math.prod(outputSpatialDims):
+        return graph
+
+    newSpatialDims = _bestSpatialReshape(math.prod(inputSpatialDims))
+    if tuple(inputSpatialDims) == newSpatialDims:
+        return graph
+
+    newInputShape = _replaceSpatialDims(_input.shape, newSpatialDims, channels_first)
     inputReshapeNode, reshapedInput = _createReshape(_input, name, newInputShape)
     graph.nodes.append(inputReshapeNode)
     node.inputs[0] = reshapedInput
 
-    output = node.outputs[0]
-    newOutputShape = replaceSpatialDims(output.shape, newSpatialDims)
+    newOutputShape = _replaceSpatialDims(output.shape, newSpatialDims, channels_first)
     reshapedOutput = gs.Variable(output.name + "_Reshaped", dtype = output.dtype, shape = newOutputShape)
     outputReshapeNode, _ = _createReshape(reshapedOutput, name, output.shape, output)
     graph.nodes.append(outputReshapeNode)
