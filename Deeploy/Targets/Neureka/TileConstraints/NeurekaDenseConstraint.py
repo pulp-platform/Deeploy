@@ -228,8 +228,8 @@ class NeurekaDenseConv2DTileConstraint(TileConstraint):
             inputBaseOffsets.update(inputWeightBaseOffsets)
             outputBaseOffsets.update(outputWeightBaseOffsets)
 
-            for cube, load in zip(outputCubes, inputLoadSchedule):
-                COffset, CSize = cube.offset[-1], cube.dims[-1]
+            for absoluteCube, load in zip(absoluteOutputCubes, inputLoadSchedule):
+                COffset, CSize = absoluteCube.absoluteOffset[-1], absoluteCube.rectangle.dims[-1]
                 load['weight'] = HyperRectangle((COffset, 0, 0, 0),
                                                 (CSize, weightShape[-3], weightShape[-2], weightShape[-1]))
 
