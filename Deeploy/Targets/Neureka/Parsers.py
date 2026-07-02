@@ -204,10 +204,10 @@ class NeurekaRQSPWConv2DParser(NeurekaPWConv2DParser, RQSParserInterface):
             if size not in (1, out_channels):
                 return ctxt, False
 
-        self.operatorRepresentation['data_in'] = data_in
-        self.operatorRepresentation['weight'] = weight
-        self.operatorRepresentation['mul'] = mul
-        self.operatorRepresentation['add'] = add
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['weight'] = weight.name
+        self.operatorRepresentation['mul'] = mul.name
+        self.operatorRepresentation['add'] = add.name
 
         return newCtxt, True
 
