@@ -1310,6 +1310,9 @@ class NodeTypeChecker():
         retCheck = True
 
         for inputNode, _type in zip(node.inputs, self.input_types):
+            if not inputNode.name:
+                continue
+
             reference = ctxt.lookup(inputNode.name)
 
             if not isinstance(reference, VariableBuffer):
@@ -1330,6 +1333,9 @@ class NodeTypeChecker():
 
     def typeInferGlobalCtxt(self, ctxt: NetworkContext, node: gs.Node) -> NetworkContext:
         for inputNode, _type in zip(node.inputs, self.input_types):
+            if not inputNode.name:
+                continue
+
             if isinstance(ctxt.lookup(inputNode.name), ConstantBuffer):
                 reference = ctxt.lookup(inputNode.name)
                 if not _type.referencedType.checkPromotion(reference.values):
@@ -1920,7 +1926,7 @@ class ONNXLayer():
         newInputShapes, newOutputShapes = self.computeShapes(inputShapes, outputShapes,
                                                              self.mapper.parser.operatorRepresentation, channels_first)
 
-        for node, newShape in zip(validInputNodes + self.node.outputs, newInputShapes + newOutputShapes):
+        for node, newShape in zip(validInputNodes + self.node.outputs, newInputShapes + newOutputShapes, strict = True):
             if ctxt.is_local(node.name):
                 ctxt.localObjects[node.name].shape = newShape
                 # Update shape of tensors in onnx graph

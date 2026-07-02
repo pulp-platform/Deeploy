@@ -330,17 +330,17 @@ BasicBatchNormBindings = [
 BasicConvTranspose1DBindings = [
     NodeBinding(
         ConvChecker(
-            [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
-            [PointerClass(type)]),
+            [PointerClass(dtype), PointerClass(dtype), PointerClass(dtype)],  # input, weight, bias
+            [PointerClass(dtype)]),
         ConvTransposeTemplate.referenceTemplate1D,
-        BasicTransformer) for type in FloatDataTypes
+        BasicTransformer) for dtype in FloatDataTypes
 ] + [
     NodeBinding(
         ConvChecker(
-            [PointerClass(type), PointerClass(type)],  # input, weight
-            [PointerClass(type)]),
+            [PointerClass(dtype), PointerClass(dtype)],  # input, weight
+            [PointerClass(dtype)]),
         ConvTransposeTemplate.referenceTemplate1D,
-        BasicTransformer) for type in FloatDataTypes
+        BasicTransformer) for dtype in FloatDataTypes
 ]
 
 BasicConvTranspose2DBindings = [

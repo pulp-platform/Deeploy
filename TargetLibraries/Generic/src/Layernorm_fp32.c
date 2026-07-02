@@ -42,7 +42,7 @@ void LayernormGrad_fp32_fp32(float32_t *grad_in, float32_t *data_in,
                              float32_t *bias, float32_t epsilon, int32_t size,
                              int32_t lastDimLength) {
   float32_t mean, variance, std, inv_std;
-  float32_t sum_dy, sum_dy_scaled;
+  float32_t sum_dy_scaled, sum_dy_scaled_centered;
   float32_t centered_input;
 
   for (int i = 0; i < (size / lastDimLength); i++) {
@@ -65,30 +65,25 @@ void LayernormGrad_fp32_fp32(float32_t *grad_in, float32_t *data_in,
     inv_std = 1.0f / std;
 
     // RW: Step 2: Compute intermediate values needed for gradient calculation
-    sum_dy = 0.0f;
     sum_dy_scaled = 0.0f;
+    sum_dy_scaled_centered = 0.0f;
 
-    // RW: Calculate sum(dy) and sum(dy * scale * (x - mean) / std)
+    // RW: Calculate sum(dy * scale) and sum(dy * scale * (x - mean) / std)
     for (int j = 0; j < lastDimLength; j++) {
-      sum_dy += grad_in[j + i * lastDimLength];
+      float32_t dy_scaled = grad_in[j + i * lastDimLength] * scale[j];
       centered_input = data_in[j + i * lastDimLength] - mean;
-      sum_dy_scaled +=
-          grad_in[j + i * lastDimLength] * scale[j] * centered_input * inv_std;
+      sum_dy_scaled += dy_scaled;
+      sum_dy_scaled_centered += dy_scaled * centered_input * inv_std;
     }
 
     // RW: Step 3: Calculate gradients for each element
     for (int j = 0; j < lastDimLength; j++) {
       centered_input = data_in[j + i * lastDimLength] - mean;
-
-      // Gradient formula:
-      // dx = (1/std) * scale * (dy - (1/N)*sum(dy) -
-      // (x-mean)/(N*std^2)*sum(dy*scale*(x-mean)/std))
       grad_out[j + i * lastDimLength] =
-          inv_std * scale[j] *
-          (grad_in[j + i * lastDimLength] -
-           (sum_dy / (float32_t)lastDimLength) -
-           (centered_input * inv_std * inv_std / (float32_t)lastDimLength) *
-               sum_dy_scaled);
+          inv_std * ((grad_in[j + i * lastDimLength] * scale[j]) -
+                     (sum_dy_scaled / (float32_t)lastDimLength) -
+                     (centered_input * inv_std / (float32_t)lastDimLength) *
+                         sum_dy_scaled_centered);
     }
   }
 }

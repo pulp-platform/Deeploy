@@ -3,30 +3,20 @@
 # SPDX-License-Identifier: Apache-2.0
 from typing import Dict, List, Tuple
 
-import numpy as np
+from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
+from Deeploy.Targets.Generic.Templates.FloatUnaryTemplate import _FloatUnaryTemplate
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
-
-class _SqrtTemplate(NodeTemplate):
+class _SqrtTemplate(_FloatUnaryTemplate):
 
     def alignToContext(self, ctxt: NetworkContext,
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        # Get input and output tensors
+        ctxt, operatorRepresentation, deps = super().alignToContext(ctxt, operatorRepresentation)
+
         data_in = ctxt.lookup(operatorRepresentation['data_in'])
-        data_out = ctxt.lookup(operatorRepresentation['data_out'])
+        operatorRepresentation['data_type'] = data_in._type.typeName
 
-        # Get data type (fp32)
-        data_type = data_in._type.typeName
-        operatorRepresentation['data_type'] = data_type
-
-        type_width = data_in._type.referencedType.typeWidth
-        operatorRepresentation['type_width'] = type_width
-
-        # Calculate size
-        operatorRepresentation['size'] = int(np.prod(data_in.shape))
-
-        return ctxt, operatorRepresentation, []
+        return ctxt, operatorRepresentation, deps
 
 
 referenceTemplate = _SqrtTemplate("""

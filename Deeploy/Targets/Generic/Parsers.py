@@ -2804,9 +2804,17 @@ class ConvTransposeParser(NodeParser):
 
         kernel_shape = list(weight.shape[2:])
         feature_maps = weight.shape[1] * rep['group']  # input channels
+        if not all([
+                channels % rep['group'] == 0,
+                weight.shape[0] == channels,
+                data_out.shape[1] == feature_maps,
+        ]):
+            return ctxt, False
 
         # optional inputs
-        if len(node.inputs) == 3:
+        rep['bias'] = 'NULL'
+        has_bias = len(node.inputs) == 3 and bool(node.inputs[2].name)
+        if has_bias:
             bias: ConstantBuffer = ctxt.lookup(node.inputs[2].name)
             if not (len(bias.shape) == 1 and bias.shape[0] == feature_maps):
                 return ctxt, False
@@ -2864,7 +2872,7 @@ class ConvTransposeParser(NodeParser):
         rep['data_in'] = data_in.name
         rep['weight'] = weight.name
         rep['data_out'] = data_out.name
-        rep['has_bias'] = int('bias' in rep)
+        rep['has_bias'] = int(has_bias)
 
         rep['kernel_shape'] = kernel_shape
         rep['output_shape'] = output_shape
@@ -3248,12 +3256,24 @@ class ScatterParser(NodeParser):
         indices = ctxt.lookup(node.inputs[1].name)
         updates = ctxt.lookup(node.inputs[2].name)
         data_out = ctxt.lookup(node.outputs[0].name)
+
+        ndim = len(data_in.shape)
+        axis = int(self.operatorRepresentation['axis'])
+        if axis < 0:
+            axis += ndim
+        if not all([
+                0 <= axis < ndim,
+                list(data_out.shape) == list(data_in.shape),
+                list(updates.shape) == list(indices.shape),
+        ]):
+            return ctxt, False
+
         self.operatorRepresentation['data_in'] = data_in.name
         self.operatorRepresentation['indices'] = indices.name
         self.operatorRepresentation['updates'] = updates.name
         self.operatorRepresentation['data_out'] = data_out.name
 
-        self.operatorRepresentation['ndim'] = len(data_in.shape)
+        self.operatorRepresentation['ndim'] = ndim
         self.operatorRepresentation['data_shape'] = list(data_in.shape)
         self.operatorRepresentation['indices_shape'] = list(indices.shape)
 
@@ -3321,9 +3341,12 @@ class Col2ImParser(NodeParser):
         data_in: VariableBuffer = ctxt.lookup(node.inputs[0].name)
         data_out: VariableBuffer = ctxt.lookup(node.outputs[0].name)
 
-        image_shape = self.operatorRepresentation['image_shape']
-        block_shape = self.operatorRepresentation['block_shape']
-        col_dims = self.operatorRepresentation['col_dims']
+        image_shape: list = self.operatorRepresentation['image_shape']
+        block_shape: list = self.operatorRepresentation['block_shape']
+        col_dims: list = self.operatorRepresentation['col_dims']
+
+        if len(data_in.shape) != 3 or len(data_out.shape) != 2 + len(image_shape):
+            return ctxt, False
 
         N, C = data_out.shape[0], data_out.shape[1]
         block_volume = int(np.prod(block_shape))
@@ -3346,13 +3369,13 @@ class Col2ImParser(NodeParser):
 class ResizeParser(NodeParser):
 
     @staticmethod
-    def _is_empty(input: gs.Variable | gs.Constant | None) -> bool:
-        if input is None:
+    def _is_empty(tensor: gs.Variable | gs.Constant | None) -> bool:
+        if tensor is None:
             return True
-        if isinstance(input, gs.Constant):
-            return input.values.size <= 0
-        if isinstance(input, gs.Variable):
-            return input.shape is None
+        if isinstance(tensor, gs.Constant):
+            return tensor.values.size <= 0
+        if isinstance(tensor, gs.Variable):
+            return tensor.shape is None
         return True
 
     def parseNode(self, node: gs.Node) -> bool:

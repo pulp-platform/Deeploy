@@ -814,7 +814,7 @@ class Col2ImLayer(ONNXLayer):
         # Col2Im iterates over every element of the input tensor and adds it
         # into the corresponding output position. The total number of
         # accumulations is exactly the number of input elements which is
-        # N × C × block_volume × L
+        # N x C x block_volume x L
         rep = self.mapper.parser.operatorRepresentation
         block_volume = int(np.prod(rep['block_shape']))
         L = int(np.prod(rep['col_dims']))

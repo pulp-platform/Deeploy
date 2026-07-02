@@ -25,6 +25,9 @@ class SignPropTypeChecker(NodeTypeChecker):
         ctxt = super().typeInferGlobalCtxt(ctxt, node)
 
         for inputNode, _type in zip(node.inputs, self.input_types):
+            if not inputNode.name:
+                continue
+
             if isinstance(ctxt.lookup(inputNode.name), ConstantBuffer):
                 reference = ctxt.lookup(inputNode.name)
                 if not _type.referencedType.checkPromotion(reference.values):

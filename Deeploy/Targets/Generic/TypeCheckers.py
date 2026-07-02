@@ -55,8 +55,8 @@ class ConcatChecker(SignPropTypeChecker):
 
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
-        assert (all([_inp._signed == True for _inp in inputs]) or all(
-            [[_inp._signed == False for _inp in inputs]])), "Some inputs in concat operation have different signs!"
+        assert (all([inp._signed for inp in inputs])
+                or all([[not inp._signed for inp in inputs]])), "Some inputs in concat operation have different signs!"
 
         if inputs[0]._signed:
             return [True]
