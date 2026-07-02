@@ -657,38 +657,29 @@ class BatchNormalizationLayer(ONNXLayer):
 
 class ConvTransposeLayer(ONNXLayer):
 
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
-
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-        newInputShapes = list(inputShapes)
+        """
+        Infers output shapes for ConvTranspose using only static info.
+        - inputShapes[0]: input tensor shape (e.g., [N, C_in, W] for 1D, [N, C_in, H, W] for 2D)
+        - inputShapes[1]: weight tensor shape (e.g., [C_in, C_out // group, kW] for 1D)
+        - outputShapes[0]: output tensor shape (to be updated)
+        """
+        assert channels_first, "ConvTransposeLayer only supports channels_first (NCHW) layout: " \
+            "there is no NHWC lowering pass for ConvTranspose, and ConvTransposeParser/computeOps assume NCHW indexing."
 
-        input_shape = inputShapes[0]  # [N, C_in, d0, ...]
-        weight_shape = inputShapes[1]  # [C_in, C_out//group, k0, ...]
+        input_shapes = list(inputShapes)
+        output_shapes = list(outputShapes)
         group = operatorRepresentation.get('group', 1)
+        weight_shape = inputShapes[1]
 
-        batch = input_shape[0]
-        spatial_in = list(input_shape[2:]) if channels_first else list(input_shape[1:-1])
-        ndim = len(spatial_in)
+        if output_shapes and len(output_shapes[0]) >= 2:
+            # For 1D: weight_shape = [C_in, C_out // group, kW]
+            # For 2D: weight_shape = [C_in, C_out // group, kH, kW]
+            ch_out = weight_shape[1] * group
+            output_shapes[0][1] = ch_out
 
-        kernel_shape = list(weight_shape[2:])
-        C_out = weight_shape[1] * group
-
-        strides = operatorRepresentation.get('strides') or [1] * ndim
-        dilations = operatorRepresentation.get('dilations') or [1] * ndim
-        output_padding = operatorRepresentation.get('output_padding') or [0] * ndim
-        pads = operatorRepresentation.get('pads') or [0] * (2 * ndim)
-
-        spatial_out = [(spatial_in[d] - 1) * strides[d] - pads[d] - pads[d + ndim] + dilations[d] *
-                       (kernel_shape[d] - 1) + output_padding[d] + 1 for d in range(ndim)]
-
-        if channels_first:
-            output_shape = [batch, C_out] + spatial_out
-        else:
-            output_shape = [batch] + spatial_out + [C_out]
-
-        return newInputShapes, [output_shape]
+        return input_shapes, output_shapes
 
     def computeOps(self):
         rep = self.mapper.parser.operatorRepresentation
