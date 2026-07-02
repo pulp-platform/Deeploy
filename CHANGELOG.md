@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Spatz integration [#168](https://github.com/pulp-platform/Deeploy/pull/168)
 - XDNA2 Platform Support [#179](https://github.com/pulp-platform/Deeploy/pull/179)
 - Add Microbenchmarking Infrastructure and CI Using GVSoC CSR [#162](https://github.com/pulp-platform/Deeploy/pull/162)
 - Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
@@ -21,6 +22,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix GAP9 L3 Board Tests: readfs Flash Ordering and Duplicate Input Data [#196](https://github.com/pulp-platform/Deeploy/pull/196)
 
 ### Added
+- Spatz platform integration with runtime, DMA, tiling, and fp32 MatMul/Softmax/TopK/Gather support, plus updated test runners and Makefile flow
 - XDNA2 (AIE2p) platform beta: first MLIR backend for Deeploy, targeting AMD/Xilinx NPU2 with a single BF16 Add kernel
 - `MLIRNodeTemplate` and `MLIRCodeTransformation` base classes for MLIR-emitting backends
 - Auto-tiling with L1 memory constraints for XDNA2

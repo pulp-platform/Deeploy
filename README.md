@@ -91,7 +91,7 @@ Now you can open the generated code in `DeeployTest/TEST_SIRACUSA/Tests/testMatM
 | **SoftHier**           | [Repo](https://github.com/gvsoc/gvsoc/tree/soft_hier_release)                                    | [GVSoC](https://github.com/gvsoc/gvsoc/tree/soft_hier_release) | [![CI • SoftHier](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-softhier.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-softhier.yml)
 | **Chimera**            | [Repo](https://github.com/pulp-platform/chimera)                                                 | [GVSoC](https://github.com/gvsoc/gvsoc)                        | [![CI • Chimera](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-chimera.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-chimera.yml)
 | **GAP9**            | [Repo](https://github.com/pulp-platform/gap-sdk)                                                 | [GVSoC](https://github.com/pulp-platform/gap-sdk)                        | [![CI • GAP9](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-gap9.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-gap9.yml) [![CI • GAP9 (Tiled)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-gap9-tiled.yml/badge.svg)](https://github.com/pulp-platform/Deeploy/actions/workflows/ci-platform-gap9-tiled.yml)
-
+| **Spatz** | [Repo](https://github.com/pulp-platform/spatz) | [GVSoC](https://github.com/pulp-platform/gap-sdk) | CI? |
 
 ## Publications
 
