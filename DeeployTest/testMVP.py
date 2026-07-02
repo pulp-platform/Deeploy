@@ -109,9 +109,10 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
 
     if args.neureka_wmem:
         weightMemoryLevel = memoryHierarchy.memoryLevels["WeightMemory_SRAM"]
-        memoryLevelAnnotationPasses.append(
-            AnnotateNeurekaWeightMemoryLevel(neurekaEngineName = deployer.Platform.engines[0].name,
-                                             weightMemoryLevel = weightMemoryLevel))
+        print('super error')
+        # memoryLevelAnnotationPasses.append(
+        #     AnnotateNeurekaWeightMemoryLevel(neurekaEngineName = deployer.Platform.engines[0].name,
+        #                                      weightMemoryLevel = weightMemoryLevel))
 
     # Make the deployer memory-level aware
     deployer = MemoryDeployerWrapper(deployer, memoryLevelAnnotationPasses)
