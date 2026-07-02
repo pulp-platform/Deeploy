@@ -31,6 +31,16 @@ target_compile_options(deeploygap9 PRIVATE
 
 target_link_libraries(deeploygap9 PUBLIC pmsis)
 
+# Compile the hot forward kernels at -O3 (set last so it wins over the SDK's
+# default -Os). Conv / depthwise-conv / Gemm dominate GAP9 inference cycles;
+# -O3 turns on the RISC-V (XpulpV2) hardware loops on their tight inner loops.
+set(_KERNEL_O3_FILES
+  ${CMAKE_CURRENT_LIST_DIR}/../PULPOpen/src/Convolution_fp32.c
+  ${CMAKE_CURRENT_LIST_DIR}/../PULPOpen/src/DWConvolution_fp32.c
+  ${CMAKE_CURRENT_LIST_DIR}/../PULPOpen/src/Gemm.c
+)
+set_source_files_properties(${_KERNEL_O3_FILES} PROPERTIES COMPILE_OPTIONS "-O3")
+
 #RW: Link PULP-NN
 #RW: Set PULP-NN version and bitwidth for pulp-nn-mixed
 set(PULPNNVERSION XPULPV2)
