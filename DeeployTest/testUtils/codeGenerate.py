@@ -54,9 +54,9 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
         # the data here would just duplicate the whole input tensor inside the
         # binary, so keep a NULL placeholder to preserve testInputVector[]
         # indexing without storing the data twice.
-        if getattr(buffer, "_memoryLevel", None) == "L3":
-            vectors.append("NULL")
-            continue
+        # if getattr(buffer, "_memoryLevel", None) == "L3":
+        #     vectors.append("NULL")
+        #     continue
         typeName = buffer._type.referencedType.typeName
         typeWidth = buffer._type.referencedType.typeWidth
 
