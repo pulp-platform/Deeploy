@@ -78,14 +78,12 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
     elif platformName == "Chimera":
         Platform = ChimeraPlatform()
 
-<<<<<<< HEAD
     elif platformName == "XDNA2":
         from Deeploy.Targets.XDNA2.Platform import XDNA2Platform
         Platform = XDNA2Platform()
-=======
+
     elif platformName == "Spatz":
         Platform = SpatzPlatform()
->>>>>>> 0774556 (code generation with generic c code)
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
