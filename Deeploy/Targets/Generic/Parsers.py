@@ -1002,7 +1002,7 @@ class GatherParser(NodeParser):
             return False
 
         indices_shape = node.inputs[1].shape
-        assert np.prod(indices_shape) == 1, f"Only indices of size 1 supported. Got indices of shape {indices_shape}"
+        self.operatorRepresentation['num_indices'] = int(np.prod(indices_shape))
 
         self.operatorRepresentation['axis'] = node.attrs['axis'] if 'axis' in node.attrs else 0
         return True
@@ -1022,10 +1022,17 @@ class GatherParser(NodeParser):
 
         axis = self.operatorRepresentation['axis']
         shape = ctxt.lookup(node.inputs[0].name).shape
-        self.operatorRepresentation['batch'] = np.prod(shape[:axis])
-        self.operatorRepresentation['batch_length'] = np.prod(shape[axis:])
-        self.operatorRepresentation['axis_length'] = np.prod(shape[axis + 1:])
-        self.operatorRepresentation['index'] = int(node.inputs[1].values.item())
+        self.operatorRepresentation['batch'] = int(np.prod(shape[:axis])) if axis > 0 else 1
+        self.operatorRepresentation['batch_length'] = int(np.prod(shape[axis:]))
+        self.operatorRepresentation['axis_length'] = int(np.prod(shape[axis + 1:])) if axis + 1 < len(shape) else 1
+
+        if self.operatorRepresentation['num_indices'] == 1:
+            try:
+                self.operatorRepresentation['index'] = int(node.inputs[1].values.item())
+            except AttributeError:
+                self.operatorRepresentation['index'] = f"{self.operatorRepresentation['indices']}[0]"
+        else:
+            self.operatorRepresentation['index'] = 0 # in this case is not used but is needed for mako template
 
         return ctxt, True
 
@@ -3124,3 +3131,28 @@ class GlobalMaxPoolParser(GlobalPoolParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'GlobalMaxPool'
+
+# TopKParser: selects the largest k elements from a vector
+class TopKParser(NodeParser):
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return len(node.inputs)==2 and len(node.outputs)==2 and node.op=='TopK'
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        data_in = ctxt.lookup(node.inputs[0].name)
+        k_in = ctxt.lookup(node.inputs[1].name)
+        values_out = ctxt.lookup(node.outputs[0].name)
+        indices_out = ctxt.lookup(node.outputs[1].name)
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_in_size'] = int(np.prod(data_in.shape))
+        self.operatorRepresentation['k_value'] = int(k_in.values[0])
+        self.operatorRepresentation['values_out'] = values_out.name
+        self.operatorRepresentation['indices_out'] = indices_out.name
+
+        return ctxt, True

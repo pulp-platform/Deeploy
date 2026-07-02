@@ -22,12 +22,12 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
     MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
     RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, SubTemplate, \
-    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate, TopKTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
     LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceMeanChecker, \
     ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, SliceChecker, \
-    SoftmaxChecker, TransposeChecker
+    SoftmaxChecker, TransposeChecker, TopKChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -419,4 +419,14 @@ BasicGlobalAveragePoolBindings = [
 BasicGlobalMaxPoolBindings = [
     NodeBinding(DummyChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
                 FloatGlobalMaxPoolTemplate.referenceTemplate, BasicTransformer)
+]
+BasicTopKBindings = [
+    NodeBinding(
+        TopKChecker(
+            [PointerClass(float32_t), PointerClass(int8_t)], # inputs
+            [PointerClass(float32_t), PointerClass(int8_t)] # outputs
+        ),
+        TopKTemplate.referenceTemplate,
+        BasicTransformer,
+    )
 ]

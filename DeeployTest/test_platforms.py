@@ -43,6 +43,8 @@ from test_softhier_config import DEFAULT_NUM_CLUSTERS as SOFTHIER_DEFAULT_NUM_CL
 from test_softhier_config import KERNEL_TESTS as SOFTHIER_KERNEL_TESTS
 from test_softhier_config import MODEL_TESTS as SOFTHIER_MODEL_TESTS
 from test_xdna2_config import KERNEL_TESTS as XDNA2_KERNEL_TESTS
+from test_spatz_tiled_config import KERNEL_TESTS as SPATZ_KERNEL_TESTS
+from test_spatz_tiled_config import MODEL_TESTS as SPATZ_MODEL_TESTS
 from testUtils.pytestRunner import create_test_config, run_and_assert_test
 
 
@@ -110,6 +112,13 @@ PLATFORM_CONFIGS = {
         "kernel_tests": SNITCH_KERNEL_TESTS,
         "model_tests": SNITCH_MODEL_TESTS,
         "default_num_cores": SNITCH_DEFAULT_NUM_CORES,
+    },
+    "spatz": {
+        "platform": "Spatz",
+        "simulator": "gvsoc",
+        "kernel_tests": SPATZ_KERNEL_TESTS,
+        "model_tests": SPATZ_MODEL_TESTS,
+        "default_num_cores": 2, # only two cores possible
     },
     "gap9": {
         "platform": "GAP9",
@@ -571,6 +580,26 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
         l1 = l1,
         default_mem_level = "L2",
         double_buffer = False,
+    )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+@pytest.mark.spatz_tiled
+@pytest.mark.kernels
+@pytest.mark.parametrize("test_name", SPATZ_KERNEL_TESTS, ids = SPATZ_KERNEL_TESTS)
+def test_spatz_tiled_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen,
+                             skipsim) -> None:
+    platform_config = PLATFORM_CONFIGS["spatz"]
+
+    config = create_test_config(
+        test_name = test_name,
+        platform = platform_config["platform"],
+        simulator = platform_config["simulator"],
+        deeploy_test_dir = deeploy_test_dir,
+        toolchain = toolchain,
+        toolchain_dir = toolchain_dir,
+        cmake_args = cmake_args,
+        tiling = True,
+        cores = platform_config["default_num_cores"],
     )
     run_and_assert_test(test_name, config, skipgen, skipsim)
 

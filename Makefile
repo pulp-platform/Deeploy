@@ -30,10 +30,12 @@ GAP_RISCV_GCC_INSTALL_DIR ?= ${GCC_INSTALL_DIR}/gap9
 CHIMERA_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/chimera-sdk
 PULP_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/pulp-sdk
 SNITCH_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/snitch_cluster
+SPATZ_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/spatz
 QEMU_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/qemu
 BANSHEE_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/banshee
 MEMPOOL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/mempool
 GVSOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc
+GVSOC_SPATZ_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gvsoc_spatz
 SOFTHIER_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/softhier
 MINIMALLOC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/minimalloc
 XTL_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/xtl
@@ -48,8 +50,10 @@ PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
+SPATZ_COMMIT_HASH ?= 6bd9f3094e237dab392983edb827105bce8e3e86
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
-GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
+# GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0 # old
+GVSOC_COMMIT_HASH ?= 209c147cbd293d5c1590694e68c489122c777acc # new
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
@@ -82,7 +86,7 @@ else
 	$(error unsupported platform $(OS))
 endif
 
-all: toolchain emulators docs echo-bash
+all: toolchain emulators # docs echo-bash
 
 echo-bash:
 
@@ -94,8 +98,10 @@ echo-bash:
 	@echo "export GAP_RISCV_GCC_TOOLCHAIN=${GAP_RISCV_GCC_INSTALL_DIR}"
 	@echo "export CHIMERA_SDK_HOME=${CHIMERA_SDK_INSTALL_DIR}"
 	@echo "export SNITCH_HOME=${SNITCH_INSTALL_DIR}"
+	@echo "export SPATZ_HOME=${SPATZ_INSTALL_DIR}"
 	@echo "export GVSOC_INSTALL_DIR=${GVSOC_INSTALL_DIR}"
 	@echo "export SOFTHIER_INSTALL_DIR=${SOFTHIER_INSTALL_DIR}"
+	@echo "export BANSHEE_INSTALL_DIR=${BANSHEE_INSTALL_DIR}"
 	@echo "export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR}"
 	@echo "export MEMPOOL_HOME=${MEMPOOL_INSTALL_DIR}"
 	@echo "export CMAKE=$$(which cmake)"
@@ -106,9 +112,9 @@ echo-bash:
 	@echo "source ${PULP_SDK_INSTALL_DIR}/configs/siracusa.sh"
 
 
-toolchain: llvm llvm-compiler-rt-riscv llvm-compiler-rt-arm picolibc-arm picolibc-riscv
+toolchain: llvm llvm-compiler-rt-riscv llvm-compiler-rt-arm picolibc-arm picolibc-riscv xtensor minimalloc # xtensor needed for gvsoc, minimalloc for tiling
 
-emulators: snitch_runtime pulp-sdk qemu banshee mempool
+emulators: snitch_runtime spatz_runtime pulp-sdk qemu banshee mempool gvsoc
 
 ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
@@ -141,6 +147,7 @@ ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 llvm: ${LLVM_INSTALL_DIR}
 
 
+# runtimes for different architectures
 ${LLVM_CLANG_RT_RISCV_RV32IM}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && mkdir -p build-compiler-rt-riscv-rv32im \
 	&& cd build-compiler-rt-riscv-rv32im; \
@@ -463,16 +470,55 @@ ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 
 snitch_runtime: ${SNITCH_INSTALL_DIR}
 
+${TOOLCHAIN_DIR}/spatz:
+	cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/pulp-platform/spatz.git && \
+	cd ${TOOLCHAIN_DIR}/spatz && git checkout ${SPATZ_COMMIT_HASH} && \
+ 	git submodule update --init --recursive
+
+${SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/spatz
+	mkdir -p ${SPATZ_INSTALL_DIR}
+	cp -r ${TOOLCHAIN_DIR}/spatz/ ${SPATZ_INSTALL_DIR}/../
+	cd ${SPATZ_INSTALL_DIR} && \
+	make all -j8 && \
+	python3.6 -m venv .venv && \
+	.venv/bin/pip install jsonref jsonschema jstyleson dataclasses hjson mako && \
+	source .venv/bin/activate && \
+	source util/iis-env.sh && \
+	make init && \
+	cd hw/system/spatz_cluster/ && \
+	make sw
+
+spatz_runtime: ${SPATZ_INSTALL_DIR}
+
+# ${TOOLCHAIN_DIR}/gvsoc_spatz:
+# 	cd ${TOOLCHAIN_DIR} && \
+# 	git clone https://github.com/gvsoc/gvsoc.git gvsoc_spatz && \
+# 	cd ${TOOLCHAIN_DIR}/gvsoc_spatz && git checkout ${GVSOC_SPATZ_COMMIT_HASH} && \
+# 	git submodule update --init --recursive && \
+# 	python3 -m venv venv && source venv/bin/activate &&\
+# 	pip3 install -r core/requirements.txt && pip3 install -r gapy/requirements.txt && pip3 install psutil && \
+# 	cd core && git apply ${TOOLCHAIN_DIR}/gvsoc.patch
+# 
+# 
+# ${GVSOC_SPATZ_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc_spatz
+# 	cd ${TOOLCHAIN_DIR}/gvsoc_spatz && \
+# 	source venv/bin/activate &&\
+# 	CXX=g++-11.2.0 CC=gcc-11.2.0 CMAKE=cmake-3.18.1 make all TARGETS=spatz_v2 INSTALLDIR=${GVSOC_SPATZ_INSTALL_DIR}
+# 
+# gvsoc_spatz: ${GVSOC_SPATZ_INSTALL_DIR}
+
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone https://github.com/gvsoc/gvsoc.git && \
 	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
 	git submodule update --init --recursive && \
-	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt
+	pip3 install -r core/requirements.txt && pip3 install -r gapy/requirements.txt && pip3 install psutil &&\
+	cd core && git apply ${TOOLCHAIN_DIR}/gvsoc.patch
 
 ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	cd ${TOOLCHAIN_DIR}/gvsoc && \
-	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera" build INSTALLDIR=${GVSOC_INSTALL_DIR}
+	XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera spatz_v2" build INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
 
@@ -538,7 +584,7 @@ ${QEMU_INSTALL_DIR}: ${TOOLCHAIN_DIR}/qemu
 	cd ${TOOLCHAIN_DIR}/qemu/ && \
 	mkdir -p build && cd build && \
 	../configure --target-list=arm-softmmu,arm-linux-user,riscv32-softmmu,riscv32-linux-user \
-	--prefix=${QEMU_INSTALL_DIR} && \
+	--prefix=${QEMU_INSTALL_DIR} --disable-werror && \
 	make -j && \
 	make install
 
@@ -571,7 +617,7 @@ ${TOOLCHAIN_DIR}/minimalloc:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone --recursive https://github.com/google/minimalloc.git && \
 	cd ${TOOLCHAIN_DIR}/minimalloc && git checkout ${MINIMALLOC_COMMMIT_HASH} && \
-	cmake -DCMAKE_BUILD_TYPE=Release && make -j && \
+	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=17 && make -j && \
 	mkdir -p ${MINIMALLOC_INSTALL_DIR} && cp minimalloc ${MINIMALLOC_INSTALL_DIR}
 
 ${CHIMERA_SDK_INSTALL_DIR}:

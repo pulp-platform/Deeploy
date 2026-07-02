@@ -54,9 +54,9 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
         # the data here would just duplicate the whole input tensor inside the
         # binary, so keep a NULL placeholder to preserve testInputVector[]
         # indexing without storing the data twice.
-        if getattr(buffer, "_memoryLevel", None) == "L3":
-            vectors.append("NULL")
-            continue
+        # if getattr(buffer, "_memoryLevel", None) == "L3":
+        #     vectors.append("NULL")
+        #     continue
         typeName = buffer._type.referencedType.typeName
         typeWidth = buffer._type.referencedType.typeWidth
 
@@ -155,6 +155,25 @@ def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
     return retStr
 
 
+def _generateBindExternalInputs(deployer: NetworkDeployer) -> str:
+    """Generate a bind function for all global network input buffers."""
+    inputs = deployer.inputs()
+
+    retStr = "void DeeployNetwork_BindExternalInputs(void **external_inputs) {\n"
+    retStr += "  // NOTE: This is a hack to avoid the memcpy in main.c from \n"
+    retStr += "  // testInputVector to DeeployNetwork_inputs, since they are both in L3\n"
+
+    for index, node in enumerate(inputs):
+        typeName = node._type.referencedType.typeName
+        retStr += f"  DeeployNetwork_input_{index} = ({typeName} *)external_inputs[{index}];\n"
+
+    for index in range(len(inputs)):
+        retStr += f"  DeeployNetwork_inputs[{index}] = (void *)DeeployNetwork_input_{index};\n"
+
+    retStr += "}\n"
+    return retStr
+
+
 def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: CodeGenVerbosity) -> str:
     retStr = ""
 
@@ -207,6 +226,9 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
     retStr += """
     }
     """
+
+    # TODO: make this work only for spatz and with the correct number of unputs every time
+    retStr += _generateBindExternalInputs(deployer)
 
     return retStr
 

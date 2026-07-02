@@ -367,6 +367,7 @@ def main(default_platform: Optional[str] = None,
         "chimera": "Chimera",
         "softhier": "SoftHier",
         "xdna2": "XDNA2",
+        "spatz": "Spatz",
     }
 
     if args.platform:
@@ -407,6 +408,7 @@ def main(default_platform: Optional[str] = None,
             "Snitch": "gvsoc",
             "Chimera": "gvsoc",
             "SoftHier": "gvsoc",
+            "Spatz": "vsim",
         }
         simulator = simulator_map.get(platform, "host")
         log.info(f"No simulator specified, using default for {platform}: {simulator}")
