@@ -225,7 +225,6 @@ class Neureka2DDWConvTemplate(NeurekaConvTemplate):
 
     @classmethod
     def getWeightStrides(cls, channel_in: int) -> Tuple[int, int, int]:
-        n_channel_in = _getNumTiles(channel_in, 28)
         _NEUREKA_WEIGHT_BANDWIDTH_BYTES = 32
         return _NEUREKA_WEIGHT_BANDWIDTH_BYTES, 0, 0
 

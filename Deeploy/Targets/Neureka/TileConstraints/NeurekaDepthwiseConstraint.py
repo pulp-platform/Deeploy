@@ -69,10 +69,19 @@ class NeurekaDWConv2DTileConstraint(TileConstraint):
         inputHeightVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_in'], dimIdx = 1)
         inputWidthVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_in'], dimIdx = 2)
 
+        weightInChannelMajorVar = tilerModel.getTensorDimVar(tensorName = parseDict['weight'], dimIdx = 1)
+        weightBitsVar = tilerModel.getTensorDimVar(tensorName = parseDict['weight'], dimIdx = 2)
+        weightBandwidthVar = tilerModel.getTensorDimVar(tensorName = parseDict['weight'], dimIdx = 3)
+
         strides = parseDict["strides"]
 
         tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
         tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
+
+        # Force the weight tensor's non-tiled dims to their full size
+        tilerModel.addConstraint(weightInChannelMajorVar == weightInChannelMajorVar.Max())
+        tilerModel.addConstraint(weightBitsVar == weightBitsVar.Max())
+        tilerModel.addConstraint(weightBandwidthVar == weightBandwidthVar.Max())
 
         tilerModel.addConstraint(inputHeightVar == inputHeightVar.Max(), strategy = PerformanceHint(1))
         tilerModel.addConstraint(inputWidthVar == inputWidthVar.Max(), strategy = PerformanceHint(1))

@@ -53,6 +53,7 @@ class NeurekaDenseConv2DTileConstraint(TileConstraint):
 
         weightBuffer = ctxt.lookup(weightBufferName)
         if hasattr(weightBuffer, "_memoryLevel") and weightBuffer._memoryLevel == "WeightMemory_SRAM":
+            # No tiling. Weight tensor is a constant statically placed in the weight memory (wmem)
             tilerModel.addConstraint(weightOutChannelVar == weightOutChannelVar.Max())
         else:
             tilerModel.addConstraint(weightOutChannelVar == outputChannelVar)
@@ -73,12 +74,21 @@ class NeurekaDenseConv2DTileConstraint(TileConstraint):
         inputWidthVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_in'], dimIdx = 2)
         inputChannelVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_in'], dimIdx = 3)
 
+        weightInChannelMajorVar = tilerModel.getTensorDimVar(tensorName = parseDict['weight'], dimIdx = 1)
+        weightBitsVar = tilerModel.getTensorDimVar(tensorName = parseDict['weight'], dimIdx = 2)
+        weightBandwidthVar = tilerModel.getTensorDimVar(tensorName = parseDict['weight'], dimIdx = 3)
+
         strides = parseDict["strides"]
 
         tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
         tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
 
         tilerModel.addConstraint(inputChannelVar == inputChannelVar.Max())
+
+        # Force the weight tensor's non-tiled dims to their full size
+        tilerModel.addConstraint(weightInChannelMajorVar == weightInChannelMajorVar.Max())
+        tilerModel.addConstraint(weightBitsVar == weightBitsVar.Max())
+        tilerModel.addConstraint(weightBandwidthVar == weightBandwidthVar.Max())
 
         tilerModel.addConstraint(inputHeightVar == inputHeightVar.Max(), strategy = PerformanceHint(1))
         tilerModel.addConstraint(inputWidthVar == inputWidthVar.Max(), strategy = PerformanceHint(1))
