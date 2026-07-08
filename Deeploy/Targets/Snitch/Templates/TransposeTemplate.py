@@ -40,51 +40,16 @@ class SnitchTransposeTemplate(NodeTemplate):
 
     def alignToContext(self, ctxt: NetworkContext,
                        operatorRepresentation: OperatorRepresentation) -> Tuple[NetworkContext, Dict, List[str]]:
-        shapeStr = ""
-        dimStr = ""
-        accessStr = ""
-        outAccessStr = ""
-        outShapeStr = ""
+        # Layout (index strings + parallelDim) is computed in TransposeParser.
+        # Here we only emit the per-dim loops and the tiling header.
         perm = operatorRepresentation['perm']
-        data_in_shape = ctxt.lookup(operatorRepresentation['data_in']).shape
-        data_out_shape = ctxt.lookup(operatorRepresentation['data_out']).shape
-
-        for idx, i in enumerate(perm[:-1]):
-            shapeStr += '[' + f"dimLen_{idx+1}" + ']'
-            outShapeStr += '[' + f"dimLen_{perm[idx+1]}" + ']'
-
-        for dim in data_in_shape:
-            dimStr += '[' + str(dim) + ']'
-
-        for idx, i in enumerate(perm):
-            accessStr += '[i_' + str(idx) + ']'
-            outAccessStr += '[i_' + str(i) + ']'
+        parallelDim = operatorRepresentation['parallelDim']
 
         fRep = operatorRepresentation.copy()
-
-        fRep['shapeStr'] = shapeStr
-        fRep['outShapeStr'] = outShapeStr
-        fRep['outAccessStr'] = outAccessStr
-        fRep['dimStr'] = dimStr
-        fRep['accessStr'] = accessStr
-        fRep['data_out_shape'] = data_out_shape
-
-        # Pick the outermost dim that has at least one element per core (>= 8):
-        # outer-dim parallelization gives each core a single contiguous slab
-        # of memory, which simplifies reasoning and reduces per-core
-        # loop-control overhead vs. fragmenting work across an inner dim.
-        # Fall back to the largest dim only when no dim is big enough for
-        # every core, so as few cores idle as possible.
-        parallelDims = [idx for idx, dim in enumerate(data_out_shape) if dim >= 8]
-        if len(parallelDims) > 0:
-            parallelDim = parallelDims[0]
-        else:
-            parallelDim = data_out_shape.index(max(data_out_shape))
 
         forLoops = []
         dimLenPtrs = []
         for idx, i in enumerate(perm):
-            operatorRepresentation[f"dimLen_{idx}"] = data_in_shape[idx]
             dimLenPtrs.append(f"dimLen_{idx}")
             if idx != parallelDim:
                 forLoops.append(_forLoop.generate({"i": i}))
@@ -93,7 +58,6 @@ class SnitchTransposeTemplate(NodeTemplate):
 
         fRep['forLoops'] = forLoops
         fRep['tileHeader'] = _tileHeader.generate({"numDims": len(perm), "dimLenPtr": dimLenPtrs})
-        fRep['parallelDim'] = parallelDim
 
         self.template = _Template(self._indirectTemplate.render(**fRep))
 

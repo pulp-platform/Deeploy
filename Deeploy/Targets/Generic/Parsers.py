@@ -210,6 +210,32 @@ class TransposeParser(NodeParser):
         self.operatorRepresentation['data_in_size'] = np.prod(data_in.shape)
         self.operatorRepresentation['data_out_size'] = np.prod(data_out.shape)
 
+        # Transpose layout adaptation, derived purely from perm and the shapes.
+        # Kept here (in the parser) rather than in the per-platform templates:
+        # the multi-dim index strings and the outer-dim parallelization choice.
+        # The tiled Snitch/PULPOpen templates consume these; simple templates
+        # (CortexM/Generic/MemPool) just ignore the extra keys.
+        perm = self.operatorRepresentation['perm']
+        in_shape = list(data_in.shape)
+        out_shape = list(data_out.shape)
+
+        self.operatorRepresentation['shapeStr'] = "".join(f"[dimLen_{idx + 1}]" for idx in range(len(perm) - 1))
+        self.operatorRepresentation['outShapeStr'] = "".join(
+            f"[dimLen_{perm[idx + 1]}]" for idx in range(len(perm) - 1))
+        self.operatorRepresentation['dimStr'] = "".join(f"[{dim}]" for dim in in_shape)
+        self.operatorRepresentation['accessStr'] = "".join(f"[i_{idx}]" for idx in range(len(perm)))
+        self.operatorRepresentation['outAccessStr'] = "".join(f"[i_{i}]" for i in perm)
+
+        # Parallelize over the outermost dim with at least one element per core
+        # (>= 8): each core then owns a contiguous slab, minimizing per-core
+        # loop-control overhead. Fall back to the largest dim so few cores idle.
+        parallelDims = [idx for idx, dim in enumerate(out_shape) if dim >= 8]
+        self.operatorRepresentation['parallelDim'] = parallelDims[0] if parallelDims else out_shape.index(
+            max(out_shape))
+
+        for idx in range(len(perm)):
+            self.operatorRepresentation[f"dimLen_{idx}"] = in_shape[idx]
+
         return ctxt, True
 
 
