@@ -164,6 +164,9 @@ class NeurekaDWConv2DTileConstraint(TileConstraint):
             InCube, padding_tuple = Conv2DTileConstraint.computeInputCube((weightH, weightW), pads, strides, weightC,
                                                                           cube,
                                                                           ctxt.lookup(varOut).shape)
+            # In DW, each output channel only depends on the corresponding input channel.
+            # Therefore we can tile the input channels exactly as the output channels.
+            InCube = HyperRectangle(InCube.offset[:-1] + (COffset,), InCube.dims[:-1] + (CSize,))
             padding_left, padding_right, padding_top, padding_bottom = padding_tuple
 
             replacements['padding_y_top'].append(padding_top)
