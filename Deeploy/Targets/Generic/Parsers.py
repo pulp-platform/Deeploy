@@ -132,10 +132,6 @@ class iRMSNormParser(NodeParser):
         self.operatorRepresentation['NormalizedAxesSize'] = int(np.prod(input_shape[axis:]))
         self.operatorRepresentation['scale'] = node.inputs[1].values
 
-        # Keep old keys for C template compatibility
-        self.operatorRepresentation['size'] = int(np.prod(input_shape))
-        self.operatorRepresentation['lastDimLength'] = int(input_shape[-1])
-
         return ctxt, True
 
 

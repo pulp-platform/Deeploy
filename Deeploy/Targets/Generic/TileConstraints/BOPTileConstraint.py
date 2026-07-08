@@ -50,9 +50,9 @@ class BOPTileConstraint(TileConstraint):
 
         input1Shape = ctxt.lookup(inputBuffer1Name).shape
         input2Shape = list(ctxt.lookup(inputBuffer2Name).shape)
-        is_scalar = (np.prod(input2Shape) == 1)
+        input2_is_scalar = (np.prod(input2Shape) == 1)
 
-        if is_scalar:
+        if input2_is_scalar:
             # Scalar broadcasting: tile input1 and output together; input2 stays full-size.
             for dim in range(len(input1Shape)):
                 inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
@@ -93,13 +93,13 @@ class BOPTileConstraint(TileConstraint):
             replacements["size"].append(newSize)
 
         input2Shape = list(ctxt.lookup(operatorRepresentation[cls.dataIn2Name]).shape)
-        is_scalar = (np.prod(input2Shape) == 1)
+        input2_is_scalar = (np.prod(input2Shape) == 1)
 
         inputLoadSchedule = []
         outputLoadSchedule = []
 
         for cube in outputCubes:
-            if is_scalar:
+            if input2_is_scalar:
                 in2Cube = HyperRectangle(tuple([0] * len(input2Shape)), tuple(input2Shape))
                 inputLoadSchedule.append({cls.dataIn1Name: cube, cls.dataIn2Name: in2Cube})
             else:

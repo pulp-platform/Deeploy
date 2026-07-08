@@ -23,5 +23,5 @@ class _iRMSNormTemplate(NodeTemplate):
 
 referenceTemplate = _iRMSNormTemplate("""
 // iRMSnorm (Name: ${nodeName}, Op: ${nodeOp})
-SINGLE_CORE iRMSnorm_s${data_in_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}(${data_in}, ${data_out}, ${weight}, ${input_offset}, ${size}, ${lastDimLength}, ${log2D});
+SINGLE_CORE iRMSnorm_s${data_in_type.referencedType.typeWidth}_s${data_out_type.referencedType.typeWidth}(${data_in}, ${data_out}, ${weight}, ${input_offset}, ${inputSize}, ${NormalizedAxesSize}, ${log2D});
 """)
