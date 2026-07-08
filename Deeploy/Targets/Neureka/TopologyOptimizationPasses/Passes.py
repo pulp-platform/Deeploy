@@ -14,7 +14,8 @@ from Deeploy.CommonExtensions.OptimizationPasses.Matchers import Match, NonBranc
 from Deeploy.CommonExtensions.OptimizationPasses.PassClasses import ReplaceSequentialPatternPass, SequentialPass, \
     contextagnostic
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    RemoveGlobalOutputReshapePass, _createReshape
+    NCHWtoNHWCConvPass, NCHWtoNHWCMaxPoolPass, NCHWtoNHWCPadPass, RemoveGlobalOutputReshapePass, _createReshape, \
+    _isDepthwise, _NCWHtoNHWC_dw_fun, _PULP_NCHWtoNHWC_dw_fun, _singleNodePattern
 from Deeploy.EngineExtension.OptimizationPasses.TopologyOptimizationPasses.EngineColoringPasses import \
     EngineDiscolorationPass
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import ReshapeConstOptPass, ReshapeMergePass
@@ -263,6 +264,56 @@ class NeurekaReshapePointwiseConvolutionPass(ReplaceSequentialPatternPass):
                     default_channels_first = default_channels_first,
                     neurekaEngineName = neurekaEngineName), "_NEUREKA_RESHAPE_POINTWISE_CONVOLUTION_PASS",
             NonBranchingMatcher(regex_op = True))
+
+
+def _neureka_nchw_to_nhwc_dw_conv_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool,
+                                      neurekaEngineName: str) -> gs.Graph:
+    node = next(iter(match.nodes_map.values()))
+
+    if not _isDepthwise(node):
+        return graph
+
+    # DW convs have different data layouts depending on the engine that executes them:
+    #   - N-EUREKA reads the input channels-last (NHWC) and the weight with the filter dimension last,
+    #   - the PULP cluster kernel reads the input channels-first (NCHW) and the weight with the filter
+    #     dimension first (see PULPOpen DWConvTileConstraint).
+    # We dispatch on the engine the conv was colored with. This is authoritative here because the conv+requant
+    # merge preserves the convolution's engine color (see PULPConvRequantMergePass), so the coloring interleaved
+    # before this pass has already assigned the fused RequantizedConv to the correct engine.
+    if node.attrs.get("engine") == neurekaEngineName:
+        return _NCWHtoNHWC_dw_fun(graph, match, name, default_channels_first)
+    return _PULP_NCHWtoNHWC_dw_fun(graph, match, name, default_channels_first)
+
+
+@contextagnostic
+class NeurekaNCHWtoNHWCDwConvPass(ReplaceSequentialPatternPass):
+
+    def __init__(self, default_channels_first: bool, neurekaEngineName: str):
+        graph = _singleNodePattern(op = "RequantizedConv|Conv")
+        name = "_NEUREKA_NCHW_TO_NHWC_DW_CONV_PASS"
+        super().__init__(
+            graph,
+            partial(_neureka_nchw_to_nhwc_dw_conv_fun,
+                    default_channels_first = default_channels_first,
+                    neurekaEngineName = neurekaEngineName), name, NonBranchingMatcher(regex_op = True))
+
+
+@contextagnostic
+class NeurekaNCHWtoNHWCPass(SequentialPass):
+    """Channels-last lowering pass for the N-EUREKA pipeline.
+
+    Behaves like PULPNCHWtoNHWCPass/NCHWtoNHWCPass for pads, maxpools and regular convolutions, but lowers each
+    depthwise convolution with the layout expected by the engine that will execute it (N-EUREKA or PULP cluster).
+    """
+
+    def __init__(self, default_channels_first: bool, neurekaEngineName: str):
+        passes = [
+            NCHWtoNHWCPadPass(default_channels_first),
+            NCHWtoNHWCMaxPoolPass(default_channels_first),
+            NeurekaNCHWtoNHWCDwConvPass(default_channels_first, neurekaEngineName),
+            NCHWtoNHWCConvPass(default_channels_first),
+        ]
+        super().__init__(*passes)
 
 
 class ConvEngineDiscolorationPass(EngineDiscolorationPass):
