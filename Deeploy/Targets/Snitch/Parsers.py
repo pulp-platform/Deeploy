@@ -106,14 +106,10 @@ class SnitchHardSwishParser(iHardswishParser):
         return True
 
 
-class SnitchAddParser(AddParser):
-    """Inherits from Generic AddParser which already handles broadcasting."""
-
-
 class _ScalarElementwiseMixin:
-    """Shared parsing for FP32 Div/Mul on Snitch.
+    """Shared parsing for FP32 Add/Div/Mul on Snitch.
 
-    The kernels (Div_fp32/Mul_fp32) only support equal-shape element-wise
+    The kernels (Add_fp32/Div_fp32/Mul_fp32) only support equal-shape element-wise
     operation or a scalar second operand (they read input2[0]); there is no
     broadcasting kernel. Reject any genuine broadcast so unsupported shapes
     fail to bind instead of generating out-of-bounds reads.
@@ -138,6 +134,10 @@ class _ScalarElementwiseMixin:
         self.operatorRepresentation['is_scalar'] = second_is_scalar
 
         return ctxt, True
+
+
+class SnitchAddParser(_ScalarElementwiseMixin, AddParser):
+    pass
 
 
 class SnitchDivParser(_ScalarElementwiseMixin, DivParser):

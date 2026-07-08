@@ -6,59 +6,48 @@
 
 #include "DeeploySnitchMath.h"
 
-void Add_fp32_broadcast(float32_t *pIn1, float32_t *pIn2, float32_t *pOut,
-                        uint32_t *out_shape, uint32_t *strides1,
-                        uint32_t *strides2, uint32_t ndim, uint32_t size) {
+/*
+ * Element-wise Addition (FP32) with optional scalar broadcasting.
+ *
+ * is_scalar == 0:  output[i] = input1[i] + input2[i]
+ * is_scalar != 0:  output[i] = input1[i] + input2[0]   (input2 read as scalar)
+ *
+ * input1:    First input tensor (float32)
+ * input2:    Second input tensor (float32). Only input2[0] is read when
+ *            is_scalar != 0.
+ * output:    Output tensor (same shape as input1)
+ * size:      Total number of elements in input1 / output
+ * is_scalar: Non-zero selects the scalar-broadcast branch.
+ *
+ * multi-core      = yes
+ * parallelization = element-wise across input1
+ */
+void Add_fp32(float32_t *input1, float32_t *input2, float32_t *output,
+              uint32_t size, uint32_t is_scalar) {
 
   uint32_t core_id = snrt_global_compute_core_idx();
   uint32_t numThreads = snrt_global_compute_core_num();
 
-  uint32_t chunkSize = size / numThreads;
+  uint32_t elements_per_core = size / numThreads;
   uint32_t remainder = size % numThreads;
 
-  uint32_t start, num_elements;
+  uint32_t start_elem, num_elems;
   if (core_id < remainder) {
-    num_elements = chunkSize + 1;
-    start = core_id * num_elements;
+    num_elems = elements_per_core + 1;
+    start_elem = core_id * num_elems;
   } else {
-    num_elements = chunkSize;
-    start = core_id * chunkSize + remainder;
+    num_elems = elements_per_core;
+    start_elem = core_id * elements_per_core + remainder;
   }
 
-  uint32_t end = start + num_elements;
-
-  // Fast path: identity strides == no broadcasting needed.
-  // Avoids per-element mod/div index recovery when shapes match.
-  int is_elementwise = 1;
-  uint32_t expected_stride = 1;
-  for (int32_t d = ndim - 1; d >= 0; d--) {
-    if (strides1[d] != expected_stride || strides2[d] != expected_stride) {
-      is_elementwise = 0;
-      break;
+  if (is_scalar) {
+    float32_t scalar = input2[0];
+    for (uint32_t i = start_elem; i < start_elem + num_elems; i++) {
+      output[i] = input1[i] + scalar;
     }
-    expected_stride *= out_shape[d];
-  }
-
-  if (is_elementwise) {
-    for (uint32_t i = start; i < end; i++) {
-      pOut[i] = pIn1[i] + pIn2[i];
+  } else {
+    for (uint32_t i = start_elem; i < start_elem + num_elems; i++) {
+      output[i] = input1[i] + input2[i];
     }
-    return;
-  }
-
-  // General broadcast path.
-  for (uint32_t i = start; i < end; i++) {
-    uint32_t idx1 = 0;
-    uint32_t idx2 = 0;
-    uint32_t tmp = i;
-
-    for (int32_t d = ndim - 1; d >= 0; d--) {
-      uint32_t coord = tmp % out_shape[d];
-      tmp /= out_shape[d];
-      idx1 += coord * strides1[d];
-      idx2 += coord * strides2[d];
-    }
-
-    pOut[i] = pIn1[idx1] + pIn2[idx2];
   }
 }

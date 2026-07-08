@@ -9,8 +9,7 @@
 
 #include "DeeploySnitchMath.h"
 
-void Add_fp32_broadcast(float32_t *pIn1, float32_t *pIn2, float32_t *pOut,
-                        uint32_t *out_shape, uint32_t *strides1,
-                        uint32_t *strides2, uint32_t ndim, uint32_t size);
+void Add_fp32(float32_t *input1, float32_t *input2, float32_t *output,
+              uint32_t size, uint32_t is_scalar);
 
 #endif // __DEEPLOY_MATH_ADD_KERNEL_HEADER_
