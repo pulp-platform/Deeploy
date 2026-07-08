@@ -54,12 +54,12 @@ class iRMSNormTileConstraint(TileConstraint):
         addrNames = ['data_in', 'weight', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, addrNames)
-        replacements = {"size": []}
-        replacementTypes = {"size": PointerClass(uint16_t)}
+        replacements = {"inputSize": []}
+        replacementTypes = {"inputSize": PointerClass(uint16_t)}
 
         for cube in outputCubes:
             newSize = np.prod(cube.dims)
-            replacements["size"].append(newSize)
+            replacements["inputSize"].append(newSize)
 
         inputLoadSchedule = []
         outputLoadSchedule = []

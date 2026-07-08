@@ -20,14 +20,14 @@ class FloatRMSNormTemplate(NodeTemplate):
         data_in = ctxt.lookup(operatorRepresentation["data_in"])
         input_shape = list(data_in.shape)
 
-        operatorRepresentation["size"] = int(np.prod(input_shape))
+        operatorRepresentation["inputSize"] = int(np.prod(input_shape))
         operatorRepresentation["lastDimLength"] = operatorRepresentation["NormalizedAxesSize"]
 
         return ctxt, operatorRepresentation, []
 
 
 FloatRMSNormTemplateStr = r"""
-RMSNorm_fp32(${data_in}, ${weight}, ${data_out}, ${size}, ${lastDimLength}, ${eps});
+RMSNorm_fp32(${data_in}, ${weight}, ${data_out}, ${inputSize}, ${lastDimLength}, ${eps});
 """
 
 referenceTemplate = FloatRMSNormTemplate(FloatRMSNormTemplateStr)
@@ -36,7 +36,7 @@ referenceTemplate = FloatRMSNormTemplate(FloatRMSNormTemplateStr)
 # accumulate (no DM2 write stream); scale/output stays a normal-store loop.
 # Requires operands in TCDM/L1 (tiled flow).
 FloatRMSNormSSRTemplateStr = r"""
-RMSNorm_fp32_ssr_frep(${data_in}, ${weight}, ${data_out}, ${size}, ${lastDimLength}, ${eps});
+RMSNorm_fp32_ssr_frep(${data_in}, ${weight}, ${data_out}, ${inputSize}, ${lastDimLength}, ${eps});
 """
 
 ssrFrepTemplate = FloatRMSNormTemplate(FloatRMSNormSSRTemplateStr)
