@@ -246,8 +246,6 @@ def create_config_from_args(args: argparse.Namespace,
             gen_args_list.append(f"--searchStrategy={args.searchStrategy}")
         if hasattr(args, 'plotMemAlloc') and args.plotMemAlloc:
             gen_args_list.append("--plotMemAlloc")
-        if hasattr(args, 'enable_3x3') and args.enable_3x3:
-            gen_args_list.append("--enable-3x3")
         if hasattr(args, 'neureka_wmem') and args.neureka_wmem:
             gen_args_list.append("--neureka-wmem")
 

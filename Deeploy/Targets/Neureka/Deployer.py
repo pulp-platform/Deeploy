@@ -30,12 +30,10 @@ class NeurekaDeployer(PULPDeployer):
         super().__init__(graph, deploymentPlatform, inputTypes, loweringOptimizer, scheduler, name,
                          default_channels_first, deeployStateDir, inputOffsets)
 
-        if self.Platform.engines[0].enable3x3:
-            neurekaEngineName = self.Platform.engines[0].name
-            for idx in range(len(self.loweringOptimizer.passes)):
-                if isinstance(self.loweringOptimizer.passes[idx], PULPNCHWtoNHWCPass):
-                    self.loweringOptimizer.passes[idx] = NeurekaNCHWtoNHWCPass(self.default_channels_first,
-                                                                               neurekaEngineName)
+        engine_name = self.Platform.engines[0].name
+        for idx in range(len(self.loweringOptimizer.passes)):
+            if isinstance(self.loweringOptimizer.passes[idx], PULPNCHWtoNHWCPass):
+                self.loweringOptimizer.passes[idx] = NeurekaNCHWtoNHWCPass(self.default_channels_first, engine_name)
 
         self.loweringOptimizer.passes += [
             ConvEngineDiscolorationPass(),

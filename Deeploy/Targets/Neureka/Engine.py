@@ -49,11 +49,9 @@ class NeurekaEngine(DeploymentEngine):
                  Mapping = NeurekaMapping,
                  initCode: str = _neurekaInitCode,
                  includeList: List[str] = _includeList,
-                 enable3x3: bool = False,
                  enableStrides: bool = False) -> None:
         super().__init__(name, Mapping, initCode, includeList)
 
-        self.enable3x3 = enable3x3
         self.enableStrides = enableStrides
 
     def isDenseConv(self, node) -> bool:
@@ -80,7 +78,4 @@ class NeurekaEngine(DeploymentEngine):
             (node.attrs['strides'] == [1, 1] or self.enableStrides)
 
     def canExecute(self, node: gs.Node) -> bool:
-        if self.enable3x3:
-            return self.isPWConv(node) or self.isDWConv(node) or self.isDenseConv(node)
-        else:
-            return self.isPWConv(node)
+        return self.isPWConv(node) or self.isDWConv(node) or self.isDenseConv(node)
