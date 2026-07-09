@@ -38,7 +38,7 @@ _includeList = [
 _neurekaInitCode = r"""
 neureka_siracusa_conf_t conf = {.max_stall = 8};
 neureka_nnx_init(neureka_siracusa_get_dev(), &conf);
-neureka_gvsoc_log_activate(neureka_siracusa_get_dev(), NEUREKA_GVSOC_LOG_LEVEL_ALL, NEUREKA_GVSOC_LOG_FORMAT_HEXADECIMAL);
+// neureka_gvsoc_log_activate(neureka_siracusa_get_dev(), NEUREKA_GVSOC_LOG_LEVEL_ALL, NEUREKA_GVSOC_LOG_FORMAT_HEXADECIMAL);
 """
 
 

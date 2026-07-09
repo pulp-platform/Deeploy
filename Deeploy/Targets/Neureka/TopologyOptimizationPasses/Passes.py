@@ -103,10 +103,7 @@ def _weightEncode(weight: npt.NDArray[np.uint8], bits: int, depthwise: bool = Fa
     if height == 1 and width == 1:
         # (cout, cinMajor, Weight Bandwidth Bytes)
         return weight.reshape(cout, cinMajor, weightBandwidthBytes)
-    elif depthwise:
-        return weight.reshape(cout, cinMajor, bits, weightBandwidthBytes)
-    else:
-        return weight.reshape(cout, cinMajor, bits, weightBandwidthBytes)
+    return weight.reshape(cout, cinMajor, bits, weightBandwidthBytes)
 
 
 def _neureka_adjust_weight_memory_layout_fun(graph: gs.Graph, match: Match, name: str, default_channels_first: bool,

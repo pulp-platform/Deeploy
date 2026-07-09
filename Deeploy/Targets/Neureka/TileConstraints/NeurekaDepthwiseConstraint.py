@@ -231,7 +231,7 @@ class NeurekaDWConv2DTileConstraint(TileConstraint):
             inputBaseOffsets.update(inputWeightBaseOffsets)
             outputBaseOffsets.update(outputWeightBaseOffsets)
 
-            for cube, load in zip(outputCubes, inputLoadSchedule):
+            for load in inputLoadSchedule:
                 load['weight'] = HyperRectangle((0,) * len(weightShape), tuple(weightShape))
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
