@@ -20,7 +20,7 @@ if(TOOLCHAIN STREQUAL GCC)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, GAP9, Generic, Snitch)")
+set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, GAP9, Generic, Snitch, Xheep)")
 set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open GAP9 Generic Snitch)
 
 if(platform STREQUAL MemPool)
@@ -57,6 +57,8 @@ elseif(platform STREQUAL Chimera)
   message(STATUS "Building for platform 'Chimera'")
 elseif(platform STREQUAL XDNA2)
   message(STATUS "Building for platform 'XDNA2'")
+elseif(platform STREQUAL Xheep)
+  message(STATUS "Building for platform 'X-HEEP'")
 else()
   message(FATAL_ERROR "Invalid platform '${platform}' specified!")
 endif()
@@ -324,6 +326,26 @@ if(platform STREQUAL XDNA2)
   add_subdirectory(TargetLibraries/XDNA2)
   add_subdirectory(DeeployTest/Platforms/XDNA2)
 
+endif()
+
+if(platform STREQUAL Xheep)
+  set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/xheep/toolchain_gcc.cmake)
+
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/xheep/xheep.cmake)
+
+  project(deeploy LANGUAGES C ASM)
+
+  message(STATUS "============================= X-HEEP Configuration ============================")
+  message(STATUS "[cMake  ]   GENERATED_SOURCE         = " ${GENERATED_SOURCE})
+  message(STATUS "[cMake  ]   TESTNAME                 = " ${TESTNAME})
+  message(STATUS "==============================================================================")
+  message(STATUS "")
+
+  add_subdirectory(TargetLibraries/Generic)
+  add_subdirectory(TargetLibraries/xheep)
+  add_subdirectory(DeeployTest)
+
+  target_link_libraries(deeploylib INTERFACE deeploybasic deeployxheep)
 endif()
 
 
