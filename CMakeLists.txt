@@ -21,7 +21,7 @@ if(TOOLCHAIN STREQUAL GCC)
 endif()
 
 set(platform MemPool CACHE STRING "Platform (MemPool, SoftHier, QEMU, Siracusa, Siracusa_w_neureka, PULP-Open, GAP9, Generic, Snitch, Xheep)")
-set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open GAP9 Generic Snitch)
+set_property(CACHE platform PROPERTY STRINGS MemPool SoftHier QEMU Siracusa Siracusa_w_neureka PULP-Open GAP9 Generic Snitc Xheep)
 
 if(platform STREQUAL MemPool)
   message(STATUS "Building for platform 'MemPool'")

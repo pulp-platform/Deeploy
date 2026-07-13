@@ -367,6 +367,7 @@ def main(default_platform: Optional[str] = None,
         "chimera": "Chimera",
         "softhier": "SoftHier",
         "xdna2": "XDNA2",
+        "xheep": "Xheep"
     }
 
     if args.platform:

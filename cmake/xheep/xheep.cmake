@@ -53,6 +53,7 @@ set(XHEEP_RUNTIME_SOURCES
   "${XHEEP_DEVICE_DIR}/lib/base/mmio.c"
   "${XHEEP_DEVICE_DIR}/lib/drivers/soc_ctrl/soc_ctrl.c"
   "${XHEEP_DEVICE_DIR}/lib/drivers/uart/uart.c"
+  "${XHEEP_DEVICE_DIR}/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c"
 )
 
 set(XHEEP_REQUIRED_FILES
@@ -62,6 +63,7 @@ set(XHEEP_REQUIRED_FILES
   "${XHEEP_RUNTIME_DIR}/core_v_mini_mcu.h"
   "${XHEEP_RUNTIME_DIR}/core_v_mini_mcu_memory.h"
   "${XHEEP_DEVICE_DIR}/target/${XHEEP_TARGET}/x-heep.h"
+  "${XHEEP_DEVICE_DIR}/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c"
 )
 
 foreach(XHEEP_REQUIRED_FILE IN LISTS XHEEP_REQUIRED_FILES)
@@ -89,6 +91,7 @@ set(DEEPLOY_ARCH XHEEP)
 
 add_compile_definitions(
   DEEPLOY_XHEEP_PLATFORM
+  DEEPLOY_GENERIC_PLATFORM
   HOST_BUILD
   ${XHEEP_CRT_TYPE}
   INTERNAL_CRTO
