@@ -44,3 +44,7 @@ endif()
 
 add_gvsoc_emulation(${ProjectId} "siracusa")
 link_compile_dump(${TESTNAME})
+option(OPTIMIZER_ADAM "Use Adam optimizer kernels instead of SGD" OFF)
+if(TRAINING AND OPTIMIZER_ADAM)
+    target_compile_definitions(${ProjectId} PRIVATE OPTIMIZER_ADAM=1)
+endif()

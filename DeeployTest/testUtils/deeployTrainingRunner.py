@@ -22,7 +22,6 @@ from .core import DeeployTestConfig, run_complete_test
 from .core.paths import get_test_paths
 from .deeployRunner import DeeployRunnerArgumentParser, print_colored_result, print_configuration
 
-
 def main(tiling_enabled: bool = False, default_platform: str = 'Siracusa', default_simulator: str = 'gvsoc'):
     """
     Build parser, parse args, create DeeployTestConfig, and run the training test.
@@ -115,7 +114,16 @@ def main(tiling_enabled: bool = False, default_platform: str = 'Siracusa', defau
             gen_args.append(f"--profileNodes={','.join(args.profileNodes)}")
         if getattr(args, 'plotMemAlloc', False):
             gen_args.append('--plotMemAlloc')
-
+    _is_adam = False
+    if args.optimizer_dir:
+        _opt_onnx = os.path.join(args.optimizer_dir, "network.onnx")
+        if os.path.exists(_opt_onnx):
+            try:
+                import onnx as _onnx
+                _opt_model = _onnx.load(_opt_onnx)
+                _is_adam = any(n.op_type.startswith("AdamUpdate") for n in _opt_model.graph.node)
+            except Exception:
+                pass
     config = DeeployTestConfig(
         test_name = test_name,
         test_dir = test_dir_abs,
@@ -135,6 +143,7 @@ def main(tiling_enabled: bool = False, default_platform: str = 'Siracusa', defau
         n_accum_steps = args.n_accum,
         training_num_data_inputs = args.num_data_inputs,
         optimizer_dir = args.optimizer_dir,
+        optimizer_adam = _is_adam,
     )
 
     print_configuration(config)

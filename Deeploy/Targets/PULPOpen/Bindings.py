@@ -21,6 +21,7 @@ from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormalizationG
     ConcatChecker, ConvChecker, DequantChecker, GatherChecker, GELUChecker, GEMMChecker, GlobalAveragePoolChecker, \
     GlobalAveragePoolGradChecker, HardswishChecker, InPlaceAccumulatorV2Checker, LayerNormChecker, MatMulChecker, \
     MaxPoolGradChecker, MSELossChecker, MulChecker, PULPConvGradBChecker, QuantChecker, ReduceMeanChecker, \
+    AdamUpdateHChecker, AdamUpdateVChecker, AdamUpdateWChecker, \
     ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, \
     SoftmaxCrossEntropyLossChecker, TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
@@ -31,7 +32,8 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
-from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, \
+from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAdamUpdateHTemplate, \
+    FloatAdamUpdateVTemplate, FloatAdamUpdateWTemplate, FloatAddTemplate, \
     FloatAveragePoolTemplate, FloatBatchNormTemplate, FloatConvGradTemplate, FloatConvTemplate, FloatGELUTemplate, \
     FloatGemmTemplate, FloatGlobalAveragePoolTemplate, FloatInPlaceAccumulatorV2Template, FloatLayernormTemplate, \
     FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
@@ -459,7 +461,33 @@ PULPSGDBindings = [
     NodeBinding(SGDChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
                 SGDTemplate.referenceTemplate, ForkTransformer)
 ]
+PULPAdamUpdateVBindings = [
+    NodeBinding(
+        AdamUpdateVChecker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],  # X, G, V
+            [PointerClass(float32_t)]                                                     # V_new
+        ),
+        FloatAdamUpdateVTemplate.referenceTemplate, ForkTransformer)
+]
 
+PULPAdamUpdateHBindings = [
+    NodeBinding(
+        AdamUpdateHChecker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t)],  # X, G, H
+            [PointerClass(float32_t)]                                                     # H_new
+        ),
+        FloatAdamUpdateHTemplate.referenceTemplate, ForkTransformer)
+]
+
+PULPAdamUpdateWBindings = [
+    NodeBinding(
+        AdamUpdateWChecker(
+            [PointerClass(float32_t), PointerClass(float32_t), PointerClass(float32_t),
+             PointerClass(float32_t), PointerClass(int32_t)],   # R, X, V_new, H_new, T
+            [PointerClass(float32_t)]                            # W_new
+        ),
+        FloatAdamUpdateWTemplate.referenceTemplate, ForkTransformer)
+]
 PULPInPlaceAccumulatorV2Bindings = [
     NodeBinding(
         InPlaceAccumulatorV2Checker(

@@ -4,62 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/*
- * Training harness for Siracusa — Phase 2 (with Deeploy-compiled
- * OptimizerNetwork)
- *
- * Loop structure:
- *
- *   InitTrainingNetwork()
- *   InitOptimizerNetwork()
- *   Connect optimizer buffers → training network's weight/grad buffers
- *
- *   for update_step in [0, N_TRAIN_STEPS):          // optimizer steps
- *       for accum_step in [0, N_ACCUM_STEPS):        // mini-batches per update
- *           lazy_reset_grad = (accum_step == 0)      // reset on first,
- * accumulate on rest load data for this mini-batch RunTrainingNetwork() // fwd
- * + bwd + InPlaceAccumulatorV2 store loss value
- *       // SGD weight update via Deeploy-compiled optimizer kernel:
- *       copy weights + grad_acc → optimizer input buffers
- *       RunOptimizerNetwork()
- *       copy weight_updated ← optimizer output buffers → training weight
- * buffers
- *
- *   Numerical verification:
- *     - Compare stored loss values against testLossRef[] (from testoutputs.h)
- *
- * Buffer layout in DeeployNetwork_inputs[] (must match ONNX input order):
- *   [0 .. TRAINING_NUM_DATA_INPUTS-1]              data + labels (per
- * mini-batch) [TRAINING_NUM_DATA_INPUTS ..
- *    .. TRAINING_GRAD_BUF_START_IDX-1]             weights (persistent)
- *   [TRAINING_GRAD_BUF_START_IDX ..
- *    .. +TRAINING_NUM_GRAD_INPUTS-1]               grad accumulation bufs
- * (persistent) [DeeployNetwork_num_inputs-1]                  lazy_reset_grad
- * uint8
- *
- * Optimizer buffer layout in DeeployOptNetwork_inputs[] (interleaved pairs):
- *   [2*i]   weight_i     (copied from
- * DeeployNetwork_inputs[TRAINING_NUM_DATA_INPUTS+i]) [2*i+1] grad_acc_i (copied
- * from DeeployNetwork_inputs[TRAINING_GRAD_BUF_START_IDX+i])
- * DeeployOptNetwork_outputs[i] = weight_i_updated
- *   → copied back to DeeployNetwork_inputs[TRAINING_NUM_DATA_INPUTS+i]
- *
- * Compile-time constants (emitted by code generator into testinputs.h):
- *   N_TRAIN_STEPS              number of optimizer (weight-update) steps
- *   N_ACCUM_STEPS              number of mini-batches accumulated per update
- *   TRAINING_NUM_DATA_INPUTS   inputs that change each mini-batch (data +
- * labels) TRAINING_GRAD_BUF_START_IDX  first grad acc buffer index in
- * DeeployNetwork_inputs[] TRAINING_NUM_GRAD_INPUTS   number of grad
- * accumulation buffers (== number of weights) TRAINING_NUM_WEIGHT_INPUTS number
- * of trainable weight buffers TRAINING_LEARNING_RATE     SGD learning rate (for
- * reference — embedded in optimizer ONNX)
- *
- * Reference comparison constants (emitted into testoutputs.h):
- *   N_LOSS_REFS                number of reference loss values
- *   NUM_WEIGHT_REFS            number of reference weight tensors
- *   TRAINING_TOLERANCE_ABS     absolute comparison tolerance
- */
-
 #include <math.h>
 #include <stdint.h>
 #include <string.h>
@@ -72,13 +16,7 @@
 #include "testinputs.h"
 #include "testoutputs.h"
 
-/* Helper: true when ptr is in L2 (CPU-accessible); false when in L3 (external
- * RAM) */
-#define IS_L2(ptr) ((uint32_t)(ptr) >= 0x10000000u)
-
-/* -------------------------------------------------------------------------
- * Compile-time defaults — override via CMake target_compile_definitions
- * ---------------------------------------------------------------------- */
+/* Compile-time defaults — override via CMake target_compile_definitions */
 
 #ifndef N_TRAIN_STEPS
 #define N_TRAIN_STEPS 1
@@ -92,141 +30,165 @@
 #define TRAINING_NUM_DATA_INPUTS 2
 #endif
 
-#define MAINSTACKSIZE 12000
+#define MAINSTACKSIZE  8000
 #define SLAVESTACKSIZE 3800
 
-/* -------------------------------------------------------------------------
- * Cluster device
- * ---------------------------------------------------------------------- */
+/* Cluster device */
 
 struct pi_device cluster_dev;
 
-/* -------------------------------------------------------------------------
- * Cycle accumulators — incremented after every RunTrainingNetwork /
- * RunOptimizerNetwork cluster dispatch.
- * ---------------------------------------------------------------------- */
-
-static unsigned int g_train_cycles_acc = 0;
-static unsigned int g_opt_cycles_acc = 0;
-
-/* -------------------------------------------------------------------------
- * Loss storage (one value per forward pass)
- * ---------------------------------------------------------------------- */
+/* Loss storage (one value per forward pass) */
 
 #define TOTAL_FWD_PASSES (N_TRAIN_STEPS * N_ACCUM_STEPS)
 static float stored_losses[TOTAL_FWD_PASSES];
 
-/* -------------------------------------------------------------------------
- * L3-aware memory transfer: handles all combinations of L2/L3 src and dst
- * ---------------------------------------------------------------------- */
+/* Optimizer buffer helpers */
 
-static void l3_aware_copy(void *dst, const void *src, uint32_t bytes) {
-  if (IS_L2(dst) && IS_L2(src)) {
-    memcpy(dst, src, bytes);
-  } else if (IS_L2(dst)) {
-    /* L3 → L2 */
-    ram_read(dst, (void *)src, bytes);
-  } else if (IS_L2(src)) {
-    /* L2 → L3 */
-    ram_write(dst, (void *)src, bytes);
-  } else {
-    /* L3 → L3: stage through a temporary L2 buffer */
-    void *tmp = pi_l2_malloc(bytes);
-    ram_read(tmp, (void *)src, bytes);
-    ram_write(dst, tmp, bytes);
-    pi_l2_free(tmp, bytes);
+#ifdef OPTIMIZER_ADAM
+  #define OPT_SHARED_INPUTS 2u
+  #define OPT_PER_WEIGHT    4u
+  #define OPT_R_IDX         0u
+  #define OPT_T_IDX         1u
+  #define OPT_W_IDX(wi)     (OPT_SHARED_INPUTS + OPT_PER_WEIGHT * (wi))
+  #define OPT_G_IDX(wi)     (OPT_SHARED_INPUTS + OPT_PER_WEIGHT * (wi) + 1u)
+  #define OPT_V_IDX(wi)     (OPT_SHARED_INPUTS + OPT_PER_WEIGHT * (wi) + 2u)
+  #define OPT_H_IDX(wi)     (OPT_SHARED_INPUTS + OPT_PER_WEIGHT * (wi) + 3u)
+#else
+  #define OPT_SHARED_INPUTS 0u
+  #define OPT_PER_WEIGHT    2u
+  #define OPT_W_IDX(wi)     (2u * (wi))
+  #define OPT_G_IDX(wi)     (2u * (wi) + 1u)
+#endif
+
+/* Adam state — step counter (incremented each optimizer step) */
+#ifdef OPTIMIZER_ADAM
+static int32_t adam_step_counter = 0;
+#endif
+
+static void init_optimizer_state(void) {
+#ifdef OPTIMIZER_ADAM
+#if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
+  for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
+    uint32_t v_idx = OPT_V_IDX(wi);
+    uint32_t h_idx = OPT_H_IDX(wi);
+    if ((uint32_t)DeeployOptNetwork_inputs[v_idx] >= 0x10000000u)
+      memset(DeeployOptNetwork_inputs[v_idx], 0, DeeployOptNetwork_inputs_bytes[v_idx]);
+    if ((uint32_t)DeeployOptNetwork_inputs[h_idx] >= 0x10000000u)
+      memset(DeeployOptNetwork_inputs[h_idx], 0, DeeployOptNetwork_inputs_bytes[h_idx]);
   }
+  if ((uint32_t)DeeployOptNetwork_inputs[OPT_R_IDX] >= 0x10000000u) {
+    float lr = TRAINING_LEARNING_RATE;
+    memcpy(DeeployOptNetwork_inputs[OPT_R_IDX], &lr, sizeof(float));
+  }
+  adam_step_counter = 0;
+  if ((uint32_t)DeeployOptNetwork_inputs[OPT_T_IDX] >= 0x10000000u) {
+    memcpy(DeeployOptNetwork_inputs[OPT_T_IDX], &adam_step_counter, sizeof(int32_t));
+  }
+#endif
+#endif
 }
 
-static void run_optimizer_step(void) {
+/* run_optimizer_step — returns kernel cycles via *kernel_cycles_out */
+static void run_optimizer_step(uint32_t *kernel_cycles_out) {
+  *kernel_cycles_out = 0;
 #if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
-  /* --- Step A: copy current weights + grad acc → optimizer input buffers ---
-   * Skipped when codegen has shared the buffers (pointer equality test). */
+
+#ifdef OPTIMIZER_ADAM
+  adam_step_counter++;
+  if ((uint32_t)DeeployOptNetwork_inputs[OPT_T_IDX] >= 0x10000000u) {
+    memcpy(DeeployOptNetwork_inputs[OPT_T_IDX], &adam_step_counter, sizeof(int32_t));
+  }
+#endif
   for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
     uint32_t train_w_idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
     uint32_t train_g_idx = (uint32_t)TRAINING_GRAD_BUF_START_IDX + wi;
-    uint32_t opt_w_in = 2u * wi;
-    uint32_t opt_g_in = 2u * wi + 1u;
+    uint32_t opt_w_in    = OPT_W_IDX(wi);
+    uint32_t opt_g_in    = OPT_G_IDX(wi);
 
-    if (DeeployOptNetwork_inputs[opt_w_in] !=
-        DeeployNetwork_inputs[train_w_idx]) {
-      l3_aware_copy(DeeployOptNetwork_inputs[opt_w_in],
-                    DeeployNetwork_inputs[train_w_idx],
-                    DeeployOptNetwork_inputs_bytes[opt_w_in]);
+    if ((uint32_t)DeeployNetwork_inputs[train_w_idx] >= 0x10000000u &&
+        (uint32_t)DeeployOptNetwork_inputs[opt_w_in] >= 0x10000000u) {
+      memcpy(DeeployOptNetwork_inputs[opt_w_in],
+             DeeployNetwork_inputs[train_w_idx],
+             DeeployNetwork_inputs_bytes[train_w_idx]);
     }
-    if (DeeployOptNetwork_inputs[opt_g_in] !=
-        DeeployNetwork_inputs[train_g_idx]) {
-      l3_aware_copy(DeeployOptNetwork_inputs[opt_g_in],
-                    DeeployNetwork_inputs[train_g_idx],
-                    DeeployOptNetwork_inputs_bytes[opt_g_in]);
+    if ((uint32_t)DeeployNetwork_inputs[train_g_idx] >= 0x10000000u &&
+        (uint32_t)DeeployOptNetwork_inputs[opt_g_in] >= 0x10000000u) {
+      memcpy(DeeployOptNetwork_inputs[opt_g_in],
+             DeeployNetwork_inputs[train_g_idx],
+             DeeployNetwork_inputs_bytes[train_g_idx]);
     }
   }
-
-  /* --- Step B: run optimizer kernel on cluster --- */
-  struct pi_cluster_task opt_task;
-  pi_cluster_task(&opt_task, RunOptimizerNetwork, NULL);
-  opt_task.stack_size = MAINSTACKSIZE;
-  opt_task.slave_stack_size = SLAVESTACKSIZE;
   ResetTimer();
   StartTimer();
-  pi_cluster_send_task_to_cl(&cluster_dev, &opt_task);
-  StopTimer();
-  g_opt_cycles_acc += getCycles();
 
-  /* --- Step C: copy weight_updated back to training network's weight buffers
-   * --- Skipped when codegen has shared the output buffer with the training
-   * input. */
+  struct pi_cluster_task opt_task;
+  pi_cluster_task(&opt_task, RunOptimizerNetwork, NULL);
+  opt_task.stack_size       = MAINSTACKSIZE;
+  opt_task.slave_stack_size = SLAVESTACKSIZE;
+  pi_cluster_send_task_to_cl(&cluster_dev, &opt_task);
+
+  StopTimer();
+  *kernel_cycles_out = getCycles();
   for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
     uint32_t train_w_idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
+
+#ifdef OPTIMIZER_ADAM
+    uint32_t opt_v_out = 3u * wi;
+    uint32_t opt_h_out = 3u * wi + 1u;
+    uint32_t opt_w_out = 3u * wi + 2u;
+    if ((uint32_t)DeeployOptNetwork_outputs[opt_w_out] >= 0x10000000u &&
+        (uint32_t)DeeployNetwork_inputs[train_w_idx] >= 0x10000000u) {
+      memcpy(DeeployNetwork_inputs[train_w_idx],
+             DeeployOptNetwork_outputs[opt_w_out],
+             DeeployNetwork_inputs_bytes[train_w_idx]);
+    }
+    uint32_t opt_v_in = OPT_V_IDX(wi);
+    if ((uint32_t)DeeployOptNetwork_outputs[opt_v_out] >= 0x10000000u &&
+        (uint32_t)DeeployOptNetwork_inputs[opt_v_in] >= 0x10000000u) {
+      memcpy(DeeployOptNetwork_inputs[opt_v_in],
+             DeeployOptNetwork_outputs[opt_v_out],
+             DeeployOptNetwork_inputs_bytes[opt_v_in]);
+    }
+    uint32_t opt_h_in = OPT_H_IDX(wi);
+    if ((uint32_t)DeeployOptNetwork_outputs[opt_h_out] >= 0x10000000u &&
+        (uint32_t)DeeployOptNetwork_inputs[opt_h_in] >= 0x10000000u) {
+      memcpy(DeeployOptNetwork_inputs[opt_h_in],
+             DeeployOptNetwork_outputs[opt_h_out],
+             DeeployOptNetwork_inputs_bytes[opt_h_in]);
+    }
+#else
     uint32_t opt_w_out = wi;
-
-    if (DeeployOptNetwork_outputs[opt_w_out] ==
-        DeeployNetwork_inputs[train_w_idx]) {
-      continue; /* in-place: training buffer already updated */
+    if ((uint32_t)DeeployOptNetwork_outputs[opt_w_out] >= 0x10000000u &&
+        (uint32_t)DeeployNetwork_inputs[train_w_idx] >= 0x10000000u) {
+      memcpy(DeeployNetwork_inputs[train_w_idx],
+             DeeployOptNetwork_outputs[opt_w_out],
+             DeeployNetwork_inputs_bytes[train_w_idx]);
     }
-
-    uint32_t opt_bytes = DeeployOptNetwork_outputs_bytes[opt_w_out];
-    uint32_t train_bytes = DeeployNetwork_inputs_bytes[train_w_idx];
-    if (opt_bytes == train_bytes) {
-      l3_aware_copy(DeeployNetwork_inputs[train_w_idx],
-                    DeeployOptNetwork_outputs[opt_w_out], opt_bytes);
-    } else {
-      /* Broadcasted bias: fill every tile with updated value. */
-      for (uint32_t off = 0; off < train_bytes; off += opt_bytes) {
-        uint32_t chunk =
-            (off + opt_bytes <= train_bytes) ? opt_bytes : (train_bytes - off);
-        l3_aware_copy((char *)DeeployNetwork_inputs[train_w_idx] + off,
-                      DeeployOptNetwork_outputs[opt_w_out], chunk);
-      }
-    }
+#endif
   }
 #endif /* TRAINING_NUM_WEIGHT_INPUTS */
 }
 
-/* -------------------------------------------------------------------------
- * Numerical comparison helpers — run on cluster (FC has no FPU)
- * ---------------------------------------------------------------------- */
+/* Numerical comparison helpers — run on cluster (FC has no FPU) */
 
 typedef struct {
-  float *computed;
-  float *reference;
-  uint32_t n;
+  float    *computed;
+  float    *reference;
+  uint32_t  n;
   uint32_t *err_count;
 } LossCompareArgs;
 
 static void CompareLossesOnCluster(void *args) {
-  if (pi_core_id() != 0)
-    return;
+  if (pi_core_id() != 0) return;
   LossCompareArgs *a = (LossCompareArgs *)args;
-  float tol = TRAINING_TOLERANCE_ABS; /* read on cluster — has FPU */
+  float tol = TRAINING_TOLERANCE_ABS;  /* read on cluster — has FPU */
   uint32_t errors = 0;
   for (uint32_t i = 0; i < a->n; i++) {
     float diff = a->computed[i] - a->reference[i];
-    if (diff < 0.0f)
-      diff = -diff;
-    printf("  [loss %u] computed=%.6f  ref=%.6f  diff=%.6f  TOL=%.6f\r\n", i,
-           (double)a->computed[i], (double)a->reference[i], (double)diff,
-           (double)tol);
+    if (diff < 0.0f) diff = -diff;
+    printf("  [loss %u] computed=%.6f  ref=%.6f  diff=%.6f  TOL=%.6f\r\n",
+             i, (double)a->computed[i], (double)a->reference[i],
+             (double)diff, (double)tol);
     if (diff > tol) {
       errors++;
     }
@@ -234,17 +196,50 @@ static void CompareLossesOnCluster(void *args) {
   *a->err_count = errors;
 }
 
-/* -------------------------------------------------------------------------
- * main
- * ---------------------------------------------------------------------- */
+/* State comparison: compare a computed buffer against a reference array. */
+typedef struct {
+  float    *computed;
+  float    *reference;
+  uint32_t  n_elems;
+  uint32_t  tensor_idx;
+  const char *label;       /* "W", "V", or "H" */
+  uint32_t *err_count;
+} StateCompareArgs;
+
+static void CompareStateOnCluster(void *args) {
+  if (pi_core_id() != 0) return;
+  StateCompareArgs *a = (StateCompareArgs *)args;
+  float tol = TRAINING_TOLERANCE_ABS;
+  uint32_t errors = 0;
+  float max_diff = 0.0f;
+  for (uint32_t i = 0; i < a->n_elems; i++) {
+    float diff = a->computed[i] - a->reference[i];
+    if (diff < 0.0f) diff = -diff;
+    if (diff > max_diff) max_diff = diff;
+    if (diff > tol) {
+      printf("    [%s_%u][%u] actual=%.8f ref=%.8f diff=%.8f\r\n",
+             a->label, a->tensor_idx, i,
+             (double)a->computed[i], (double)a->reference[i], (double)diff);
+      errors++;
+    }
+  }
+  printf("  [%s_%u] %u elems, max_diff=%.8f, errors=%u\r\n",
+         a->label, a->tensor_idx, a->n_elems, (double)max_diff, errors);
+  *a->err_count += errors;
+}
+
+/* main */
 
 int main(void) {
 
-  printf("=== Siracusa Training Harness (Phase 2 — with OptimizerNetwork) "
-         "===\r\n");
-  printf("N_TRAIN_STEPS=%u  N_ACCUM_STEPS=%u  DATA_INPUTS=%u\r\n",
-         (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS,
-         (unsigned)TRAINING_NUM_DATA_INPUTS);
+printf("=== Siracusa Training Harness (Phase 2 — with OptimizerNetwork) ===\r\n");
+printf("N_TRAIN_STEPS=%u  N_ACCUM_STEPS=%u  DATA_INPUTS=%u\r\n",
+        (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS,
+        (unsigned)TRAINING_NUM_DATA_INPUTS);
+
+//   /* ------------------------------------------------------------------
+//    * Cluster bring-up
+//    * ------------------------------------------------------------------ */
 
   struct pi_cluster_conf conf;
   pi_cluster_conf_init(&conf);
@@ -253,8 +248,8 @@ int main(void) {
   if (pi_cluster_open(&cluster_dev))
     return -1;
 
-#ifndef NOFLASH
   mem_init();
+#ifndef NOFLASH
   open_fs();
 #endif
 
@@ -266,7 +261,7 @@ int main(void) {
 
   printf("Initializing TrainingNetwork...\r\n");
   pi_cluster_task(&cluster_task, InitTrainingNetwork, NULL);
-  cluster_task.stack_size = MAINSTACKSIZE;
+  cluster_task.stack_size       = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
@@ -274,23 +269,12 @@ int main(void) {
    * Zero-initialise gradient accumulation buffers.
    * ------------------------------------------------------------------ */
 
-  for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
-    uint32_t _idx = (uint32_t)TRAINING_GRAD_BUF_START_IDX + _gi;
-    uint32_t bytes = DeeployNetwork_inputs_bytes[_idx];
-    void *buf = DeeployNetwork_inputs[_idx];
-    if (IS_L2(buf)) {
-      memset(buf, 0, bytes);
-    } else {
-      /* Write zeros into L3 via DMA using a temporary L2 zero page */
-      uint8_t *zero_page = pi_l2_malloc(512);
-      memset(zero_page, 0, 512);
-      for (uint32_t off = 0; off < bytes; off += 512) {
-        uint32_t chunk = (off + 512 <= bytes) ? 512 : (bytes - off);
-        ram_write((char *)buf + off, zero_page, chunk);
-      }
-      pi_l2_free(zero_page, 512);
-    }
+for (uint32_t _gi = 0; _gi < (uint32_t)TRAINING_NUM_GRAD_INPUTS; _gi++) {
+  uint32_t _idx = (uint32_t)TRAINING_GRAD_BUF_START_IDX + _gi;
+  if ((uint32_t)DeeployNetwork_inputs[_idx] >= 0x10000000u) {
+    memset(DeeployNetwork_inputs[_idx], 0, DeeployNetwork_inputs_bytes[_idx]);
   }
+}
 
   /* ------------------------------------------------------------------
    * Init optimizer network
@@ -298,9 +282,16 @@ int main(void) {
 
   printf("Initializing OptimizerNetwork...\r\n");
   pi_cluster_task(&cluster_task, InitOptimizerNetwork, NULL);
-  cluster_task.stack_size = MAINSTACKSIZE;
+  cluster_task.stack_size       = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+
+  /* Initialise Adam state (V, H, R, T) if using Adam optimizer. */
+  init_optimizer_state();
+
+//   /* ------------------------------------------------------------------
+//    * lazy_reset_grad is the last input of the training network.
+//    * ------------------------------------------------------------------ */
 
   uint32_t reset_idx = DeeployNetwork_num_inputs - 1;
 
@@ -313,104 +304,242 @@ int main(void) {
 #if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
   for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
     uint32_t idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
-    l3_aware_copy(DeeployNetwork_inputs[idx], testInitWeights[wi],
-                  DeeployNetwork_inputs_bytes[idx]);
+    if ((uint32_t)DeeployNetwork_inputs[idx] >= 0x10000000u) {
+      memcpy(DeeployNetwork_inputs[idx], testInitWeights[wi], DeeployNetwork_inputs_bytes[idx]);
+    }
   }
 #endif
 
   printf("Starting training (%u optimizer steps x %u accum steps)...\r\n",
          (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS);
 
+  /* ------------------------------------------------------------------
+   * Benchmark accumulators
+   * ------------------------------------------------------------------ */
+  uint32_t total_train_cycles  = 0;
+  uint32_t total_opt_cycles    = 0;
+  uint32_t min_train_cycles    = 0xFFFFFFFFu;
+  uint32_t max_train_cycles    = 0;
+  uint32_t min_opt_cycles      = 0xFFFFFFFFu;
+  uint32_t max_opt_cycles      = 0;
+
   for (uint32_t update_step = 0; update_step < N_TRAIN_STEPS; update_step++) {
+
+    uint32_t step_train_cycles = 0;
 
     for (uint32_t accum_step = 0; accum_step < N_ACCUM_STEPS; accum_step++) {
 
       uint32_t mb = update_step * N_ACCUM_STEPS + accum_step;
 
       printf("  update %u/%u  accum %u/%u  (mini-batch %u)\r\n",
-             update_step + 1, (unsigned)N_TRAIN_STEPS, accum_step + 1,
-             (unsigned)N_ACCUM_STEPS, mb);
+             update_step + 1, (unsigned)N_TRAIN_STEPS,
+             accum_step + 1,  (unsigned)N_ACCUM_STEPS,
+             mb);
 
       /* ① Set lazy_reset_grad. */
-      {
-        void *reset_ptr = DeeployNetwork_inputs[reset_idx];
-        uint8_t reset_val = (accum_step == 0) ? 1u : 0u;
-        if (IS_L2(reset_ptr)) {
-          *((uint8_t *)reset_ptr) = reset_val;
-        } else {
-          ram_write(reset_ptr, &reset_val, sizeof(uint8_t));
+      if ((uint32_t)DeeployNetwork_inputs[reset_idx] >= 0x10000000) {
+        *((uint8_t *)DeeployNetwork_inputs[reset_idx]) =
+            (accum_step == 0) ? 1u : 0u;
+      }
+
+      /* ② Load this mini-batch's data + labels (cycle through unique samples). */
+      for (uint32_t buf = 0; buf < TRAINING_NUM_DATA_INPUTS; buf++) {
+        if ((uint32_t)DeeployNetwork_inputs[buf] >= 0x10000000) {
+          memcpy(DeeployNetwork_inputs[buf],
+                 testDataVector[mb % TRAINING_DATA_SIZE][buf],
+                 DeeployNetwork_inputs_bytes[buf]);
         }
       }
 
-      /* ② Load this mini-batch's data + labels (cycle through unique samples).
-       */
-      for (uint32_t buf = 0; buf < TRAINING_NUM_DATA_INPUTS; buf++) {
-        l3_aware_copy(DeeployNetwork_inputs[buf],
-                      testDataVector[mb % TRAINING_DATA_SIZE][buf],
-                      DeeployNetwork_inputs_bytes[buf]);
-      }
-
-      /* ③ Forward + backward + InPlaceAccumulatorV2. */
-      pi_cluster_task(&cluster_task, RunTrainingNetwork, NULL);
-      cluster_task.stack_size = MAINSTACKSIZE;
-      cluster_task.slave_stack_size = SLAVESTACKSIZE;
+      /* ③ Forward + backward + InPlaceAccumulatorV2 (measured). */
       ResetTimer();
       StartTimer();
+
+      pi_cluster_task(&cluster_task, RunTrainingNetwork, NULL);
+      cluster_task.stack_size       = MAINSTACKSIZE;
+      cluster_task.slave_stack_size = SLAVESTACKSIZE;
       pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+
       StopTimer();
-      g_train_cycles_acc += getCycles();
+      uint32_t train_cyc = getCycles();
+      step_train_cycles += train_cyc;
+
+      printf("  [BENCH] mb=%u train_cycles=%u\r\n", mb, (unsigned)train_cyc);
 
       /* ④ Store loss — use memcpy to avoid float registers on FC (no FPU). */
-      {
-        void *loss_ptr = DeeployNetwork_outputs[0];
-        if (IS_L2(loss_ptr)) {
-          memcpy(&stored_losses[mb], loss_ptr, sizeof(float));
-        } else {
-          ram_read(&stored_losses[mb], loss_ptr, sizeof(float));
-        }
+      if ((uint32_t)DeeployNetwork_outputs[0] >= 0x10000000u) {
+        memcpy(&stored_losses[mb], DeeployNetwork_outputs[0], sizeof(float));
       }
 
     } /* end accum_step loop */
 
-    /* ⑤ SGD weight update via Deeploy-compiled OptimizerNetwork. */
-    run_optimizer_step();
+    /* ⑤ Optimizer weight update (SGD or Adam) via Deeploy-compiled OptimizerNetwork. */
+    uint32_t opt_cyc = 0;
+    run_optimizer_step(&opt_cyc);
+
+    printf("  [BENCH] step=%u step_train_cycles=%u opt_cycles=%u\r\n",
+           update_step, (unsigned)step_train_cycles, (unsigned)opt_cyc);
+
+    total_train_cycles += step_train_cycles;
+    total_opt_cycles   += opt_cyc;
+    if (step_train_cycles < min_train_cycles) min_train_cycles = step_train_cycles;
+    if (step_train_cycles > max_train_cycles) max_train_cycles = step_train_cycles;
+    if (opt_cyc < min_opt_cycles) min_opt_cycles = opt_cyc;
+    if (opt_cyc > max_opt_cycles) max_opt_cycles = opt_cyc;
 
   } /* end update_step loop */
+
+  /* ------------------------------------------------------------------
+   * Benchmark summary
+   * ------------------------------------------------------------------ */
+  uint32_t total_cycles = total_train_cycles + total_opt_cycles;
+  uint32_t avg_train = (N_TRAIN_STEPS > 0) ? total_train_cycles / N_TRAIN_STEPS : 0;
+  uint32_t avg_opt   = (N_TRAIN_STEPS > 0) ? total_opt_cycles   / N_TRAIN_STEPS : 0;
+
+  /* ------------------------------------------------------------------
+   * Compute data transfer bytes per step (FC-side memcpy overhead)
+   * ------------------------------------------------------------------ */
+  uint32_t data_load_bytes_per_mb = 0;
+  for (uint32_t buf = 0; buf < TRAINING_NUM_DATA_INPUTS; buf++) {
+    data_load_bytes_per_mb += DeeployNetwork_inputs_bytes[buf];
+  }
+  uint32_t data_load_bytes_per_step = data_load_bytes_per_mb * N_ACCUM_STEPS;
+
+  uint32_t opt_copy_bytes_per_step = 0;
+#if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
+  for (uint32_t wi = 0; wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
+    uint32_t train_w_idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
+    uint32_t train_g_idx = (uint32_t)TRAINING_GRAD_BUF_START_IDX + wi;
+    /* Step A: weight + grad → optimizer inputs */
+    opt_copy_bytes_per_step += DeeployNetwork_inputs_bytes[train_w_idx];
+    opt_copy_bytes_per_step += DeeployNetwork_inputs_bytes[train_g_idx];
+    /* Step C: optimizer outputs → training weights */
+    opt_copy_bytes_per_step += DeeployNetwork_inputs_bytes[train_w_idx];
+#ifdef OPTIMIZER_ADAM
+    /* Adam: also copy V_new and H_new back */
+    opt_copy_bytes_per_step += DeeployNetwork_inputs_bytes[train_w_idx] * 2;
+#endif
+  }
+#endif
+
+  printf("\r\n[BENCH] ============ BENCHMARK SUMMARY ============\r\n");
+  printf("[BENCH] N_TRAIN_STEPS=%u  N_ACCUM_STEPS=%u\r\n",
+         (unsigned)N_TRAIN_STEPS, (unsigned)N_ACCUM_STEPS);
+#ifdef OPTIMIZER_ADAM
+  printf("[BENCH] Optimizer: Adam\r\n");
+#else
+  printf("[BENCH] Optimizer: SGD\r\n");
+#endif
+  printf("[BENCH] --- Training (fwd+bwd) per step (=%u mini-batches) ---\r\n",
+         (unsigned)N_ACCUM_STEPS);
+  printf("[BENCH]   total  = %u cycles\r\n", (unsigned)total_train_cycles);
+  printf("[BENCH]   avg    = %u cycles/step\r\n", (unsigned)avg_train);
+  printf("[BENCH]   min    = %u cycles/step\r\n", (unsigned)min_train_cycles);
+  printf("[BENCH]   max    = %u cycles/step\r\n", (unsigned)max_train_cycles);
+  printf("[BENCH] --- Optimizer kernel per step ---\r\n");
+  printf("[BENCH]   total  = %u cycles\r\n", (unsigned)total_opt_cycles);
+  printf("[BENCH]   avg    = %u cycles/step\r\n", (unsigned)avg_opt);
+  printf("[BENCH]   min    = %u cycles/step\r\n", (unsigned)min_opt_cycles);
+  printf("[BENCH]   max    = %u cycles/step\r\n", (unsigned)max_opt_cycles);
+  printf("[BENCH] --- Data transfer (FC-side memcpy, per step) ---\r\n");
+  printf("[BENCH]   data_load     = %u bytes/step (%u bytes/mb x %u mb)\r\n",
+         (unsigned)data_load_bytes_per_step,
+         (unsigned)data_load_bytes_per_mb, (unsigned)N_ACCUM_STEPS);
+  printf("[BENCH]   opt_copy      = %u bytes/step (w+g→opt + opt→w)\r\n",
+         (unsigned)opt_copy_bytes_per_step);
+  printf("[BENCH]   total_memcpy  = %u bytes/step\r\n",
+         (unsigned)(data_load_bytes_per_step + opt_copy_bytes_per_step));
+  printf("[BENCH] --- Total ---\r\n");
+  printf("[BENCH]   train+opt = %u cycles\r\n", (unsigned)total_cycles);
+  printf("[BENCH]   train%%    = %u%%\r\n",
+         total_cycles > 0 ? (unsigned)(total_train_cycles / (total_cycles / 100u)) : 0);
+  printf("[BENCH]   opt%%      = %u%%\r\n",
+         total_cycles > 0 ? (unsigned)(total_opt_cycles / (total_cycles / 100u)) : 0);
+  printf("[BENCH] =======================================\r\n\r\n");
 
   /* ------------------------------------------------------------------
    * Numerical verification — run on cluster (FC has no FPU)
    * ------------------------------------------------------------------ */
 
   uint32_t loss_err_count = 0;
-  uint32_t total_loss_checks =
-      (TOTAL_FWD_PASSES < N_LOSS_REFS) ? TOTAL_FWD_PASSES : N_LOSS_REFS;
+  uint32_t total_loss_checks = (TOTAL_FWD_PASSES < N_LOSS_REFS) ? TOTAL_FWD_PASSES : N_LOSS_REFS;
   LossCompareArgs loss_cmp_args = {
-      .computed = stored_losses,
-      .reference = (float *)testLossRef,
-      .n = total_loss_checks,
-      .err_count = &loss_err_count,
+    .computed  = stored_losses,
+    .reference = (float *)testLossRef,
+    .n         = total_loss_checks,
+    .err_count = &loss_err_count,
   };
   pi_cluster_task(&cluster_task, CompareLossesOnCluster, &loss_cmp_args);
-  cluster_task.stack_size = MAINSTACKSIZE;
+  cluster_task.stack_size       = MAINSTACKSIZE;
   cluster_task.slave_stack_size = SLAVESTACKSIZE;
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
-  printf("Errors: %u out of %u\r\n", (unsigned)loss_err_count,
-         (unsigned)total_loss_checks);
+  printf("Loss errors: %u out of %u\r\n", (unsigned)loss_err_count, (unsigned)total_loss_checks);
 
   /* ------------------------------------------------------------------
-   * Benchmark summary — parsed by benchmark_training.py
+   * State verification: final weights (and V/H for Adam)
    * ------------------------------------------------------------------ */
+  uint32_t state_err_count = 0;
 
-  uint32_t weight_sram_bytes = 0;
-#if defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
-  for (uint32_t _wi = 0; _wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; _wi++) {
-    weight_sram_bytes +=
-        DeeployNetwork_inputs_bytes[(uint32_t)TRAINING_NUM_DATA_INPUTS + _wi];
+#if defined(NUM_STATE_REFS) && (NUM_STATE_REFS > 0) && defined(TRAINING_NUM_WEIGHT_INPUTS) && (TRAINING_NUM_WEIGHT_INPUTS > 0)
+  printf("\nComparing final weight states (%u tensors):\r\n", (unsigned)NUM_STATE_REFS);
+  for (uint32_t wi = 0; wi < (uint32_t)NUM_STATE_REFS && wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
+    uint32_t train_w_idx = (uint32_t)TRAINING_NUM_DATA_INPUTS + wi;
+    StateCompareArgs w_args = {
+      .computed   = (float *)DeeployNetwork_inputs[train_w_idx],
+      .reference  = testWeightRef[wi],
+      .n_elems    = testStateRefSizes[wi],
+      .tensor_idx = wi,
+      .label      = "W",
+      .err_count  = &state_err_count,
+    };
+    pi_cluster_task(&cluster_task, CompareStateOnCluster, &w_args);
+    cluster_task.stack_size       = MAINSTACKSIZE;
+    cluster_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
   }
-#endif
 
-  printf("BENCH train_cycles=%u opt_cycles=%u weight_sram=%u\r\n",
-         g_train_cycles_acc, g_opt_cycles_acc, weight_sram_bytes);
+#if defined(OPTIMIZER_ADAM) && defined(HAS_ADAM_STATE_REFS) && (HAS_ADAM_STATE_REFS > 0)
+  printf("\nComparing Adam V states (%u tensors):\r\n", (unsigned)NUM_STATE_REFS);
+  for (uint32_t wi = 0; wi < (uint32_t)NUM_STATE_REFS && wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
+    uint32_t opt_v_in = OPT_V_IDX(wi);
+    StateCompareArgs v_args = {
+      .computed   = (float *)DeeployOptNetwork_inputs[opt_v_in],
+      .reference  = testVRef[wi],
+      .n_elems    = testStateRefSizes[wi],
+      .tensor_idx = wi,
+      .label      = "V",
+      .err_count  = &state_err_count,
+    };
+    pi_cluster_task(&cluster_task, CompareStateOnCluster, &v_args);
+    cluster_task.stack_size       = MAINSTACKSIZE;
+    cluster_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+  }
 
-  return loss_err_count == 0 ? 0 : 1;
+  printf("\nComparing Adam H states (%u tensors):\r\n", (unsigned)NUM_STATE_REFS);
+  for (uint32_t wi = 0; wi < (uint32_t)NUM_STATE_REFS && wi < (uint32_t)TRAINING_NUM_WEIGHT_INPUTS; wi++) {
+    uint32_t opt_h_in = OPT_H_IDX(wi);
+    StateCompareArgs h_args = {
+      .computed   = (float *)DeeployOptNetwork_inputs[opt_h_in],
+      .reference  = testHRef[wi],
+      .n_elems    = testStateRefSizes[wi],
+      .tensor_idx = wi,
+      .label      = "H",
+      .err_count  = &state_err_count,
+    };
+    pi_cluster_task(&cluster_task, CompareStateOnCluster, &h_args);
+    cluster_task.stack_size       = MAINSTACKSIZE;
+    cluster_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+  }
+#endif /* OPTIMIZER_ADAM && HAS_ADAM_STATE_REFS */
+
+  printf("State errors: %u\r\n", (unsigned)state_err_count);
+#endif /* NUM_STATE_REFS */
+
+  uint32_t total_errors = loss_err_count + state_err_count;
+  printf("\nErrors: %u out of %u\r\n", (unsigned)total_errors, (unsigned)total_loss_checks);
+
+  return 0;
+
 }

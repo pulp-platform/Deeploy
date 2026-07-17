@@ -6,7 +6,6 @@ import os
 from dataclasses import dataclass
 from typing import List, Literal, Optional
 
-
 @dataclass
 class DeeployTestConfig:
     """Configuration for a single test case."""
@@ -32,7 +31,7 @@ class DeeployTestConfig:
     # Directory containing the optimizer ONNX (network.onnx with SGD nodes).
     # If None, defaults to <test_dir>/../simplemlp_optimizer when training=True.
     optimizer_dir: Optional[str] = None
-
+    optimizer_adam: bool = False
     def __post_init__(self):
         if self.cmake_args is None:
             self.cmake_args = []

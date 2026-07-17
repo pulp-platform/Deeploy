@@ -59,3 +59,33 @@ CHANGELOG_GEN.md
 .cache/
 
 CLAUDE.md
+DeeployTest/Tests/Models/Training/*_UNI_*
+DeeployTest/Tests/Models/Training/*_COST*
+DeeployTest/Tests/Models/Training/*_SEGSPLIT*
+DeeployTest/Tests/Models/Training/*_SIZE*
+DeeployTest/Tests/Models/Training/*_BENCH*
+DeeployTest/Tests/Models/Training/*_REF_*
+DeeployTest/Tests/Models/Training/*_UNITEST*
+DeeployTest/scripts/logs/
+DeeployTest/TEST_SIRACUSA/
+
+# Only these base training test dirs are tracked. Everything else (sweeps,
+# variants, benchmarks) stays local.
+DeeployTest/Tests/Models/Training/Autoencoder_*
+DeeployTest/Tests/Models/Training/CCT_2
+DeeployTest/Tests/Models/Training/CCT_2_*
+DeeployTest/Tests/Models/Training/CCT_3
+DeeployTest/Tests/Models/Training/CCT_3_*
+DeeployTest/Tests/Models/Training/CCT_LoRA_*
+DeeployTest/Tests/Models/Training/DSCNN_*
+DeeployTest/Tests/Models/Training/MobileNetV1_*
+DeeployTest/Tests/Models/Training/ResNet8_*
+DeeployTest/Tests/Models/Training/SimpleMLP_*
+
+# Onnx4Deeploy generated intermediates inside test training dirs (not needed by Deeploy runners)
+DeeployTest/Tests/Models/Training/*/*/checkpoint
+DeeployTest/Tests/Models/Training/*/*/eval_model.onnx
+DeeployTest/Tests/Models/Training/*/*/network_infer.onnx
+DeeployTest/Tests/Models/Training/*/*/network_train.onnx
+DeeployTest/Tests/Models/Training/*/*/network_train_optim.onnx
+DeeployTest/Tests/Models/Training/*/*/optimizer_model.onnx

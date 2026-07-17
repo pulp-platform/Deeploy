@@ -135,7 +135,9 @@ def _infer_n_accum(inputs_path: str) -> int:
 
 def _mockScheduler(graph: gs.Graph) -> List[List[gs.Node]]:
     """Wrap every node in a singleton list for the Tiler pattern interface."""
-    return [[node] for node in graph.nodes]
+    from testUtils.gcpScheduler import defaultScheduler
+    ordered = defaultScheduler(graph)
+    return [[node] for node in ordered]
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +234,22 @@ def add_training_cmake_flags(cmd: List[str], training: bool, n_train_steps: Opti
         cmd.append(f"-DTRAINING_NUM_DATA_INPUTS={training_num_data_inputs}")
 
 
+def _inject_bench(gen_dir: str) -> None:
+    """Run the standalone bench instrumentation script against gen_dir.
+
+    Injects `pi_perf_*` cycle-counter calls into the generated C source so
+    Siracusa simulator output emits `[BENCH-TRAIN]` / `[BENCH-OPT]` lines.
+    Idempotent (the script bails if a sentinel is already present)."""
+    instrument_script = Path(__file__).resolve().parent / "instrument_bench.py"
+    if not instrument_script.exists():
+        return
+    try:
+        subprocess.run([sys.executable, str(instrument_script), str(gen_dir)],
+                       check = False)
+    except Exception as e:
+        log.warning(f"[Execution] bench instrumentation skipped: {e}")
+
+
 def run_training_codegen(config, script_dir: Path) -> None:
     """Drive the two-stage training codegen pipeline for one test.
 
@@ -293,6 +311,9 @@ def run_training_codegen(config, script_dir: Path) -> None:
     if subprocess.run(cmd, check = False).returncode != 0:
         raise RuntimeError(f"{stage} network generation failed for {config.test_name}")
 
+    # Phase-level cycle instrumentation for TrainingNetwork.c (idempotent).
+    _inject_bench(config.gen_dir)
+
     # Read back auto-detected values written by the training generation script.
     meta_path = Path(config.gen_dir) / "training_meta.json"
     if meta_path.exists():
@@ -332,3 +353,6 @@ def run_training_codegen(config, script_dir: Path) -> None:
     log.debug(f"[Execution] {stage} optimizer network generation command: {' '.join(opt_cmd)}")
     if subprocess.run(opt_cmd, check = False).returncode != 0:
         raise RuntimeError(f"{stage} optimizer network generation failed for {config.test_name}")
+
+    # Phase-level cycle instrumentation for OptimizerNetwork.c (idempotent).
+    _inject_bench(config.gen_dir)

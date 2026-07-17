@@ -10,7 +10,6 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
 from Deeploy.DeeployTypes import ConstantBuffer, OperatorRepresentation, VariableBuffer
 
-
 class ConcatChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -33,7 +32,6 @@ class ConcatChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class SliceChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -49,7 +47,6 @@ class SliceChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
 
 class TransposeChecker(SignPropTypeChecker):
 
@@ -67,7 +64,6 @@ class TransposeChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class PadChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -83,7 +79,6 @@ class PadChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
 
 class AddChecker(SignPropTypeChecker):
 
@@ -101,7 +96,6 @@ class AddChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class GatherChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -117,7 +111,6 @@ class GatherChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
 
 class ReshapeChecker(SignPropTypeChecker):
 
@@ -135,7 +128,6 @@ class ReshapeChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class MHSAChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -148,7 +140,6 @@ class MHSAChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
-
 
 class CLCAChecker(SignPropTypeChecker):
 
@@ -163,7 +154,6 @@ class CLCAChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
 
-
 class LinearAttentionChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -176,7 +166,6 @@ class LinearAttentionChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
-
 
 class GEMMChecker(SignPropTypeChecker):
 
@@ -194,7 +183,6 @@ class GEMMChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
 
-
 class LayerNormChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -207,7 +195,6 @@ class LayerNormChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
-
 
 class MulChecker(SignPropTypeChecker):
 
@@ -225,7 +212,6 @@ class MulChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class DivChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -242,7 +228,6 @@ class DivChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class RQIntegerDivChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -258,7 +243,6 @@ class RQIntegerDivChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
 
 class MatMulChecker(SignPropTypeChecker):
 
@@ -278,7 +262,6 @@ class MatMulChecker(SignPropTypeChecker):
         # else:
         # return [False]
 
-
 class RQMatMulChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -292,7 +275,6 @@ class RQMatMulChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [bool(operatorRepresentation["signed"])]
 
-
 class RQGEMMChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -305,7 +287,6 @@ class RQGEMMChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [bool(operatorRepresentation["signed"])]
-
 
 class ReduceMeanChecker(SignPropTypeChecker):
 
@@ -323,7 +304,6 @@ class ReduceMeanChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class ReduceSumChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -340,7 +320,6 @@ class ReduceSumChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class ReluChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -352,7 +331,6 @@ class ReluChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [False]
-
 
 class SoftmaxChecker(SignPropTypeChecker):
 
@@ -366,7 +344,6 @@ class SoftmaxChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [False]
-
 
 class iNoNormChecker(SignPropTypeChecker):
 
@@ -384,7 +361,6 @@ class iNoNormChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class GELUChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -400,7 +376,6 @@ class GELUChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
 
 class HardswishChecker(SignPropTypeChecker):
 
@@ -418,7 +393,6 @@ class HardswishChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class RQHardswishChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -435,7 +409,6 @@ class RQHardswishChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class MaxPoolChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -451,7 +424,6 @@ class MaxPoolChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
 
 class MaxPoolGradChecker(SignPropTypeChecker):
     """TypeChecker for MaxPoolGrad: two float inputs (grad_output, original_input), one float output (grad_input)."""
@@ -470,7 +442,6 @@ class MaxPoolGradChecker(SignPropTypeChecker):
     def checkOutputType(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> bool:
         return True
 
-
 class MSELossChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -483,7 +454,6 @@ class MSELossChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
         return [False] * len(self.output_types)
-
 
 class AveragePoolChecker(SignPropTypeChecker):
 
@@ -500,7 +470,6 @@ class AveragePoolChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
 
 class GlobalAveragePoolChecker(SignPropTypeChecker):
     """TypeChecker for GlobalAveragePool.
@@ -520,7 +489,6 @@ class GlobalAveragePoolChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [inputs[0]._signed]
 
-
 class GlobalAveragePoolGradChecker(SignPropTypeChecker):
     """TypeChecker for GlobalAveragePoolGrad.
 
@@ -538,7 +506,6 @@ class GlobalAveragePoolGradChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
-
 
 class ConvChecker(SignPropTypeChecker):
 
@@ -560,7 +527,6 @@ class ConvChecker(SignPropTypeChecker):
         else:
             return [False]
 
-
 class RequantShiftChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -574,7 +540,6 @@ class RequantShiftChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [operatorRepresentation["signed"]]
 
-
 class DummyChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -583,7 +548,6 @@ class DummyChecker(SignPropTypeChecker):
     def _inferNumLevels(self, inputs: List[VariableBuffer],
                         operatorRepresentation: OperatorRepresentation) -> List[int]:
         return [2**(self.input_types[0].referencedType.typeWidth)]
-
 
 class DebugPrintChecker(SignPropTypeChecker):
 
@@ -600,7 +564,6 @@ class DebugPrintChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
-
 
 class RQAddChecker(SignPropTypeChecker):
 
@@ -624,7 +587,6 @@ class RQAddChecker(SignPropTypeChecker):
             return True
         return False
 
-
 class QuantChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -641,7 +603,6 @@ class QuantChecker(SignPropTypeChecker):
         # Return signedness from the operation attributes
         return [bool(operatorRepresentation['signed'])]
 
-
 class DequantChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -654,7 +615,6 @@ class DequantChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
-
 
 class SoftmaxCrossEntropyLossChecker(SignPropTypeChecker):
 
@@ -670,7 +630,6 @@ class SoftmaxCrossEntropyLossChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
         return [False] * len(self.output_types)
 
-
 class SGDChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -683,7 +642,6 @@ class SGDChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
         return [True]
-
 
 class InPlaceAccumulatorV2Checker(SignPropTypeChecker):
     """Type checker for ORT InPlaceAccumulatorV2 operator (com.microsoft).
@@ -710,7 +668,6 @@ class InPlaceAccumulatorV2Checker(SignPropTypeChecker):
         # Float32 output is signed
         return [True]
 
-
 class BatchNormChecker(SignPropTypeChecker):
 
     def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
@@ -723,7 +680,6 @@ class BatchNormChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True]
-
 
 class BatchNormInternalChecker(SignPropTypeChecker):
     """TypeChecker for ORT BatchNormInternal (training-mode BN forward pass).
@@ -747,7 +703,6 @@ class BatchNormInternalChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True] * len(self.output_types)
 
-
 class BatchNormalizationGradChecker(SignPropTypeChecker):
     """TypeChecker for ORT BatchNormalizationGrad (BN backward pass).
 
@@ -766,7 +721,6 @@ class BatchNormalizationGradChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [True] * len(self.output_types)
 
-
 class PULPConvGradBChecker(SignPropTypeChecker):
     """TypeChecker for ConvGradB which only has one input (output_grad)"""
 
@@ -780,3 +734,55 @@ class PULPConvGradBChecker(SignPropTypeChecker):
     def _inferSignedness(self, inputs: List[VariableBuffer],
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         return [inputs[0]._signed]
+class AdamChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+        # Only X_new is an output; V and H are read-only inputs.
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [True]
+
+class AdamUpdateVChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [True]
+
+class AdamUpdateHChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [True]
+
+class AdamUpdateWChecker(SignPropTypeChecker):
+
+    def __init__(self, input_types: Sequence[Type[Pointer]], output_types: Sequence[Type[Pointer]]):
+        super().__init__(input_types, output_types)
+
+    def _inferNumLevels(self, inputs: List[VariableBuffer],
+                        operatorRepresentation: OperatorRepresentation) -> Optional[List[int]]:
+        return [2**(self.input_types[0].referencedType.typeWidth)]
+
+    def _inferSignedness(self, inputs: List[VariableBuffer],
+                         operatorRepresentation: OperatorRepresentation) -> Optional[List[bool]]:
+        return [True]

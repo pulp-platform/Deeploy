@@ -10,7 +10,6 @@ import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
 
-
 class ConcatParser(NodeParser):
 
     def __init__(self):
@@ -39,7 +38,6 @@ class ConcatParser(NodeParser):
             self.operatorRepresentation[f'data_in_{idx+1}'] = _inp.name
 
         return ctxt, True
-
 
 class iRMSNormParser(NodeParser):
 
@@ -75,7 +73,6 @@ class iRMSNormParser(NodeParser):
 
         return ctxt, True
 
-
 class RQSParserInterface():
 
     def parseNode(self, node: gs.Node) -> bool:
@@ -92,7 +89,6 @@ class RQSParserInterface():
         self.operatorRepresentation['log2D'] = int(math.log2(NodeParser._unpack_const(node.attrs['div'])))
 
         return True
-
 
 class SliceParser(NodeParser):
 
@@ -154,7 +150,6 @@ class SliceParser(NodeParser):
 
         return ctxt, True
 
-
 class TransposeParser(NodeParser):
 
     def __init__(self):
@@ -183,7 +178,6 @@ class TransposeParser(NodeParser):
         self.operatorRepresentation['data_out_size'] = np.prod(data_out.shape)
 
         return ctxt, True
-
 
 class MaxPoolParser(NodeParser):
 
@@ -223,7 +217,6 @@ class MaxPoolParser(NodeParser):
         self.operatorRepresentation['data_out_size'] = np.prod(data_out.shape)
 
         return ctxt, True
-
 
 class MaxPool1DParser(MaxPoolParser):
 
@@ -265,7 +258,6 @@ class MaxPool1DParser(MaxPoolParser):
             if len(data_in.shape) == 3 and len(data_out.shape) == 3:
                 return newCtxt, True
         return ctxt, False
-
 
 class MaxPool2DParser(MaxPoolParser):
 
@@ -328,7 +320,6 @@ class MaxPool2DParser(MaxPoolParser):
 
         return newCtxt, wellFormed
 
-
 class GlobalAveragePoolParser(NodeParser):
     """Parser for GlobalAveragePool (NCHW).
 
@@ -364,7 +355,6 @@ class GlobalAveragePoolParser(NodeParser):
         self.operatorRepresentation['dim_im_in_y'] = W
         self.operatorRepresentation['size'] = H * W
         return ctxt, True
-
 
 class GlobalAveragePoolGradParser(NodeParser):
     """Parser for fused GlobalAveragePoolGrad.
@@ -407,7 +397,6 @@ class GlobalAveragePoolGradParser(NodeParser):
         self.operatorRepresentation['channels'] = C
         return ctxt, True
 
-
 class MSELossParser(NodeParser):
 
     def __init__(self):
@@ -436,7 +425,6 @@ class MSELossParser(NodeParser):
 
         return ctxt, True
 
-
 class MSELossGradParser(NodeParser):
 
     def __init__(self):
@@ -464,7 +452,6 @@ class MSELossGradParser(NodeParser):
         self.operatorRepresentation['num_elements'] = num_elements
 
         return ctxt, True
-
 
 class AveragePool2DParser(MaxPool2DParser):
 
@@ -514,7 +501,6 @@ class AveragePool2DParser(MaxPool2DParser):
             if len(data_in.shape) == 4 and len(data_out.shape) == 4:
                 wellFormed = True
         return newCtxt, wellFormed
-
 
 class MaxPoolGradParser(NodeParser):
     """Parser for MaxPoolGrad custom training operator.
@@ -594,7 +580,6 @@ class MaxPoolGradParser(NodeParser):
         wellFormed = (len(data_in.shape) == 4 and len(x_in.shape) == 4 and len(data_out.shape) == 4)
         return ctxt, wellFormed
 
-
 class PadParser(NodeParser):
 
     def __init__(self):
@@ -633,7 +618,6 @@ class PadParser(NodeParser):
         self.operatorRepresentation['data_out_size'] = np.prod(data_out.shape)
 
         return ctxt, True
-
 
 class Pad2DParser(PadParser):
 
@@ -683,7 +667,6 @@ class Pad2DParser(PadParser):
                     self.operatorRepresentation['dim_im_out_ch'] = data_out.shape[3]
         return newCtxt, wellFormed
 
-
 class Pad1DParser(PadParser):
 
     def __init__(self):
@@ -730,7 +713,6 @@ class Pad1DParser(PadParser):
                     self.operatorRepresentation['dim_im_out_ch'] = data_out.shape[2]
         return newCtxt, wellFormed
 
-
 class AddParser(NodeParser):
 
     def __init__(self):
@@ -756,7 +738,6 @@ class AddParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(data_in_1.shape)
 
         return ctxt, True
-
 
 class ReduceParser(NodeParser):
 
@@ -791,7 +772,6 @@ class ReduceParser(NodeParser):
         self.operatorRepresentation['axisLength'] = data_in.shape[self.operatorRepresentation['axes'][0]]
 
         return ctxt, True
-
 
 class ReduceMeanParser(ReduceParser):
 
@@ -868,7 +848,6 @@ class ReduceMeanParser(ReduceParser):
             newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
             return newCtxt, ret
 
-
 class ReduceSumParser(ReduceParser):
 
     def __init__(self):
@@ -887,7 +866,6 @@ class ReduceSumParser(ReduceParser):
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
         return newCtxt, ret
-
 
 class SoftmaxParser(NodeParser):
 
@@ -917,7 +895,6 @@ class SoftmaxParser(NodeParser):
             self.operatorRepresentation['lastDimLength'] = data_in.shape[-1]
 
         return ctxt, True
-
 
 class SoftmaxGradParser(NodeParser):
 
@@ -949,7 +926,6 @@ class SoftmaxGradParser(NodeParser):
         else:
             self.operatorRepresentation['lastDimLength'] = upstream_grad.shape[-1]
         return ctxt, True
-
 
 class iSoftmaxParser(SoftmaxParser):
 
@@ -985,7 +961,6 @@ class iSoftmaxParser(SoftmaxParser):
 
         return newCtxt, ret
 
-
 class ITAMaxParser(SoftmaxParser):
 
     def __init__(self):
@@ -1012,7 +987,6 @@ class ITAMaxParser(SoftmaxParser):
 
         return newCtxt, ret
 
-
 class ITAPartialMaxParser(SoftmaxParser):
 
     def __init__(self):
@@ -1038,7 +1012,6 @@ class ITAPartialMaxParser(SoftmaxParser):
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
         return newCtxt, ret
-
 
 class GELUParser(NodeParser):
 
@@ -1068,7 +1041,6 @@ class GELUParser(NodeParser):
 
         return ctxt, True
 
-
 class GELUGradParser(NodeParser):
 
     def __init__(self):
@@ -1094,7 +1066,6 @@ class GELUGradParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(upstream_grad.shape)
 
         return ctxt, True
-
 
 class RQSiGELUParser(GELUParser):
 
@@ -1132,7 +1103,6 @@ class RQSiGELUParser(GELUParser):
             return newCtxt, True
         return ctxt, False
 
-
 class iHardswishParser(NodeParser):
 
     def __init__(self):
@@ -1161,7 +1131,6 @@ class iHardswishParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
 
         return ctxt, True
-
 
 class iNoNormParser(NodeParser):
 
@@ -1196,7 +1165,6 @@ class iNoNormParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
 
         return ctxt, True
-
 
 class RQSiHardswishParser(iHardswishParser):
 
@@ -1237,7 +1205,6 @@ class RQSiHardswishParser(iHardswishParser):
             return newCtxt, True
         return ctxt, False
 
-
 class GatherParser(NodeParser):
 
     def __init__(self):
@@ -1275,7 +1242,6 @@ class GatherParser(NodeParser):
 
         return ctxt, True
 
-
 class FlattenParser(NodeParser):
 
     def __init__(self):
@@ -1304,7 +1270,6 @@ class FlattenParser(NodeParser):
             self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
 
         return ctxt, True
-
 
 class UnsqueezeParser(NodeParser):
 
@@ -1357,7 +1322,6 @@ class UnsqueezeParser(NodeParser):
 
         return ctxt, True
 
-
 class ReluParser(NodeParser):
 
     def __init__(self):
@@ -1381,7 +1345,6 @@ class ReluParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(data_in.shape)
 
         return ctxt, True
-
 
 class ReluGradParser(NodeParser):
 
@@ -1409,7 +1372,6 @@ class ReluGradParser(NodeParser):
 
         return ctxt, True
 
-
 class ReshapeParser(NodeParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
@@ -1425,7 +1387,6 @@ class ReshapeParser(NodeParser):
         for tensor, symName in zip(node.outputs, ['data_out']):
             self.operatorRepresentation[symName] = ctxt.lookup(tensor.name).name
         return ctxt, True
-
 
 class RequantShiftParser(NodeParser, RQSParserInterface):
 
@@ -1465,7 +1426,6 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
 
         return ctxt, True
 
-
 class UniformRequantShiftParser(RequantShiftParser):
 
     def __init__(self):
@@ -1480,7 +1440,6 @@ class UniformRequantShiftParser(RequantShiftParser):
         ])
 
         return (ret1 and ret2)
-
 
 class MulParser(NodeParser):
 
@@ -1513,7 +1472,6 @@ class MulParser(NodeParser):
         self.operatorRepresentation['sizeB'] = np.prod(ctxt.lookup(node.inputs[1].name).shape)
 
         return ctxt, True
-
 
 class ConvParser(NodeParser):
 
@@ -1566,7 +1524,6 @@ class ConvParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
 
         return ctxt, True
-
 
 class Conv2DParser(ConvParser):
 
@@ -1636,7 +1593,6 @@ class Conv2DParser(ConvParser):
 
         return ctxt, False
 
-
 class RQSConv2DParser(Conv2DParser, RQSParserInterface):
 
     def __init__(self, noBiasHoisting = True):
@@ -1652,7 +1608,6 @@ class RQSConv2DParser(Conv2DParser, RQSParserInterface):
         ])
 
         return ret
-
 
 class Conv1DParser(ConvParser):
 
@@ -1724,7 +1679,6 @@ class Conv1DParser(ConvParser):
 
         return ctxt, False
 
-
 class RQSConv1DParser(Conv1DParser, RQSParserInterface):
 
     def __init__(self, noBiasHoisting = True):
@@ -1740,7 +1694,6 @@ class RQSConv1DParser(Conv1DParser, RQSParserInterface):
         ])
 
         return ret
-
 
 class MHSAParser(NodeParser):
 
@@ -1803,7 +1756,6 @@ class MHSAParser(NodeParser):
         # self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
 
         return ctxt, True
-
 
 class LinearAttentionParser(NodeParser):
 
@@ -1880,7 +1832,6 @@ class LinearAttentionParser(NodeParser):
 
         return ctxt, True
 
-
 class CLCAParser(NodeParser):
 
     def __init__(self):
@@ -1935,7 +1886,6 @@ class CLCAParser(NodeParser):
 
         return ctxt, True
 
-
 class iLayerNormParser(NodeParser):
 
     def __init__(self):
@@ -1969,7 +1919,6 @@ class iLayerNormParser(NodeParser):
 
         return ctxt, True
 
-
 class LayerNormParser(iLayerNormParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
@@ -2002,7 +1951,6 @@ class LayerNormParser(iLayerNormParser):
 
         return ctxt, True
 
-
 class LayerNormGradParser(iLayerNormParser):
 
     def parseNode(self, node: gs.Node) -> (bool):
@@ -2027,7 +1975,6 @@ class LayerNormGradParser(iLayerNormParser):
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
         self.operatorRepresentation['lastDimLength'] = ctxt.lookup(node.inputs[0].name).shape[-1]
         return ctxt, True
-
 
 class MatMulParser(NodeParser):
 
@@ -2103,7 +2050,6 @@ class MatMulParser(NodeParser):
 
         return ctxt, ret
 
-
 class RQMatMulParser(MatMulParser, RQSParserInterface):
 
     def __init__(self, noBiasHoisting = True):
@@ -2140,7 +2086,6 @@ class RQMatMulParser(MatMulParser, RQSParserInterface):
                 self.operatorRepresentation[outputs[idx]] = newCtxt.lookup(outputNode.name).name
 
         return newCtxt, ret
-
 
 # This parser combines Matmul nodes and GEMM nodes to the more general GEMM nodes
 class GEMMParser(MatMulParser):
@@ -2218,7 +2163,6 @@ class GEMMParser(MatMulParser):
 
         return newCtxt, ret
 
-
 class RQGEMMParser(GEMMParser, RQSParserInterface):
 
     def __init__(self, noBiasHoisting = True):
@@ -2266,7 +2210,6 @@ class RQGEMMParser(GEMMParser, RQSParserInterface):
 
         return newCtxt, ret
 
-
 class DummyParser(NodeParser):
 
     def __init__(self):
@@ -2292,7 +2235,6 @@ class DummyParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(inputs[0].shape)
 
         return ctxt, True
-
 
 class IntegerDivParser(NodeParser):
 
@@ -2345,7 +2287,6 @@ class IntegerDivParser(NodeParser):
 
         return ctxt, True
 
-
 class PowParser(NodeParser):
 
     def __init__(self):
@@ -2370,7 +2311,6 @@ class PowParser(NodeParser):
         self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
 
         return ctxt, True
-
 
 class DivParser(NodeParser):
 
@@ -2399,7 +2339,6 @@ class DivParser(NodeParser):
         self.operatorRepresentation['size'] = np.prod(ctxt.lookup(self.operatorRepresentation['input1']).shape)
 
         return ctxt, True
-
 
 class RQIntegerDivParser(IntegerDivParser, RQSParserInterface):
 
@@ -2435,7 +2374,6 @@ class RQIntegerDivParser(IntegerDivParser, RQSParserInterface):
             self.operatorRepresentation[outputs[idx]] = newCtxt.lookup(outputNode.name).name
 
         return newCtxt, ret
-
 
 class DebugParser(NodeParser):
 
@@ -2500,7 +2438,6 @@ class DebugParser(NodeParser):
 
         return ctxt, wellFormed
 
-
 class GenericMaxPool2DParser(MaxPool2DParser):
 
     def __init__(self):
@@ -2525,7 +2462,6 @@ class GenericMaxPool2DParser(MaxPool2DParser):
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
 
         return newCtxt, ret
-
 
 class GenericConv1DParser(Conv1DParser):
 
@@ -2575,7 +2511,6 @@ class GenericConv1DParser(Conv1DParser):
 
         return ctxt, False
 
-
 class GenericDWConv1DParser(Conv1DParser):
 
     def __init__(self, noBiasHoisting = True):
@@ -2610,7 +2545,6 @@ class GenericDWConv1DParser(Conv1DParser):
                 return newCtxt, True
 
         return ctxt, False
-
 
 class GenericConv2DParser(Conv2DParser):
 
@@ -2665,7 +2599,6 @@ class GenericConv2DParser(Conv2DParser):
 
         return newCtxt, True
 
-
 class GenericDWConv2DParser(Conv2DParser):
 
     def __init__(self, noBiasHoisting = True):
@@ -2712,7 +2645,6 @@ class GenericDWConv2DParser(Conv2DParser):
 
         return ctxt, False
 
-
 class GenericGEMMParser(GEMMParser):
 
     def __init__(self, noBiasHoisting = False):
@@ -2758,7 +2690,6 @@ class GenericGEMMParser(GEMMParser):
             return newCtxt, True
 
         return ctxt, False
-
 
 class RQAddParser(AddParser):
 
@@ -2815,7 +2746,6 @@ class RQAddParser(AddParser):
 
         return ret
 
-
 class QuantParser(NodeParser):
 
     def __init__(self):
@@ -2865,7 +2795,6 @@ class QuantParser(NodeParser):
 
         return ctxt, True
 
-
 class DequantParser(NodeParser):
 
     def __init__(self):
@@ -2901,7 +2830,6 @@ class DequantParser(NodeParser):
 
         return ctxt, True
 
-
 class SoftmaxCrossEntropyLossParser(NodeParser):
     """SoftmaxCrossEntropyLoss parser.
 
@@ -2936,7 +2864,6 @@ class SoftmaxCrossEntropyLossParser(NodeParser):
 
         return ctxt, True
 
-
 class SoftmaxCrossEntropyLossGradParser(NodeParser):
 
     def __init__(self):
@@ -2966,7 +2893,6 @@ class SoftmaxCrossEntropyLossGradParser(NodeParser):
 
         return ctxt, True
 
-
 class SGDParser(NodeParser):
 
     def __init__(self):
@@ -2994,7 +2920,6 @@ class SGDParser(NodeParser):
         self.operatorRepresentation['lr'] = node.attrs['lr']
 
         return ctxt, True
-
 
 class InPlaceAccumulatorV2Parser(NodeParser):
     """Parser for ORT InPlaceAccumulatorV2 operator (com.microsoft).
@@ -3037,7 +2962,6 @@ class InPlaceAccumulatorV2Parser(NodeParser):
 
         return ctxt, True
 
-
 class BatchNormParser(NodeParser):
 
     def __init__(self):
@@ -3075,7 +2999,6 @@ class BatchNormParser(NodeParser):
         self.operatorRepresentation['window_size'] = input_shape[2]
 
         return ctxt, True
-
 
 class BatchNormInternalParser(NodeParser):
     """Parser for ORT BatchNormInternal (training_mode=1).
@@ -3139,7 +3062,6 @@ class BatchNormInternalParser(NodeParser):
 
         return ctxt, True
 
-
 class BatchNormalizationGradParser(NodeParser):
     """Parser for ORT BatchNormalizationGrad (backward pass).
 
@@ -3194,7 +3116,6 @@ class BatchNormalizationGradParser(NodeParser):
                 buf.shape = (C,)
 
         return ctxt, True
-
 
 class ConvTransposeParser(NodeParser):
 
@@ -3273,7 +3194,6 @@ class ConvTransposeParser(NodeParser):
             'batchOffsetOut'] = self.operatorRepresentation['ch_im_out'] * self.operatorRepresentation['dim_im_out_y']
         return ctxt, True
 
-
 class ConvTranspose1DParser(ConvTransposeParser):
 
     def __init__(self):
@@ -3324,7 +3244,6 @@ class ConvTranspose1DParser(ConvTransposeParser):
             return newCtxt, True
         return ctxt, False
 
-
 class SqrtParser(NodeParser):
 
     def __init__(self):
@@ -3346,7 +3265,6 @@ class SqrtParser(NodeParser):
         self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
 
         return ctxt, True
-
 
 class Conv2DGradXParser(Conv2DParser):
 
@@ -3404,7 +3322,6 @@ class Conv2DGradXParser(Conv2DParser):
 
         return ctxt, False
 
-
 class Conv2DGradWParser(Conv2DParser):
 
     def __init__(self, noBiasHoisting = True):
@@ -3457,7 +3374,6 @@ class Conv2DGradWParser(Conv2DParser):
 
         return ctxt, False
 
-
 class Conv2DGradBParser(NodeParser):
     """Parser for ConvGradB: dB[c] = sum_{n,h,w} dY[n,c,h,w].
     inputs: [dY: N,C_out,H,W], outputs: [dB: C_out]
@@ -3482,7 +3398,6 @@ class Conv2DGradBParser(NodeParser):
         self.operatorRepresentation['dim_im_out_x'] = output_grad.shape[2]
         self.operatorRepresentation['dim_im_out_y'] = output_grad.shape[3]
         return ctxt, True
-
 
 class Conv2DGradXWParser(NodeParser):
     """Combined ConvGrad no-bias: 3 inputs (dY, X, W), 2 outputs (dX, dW)."""
@@ -3546,7 +3461,6 @@ class Conv2DGradXWParser(NodeParser):
         self.operatorRepresentation['gradw_dim_im_in_y'] = data_in.shape[3]
 
         return ctxt, True
-
 
 class Conv2DGradXWBParser(NodeParser):
     """Combined ConvGrad with bias: 4 inputs (dY, X, W, bias), 3 outputs (dX, dW, dB)."""
@@ -3613,4 +3527,151 @@ class Conv2DGradXWBParser(NodeParser):
         self.operatorRepresentation['gradw_dim_im_in_x'] = data_in.shape[2]
         self.operatorRepresentation['gradw_dim_im_in_y'] = data_in.shape[3]
 
+        return ctxt, True
+class AdamParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        n_inputs = len(node.inputs)
+        n_outputs = len(node.outputs)
+        num_tensors = (n_inputs - 2) // 4
+        valid_inputs = n_inputs >= 6 and (n_inputs - 2) % 4 == 0
+        valid_outputs = n_outputs >= 1 and n_outputs == num_tensors
+        valid_attrs = all(a in node.attrs for a in ['alpha', 'beta', 'epsilon', 'norm_coefficient', 'norm_coefficient_post'])
+
+        return all([valid_inputs, valid_outputs, valid_attrs])
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        R = ctxt.lookup(node.inputs[0].name)
+        T = ctxt.lookup(node.inputs[1].name)
+        X = ctxt.lookup(node.inputs[2].name)
+        G = ctxt.lookup(node.inputs[3].name)
+        V = ctxt.lookup(node.inputs[4].name)
+        H = ctxt.lookup(node.inputs[5].name)
+
+        X_new = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['R'] = R.name
+        self.operatorRepresentation['T'] = T.name
+        self.operatorRepresentation['X'] = X.name
+        self.operatorRepresentation['G'] = G.name
+        self.operatorRepresentation['V'] = V.name
+        self.operatorRepresentation['H'] = H.name
+        self.operatorRepresentation['X_new'] = X_new.name
+        self.operatorRepresentation['size'] = np.prod(X.shape)
+        self.operatorRepresentation['alpha'] = node.attrs['alpha']
+        self.operatorRepresentation['beta'] = node.attrs['beta']
+        self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
+        self.operatorRepresentation['norm_coefficient'] = node.attrs['norm_coefficient']
+        self.operatorRepresentation['norm_coefficient_post'] = node.attrs['norm_coefficient_post']
+        return ctxt, True
+
+class AdamUpdateVParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return all([
+            len(node.inputs) == 3,
+            len(node.outputs) == 1,
+            'alpha' in node.attrs,
+            'norm_coefficient' in node.attrs,
+        ])
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        X = ctxt.lookup(node.inputs[0].name)
+        G = ctxt.lookup(node.inputs[1].name)
+        V = ctxt.lookup(node.inputs[2].name)
+        V_new = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['X'] = X.name
+        self.operatorRepresentation['G'] = G.name
+        self.operatorRepresentation['V'] = V.name
+        self.operatorRepresentation['V_new'] = V_new.name
+        self.operatorRepresentation['size'] = np.prod(X.shape)
+        self.operatorRepresentation['alpha'] = node.attrs['alpha']
+        self.operatorRepresentation['norm_coefficient'] = node.attrs['norm_coefficient']
+        return ctxt, True
+
+class AdamUpdateHParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return all([
+            len(node.inputs) == 3,
+            len(node.outputs) == 1,
+            'beta' in node.attrs,
+            'norm_coefficient' in node.attrs,
+        ])
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        X = ctxt.lookup(node.inputs[0].name)
+        G = ctxt.lookup(node.inputs[1].name)
+        H = ctxt.lookup(node.inputs[2].name)
+        H_new = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['X'] = X.name
+        self.operatorRepresentation['G'] = G.name
+        self.operatorRepresentation['H'] = H.name
+        self.operatorRepresentation['H_new'] = H_new.name
+        self.operatorRepresentation['size'] = np.prod(X.shape)
+        self.operatorRepresentation['beta'] = node.attrs['beta']
+        self.operatorRepresentation['norm_coefficient'] = node.attrs['norm_coefficient']
+        return ctxt, True
+
+class AdamUpdateWParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return all([
+            len(node.inputs) == 5,
+            len(node.outputs) == 1,
+            'alpha' in node.attrs,
+            'beta' in node.attrs,
+            'epsilon' in node.attrs,
+            'norm_coefficient_post' in node.attrs,
+        ])
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        R = ctxt.lookup(node.inputs[0].name)
+        X = ctxt.lookup(node.inputs[1].name)
+        V_new = ctxt.lookup(node.inputs[2].name)
+        H_new = ctxt.lookup(node.inputs[3].name)
+        T = ctxt.lookup(node.inputs[4].name)
+        W_new = ctxt.lookup(node.outputs[0].name)
+
+        self.operatorRepresentation['R'] = R.name
+        self.operatorRepresentation['X'] = X.name
+        self.operatorRepresentation['V_new'] = V_new.name
+        self.operatorRepresentation['H_new'] = H_new.name
+        self.operatorRepresentation['T'] = T.name
+        self.operatorRepresentation['W_new'] = W_new.name
+        self.operatorRepresentation['size'] = np.prod(X.shape)
+        self.operatorRepresentation['alpha'] = node.attrs['alpha']
+        self.operatorRepresentation['beta'] = node.attrs['beta']
+        self.operatorRepresentation['epsilon'] = node.attrs['epsilon']
+        self.operatorRepresentation['norm_coefficient_post'] = node.attrs['norm_coefficient_post']
         return ctxt, True

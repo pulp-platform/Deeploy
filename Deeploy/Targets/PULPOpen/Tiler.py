@@ -26,6 +26,7 @@ from Deeploy.Targets.PULPOpen.Bindings import PULPAddBindings, PULPAveragePool2D
     PULPMaxPoolGrad2DBindings, PULPMSELossBindings, PULPMSELossGradBindings, PULPMulBindings, PULPReduceMeanBindings, \
     PULPReduceSumBindings, PULPReluBinding, PULPReluGradBinding, PULPReshapeBindings, PULPRQAddBindings, \
     PULPRQSBindings, PULPRQSConv1DBindings, PULPRQSConv2DBindings, PULPRQSDWConv2DBindings, PULPRQSGEMMBindings, \
+    PULPAdamUpdateHBindings, PULPAdamUpdateVBindings, PULPAdamUpdateWBindings, \
     PULPRQSiHardswishBindings, PULPRQSMatrixVecBindings, PULPRQSTallGEMMBindings, PULPSGDBindings, PULPSliceBindings, \
     PULPSoftmaxBindings, PULPSoftmaxCrossEntropyLossBindings, PULPSoftmaxCrossEntropyLossGradBindings, \
     PULPSoftmaxGradBindings, PULPTransposeBindings, PULPUniformRQSBindings
@@ -59,6 +60,9 @@ from Deeploy.Targets.PULPOpen.TileConstraints.ReduceMeanConstraint import Reduce
 from Deeploy.Targets.PULPOpen.TileConstraints.ReduceSumTileConstraint import ReduceSumTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.RequantShiftTileConstraint import RequantShiftTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SGDTileConstraint import ReluGradTileConstraint, SGDTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.AdamUpdateVTileConstraint import AdamUpdateVTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.AdamUpdateHTileConstraint import AdamUpdateHTileConstraint
+from Deeploy.Targets.PULPOpen.TileConstraints.AdamUpdateWTileConstraint import AdamUpdateWTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SliceConstraint import SliceTileConstraint
 from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint import \
     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
@@ -203,7 +207,12 @@ PULPReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRe
 
 PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindings,
                                                      tileConstraint = SGDTileConstraint())
-
+PULPAdamUpdateVTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPAdamUpdateVBindings, tileConstraint = AdamUpdateVTileConstraint())
+PULPAdamUpdateHTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPAdamUpdateHBindings, tileConstraint = AdamUpdateHTileConstraint())
+PULPAdamUpdateWTilingReadyBindings = TilingReadyNodeBindings(
+    nodeBindings = PULPAdamUpdateWBindings, tileConstraint = AdamUpdateWTileConstraint())
 PULPInPlaceAccumulatorV2TilingReadyBindings = TilingReadyNodeBindings(
     nodeBindings = PULPInPlaceAccumulatorV2Bindings, tileConstraint = InPlaceAccumulatorV2TileConstraint())
 

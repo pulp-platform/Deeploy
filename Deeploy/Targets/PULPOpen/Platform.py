@@ -18,6 +18,7 @@ from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolGradLayer, Avera
     ConvLayer, GatherLayer, GELUGradLayer, GELULayer, GEMMLayer, GlobalAveragePoolGradLayer, GlobalAveragePoolLayer, \
     InPlaceAccumulatorV2Layer, LayerNormGradLayer, LayerNormLayer, MatMulLayer, MaxPoolGradLayer, MaxPoolLayer, \
     MSELossGradLayer, MSELossLayer, MulLayer, PadLayer, QuantLayer, ReduceMeanLayer, ReduceSumLayer, ReluGradLayer, \
+    AdamUpdateHLayer, AdamUpdateVLayer, AdamUpdateWLayer, \
     ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, RQSiHardswishLayer, SGDLayer, \
     SliceLayer, SoftmaxCrossEntropyLossGradLayer, SoftmaxCrossEntropyLossLayer, SoftmaxGradLayer, SoftmaxLayer, \
     TransposeLayer, iHardswishLayer, iRMSNormLayer
@@ -27,6 +28,7 @@ from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool2DParser, Batc
     InPlaceAccumulatorV2Parser, LayerNormGradParser, LayerNormParser, MatMulParser, MaxPool1DParser, MaxPool2DParser, \
     MaxPoolGradParser, MSELossGradParser, MSELossParser, MulParser, Pad1DParser, Pad2DParser, QuantParser, \
     ReduceSumParser, ReluGradParser, ReluParser, RequantShiftParser, ReshapeParser, RQAddParser, RQIntegerDivParser, \
+    AdamUpdateHParser, AdamUpdateVParser, AdamUpdateWParser, \
     RQSiGELUParser, RQSiHardswishParser, SGDParser, SliceParser, SoftmaxCrossEntropyLossGradParser, \
     SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, TransposeParser, UniformRequantShiftParser, \
     UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
@@ -59,6 +61,7 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPAvera
     PULPRQAddTilingReadyBindings, PULPRQSConv1DTilingReadyBindings, PULPRQSConv2DTilingReadyBindings, \
     PULPRQSDWConv2DTilingReadyBindings, PULPRQSGEMMTilingReadyBindings, PULPRQSiHardswishTilingReadyBindings, \
     PULPRQSMatrixVecTilingReadyBindings, PULPRQSTallGEMMTilingReadyBindings, PULPRQSTilingReadyBindings, \
+    PULPAdamUpdateHTilingReadyBindings, PULPAdamUpdateVTilingReadyBindings, PULPAdamUpdateWTilingReadyBindings, \
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
@@ -131,6 +134,9 @@ SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(), PULP
 SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
                                                PULPSoftmaxCrossEntropyGradTilingReadyBindings)
 SGDMapper = NodeMapper(SGDParser(), PULPSGDTilingReadyBindings)
+AdamUpdateVMapper = NodeMapper(AdamUpdateVParser(), PULPAdamUpdateVTilingReadyBindings)
+AdamUpdateHMapper = NodeMapper(AdamUpdateHParser(), PULPAdamUpdateHTilingReadyBindings)
+AdamUpdateWMapper = NodeMapper(AdamUpdateWParser(), PULPAdamUpdateWTilingReadyBindings)
 InPlaceAccumulatorV2Mapper = NodeMapper(InPlaceAccumulatorV2Parser(), PULPInPlaceAccumulatorV2TilingReadyBindings)
 QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
 DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
@@ -198,9 +204,11 @@ PULPMapping = {
     'SoftmaxCrossEntropyLoss': SoftmaxCrossEntropyLossLayer([SoftmaxCrossEntropyLossMapper]),
     'SoftmaxCrossEntropyLossGrad': SoftmaxCrossEntropyLossGradLayer([SoftmaxCrossEntropyLossGradMapper]),
     'SGD': SGDLayer([SGDMapper]),
+    'AdamUpdateV': AdamUpdateVLayer([AdamUpdateVMapper]),
+    'AdamUpdateH': AdamUpdateHLayer([AdamUpdateHMapper]),
+    'AdamUpdateW': AdamUpdateWLayer([AdamUpdateWMapper]),
     'InPlaceAccumulatorV2': InPlaceAccumulatorV2Layer([InPlaceAccumulatorV2Mapper]),
 }
-
 
 class PULPVariableBuffer(VariableBuffer):
 
@@ -225,7 +233,6 @@ class PULPVariableBuffer(VariableBuffer):
             "_memoryLevel": memoryLevel
         }
 
-
 class PULPTransientBuffer(TransientBuffer):
 
     initTemplate = AllocateTemplate.pulpL2InitTemplate
@@ -243,7 +250,6 @@ class PULPTransientBuffer(TransientBuffer):
             memoryLevel = None
 
         return {"type": self._type, "name": self.name, "size": self.size, "_memoryLevel": memoryLevel}
-
 
 class PULPConstantBuffer(ConstantBuffer):
 
@@ -263,13 +269,11 @@ class PULPConstantBuffer(ConstantBuffer):
 
         return operatorRepresentation
 
-
 class PULPStructBuffer(StructBuffer):
 
     initTemplate = BasicAllocateTemplate.referenceStructInitTemplate
     allocTemplate = BasicAllocateTemplate.referenceStructAllocateTemplate
     deallocTemplate = NodeTemplate("")
-
 
 PULPOptimizer = TopologyOptimizer([
     SplitConvGradPass(),
@@ -300,7 +304,6 @@ _includeList = [
     "perf_utils.h"
 ]
 
-
 class PULPClusterEngine(DeploymentEngine):
 
     def __init__(self,
@@ -312,7 +315,6 @@ class PULPClusterEngine(DeploymentEngine):
         super().__init__(name, Mapping, initCode, includeList)
         self.n_cores = n_cores
 
-
 class PULPPlatform(DeploymentPlatform):
 
     def __init__(self,
@@ -322,7 +324,6 @@ class PULPPlatform(DeploymentPlatform):
                  structBuffer = PULPStructBuffer,
                  transientBuffer = PULPTransientBuffer) -> None:
         super().__init__(engines, variableBuffer, constantBuffer, structBuffer, transientBuffer)
-
 
 class MemoryPULPPlatform(MemoryPlatform):
 
@@ -343,7 +344,6 @@ class MemoryPULPPlatform(MemoryPlatform):
         if node.op in self.untiledOps:
             return ctxt.lookup(tensorName)._memoryLevel
         return super().getTargetMemoryLevel(node, tensorName, ctxt)
-
 
 class MemoryPULPPlatformWrapper(MemoryPlatformWrapper):
 

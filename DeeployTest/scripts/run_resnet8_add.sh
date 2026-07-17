@@ -1,0 +1,1 @@
+python deeployTrainingRunner_tiled_siracusa.py -t ./Tests/Models/Training/ResNet8_ADD/resnet8_train/ --optimizer-dir ./Tests/Models/Training/ResNet8_ADD/resnet8_optimizer/ --n-steps 10 --n-accum 4 -vvv --plotMemAlloc --l2 1500000 "$@"

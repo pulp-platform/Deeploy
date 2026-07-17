@@ -14,7 +14,6 @@ from ..trainingUtils import add_training_cmake_flags, run_training_codegen
 from .config import DeeployTestConfig
 from .output_parser import TestResult, parse_test_output
 
-
 def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
     """
     Generate network code from ONNX model.
@@ -67,7 +66,6 @@ def generate_network(config: DeeployTestConfig, skip: bool = False) -> None:
         log.error(f"Network generation failed with return code {result.returncode}")
         raise RuntimeError(f"Network generation failed for {config.test_name}")
 
-
 def configure_cmake(config: DeeployTestConfig) -> None:
 
     assert config.toolchain_install_dir is not None, \
@@ -109,7 +107,8 @@ def configure_cmake(config: DeeployTestConfig) -> None:
 
     add_training_cmake_flags(cmd, config.training, config.n_train_steps, config.n_accum_steps,
                              config.training_num_data_inputs)
-
+    if config.training and getattr(config, 'optimizer_adam', False):
+        cmd.append("-DOPTIMIZER_ADAM=ON")
     # Last argument is the source directory
     script_dir = Path(__file__).parent.parent.parent
     cmd.append(str(script_dir.parent))
@@ -125,7 +124,6 @@ def configure_cmake(config: DeeployTestConfig) -> None:
     if result.returncode != 0:
         log.error(f"CMake configuration failed with return code {result.returncode}")
         raise RuntimeError(f"CMake configuration failed for {config.test_name}")
-
 
 def build_binary(config: DeeployTestConfig) -> None:
 
@@ -155,12 +153,10 @@ def build_binary(config: DeeployTestConfig) -> None:
         log.error(f"Build failed with return code {result.returncode}")
         raise RuntimeError(f"Build failed for {config.test_name}")
 
-
 # Source: https://stackoverflow.com/a/38662876
 def escapeAnsi(line):
     ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
     return ansi_escape.sub('', line)
-
 
 def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
     """
@@ -233,7 +229,6 @@ def run_simulation(config: DeeployTestConfig, skip: bool = False) -> TestResult:
         log.warning(f"Could not parse error count from output")
 
     return test_result
-
 
 def run_complete_test(config: DeeployTestConfig, skipgen: bool = False, skipsim: bool = False) -> TestResult:
     """
