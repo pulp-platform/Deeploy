@@ -38,7 +38,7 @@ from testUtils.tilingUtils import TrainingSBTiler
 from testUtils.trainingUtils import _mockScheduler, add_optimizer_training_dir_arg
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import float32_t
+from Deeploy.CommonExtensions.DataTypes import float32_t, int32_t
 from Deeploy.DeeployTypes import CodeGenVerbosity, _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
@@ -68,10 +68,14 @@ def generateTiledOptimizerNetwork(args) -> None:
     for cluster in clusters:
         cluster.n_cores = args.cores
 
-    # 3. All optimizer inputs are float32 (weights + grad acc buffers).
     graph_input_names = [inp.name for inp in onnx_model.graph.input]
-    inputTypes = {f"input_{i}": PointerClass(float32_t) for i in range(len(graph_input_names))}
-    inputOffsets = {f"input_{i}": 0 for i in range(len(graph_input_names))}
+    _TYPE_MAP = {1: PointerClass(float32_t), 6: PointerClass(int32_t)}
+    inputTypes = {}
+    inputOffsets = {}
+    for i, inp in enumerate(onnx_model.graph.input):
+        dt = inp.type.tensor_type.elem_type
+        inputTypes[f"input_{i}"] = _TYPE_MAP.get(dt, PointerClass(float32_t))
+        inputOffsets[f"input_{i}"] = 0
 
     # 4. Create deployer with _mockScheduler (required for TilerDeployerWrapper).
     _DEEPLOYSTATEDIR = os.path.join(args.dumpdir, "deeployStates_optimizer")
