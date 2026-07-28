@@ -42,7 +42,6 @@ jobs:
           docker run --rm \
             --device /dev/accel/accel0 \
             --ulimit memlock=-1 \
-            -v /opt/xilinx:/opt/xilinx \
             -v "${{ github.workspace }}":/app/Deeploy \
             -w /app/Deeploy \
             ${{ inputs.docker-image }} \
