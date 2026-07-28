@@ -40,6 +40,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 - Per-layer microbenchmarking on PULPOpen via `--profileMicrobenchmark`: new `PULPMicrobenchmark` code-transformation pass + `perf_utils.h` helpers report cycles, instructions, stalls and cache misses per layer in `RunNetwork`
 - Add support for the Generic target for the following operators [Ceil](https://onnx.ai/onnx/operators/onnx__Ceil.html), [Floor](https://onnx.ai/onnx/operators/onnx__Floor.html), [Clip](https://onnx.ai/onnx/operators/onnx__Clip.html), [Sub](https://onnx.ai/onnx/operators/onnx__Sub.html), [Exp](https://onnx.ai/onnx/operators/onnx__Exp.html), [Sigmoid](https://onnx.ai/onnx/operators/onnx__Sigmoid.html), [Swish](https://onnx.ai/onnx/operators/onnx__Swish.html), [HardSigmoid](https://onnx.ai/onnx/operators/onnx__HardSigmoid.html), [HardSwish](https://onnx.ai/onnx/operators/onnx__HardSwish.html), [InstanceNormalization](https://onnx.ai/onnx/operators/onnx__InstanceNormalization.html), [GroupNormalization](https://onnx.ai/onnx/operators/onnx__GroupNormalization.html), [AveragePool](https://onnx.ai/onnx/operators/onnx__AveragePool.html), [GlobalAveragePool](https://onnx.ai/onnx/operators/onnx__GlobalAveragePool.html), [GlobalMaxPool](https://onnx.ai/onnx/operators/onnx__GlobalMaxPool.html).
+- Document that `--profileTiling` currently crashes GVSoC on the larger microLlama graphs (invalid access), so students recognise it as a known bug rather than their own mistake
 
 ### Changed
 - Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints
@@ -77,6 +78,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Reduce RunNetwork stack usage by scoping per-layer variables with braces and moving tileIdxPtr allocation into per-layer execution blocks
 - Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
 - Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
+- Forward `--neureka-wmem` and `--enable-3x3` from `deeployRunner` to the generator. Both were accepted by argparse and then dropped, so enabling the Neureka weight memory produced byte-identical cycle counts; `microLlama64` autoregressive now improves from 776k to 712k cycles with the flag
+- Fix Part III `deploy.sh` half-applying its `Platform.py` patch: the parser-import replacement matched a single-line needle that no longer exists (the import block is line-wrapped), so the mapper was injected without its import and every PULP runner failed with `NameError: name 'iLeakyReLUParser' is not defined`. The patch is now anchored on the mapper definition and fails loudly if that anchor disappears
+- Fix Part III Step 6a to use `addTileSizeDivisibleConstraint` instead of `addMinTileSizeConstraint`; the latter only forces the leftover tile to be at least `modulo` elements and gives no divisibility guarantee, so the documented multiple-of-16 SIMD alignment did not hold
+- Fix Deeploy 101 and Part III tutorial errors: `--profileTiling` is a valueless flag (`--profileTiling=L2` aborts argparse), the intrinsics inventory path moved to `TargetLibraries/third_party/`, Step 2 needs `cd ../../../DeeployTest`, and the Step 4/5 solutions were missing their `Platform.py` imports
 
 ### Removed
 - removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.
