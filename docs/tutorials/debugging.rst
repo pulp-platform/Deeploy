@@ -38,7 +38,7 @@ Code Transformation
 .. currentmodule:: Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs
 
 The :py:class:`PrintInputGeneration` and :py:class:`PrintOutputGeneration` code transformations offer a flexible way to insert print statements directly into the generated code. These transformations allow you to log tensor values at any point during execution, making them useful for in-depth debugging.
-For cases where memory layout is important—such as debugging tiled execution—Deeploy also provides memory-aware variants: :py:class:`MemoryAwarePrintInputGeneration` and :py:class:`MemoryAwarePrintOutputGeneration`.
+For cases where memory layout is important, such as debugging tiled execution, Deeploy also provides memory-aware variants: :py:class:`MemoryAwarePrintInputGeneration` and :py:class:`MemoryAwarePrintOutputGeneration`.
 
 To use these transformations, add them to the code transformation pipeline in your target bindings. For example, you can extend the ``BasicTransformer`` in ``Deeploy/Targets/Generic/Bindings.py``:
 

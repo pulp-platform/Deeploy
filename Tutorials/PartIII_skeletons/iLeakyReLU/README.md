@@ -14,12 +14,10 @@ parts are marked with `TODO(student)` comments and short hints.
 | `iLeakyReLUTemplate.py` | Mako template body is TODO | Fill in, copy to `Deeploy/Targets/PULPOpen/Templates/` (Step 4) |
 | `iLeakyReLUTileConstraint.py` | Inherits `UnaryTileConstraint`; performance constraint TODO | Fill in (Step 5 + Step 6a), copy to `Deeploy/Targets/PULPOpen/TileConstraints/` |
 
-The **Binding** (in `Bindings.py`), **Mapper + PULPMapping entry** (in `Platform.py`), the **`TilingReadyNodeBindings` registration** (in `Tiler.py`), and the **aggregator include** in `DeeployPULPMath.h` are *not* shipped as paste-in snippets — you'll write them yourself with the markdown's guidance and `<details>` solutions.
-
-The companion `Deeploy/Tutorials/SoCDAML.md` (Part III) walks through
-the six steps in order and includes collapsed solutions to peek at
-when you're stuck.
+The `docs/tutorials/introduction.md` ("Adding a New Operator")
+walks through the six steps in order and includes collapsed solutions to
+peek at when you're stuck.
 
 If you really need the answer key, look in
-`Deeploy/Tutorials/PartIII_solution/iLeakyReLU/` -- but try the lab
+`Deeploy/Tutorials/PartIII_solution/iLeakyReLU/`, but try the lab
 first; you'll learn far more.

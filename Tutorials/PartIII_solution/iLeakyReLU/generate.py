@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------
 # File: generate.py
 #
-# SoCDAML Part III — TA reference solution.
+# SoCDAML Part III: TA reference solution.
 # Builds a single-node ONNX graph for the integer LeakyReLU operator
 # and saves the input/output tensors that DeeployTest's harness will use
 # as golden references.
