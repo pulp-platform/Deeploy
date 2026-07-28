@@ -56,6 +56,14 @@ set(XHEEP_RUNTIME_SOURCES
   "${XHEEP_DEVICE_DIR}/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c"
 )
 
+if(XHEEP_LINKER STREQUAL flash_load OR XHEEP_LINKER STREQUAL flash_exec)
+  list(APPEND XHEEP_RUNTIME_SOURCES
+    "${XHEEP_DEVICE_DIR}/bsp/w25q/w25q.c"
+    "${XHEEP_DEVICE_DIR}/lib/drivers/spi_host/spi_host.c"
+    "${XHEEP_DEVICE_DIR}/lib/drivers/dma/dma.c"
+  )
+endif()
+
 set(XHEEP_REQUIRED_FILES
   "${XHEEP_LINKER_SCRIPT}"
   ${XHEEP_CRT_SOURCES}

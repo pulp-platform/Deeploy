@@ -17,6 +17,9 @@ add_library(xheep-runtime OBJECT
   ${XHEEP_RUNTIME_SOURCES}
 )
 
+# flash_load needs the X-HEEP boot helpers to keep their function sections. (Removal of -flto)
+set_property(TARGET xheep-runtime PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+
 target_include_directories(xheep-runtime SYSTEM PUBLIC
   ${XHEEP_INCLUDE_DIRS}
 )

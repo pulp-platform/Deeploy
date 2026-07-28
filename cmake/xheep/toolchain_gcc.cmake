@@ -28,12 +28,8 @@ add_compile_options(
   -march=${ISA}
   -ffunction-sections
   -fdata-sections
-  # -fomit-frame-pointer
-  # -fno-jump-tables
-  # -fno-tree-loop-distribute-patterns
   -O2
   -g
-  # -DNUM_CORES=${NUM_CORES}
   -MMD
   -MP
 )
@@ -43,7 +39,7 @@ add_link_options(
   -MP
   -march=${ISA}
   -nostartfiles
-  # -nostdlibs
+  -nostdlib
   -Wl,--print-memory-usage
 )
 
