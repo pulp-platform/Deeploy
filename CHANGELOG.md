@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- HOTFIX: XDNA2 Action Fix [#201](https://github.com/pulp-platform/Deeploy/pull/201)
 - XDNA2 Platform Support [#179](https://github.com/pulp-platform/Deeploy/pull/179)
 - Add Microbenchmarking Infrastructure and CI Using GVSoC CSR [#162](https://github.com/pulp-platform/Deeploy/pull/162)
 - Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
@@ -56,6 +57,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
 
 ### Fixed
+- Remove `/opt/xilinx` folder binding
+- Update XILINX_XRT env var
 - Add missing `shell: bash` directive to CI cache generation steps to ensure correct shell execution
 - Fix wrong test case in GAP9 ccache workflow (`test_gap9_tiled_kernels_l2_singlebuffer` using `MatMul/Regular` instead of `Add/Large`)
 - Fix Docker flow to fetch `*.so` git lfs files
