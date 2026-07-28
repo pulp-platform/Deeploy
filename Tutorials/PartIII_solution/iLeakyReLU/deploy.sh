@@ -179,10 +179,17 @@ import os, pathlib
 p = pathlib.Path(os.environ["PLATFORM_FILE"])
 src = p.read_text()
 
+# Insert the parser import as its own top-level statement immediately before the
+# mapper definition.
+MAPPER_ANCHOR = "iHardswishMapper = NodeMapper(iHardswishParser(), PULPiHardswishTilingReadyBindings)"
+if MAPPER_ANCHOR not in src:
+    raise SystemExit("deploy.sh: mapper anchor not found in Platform.py; "
+                     "upstream renamed iHardswishMapper - update deploy.sh")
+
 if "iLeakyReLUParser" not in src:
     src = src.replace(
-        "iHardswishParser, iRMSNormParser, iSoftmaxParser",
-        "iHardswishParser, iLeakyReLUParser, iRMSNormParser, iSoftmaxParser", 1)
+        MAPPER_ANCHOR,
+        "from Deeploy.Targets.Generic.Parsers import iLeakyReLUParser\n" + MAPPER_ANCHOR, 1)
 
 if "PULPiLeakyReLUTilingReadyBindings" not in src:
     # Splice into the multi-line `from ... import \` block by extending the
