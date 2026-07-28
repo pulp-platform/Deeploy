@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------
-# File: iLeakyReLUTileConstraint.py  (SoCDAML Part III - Step 5+7a skeleton)
+# File: iLeakyReLUTileConstraint.py  (SoCDAML Part III - Step 5+6a skeleton)
 #
 # Drop this file into:
 #   Deeploy/Targets/PULPOpen/TileConstraints/iLeakyReLUTileConstraint.py
@@ -27,9 +27,9 @@ class iLeakyReLUTileConstraint(UnaryTileConstraint):
 
         # TODO(student, Step 6a): add a performance constraint so the
         # innermost tile dim is a multiple of 16. Helpful API:
-        #     tilerModel.addMinTileSizeConstraint(parseDict, name,
-        #                                         tensorDimVar, modulo)
-        # See: Deeploy/Targets/Generic/TileConstraints/ConvTileConstraint.py
+        #     tilerModel.addTileSizeDivisibleConstraint(parseDict, name,
+        #                                               tensorDimVar, modulo)
+        # See: Deeploy/Targets/PULPOpen/TileConstraints/GEMMTileConstraint.py
         # for a usage example.
 
         return tilerModel
