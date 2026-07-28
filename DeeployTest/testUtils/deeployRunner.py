@@ -255,6 +255,13 @@ def create_config_from_args(args: argparse.Namespace,
     if getattr(args, 'profileMicrobenchmark', False):
         gen_args_list.append("--profileMicrobenchmark")
 
+    # Neureka-specific switches
+    if getattr(args, 'neureka_wmem', False):
+        gen_args_list.append("--neureka-wmem")
+
+    if getattr(args, 'enable_3x3', False):
+        gen_args_list.append("--enable-3x3")
+
     config = DeeployTestConfig(
         test_name = test_name,
         test_dir = test_dir_abs,
