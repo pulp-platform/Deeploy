@@ -106,7 +106,7 @@ def _prependSqueezeDims(tensor: gs.Tensor, name: str, axis: Union[int, Sequence[
 
 # Permute (0,1,2,3,...,N-2,N-1) -> (0,1,2,3,...,N-1,N-2)
 def _swapLastTwoDimsPermutation(N: int) -> List[int]:
-    assert N >= 2, "N needs to be larger then 2"
+    assert N >= 2, "N needs to be larger than 2"
     return [*range(N - 2), N - 1, N - 2]
 
 
@@ -393,12 +393,18 @@ def _requantized_gemm_to_pw_fun(graph: gs.Graph, match: Match, name: str):
     if not isinstance(matrixB, gs.Constant):
         return graph
 
-    assert len(matrixA.shape) in [
-        2, 3
-    ], f"Unsupported number of dimensions for input matrix A of GEMM operation: {len(matrixA.shape)}; shape: {matrixA.shape}"
-    assert len(matrixY.shape) in [
-        2, 3
-    ], f"Unsupported number of dimensions for output matrix of GEMM operation: {len(matrixY.shape)}; shape: {matrixY.shape}"
+    assert len(matrixA.shape) in (2, 3), f"Unsupported GEMM's input matrix A with shape {matrixA.shape}"
+    assert len(matrixY.shape) in (2, 3), f"Unsupported GEMM's output matrix with shape {matrixY.shape}"
+
+    # The pointwise conv this node is about to be lowered into only supports
+    # per-tensor or per-output-channel requantization via its RQS unit. If
+    # mul/add don't fit that (e.g. per-row requantization, where M becomes a
+    # spatial dimension of the convolution rather than a channel), bail out
+    # here and leave the RequantizedGemm for another lowering pass to handle.
+    add, mul = node.inputs[2], node.inputs[3]
+    out_channels = matrixY.shape[-1]
+    if int(np.prod(mul.shape)) not in (1, out_channels) or int(np.prod(add.shape)) not in (1, out_channels):
+        return graph
 
     # Pointwise with HWC layout (channels_first == False)
 
@@ -408,13 +414,15 @@ def _requantized_gemm_to_pw_fun(graph: gs.Graph, match: Match, name: str):
     node.attrs['alpha'] = node.attrs.get('alpha', 1.0)
     node.attrs['beta'] = node.attrs.get('beta', 1.0)
 
-    # If transA is set then the matrix is of shape [B x K x M] and it needs to be transposed, otherwise its shape is  [B x M x K]
+    # If transA is set then the matrix is of shape [B x K x M] and it needs to
+    # be transposed, otherwise its shape is  [B x M x K]
     if node.attrs['transA'] == 1:
         perm = _swapLastTwoDimsPermutation(len(matrixA.shape))
         graph.nodes.append(_appendTranspose(matrixA, node, perm))
         matrixA = node.inputs[0]
 
-    # If transB is set then the matrix is of shape [N x K] and it doesn't need to be transposed, otherwise its shape is [K x N] and it has to be transposed
+    # If transB is set then the matrix is of shape [N x K] and it doesn't need
+    # to be transposed, otherwise its shape is [K x N] and it has to be transposed
     if node.attrs['transB'] == 0:
         perm = _swapLastTwoDimsPermutation(len(matrixB.shape))
         matrixB.values = matrixB.values.transpose(perm)
@@ -444,6 +452,7 @@ def _requantized_gemm_to_pw_fun(graph: gs.Graph, match: Match, name: str):
     matrixYSqueezeDimsNode, pwOut = _prependSqueezeDims(matrixY, name, squeezeDims)
     graph.nodes.append(matrixYSqueezeDimsNode)
 
+    n_levels = node.attrs['n_levels_out'] if 'n_levels_out' in node.attrs else node.attrs['n_levels']
     pwAttrs = {
         'channels_first': False,
         'dilations': [1, 1],
@@ -452,13 +461,10 @@ def _requantized_gemm_to_pw_fun(graph: gs.Graph, match: Match, name: str):
         'pads': [0, 0, 0, 0],
         'strides': [1, 1],
         'div': node.attrs['div'],
-        'n_levels_out': node.attrs['n_levels_out'],
+        'n_levels_out': n_levels,
         'shift': node.attrs['shift'],
         'signed': node.attrs['signed'],
     }
-
-    add = node.inputs[2]
-    mul = node.inputs[3]
 
     _inputs = [pwIn, pwWeight, mul, add]
 

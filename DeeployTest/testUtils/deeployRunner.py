@@ -246,6 +246,8 @@ def create_config_from_args(args: argparse.Namespace,
             gen_args_list.append(f"--searchStrategy={args.searchStrategy}")
         if hasattr(args, 'plotMemAlloc') and args.plotMemAlloc:
             gen_args_list.append("--plotMemAlloc")
+        if hasattr(args, 'neureka_wmem') and args.neureka_wmem:
+            gen_args_list.append("--neureka-wmem")
 
     if not tiling and getattr(args, 'profileUntiled', False):
         gen_args_list.append("--profileUntiled")
