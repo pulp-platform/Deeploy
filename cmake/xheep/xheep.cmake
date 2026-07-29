@@ -44,25 +44,22 @@ set(XHEEP_CRT_SOURCES
   "${XHEEP_CRT_DIR}/crt0.S"
   "${XHEEP_CRT_DIR}/vectors.S"
 )
-set(XHEEP_RUNTIME_SOURCES
-  "${XHEEP_RUNTIME_DIR}/core_v_mini_mcu.c"
-  "${XHEEP_RUNTIME_DIR}/handler.c"
-  "${XHEEP_RUNTIME_DIR}/init.c"
-  "${XHEEP_RUNTIME_DIR}/syscalls.c"
-  "${XHEEP_DEVICE_DIR}/lib/base/memory.c"
-  "${XHEEP_DEVICE_DIR}/lib/base/mmio.c"
-  "${XHEEP_DEVICE_DIR}/lib/drivers/soc_ctrl/soc_ctrl.c"
-  "${XHEEP_DEVICE_DIR}/lib/drivers/uart/uart.c"
-  "${XHEEP_DEVICE_DIR}/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c"
+
+file(GLOB_RECURSE XHEEP_DEVICE_SOURCES CONFIGURE_DEPENDS
+  "${XHEEP_DEVICE_DIR}/*.c"
+  "${XHEEP_DEVICE_DIR}/*.cpp"
+  "${XHEEP_DEVICE_DIR}/*.s"
+  "${XHEEP_DEVICE_DIR}/*.S"
 )
 
-if(XHEEP_LINKER STREQUAL flash_load OR XHEEP_LINKER STREQUAL flash_exec)
-  list(APPEND XHEEP_RUNTIME_SOURCES
-    "${XHEEP_DEVICE_DIR}/bsp/w25q/w25q.c"
-    "${XHEEP_DEVICE_DIR}/lib/drivers/spi_host/spi_host.c"
-    "${XHEEP_DEVICE_DIR}/lib/drivers/dma/dma.c"
-  )
-endif()
+set(XHEEP_RUNTIME_SOURCES "")
+foreach(XHEEP_DEVICE_SOURCE IN LISTS XHEEP_DEVICE_SOURCES)
+  string(FIND "${XHEEP_DEVICE_SOURCE}" "${XHEEP_CRT_DIR}/" XHEEP_IS_CRT_SOURCE)
+  if(XHEEP_IS_CRT_SOURCE EQUAL -1)
+    list(APPEND XHEEP_RUNTIME_SOURCES "${XHEEP_DEVICE_SOURCE}")
+  endif()
+endforeach()
+list(REMOVE_DUPLICATES XHEEP_RUNTIME_SOURCES)
 
 set(XHEEP_REQUIRED_FILES
   "${XHEEP_LINKER_SCRIPT}"
@@ -71,7 +68,6 @@ set(XHEEP_REQUIRED_FILES
   "${XHEEP_RUNTIME_DIR}/core_v_mini_mcu.h"
   "${XHEEP_RUNTIME_DIR}/core_v_mini_mcu_memory.h"
   "${XHEEP_DEVICE_DIR}/target/${XHEEP_TARGET}/x-heep.h"
-  "${XHEEP_DEVICE_DIR}/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c"
 )
 
 foreach(XHEEP_REQUIRED_FILE IN LISTS XHEEP_REQUIRED_FILES)
@@ -89,8 +85,12 @@ set(XHEEP_INCLUDE_DIRS
   "${XHEEP_DEVICE_DIR}/target/${XHEEP_TARGET}"
 )
 foreach(XHEEP_HEADER IN LISTS XHEEP_DEVICE_HEADERS)
-  get_filename_component(XHEEP_HEADER_DIR "${XHEEP_HEADER}" DIRECTORY)
-  list(APPEND XHEEP_INCLUDE_DIRS "${XHEEP_HEADER_DIR}")
+  string(FIND "${XHEEP_HEADER}" "${XHEEP_DEVICE_DIR}/target/" XHEEP_IS_TARGET_HEADER)
+  string(FIND "${XHEEP_HEADER}" "${XHEEP_DEVICE_DIR}/target/${XHEEP_TARGET}/" XHEEP_IS_SELECTED_TARGET_HEADER)
+  if(XHEEP_IS_TARGET_HEADER EQUAL -1 OR XHEEP_IS_SELECTED_TARGET_HEADER EQUAL 0)
+    get_filename_component(XHEEP_HEADER_DIR "${XHEEP_HEADER}" DIRECTORY)
+    list(APPEND XHEEP_INCLUDE_DIRS "${XHEEP_HEADER_DIR}")
+  endif()
 endforeach()
 list(REMOVE_DUPLICATES XHEEP_INCLUDE_DIRS)
 include_directories(SYSTEM ${XHEEP_INCLUDE_DIRS})

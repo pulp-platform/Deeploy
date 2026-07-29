@@ -18,7 +18,8 @@ set(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}-objdump)
 set(CMAKE_AR ${TOOLCHAIN_PREFIX}-ar)
 set(SIZE ${TOOLCHAIN_PREFIX}-size)
 
-set(ISA rv32imc_zicsr CACHE STRING "X-HEEP RISC-V ISA")
+set(ISA rv32imfc_zicsr CACHE STRING "X-HEEP RISC-V ISA")
+set(ABI ilp32 CACHE STRING "X-HEEP RISC-V ABI")
 set(CMAKE_SYSTEM_PROCESSOR ${ISA} CACHE STRING "X-HEEP RISC-V ISA")
 
 
@@ -26,6 +27,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 
 add_compile_options(
   -march=${ISA}
+  -mabi=${ABI}
   -ffunction-sections
   -fdata-sections
   -O2
@@ -38,6 +40,7 @@ add_link_options(
   -MMD
   -MP
   -march=${ISA}
+  -mabi=${ABI}
   -nostartfiles
   -nostdlib
   -Wl,--print-memory-usage
