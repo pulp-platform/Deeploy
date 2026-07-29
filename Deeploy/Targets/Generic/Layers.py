@@ -792,3 +792,17 @@ class GlobalMaxPoolLayer(ONNXLayer):
         opRep = self.mapper.parser.operatorRepresentation
         # (spatial_size - 1) comparisons per output channel
         return int(opRep['batch_size'] * opRep['num_channels'] * (opRep['spatial_size'] - 1))
+
+
+### NEWLY ADDED LAYERS :
+
+class TanhLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+class ReduceMaxLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+

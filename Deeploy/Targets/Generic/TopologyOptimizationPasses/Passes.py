@@ -1177,3 +1177,65 @@ class DequantPatternPass(ReplaceSequentialPatternPass):
 
         name = "_RECOGNIZE_DEQUANT_PASS"
         super().__init__(graph, _recognize_dequant_fun, name)
+
+
+### EXTRA TOPOLOGY LOWERING PASSES
+
+
+## TODO: for now only replaces 3 input concat layer with 2-2input concat layers
+def _unroll_concat_layer_fun(graph: gs.Graph, match: Match, name: str):
+    """
+        This function only works for concat layers with 3 inputs
+    """
+
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    concat_node = matched_nodes[0]
+
+    if len(concat_node.inputs) != 3:
+        return graph
+
+    if 'axis' not in concat_node.attrs:
+        return graph
+
+    axis = concat_node.attrs['axis']
+    firstInputShape = copy.deepcopy(concat_node.inputs[0].shape)
+    if firstInputShape is not None:
+        shapeAxis = axis if axis >= 0 else axis + len(firstInputShape)
+        firstInputShape[shapeAxis] += concat_node.inputs[1].shape[shapeAxis]
+
+    intermediate = gs.Variable(name + '_out_0', dtype = concat_node.outputs[0].dtype, shape = firstInputShape)
+    originalOutputs = list(concat_node.outputs)
+
+    firstConcat = gs.Node(op = 'Concat',
+                          name = name + '_0',
+                          attrs = copy.copy(concat_node.attrs),
+                          inputs = list(concat_node.inputs[:2]),
+                          outputs = [intermediate])
+    secondConcat = gs.Node(op = 'Concat',
+                           name = name + '_1',
+                           attrs = copy.copy(concat_node.attrs),
+                           inputs = [intermediate, concat_node.inputs[2]],
+                           outputs = originalOutputs)
+
+    graph.nodes.append(firstConcat)
+    graph.nodes.append(secondConcat)
+
+    concat_node.inputs.clear()
+    concat_node.outputs.clear()
+    graph.cleanup().toposort()
+
+    return graph
+
+
+@contextagnostic
+class UnrollConcatPass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        graph = gs.Graph()
+        inputs = [gs.Variable(name = f'input_{i}') for i in range(3)]
+        concat_output = graph.layer(inputs = inputs, outputs = ['concat_out'], op = 'Concat', name = 'concat')
+        graph.outputs.append(concat_output)
+        graph.inputs = inputs
+
+        name = "_UNROLL_CONCAT_PASS"
+        super().__init__(graph, _unroll_concat_layer_fun, name)

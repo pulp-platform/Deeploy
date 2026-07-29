@@ -3124,3 +3124,76 @@ class GlobalMaxPoolParser(GlobalPoolParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'GlobalMaxPool'
+
+
+### NEWLY ADDED LAYERS :
+
+class TanhParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all([len(node.inputs) == 1, len(node.outputs) == 1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['size'] = np.prod(data_in.shape)
+
+        return ctxt, True
+
+
+
+class ReduceMaxParser(NodeParser):
+    """
+        Reduce Max Parser.
+        Only supports maximizing through one dimension. (axes.shape == 1)
+    """
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        ret = all(['axes' in node.attrs, len(node.inputs) <= 2, len(node.outputs) == 1])
+
+        if ret:
+            axes = node.attrs.get('axes', 0)
+            if len(axes) > 1:
+                return False
+            else:
+                self.operatorRepresentation['axes'] = axes[0]
+                return True
+
+        return False
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        axes = self.operatorRepresentation['axes']
+
+        inner_size = int(np.prod(data_in.shape[axes+1:]))
+        outer_size = int(np.prod(data_in.shape[:axes]))
+
+        self.operatorRepresentation['inner_size'] = inner_size
+        self.operatorRepresentation['output_size'] = inner_size * outer_size
+        self.operatorRepresentation['d_axes'] = int(data_in.shape[axes])
+        self.operatorRepresentation['outer_step'] = int(data_in.shape[axes] * inner_size)
+
+        return ctxt, True
