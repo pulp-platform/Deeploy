@@ -657,9 +657,6 @@ class BatchNormalizationLayer(ONNXLayer):
 
 class ConvTransposeLayer(ONNXLayer):
 
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
-
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
         """
@@ -668,39 +665,34 @@ class ConvTransposeLayer(ONNXLayer):
         - inputShapes[1]: weight tensor shape (e.g., [C_in, C_out // group, kW] for 1D)
         - outputShapes[0]: output tensor shape (to be updated)
         """
-        newInputShapes = list(inputShapes)
-        newOutputShapes = list(outputShapes)
+        assert channels_first, "ConvTransposeLayer only supports channels_first (NCHW) layout: " \
+            "there is no NHWC lowering pass for ConvTranspose, and ConvTransposeParser/computeOps assume NCHW indexing."
+
+        input_shapes = list(inputShapes)
+        output_shapes = list(outputShapes)
         group = operatorRepresentation.get('group', 1)
         weight_shape = inputShapes[1]
 
-        if newOutputShapes and len(newOutputShapes[0]) >= 2:
+        if output_shapes and len(output_shapes[0]) >= 2:
             # For 1D: weight_shape = [C_in, C_out // group, kW]
             # For 2D: weight_shape = [C_in, C_out // group, kH, kW]
             ch_out = weight_shape[1] * group
-            if channels_first:
-                newOutputShapes[0][1] = ch_out
-            else:
-                newOutputShapes[0][-1] = ch_out
+            output_shapes[0][1] = ch_out
 
-        return newInputShapes, newOutputShapes
+        return input_shapes, output_shapes
 
     def computeOps(self):
-        opRep = self.mapper.parser.operatorRepresentation
+        rep = self.mapper.parser.operatorRepresentation
 
-        groups = opRep.get('group', 1)
-        kernel_shape = np.prod(opRep['kernel_shape'])  # es. [3, 3] -> 9
-        ch_in = opRep['ch_im_in']
-        ch_out = opRep['ch_im_out']
+        group = rep.get('group', 1)
+        kernel_shape = np.prod(rep['kernel_shape'])  # es. [3, 3] -> 9
+        channels = rep['channels']
+        feature_maps = rep['feature_maps']
 
-        opsPerPx = int(kernel_shape * ch_in * ch_out / groups) * 2
+        ops_per_px = int(kernel_shape * feature_maps * channels // group) * 2
+        num_px = np.prod(rep['output_shape'])
 
-        # ConvTranspose upscales spatial dims, quindi num pixel viene da output
-        if 'dim_im_out_y' in opRep:
-            numPx = opRep['dim_im_out_x'] * opRep['dim_im_out_y']
-        else:
-            numPx = opRep['dim_im_out_x']
-
-        return numPx * opsPerPx
+        return num_px * ops_per_px
 
 
 class CeilLayer(SingleOperationPerElementLayer):
@@ -750,6 +742,28 @@ class HardSwishLayer(ONNXLayer):
         return self.mapper.parser.operatorRepresentation['size'] * 5
 
 
+class EluLayer(ONNXLayer):
+
+    def computeOps(self):
+        # input > 0 -> y = x (just an assignment)
+        # input <=0 -> y = alpha * (expf(x) - 1): exp, add, mul
+        # consider the worst case, which is 3 ops
+        return self.mapper.parser.operatorRepresentation['size'] * 3
+
+
+class SeluLayer(ONNXLayer):
+
+    def computeOps(self):
+        # input > 0 -> y = gamma * x: mul
+        # input <=0 -> y = gamma * alpha * (expf(x) - 1): exp, add, 2 mul
+        # consider the worst case, which is 4 ops
+        return self.mapper.parser.operatorRepresentation['size'] * 4
+
+
+class LeakyReluLayer(SingleOperationPerElementLayer):
+    pass
+
+
 class InstanceNormLayer(ONNXLayer):
 
     def computeOps(self):
@@ -792,3 +806,42 @@ class GlobalMaxPoolLayer(ONNXLayer):
         opRep = self.mapper.parser.operatorRepresentation
         # (spatial_size - 1) comparisons per output channel
         return int(opRep['batch_size'] * opRep['num_channels'] * (opRep['spatial_size'] - 1))
+
+
+class Col2ImLayer(ONNXLayer):
+
+    def computeOps(self):
+        # Col2Im iterates over every element of the input tensor and adds it
+        # into the corresponding output position. The total number of
+        # accumulations is exactly the number of input elements which is
+        # N x C x block_volume x L
+        rep = self.mapper.parser.operatorRepresentation
+        block_volume = int(np.prod(rep['block_shape']))
+        L = int(np.prod(rep['col_dims']))
+        return rep['batch_size'] * rep['channels'] * block_volume * L
+
+
+class ScatterLayer(ONNXLayer):
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+        if opRep.get('reduction', 'none') == 'none':
+            # no arithmetic operations
+            return 0
+        else:
+            # 1 op per index element
+            return int(np.prod(opRep['indices_shape']))
+
+
+class ResizeLayer(ONNXLayer):
+
+    def computeOps(self):
+        rep = self.mapper.parser.operatorRepresentation
+        size = rep['batch_size'] * rep['channels'] * int(np.prod(rep['output_shape']))
+        spatial_dims: int = rep['spatial_dims']
+        ops = 0  # default: Nearest-neighbour is a pure copy — no arithmetic operations.
+        if rep['mode'] == 'linear':  # 2^spatial_dims multiply-accumulates per output element.
+            ops = size * (1 << spatial_dims)
+        elif rep['mode'] == 'cubic':  # 4^spatial_dims multiply-accumulates per output element.
+            ops = size * (4**spatial_dims)
+        return ops

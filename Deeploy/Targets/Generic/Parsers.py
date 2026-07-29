@@ -2743,127 +2743,198 @@ class ConvTransposeParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
+
+        if not all(
+            [node.op == 'ConvTranspose',
+             len(node.inputs) >= 2 and len(node.inputs) <= 3,
+             len(node.outputs) == 1]):
+            return False
+
         # Extract ONNX attributes with defaults
-        strides = node.attrs.get('strides', [1])
+        auto_pad: str = node.attrs.get('auto_pad', 'NOTSET')
+        group: int = node.attrs.get('group', 1)
 
-        pads = node.attrs.get('pads', [0, 0])
-        kernel_shape = node.attrs.get('kernel_shape', None)
-        dilations = node.attrs.get('dilations', [1])
-        group = node.attrs.get('group', 1)
+        if not all([
+                auto_pad in ('NOTSET', 'SAME_UPPER', 'SAME_LOWER', 'VALID'),
+                group >= 1,
+        ]):
+            return False
 
-        # Check for required attributes
-        wellFormed = (kernel_shape is not None and len(node.outputs) == 1)
-        if wellFormed:
-            self.operatorRepresentation['strides'] = strides
-            self.operatorRepresentation['pads'] = pads
-            self.operatorRepresentation['kernel_shape'] = kernel_shape
-            self.operatorRepresentation['dilations'] = dilations
-            self.operatorRepresentation['group'] = group
-            self.operatorRepresentation['nodeName'] = node.name
-            self.operatorRepresentation['nodeOp'] = node.op
-        return wellFormed
+        self.operatorRepresentation['auto_pad'] = auto_pad
+        self.operatorRepresentation['group'] = group
+
+        self.operatorRepresentation['dilations'] = node.attrs.get('dilations', None)  # default: ones
+        self.operatorRepresentation['kernel_shape'] = node.attrs.get('kernel_shape', None)  # default from weights
+        self.operatorRepresentation['output_padding'] = node.attrs.get('output_padding', None)  # default: zeros
+        self.operatorRepresentation['output_shape'] = node.attrs.get('output_shape', None)  # overwrite pads
+        self.operatorRepresentation['pads'] = node.attrs.get('pads', None)  # default: zeros
+        self.operatorRepresentation['strides'] = node.attrs.get('strides', None)  # default: ones
+
+        self.operatorRepresentation['nodeOp'] = node.op
+        self.operatorRepresentation['nodeName'] = node.name
+
+        return True
 
     def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True):
-        # Register buffer names for codegen
-        self.operatorRepresentation['data_in'] = node.inputs[0].name
-        self.operatorRepresentation['weight'] = node.inputs[1].name
-        self.operatorRepresentation['data_out'] = node.outputs[0].name
-        if len(node.inputs) == 3:
-            self.operatorRepresentation['bias'] = node.inputs[2].name
-            self.operatorRepresentation['has_bias'] = "true"
-        else:
-            self.operatorRepresentation['has_bias'] = "false"
-        # Get output shape from context
-        data_out = ctxt.lookup(node.outputs[0].name)
-        out_shape = data_out.shape
-        if len(out_shape) == 3:
-            self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
-        elif len(out_shape) == 4:
-            self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
-            self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
 
-        stride_x, stride_y = 1, 1
-        if "strides" in node.attrs:
-            stride_y = node.attrs["strides"][0]
-            stride_x = node.attrs["strides"][1] if len(node.attrs["strides"]) > 1 else stride_y
-        self.operatorRepresentation["stride_y"] = stride_y
-        self.operatorRepresentation["stride_x"] = stride_x
+        rep = self.operatorRepresentation
 
-        if "kernel_shape" in node.attrs:
-            kernel_shape = node.attrs["kernel_shape"]
-            kernel_shape_x = kernel_shape[0]
-            # For 2D, kernel_shape may have two elements
-            kernel_shape_y = kernel_shape[1] if len(kernel_shape) > 1 else kernel_shape_x
-        else:
-            kernel_shape_x = 1
-            kernel_shape_y = 1
+        # inputs/outputs
+        data_in: VariableBuffer = ctxt.lookup(node.inputs[0].name)
+        weight: ConstantBuffer = ctxt.lookup(node.inputs[1].name)
+        data_out: VariableBuffer = ctxt.lookup(node.outputs[0].name)
 
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        in_shape = data_in.shape
-        out_shape = data_out.shape
+        # check inputs/outputs
+        if not all([
+                len(data_in.shape) == len(data_out.shape) == len(weight.shape),  # same ndims
+                all(s > 0 for s in data_in.shape),  # no empty dim
+                all(s > 0 for s in weight.shape),  # no empty dim
+                all(s > 0 for s in data_out.shape),  # no empty dim
+                data_in.shape[0] == data_out.shape[0],  # same batch size
+                len(data_in.shape) > 2,  # at least batch, channels/feature_maps, one spatial dim
+        ]):
+            return ctxt, False
 
-        self.operatorRepresentation['ch_im_in'] = in_shape[1]
-        self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
-        self.operatorRepresentation['ch_im_out'] = out_shape[1]
-        self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
+        # retrieve info from inputs/outputs
+        batch_size, channels = data_in.shape[:2]
+        input_shape = data_in.shape[2:]  # spatial input shape
+        output_shape = data_out.shape[2:]  # spatial output shape
 
-        self.operatorRepresentation[
-            'batchOffsetIn'] = self.operatorRepresentation['ch_im_in'] * self.operatorRepresentation['dim_im_in_y']
-        self.operatorRepresentation[
-            'batchOffsetOut'] = self.operatorRepresentation['ch_im_out'] * self.operatorRepresentation['dim_im_out_y']
+        spatial_dims = len(input_shape)
+
+        kernel_shape = list(weight.shape[2:])
+        feature_maps = weight.shape[1] * rep['group']  # input channels
+        if not all([
+                channels % rep['group'] == 0,
+                weight.shape[0] == channels,
+                data_out.shape[1] == feature_maps,
+        ]):
+            return ctxt, False
+
+        # optional inputs
+        rep['bias'] = 'NULL'
+        has_bias = len(node.inputs) == 3 and bool(node.inputs[2].name)
+        if has_bias:
+            bias: ConstantBuffer = ctxt.lookup(node.inputs[2].name)
+            if not (len(bias.shape) == 1 and bias.shape[0] == feature_maps):
+                return ctxt, False
+            rep['bias'] = bias.name
+
+        # attributes with possible inconsistences
+        kernel_shape_attr: list[int] = rep['kernel_shape'] or kernel_shape
+        output_shape_attr: list[int] = rep['output_shape'] or output_shape
+        # check possible inconsistences
+        if not all([
+                kernel_shape_attr == kernel_shape,
+                output_shape_attr == output_shape,
+        ]):
+            return ctxt, False
+
+        # other attributes
+        dilations: list[int] = rep['dilations'] or [1] * spatial_dims
+        output_padding: list[int] = rep['output_padding'] or [0] * spatial_dims
+        strides: list[int] = rep['strides'] or [1] * spatial_dims
+
+        # auto_pad may lead to overwrite pads
+        if rep['auto_pad'] == 'NOTSET':
+            pads: list[int] = rep['pads'] or [0] * (2 * spatial_dims)
+        elif rep['auto_pad'] == 'VALID':
+            pads = [0] * (2 * spatial_dims)
+        else:  # SAME_UPPER, SAME_LOWER
+            starts = [0] * spatial_dims
+            ends = [0] * spatial_dims
+            for i in range(spatial_dims):
+                total_padding = (strides[i] * (input_shape[i] - 1) + output_padding[i] +
+                                 ((kernel_shape[i] - 1) * dilations[i] + 1) - output_shape[i])
+                half = total_padding // 2
+                if rep['auto_pad'] == 'SAME_UPPER':
+                    starts[i] = half
+                    ends[i] = total_padding - half
+                else:  # SAME_LOWER
+                    ends[i] = half
+                    starts[i] = total_padding - half
+            pads = starts + ends
+
+        # check other attributes
+        if not all([
+                len(dilations) == spatial_dims,
+                len(output_padding) == spatial_dims,
+                len(pads) == 2 * spatial_dims,
+                len(strides) == spatial_dims,
+                all(d > 0 for d in dilations),
+                all(p >= 0 for p in output_padding),
+                all(p >= 0 for p in pads),
+                all(s > 0 for s in strides),
+        ]):
+            return ctxt, False
+
+        # fill operatorRepresentation
+        rep['data_in'] = data_in.name
+        rep['weight'] = weight.name
+        rep['data_out'] = data_out.name
+        rep['has_bias'] = int(has_bias)
+
+        rep['kernel_shape'] = kernel_shape
+        rep['output_shape'] = output_shape
+        rep['pads'] = pads
+        rep['strides'] = strides
+        rep['dilations'] = dilations
+        rep['output_padding'] = output_padding
+
+        rep['batch_size'] = batch_size
+        rep['channels'] = channels
+        rep['feature_maps'] = feature_maps
+        rep['input_shape'] = input_shape
+
         return ctxt, True
 
 
 class ConvTranspose1DParser(ConvTransposeParser):
-
-    def __init__(self):
-        super().__init__()
-
-    def parseNode(self, node: gs.Node) -> bool:
-        # 1D ConvTranspose expects 3D input/output and 3D weight
-        wellFormed = super().parseNode(node)
-        ret = False
-        if wellFormed:
-            ret = all([
-                # Make sure strides are 2D
-                len(node.attrs['strides']) == 1,
-                len(node.attrs['pads']) == 2,
-                len(node.attrs['dilations']) == 1,
-            ])
-        if ret:
-
-            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
-            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][0])
-            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][0])
-            self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][0])
-            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][0])
-
-        return ret
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        ctxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return ctxt, False
 
-        if ret:
-            data_in = newCtxt.lookup(node.inputs[0].name)
-            data_out = newCtxt.lookup(node.outputs[0].name)
-            in_shape = data_in.shape
-            out_shape = data_out.shape
-            self.operatorRepresentation['batch'] = in_shape[0]
-            self.operatorRepresentation['ch_im_in'] = in_shape[1]
-            self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
-            self.operatorRepresentation['ch_im_out'] = out_shape[1]
-            self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
-            self.operatorRepresentation[
-                "batchOffsetIn"] = self.operatorRepresentation["ch_im_in"] * self.operatorRepresentation["dim_im_in_y"]
-            self.operatorRepresentation["batchOffsetOut"] = self.operatorRepresentation[
-                "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
-            return newCtxt, True
-        return ctxt, False
+        rep = self.operatorRepresentation
+        spatial_dims = len(rep['kernel_shape'])
+        if spatial_dims != 1:
+            return ctxt, False
+
+        rep['input_length'], = rep['input_shape']
+        rep['output_length'], = rep['output_shape']
+        rep['kernel_length'], = rep['kernel_shape']
+        rep['stride'], = rep['strides']
+
+        return ctxt, True
+
+
+class ConvTranspose2DParser(ConvTransposeParser):
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        ctxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return ctxt, False
+
+        rep = self.operatorRepresentation
+        spatial_dims = len(rep['kernel_shape'])
+        if spatial_dims != 2:
+            return ctxt, False
+
+        rep['input_height'], rep['input_width'] = rep['input_shape']
+        rep['output_height'], rep['output_width'] = rep['output_shape']
+        rep['kernel_height'], rep['kernel_width'] = rep['kernel_shape']
+        rep['stride_h'], rep['stride_w'] = rep['strides']
+
+        return ctxt, True
 
 
 class SqrtParser(UnaryElementWiseParser):
@@ -2957,6 +3028,34 @@ class HardSwishParser(UnaryElementWiseParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'HardSwish'
+
+
+class EluParser(UnaryElementWiseParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if not (super().parseNode(node) and node.op == 'Elu'):
+            return False
+        self.operatorRepresentation['alpha'] = node.attrs.get('alpha', 1.0)
+        return True
+
+
+class SeluParser(UnaryElementWiseParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if not (super().parseNode(node) and node.op == 'Selu'):
+            return False
+        self.operatorRepresentation['alpha'] = node.attrs.get('alpha', 1.67326319217681884765625)
+        self.operatorRepresentation['gamma'] = node.attrs.get('gamma', 1.05070102214813232421875)
+        return True
+
+
+class LeakyReluParser(UnaryElementWiseParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if not (super().parseNode(node) and node.op == 'LeakyRelu'):
+            return False
+        self.operatorRepresentation['alpha'] = node.attrs.get('alpha', 0.01)
+        return True
 
 
 class NormalizationParser(NodeParser):
@@ -3124,3 +3223,251 @@ class GlobalMaxPoolParser(GlobalPoolParser):
 
     def parseNode(self, node: gs.Node) -> bool:
         return super().parseNode(node) and node.op == 'GlobalMaxPool'
+
+
+class ScatterParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        if not all([
+                node.op == 'Scatter' or node.op == 'ScatterElements',
+                len(node.inputs) == 3,
+                len(node.outputs) == 1,
+        ]):
+            return False
+
+        axis = node.attrs.get('axis', 0)
+        reduction = node.attrs.get('reduction', 'none')
+
+        if reduction not in ('none', 'add', 'mul', 'max', 'min'):
+            return False
+
+        self.operatorRepresentation['axis'] = axis
+        self.operatorRepresentation['reduction'] = reduction
+
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        indices = ctxt.lookup(node.inputs[1].name)
+        updates = ctxt.lookup(node.inputs[2].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        ndim = len(data_in.shape)
+        axis = int(self.operatorRepresentation['axis'])
+        if axis < 0:
+            axis += ndim
+        if not all([
+                0 <= axis < ndim,
+                list(data_out.shape) == list(data_in.shape),
+                list(updates.shape) == list(indices.shape),
+        ]):
+            return ctxt, False
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['indices'] = indices.name
+        self.operatorRepresentation['updates'] = updates.name
+        self.operatorRepresentation['data_out'] = data_out.name
+
+        self.operatorRepresentation['ndim'] = ndim
+        self.operatorRepresentation['data_shape'] = list(data_in.shape)
+        self.operatorRepresentation['indices_shape'] = list(indices.shape)
+
+        return ctxt, True
+
+
+class Col2ImParser(NodeParser):
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        if not all([node.op == 'Col2Im', len(node.inputs) == 3, len(node.outputs) == 1]):
+            return False
+
+        # Deeploy is a static ahead-of-time code generator: shape tensors that
+        # appear as C compound literals in the emitted code must be known at
+        # parse time.
+        # image_shape / block_shape are therefore assumed to be constant and
+        # are not supported as variables
+        if not isinstance(node.inputs[1], gs.Constant) or not isinstance(node.inputs[2], gs.Constant):
+            return False
+
+        image_shape = node.inputs[1].values.astype(int).tolist()
+        block_shape = node.inputs[2].values.astype(int).tolist()
+        spatial_dims = len(image_shape)
+
+        if spatial_dims <= 0:
+            return False
+
+        dilations = list(node.attrs.get('dilations', [1] * spatial_dims))
+        pads = list(node.attrs.get('pads', [0] * (2 * spatial_dims)))
+        strides = list(node.attrs.get('strides', [1] * spatial_dims))
+
+        if not all([
+                len(dilations) == spatial_dims,
+                len(pads) == 2 * spatial_dims,
+                len(strides) == spatial_dims,
+                all(s > 0 for s in image_shape),
+                all(s > 0 for s in block_shape),
+                all(d > 0 for d in dilations),
+                all(p >= 0 for p in pads),
+                all(s > 0 for s in strides),
+        ]):
+            return False
+
+        col_dims = [(image_shape[p] + pads[p] + pads[p + spatial_dims] - dilations[p] *
+                     (block_shape[p] - 1) - 1) // strides[p] + 1 for p in range(spatial_dims)]
+        if any(d <= 0 for d in col_dims):
+            return False
+
+        self.operatorRepresentation['col_dims'] = col_dims
+        self.operatorRepresentation['image_shape'] = image_shape
+        self.operatorRepresentation['block_shape'] = block_shape
+        self.operatorRepresentation['spatial_dims'] = spatial_dims
+        self.operatorRepresentation['dilations'] = dilations
+        self.operatorRepresentation['pads'] = pads
+        self.operatorRepresentation['strides'] = strides
+
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in: VariableBuffer = ctxt.lookup(node.inputs[0].name)
+        data_out: VariableBuffer = ctxt.lookup(node.outputs[0].name)
+
+        image_shape: list = self.operatorRepresentation['image_shape']
+        block_shape: list = self.operatorRepresentation['block_shape']
+        col_dims: list = self.operatorRepresentation['col_dims']
+
+        if len(data_in.shape) != 3 or len(data_out.shape) != 2 + len(image_shape):
+            return ctxt, False
+
+        N, C = data_out.shape[0], data_out.shape[1]
+        block_volume = int(np.prod(block_shape))
+        L = int(np.prod(col_dims))
+
+        if list(data_in.shape) != [N, C * block_volume, L]:
+            return ctxt, False
+
+        if list(data_out.shape) != [N, C] + image_shape:
+            return ctxt, False
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['batch_size'] = N
+        self.operatorRepresentation['channels'] = C
+
+        return ctxt, True
+
+
+class ResizeParser(NodeParser):
+
+    @staticmethod
+    def _is_empty(tensor: gs.Variable | gs.Constant | None) -> bool:
+        if tensor is None:
+            return True
+        if isinstance(tensor, gs.Constant):
+            return tensor.values.size <= 0
+        if isinstance(tensor, gs.Variable):
+            return tensor.shape is None
+        return True
+
+    def parseNode(self, node: gs.Node) -> bool:
+
+        if not all([node.op == 'Resize', len(node.inputs) >= 1, len(node.outputs) == 1]):
+            return False
+
+        antialias = node.attrs.get('antialias', 0)
+        axes = node.attrs.get('axes', None)  # None -> all axes
+        coord_mode = node.attrs.get('coordinate_transformation_mode', 'half_pixel')
+        cubic_coeff_a = node.attrs.get('cubic_coeff_a', -0.75)
+        exclude_outside = node.attrs.get('exclude_outside', 0)
+        extrapolation_value = node.attrs.get('extrapolation_value', 0.0)
+        keep_aspect_ratio_policy = node.attrs.get('keep_aspect_ratio_policy', 'stretch')
+        mode = node.attrs.get('mode', 'nearest')
+        nearest_mode = node.attrs.get('nearest_mode', 'round_prefer_floor')
+
+        if not all([
+                coord_mode in ('half_pixel', 'half_pixel_symmetric', 'pytorch_half_pixel', 'align_corners',
+                               'asymmetric', 'tf_crop_and_resize'),
+                keep_aspect_ratio_policy in ('stretch', 'not_larger', 'not_smaller'),
+                mode in ('nearest', 'linear', 'cubic'),
+                nearest_mode in ('floor', 'ceil', 'round_prefer_floor', 'round_prefer_ceil'),
+        ]):
+            return False
+
+        self.operatorRepresentation['antialias'] = antialias
+        self.operatorRepresentation['axes'] = axes
+        self.operatorRepresentation['coord_mode'] = coord_mode
+        self.operatorRepresentation['cubic_coeff_a'] = cubic_coeff_a
+        self.operatorRepresentation['exclude_outside'] = exclude_outside
+        self.operatorRepresentation['extrapolation_value'] = extrapolation_value
+        self.operatorRepresentation['keep_aspect_ratio_policy'] = keep_aspect_ratio_policy
+        self.operatorRepresentation['mode'] = mode
+        self.operatorRepresentation['nearest_mode'] = nearest_mode
+
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in: VariableBuffer = ctxt.lookup(node.inputs[0].name)
+        data_out: VariableBuffer = ctxt.lookup(node.outputs[0].name)
+
+        if not all([
+                len(data_in.shape) == len(data_out.shape),  # same ndims
+                all(s > 0 for s in data_in.shape),  # no empty dim
+                all(s > 0 for s in data_out.shape),  # no empty dim
+                len(data_in.shape) > 2,  # at least batch, channels, one spatial dim
+                data_in.shape[:2] == data_out.shape[:2],  # batch_size and channels are unchanged
+        ]):
+            return ctxt, False
+
+        roi: gs.Variable | gs.Constant | None = node.inputs[1] if len(node.inputs) > 1 else None
+        scales: gs.Constant | None = node.inputs[2] if len(node.inputs) > 2 else None
+        sizes: gs.Constant | None = node.inputs[3] if len(node.inputs) > 3 else None
+
+        has_scales = not self._is_empty(scales)
+        has_sizes = not self._is_empty(sizes)
+
+        if any([
+                # ONNX requires exactly one of scales / sizes to be non-empty
+                has_scales and has_sizes,
+            (not has_scales) and (not has_sizes),
+                # scales and sizes assumed constants otherwise output shape
+                # cannot be inferred at parsing time
+                has_scales and not isinstance(scales, gs.Constant),
+                has_sizes and not isinstance(sizes, gs.Constant),
+        ]):
+            return ctxt, False
+
+        if not self._is_empty(roi):
+            if isinstance(roi, gs.Constant):
+                _roi = roi.values.tolist()
+            elif isinstance(roi, gs.Variable):
+                _roi = ctxt.lookup(roi.name).name
+            else:
+                return ctxt, False
+        else:
+            _roi = None
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['batch_size'] = data_in.shape[0]
+        self.operatorRepresentation['channels'] = data_in.shape[1]
+        self.operatorRepresentation['spatial_dims'] = len(data_in.shape[2:])
+        self.operatorRepresentation['input_shape'] = list(data_in.shape[2:])
+        self.operatorRepresentation['output_shape'] = list(data_out.shape[2:])
+        self.operatorRepresentation['roi'] = _roi
+        self.operatorRepresentation['scales'] = scales.values.tolist() if has_scales else None
+        self.operatorRepresentation['sizes'] = sizes.values.tolist() if has_sizes else None
+
+        return ctxt, True

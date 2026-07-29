@@ -25,6 +25,9 @@ class SignPropTypeChecker(NodeTypeChecker):
         ctxt = super().typeInferGlobalCtxt(ctxt, node)
 
         for inputNode, _type in zip(node.inputs, self.input_types):
+            if not inputNode.name:
+                continue
+
             if isinstance(ctxt.lookup(inputNode.name), ConstantBuffer):
                 reference = ctxt.lookup(inputNode.name)
                 if not _type.referencedType.checkPromotion(reference.values):
@@ -39,8 +42,8 @@ class SignPropTypeChecker(NodeTypeChecker):
                         operatorRepresentation: OperatorRepresentation) -> NetworkContext:
         ctxt = super().typeInferOutput(ctxt, node, operatorRepresentation)
 
-        inputs = [ctxt.lookup(inputNode.name) for inputNode in node.inputs]
-        outputs = [ctxt.lookup(outputNode.name) for outputNode in node.outputs]
+        inputs = [ctxt.lookup(inputNode.name) for inputNode in node.inputs if inputNode.name]
+        outputs = [ctxt.lookup(outputNode.name) for outputNode in node.outputs if outputNode.name]
 
         signProp = all([hasattr(_input, "_signed") and hasattr(_input, "nLevels") for _input in inputs])
 

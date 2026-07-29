@@ -1110,6 +1110,10 @@ class NodeParser():
         for inputNode in node.inputs:
             data_in = inputNode.name
 
+            # Skip absent optional inputs (ONNX represents them as empty-name Variables)
+            if not data_in:
+                continue
+
             # Hoist constant inputs
             if type(inputNode) == gs.ir.tensor.Constant and not ctxt.is_global(data_in):
                 ctxt.hoistConstant(inputNode)
@@ -1277,7 +1281,7 @@ class NodeTypeChecker():
         """
         newCtxt = ctxt.copy()
 
-        inputs = [ctxt.lookup(inputNode.name) for inputNode in node.inputs]
+        inputs = [ctxt.lookup(inputNode.name) for inputNode in node.inputs if inputNode.name]
         outputNames = [node.name for node in node.outputs]
 
         outputTypes = self.output_types
@@ -1306,6 +1310,9 @@ class NodeTypeChecker():
         retCheck = True
 
         for inputNode, _type in zip(node.inputs, self.input_types):
+            if not inputNode.name:
+                continue
+
             reference = ctxt.lookup(inputNode.name)
 
             if not isinstance(reference, VariableBuffer):
@@ -1326,6 +1333,9 @@ class NodeTypeChecker():
 
     def typeInferGlobalCtxt(self, ctxt: NetworkContext, node: gs.Node) -> NetworkContext:
         for inputNode, _type in zip(node.inputs, self.input_types):
+            if not inputNode.name:
+                continue
+
             if isinstance(ctxt.lookup(inputNode.name), ConstantBuffer):
                 reference = ctxt.lookup(inputNode.name)
                 if not _type.referencedType.checkPromotion(reference.values):
@@ -1348,7 +1358,7 @@ class NodeTypeChecker():
             The NodeParser's operatorRepresentation
 
         """
-        env = [node.name for node in node.inputs + node.outputs]
+        env = [node.name for node in node.inputs + node.outputs if node.name]
         for key, value in operatorRepresentation.items():
             # check if the referenced buffer is in the environment
             if isinstance(value, str) and value in env:
@@ -1903,7 +1913,9 @@ class ONNXLayer():
             broadcast to the target shape
 
         """
-        inputShapes = [ctxt.lookup(node.name).shape for node in self.node.inputs]
+        # Absent optional inputs are represented in ONNX as empty-name Variables; skip them.
+        validInputNodes = [node for node in self.node.inputs if node.name]
+        inputShapes = [ctxt.lookup(node.name).shape for node in validInputNodes]
         outputShapes = [ctxt.lookup(node.name).shape for node in self.node.outputs]
 
         if not "channels_first" in self.mapper.parser.operatorRepresentation:
@@ -1914,7 +1926,7 @@ class ONNXLayer():
         newInputShapes, newOutputShapes = self.computeShapes(inputShapes, outputShapes,
                                                              self.mapper.parser.operatorRepresentation, channels_first)
 
-        for node, newShape in zip(self.node.inputs + self.node.outputs, newInputShapes + newOutputShapes):
+        for node, newShape in zip(validInputNodes + self.node.outputs, newInputShapes + newOutputShapes, strict = True):
             if ctxt.is_local(node.name):
                 ctxt.localObjects[node.name].shape = newShape
                 # Update shape of tensors in onnx graph
@@ -2103,7 +2115,7 @@ class ONNXLayer():
                     npType = self._broadcastToNpType(ctxt.localObjects[node.name]._type)
                     if npType is not None:
                         node.dtype = npType
-                elif ctxt.is_global(node.name):
+                elif ctxt.is_global(node.name) and hasattr(ctxt.globalObjects[node.name], '_type'):
                     npType = self._broadcastToNpType(ctxt.globalObjects[node.name]._type)
                     if isinstance(ctxt.globalObjects[node.name], ConstantBuffer):
                         if isinstance(node, gs.Constant):
@@ -2961,6 +2973,8 @@ class NetworkContainer():
         callStack = ''
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
+                if not hasattr(node, '_type'):
+                    continue
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -3006,6 +3020,8 @@ class NetworkContainer():
 
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
+                if not hasattr(node, '_type'):
+                    continue
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -3542,6 +3558,8 @@ class NetworkDeployer(NetworkContainer):
                 # We do not count structs for now, since they are not properly modeled
                 if isinstance(_buffer, ConstantBuffer) or (isinstance(_buffer, VariableBuffer) and _buffer._deploy):
                     # SCHEREMO: We only
+                    if not hasattr(_buffer, '_type'):
+                        continue
                     if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level == "None":
                         staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
                     else:
