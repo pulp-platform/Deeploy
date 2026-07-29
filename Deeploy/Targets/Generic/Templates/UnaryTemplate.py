@@ -6,7 +6,7 @@ import numpy as np
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 
-class _FloatUnaryTemplate(NodeTemplate):
+class _UnaryTemplate(NodeTemplate):
 
     def alignToContext(self, ctxt: NetworkContext,
                        operatorRepresentation: OperatorRepresentation) -> tuple[NetworkContext, dict, list[str]]:
