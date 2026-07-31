@@ -36,9 +36,9 @@ RUN apt-get update && apt-get install -y \
     libxrt-utils-npu \
     && rm -rf /var/lib/apt/lists/*
 
-ENV XILINX_XRT=/opt/xilinx/xrt
+ENV XILINX_XRT=/usr
 ENV PATH=${XILINX_XRT}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${XILINX_XRT}/lib
+ENV LD_LIBRARY_PATH=${XILINX_XRT}/lib/x86_64-linux-gnu
 
 # Remove unused files and clean up to reduce image size
 WORKDIR /app

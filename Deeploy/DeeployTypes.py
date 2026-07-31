@@ -339,7 +339,7 @@ class VariableBuffer():
         # Do a breadth-first search across the aliasing double-linked list
         live = self._live
         queue = set(self.aliases)
-        visited = set(self.name)
+        visited = {self.name}
         while len(queue) > 0:
             next = queue.pop()
             buffNext = ctxt.lookup(next)
@@ -2499,6 +2499,12 @@ class NetworkContainer():
             data_type = self.inputTypes[node.name]
             nb = ctxt.VariableBuffer(data_name, data_size)
             nb.is_input = True
+            # Global network I/O buffers are externally allocated and live for
+            # the entire inference. Marking them live ensures has_live_aliases
+            # protects them: a buffer that aliases a network input/output (e.g.
+            # a no-op Reshape view) must never be deallocated, or the free would
+            # lead to overwrite the still-needed I/O memory.
+            nb._live = True
 
             ctxt.add(nb, 'global')
             ctxt.annotateType(data_name, data_type)
@@ -2509,6 +2515,7 @@ class NetworkContainer():
             # WIESEP: The shape and type will be parsed from the graph
             nb = ctxt.VariableBuffer(data_name, data_size)
             nb.is_output = True
+            nb._live = True
             ctxt.add(nb, 'global')
 
         return ctxt

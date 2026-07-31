@@ -75,8 +75,6 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
 
     platform, signProp = mapPlatform(args.platform)
 
-    if args.enable_3x3:
-        platform.engines[0].enable3x3 = True
     if args.enableStrides:
         platform.engines[0].enableStrides = True
 
@@ -160,11 +158,6 @@ if __name__ == '__main__':
                         action = "store_true",
                         default = False,
                         help = 'Adds weight memory and neureka engine color\n')
-    parser.add_argument('--enable-3x3',
-                        dest = "enable_3x3",
-                        action = "store_true",
-                        default = False,
-                        help = 'Adds EXPERIMENTAL support for 3x3 convolutions on N-EUREKA\n')
     parser.add_argument('--enableStrides',
                         dest = "enableStrides",
                         action = "store_true",
