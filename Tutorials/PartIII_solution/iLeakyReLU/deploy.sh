@@ -30,11 +30,18 @@ TILECONSTR_DIR="$ROOT/Deeploy/Targets/PULPOpen/TileConstraints"
 KERNEL_SRC_DIR="$ROOT/TargetLibraries/PULPOpen/src"
 KERNEL_INC_DIR="$ROOT/TargetLibraries/PULPOpen/inc/kernel"
 TESTS_DIR="$ROOT/DeeployTest/Tests/Kernels/Integer/LeakyReLU/Regular"
+TEST_ARTIFACTS="network.onnx inputs.npz outputs.npz"
 
 case "$MODE" in
 undo)
 	echo "Undoing iLeakyReLU additions (file copies only)..."
-	rm -rf "$TESTS_DIR"
+	# Remove only the artifacts we copied in, then prune the directories we
+	# created - but only while they are empty, so anything a student put
+	# alongside them survives.
+	for f in $TEST_ARTIFACTS; do
+		rm -f "$TESTS_DIR/$f"
+	done
+	rmdir "$TESTS_DIR" "$(dirname "$TESTS_DIR")" 2>/dev/null || true
 	rm -f "$KERNEL_SRC_DIR/iLeakyReLU.c"
 	rm -f "$KERNEL_INC_DIR/iLeakyReLU.h"
 	rm -f "$TEMPLATES_DIR/iLeakyReLUTemplate.py"
@@ -52,7 +59,7 @@ esac
 
 echo "[1/6] Copy test artifacts -> $TESTS_DIR"
 mkdir -p "$TESTS_DIR"
-for f in network.onnx inputs.npz outputs.npz; do
+for f in $TEST_ARTIFACTS; do
 	if [ ! -f "$HERE/$f" ]; then
 		echo "  ERROR: $f not found in $HERE - run 'python generate.py' first." >&2
 		exit 1
