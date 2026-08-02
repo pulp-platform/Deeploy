@@ -394,6 +394,8 @@ cp network.onnx inputs.npz outputs.npz ../../../DeeployTest/Tests/Kernels/Intege
 
 Open `iLeakyReLUParser.py` and fill in `parseNode` (validate attrs + inputs) and `parseNodeCtxt` (extract input/output tensor names and `size`). Paste the finished class into `Deeploy/Targets/Generic/Parsers.py`.
 
+A parser should also refuse attributes your kernels can't implement, so the build fails instead of producing wrong results on the device. Reject `mul != 1` (the SIMD kernel has no per-lane multiply) and any `shift` outside `[0, 8)` (it shifts 8-bit `v4s` lanes).
+
 Test in *verbose* mode (Step 1 left you in `Tutorials/PartIII_skeletons/iLeakyReLU`, so walk back up to the repo root first):
 ```bash
 cd ../../../DeeployTest
@@ -597,7 +599,7 @@ Re-run with `--profileTiling`. Compare per-tile kernel cycles to your scalar bas
 <details>
  <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
 
- > In our reference run (`--l1=32768`, shape `(1,16,64,64)`) the end-to-end runtime drops from **108 090 cycles (scalar)** to **43 005 cycles (SIMD)**, a **2.51×** improvement. Why not exactly 4×? Two reasons. **(1)** The XPULP V2 toolchain doesn't expose a packed-byte *arithmetic* right shift builtin, so `v4s s = x >> shift` is lowered by the compiler to four scalar lane shifts. The real SIMD wins come from packed `v4s` loads/stores (1 instruction vs 4) and `__builtin_pulp_max4` (1 instruction vs 4 compare+select). **(2)** Even if the shift were packed, end-to-end time also includes DMA traffic and per-tile bookkeeping, which don't shrink with SIMD. To approach 4× you'd need either a hardware packed-byte shift (the `pv.sra.sci.b` instruction *exists* in XPULP V2 but isn't exposed as a builtin in this toolchain), inline assembly against it, or a different formulation (e.g. constant-shift lookup, or a kernel using `__builtin_pulp_avgu4` restricted to `shift=1`). The full intrinsics inventory lives in `TargetLibraries/third_party/pulp-nn-mixed/XpulpV2/32bit/include/pulp_nn_utils.h`.
+ > In our reference run (`--l1=32768`, shape `(1,16,64,64)`) the end-to-end runtime drops from **108 090 cycles (scalar)** to **43 005 cycles (SIMD)**, a **2.51×** improvement. Why not exactly 4×? Not because the arithmetic failed to vectorise — it did. Disassemble the kernel and the loop body is one post-increment word load, `pv.sra.b` for `v4s s = x >> shift`, and `pv.max.b` for the blend: three instructions per four elements, exactly the packing you asked for. The limit is Amdahl's law. End-to-end time also includes DMA traffic between L2 and L1, per-tile bookkeeping, and the loop's own index and branch overhead, none of which shrink when the arithmetic does. The 4× applies only to the fraction of the runtime the inner loop actually owns. To push closer you'd have to attack that other fraction — larger tiles to amortise the DMA, or double buffering to overlap it with compute — not the kernel body. The full intrinsics inventory lives in `TargetLibraries/third_party/pulp-nn-mixed/XpulpV2/32bit/include/pulp_nn_utils.h`.
 
 </details>
 

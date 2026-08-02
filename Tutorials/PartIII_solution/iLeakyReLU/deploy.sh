@@ -111,8 +111,15 @@ class iLeakyReLUParser(NodeParser):
         ])
         if not wellFormed:
             return False
-        self.operatorRepresentation['mul']   = int(node.attrs['mul'])
-        self.operatorRepresentation['shift'] = int(node.attrs['shift'])
+        mul   = int(node.attrs['mul'])
+        shift = int(node.attrs['shift'])
+        # XPULP has no per-lane multiply for packed int8, so the SIMD kernel
+        # can only compute max(x, x >> shift), i.e. mul == 1. Its v4s lanes
+        # are 8 bits wide, so a shift of 8 or more is undefined behaviour.
+        if mul != 1 or not 0 <= shift < 8:
+            return False
+        self.operatorRepresentation['mul']   = mul
+        self.operatorRepresentation['shift'] = shift
         return True
 
     def parseNodeCtxt(self,
