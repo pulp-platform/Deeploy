@@ -11,15 +11,16 @@ end-to-end, and unblock students who get stuck.
 |------|---------|
 | `generate.py` | Builds `network.onnx`, `inputs.npz`, `outputs.npz` for the single-node test |
 | `network.onnx` | Single-node ONNX with op_type `iLeakyReLU` (`mul=1`, `shift=3`), shape `(1, 16, 64, 64)` |
-| `inputs.npz`  | Int64 input tensor named `input` |
-| `outputs.npz` | Int64 golden output tensor named `output` |
+| `inputs.npz`  | Int8 input tensor named `data_in` |
+| `outputs.npz` | Int8 golden output tensor named `data_out` |
 | `iLeakyReLU.h` | Kernel header |
 | `iLeakyReLU.c` | Scalar baseline kernel (Step 3) |
 | `iLeakyReLU_simd.c` | XPULP SIMD kernel (Step 6b) |
 | `iLeakyReLUParser.py` | Full parser class for `Deeploy/Targets/Generic/Parsers.py` |
 | `iLeakyReLUTemplate.py` | Full Mako template for `Deeploy/Targets/PULPOpen/Templates/` |
 | `iLeakyReLUTileConstraint.py` | Full tile + perf constraint for `Deeploy/Targets/PULPOpen/TileConstraints/` |
-| `deploy.sh` | One-shot script that copies the kernel/template/constraint into the live tree AND patches `Parsers.py`, `Bindings.py`, `Tiler.py`, `Platform.py`, `DeeployPULPMath.h` to wire everything up |
+| `iLeakyReLU-core.patch` | The edits that wire the op into `Parsers.py`, `Bindings.py`, `Tiler.py`, `Platform.py` and `DeeployPULPMath.h` |
+| `deploy.sh` | One-shot script that copies the kernel/template/constraint into the live tree and applies `iLeakyReLU-core.patch` with `git apply` |
 
 ## Quick start (TA workflow)
 
@@ -38,12 +39,15 @@ python generate.py
 # 4) Swap to the SIMD kernel for Step 6b
 ./deploy.sh simd
 
-# 5) Roll back the file copies if you ever need to clean up
+# 5) Roll back everything if you ever need to clean up
 ./deploy.sh undo
-# (note: the script-applied patches into Parsers.py / Bindings.py /
-#  Platform.py / Tiler.py / DeeployPULPMath.h are NOT auto-reverted;
-#  use `git checkout -- <path>` for those if needed)
+# (reverts the core-library patch and removes the copied files)
 ```
+
+The edits to Deeploy's own sources live in `iLeakyReLU-core.patch` and are
+applied with `git apply`. If upstream has moved since the patch was written,
+you get ordinary conflict markers to resolve rather than a half-applied tree,
+and `undo` reverts the patch with `git apply --reverse`.
 
 `deploy.sh` is idempotent, i.e. running it a second time is a no-op for
 the source patches. Re-running `./deploy.sh` after `./deploy.sh simd`
@@ -83,9 +87,8 @@ Every run reports `Errors: 0 out of 65536`. Cycle counts:
 | Step 6   | 8 cores, SIMD, tiled (`--l1=32768`) | **43 005** | 57.97× |
 
 If any count drifts by more than a few percent or a run reports any
-errors, something in the deploy is off. Try `./deploy.sh undo` plus
-`git checkout --` on the patched source files, then re-deploy from
-scratch.
+errors, something in the deploy is off. Try `./deploy.sh undo`, then
+re-deploy from scratch.
 
 ## Files NOT in this directory (live-tree edits applied by deploy.sh)
 
