@@ -55,7 +55,7 @@ The Singularity equivalent of the Docker command
 ```bash
 docker run -it --name deeploy_main -v $(pwd):/app/Deeploy ghcr.io/pulp-platform/deeploy:main
 ```
-is the four-step sequence below. The key part of the translation: Docker's `-v $(pwd):/app/Deeploy` (bind-mount the host clone) becomes Singularity's `--bind "$SCRATCH/Deeploy:/app/Deeploy"`.
+is the six-step sequence below. The key part of the translation: Docker's `-v $(pwd):/app/Deeploy` (bind-mount the host clone) becomes Singularity's `--bind "$SCRATCH/Deeploy:/app/Deeploy"`.
 
 ### 1. Choose a writable scratch directory, and move every cache off your home
 On most lab machines this is `/scratch/$USER`. If it doesn't exist for you, fall back to a subdirectory of the course scratch:
