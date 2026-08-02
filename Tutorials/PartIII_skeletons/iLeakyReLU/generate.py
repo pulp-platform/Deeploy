@@ -49,7 +49,7 @@ def build_onnx():
 
 def main():
     rng = np.random.default_rng(SEED)
-    x = rng.integers(low = -128, high = 127, size = SHAPE, dtype = np.int8)
+    x = rng.integers(low = -128, high = 128, size = SHAPE, dtype = np.int8)
     y = golden(x, MUL, SHIFT)
     onnx.save(build_onnx(), 'network.onnx')
     np.savez('inputs.npz', data_in = x)
