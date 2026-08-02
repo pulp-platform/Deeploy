@@ -80,7 +80,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Reduce RunNetwork stack usage by scoping per-layer variables with braces and moving tileIdxPtr allocation into per-layer execution blocks
 - Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
 - Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
-- Forward `--neureka-wmem` and `--enable-3x3` from `deeployRunner` to the generator
+- Forward `--neureka-wmem` from `deeployRunner` to the generator
 - Fix Deeploy 101 tutorial errors: `--profileTiling` usage and the moved intrinsics inventory path
 
 ### Removed
