@@ -79,15 +79,16 @@ def main():
 
     model = build_onnx()
     onnx.save(model, 'network.onnx')
-    # Deeploy convention: npz tensors saved as int64 (the test harness
-    # casts to float64 then to the ONNX dtype). Storing int8 directly
-    # confuses the buffer-population path.
-    np.savez('inputs.npz', input = x.astype(np.int64))
-    np.savez('outputs.npz', output = y.astype(np.int64))
+    # Store int8 under the same names the ONNX graph uses. The harness casts
+    # whatever it finds to float64 before inferring types and matches tensors
+    # positionally (see DeeployTest/generateNetwork.py), so both the dtype and
+    # the key names are free choices; int8 keeps the committed fixtures small.
+    np.savez('inputs.npz', data_in = x)
+    np.savez('outputs.npz', data_out = y)
 
     print(f"Wrote network.onnx (shape={SHAPE}, mul={MUL}, shift={SHIFT})")
-    print(f"Wrote inputs.npz  : keys=['input']  shape={x.shape}  int64,  int8-range=[{x.min()}, {x.max()}]")
-    print(f"Wrote outputs.npz : keys=['output'] shape={y.shape}  int64,  int8-range=[{y.min()}, {y.max()}]")
+    print(f"Wrote inputs.npz  : keys=['data_in']  shape={x.shape}  int8, range=[{x.min()}, {x.max()}]")
+    print(f"Wrote outputs.npz : keys=['data_out'] shape={y.shape}  int8, range=[{y.min()}, {y.max()}]")
 
 
 if __name__ == '__main__':
