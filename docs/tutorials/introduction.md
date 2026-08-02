@@ -258,7 +258,7 @@ The good news is that Deeploy can already do that! So, let's generate and run so
 
 ### Profiling the Execution
 
-To measure the effect of some optimizations in more detail, you can use the `--profileTiling` flag. This flag will enable a code transformation that will insert print displaying the runtime of several critical code sections. For instance, profiling an *Integer Layer Normalization* layer from L2 with two tiles will return the print the following:
+To measure the effect of some optimizations in more detail, you can use the `--profileTiling` flag. This flag will enable a code transformation that will insert print statements displaying the runtime of several critical code sections. For instance, profiling an *Integer Layer Normalization* layer from L2 with two tiles will print the following:
 ```
 [INTEGER_RMSNORM L2][SB][0 ops][Tile 0] Input DMA took 489 cycles
 [INTEGER_RMSNORM L2][SB][0 ops][Tile 0] Kernel took 43305 cycles
