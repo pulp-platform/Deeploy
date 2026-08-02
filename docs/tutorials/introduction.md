@@ -112,7 +112,7 @@ singularity shell --bind "$SCRATCH/Deeploy:/app/Deeploy" \
 The `--bind` flag mounts your host clone at `/app/Deeploy` inside the container, i.e.the direct equivalent of Docker's `-v` flag.
 
 If you forget to pre-create the target you'll see:
-```
+```text
 FATAL: ... destination /app/Deeploy doesn't exist in container
 ```
 That means you need to run the `mkdir -p` from step 4 first.
@@ -368,7 +368,7 @@ A starting kit lives under `Tutorials/PartIII_skeletons/iLeakyReLU/`. Each file 
 
 The script `generate.py` (already complete) builds a single-node ONNX with the `op_type` `iLeakyReLU` plus matching `inputs.npz` / `outputs.npz`. Run it once and check the produced files:
 
-```
+```bash
 cd Tutorials/PartIII_skeletons/iLeakyReLU
 python generate.py
 mkdir -p ../../../DeeployTest/Tests/Kernels/Integer/LeakyReLU/Regular
@@ -382,7 +382,7 @@ cp network.onnx inputs.npz outputs.npz ../../../DeeployTest/Tests/Kernels/Intege
 Open `iLeakyReLUParser.py` and fill in `parseNode` (validate attrs + inputs) and `parseNodeCtxt` (extract input/output tensor names and `size`). Paste the finished class into `Deeploy/Targets/Generic/Parsers.py`.
 
 Test in *verbose* mode (Step 1 left you in `Tutorials/PartIII_skeletons/iLeakyReLU`, so walk back up to the repo root first):
-```
+```bash
 cd ../../../DeeployTest
 python deeployRunner_siracusa.py -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 -vv
 ```
@@ -482,7 +482,7 @@ Three small pieces wire the parser to the kernel.
 </details>
 
 Test untiled execution on Siracusa:
-```
+```bash
 python deeployRunner_siracusa.py -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8
 ```
 Do you observe any mismatches? How many cycles does the execution take?
@@ -520,7 +520,7 @@ Drop the file into `Deeploy/Targets/PULPOpen/TileConstraints/`. Then **register 
 </details>
 
 Run the tiled flow:
-```
+```bash
 python deeployRunner_tiled_siracusa.py -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 --l1=32768 --defaultMemLevel=L2
 ```
 
@@ -592,7 +592,7 @@ Re-run with `--profileTiling`. Compare per-tile kernel cycles to your scalar bas
 
 To wrap up, measure your own cycle counts at each step and compute the speedups vs the single-core untiled baseline and step-to-step. Grab the missing baseline numbers with:
 
-```
+```bash
 python deeployRunner_siracusa.py        -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=1                                                # baseline
 python deeployRunner_siracusa.py        -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8                                                # Step 4
 python deeployRunner_tiled_siracusa.py  -t Tests/Kernels/Integer/LeakyReLU/Regular --cores=8 --l1=32768 --defaultMemLevel=L2                # Step 5 (scalar)
