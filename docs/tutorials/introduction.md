@@ -122,13 +122,19 @@ singularity shell --bind "$SCRATCH/Deeploy:/app/Deeploy" \
                   --env PIP_CACHE_DIR=/pipcache \
                   "$SCRATCH/DeeployContainer/"
 ```
-The first `--bind` mounts your host clone at `/app/Deeploy` inside the container, i.e.the direct equivalent of Docker's `-v` flag. The other two put the `ccache` and `pip` caches on scratch, and the matching `--env` flags point the tools at them: `--cleanenv` wipes the host environment on the way in, so the exports from step 1 have to be re-injected here rather than inherited. If your shell no longer has `$CCACHE_DIR` set (a fresh login, for example), re-run the export block from step 1 first.
+The first `--bind` mounts your host clone at `/app/Deeploy` inside the container, i.e.the direct equivalent of Docker's `-v` flag. The other two put the `ccache` and `pip` caches on scratch, and the matching `--env` flags point the tools at them: `--cleanenv` wipes the host environment on the way in, so the exports from step 1 have to be re-injected here rather than inherited. Both variables have to be set in the shell you launch this from — on a fresh login they won't be, so re-run the export block from step 1 first.
 
 If you forget to pre-create the target you'll see:
 ```text
 FATAL: ... destination /app/Deeploy doesn't exist in container
 ```
 That means you need to run the `mkdir -p` from step 4 first.
+
+If the *source* side is missing instead:
+```text
+FATAL: ... mount source /ccache doesn't exist
+```
+then `$CCACHE_DIR` or `$PIP_CACHE_DIR` is unset in your shell, so the bind collapsed to `:/ccache`. Re-run the export block from step 1.
 
 **When the shell opens, you will land in `/home/$USER`** (Apptainer auto-mounts your host home, and your host CWD `$SCRATCH` doesn't exist as a path inside the container). To get to your Deeploy code, navigate to the bind-mount target:
 ```bash
