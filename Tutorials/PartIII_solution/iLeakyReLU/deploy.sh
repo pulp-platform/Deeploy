@@ -47,7 +47,8 @@ undo)
 	rm -f "$TEMPLATES_DIR/iLeakyReLUTemplate.py"
 	rm -f "$TILECONSTR_DIR/iLeakyReLUTileConstraint.py"
 	echo "Note: hand-patches in Parsers.py / Bindings.py / Platform.py / Tiler.py / DeeployPULPMath.h were NOT removed."
-	echo "If you need a fully clean tree, use: git checkout -- Deeploy/Targets TargetLibraries/PULPOpen/inc/DeeployPULPMath.h"
+	echo "If you need a fully clean tree, use:"
+	echo "  git -C \"$ROOT\" checkout -- Deeploy/Targets TargetLibraries/PULPOpen/inc/DeeployPULPMath.h"
 	exit 0
 	;;
 scalar | simd) ;;
