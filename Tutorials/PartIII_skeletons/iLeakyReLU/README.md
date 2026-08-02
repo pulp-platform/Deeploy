@@ -9,7 +9,7 @@ parts are marked with `TODO(student)` comments and short hints.
 | `generate.py` | Complete ONNX + golden-value generator | Run it (Step 1) |
 | `iLeakyReLU.h` | Complete kernel header | Copy to `TargetLibraries/PULPOpen/inc/kernel/` (Step 3) |
 | `iLeakyReLU.c` | Multi-core chunking provided; inner loop TODO | Fill the TODO, copy to `TargetLibraries/PULPOpen/src/` (Step 3) |
-| `iLeakyReLU_simd.c` | SIMD chunking + load/max/store provided; one TODO line | Fill in Step 6b after the scalar works |
+| `iLeakyReLU_simd.c` | SIMD chunking and the vector load provided; packed shift, max and store are TODO | Fill in Step 6b after the scalar works |
 | `iLeakyReLUParser.py` | `parseNode` and `parseNodeCtxt` are TODO | Fill in, paste class into `Deeploy/Targets/Generic/Parsers.py` (Step 2) |
 | `iLeakyReLUTemplate.py` | Mako template body is TODO | Fill in, copy to `Deeploy/Targets/PULPOpen/Templates/` (Step 4) |
 | `iLeakyReLUTileConstraint.py` | Inherits `UnaryTileConstraint`; performance constraint TODO | Fill in (Step 5 + Step 6a), copy to `Deeploy/Targets/PULPOpen/TileConstraints/` |
