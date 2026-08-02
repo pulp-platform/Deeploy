@@ -446,7 +446,7 @@ Three small pieces wire the parser to the kernel.
 
 </details>
 
-**2. Binding.** In `Deeploy/Targets/PULPOpen/Bindings.py`, define a `PULPiLeakyReLUBindings` list. A binding is a 3-tuple of *(TypeChecker, Template, CodeTransformation)*. For our `int8 → int8` op, reuse `ReluChecker` (same `int8 → int8` signature) and `ForkTransformer` (forks the kernel call across the 8 cluster cores). Also add the matching import for your template.
+**2. Binding.** In `Deeploy/Targets/PULPOpen/Bindings.py`, define a `PULPiLeakyReLUBindings` list. A binding is a 3-tuple of *(TypeChecker, Template, CodeTransformation)*. For our `int8 → int8` op, reuse `GELUChecker` (same `int8 → int8` signature, and it propagates signedness) and `ForkTransformer` (forks the kernel call across the 8 cluster cores). Also add the matching import for your template.
 
 <details>
  <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
@@ -459,12 +459,12 @@ Three small pieces wire the parser to the kernel.
  > ```python
  > PULPiLeakyReLUBindings = [
  >     NodeBinding(
- >         ReluChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
+ >         GELUChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
  >         iLeakyReLUTemplate.referenceTemplate,
  >         ForkTransformer)
  > ]
  > ```
- > **Why `ReluChecker`?** It's the simplest existing checker that accepts an `int8` input and produces an `int8` output. You could write your own `iLeakyReLUChecker`, but the signature would be identical, so reusing the existing one keeps the lab focused on the kernel side. **Why `ForkTransformer`?** It wraps the emitted kernel call into `pi_cl_team_fork(NUM_CORES, ...)`, which is exactly what our multi-core kernel expects.
+ > **Why `GELUChecker`?** A checker doesn't only match types, it also declares whether the output is signed. `ReluChecker` hard-codes *unsigned*, which is right for ReLU but wrong here: LeakyReLU keeps negative values, about half of our output. `GELUChecker` has the same `int8 → int8` signature and propagates the input's signedness instead. **Why `ForkTransformer`?** It wraps the emitted kernel call into `pi_cl_team_fork(NUM_CORES, ...)`, which is exactly what our multi-core kernel expects.
 
 </details>
 

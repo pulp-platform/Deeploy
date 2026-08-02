@@ -156,7 +156,7 @@ PY
 
 PULPiLeakyReLUBindings = [
     NodeBinding(
-        ReluChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
+        GELUChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
         iLeakyReLUTemplate.referenceTemplate,
         ForkTransformer)
 ]
