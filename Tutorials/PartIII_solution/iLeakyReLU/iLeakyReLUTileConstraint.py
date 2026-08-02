@@ -36,9 +36,7 @@ class iLeakyReLUTileConstraint(UnaryTileConstraint):
         lastDim = len(inputShape) - 1
         lastDimVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = lastDim)
 
-        # Force the tiled inner dimension to be a multiple of 16. This
-        # ensures (per-core chunk) is a multiple of 4 once split across
-        # 8 cores -> the v4s SIMD inner loop is always tail-free.
+        # Force the tiled inner dimension to be a multiple of 16.
         #
         # NOTE: this must be addTileSizeDivisibleConstraint, not
         # addMinTileSizeConstraint. The latter only forces the *leftover*

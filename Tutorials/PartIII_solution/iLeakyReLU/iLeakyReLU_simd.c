@@ -33,27 +33,31 @@ void PULPiLeakyReLU_i8_i8(int8_t *pIn, int8_t *pOut, uint32_t size, int32_t mul,
 
   uint32_t cid = pi_core_id();
   uint32_t nC = NUM_CORES;
-  uint32_t per = (size + nC - 1) / nC;
-  // Round per-core chunk down to a multiple of 4 so the SIMD loop is
-  // tail-free. The Step 6a tile-size constraint already guarantees that
-  // size is a multiple of 16.
-  per &= ~0x3u;
-  uint32_t start = cid * per;
-  uint32_t end = (start + per > size) ? size : (start + per);
 
-  v4s *vIn = (v4s *)(pIn + start);
-  v4s *vOut = (v4s *)(pOut + start);
-  uint32_t nVec = (end - start) >> 2;
+  // Split the 4-element vectors across the cores, by vector index.
+  // Splitting the element count instead and rounding each core's share down
+  // to a multiple of 4 loses the remainder, and collapses to zero work per
+  // core as soon as size / nC < 4 (e.g. a 16-element tile on 8 cores).
+  uint32_t nVec = size >> 2;
+  uint32_t perVec = (nVec + nC - 1) / nC;
+  uint32_t vStart = cid * perVec;
+  uint32_t vEnd = (vStart + perVec > nVec) ? nVec : (vStart + perVec);
 
-  for (uint32_t i = 0; i < nVec; i++) {
+  v4s *vIn = (v4s *)pIn;
+  v4s *vOut = (v4s *)pOut;
+
+  for (uint32_t i = vStart; i < vEnd; i++) {
     v4s x = vIn[i];
     v4s s = x >> shift;                  // packed per-lane arith shift
     vOut[i] = __builtin_pulp_max4(x, s); // max(x, x>>shift) = LeakyReLU
   }
 
-  // Scalar tail (only when perf constraint is not installed)
-  for (uint32_t i = start + (nVec << 2); i < end; i++) {
-    int32_t xs = (int32_t)pIn[i];
-    pOut[i] = (int8_t)((xs >= 0) ? xs : (xs >> shift));
+  // The trailing size % 4 elements never fill a vector.
+  // Defer to 1-core reduction.
+  if (cid == 0) {
+    for (uint32_t i = nVec << 2; i < size; i++) {
+      int32_t xs = (int32_t)pIn[i];
+      pOut[i] = (int8_t)((xs >= 0) ? xs : (xs >> shift));
+    }
   }
 }

@@ -33,20 +33,32 @@ void PULPiLeakyReLU_i8_i8(int8_t *pIn, int8_t *pOut, uint32_t size, int32_t mul,
 
   uint32_t cid = pi_core_id();
   uint32_t nC = NUM_CORES;
-  uint32_t per = (size + nC - 1) / nC;
-  per &= ~0x3u;
-  uint32_t start = cid * per;
-  uint32_t end = (start + per > size) ? size : (start + per);
 
-  v4s *vIn = (v4s *)(pIn + start);
-  v4s *vOut = (v4s *)(pOut + start);
-  uint32_t nVec = (end - start) >> 2;
+  // Whole 4-element vectors are split across the cores by vector index, so
+  // that no element is lost when size / nC is small or size is not a
+  // multiple of 4 * nC.
+  uint32_t nVec = size >> 2;
+  uint32_t perVec = (nVec + nC - 1) / nC;
+  uint32_t vStart = cid * perVec;
+  uint32_t vEnd = (vStart + perVec > nVec) ? nVec : (vStart + perVec);
 
-  for (uint32_t i = 0; i < nVec; i++) {
+  v4s *vIn = (v4s *)pIn;
+  v4s *vOut = (v4s *)pOut;
+
+  for (uint32_t i = vStart; i < vEnd; i++) {
     v4s x = vIn[i];
     // TODO(student): one line to compute `s` from `x` and `shift`,
     //                one line to blend `x` and `s` with the packed
     //                signed max intrinsic and store it.
     vOut[i] = x; // <- placeholder, replace
+  }
+
+  // The trailing size % 4 elements never fill a vector; one core handles
+  // them. Disjoint from every vector chunk above, so no sync is needed.
+  if (cid == 0) {
+    for (uint32_t i = nVec << 2; i < size; i++) {
+      int32_t xs = (int32_t)pIn[i];
+      pOut[i] = (int8_t)((xs >= 0) ? xs : (xs >> shift));
+    }
   }
 }
