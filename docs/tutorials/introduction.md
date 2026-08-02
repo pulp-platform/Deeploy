@@ -64,10 +64,13 @@ SCRATCH=/scratch/$USER
 [ -d "$SCRATCH" ] || SCRATCH=/scratch/deeploy/$USER
 mkdir -p "$SCRATCH" && cd "$SCRATCH"
 
-# Keep the big caches on scratch.
+# Keep the big caches on scratch. Apptainer reads APPTAINER_CACHEDIR and only
+# accepts the SINGULARITY_ spelling as a deprecated fallback, so set both.
+export APPTAINER_CACHEDIR="$SCRATCH/.singularity_cache"
 export SINGULARITY_CACHEDIR="$SCRATCH/.singularity_cache"
 export CCACHE_DIR="$SCRATCH/.ccache"
 export PIP_CACHE_DIR="$SCRATCH/.pip_cache"
+mkdir -p "$CCACHE_DIR" "$PIP_CACHE_DIR"
 ```
 
 > ⚠️ **Do not skip the exports.** `singularity build` stages the image layers through
@@ -75,9 +78,14 @@ export PIP_CACHE_DIR="$SCRATCH/.pip_cache"
 > home the build aborts partway through with
 > `FATAL: While performing build: conveyor failed to get: error writing layer: ... disk quota exceeded`.
 > The container's `ccache` is likewise configured for `$HOME/.ccache` with a 5 GB
-> ceiling, and it will quietly consume your entire quota across a few builds. Note
-> that Singularity mounts your real `$HOME` inside the container even under
-> `--cleanenv`, so setting these on the host is what protects you.
+> ceiling, and it will quietly consume your entire quota across a few builds, because
+> Singularity mounts your real `$HOME` inside the container even under `--cleanenv`.
+>
+> The exports above protect the **host** side only: the `build` in step 3 runs outside
+> the container, so it picks them up. They do *not* reach the container shell, because
+> `--cleanenv` deliberately drops the host environment. That is why step 5 binds the two
+> cache directories into the sandbox and re-injects the variables with `--env`; skipping
+> those flags puts `ccache` and `pip` straight back onto your home quota.
 
 Budget roughly **35 GB of scratch** in total: about 8 GB for the sandbox itself plus
 about 26 GB of image cache. The cache is only needed for the build and can be deleted
@@ -96,20 +104,25 @@ Pull the public Deeploy Docker image and convert it into a writable sandbox unde
 singularity build --sandbox DeeployContainer/ docker://ghcr.io/pulp-platform/deeploy:main
 ```
 
-### 4. Pre-create the bind-mount target inside the sandbox
-Writable Singularity sandboxes don't auto-create bind-mount targets (read-only `.sif` images do, via overlay). The Deeploy image has `/app/` but no `/app/Deeploy/` subdirectory, so you need to create it once:
+### 4. Pre-create the bind-mount targets inside the sandbox
+Writable Singularity sandboxes don't auto-create bind-mount targets (read-only `.sif` images do, via overlay). The Deeploy image has `/app/` but no `/app/Deeploy/` subdirectory, and it has no mount points for the caches either, so create all three once:
 ```bash
 mkdir -p "$SCRATCH/DeeployContainer/app/Deeploy"
+mkdir -p "$SCRATCH/DeeployContainer/ccache" "$SCRATCH/DeeployContainer/pipcache"
 ```
 
 ### 5. Spawn a shell in the container, with your Deeploy clone bind-mounted
 You **must** have completed steps 3 and 4 before this works.`singularity shell` opens an *existing* sandbox, it doesn't create one. Re-run this command every time you log back in:
 ```bash
 singularity shell --bind "$SCRATCH/Deeploy:/app/Deeploy" \
+                  --bind "$CCACHE_DIR:/ccache" \
+                  --bind "$PIP_CACHE_DIR:/pipcache" \
                   --writable --cleanenv \
+                  --env CCACHE_DIR=/ccache \
+                  --env PIP_CACHE_DIR=/pipcache \
                   "$SCRATCH/DeeployContainer/"
 ```
-The `--bind` flag mounts your host clone at `/app/Deeploy` inside the container, i.e.the direct equivalent of Docker's `-v` flag.
+The first `--bind` mounts your host clone at `/app/Deeploy` inside the container, i.e.the direct equivalent of Docker's `-v` flag. The other two put the `ccache` and `pip` caches on scratch, and the matching `--env` flags point the tools at them: `--cleanenv` wipes the host environment on the way in, so the exports from step 1 have to be re-injected here rather than inherited. If your shell no longer has `$CCACHE_DIR` set (a fresh login, for example), re-run the export block from step 1 first.
 
 If you forget to pre-create the target you'll see:
 ```text
