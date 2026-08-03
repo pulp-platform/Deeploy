@@ -71,6 +71,10 @@ class TilingHoistingMixIn:
                         offset: Union[int, str, VariableBuffer] = 0,
                         override_type: Optional[Type[BaseType]] = None) -> _ReferenceBuffer:
         refName = self.prefix + name
+
+        # The same tensor can appear in multiple transfer schedules of one tiled node. Those
+        # schedules intentionally share a generated reference name, so reuse the existing reference
+        # after verifying that both requests describe exactly the same alias.
         if ctxt.is_local(refName):
             ref = ctxt.lookup(refName)
             assert isinstance(ref, _ReferenceBuffer)

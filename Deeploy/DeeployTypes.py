@@ -63,37 +63,6 @@ _middlewarePostLoweringFilename = 'middleware_post_lowering'
 _backendPostParsingFilename = 'backend_post_parsing'
 _backendPostBindingFilename = 'backend_post_binding'
 
-
-def _deeployTypeToNpType(ty: Type[BaseType]):
-
-    def _broadcastInteger(ty: Type[IntegerImmediate]):
-        if ty.signed:
-            return np.dtype(getattr(np, "int" + str(ty.typeWidth)))
-        else:
-            return np.dtype(getattr(np, "uint" + str(ty.typeWidth)))
-
-    def _broadcastFloat(ty: Type[FloatImmediate]):
-        if ty.typeWidth == 16:
-            return np.dtype(np.float16)
-        if ty.typeWidth == 32:
-            return np.dtype(np.float32)
-        if ty.typeWidth == 64:
-            return np.dtype(np.float64)
-        return np.dtype(np.float32)
-
-    if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
-        if issubclass(ty.referencedType, IntegerImmediate):
-            return _broadcastInteger(ty.referencedType)
-        if issubclass(ty.referencedType, FloatImmediate):
-            return _broadcastFloat(ty.referencedType)
-    elif issubclass(ty, IntegerImmediate):
-        return _broadcastInteger(ty)
-    elif issubclass(ty, FloatImmediate):
-        return _broadcastFloat(ty)
-
-    return None
-
-
 _ctxtExtension = '.pkl'
 _graphExtension = '.onnx'
 _dataExtension = '.data'
@@ -446,12 +415,7 @@ class ConstantBuffer(VariableBuffer):
     def _valueString(self) -> str:
         values = list(self.values.reshape(-1))
         if self._type.typeName == 'float32_t*':
-            strValues = []
-            for value in values:
-                literal = f"{float(value):.9g}"
-                if "e" not in literal and "." not in literal:
-                    literal += ".0"
-                strValues.append(literal + "f")
+            strValues = [f'{value}f' for value in values]
         elif self._type.typeName == 'int8_t*':
             strValues = [f'{int(value)}' for value in values]
         else:
@@ -2061,7 +2025,21 @@ class ONNXLayer():
         return ctxt, False
 
     def _broadcastToNpType(self, ty: Type[BaseType]):
-        return _deeployTypeToNpType(ty)
+
+        def _broadcastInteger(immediateType: Type[IntegerImmediate]):
+            prefix = "int" if immediateType.signed else "uint"
+            return np.dtype(getattr(np, prefix + str(immediateType.typeWidth)))
+
+        def _broadcastFloat(immediateType: Type[FloatImmediate]):
+            return np.dtype(getattr(np, "float" + str(immediateType.typeWidth)))
+
+        immediateType = ty.referencedType if issubclass(ty, Pointer) and hasattr(ty, "referencedType") else ty
+        if issubclass(immediateType, IntegerImmediate):
+            return _broadcastInteger(immediateType)
+        if issubclass(immediateType, FloatImmediate):
+            return _broadcastFloat(immediateType)
+
+        return None
 
     def typeCheck(self, ctxt: NetworkContext) -> Tuple[NetworkContext, bool]:
         """Invokes the mapper's typeCheck method
@@ -3165,15 +3143,6 @@ class NetworkContainer():
         # VJUNG: ONNX-Graphsurgeon needs tensors to be in their export types
         constTensors = [tensor for tensor in self.graph.tensors().values() if isinstance(tensor, gs.Constant)]
         for tensor in constTensors:
-            if tensor.name in self.ctxt.globalObjects:
-                ctxtTensor = self.ctxt.globalObjects[tensor.name]
-                if isinstance(ctxtTensor, ConstantBuffer) and hasattr(ctxtTensor, "_type"):
-                    npType = _deeployTypeToNpType(ctxtTensor._type)
-                    if npType is not None:
-                        tensor.values = tensor.values.astype(npType)
-                        tensor.export_dtype = npType
-                        continue
-
             if tensor.dtype != tensor.export_dtype:
                 tensor.values = tensor.values.astype(tensor.export_dtype)
 
