@@ -31,7 +31,6 @@
  * multi-core = yes
  * unrolling  = no
  * simd       = no
- * cleanup    = yes
  */
 void MatMul_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA,
                                int8_t const *__restrict__ pSrcB,
@@ -46,7 +45,6 @@ void MatMul_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA,
  * multi-core = yes
  * unrolling  = 4 elements of C per iteration (2x2 chunks)
  * simd       = no
- * cleanup    = no
  */
 void MatMul_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA,
                                             int8_t const *__restrict__ pSrcB,
@@ -60,7 +58,6 @@ void MatMul_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA,
  * multi-core = yes
  * unrolling  = 4 elements of C per iteration (2x2 chunks)
  * simd       = no
- * cleanup    = no
  */
 void MatMul_offset_unrolled_2x2_parallel_s8_rv32im(
     int8_t const *__restrict__ pSrcA, int8_t const *__restrict__ pSrcB,
@@ -108,7 +105,6 @@ MatMul_offset_unrolled_2x2_parallel_s8(int8_t const *__restrict__ pSrcA,
  * multi-core = yes
  * unrolling  = 4 elements of C per iteration (2x2 chunks)
  * simd       = no
- * cleanup    = no
  */
 void MatMul_unrolled_2x2_parallel_s16_rv32im(int16_t const *__restrict__ pSrcA,
                                              int16_t const *__restrict__ pSrcB,
@@ -127,7 +123,6 @@ void MatMul_unrolled_2x2_parallel_s16_rv32im(int16_t const *__restrict__ pSrcA,
  * multi-core = yes
  * unrolling  = 4 elements of C per iteration (2x2 chunks)
  * simd       = no
- * cleanup    = no
  * other      = loads/stores explicitly written in asm
  *              for optimal register utilization
  */
@@ -147,7 +142,6 @@ void MatMul_unrolled_2x2_parallel_s32_rv32im(int32_t const *__restrict__ pSrcA,
  * data type  = 32-bit float
  * multi-core = yes (splits M rows across compute cores internally)
  * unrolling  = 8 columns
- * cleanup    = yes
  */
 void matmul_fp32_opt(const float32_t *__restrict__ pSrcA,
                      const float32_t *__restrict__ pSrcB,
@@ -161,7 +155,6 @@ void matmul_fp32_opt(const float32_t *__restrict__ pSrcA,
  * multi-core = yes (splits M rows across compute cores internally)
  * accel      = SSR streams (DM0/DM1) + FREP 8x FMA
  * unrolling  = 8 columns
- * cleanup    = yes
  */
 void matmul_fp32_ssr_frep(const float32_t *__restrict__ pSrcA,
                           const float32_t *__restrict__ pSrcB,

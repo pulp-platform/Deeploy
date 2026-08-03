@@ -499,25 +499,6 @@ class LinearAttentionLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
     def computeOps(self):
-        # seqLen = self.mapper.parser.operatorRepresentation['in_C']
-        # dim = self.mapper.parser.operatorRepresentation['dim']
-        # dim_head = self.mapper.parser.operatorRepresentation['dim_head']
-        # heads = self.mapper.parser.operatorRepresentation['heads']
-        # QOps = seqLen * dim * dim_head * heads * 2
-        # # WQ * Q (H )
-        # KOps = seqLen * dim * dim_head * heads * 2
-        # # WK * K
-        # VOps = seqLen * dim * dim_head * heads * 2
-        # # WV * V
-        # KVOps = seqLen * dim_head * dim_head * heads * 2
-        # # Q * KT
-        # QKVOps = seqLen * dim_head * dim_head * heads * 2
-        # # N H S S * N H S D -> N H S D
-        # OutOps = seqLen * dim_head * heads * dim * 2
-        # # WO * O
-        # totOps = QOps + KOps + VOps + KVOps + QKVOps + OutOps
-        # return totOps
-
         return 0
 
 

@@ -173,8 +173,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
     retStr += deployer.generateBufferInitializationCode()
     retStr += deployer.generateGlobalDefinitionCode()
 
-    # WIESEP: Mempool assigns section attributes to intermediate buffers to allow .
-    # Snitch also needs file-scope declarations for multi-core buffer sharing.
+    # MemPool and Snitch declare intermediate buffers at file scope (before RunNetwork) so they are shared across cores.
     if isinstance(deployer.Platform, (MemPoolPlatform, SnitchPlatform)):
         retStr += deployer.generateInferenceInitializationCode()
         retStr += """

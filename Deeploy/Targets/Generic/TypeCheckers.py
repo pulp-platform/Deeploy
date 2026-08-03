@@ -273,10 +273,6 @@ class MatMulChecker(SignPropTypeChecker):
                          operatorRepresentation: OperatorRepresentation) -> List[bool]:
         # WIESEP: Hack because previous kernel implementation assumed signed to always be true.
         return [True]
-        # if inputs[0]._signed or isinstance(inputs[1], ConstantBuffer):
-        #   return [True]
-        # else:
-        # return [False]
 
 
 class RQMatMulChecker(SignPropTypeChecker):
