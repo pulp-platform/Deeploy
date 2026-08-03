@@ -90,8 +90,6 @@ class PULPFPConv2DParser(Conv2DParser):
             self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
             self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
             self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
-            if "n_cores" in node.attrs:
-                self.operatorRepresentation["n_cores"] = int(node.attrs["n_cores"])
 
             return ret
         return False
@@ -150,8 +148,6 @@ class PULPFPDWConv2DParser(Conv2DParser):
             self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
             self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
             self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
-            if "n_cores" in node.attrs:
-                self.operatorRepresentation["n_cores"] = int(node.attrs["n_cores"])
 
             return ret
         return False

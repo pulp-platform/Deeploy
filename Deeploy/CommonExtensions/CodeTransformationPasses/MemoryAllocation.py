@@ -276,7 +276,6 @@ class MemoryManagementGeneration(CodeTransformationPass, IntrospectiveCodeTransf
 
         for buffer in inputs + transients:
             assert buffer._live == True, f"Tried to deallocate already dead buffer {buffer.name}"
-
             buffer._live = False
             # Don't deallocate if it's an alias of a live buffer
             if not buffer.has_live_aliases(ctxt):
@@ -364,6 +363,7 @@ class MemoryPassthroughGeneration(MemoryManagementGeneration):
 
         for buffer in inputs + transients:
             assert buffer._live == True, f"Tried to deallocate already dead buffer {buffer.name}"
+
             memoryLevel = "None" if not hasattr(buffer, "_memoryLevel") else buffer._memoryLevel
             if memoryLevel not in ctxt._dynamicSize:
                 ctxt._dynamicSize[memoryLevel] = 0
