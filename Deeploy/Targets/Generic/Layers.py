@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+from itertools import zip_longest
 from typing import List, Tuple
 
 import numpy as np
@@ -337,19 +338,18 @@ class MulLayer(SingleOperationPerElementLayer):
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
 
-        if inputShapes[1] == () or inputShapes[1] == []:
-            inputShapes[1] = (1,)
+        lhsShape = tuple(inputShapes[0])
+        rhsShape = tuple(inputShapes[1])
+        broadcastShape = []
 
-        # Scalars and singletons should broadcast to the tensor operand,
-        # not shrink the tensor shape to (1,).
-        if tuple(inputShapes[1]) == (1,):
-            inputShapes[1] = inputShapes[0]
-            return (inputShapes, outputShapes)
+        for lhsDim, rhsDim in zip_longest(reversed(lhsShape), reversed(rhsShape), fillvalue = 1):
+            if lhsDim != rhsDim and lhsDim != 1 and rhsDim != 1:
+                raise ValueError(f"Cannot broadcast Mul input shapes {lhsShape} and {rhsShape}")
+            broadcastShape.append(rhsDim if lhsDim == 1 else lhsDim)
 
-        if len(inputShapes[0]) > len(inputShapes[1]):
-            inputShapes[1] = inputShapes[0]
-        else:
-            inputShapes[0] = inputShapes[1]
+        broadcastShape = tuple(reversed(broadcastShape))
+        inputShapes[0] = broadcastShape
+        inputShapes[1] = broadcastShape
         return (inputShapes, outputShapes)
 
 
@@ -361,7 +361,7 @@ class ConvLayer(ONNXLayer):
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
         if len(inputShapes) == 3:
-            inputShapes[2] = inputShapes[1][0]
+            inputShapes[2] = (inputShapes[1][0],)
         return (inputShapes, outputShapes)
 
     def computeOps(self):

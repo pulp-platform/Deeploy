@@ -163,9 +163,7 @@ PULPSoftmaxGradTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULP
 PULPReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceSumBindings,
                                                            tileConstraint = ReduceSumTileConstraint())
 
-_PULPReduceLogSumExpBindings = copy.deepcopy(PULPReduceLogSumExpBindings)
-
-PULPReduceLogSumExpTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = _PULPReduceLogSumExpBindings,
+PULPReduceLogSumExpTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceLogSumExpBindings,
                                                                  tileConstraint = UntiledTileConstraint())
 
 PULPSGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSGDBindings,
