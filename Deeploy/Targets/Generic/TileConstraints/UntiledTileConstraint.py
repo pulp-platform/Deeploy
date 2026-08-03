@@ -18,9 +18,6 @@ class UntiledTileConstraint(TileConstraint):
 
     @staticmethod
     def _normalizedShape(shape) -> Tuple[int, ...]:
-        if isinstance(shape, int):
-            return (shape,)
-
         normalized = tuple(shape)
         if len(normalized) == 0:
             return (1,)
@@ -47,8 +44,7 @@ class UntiledTileConstraint(TileConstraint):
 
             tilerModel.addTensorDimToModel(ctxt, tensorName)
 
-            shape = [_buffer.shape] if isinstance(_buffer.shape, int) else _buffer.shape
-            for idx, shapeDim in enumerate(shape):
+            for idx, shapeDim in enumerate(_buffer.shape):
                 tilerModel.addConstraint(tilerModel.getTensorDimVar(tensorName = tensorName, dimIdx = idx) == shapeDim)
 
         return tilerModel
@@ -67,6 +63,10 @@ class UntiledTileConstraint(TileConstraint):
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
         repScheme = VariableReplacementScheme({}, {})
+
+        # "Untiled" describes the tensor geometry, not its memory placement. A full-shape tensor
+        # can still travel through multiple memory levels (for example L3 -> L2 -> L1), so it needs
+        # one schedule step containing the complete input and output rectangles.
         inputLoadSchedule: List[Dict[str, HyperRectangle]] = [{}]
         outputLoadSchedule: List[Dict[str, HyperRectangle]] = [{}]
         inputBaseOffsets: Dict[str, List[int]] = {}
@@ -94,10 +94,8 @@ class UntiledTileConstraint(TileConstraint):
             fullShape = cls._normalizedShape(_buffer.shape)
             memoryConstraints = list(value.memoryConstraints.values())
 
-            # Untiled tensors may still be materialized on multiple memory levels when the same
-            # full-shape buffer is replicated along the memory path (for example, an untiled Slice
-            # fed by an L3-backed producer). This is not true tiling and should remain acceptable
-            # here. We only reject the case where different memory levels carry different shapes.
+            # Multiple full-shape copies represent memory transfers, not geometric tiling. Reject
+            # only solutions in which a memory level changes the tensor geometry.
             assert all(cls._normalizedShape(memValue.shape) == fullShape for memValue in memoryConstraints), \
                 f"{cls} should be untiled, but {value} carries multiple shapes across memory levels!"
 
