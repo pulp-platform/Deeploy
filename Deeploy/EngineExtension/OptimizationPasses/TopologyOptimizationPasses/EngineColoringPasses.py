@@ -36,8 +36,6 @@ class EngineColoringPass(TopologyOptimizationPass):
             engine = self.engineMapper.mapNodeToEngine(node, graph)
             if engine is not None:
                 node.attrs["engine"] = engine.name
-                if hasattr(engine, "n_cores"):
-                    node.attrs["n_cores"] = engine.n_cores
         return graph
 
 

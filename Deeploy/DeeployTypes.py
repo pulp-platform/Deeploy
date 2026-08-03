@@ -2600,6 +2600,16 @@ class NetworkContainer():
         self.transformed = True
 
     def _selectEngine(self, node: gs.Node) -> DeploymentEngine:
+        if "engine" in node.attrs:
+            engineName = node.attrs["engine"]
+            for engine in self.Platform.engines:
+                if engine.name == engineName:
+                    if node.op not in engine.Mapping:
+                        raise RuntimeError(f"No mapping found for node {node.name} with op type {node.op} "
+                                           f"in explicitly selected engine {engineName}")
+                    return engine
+            raise RuntimeError(f"Node {node.name} has an unknown engine {engineName} assigned")
+
         for engine in self.Platform.engines:
             if node.op in engine.Mapping:
                 return engine
