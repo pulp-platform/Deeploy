@@ -23,6 +23,8 @@ if [ ! -f "$PATCH" ]; then
 	echo "ERROR: $PATCH not found - the solution directory is incomplete." >&2
 	exit 1
 fi
+# The exact files the patch touches, read out of the patch itself
+PATCHED_FILES="$(git -C "$ROOT" apply --numstat "$PATCH" | cut -f3 | paste -sd' ')"
 TEMPLATES_DIR="$ROOT/Deeploy/Targets/PULPOpen/Templates"
 TILECONSTR_DIR="$ROOT/Deeploy/Targets/PULPOpen/TileConstraints"
 KERNEL_SRC_DIR="$ROOT/TargetLibraries/PULPOpen/src"
@@ -50,8 +52,15 @@ undo)
 		echo "  automatically. Leaving the copied files in place: the patch remnants" >&2
 		echo "  still import the template and tile constraint and include the kernel" >&2
 		echo "  header, so removing them now would leave a tree that cannot compile." >&2
-		echo "  Restore those files, then re-run undo:" >&2
-		echo "    git -C \"$ROOT\" checkout -- Deeploy/Targets TargetLibraries/PULPOpen/inc/DeeployPULPMath.h" >&2
+		echo "" >&2
+		echo "  Those edits may well be your own work from Steps 2-5, so look before" >&2
+		echo "  you reset anything:" >&2
+		echo "    git -C \"$ROOT\" diff -- $PATCHED_FILES" >&2
+		echo "  Keep a copy if you want it back later:" >&2
+		echo "    git -C \"$ROOT\" diff -- $PATCHED_FILES > my-part3-work.patch" >&2
+		echo "  Only once you are happy to lose them, restore just those files and" >&2
+		echo "  re-run undo:" >&2
+		echo "    git -C \"$ROOT\" checkout -- $PATCHED_FILES" >&2
 		exit 1
 	fi
 	# Remove only the artifacts we copied in, then prune the directories we
@@ -65,8 +74,8 @@ undo)
 	rm -f "$KERNEL_INC_DIR/iLeakyReLU.h"
 	rm -f "$TEMPLATES_DIR/iLeakyReLUTemplate.py"
 	rm -f "$TILECONSTR_DIR/iLeakyReLUTileConstraint.py"
-	echo "If the tree still isn't clean, use:"
-	echo "  git -C \"$ROOT\" checkout -- Deeploy/Targets TargetLibraries/PULPOpen/inc/DeeployPULPMath.h"
+	echo "If the tree still isn't clean, check what is left with:"
+	echo "  git -C \"$ROOT\" diff -- $PATCHED_FILES"
 	exit 0
 	;;
 scalar | simd) ;;
@@ -116,7 +125,11 @@ else
 	echo "  uncommitted edits to the files it touches." >&2
 	echo "  If git reported 'with conflicts' above, the files now carry <<<<<<< markers:" >&2
 	echo "  resolve them by hand and re-run - everything else has already been merged." >&2
-	echo "  To start over:  git -C \"$ROOT\" checkout -- Deeploy/Targets TargetLibraries/PULPOpen/inc/DeeployPULPMath.h" >&2
+	echo "  Before resetting anything, see what is in those files - it may be your" >&2
+	echo "  own work from Steps 2-5:" >&2
+	echo "    git -C \"$ROOT\" diff -- $PATCHED_FILES" >&2
+	echo "  To start over and discard exactly those files:" >&2
+	echo "    git -C \"$ROOT\" checkout -- $PATCHED_FILES" >&2
 	exit 1
 fi
 

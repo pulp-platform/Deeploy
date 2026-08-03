@@ -53,8 +53,9 @@ and `undo` reverts the patch with `git apply --reverse`.
 cleanly nor be shown to be absent, because something has edited the files it
 touches, it stops with an error and keeps the copied files, since the patch
 remnants still import the template and tile constraint and include the kernel
-header. Restore those files with the `git checkout` line it prints, then
-re-run `./deploy.sh undo`.
+header. It then prints a `git diff` limited to exactly the files the patch
+touches, so you can inspect and save those edits before deciding to discard them and re-run `./deploy.sh undo`.
+Nothing under `Deeploy/Targets` is ever reset wholesale.
 
 `deploy.sh` is idempotent, i.e. running it a second time is a no-op for
 the source patches. Re-running `./deploy.sh` after `./deploy.sh simd`
