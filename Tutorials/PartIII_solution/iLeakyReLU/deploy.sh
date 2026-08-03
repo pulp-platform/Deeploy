@@ -33,11 +33,26 @@ TEST_ARTIFACTS="network.onnx inputs.npz outputs.npz"
 case "$MODE" in
 undo)
 	echo "Undoing iLeakyReLU additions..."
+	# Three cases. Only the first two are safe to clean up after: if the patch
+	# is still (partly) in the tree we must keep the copied files, because
+	# Bindings.py imports the template, Tiler.py imports the tile constraint
+	# and DeeployPULPMath.h includes the kernel header. Deleting them under a
+	# retained patch leaves a tree that cannot import or compile.
 	if git -C "$ROOT" apply --reverse --check "$PATCH" 2>/dev/null; then
 		git -C "$ROOT" apply --reverse "$PATCH"
 		echo "  reverted the core-library patch"
+	elif git -C "$ROOT" apply --check "$PATCH" 2>/dev/null; then
+		echo "  core-library patch is not applied - nothing to revert"
 	else
-		echo "  core-library patch is not cleanly applied - leaving those files alone"
+		echo "" >&2
+		echo "  ERROR: the core-library patch is neither cleanly applied nor absent." >&2
+		echo "  Something has edited the files it touches, so it cannot be reverted" >&2
+		echo "  automatically. Leaving the copied files in place: the patch remnants" >&2
+		echo "  still import the template and tile constraint and include the kernel" >&2
+		echo "  header, so removing them now would leave a tree that cannot compile." >&2
+		echo "  Restore those files, then re-run undo:" >&2
+		echo "    git -C \"$ROOT\" checkout -- Deeploy/Targets TargetLibraries/PULPOpen/inc/DeeployPULPMath.h" >&2
+		exit 1
 	fi
 	# Remove only the artifacts we copied in, then prune the directories we
 	# created - but only while they are empty, so anything a student put

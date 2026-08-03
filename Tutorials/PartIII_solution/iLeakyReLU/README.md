@@ -49,6 +49,13 @@ applied with `git apply`. If upstream has moved since the patch was written,
 you get ordinary conflict markers to resolve rather than a half-applied tree,
 and `undo` reverts the patch with `git apply --reverse`.
 
+`undo` is all-or-nothing on purpose. If the patch can neither be reverted
+cleanly nor be shown to be absent, because something has edited the files it
+touches, it stops with an error and keeps the copied files, since the patch
+remnants still import the template and tile constraint and include the kernel
+header. Restore those files with the `git checkout` line it prints, then
+re-run `./deploy.sh undo`.
+
 `deploy.sh` is idempotent, i.e. running it a second time is a no-op for
 the source patches. Re-running `./deploy.sh` after `./deploy.sh simd`
 will overwrite the kernel back to scalar (and vice versa), so you can
