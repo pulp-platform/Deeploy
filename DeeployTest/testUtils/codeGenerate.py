@@ -10,6 +10,7 @@ import numpy as np
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
+from Deeploy.Targets.Snitch.Platform import SnitchPlatform
 
 _TEXT_ALIGN = 30
 
@@ -47,6 +48,16 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
         values = _shapeBroadcast(deployer.ctxt, values, bufferName)
 
         buffer = deployer.ctxt.lookup(bufferName)
+
+        # When the input lives in L3, its data is delivered at runtime from
+        # the readfs hex file (load_file_to_ram) and every L3-capable harness
+        # skips the testInputVector memcpy for external (L3) addresses. Emitting
+        # the data here would just duplicate the whole input tensor inside the
+        # binary, so keep a NULL placeholder to preserve testInputVector[]
+        # indexing without storing the data twice.
+        if getattr(buffer, "_memoryLevel", None) == "L3":
+            vectors.append("NULL")
+            continue
         typeName = buffer._type.referencedType.typeName
         typeWidth = buffer._type.referencedType.typeWidth
 
@@ -162,8 +173,8 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
     retStr += deployer.generateBufferInitializationCode()
     retStr += deployer.generateGlobalDefinitionCode()
 
-    # WIESEP: Mempool assigns section attributes to intermediate buffers to allow .
-    if isinstance(deployer.Platform, MemPoolPlatform):
+    # MemPool and Snitch declare intermediate buffers at file scope (before RunNetwork) so they are shared across cores.
+    if isinstance(deployer.Platform, (MemPoolPlatform, SnitchPlatform)):
         retStr += deployer.generateInferenceInitializationCode()
         retStr += """
         void RunNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){

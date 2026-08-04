@@ -10,6 +10,12 @@ import numpy as np
 from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, OperatorRepresentation, Shape
 
 
+class SingleOperationPerElementLayer(ONNXLayer):
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+
 class ConcatLayer(ONNXLayer):
 
     def __init__(self, maps: List[NodeMapper]):
@@ -168,10 +174,7 @@ class RequantShiftLayer(ONNXLayer):
         return self.mapper.parser.operatorRepresentation['size'] * 3  # One add, one mul, one div
 
 
-class AddLayer(ONNXLayer):
-
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
+class AddLayer(SingleOperationPerElementLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
@@ -184,8 +187,8 @@ class AddLayer(ONNXLayer):
         outputShapes = [inputShapes[0]]
         return (inputShapes, outputShapes)
 
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
+
+SubLayer = AddLayer
 
 
 class MatMulLayer(ONNXLayer):
@@ -329,10 +332,7 @@ class RQGEMMLayer(GEMMLayer):
         return gemm + rqs
 
 
-class MulLayer(ONNXLayer):
-
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
+class MulLayer(SingleOperationPerElementLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
@@ -345,9 +345,6 @@ class MulLayer(ONNXLayer):
         else:
             inputShapes[0] = inputShapes[1]
         return (inputShapes, outputShapes)
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
 
 
 class ConvLayer(ONNXLayer):
@@ -438,13 +435,8 @@ class ReduceSumLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
 
-class ReluLayer(ONNXLayer):
-
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
+class ReluLayer(SingleOperationPerElementLayer):
+    pass
 
 
 class LayerNormLayer(ONNXLayer):
@@ -507,25 +499,6 @@ class LinearAttentionLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
     def computeOps(self):
-        # seqLen = self.mapper.parser.operatorRepresentation['in_C']
-        # dim = self.mapper.parser.operatorRepresentation['dim']
-        # dim_head = self.mapper.parser.operatorRepresentation['dim_head']
-        # heads = self.mapper.parser.operatorRepresentation['heads']
-        # QOps = seqLen * dim * dim_head * heads * 2
-        # # WQ * Q (H )
-        # KOps = seqLen * dim * dim_head * heads * 2
-        # # WK * K
-        # VOps = seqLen * dim * dim_head * heads * 2
-        # # WV * V
-        # KVOps = seqLen * dim_head * dim_head * heads * 2
-        # # Q * KT
-        # QKVOps = seqLen * dim_head * dim_head * heads * 2
-        # # N H S S * N H S D -> N H S D
-        # OutOps = seqLen * dim_head * heads * dim * 2
-        # # WO * O
-        # totOps = QOps + KOps + VOps + KVOps + QKVOps + OutOps
-        # return totOps
-
         return 0
 
 
@@ -709,3 +682,131 @@ class ConvTransposeLayer(ONNXLayer):
             numPx = opRep['dim_im_out_x']
 
         return numPx * opsPerPx
+
+
+class RMSNormLayer(ONNXLayer):
+    """Layer support for the ONNX RMSNormalization operator.
+
+    Supported opset: 23
+
+    It is computed as follows:
+        - XSquared = Mul(X, X)
+        - XSquaredMean = ReduceMean<axes=normalized_axes>(XSquared)
+        - MeanSquareEpsilon = Add(XSquaredMean, epsilon)
+        - RMS = Sqrt(MeanSquareEpsilon)
+        - Normalized = Div(X, RMS)
+        - Y = Mul(Normalized, Scale)
+
+    For more details, this is the official ONNX documentation:
+    https://onnx.ai/onnx/operators/onnx__RMSNormalization.html#rmsnormalization-23
+    """
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        inputSize = self.mapper.parser.operatorRepresentation['inputSize']
+        NormalizedAxesSize = self.mapper.parser.operatorRepresentation['NormalizedAxesSize']
+        scale = self.mapper.parser.operatorRepresentation['scale']
+
+        # a. XSquared = Mul(X, X) => inputSize ops
+        # b. XSquaredMean = ReduceMean<axes=normalized_axes>(XSquared)
+        #    => inputSize ops (additions) + (inputSize - NormalizedAxesSize) ops (divisions)
+        # c. MeanSquareEpsilon = Add(XSquaredMean, epsilon) => (inputSize - NormalizedAxesSize) ops
+        # d. RMS = Sqrt(MeanSquareEpsilon) => (inputSize - NormalizedAxesSize) ops
+        # e. Normalized = Div(X, RMS) => inputSize ops
+        # f. Y = Mul(Normalized, Scale) => 0 if all(Scale == 1.0), else inputSize ops
+        scale_ops = 0 if (scale == 1.0).all() else inputSize
+        ops = 6 * inputSize - 3 * NormalizedAxesSize + scale_ops
+        return ops
+
+
+class CeilLayer(SingleOperationPerElementLayer):
+    pass
+
+
+class FloorLayer(SingleOperationPerElementLayer):
+    pass
+
+
+class ClipLayer(ONNXLayer):
+
+    def computeOps(self):
+        # compare vs min and max
+        return self.mapper.parser.operatorRepresentation['size'] * 2
+
+
+class ExpLayer(SingleOperationPerElementLayer):
+    pass
+
+
+class SigmoidLayer(ONNXLayer):
+
+    def computeOps(self):
+        # sigmoid(x) = 1 / (1 + exp(-x)): neg, exp, add, div
+        return self.mapper.parser.operatorRepresentation['size'] * 4
+
+
+class SwishLayer(ONNXLayer):
+
+    def computeOps(self):
+        # x * sigmoid(x): 4 ops for sigmoid + 1 mul
+        return self.mapper.parser.operatorRepresentation['size'] * 5
+
+
+class HardSigmoidLayer(ONNXLayer):
+
+    def computeOps(self):
+        # max(0, min(1, alpha*x + beta)): mul, add, clip(min), clip(max)
+        return self.mapper.parser.operatorRepresentation['size'] * 4
+
+
+class HardSwishLayer(ONNXLayer):
+
+    def computeOps(self):
+        # x * HardSigmoid(x): 4 ops for hard sigmoid + 1 mul
+        return self.mapper.parser.operatorRepresentation['size'] * 5
+
+
+class InstanceNormLayer(ONNXLayer):
+
+    def computeOps(self):
+        # per element: mean-sum(1) + variance(sub+sq+add=3) + normalize(sub+div=2) + affine(mul+add=2) = 8
+        # per (batch, channel): mean(div=1) + variance(sqrt+div=2) = 3
+        opRep = self.mapper.parser.operatorRepresentation
+        B, C, S = int(opRep['batch_size']), int(opRep['num_channels']), int(opRep['spatial'])
+        return B * C * (S * 8 + 3)
+
+
+class GroupNormLayer(ONNXLayer):
+
+    def computeOps(self):
+        # same structure as InstanceNorm: 8 ops/element + 3 ops per (batch, channel)
+        opRep = self.mapper.parser.operatorRepresentation
+        B, C, S = int(opRep['batch_size']), int(opRep['num_channels']), int(opRep['spatial'])
+        return B * C * (S * 8 + 3)
+
+
+class AveragePoolLayer(ONNXLayer):
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+        kernel_elements = int(np.prod(opRep['kernel_shape']))
+        # (kernel_elements - 1) additions + 1 division per output element
+        return opRep['data_out_size'] * kernel_elements
+
+
+class GlobalAveragePoolLayer(ONNXLayer):
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+        # (spatial_size - 1) additions + 1 division per output channel
+        return int(opRep['batch_size'] * opRep['num_channels'] * opRep['spatial_size'])
+
+
+class GlobalMaxPoolLayer(ONNXLayer):
+
+    def computeOps(self):
+        opRep = self.mapper.parser.operatorRepresentation
+        # (spatial_size - 1) comparisons per output channel
+        return int(opRep['batch_size'] * opRep['num_channels'] * (opRep['spatial_size'] - 1))

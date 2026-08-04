@@ -42,11 +42,19 @@ def isInteger(x: npt.NDArray) -> bool:
     return np.abs((x.astype(int) - x)).max() <= 0.001
 
 
-def inferMinimalType(values: np.ndarray, default: Type[BaseType] = int8_t) -> Type[BaseType]:
+def inferMinimalType(values: np.ndarray,
+                     default: Type[BaseType] = int8_t,
+                     original_dtype: np.dtype = None) -> Type[BaseType]:
     # WIESEP: We cannot do type inference for empty arrays.
     if np.prod(values.shape) == 0:
         print(f"Warning: Empty input array for type inference for {values}!")
         return default
+
+    # For all-zero arrays, use original dtype to distinguish int vs float
+    if np.all(values == 0) and original_dtype is not None:
+        if np.issubdtype(original_dtype, np.floating):
+            return minimalFloatType(values)
+        return minimalIntegerType(values)
 
     if isInteger(values):
         return minimalIntegerType(values)
@@ -67,7 +75,9 @@ def signPropTypeAndOffset(_type: Type[IntegerImmediate]) -> Tuple[Type[IntegerIm
     return signedType, 2**(signedType.typeWidth - 1)
 
 
-def inferTypeAndOffset(values: np.ndarray, signProp: bool = False) -> Tuple[Type[Pointer], int]:
+def inferTypeAndOffset(values: np.ndarray,
+                       signProp: bool = False,
+                       original_dtype: np.dtype = None) -> Tuple[Type[Pointer], int]:
     """Infers the data type of the provided input array.
 
     Parameters
@@ -77,13 +87,17 @@ def inferTypeAndOffset(values: np.ndarray, signProp: bool = False) -> Tuple[Type
 
     signProp : bool
         Whether to consider signedness when inferring the data type.
+
+    original_dtype : np.dtype, optional
+        Original numpy dtype before float64 cast, used to resolve all-zero ambiguity.
+
     Returns
     -------
     Tuple[Type[BaseType], int]
         The inferred type and offset
     """
 
-    _type = inferMinimalType(values)
+    _type = inferMinimalType(values, original_dtype = original_dtype)
 
     if signProp and issubclass(_type, IntegerImmediate):
         _type, offset = signPropTypeAndOffset(_type)

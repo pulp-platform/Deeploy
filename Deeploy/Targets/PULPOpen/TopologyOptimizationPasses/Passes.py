@@ -179,7 +179,14 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
 
     _outputs = rqs.outputs
 
-    rqsConv = gs.Node(op = 'RequantizedConv', name = name, attrs = {**conv.attrs, **rqs.attrs, "shift": totalShift})
+    # RequantizedConv must run on the same engine Conv (not RequantShift) was
+    # colored with. Hence, engine must be inherited from Conv or removed.
+    attrs = {**conv.attrs, **rqs.attrs, "shift": totalShift}
+    if "engine" in conv.attrs:
+        attrs["engine"] = conv.attrs["engine"]  # engine inherited from Conv
+    else:
+        attrs.pop("engine", None)  # engine removed from attrs
+    rqsConv = gs.Node(op = 'RequantizedConv', name = name, attrs = attrs)
     graph.replaceInsertNode(_inputs, _outputs, rqsConv)
 
     return graph

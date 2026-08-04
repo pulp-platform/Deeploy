@@ -36,3 +36,11 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-marker: "kernels and singlebuffer and l2"
+
+  snitch-models-tiled-singlebuffer-L2:
+    needs: select-env
+    uses: ./.github/workflows/_runner-snitch-tiled-sequential.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "models and singlebuffer and l2"

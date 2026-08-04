@@ -29,6 +29,8 @@ toolchain/**/*/
 package.json
 package-lock.json
 node_modules
+**/.venv/
+*.sif
 
 # Documentation
 docs/_autosummary
@@ -58,4 +60,13 @@ CHANGELOG_GEN.md
 .pyusbip/
 .cache/
 
+# Claude context file
 CLAUDE.md
+Container/xrt-debs/
+
+# Fixtures students generate by running the Part III skeleton generate.py.
+# Scoped to the skeleton directory on purpose: the equivalents under
+# Tutorials/PartIII_solution/ and DeeployTest/Tests/ are tracked on purpose.
+Tutorials/PartIII_skeletons/*/inputs.npz
+Tutorials/PartIII_skeletons/*/outputs.npz
+Tutorials/PartIII_skeletons/*/network.onnx

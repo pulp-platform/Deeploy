@@ -31,11 +31,14 @@ NeurekaMapping = {
         ConvLayer([NeurekaPWConv2DMapper, NeurekaDWConv2DMapper, NeurekaDenseConv2DMapper]),
 }
 
-_includeList = ["pulp_nnx_neureka.h", "pulp_nnx_util.h", "neureka_siracusa_bsp.h", "neureka.h", "neureka_task.h"]
+_includeList = [
+    "pulp_nnx_neureka.h", "pulp_nnx_util.h", "neureka_siracusa_bsp.h", "neureka.h", "neureka_task.h", "neureka_gvsoc.h"
+]
 
 _neurekaInitCode = r"""
 neureka_siracusa_conf_t conf = {.max_stall = 8};
 neureka_nnx_init(neureka_siracusa_get_dev(), &conf);
+// neureka_gvsoc_log_activate(neureka_siracusa_get_dev(), NEUREKA_GVSOC_LOG_LEVEL_ALL, NEUREKA_GVSOC_LOG_FORMAT_HEXADECIMAL);
 """
 
 
@@ -46,11 +49,9 @@ class NeurekaEngine(DeploymentEngine):
                  Mapping = NeurekaMapping,
                  initCode: str = _neurekaInitCode,
                  includeList: List[str] = _includeList,
-                 enable3x3: bool = False,
                  enableStrides: bool = False) -> None:
         super().__init__(name, Mapping, initCode, includeList)
 
-        self.enable3x3 = enable3x3
         self.enableStrides = enableStrides
 
     def isDenseConv(self, node) -> bool:
@@ -77,7 +78,4 @@ class NeurekaEngine(DeploymentEngine):
             (node.attrs['strides'] == [1, 1] or self.enableStrides)
 
     def canExecute(self, node: gs.Node) -> bool:
-        if self.enable3x3:
-            return self.isPWConv(node) or self.isDWConv(node) or self.isDenseConv(node)
-        else:
-            return self.isPWConv(node)
+        return self.isPWConv(node) or self.isDWConv(node) or self.isDenseConv(node)

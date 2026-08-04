@@ -31,3 +31,5 @@ ignore:
   - "**/toolchain/"
   # Ignore all files in .git
   - "**/.git/**"
+  # Ignore all files in .venv
+  - "**/.venv/"

@@ -43,7 +43,7 @@ L2_DOUBLEBUFFER_MODELS = {
     # ceiling measured on gvsoc moves to 110KB (121KB and 128KB still fail),
     # and VisualWakeWords goes 860,577 -> 830,146 cycles (8.70 -> 9.02
     # MAC/cycle), still bit-exact. The exact ceiling in 110-121KB is unbisected.
-    "Models/MLPerf/VisualWakeWords": [110000],
+    "Models/MLPerf/VisualWakeWords": [100000],
 }
 
 L3_SINGLEBUFFER_MODELS = {}

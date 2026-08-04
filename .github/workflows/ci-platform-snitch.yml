@@ -36,3 +36,11 @@ jobs:
       runner: ${{ needs.select-env.outputs.runner }}
       docker-image: ${{ needs.select-env.outputs.image }}
       pytest-marker: "kernels"
+
+  snitch-models:
+    needs: select-env
+    uses: ./.github/workflows/_runner-snitch.yml
+    with:
+      runner: ${{ needs.select-env.outputs.runner }}
+      docker-image: ${{ needs.select-env.outputs.image }}
+      pytest-marker: "models"

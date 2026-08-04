@@ -30,7 +30,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Reshape/SkipConnection": [1400],
     "Kernels/FP32/Softmax/Regular": [4000],
     "Kernels/FP32/Transpose": [2000],
-    "Kernels/FP32/Mul": [2000],
+    "Kernels/FP32/Mul/Regular": [2000],
     "Kernels/Integer/GEMM/Batch_RQ": [20000],
     "Kernels/Integer/MatMul/Batch": [20000],
 }
@@ -55,7 +55,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/FP32/Reshape/SkipConnection": [2600],
     "Kernels/FP32/Softmax/Regular": [8000],
     "Kernels/FP32/Transpose": [2000],
-    "Kernels/FP32/Mul": [2000],
+    "Kernels/FP32/Mul/Regular": [2000],
 }
 
 L2_SINGLEBUFFER_MODELS = {

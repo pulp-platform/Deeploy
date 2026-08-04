@@ -5,6 +5,9 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Fix Neureka [#188](https://github.com/pulp-platform/Deeploy/pull/188)
+- HOTFIX: XDNA2 Action Fix [#201](https://github.com/pulp-platform/Deeploy/pull/201)
+- XDNA2 Platform Support [#179](https://github.com/pulp-platform/Deeploy/pull/179)
 - Add Microbenchmarking Infrastructure and CI Using GVSoC CSR [#162](https://github.com/pulp-platform/Deeploy/pull/162)
 - Fix CI Cache Generation [#176](https://github.com/pulp-platform/Deeploy/pull/176)
 - Fix Broken CI [#175](https://github.com/pulp-platform/Deeploy/pull/175)
@@ -15,8 +18,20 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Use Pre-Commit in CI [#159](https://github.com/pulp-platform/Deeploy/pull/159)
 - Deeploy-GAP9 Platform [#143](https://github.com/pulp-platform/Deeploy/pull/143)
 - Update CLI interface Across Project, Fix Tutorial, and Remove Legacy Test [#157](https://github.com/pulp-platform/Deeploy/pull/157)
+- Fix for python error when using python 3.12.11 [#189]( https://github.com/pulp-platform/Deeploy/pull/189)
+- Add support for Operators for Generic target needed in MAGIA [#193]( https://github.com/pulp-platform/Deeploy/pull/193)
+- Fix GAP9 L3 Board Tests: readfs Flash Ordering and Duplicate Input Data [#196](https://github.com/pulp-platform/Deeploy/pull/196)
+- Add SoCDAML Part III: hands-on lab for adding a new int8 operator [#194](https://github.com/pulp-platform/Deeploy/pull/194)
 
 ### Added
+- tests for Regular and DW Conv2D with 3x3 kernel
+- Neureka's engine-aware DW lowering pass `NeurekaNCHWtoNHWCDwConvPass`
+- XDNA2 (AIE2p) platform beta: first MLIR backend for Deeploy, targeting AMD/Xilinx NPU2 with a single BF16 Add kernel
+- `MLIRNodeTemplate` and `MLIRCodeTransformation` base classes for MLIR-emitting backends
+- Auto-tiling with L1 memory constraints for XDNA2
+- XRT-based testbench with BF16 ULP tolerance comparison
+- Docker container (`Dockerfile.deeploy-xdna`) and GitHub Actions build workflow
+- CI workflow for XDNA2 on self-hosted runner
 - Add many missing docstrings
 - Add `__repr__()` function for `_ReferenceBuffer` class
 - GAP9 Container Support with ARM64 architecture support
@@ -25,8 +40,15 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 - Per-layer microbenchmarking on PULPOpen via `--profileMicrobenchmark`: new `PULPMicrobenchmark` code-transformation pass + `perf_utils.h` helpers report cycles, instructions, stalls and cache misses per layer in `RunNetwork`
+- Add support for the Generic target for the following operators [Ceil](https://onnx.ai/onnx/operators/onnx__Ceil.html), [Floor](https://onnx.ai/onnx/operators/onnx__Floor.html), [Clip](https://onnx.ai/onnx/operators/onnx__Clip.html), [Sub](https://onnx.ai/onnx/operators/onnx__Sub.html), [Exp](https://onnx.ai/onnx/operators/onnx__Exp.html), [Sigmoid](https://onnx.ai/onnx/operators/onnx__Sigmoid.html), [Swish](https://onnx.ai/onnx/operators/onnx__Swish.html), [HardSigmoid](https://onnx.ai/onnx/operators/onnx__HardSigmoid.html), [HardSwish](https://onnx.ai/onnx/operators/onnx__HardSwish.html), [InstanceNormalization](https://onnx.ai/onnx/operators/onnx__InstanceNormalization.html), [GroupNormalization](https://onnx.ai/onnx/operators/onnx__GroupNormalization.html), [AveragePool](https://onnx.ai/onnx/operators/onnx__AveragePool.html), [GlobalAveragePool](https://onnx.ai/onnx/operators/onnx__GlobalAveragePool.html), [GlobalMaxPool](https://onnx.ai/onnx/operators/onnx__GlobalMaxPool.html).
+- SoCDAML Part III lab: add an int8 `iLeakyReLU` to Deeploy and optimise it on Siracusa from scalar to tiled multi-core XPULP SIMD, with student skeletons and a TA reference under `Tutorials/`
+- Document that `--profileTiling` crashes GVSoC on the larger microLlama graphs (invalid access)
 
 ### Changed
+- Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints
+- `aie.dialects` API: move `link_with` from `aie_d.core()` to `aie_d.external_func()` (mlir-aie v1.3.2)
+- Decouple XDNA requirements (`requirements-xdna.txt`) from base dev requirements
+- Make `aie` import optional to not enforce mlir-aie package installation for non-XDNA users
 - Use by default `devel` container for GAP9 CI
 - Extend Readme platforms with GAP9 shields
 - Move `MemoryAwareClosureGeneration` pass to `MemoryLevelExtension`
@@ -39,8 +61,14 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - PULP-NN moved to TargetLibraries third-party folder
 - Aligned CLI commands across the project
 - Added @runwangdl as a code owner
+- Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
 
 ### Fixed
+- Fix Neureka's output-channels subtile size (in ConvTemplate) and Dense/DW/PW tile constraints
+- in `NetworkContainer._createIOBindings`, set `_live = True` on network input and output buffers so that any buffer aliasing a network I/O tensor is no longer deallocated while the I/O tensor is still in use.
+- Fix latent bug in `VariableBuffer.has_live_aliases` where `visited` variable was storing buffer names as a set of characters instead of strings.
+- Remove `/opt/xilinx` folder binding
+- Update XILINX_XRT env var
 - Add missing `shell: bash` directive to CI cache generation steps to ensure correct shell execution
 - Fix wrong test case in GAP9 ccache workflow (`test_gap9_tiled_kernels_l2_singlebuffer` using `MatMul/Regular` instead of `Add/Large`)
 - Fix Docker flow to fetch `*.so` git lfs files
@@ -50,8 +78,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix test paths in Deeploy 101 tutorial
 - Fix tiling variable replacement corrupting static arrays by changing pointer update from value copy to address reassignment
 - Reduce RunNetwork stack usage by scoping per-layer variables with braces and moving tileIdxPtr allocation into per-layer execution blocks
+- Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
+- Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
+- Fix Deeploy 101 tutorial errors: `--profileTiling` usage and the moved intrinsics inventory path
 
 ### Removed
+- removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.
 - `testDMA.py` was an old test; we now have `test_dmas.py` instead.
 
 ## Release v0.2.1 (2026-02-05) [#158](https://github.com/pulp-platform/Deeploy/pull/158)

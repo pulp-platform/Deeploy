@@ -11,17 +11,26 @@ DEFAULT_NUM_CORES = 9
 # L2 single-buffer tests with different L1 sizes
 # Format: {test_name: [L1_sizes]}
 L2_SINGLEBUFFER_KERNELS = {
-    "Kernels/Integer/Add/Large": [5000, 10000],
-    "Kernels/Integer/Softmax/Large": [5000, 10000],
+    "Kernels/FP32/Add/Scalar": [2000, 5000, 10000],
+    "Kernels/FP32/Div/Regular": [2000, 5000, 10000],
+    "Kernels/FP32/Div/Scalar": [2000, 5000, 10000],
+    "Kernels/FP32/Hardswish": [2000, 5000, 10000],
+    "Kernels/FP32/Mul/Regular": [2000, 5000, 10000],
+    "Kernels/FP32/Mul/Scalar": [2000, 5000, 10000],
+    "Kernels/FP32/RMSNorm/single_fused_op": [2000, 5000, 10000],
     "Kernels/FP32/Softmax/Regular": [2000, 5000, 10000],
     "Kernels/FP32/GEMM/Regular": [2000, 5000, 10000],
     "Kernels/FP32/GEMM/TransB": [2000, 5000, 10000],
+    "Kernels/Integer/Add/Large": [5000, 10000],
+    "Kernels/Integer/Softmax/Large": [5000, 10000],
     "Kernels/Integer/iNoNorm": [5000, 10000],
     "Kernels/Integer/Add/Regular_RQ": [5000, 10000],
     "Kernels/Integer/GEMM/Regular_RQPerRow": [2000, 5000],
 }
 
-L2_SINGLEBUFFER_MODELS = {}
+L2_SINGLEBUFFER_MODELS = {
+    "Models/microLlama/FP32/microLlama1": [10000, 20000],
+}
 
 # Currently no double-buffer configurations in CI
 L2_DOUBLEBUFFER_KERNELS = {}

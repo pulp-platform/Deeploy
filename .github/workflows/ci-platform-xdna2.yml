@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: CI • XDNA2
+
+"on":
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*.*.*"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      docker_image_deeploy:
+        description: "XDNA2 Deeploy Docker Image to use"
+        required: false
+        default: "ghcr.io/pulp-platform/deeploy-xdna:devel"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  xdna2-kernels:
+    uses: ./.github/workflows/_runner-xdna2.yml
+    with:
+      pytest-marker: "kernels"
+      docker-image: ${{ inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-xdna:devel' }}

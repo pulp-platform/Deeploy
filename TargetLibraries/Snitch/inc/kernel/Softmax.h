@@ -9,8 +9,7 @@
 
 #include "DeeploySnitchMath.h"
 
-void softmax_fp32(float *input, float *output, int32_t ldI,
-                  int32_t batch_offset, int32_t batch_size, int32_t seq_len,
-                  int32_t input_samples);
+void Softmax_fp32(float32_t *input, float32_t *output, uint32_t size,
+                  uint32_t lastDimLength);
 
 #endif // #define __DEEPLOY_MATH_SOFTMAX_KERNEL_HEADER_

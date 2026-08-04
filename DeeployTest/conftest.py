@@ -69,6 +69,7 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "gap9: mark test as a GAP9 platform test")
     config.addinivalue_line("markers", "gap9_tiled: mark test as a GAP9 platform test (tiled)")
     config.addinivalue_line("markers", "gap9_w_ne16_tiled: mark test as a GAP9 + NE16 platform test (tiled)")
+    config.addinivalue_line("markers", "xdna2: mark test as an XDNA2 (AIE2p) platform test")
     config.addinivalue_line("markers", "kernels: mark test as a kernel test (individual operators)")
     config.addinivalue_line("markers", "models: mark test as a model test (full networks)")
     config.addinivalue_line("markers", "singlebuffer: mark test as single-buffer configuration")
