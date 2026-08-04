@@ -116,7 +116,6 @@ class NE16PWConv2DTileConstraint(TileConstraint):
             tilerModel.addConstraint(outputChannelVar == outputChannelVar.Max(),
                                      strategy = PerformanceHint(priority = 1))
 
-
         # NE16 retires TP_OUT=32 output channels per pass; a channel tile that is
         # not a multiple of 32 leaves the remaining lanes idle for the whole tile.
         # GAP9's AutoTiler feeds its solver the same preference -- see
