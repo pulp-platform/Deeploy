@@ -29,6 +29,10 @@ if(POWER_MEASUREMENT)
   target_compile_definitions(${ProjectId} PRIVATE POWER_MEASUREMENT)
 endif()
 
+if(SLAVESTACKSIZE)
+  target_compile_definitions(${ProjectId} PRIVATE SLAVESTACKSIZE=${SLAVESTACKSIZE})
+endif()
+
 # RW: Waive sign comparison warnings from pulp_nn_utils.h
 target_compile_options(network PRIVATE
     -Wno-sign-compare
