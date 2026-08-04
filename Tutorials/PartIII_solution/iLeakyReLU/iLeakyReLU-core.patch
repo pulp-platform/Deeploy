@@ -1,0 +1,131 @@
+diff --git a/Deeploy/Targets/Generic/Parsers.py b/Deeploy/Targets/Generic/Parsers.py
+index aa8bd872..b4299d27 100644
+--- a/Deeploy/Targets/Generic/Parsers.py
++++ b/Deeploy/Targets/Generic/Parsers.py
+@@ -3124,3 +3124,40 @@ class GlobalMaxPoolParser(GlobalPoolParser):
+ 
+     def parseNode(self, node: gs.Node) -> bool:
+         return super().parseNode(node) and node.op == 'GlobalMaxPool'
++
++
++class iLeakyReLUParser(NodeParser):
++
++    def __init__(self):
++        super().__init__()
++
++    def parseNode(self, node: gs.Node) -> bool:
++        wellFormed = all([
++            len(node.inputs) == 1,
++            len(node.outputs) == 1,
++            'mul' in node.attrs,
++            'shift' in node.attrs,
++        ])
++        if not wellFormed:
++            return False
++        mul   = int(node.attrs['mul'])
++        shift = int(node.attrs['shift'])
++        # XPULP has no per-lane multiply for packed int8, so the SIMD kernel
++        # can only compute max(x, x >> shift), i.e. mul == 1. Its v4s lanes
++        # are 8 bits wide, so a shift of 8 or more is undefined behaviour.
++        if mul != 1 or not 0 <= shift < 8:
++            return False
++        self.operatorRepresentation['mul']   = mul
++        self.operatorRepresentation['shift'] = shift
++        return True
++
++    def parseNodeCtxt(self,
++                      ctxt: NetworkContext,
++                      node: gs.Node,
++                      channels_first: bool = True):
++        data_in  = ctxt.lookup(node.inputs[0].name)
++        data_out = ctxt.lookup(node.outputs[0].name)
++        self.operatorRepresentation['data_in']  = data_in.name
++        self.operatorRepresentation['data_out'] = data_out.name
++        self.operatorRepresentation['size']     = int(np.prod(data_in.shape))
++        return ctxt, True
+diff --git a/Deeploy/Targets/PULPOpen/Bindings.py b/Deeploy/Targets/PULPOpen/Bindings.py
+index 2c78978e..3c899712 100644
+--- a/Deeploy/Targets/PULPOpen/Bindings.py
++++ b/Deeploy/Targets/PULPOpen/Bindings.py
+@@ -29,6 +29,7 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
+ from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
+ from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
+ from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
++from Deeploy.Targets.PULPOpen.Templates import iLeakyReLUTemplate
+ from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
+     FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
+     FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, \
+@@ -462,3 +463,11 @@ BasicDequantBindings = [
+     NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                 ForkTransformer),
+ ]
++
++
++PULPiLeakyReLUBindings = [
++    NodeBinding(
++        GELUChecker([PointerClass(int8_t)], [PointerClass(int8_t)]),
++        iLeakyReLUTemplate.referenceTemplate,
++        ForkTransformer)
++]
+diff --git a/Deeploy/Targets/PULPOpen/Platform.py b/Deeploy/Targets/PULPOpen/Platform.py
+index f13e6451..c32c8f7a 100644
+--- a/Deeploy/Targets/PULPOpen/Platform.py
++++ b/Deeploy/Targets/PULPOpen/Platform.py
+@@ -50,6 +50,7 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
+     PULPSoftmaxCrossEntropyGradTilingReadyBindings, PULPSoftmaxCrossEntropyTilingReadyBindings, \
+     PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, PULPTransposeTilingReadyBindings, \
+     PULPUniformRQSTilingReadyBindings
++from Deeploy.Targets.PULPOpen.Tiler import PULPiLeakyReLUTilingReadyBindings
+ from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
+     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
+ 
+@@ -102,7 +103,9 @@ SliceMapper = NodeMapper(SliceParser(), PULPSliceTilingReadyBindings)
+ 
+ iRMSNormMapper = NodeMapper(iRMSNormParser(), PULPiRMSNormTilingReadyBindings)
+ 
++from Deeploy.Targets.Generic.Parsers import iLeakyReLUParser
+ iHardswishMapper = NodeMapper(iHardswishParser(), PULPiHardswishTilingReadyBindings)
++iLeakyReLUMapper = NodeMapper(iLeakyReLUParser(), PULPiLeakyReLUTilingReadyBindings)
+ RQSiHardswishMapper = NodeMapper(RQSiHardswishParser(), PULPRQSiHardswishTilingReadyBindings)
+ SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(), PULPSoftmaxCrossEntropyTilingReadyBindings)
+ SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
+@@ -145,6 +148,7 @@ PULPMapping = {
+     'Concat': ConcatLayer([ConcatMapper]),
+     'iRMSNorm': iRMSNormLayer([iRMSNormMapper]),
+     'iHardswish': iHardswishLayer([iHardswishMapper]),
++    'iLeakyReLU': iHardswishLayer([iLeakyReLUMapper]),
+     'RequantizediHardswish': RQSiHardswishLayer([RQSiHardswishMapper]),
+     'Quant': QuantLayer([QuantMapper]),
+     'Dequant': QuantLayer([DequantMapper]),
+diff --git a/Deeploy/Targets/PULPOpen/Tiler.py b/Deeploy/Targets/PULPOpen/Tiler.py
+index 90110645..e528d3b9 100644
+--- a/Deeploy/Targets/PULPOpen/Tiler.py
++++ b/Deeploy/Targets/PULPOpen/Tiler.py
+@@ -45,6 +45,9 @@ from Deeploy.Targets.PULPOpen.TileConstraints.SoftmaxCrossEntropyTileConstraint
+     SoftmaxCrossEntropyGradTileConstraint, SoftmaxCrossEntropyTileConstraint
+ from Deeploy.TilingExtension.TilerExtension import TilingReadyNodeBindings
+ 
++from Deeploy.Targets.PULPOpen.TileConstraints.iLeakyReLUTileConstraint import iLeakyReLUTileConstraint
++from Deeploy.Targets.PULPOpen.Bindings import PULPiLeakyReLUBindings
++
+ PULPRQSConv1DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPRQSConv1DBindings,
+                                                            tileConstraint = RQConv1DTileConstraint())
+ 
+@@ -160,3 +163,7 @@ PULPSliceTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPSliceB
+ 
+ PULPReduceMeanTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = PULPReduceMeanBindings,
+                                                             tileConstraint = ReduceMeanTileConstraint())
++
++PULPiLeakyReLUTilingReadyBindings = TilingReadyNodeBindings(
++    nodeBindings = PULPiLeakyReLUBindings,
++    tileConstraint = iLeakyReLUTileConstraint())
+diff --git a/TargetLibraries/PULPOpen/inc/DeeployPULPMath.h b/TargetLibraries/PULPOpen/inc/DeeployPULPMath.h
+index f6e8308c..cbf5c87d 100644
+--- a/TargetLibraries/PULPOpen/inc/DeeployPULPMath.h
++++ b/TargetLibraries/PULPOpen/inc/DeeployPULPMath.h
+@@ -37,4 +37,5 @@
+ 
+ #define LOG2(x) (__builtin_pulp_fl1(x))
+ 
++#include "kernel/iLeakyReLU.h"
+ #endif // __DEEPLOY_MATH_HEADER_
