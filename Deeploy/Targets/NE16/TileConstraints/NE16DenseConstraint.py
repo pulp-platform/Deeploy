@@ -57,6 +57,20 @@ class NE16DenseConv2DTileConstraint(TileConstraint):
         else:
             tilerModel.addConstraint(weightOutChannelVar == outputChannelVar)
 
+        # serializeTilingSolution always emits the weight tile as
+        # HyperRectangle((COffset, 0, ...), (CSize,) + weightShape[1:]) -- only the
+        # output-channel dimension is tiled, the NE16-encoded tail is always moved
+        # whole. Leaving that tail unconstrained lets the solver reserve less L1
+        # than the DMA actually writes: for 64x64 dense the tail is
+        # (cinMajor=4, bits=8, H*W*cinMinorBytes=18) and the solver picked 16 for
+        # the last dim, reserving 32*4*8*16 = 16384 B while the transfer is
+        # 32*4*8*18 = 18432 B. The extra 2048 B ran straight over the mul/add
+        # requant parameters that follow the weight buffer in the arena, so a
+        # matching 2048 B of the output came out wrong.
+        tilerModel.addConstraint(weightInChannelMajorVar == weightInChannelMajorVar.Max())
+        tilerModel.addConstraint(weightBitsVar == weightBitsVar.Max())
+        tilerModel.addConstraint(weightBandwidthVar == weightBandwidthVar.Max())
+
         inputBuffer = ctxt.lookup(inputBufferName)
 
         effectiveHeight = inputHeightVar + ((padding[0] + padding[2]) * (inputHeightVar == inputBuffer.shape[1]))
