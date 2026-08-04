@@ -116,6 +116,15 @@ class NE16PWConv2DTileConstraint(TileConstraint):
             tilerModel.addConstraint(outputChannelVar == outputChannelVar.Max(),
                                      strategy = PerformanceHint(priority = 1))
 
+
+        # NE16 retires TP_OUT=32 output channels per pass; a channel tile that is
+        # not a multiple of 32 leaves the remaining lanes idle for the whole tile.
+        # GAP9's AutoTiler feeds its solver the same preference -- see
+        # CNN_Generators_NE16.c: `OutTileCons = CannotTileChannels ? OutFeat : 32`,
+        # which applies to depthwise and pointwise alike. A hint, not a hard
+        # constraint: shapes with C < 32, or a tight L1 budget, must stay tileable.
+        tilerModel.addConstraint(outputChannelVar % 32 == 0, strategy = PerformanceHint(2))
+
         return tilerModel
 
     @classmethod

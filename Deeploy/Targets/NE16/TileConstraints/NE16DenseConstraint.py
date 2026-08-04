@@ -86,6 +86,17 @@ class NE16DenseConv2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(inputHeightVar >= parseDict['dim_kernel_x'])
         tilerModel.addConstraint(inputWidthVar >= parseDict['dim_kernel_y'])
 
+        # NE16 computes TP_OUT=32 output channels per pass, so an output-channel
+        # tile that is not a multiple of 32 leaves the remaining lanes idle for
+        # the whole tile. Without a hint the solver is free to pick any Ko that
+        # fits (Ko=3 and Ko=56 have both been observed), which costs far more
+        # than the L1 it saves. GAP9's own AutoTiler feeds its solver the same
+        # preference via PreferedTileSize (Ki=16, Ko=32, spatial=3). This is a
+        # hint, not a hard constraint: shapes with Co < 32, or too tight an L1
+        # budget, must still be tileable.
+        outputChannelVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 3)
+        tilerModel.addConstraint(outputChannelVar % 32 == 0, strategy = PerformanceHint(2))
+
         return tilerModel
 
     @classmethod
