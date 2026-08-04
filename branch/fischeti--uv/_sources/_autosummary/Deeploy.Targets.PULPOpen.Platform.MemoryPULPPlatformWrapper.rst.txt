@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Platform.MemoryPULPPlatformWrapper
+===========================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.Platform
+
+.. autoclass:: MemoryPULPPlatformWrapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryPULPPlatformWrapper.__init__
+      ~MemoryPULPPlatformWrapper.getTargetMemoryLevel
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryPULPPlatformWrapper.untiledOps
+      ~MemoryPULPPlatformWrapper.engines
+   
+   

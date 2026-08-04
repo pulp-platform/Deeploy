@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.GAP9.Platform.MemoryGAP9Platform
+================================================
+
+.. currentmodule:: Deeploy.Targets.GAP9.Platform
+
+.. autoclass:: MemoryGAP9Platform
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryGAP9Platform.__init__
+      ~MemoryGAP9Platform.getTargetMemoryLevel
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryGAP9Platform.untiledOps
+      ~MemoryGAP9Platform.engines
+   
+   

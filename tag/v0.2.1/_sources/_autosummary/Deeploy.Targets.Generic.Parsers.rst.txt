@@ -1,0 +1,105 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers
+===============================
+
+.. automodule:: Deeploy.Targets.Generic.Parsers
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      AddParser
+      BatchNormParser
+      CLCAParser
+      ConcatParser
+      Conv1DParser
+      Conv2DParser
+      ConvParser
+      ConvTranspose1DParser
+      ConvTransposeParser
+      DebugParser
+      DequantParser
+      DivParser
+      DummyParser
+      FlattenParser
+      GELUGradParser
+      GELUParser
+      GEMMParser
+      GatherParser
+      GenericConv1DParser
+      GenericConv2DParser
+      GenericDWConv1DParser
+      GenericDWConv2DParser
+      GenericGEMMParser
+      GenericMaxPool2DParser
+      ITAMaxParser
+      ITAPartialMaxParser
+      IntegerDivParser
+      LayerNormGradParser
+      LayerNormParser
+      LinearAttentionParser
+      MHSAParser
+      MatMulParser
+      MaxPool1DParser
+      MaxPool2DParser
+      MaxPoolParser
+      MulParser
+      Pad1DParser
+      Pad2DParser
+      PadParser
+      PowParser
+      QuantParser
+      RQAddParser
+      RQGEMMParser
+      RQIntegerDivParser
+      RQMatMulParser
+      RQSConv1DParser
+      RQSConv2DParser
+      RQSParserInterface
+      RQSiGELUParser
+      RQSiHardswishParser
+      ReduceMeanParser
+      ReduceParser
+      ReduceSumParser
+      ReluParser
+      RequantShiftParser
+      ReshapeParser
+      SGDParser
+      SliceParser
+      SoftmaxCrossEntropyLossGradParser
+      SoftmaxCrossEntropyLossParser
+      SoftmaxGradParser
+      SoftmaxParser
+      SqrtParser
+      TransposeParser
+      UniformRequantShiftParser
+      UnsqueezeParser
+      iHardswishParser
+      iLayerNormParser
+      iNoNormParser
+      iRMSNormParser
+      iSoftmaxParser
+   
+   
+
+   
+   
+   
+
+
+

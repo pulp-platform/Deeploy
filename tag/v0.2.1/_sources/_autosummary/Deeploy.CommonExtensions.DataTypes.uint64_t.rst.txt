@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.DataTypes.uint64\_t
+============================================
+
+.. currentmodule:: Deeploy.CommonExtensions.DataTypes
+
+.. autoclass:: uint64_t
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~uint64_t.__init__
+      ~uint64_t.checkPromotion
+      ~uint64_t.checkValue
+      ~uint64_t.fitsNumLevels
+      ~uint64_t.partialOrderUpcast
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~uint64_t.value
+      ~uint64_t.nLevels
+      ~uint64_t.signed
+      ~uint64_t.typeMax
+      ~uint64_t.typeMin
+      ~uint64_t.typeName
+      ~uint64_t.typeWidth
+   
+   

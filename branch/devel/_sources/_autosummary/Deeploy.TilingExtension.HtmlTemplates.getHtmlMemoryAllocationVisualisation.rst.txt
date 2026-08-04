@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.HtmlTemplates.getHtmlMemoryAllocationVisualisation
+==========================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.HtmlTemplates
+
+.. autofunction:: getHtmlMemoryAllocationVisualisation

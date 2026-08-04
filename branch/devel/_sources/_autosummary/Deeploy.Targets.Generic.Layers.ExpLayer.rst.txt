@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.ExpLayer
+=======================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: ExpLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ExpLayer.__init__
+      ~ExpLayer.bind
+      ~ExpLayer.broadcast
+      ~ExpLayer.codeTransform
+      ~ExpLayer.computeOps
+      ~ExpLayer.computeShapes
+      ~ExpLayer.discardCurrentMapper
+      ~ExpLayer.generate
+      ~ExpLayer.parse
+      ~ExpLayer.resetDiscardedMappers
+      ~ExpLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ExpLayer.maps
+      ~ExpLayer.mapper
+      ~ExpLayer.discardedMappers
+      ~ExpLayer.node
+   
+   

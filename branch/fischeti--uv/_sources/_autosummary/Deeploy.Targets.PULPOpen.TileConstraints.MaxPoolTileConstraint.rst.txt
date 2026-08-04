@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint
+==============================================================
+
+.. automodule:: Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      MaxPoolCTileConstraint
+      MaxPoolHWTileConstraint
+   
+   
+
+   
+   
+   
+
+
+

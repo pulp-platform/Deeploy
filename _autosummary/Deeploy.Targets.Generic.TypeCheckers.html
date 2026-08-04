@@ -1,0 +1,286 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.Targets.Generic.TypeCheckers &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.Targets.Generic.TypeCheckers.AddChecker" href="Deeploy.Targets.Generic.TypeCheckers.AddChecker.html" />
+    <link rel="prev" title="Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes.merge_gemm_rq_fun" href="Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes.merge_gemm_rq_fun.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.CortexM.html">Deeploy.Targets.CortexM</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.MemPool.html">Deeploy.Targets.MemPool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Neureka.html">Deeploy.Targets.Neureka</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.PULPOpen.html">Deeploy.Targets.PULPOpen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Snitch.html">Deeploy.Targets.Snitch</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+      <li class="breadcrumb-item active">Deeploy.Targets.Generic.TypeCheckers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.Targets.Generic.TypeCheckers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-Deeploy.Targets.Generic.TypeCheckers">
+<span id="deeploy-targets-generic-typecheckers"></span><h1>Deeploy.Targets.Generic.TypeCheckers<a class="headerlink" href="#module-Deeploy.Targets.Generic.TypeCheckers" title="Link to this heading"></a></h1>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.AddChecker.html#Deeploy.Targets.Generic.TypeCheckers.AddChecker" title="Deeploy.Targets.Generic.TypeCheckers.AddChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AddChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.BatchNormChecker.html#Deeploy.Targets.Generic.TypeCheckers.BatchNormChecker" title="Deeploy.Targets.Generic.TypeCheckers.BatchNormChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BatchNormChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.CLCAChecker.html#Deeploy.Targets.Generic.TypeCheckers.CLCAChecker" title="Deeploy.Targets.Generic.TypeCheckers.CLCAChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CLCAChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.ConcatChecker.html#Deeploy.Targets.Generic.TypeCheckers.ConcatChecker" title="Deeploy.Targets.Generic.TypeCheckers.ConcatChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConcatChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.ConvChecker.html#Deeploy.Targets.Generic.TypeCheckers.ConvChecker" title="Deeploy.Targets.Generic.TypeCheckers.ConvChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConvChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.DebugPrintChecker.html#Deeploy.Targets.Generic.TypeCheckers.DebugPrintChecker" title="Deeploy.Targets.Generic.TypeCheckers.DebugPrintChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DebugPrintChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.DequantChecker.html#Deeploy.Targets.Generic.TypeCheckers.DequantChecker" title="Deeploy.Targets.Generic.TypeCheckers.DequantChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DequantChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.DivChecker.html#Deeploy.Targets.Generic.TypeCheckers.DivChecker" title="Deeploy.Targets.Generic.TypeCheckers.DivChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DivChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.DummyChecker.html#Deeploy.Targets.Generic.TypeCheckers.DummyChecker" title="Deeploy.Targets.Generic.TypeCheckers.DummyChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DummyChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.GELUChecker.html#Deeploy.Targets.Generic.TypeCheckers.GELUChecker" title="Deeploy.Targets.Generic.TypeCheckers.GELUChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GELUChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.GEMMChecker.html#Deeploy.Targets.Generic.TypeCheckers.GEMMChecker" title="Deeploy.Targets.Generic.TypeCheckers.GEMMChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GEMMChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.GatherChecker.html#Deeploy.Targets.Generic.TypeCheckers.GatherChecker" title="Deeploy.Targets.Generic.TypeCheckers.GatherChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GatherChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.HardswishChecker.html#Deeploy.Targets.Generic.TypeCheckers.HardswishChecker" title="Deeploy.Targets.Generic.TypeCheckers.HardswishChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HardswishChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.LayerNormChecker.html#Deeploy.Targets.Generic.TypeCheckers.LayerNormChecker" title="Deeploy.Targets.Generic.TypeCheckers.LayerNormChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LayerNormChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.LinearAttentionChecker.html#Deeploy.Targets.Generic.TypeCheckers.LinearAttentionChecker" title="Deeploy.Targets.Generic.TypeCheckers.LinearAttentionChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearAttentionChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.MHSAChecker.html#Deeploy.Targets.Generic.TypeCheckers.MHSAChecker" title="Deeploy.Targets.Generic.TypeCheckers.MHSAChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MHSAChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.MatMulChecker.html#Deeploy.Targets.Generic.TypeCheckers.MatMulChecker" title="Deeploy.Targets.Generic.TypeCheckers.MatMulChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatMulChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.MaxPoolChecker.html#Deeploy.Targets.Generic.TypeCheckers.MaxPoolChecker" title="Deeploy.Targets.Generic.TypeCheckers.MaxPoolChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxPoolChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.MulChecker.html#Deeploy.Targets.Generic.TypeCheckers.MulChecker" title="Deeploy.Targets.Generic.TypeCheckers.MulChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MulChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.PadChecker.html#Deeploy.Targets.Generic.TypeCheckers.PadChecker" title="Deeploy.Targets.Generic.TypeCheckers.PadChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PadChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.QuantChecker.html#Deeploy.Targets.Generic.TypeCheckers.QuantChecker" title="Deeploy.Targets.Generic.TypeCheckers.QuantChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.RQAddChecker.html#Deeploy.Targets.Generic.TypeCheckers.RQAddChecker" title="Deeploy.Targets.Generic.TypeCheckers.RQAddChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQAddChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.RQGEMMChecker.html#Deeploy.Targets.Generic.TypeCheckers.RQGEMMChecker" title="Deeploy.Targets.Generic.TypeCheckers.RQGEMMChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQGEMMChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.RQHardswishChecker.html#Deeploy.Targets.Generic.TypeCheckers.RQHardswishChecker" title="Deeploy.Targets.Generic.TypeCheckers.RQHardswishChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQHardswishChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.RQIntegerDivChecker.html#Deeploy.Targets.Generic.TypeCheckers.RQIntegerDivChecker" title="Deeploy.Targets.Generic.TypeCheckers.RQIntegerDivChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQIntegerDivChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.RQMatMulChecker.html#Deeploy.Targets.Generic.TypeCheckers.RQMatMulChecker" title="Deeploy.Targets.Generic.TypeCheckers.RQMatMulChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQMatMulChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.ReduceMeanChecker.html#Deeploy.Targets.Generic.TypeCheckers.ReduceMeanChecker" title="Deeploy.Targets.Generic.TypeCheckers.ReduceMeanChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReduceMeanChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.ReduceSumChecker.html#Deeploy.Targets.Generic.TypeCheckers.ReduceSumChecker" title="Deeploy.Targets.Generic.TypeCheckers.ReduceSumChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReduceSumChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.ReluChecker.html#Deeploy.Targets.Generic.TypeCheckers.ReluChecker" title="Deeploy.Targets.Generic.TypeCheckers.ReluChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReluChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.RequantShiftChecker.html#Deeploy.Targets.Generic.TypeCheckers.RequantShiftChecker" title="Deeploy.Targets.Generic.TypeCheckers.RequantShiftChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequantShiftChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.ReshapeChecker.html#Deeploy.Targets.Generic.TypeCheckers.ReshapeChecker" title="Deeploy.Targets.Generic.TypeCheckers.ReshapeChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReshapeChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.SGDChecker.html#Deeploy.Targets.Generic.TypeCheckers.SGDChecker" title="Deeploy.Targets.Generic.TypeCheckers.SGDChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SGDChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.SliceChecker.html#Deeploy.Targets.Generic.TypeCheckers.SliceChecker" title="Deeploy.Targets.Generic.TypeCheckers.SliceChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SliceChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.SoftmaxChecker.html#Deeploy.Targets.Generic.TypeCheckers.SoftmaxChecker" title="Deeploy.Targets.Generic.TypeCheckers.SoftmaxChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.SoftmaxCrossEntropyLossChecker.html#Deeploy.Targets.Generic.TypeCheckers.SoftmaxCrossEntropyLossChecker" title="Deeploy.Targets.Generic.TypeCheckers.SoftmaxCrossEntropyLossChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxCrossEntropyLossChecker</span></code></a>(input_types, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.TransposeChecker.html#Deeploy.Targets.Generic.TypeCheckers.TransposeChecker" title="Deeploy.Targets.Generic.TypeCheckers.TransposeChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransposeChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.TypeCheckers.iNoNormChecker.html#Deeploy.Targets.Generic.TypeCheckers.iNoNormChecker" title="Deeploy.Targets.Generic.TypeCheckers.iNoNormChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iNoNormChecker</span></code></a>(input_types, output_types)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes.merge_gemm_rq_fun.html" class="btn btn-neutral float-left" title="Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes.merge_gemm_rq_fun" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.Targets.Generic.TypeCheckers.AddChecker.html" class="btn btn-neutral float-right" title="Deeploy.Targets.Generic.TypeCheckers.AddChecker" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

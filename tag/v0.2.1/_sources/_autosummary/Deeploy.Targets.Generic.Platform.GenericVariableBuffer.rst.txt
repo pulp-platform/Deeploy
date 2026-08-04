@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Platform.GenericVariableBuffer
+======================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Platform
+
+.. autoclass:: GenericVariableBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GenericVariableBuffer.__init__
+      ~GenericVariableBuffer.alloc
+      ~GenericVariableBuffer.dealloc
+      ~GenericVariableBuffer.fromNode
+      ~GenericVariableBuffer.has_live_aliases
+      ~GenericVariableBuffer.init
+      ~GenericVariableBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GenericVariableBuffer.allocTemplate
+      ~GenericVariableBuffer.deallocTemplate
+      ~GenericVariableBuffer.initTemplate
+      ~GenericVariableBuffer.name
+      ~GenericVariableBuffer.shape
+   
+   

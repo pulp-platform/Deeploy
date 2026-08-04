@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.SoftmaxCrossEntropyLossParser
+=============================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: SoftmaxCrossEntropyLossParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyLossParser.__init__
+      ~SoftmaxCrossEntropyLossParser.parse
+      ~SoftmaxCrossEntropyLossParser.parseInputs
+      ~SoftmaxCrossEntropyLossParser.parseNode
+      ~SoftmaxCrossEntropyLossParser.parseNodeCtxt
+      ~SoftmaxCrossEntropyLossParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyLossParser.operatorRepresentation
+   
+   

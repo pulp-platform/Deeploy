@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.Parsers.NeurekaConv2DBaseParser
+=======================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.Parsers
+
+.. autoclass:: NeurekaConv2DBaseParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NeurekaConv2DBaseParser.__init__
+      ~NeurekaConv2DBaseParser.parse
+      ~NeurekaConv2DBaseParser.parseInputs
+      ~NeurekaConv2DBaseParser.parseNode
+      ~NeurekaConv2DBaseParser.parseNodeCtxt
+      ~NeurekaConv2DBaseParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NeurekaConv2DBaseParser.operatorRepresentation
+   
+   

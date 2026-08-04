@@ -1,0 +1,57 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Deployer.CMSISDeployer
+==============================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.Deployer
+
+.. autoclass:: CMSISDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CMSISDeployer.__init__
+      ~CMSISDeployer.backEnd
+      ~CMSISDeployer.bind
+      ~CMSISDeployer.codeTransform
+      ~CMSISDeployer.exportDeeployState
+      ~CMSISDeployer.frontEnd
+      ~CMSISDeployer.generateBufferAllocationCode
+      ~CMSISDeployer.generateBufferDeAllocationCode
+      ~CMSISDeployer.generateBufferInitializationCode
+      ~CMSISDeployer.generateEngineInitializationCode
+      ~CMSISDeployer.generateFunction
+      ~CMSISDeployer.generateGlobalDefinitionCode
+      ~CMSISDeployer.generateIOBufferInitializationCode
+      ~CMSISDeployer.generateIncludeString
+      ~CMSISDeployer.generateInferenceCode
+      ~CMSISDeployer.generateInferenceInitializationCode
+      ~CMSISDeployer.importDeeployState
+      ~CMSISDeployer.inputs
+      ~CMSISDeployer.lower
+      ~CMSISDeployer.midEnd
+      ~CMSISDeployer.numberOfOps
+      ~CMSISDeployer.outputs
+      ~CMSISDeployer.parse
+      ~CMSISDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CMSISDeployer.worstCaseBufferSize
+   
+   

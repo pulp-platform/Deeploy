@@ -1,0 +1,28 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.MemorySummaryMixin
+====================================================================================
+
+.. currentmodule:: Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer
+
+.. autoclass:: MemorySummaryMixin
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemorySummaryMixin.__init__
+   
+   
+
+   
+   
+   

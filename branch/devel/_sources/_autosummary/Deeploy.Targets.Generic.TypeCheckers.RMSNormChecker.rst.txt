@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.RMSNormChecker
+===================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: RMSNormChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RMSNormChecker.__init__
+      ~RMSNormChecker.annotateDict
+      ~RMSNormChecker.checkOutputType
+      ~RMSNormChecker.signature
+      ~RMSNormChecker.typeCheck
+      ~RMSNormChecker.typeCheckNodeInputs
+      ~RMSNormChecker.typeInferGlobalCtxt
+      ~RMSNormChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RMSNormChecker.typeDict
+   
+   

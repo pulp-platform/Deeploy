@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint
+==============================================================
+
+.. currentmodule:: Deeploy.TilingExtension.MemoryConstraints
+
+.. autoclass:: NodeMemoryConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NodeMemoryConstraint.__init__
+      ~NodeMemoryConstraint.addTensorConstraint
+      ~NodeMemoryConstraint.getIO
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NodeMemoryConstraint.inputTensorMemoryConstraints
+      ~NodeMemoryConstraint.intermediateTensorMemoryConstraints
+      ~NodeMemoryConstraint.outputTensorMemoryConstraints
+      ~NodeMemoryConstraint.tensorMemoryConstraints
+   
+   

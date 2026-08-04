@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.PassClasses.deleteNode
+==================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.PassClasses
+
+.. autofunction:: deleteNode

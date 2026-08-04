@@ -1,0 +1,388 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.Targets.Generic.Parsers &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.Targets.Generic.Parsers.AddParser" href="Deeploy.Targets.Generic.Parsers.AddParser.html" />
+    <link rel="prev" title="Deeploy.Targets.Generic.Layers.iRMSNormLayer" href="Deeploy.Targets.Generic.Layers.iRMSNormLayer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.CortexM.html">Deeploy.Targets.CortexM</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.MemPool.html">Deeploy.Targets.MemPool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Neureka.html">Deeploy.Targets.Neureka</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.PULPOpen.html">Deeploy.Targets.PULPOpen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Snitch.html">Deeploy.Targets.Snitch</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+      <li class="breadcrumb-item active">Deeploy.Targets.Generic.Parsers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.Targets.Generic.Parsers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-Deeploy.Targets.Generic.Parsers">
+<span id="deeploy-targets-generic-parsers"></span><h1>Deeploy.Targets.Generic.Parsers<a class="headerlink" href="#module-Deeploy.Targets.Generic.Parsers" title="Link to this heading"></a></h1>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.AddParser.html#Deeploy.Targets.Generic.Parsers.AddParser" title="Deeploy.Targets.Generic.Parsers.AddParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AddParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.BatchNormParser.html#Deeploy.Targets.Generic.Parsers.BatchNormParser" title="Deeploy.Targets.Generic.Parsers.BatchNormParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BatchNormParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.CLCAParser.html#Deeploy.Targets.Generic.Parsers.CLCAParser" title="Deeploy.Targets.Generic.Parsers.CLCAParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CLCAParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ConcatParser.html#Deeploy.Targets.Generic.Parsers.ConcatParser" title="Deeploy.Targets.Generic.Parsers.ConcatParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConcatParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.Conv1DParser.html#Deeploy.Targets.Generic.Parsers.Conv1DParser" title="Deeploy.Targets.Generic.Parsers.Conv1DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Conv1DParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.Conv2DParser.html#Deeploy.Targets.Generic.Parsers.Conv2DParser" title="Deeploy.Targets.Generic.Parsers.Conv2DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Conv2DParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ConvParser.html#Deeploy.Targets.Generic.Parsers.ConvParser" title="Deeploy.Targets.Generic.Parsers.ConvParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConvParser</span></code></a>(noBiasHoisting)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ConvTranspose1DParser.html#Deeploy.Targets.Generic.Parsers.ConvTranspose1DParser" title="Deeploy.Targets.Generic.Parsers.ConvTranspose1DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConvTranspose1DParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ConvTransposeParser.html#Deeploy.Targets.Generic.Parsers.ConvTransposeParser" title="Deeploy.Targets.Generic.Parsers.ConvTransposeParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConvTransposeParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.DebugParser.html#Deeploy.Targets.Generic.Parsers.DebugParser" title="Deeploy.Targets.Generic.Parsers.DebugParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DebugParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.DequantParser.html#Deeploy.Targets.Generic.Parsers.DequantParser" title="Deeploy.Targets.Generic.Parsers.DequantParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DequantParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.DivParser.html#Deeploy.Targets.Generic.Parsers.DivParser" title="Deeploy.Targets.Generic.Parsers.DivParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DivParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.DummyParser.html#Deeploy.Targets.Generic.Parsers.DummyParser" title="Deeploy.Targets.Generic.Parsers.DummyParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DummyParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.FlattenParser.html#Deeploy.Targets.Generic.Parsers.FlattenParser" title="Deeploy.Targets.Generic.Parsers.FlattenParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlattenParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GELUGradParser.html#Deeploy.Targets.Generic.Parsers.GELUGradParser" title="Deeploy.Targets.Generic.Parsers.GELUGradParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GELUGradParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GELUParser.html#Deeploy.Targets.Generic.Parsers.GELUParser" title="Deeploy.Targets.Generic.Parsers.GELUParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GELUParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GEMMParser.html#Deeploy.Targets.Generic.Parsers.GEMMParser" title="Deeploy.Targets.Generic.Parsers.GEMMParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GEMMParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GatherParser.html#Deeploy.Targets.Generic.Parsers.GatherParser" title="Deeploy.Targets.Generic.Parsers.GatherParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GatherParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GenericConv1DParser.html#Deeploy.Targets.Generic.Parsers.GenericConv1DParser" title="Deeploy.Targets.Generic.Parsers.GenericConv1DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GenericConv1DParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GenericConv2DParser.html#Deeploy.Targets.Generic.Parsers.GenericConv2DParser" title="Deeploy.Targets.Generic.Parsers.GenericConv2DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GenericConv2DParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GenericDWConv1DParser.html#Deeploy.Targets.Generic.Parsers.GenericDWConv1DParser" title="Deeploy.Targets.Generic.Parsers.GenericDWConv1DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GenericDWConv1DParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GenericDWConv2DParser.html#Deeploy.Targets.Generic.Parsers.GenericDWConv2DParser" title="Deeploy.Targets.Generic.Parsers.GenericDWConv2DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GenericDWConv2DParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GenericGEMMParser.html#Deeploy.Targets.Generic.Parsers.GenericGEMMParser" title="Deeploy.Targets.Generic.Parsers.GenericGEMMParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GenericGEMMParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.GenericMaxPool2DParser.html#Deeploy.Targets.Generic.Parsers.GenericMaxPool2DParser" title="Deeploy.Targets.Generic.Parsers.GenericMaxPool2DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GenericMaxPool2DParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ITAMaxParser.html#Deeploy.Targets.Generic.Parsers.ITAMaxParser" title="Deeploy.Targets.Generic.Parsers.ITAMaxParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ITAMaxParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ITAPartialMaxParser.html#Deeploy.Targets.Generic.Parsers.ITAPartialMaxParser" title="Deeploy.Targets.Generic.Parsers.ITAPartialMaxParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ITAPartialMaxParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.IntegerDivParser.html#Deeploy.Targets.Generic.Parsers.IntegerDivParser" title="Deeploy.Targets.Generic.Parsers.IntegerDivParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntegerDivParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.LayerNormGradParser.html#Deeploy.Targets.Generic.Parsers.LayerNormGradParser" title="Deeploy.Targets.Generic.Parsers.LayerNormGradParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LayerNormGradParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.LayerNormParser.html#Deeploy.Targets.Generic.Parsers.LayerNormParser" title="Deeploy.Targets.Generic.Parsers.LayerNormParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LayerNormParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.LinearAttentionParser.html#Deeploy.Targets.Generic.Parsers.LinearAttentionParser" title="Deeploy.Targets.Generic.Parsers.LinearAttentionParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearAttentionParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.MHSAParser.html#Deeploy.Targets.Generic.Parsers.MHSAParser" title="Deeploy.Targets.Generic.Parsers.MHSAParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MHSAParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.MatMulParser.html#Deeploy.Targets.Generic.Parsers.MatMulParser" title="Deeploy.Targets.Generic.Parsers.MatMulParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatMulParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.MaxPool1DParser.html#Deeploy.Targets.Generic.Parsers.MaxPool1DParser" title="Deeploy.Targets.Generic.Parsers.MaxPool1DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxPool1DParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.MaxPool2DParser.html#Deeploy.Targets.Generic.Parsers.MaxPool2DParser" title="Deeploy.Targets.Generic.Parsers.MaxPool2DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxPool2DParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.MaxPoolParser.html#Deeploy.Targets.Generic.Parsers.MaxPoolParser" title="Deeploy.Targets.Generic.Parsers.MaxPoolParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxPoolParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.MulParser.html#Deeploy.Targets.Generic.Parsers.MulParser" title="Deeploy.Targets.Generic.Parsers.MulParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MulParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.Pad1DParser.html#Deeploy.Targets.Generic.Parsers.Pad1DParser" title="Deeploy.Targets.Generic.Parsers.Pad1DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Pad1DParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.Pad2DParser.html#Deeploy.Targets.Generic.Parsers.Pad2DParser" title="Deeploy.Targets.Generic.Parsers.Pad2DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Pad2DParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.PadParser.html#Deeploy.Targets.Generic.Parsers.PadParser" title="Deeploy.Targets.Generic.Parsers.PadParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PadParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.PowParser.html#Deeploy.Targets.Generic.Parsers.PowParser" title="Deeploy.Targets.Generic.Parsers.PowParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PowParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.QuantParser.html#Deeploy.Targets.Generic.Parsers.QuantParser" title="Deeploy.Targets.Generic.Parsers.QuantParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQAddParser.html#Deeploy.Targets.Generic.Parsers.RQAddParser" title="Deeploy.Targets.Generic.Parsers.RQAddParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQAddParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQGEMMParser.html#Deeploy.Targets.Generic.Parsers.RQGEMMParser" title="Deeploy.Targets.Generic.Parsers.RQGEMMParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQGEMMParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQIntegerDivParser.html#Deeploy.Targets.Generic.Parsers.RQIntegerDivParser" title="Deeploy.Targets.Generic.Parsers.RQIntegerDivParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQIntegerDivParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQMatMulParser.html#Deeploy.Targets.Generic.Parsers.RQMatMulParser" title="Deeploy.Targets.Generic.Parsers.RQMatMulParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQMatMulParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQSConv1DParser.html#Deeploy.Targets.Generic.Parsers.RQSConv1DParser" title="Deeploy.Targets.Generic.Parsers.RQSConv1DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQSConv1DParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQSConv2DParser.html#Deeploy.Targets.Generic.Parsers.RQSConv2DParser" title="Deeploy.Targets.Generic.Parsers.RQSConv2DParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQSConv2DParser</span></code></a>([noBiasHoisting])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQSParserInterface.html#Deeploy.Targets.Generic.Parsers.RQSParserInterface" title="Deeploy.Targets.Generic.Parsers.RQSParserInterface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQSParserInterface</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQSiGELUParser.html#Deeploy.Targets.Generic.Parsers.RQSiGELUParser" title="Deeploy.Targets.Generic.Parsers.RQSiGELUParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQSiGELUParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RQSiHardswishParser.html#Deeploy.Targets.Generic.Parsers.RQSiHardswishParser" title="Deeploy.Targets.Generic.Parsers.RQSiHardswishParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQSiHardswishParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ReduceMeanParser.html#Deeploy.Targets.Generic.Parsers.ReduceMeanParser" title="Deeploy.Targets.Generic.Parsers.ReduceMeanParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReduceMeanParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ReduceParser.html#Deeploy.Targets.Generic.Parsers.ReduceParser" title="Deeploy.Targets.Generic.Parsers.ReduceParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReduceParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ReduceSumParser.html#Deeploy.Targets.Generic.Parsers.ReduceSumParser" title="Deeploy.Targets.Generic.Parsers.ReduceSumParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReduceSumParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ReluParser.html#Deeploy.Targets.Generic.Parsers.ReluParser" title="Deeploy.Targets.Generic.Parsers.ReluParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReluParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.RequantShiftParser.html#Deeploy.Targets.Generic.Parsers.RequantShiftParser" title="Deeploy.Targets.Generic.Parsers.RequantShiftParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequantShiftParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.ReshapeParser.html#Deeploy.Targets.Generic.Parsers.ReshapeParser" title="Deeploy.Targets.Generic.Parsers.ReshapeParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReshapeParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.SGDParser.html#Deeploy.Targets.Generic.Parsers.SGDParser" title="Deeploy.Targets.Generic.Parsers.SGDParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SGDParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.SliceParser.html#Deeploy.Targets.Generic.Parsers.SliceParser" title="Deeploy.Targets.Generic.Parsers.SliceParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SliceParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.SoftmaxCrossEntropyLossGradParser.html#Deeploy.Targets.Generic.Parsers.SoftmaxCrossEntropyLossGradParser" title="Deeploy.Targets.Generic.Parsers.SoftmaxCrossEntropyLossGradParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxCrossEntropyLossGradParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.SoftmaxCrossEntropyLossParser.html#Deeploy.Targets.Generic.Parsers.SoftmaxCrossEntropyLossParser" title="Deeploy.Targets.Generic.Parsers.SoftmaxCrossEntropyLossParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxCrossEntropyLossParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.SoftmaxGradParser.html#Deeploy.Targets.Generic.Parsers.SoftmaxGradParser" title="Deeploy.Targets.Generic.Parsers.SoftmaxGradParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxGradParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.SoftmaxParser.html#Deeploy.Targets.Generic.Parsers.SoftmaxParser" title="Deeploy.Targets.Generic.Parsers.SoftmaxParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.SqrtParser.html#Deeploy.Targets.Generic.Parsers.SqrtParser" title="Deeploy.Targets.Generic.Parsers.SqrtParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqrtParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.TransposeParser.html#Deeploy.Targets.Generic.Parsers.TransposeParser" title="Deeploy.Targets.Generic.Parsers.TransposeParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransposeParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.UniformRequantShiftParser.html#Deeploy.Targets.Generic.Parsers.UniformRequantShiftParser" title="Deeploy.Targets.Generic.Parsers.UniformRequantShiftParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformRequantShiftParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.UnsqueezeParser.html#Deeploy.Targets.Generic.Parsers.UnsqueezeParser" title="Deeploy.Targets.Generic.Parsers.UnsqueezeParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnsqueezeParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.iHardswishParser.html#Deeploy.Targets.Generic.Parsers.iHardswishParser" title="Deeploy.Targets.Generic.Parsers.iHardswishParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iHardswishParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.iLayerNormParser.html#Deeploy.Targets.Generic.Parsers.iLayerNormParser" title="Deeploy.Targets.Generic.Parsers.iLayerNormParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iLayerNormParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.iNoNormParser.html#Deeploy.Targets.Generic.Parsers.iNoNormParser" title="Deeploy.Targets.Generic.Parsers.iNoNormParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iNoNormParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.iRMSNormParser.html#Deeploy.Targets.Generic.Parsers.iRMSNormParser" title="Deeploy.Targets.Generic.Parsers.iRMSNormParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iRMSNormParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Parsers.iSoftmaxParser.html#Deeploy.Targets.Generic.Parsers.iSoftmaxParser" title="Deeploy.Targets.Generic.Parsers.iSoftmaxParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iSoftmaxParser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.Targets.Generic.Layers.iRMSNormLayer.html" class="btn btn-neutral float-left" title="Deeploy.Targets.Generic.Layers.iRMSNormLayer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.Targets.Generic.Parsers.AddParser.html" class="btn btn-neutral float-right" title="Deeploy.Targets.Generic.Parsers.AddParser" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

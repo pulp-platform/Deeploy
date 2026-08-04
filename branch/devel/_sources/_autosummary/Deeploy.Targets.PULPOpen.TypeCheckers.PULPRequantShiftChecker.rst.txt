@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TypeCheckers.PULPRequantShiftChecker
+=============================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TypeCheckers
+
+.. autoclass:: PULPRequantShiftChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPRequantShiftChecker.__init__
+      ~PULPRequantShiftChecker.annotateDict
+      ~PULPRequantShiftChecker.checkOutputType
+      ~PULPRequantShiftChecker.signature
+      ~PULPRequantShiftChecker.typeCheck
+      ~PULPRequantShiftChecker.typeCheckNodeInputs
+      ~PULPRequantShiftChecker.typeInferGlobalCtxt
+      ~PULPRequantShiftChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PULPRequantShiftChecker.typeDict
+   
+   

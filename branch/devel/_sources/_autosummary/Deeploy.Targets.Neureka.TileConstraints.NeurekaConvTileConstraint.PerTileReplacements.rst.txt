@@ -1,0 +1,30 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.TileConstraints.NeurekaConvTileConstraint.PerTileReplacements
+=====================================================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.TileConstraints.NeurekaConvTileConstraint
+
+.. autoclass:: PerTileReplacements
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PerTileReplacements.__init__
+      ~PerTileReplacements.append
+      ~PerTileReplacements.scheme
+   
+   
+
+   
+   
+   

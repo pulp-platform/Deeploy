@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Parsers.CMSISMaxPool2DParser
+====================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.Parsers
+
+.. autoclass:: CMSISMaxPool2DParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CMSISMaxPool2DParser.__init__
+      ~CMSISMaxPool2DParser.parse
+      ~CMSISMaxPool2DParser.parseInputs
+      ~CMSISMaxPool2DParser.parseNode
+      ~CMSISMaxPool2DParser.parseNodeCtxt
+      ~CMSISMaxPool2DParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CMSISMaxPool2DParser.operatorRepresentation
+   
+   

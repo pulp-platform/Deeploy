@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SoftmaxCrossEntropyLossGradLayer
+===============================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SoftmaxCrossEntropyLossGradLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyLossGradLayer.__init__
+      ~SoftmaxCrossEntropyLossGradLayer.bind
+      ~SoftmaxCrossEntropyLossGradLayer.broadcast
+      ~SoftmaxCrossEntropyLossGradLayer.codeTransform
+      ~SoftmaxCrossEntropyLossGradLayer.computeOps
+      ~SoftmaxCrossEntropyLossGradLayer.computeShapes
+      ~SoftmaxCrossEntropyLossGradLayer.discardCurrentMapper
+      ~SoftmaxCrossEntropyLossGradLayer.generate
+      ~SoftmaxCrossEntropyLossGradLayer.parse
+      ~SoftmaxCrossEntropyLossGradLayer.resetDiscardedMappers
+      ~SoftmaxCrossEntropyLossGradLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyLossGradLayer.maps
+      ~SoftmaxCrossEntropyLossGradLayer.mapper
+      ~SoftmaxCrossEntropyLossGradLayer.discardedMappers
+      ~SoftmaxCrossEntropyLossGradLayer.node
+   
+   

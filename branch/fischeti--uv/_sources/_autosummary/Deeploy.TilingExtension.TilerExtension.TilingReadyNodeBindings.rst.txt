@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilerExtension.TilingReadyNodeBindings
+==============================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilerExtension
+
+.. autofunction:: TilingReadyNodeBindings

@@ -1,0 +1,57 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Deployer.SnitchDeployer
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Deployer
+
+.. autoclass:: SnitchDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchDeployer.__init__
+      ~SnitchDeployer.backEnd
+      ~SnitchDeployer.bind
+      ~SnitchDeployer.codeTransform
+      ~SnitchDeployer.exportDeeployState
+      ~SnitchDeployer.frontEnd
+      ~SnitchDeployer.generateBufferAllocationCode
+      ~SnitchDeployer.generateBufferDeAllocationCode
+      ~SnitchDeployer.generateBufferInitializationCode
+      ~SnitchDeployer.generateEngineInitializationCode
+      ~SnitchDeployer.generateFunction
+      ~SnitchDeployer.generateGlobalDefinitionCode
+      ~SnitchDeployer.generateIOBufferInitializationCode
+      ~SnitchDeployer.generateIncludeString
+      ~SnitchDeployer.generateInferenceCode
+      ~SnitchDeployer.generateInferenceInitializationCode
+      ~SnitchDeployer.importDeeployState
+      ~SnitchDeployer.inputs
+      ~SnitchDeployer.lower
+      ~SnitchDeployer.midEnd
+      ~SnitchDeployer.numberOfOps
+      ~SnitchDeployer.outputs
+      ~SnitchDeployer.parse
+      ~SnitchDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SnitchDeployer.worstCaseBufferSize
+   
+   

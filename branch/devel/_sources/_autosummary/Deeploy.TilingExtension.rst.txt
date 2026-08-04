@@ -1,0 +1,46 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension
+=======================
+
+.. automodule:: Deeploy.TilingExtension
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   AsyncDma
+   CodeTransformationPasses
+   GenericFlow
+   HtmlTemplates
+   MemoryConstraintFlows
+   MemoryConstraints
+   MemoryScheduler
+   TileConstraint
+   TilerExtension
+   TilerModel
+   TilingCodegen
+

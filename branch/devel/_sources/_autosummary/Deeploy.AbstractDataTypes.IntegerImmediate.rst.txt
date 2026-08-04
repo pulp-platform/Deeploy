@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.AbstractDataTypes.IntegerImmediate
+==========================================
+
+.. currentmodule:: Deeploy.AbstractDataTypes
+
+.. autoclass:: IntegerImmediate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~IntegerImmediate.__init__
+      ~IntegerImmediate.checkPromotion
+      ~IntegerImmediate.checkValue
+      ~IntegerImmediate.fitsNumLevels
+      ~IntegerImmediate.partialOrderUpcast
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~IntegerImmediate.value
+      ~IntegerImmediate.nLevels
+      ~IntegerImmediate.typeMax
+      ~IntegerImmediate.typeMin
+      ~IntegerImmediate.signed
+      ~IntegerImmediate.typeName
+      ~IntegerImmediate.typeWidth
+   
+   

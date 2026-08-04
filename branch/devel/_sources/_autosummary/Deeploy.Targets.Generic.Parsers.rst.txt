@@ -1,0 +1,124 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers
+===============================
+
+.. automodule:: Deeploy.Targets.Generic.Parsers
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      AddParser
+      AveragePool1DParser
+      AveragePool2DParser
+      AveragePoolParser
+      BatchNormParser
+      CLCAParser
+      CeilParser
+      ClipParser
+      ConcatParser
+      Conv1DParser
+      Conv2DParser
+      ConvParser
+      ConvTranspose1DParser
+      ConvTransposeParser
+      DebugParser
+      DequantParser
+      DivParser
+      DummyParser
+      ExpParser
+      FlattenParser
+      FloorParser
+      GELUGradParser
+      GELUParser
+      GEMMParser
+      GatherParser
+      GenericConv1DParser
+      GenericConv2DParser
+      GenericDWConv1DParser
+      GenericDWConv2DParser
+      GenericGEMMParser
+      GenericMaxPool2DParser
+      GlobalAveragePoolParser
+      GlobalMaxPoolParser
+      GlobalPoolParser
+      GroupNormParser
+      HardSigmoidParser
+      HardSwishParser
+      ITAMaxParser
+      ITAPartialMaxParser
+      InstanceNormParser
+      IntegerDivParser
+      LayerNormGradParser
+      LayerNormParser
+      LinearAttentionParser
+      MHSAParser
+      MatMulParser
+      MaxPool1DParser
+      MaxPool2DParser
+      MaxPoolParser
+      MulParser
+      NormalizationParser
+      Pad1DParser
+      Pad2DParser
+      PadParser
+      PowParser
+      QuantParser
+      RQAddParser
+      RQGEMMParser
+      RQIntegerDivParser
+      RQMatMulParser
+      RQSConv1DParser
+      RQSConv2DParser
+      RQSParserInterface
+      RQSiGELUParser
+      RQSiHardswishParser
+      ReduceMeanParser
+      ReduceParser
+      ReduceSumParser
+      ReluParser
+      RequantShiftParser
+      ReshapeParser
+      SGDParser
+      SigmoidParser
+      SliceParser
+      SoftmaxCrossEntropyLossGradParser
+      SoftmaxCrossEntropyLossParser
+      SoftmaxGradParser
+      SoftmaxParser
+      SqrtParser
+      SubParser
+      SwishParser
+      TransposeParser
+      UnaryElementWiseParser
+      UniformRequantShiftParser
+      UnsqueezeParser
+      iHardswishParser
+      iLayerNormParser
+      iNoNormParser
+      iRMSNormParser
+      iSoftmaxParser
+   
+   
+
+   
+   
+   
+
+
+

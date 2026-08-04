@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.TileConstraint.TileConstraint
+=====================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TileConstraint
+
+.. autoclass:: TileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TileConstraint.__init__
+      ~TileConstraint.addGeometricalConstraint
+      ~TileConstraint.addPolicyConstraint
+      ~TileConstraint.constructSymbolicNodeRep
+      ~TileConstraint.extractBaseAddr
+      ~TileConstraint.getBaseAddr
+      ~TileConstraint.sanitizeTilingSchedule
+      ~TileConstraint.serializeTilingSolution
+      ~TileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

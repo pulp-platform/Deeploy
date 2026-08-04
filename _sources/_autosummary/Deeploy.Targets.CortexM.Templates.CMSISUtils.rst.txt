@@ -1,0 +1,35 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Templates.CMSISUtils
+============================================
+
+.. automodule:: Deeploy.Targets.CortexM.Templates.CMSISUtils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      bindConvParams
+      bindFCParams
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

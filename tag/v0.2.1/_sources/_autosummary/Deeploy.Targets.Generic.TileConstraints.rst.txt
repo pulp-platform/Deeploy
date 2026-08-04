@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TileConstraints
+=======================================
+
+.. automodule:: Deeploy.Targets.Generic.TileConstraints
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   AddTileConstraint
+   BOPTileConstraint
+   ConcatTileConstraint
+   MulTileConstraint
+   NOPTileConstraint
+   RQSiGELUTileConstraint
+   RQSiHardswishTileConstraint
+   TransposeTileConstraint
+   UnaryTileConstraint
+   UntiledTileConstraint
+   iHardswishTileConstraint
+   iRMSNormTileConstraint
+

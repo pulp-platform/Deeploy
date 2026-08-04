@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.padOffset
+===============================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: padOffset

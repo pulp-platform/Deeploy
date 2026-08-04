@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.TileConstraints.NeurekaConvTileConstraint.NeurekaConvTileConstraint
+===========================================================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.TileConstraints.NeurekaConvTileConstraint
+
+.. autoclass:: NeurekaConvTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NeurekaConvTileConstraint.__init__
+      ~NeurekaConvTileConstraint.addGeometricalConstraint
+      ~NeurekaConvTileConstraint.addPolicyConstraint
+      ~NeurekaConvTileConstraint.constructSymbolicNodeRep
+      ~NeurekaConvTileConstraint.extractBaseAddr
+      ~NeurekaConvTileConstraint.getBaseAddr
+      ~NeurekaConvTileConstraint.sanitizeTilingSchedule
+      ~NeurekaConvTileConstraint.serializeTilingSolution
+      ~NeurekaConvTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

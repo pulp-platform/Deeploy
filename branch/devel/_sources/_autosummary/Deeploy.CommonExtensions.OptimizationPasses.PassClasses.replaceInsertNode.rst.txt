@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.PassClasses.replaceInsertNode
+=========================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.PassClasses
+
+.. autofunction:: replaceInsertNode

@@ -1,0 +1,6 @@
+Deeploy.Logging.color
+=====================
+
+.. currentmodule:: Deeploy.Logging
+
+.. autofunction:: color

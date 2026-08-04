@@ -1,0 +1,6 @@
+Deeploy.Targets.PULPOpen.CodeTransformationPasses.AutoTransposeUtils.allNumTransfers
+====================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.CodeTransformationPasses.AutoTransposeUtils
+
+.. autofunction:: allNumTransfers

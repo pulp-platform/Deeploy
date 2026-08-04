@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.MaxPool1DParser
+===============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: MaxPool1DParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MaxPool1DParser.__init__
+      ~MaxPool1DParser.parse
+      ~MaxPool1DParser.parseInputs
+      ~MaxPool1DParser.parseNode
+      ~MaxPool1DParser.parseNodeCtxt
+      ~MaxPool1DParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MaxPool1DParser.operatorRepresentation
+   
+   

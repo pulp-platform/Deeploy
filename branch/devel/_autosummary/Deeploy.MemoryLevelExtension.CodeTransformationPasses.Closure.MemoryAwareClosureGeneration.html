@@ -1,0 +1,332 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.PrintInputs" href="Deeploy.MemoryLevelExtension.CodeTransformationPasses.PrintInputs.html" />
+    <link rel="prev" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure" href="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MLIRAIETypes.html">Deeploy.MLIRAIETypes</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.MemoryLevelExtension.CodeTransformationPasses.html">Deeploy.MemoryLevelExtension.CodeTransformationPasses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.MemoryLevelExtension.MemoryLevels.html">Deeploy.MemoryLevelExtension.MemoryLevels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.MemoryLevelExtension.NetworkDeployers.html">Deeploy.MemoryLevelExtension.NetworkDeployers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.MemoryLevelExtension.OptimizationPasses.html">Deeploy.MemoryLevelExtension.OptimizationPasses</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.MemoryLevelExtension.CodeTransformationPasses.html">Deeploy.MemoryLevelExtension.CodeTransformationPasses</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.html">Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure</a></li>
+      <li class="breadcrumb-item active">Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-memorylevelextension-codetransformationpasses-closure-memoryawareclosuregeneration">
+<h1>Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration<a class="headerlink" href="#deeploy-memorylevelextension-codetransformationpasses-closure-memoryawareclosuregeneration" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.</span></span><span class="sig-name descname"><span class="pre">MemoryAwareClosureGeneration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">closureCallTemplate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><span class="pre">NodeTemplate</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;Deeploy.DeeployTypes.NodeTemplate</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closureSuffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_closure'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writeback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generateStruct</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startRegion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'L2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endRegion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'L1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="Deeploy.CommonExtensions.CodeTransformationPasses.Closure.ClosureGeneration.html#Deeploy.CommonExtensions.CodeTransformationPasses.Closure.ClosureGeneration" title="Deeploy.CommonExtensions.CodeTransformationPasses.Closure.ClosureGeneration"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClosureGeneration</span></code></a></p>
+<p>Memory-aware closure generation for multi-level memory hierarchies.</p>
+<p>This class extends ClosureGeneration to handle memory-aware closure
+generation where only certain memory levels are included in the closure
+arguments. It filters buffers based on their memory level, including
+only those that belong to specific memory regions in the hierarchy.</p>
+<p class="rubric">Notes</p>
+<p>This class is useful for multi-level memory systems where different
+memory levels have different access patterns and only certain levels
+should be passed as closure arguments. Buffers are included if they:
+- Have no memory level annotation
+- Belong to the start region
+- Do not belong to the end region (are in higher levels)</p>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">closureCallTemplate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><span class="pre">NodeTemplate</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;Deeploy.DeeployTypes.NodeTemplate</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closureSuffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_closure'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writeback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generateStruct</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startRegion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'L2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endRegion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'L1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the MemoryAwareClosureGeneration transformation pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>closureCallTemplate</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><em>NodeTemplate</em></a><em>, </em><em>optional</em>) – Template for generating closure function calls. Default is the
+global _closureCallTemplate.</p></li>
+<li><p><strong>closureSuffix</strong> (<em>str</em><em>, </em><em>optional</em>) – Suffix to append to closure function names. Default is “_closure”.</p></li>
+<li><p><strong>writeback</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to generate writeback code for closure arguments.
+Default is True.</p></li>
+<li><p><strong>generateStruct</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to generate argument structure definitions. Default is True.</p></li>
+<li><p><strong>startRegion</strong> (<em>str</em><em>, </em><em>optional</em>) – The starting memory region to include in closures. Default is “L2”.</p></li>
+<li><p><strong>endRegion</strong> (<em>str</em><em>, </em><em>optional</em>) – The ending memory region to include in closures. Default is “L1”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.__init__" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(closureCallTemplate[, closureSuffix])</p></td>
+<td><p>Initialize the MemoryAwareClosureGeneration transformation pass.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.apply" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.apply"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code></a>(ctxt, executionBlock, name[, verbose])</p></td>
+<td><p>Apply the closure generation transformation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.dereferenceVars" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.dereferenceVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dereferenceVars</span></code></a>(template, varNames)</p></td>
+<td><p>Dereference the specified variables in the given template.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.extractDynamicReferences" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.extractDynamicReferences"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extractDynamicReferences</span></code></a>(ctxt[, ...])</p></td>
+<td><p>Extract all dynamic references from the given execution block.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.indexVars" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.indexVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">indexVars</span></code></a>(template, varNames, index)</p></td>
+<td><p>Index the specified variables in the given template.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parseTreeDict</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">closureStructArgType</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">closureStructArgs</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">executionBlock</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.ExecutionBlock.html#Deeploy.DeeployTypes.ExecutionBlock" title="Deeploy.DeeployTypes.ExecutionBlock"><span class="pre">ExecutionBlock</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.CodeGenVerbosity.html#Deeploy.DeeployTypes.CodeGenVerbosity" title="Deeploy.DeeployTypes.CodeGenVerbosity"><span class="pre">CodeGenVerbosity</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">CodeGenVerbosity(tilingProfiling=None,</span> <span class="pre">untiledProfiling=None,</span> <span class="pre">microbenchmarkProfiling=False)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.DeeployTypes.ExecutionBlock.html#Deeploy.DeeployTypes.ExecutionBlock" title="Deeploy.DeeployTypes.ExecutionBlock"><span class="pre">ExecutionBlock</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.apply" title="Link to this definition"></a></dt>
+<dd><p>Apply the closure generation transformation.</p>
+<p>Transforms the given execution block into a closure-based pattern
+by generating the necessary struct, closure function, and call site.
+This is the main entry point for the closure transformation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – The network context containing buffer and type information.</p></li>
+<li><p><strong>executionBlock</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.ExecutionBlock.html#Deeploy.DeeployTypes.ExecutionBlock" title="Deeploy.DeeployTypes.ExecutionBlock"><em>ExecutionBlock</em></a>) – The execution block to transform into a closure pattern.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – The base name for generating closure-related identifiers.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.CodeGenVerbosity.html#Deeploy.DeeployTypes.CodeGenVerbosity" title="Deeploy.DeeployTypes.CodeGenVerbosity"><em>CodeGenVerbosity</em></a><em>, </em><em>optional</em>) – The verbosity level for code generation. Default is _NoVerbosity.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing:
+- The modified network context with closure definitions
+- The new ClosureExecutionBlock with closure call patterns</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, <a class="reference internal" href="Deeploy.DeeployTypes.ExecutionBlock.html#Deeploy.DeeployTypes.ExecutionBlock" title="Deeploy.DeeployTypes.ExecutionBlock">ExecutionBlock</a>]</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The transformation process includes:
+1. Generating a unique closure name with the specified suffix
+2. Capturing the original function call code
+3. Creating the closure argument struct
+4. Generating the closure function definition in global scope
+5. Replacing the original call with a closure call pattern</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.dereferenceVars">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dereferenceVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varNames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.dereferenceVars" title="Link to this definition"></a></dt>
+<dd><p>Dereference the specified variables in the given template.</p>
+<p>This function modifies the provided template in place by dereferencing
+the variables listed in <cite>varNames</cite>. The template is modified in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>template</strong> (<em>Template</em>) – The template object to be modified.</p></li>
+<li><p><strong>varNames</strong> (<em>list</em><em> of </em><em>str</em>) – List of variable names to dereference within the template.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.extractDynamicReferences">
+<span class="sig-name descname"><span class="pre">extractDynamicReferences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">executionBlock</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.ExecutionBlock.html#Deeploy.DeeployTypes.ExecutionBlock" title="Deeploy.DeeployTypes.ExecutionBlock"><span class="pre">ExecutionBlock</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unrollStructs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">includeGlobalReferences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.extractDynamicReferences" title="Link to this definition"></a></dt>
+<dd><p>Extract all dynamic references from the given execution block.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – The network context.</p></li>
+<li><p><strong>executionBlock</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.ExecutionBlock.html#Deeploy.DeeployTypes.ExecutionBlock" title="Deeploy.DeeployTypes.ExecutionBlock"><em>ExecutionBlock</em></a><em>, </em><em>optional</em>) – The execution block.</p></li>
+<li><p><strong>unrollStructs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to unroll structs.</p></li>
+<li><p><strong>includeGlobalReferences</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to include global references.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of dynamic references.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.indexVars">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">indexVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varNames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration.indexVars" title="Link to this definition"></a></dt>
+<dd><p>Index the specified variables in the given template.</p>
+<p>Modifies the template in place by indexing the specified variable names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>template</strong> (<em>Template</em>) – The template to modify.</p></li>
+<li><p><strong>varNames</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – The variable names to index.</p></li>
+<li><p><strong>index</strong> (<em>str</em>) – The index to use.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure.html" class="btn btn-neutral float-left" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.MemoryLevelExtension.CodeTransformationPasses.PrintInputs.html" class="btn btn-neutral float-right" title="Deeploy.MemoryLevelExtension.CodeTransformationPasses.PrintInputs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: devel
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.1/index.html">v0.2.1</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

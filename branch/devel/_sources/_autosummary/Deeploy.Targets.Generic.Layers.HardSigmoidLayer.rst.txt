@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.HardSigmoidLayer
+===============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: HardSigmoidLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~HardSigmoidLayer.__init__
+      ~HardSigmoidLayer.bind
+      ~HardSigmoidLayer.broadcast
+      ~HardSigmoidLayer.codeTransform
+      ~HardSigmoidLayer.computeOps
+      ~HardSigmoidLayer.computeShapes
+      ~HardSigmoidLayer.discardCurrentMapper
+      ~HardSigmoidLayer.generate
+      ~HardSigmoidLayer.parse
+      ~HardSigmoidLayer.resetDiscardedMappers
+      ~HardSigmoidLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~HardSigmoidLayer.maps
+      ~HardSigmoidLayer.mapper
+      ~HardSigmoidLayer.discardedMappers
+      ~HardSigmoidLayer.node
+   
+   

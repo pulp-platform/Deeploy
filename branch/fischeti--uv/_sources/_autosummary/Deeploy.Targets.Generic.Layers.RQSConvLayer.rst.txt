@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.RQSConvLayer
+===========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: RQSConvLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQSConvLayer.__init__
+      ~RQSConvLayer.bind
+      ~RQSConvLayer.broadcast
+      ~RQSConvLayer.codeTransform
+      ~RQSConvLayer.computeOps
+      ~RQSConvLayer.computeShapes
+      ~RQSConvLayer.discardCurrentMapper
+      ~RQSConvLayer.generate
+      ~RQSConvLayer.parse
+      ~RQSConvLayer.resetDiscardedMappers
+      ~RQSConvLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQSConvLayer.maps
+      ~RQSConvLayer.mapper
+      ~RQSConvLayer.discardedMappers
+      ~RQSConvLayer.node
+   
+   

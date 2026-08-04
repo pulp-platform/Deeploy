@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.Templates.ConvTemplate
+==============================================
+
+.. automodule:: Deeploy.Targets.Neureka.Templates.ConvTemplate
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      getInputAddrOffset
+      getNormQuantConf0
+      ioStridesFromDimensions
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      Neureka2DDWConvTemplate
+      Neureka2DDenseConvTemplate
+      Neureka2DPWConvTemplate
+      NeurekaConvTemplate
+   
+   
+
+   
+   
+   
+
+
+

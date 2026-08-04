@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.GlobalAveragePoolLayer
+=====================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: GlobalAveragePoolLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GlobalAveragePoolLayer.__init__
+      ~GlobalAveragePoolLayer.bind
+      ~GlobalAveragePoolLayer.broadcast
+      ~GlobalAveragePoolLayer.codeTransform
+      ~GlobalAveragePoolLayer.computeOps
+      ~GlobalAveragePoolLayer.computeShapes
+      ~GlobalAveragePoolLayer.discardCurrentMapper
+      ~GlobalAveragePoolLayer.generate
+      ~GlobalAveragePoolLayer.parse
+      ~GlobalAveragePoolLayer.resetDiscardedMappers
+      ~GlobalAveragePoolLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GlobalAveragePoolLayer.maps
+      ~GlobalAveragePoolLayer.mapper
+      ~GlobalAveragePoolLayer.discardedMappers
+      ~GlobalAveragePoolLayer.node
+   
+   

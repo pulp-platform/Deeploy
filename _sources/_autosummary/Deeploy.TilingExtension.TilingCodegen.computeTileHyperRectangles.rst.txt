@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.computeTileHyperRectangles
+================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: computeTileHyperRectangles

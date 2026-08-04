@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.HardSwishLayer
+=============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: HardSwishLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~HardSwishLayer.__init__
+      ~HardSwishLayer.bind
+      ~HardSwishLayer.broadcast
+      ~HardSwishLayer.codeTransform
+      ~HardSwishLayer.computeOps
+      ~HardSwishLayer.computeShapes
+      ~HardSwishLayer.discardCurrentMapper
+      ~HardSwishLayer.generate
+      ~HardSwishLayer.parse
+      ~HardSwishLayer.resetDiscardedMappers
+      ~HardSwishLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~HardSwishLayer.maps
+      ~HardSwishLayer.mapper
+      ~HardSwishLayer.discardedMappers
+      ~HardSwishLayer.node
+   
+   

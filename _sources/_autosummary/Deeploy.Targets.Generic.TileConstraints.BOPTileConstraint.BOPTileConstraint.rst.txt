@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TileConstraints.BOPTileConstraint.BOPTileConstraint
+===========================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TileConstraints.BOPTileConstraint
+
+.. autoclass:: BOPTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~BOPTileConstraint.__init__
+      ~BOPTileConstraint.addGeometricalConstraint
+      ~BOPTileConstraint.addPolicyConstraint
+      ~BOPTileConstraint.constructSymbolicNodeRep
+      ~BOPTileConstraint.extractBaseAddr
+      ~BOPTileConstraint.getBaseAddr
+      ~BOPTileConstraint.sanitizeTilingSchedule
+      ~BOPTileConstraint.serializeTilingSolution
+      ~BOPTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BOPTileConstraint.dataIn1Name
+      ~BOPTileConstraint.dataIn2Name
+      ~BOPTileConstraint.dataOutName
+   
+   

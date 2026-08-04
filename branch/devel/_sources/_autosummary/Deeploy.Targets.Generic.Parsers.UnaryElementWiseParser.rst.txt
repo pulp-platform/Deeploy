@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.UnaryElementWiseParser
+======================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: UnaryElementWiseParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~UnaryElementWiseParser.__init__
+      ~UnaryElementWiseParser.parse
+      ~UnaryElementWiseParser.parseInputs
+      ~UnaryElementWiseParser.parseNode
+      ~UnaryElementWiseParser.parseNodeCtxt
+      ~UnaryElementWiseParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~UnaryElementWiseParser.operatorRepresentation
+   
+   

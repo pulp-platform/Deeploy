@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Parsers.SnitchHardSwishParser
+====================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Parsers
+
+.. autoclass:: SnitchHardSwishParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchHardSwishParser.__init__
+      ~SnitchHardSwishParser.parse
+      ~SnitchHardSwishParser.parseInputs
+      ~SnitchHardSwishParser.parseNode
+      ~SnitchHardSwishParser.parseNodeCtxt
+      ~SnitchHardSwishParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SnitchHardSwishParser.operatorRepresentation
+   
+   

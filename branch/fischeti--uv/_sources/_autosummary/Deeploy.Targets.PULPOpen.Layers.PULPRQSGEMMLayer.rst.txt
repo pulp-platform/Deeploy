@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Layers.PULPRQSGEMMLayer
+================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.Layers
+
+.. autoclass:: PULPRQSGEMMLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPRQSGEMMLayer.__init__
+      ~PULPRQSGEMMLayer.bind
+      ~PULPRQSGEMMLayer.broadcast
+      ~PULPRQSGEMMLayer.codeTransform
+      ~PULPRQSGEMMLayer.computeOps
+      ~PULPRQSGEMMLayer.computeShapes
+      ~PULPRQSGEMMLayer.discardCurrentMapper
+      ~PULPRQSGEMMLayer.generate
+      ~PULPRQSGEMMLayer.parse
+      ~PULPRQSGEMMLayer.resetDiscardedMappers
+      ~PULPRQSGEMMLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PULPRQSGEMMLayer.maps
+      ~PULPRQSGEMMLayer.mapper
+      ~PULPRQSGEMMLayer.discardedMappers
+      ~PULPRQSGEMMLayer.node
+   
+   

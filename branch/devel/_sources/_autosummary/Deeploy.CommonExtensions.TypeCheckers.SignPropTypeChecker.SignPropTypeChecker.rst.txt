@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker.SignPropTypeChecker
+=============================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker
+
+.. autoclass:: SignPropTypeChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SignPropTypeChecker.__init__
+      ~SignPropTypeChecker.annotateDict
+      ~SignPropTypeChecker.checkOutputType
+      ~SignPropTypeChecker.signature
+      ~SignPropTypeChecker.typeCheck
+      ~SignPropTypeChecker.typeCheckNodeInputs
+      ~SignPropTypeChecker.typeInferGlobalCtxt
+      ~SignPropTypeChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SignPropTypeChecker.typeDict
+   
+   

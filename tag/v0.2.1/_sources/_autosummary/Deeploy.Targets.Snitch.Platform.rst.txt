@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Platform
+===============================
+
+.. automodule:: Deeploy.Targets.Snitch.Platform
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      SnitchClusterEngine
+      SnitchConstantBuffer
+      SnitchPlatform
+      SnitchStructBuffer
+      SnitchTransientBuffer
+      SnitchVariableBuffer
+   
+   
+
+   
+   
+   
+
+
+

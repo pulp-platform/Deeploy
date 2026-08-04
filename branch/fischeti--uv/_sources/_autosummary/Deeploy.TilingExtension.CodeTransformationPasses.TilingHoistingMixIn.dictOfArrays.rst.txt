@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn.dictOfArrays
+=================================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn
+
+.. autofunction:: dictOfArrays

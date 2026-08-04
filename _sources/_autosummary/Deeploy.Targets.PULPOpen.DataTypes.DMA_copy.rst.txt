@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.DataTypes.DMA\_copy
+============================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.DataTypes
+
+.. autoclass:: DMA_copy
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~DMA_copy.__init__
+      ~DMA_copy.checkPromotion
+      ~DMA_copy.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DMA_copy.value
+      ~DMA_copy.structTypeDict
+      ~DMA_copy.typeName
+      ~DMA_copy.typeWidth
+   
+   

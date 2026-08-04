@@ -1,0 +1,38 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.OptimizationPasses.Matchers
+====================================================
+
+.. automodule:: Deeploy.CommonExtensions.OptimizationPasses.Matchers
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      BranchingMatcher
+      Match
+      NonBranchingMatcher
+      SubgraphMatcher
+   
+   
+
+   
+   
+   
+
+
+

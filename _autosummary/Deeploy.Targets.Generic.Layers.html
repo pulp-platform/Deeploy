@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.Targets.Generic.Layers &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.Targets.Generic.Layers.AddLayer" href="Deeploy.Targets.Generic.Layers.AddLayer.html" />
+    <link rel="prev" title="Deeploy.Targets.Generic.Deployer.GenericDeployer" href="Deeploy.Targets.Generic.Deployer.GenericDeployer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.CortexM.html">Deeploy.Targets.CortexM</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.MemPool.html">Deeploy.Targets.MemPool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Neureka.html">Deeploy.Targets.Neureka</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.PULPOpen.html">Deeploy.Targets.PULPOpen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Snitch.html">Deeploy.Targets.Snitch</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+      <li class="breadcrumb-item active">Deeploy.Targets.Generic.Layers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.Targets.Generic.Layers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-Deeploy.Targets.Generic.Layers">
+<span id="deeploy-targets-generic-layers"></span><h1>Deeploy.Targets.Generic.Layers<a class="headerlink" href="#module-Deeploy.Targets.Generic.Layers" title="Link to this heading"></a></h1>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.AddLayer.html#Deeploy.Targets.Generic.Layers.AddLayer" title="Deeploy.Targets.Generic.Layers.AddLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AddLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.BatchNormalizationLayer.html#Deeploy.Targets.Generic.Layers.BatchNormalizationLayer" title="Deeploy.Targets.Generic.Layers.BatchNormalizationLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BatchNormalizationLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.CLCALayer.html#Deeploy.Targets.Generic.Layers.CLCALayer" title="Deeploy.Targets.Generic.Layers.CLCALayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CLCALayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.ConcatLayer.html#Deeploy.Targets.Generic.Layers.ConcatLayer" title="Deeploy.Targets.Generic.Layers.ConcatLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConcatLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.ConvLayer.html#Deeploy.Targets.Generic.Layers.ConvLayer" title="Deeploy.Targets.Generic.Layers.ConvLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConvLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.ConvTransposeLayer.html#Deeploy.Targets.Generic.Layers.ConvTransposeLayer" title="Deeploy.Targets.Generic.Layers.ConvTransposeLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConvTransposeLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.DebugPrintLayer.html#Deeploy.Targets.Generic.Layers.DebugPrintLayer" title="Deeploy.Targets.Generic.Layers.DebugPrintLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DebugPrintLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.DequantLayer.html#Deeploy.Targets.Generic.Layers.DequantLayer" title="Deeploy.Targets.Generic.Layers.DequantLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DequantLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.DivLayer.html#Deeploy.Targets.Generic.Layers.DivLayer" title="Deeploy.Targets.Generic.Layers.DivLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DivLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.GELUGradLayer.html#Deeploy.Targets.Generic.Layers.GELUGradLayer" title="Deeploy.Targets.Generic.Layers.GELUGradLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GELUGradLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.GELULayer.html#Deeploy.Targets.Generic.Layers.GELULayer" title="Deeploy.Targets.Generic.Layers.GELULayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GELULayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.GEMMLayer.html#Deeploy.Targets.Generic.Layers.GEMMLayer" title="Deeploy.Targets.Generic.Layers.GEMMLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GEMMLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.GatherLayer.html#Deeploy.Targets.Generic.Layers.GatherLayer" title="Deeploy.Targets.Generic.Layers.GatherLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GatherLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.ITAMaxLayer.html#Deeploy.Targets.Generic.Layers.ITAMaxLayer" title="Deeploy.Targets.Generic.Layers.ITAMaxLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ITAMaxLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.LayerNormGradLayer.html#Deeploy.Targets.Generic.Layers.LayerNormGradLayer" title="Deeploy.Targets.Generic.Layers.LayerNormGradLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LayerNormGradLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.LayerNormLayer.html#Deeploy.Targets.Generic.Layers.LayerNormLayer" title="Deeploy.Targets.Generic.Layers.LayerNormLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LayerNormLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.LinearAttentionLayer.html#Deeploy.Targets.Generic.Layers.LinearAttentionLayer" title="Deeploy.Targets.Generic.Layers.LinearAttentionLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearAttentionLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.MHSALayer.html#Deeploy.Targets.Generic.Layers.MHSALayer" title="Deeploy.Targets.Generic.Layers.MHSALayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MHSALayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.MatMulLayer.html#Deeploy.Targets.Generic.Layers.MatMulLayer" title="Deeploy.Targets.Generic.Layers.MatMulLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatMulLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.MaxPoolLayer.html#Deeploy.Targets.Generic.Layers.MaxPoolLayer" title="Deeploy.Targets.Generic.Layers.MaxPoolLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaxPoolLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.MulLayer.html#Deeploy.Targets.Generic.Layers.MulLayer" title="Deeploy.Targets.Generic.Layers.MulLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MulLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.PadLayer.html#Deeploy.Targets.Generic.Layers.PadLayer" title="Deeploy.Targets.Generic.Layers.PadLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PadLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.PowLayer.html#Deeploy.Targets.Generic.Layers.PowLayer" title="Deeploy.Targets.Generic.Layers.PowLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PowLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.QuantLayer.html#Deeploy.Targets.Generic.Layers.QuantLayer" title="Deeploy.Targets.Generic.Layers.QuantLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.RQGEMMLayer.html#Deeploy.Targets.Generic.Layers.RQGEMMLayer" title="Deeploy.Targets.Generic.Layers.RQGEMMLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQGEMMLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.RQIntegerDivLayer.html#Deeploy.Targets.Generic.Layers.RQIntegerDivLayer" title="Deeploy.Targets.Generic.Layers.RQIntegerDivLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQIntegerDivLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.RQMatMulLayer.html#Deeploy.Targets.Generic.Layers.RQMatMulLayer" title="Deeploy.Targets.Generic.Layers.RQMatMulLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQMatMulLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.RQSConvLayer.html#Deeploy.Targets.Generic.Layers.RQSConvLayer" title="Deeploy.Targets.Generic.Layers.RQSConvLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQSConvLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.RQSiGELULayer.html#Deeploy.Targets.Generic.Layers.RQSiGELULayer" title="Deeploy.Targets.Generic.Layers.RQSiGELULayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQSiGELULayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.RQSiHardswishLayer.html#Deeploy.Targets.Generic.Layers.RQSiHardswishLayer" title="Deeploy.Targets.Generic.Layers.RQSiHardswishLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RQSiHardswishLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.ReduceMeanLayer.html#Deeploy.Targets.Generic.Layers.ReduceMeanLayer" title="Deeploy.Targets.Generic.Layers.ReduceMeanLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReduceMeanLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.ReduceSumLayer.html#Deeploy.Targets.Generic.Layers.ReduceSumLayer" title="Deeploy.Targets.Generic.Layers.ReduceSumLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReduceSumLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.ReluLayer.html#Deeploy.Targets.Generic.Layers.ReluLayer" title="Deeploy.Targets.Generic.Layers.ReluLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReluLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.RequantShiftLayer.html#Deeploy.Targets.Generic.Layers.RequantShiftLayer" title="Deeploy.Targets.Generic.Layers.RequantShiftLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequantShiftLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.ReshapeLayer.html#Deeploy.Targets.Generic.Layers.ReshapeLayer" title="Deeploy.Targets.Generic.Layers.ReshapeLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReshapeLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.SGDLayer.html#Deeploy.Targets.Generic.Layers.SGDLayer" title="Deeploy.Targets.Generic.Layers.SGDLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SGDLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.SliceLayer.html#Deeploy.Targets.Generic.Layers.SliceLayer" title="Deeploy.Targets.Generic.Layers.SliceLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SliceLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.SoftmaxCrossEntropyLossGradLayer.html#Deeploy.Targets.Generic.Layers.SoftmaxCrossEntropyLossGradLayer" title="Deeploy.Targets.Generic.Layers.SoftmaxCrossEntropyLossGradLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxCrossEntropyLossGradLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.SoftmaxCrossEntropyLossLayer.html#Deeploy.Targets.Generic.Layers.SoftmaxCrossEntropyLossLayer" title="Deeploy.Targets.Generic.Layers.SoftmaxCrossEntropyLossLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxCrossEntropyLossLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.SoftmaxGradLayer.html#Deeploy.Targets.Generic.Layers.SoftmaxGradLayer" title="Deeploy.Targets.Generic.Layers.SoftmaxGradLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxGradLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.SoftmaxLayer.html#Deeploy.Targets.Generic.Layers.SoftmaxLayer" title="Deeploy.Targets.Generic.Layers.SoftmaxLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoftmaxLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.SqrtLayer.html#Deeploy.Targets.Generic.Layers.SqrtLayer" title="Deeploy.Targets.Generic.Layers.SqrtLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SqrtLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.TransposeLayer.html#Deeploy.Targets.Generic.Layers.TransposeLayer" title="Deeploy.Targets.Generic.Layers.TransposeLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransposeLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.iHardswishLayer.html#Deeploy.Targets.Generic.Layers.iHardswishLayer" title="Deeploy.Targets.Generic.Layers.iHardswishLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iHardswishLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.iNoNormLayer.html#Deeploy.Targets.Generic.Layers.iNoNormLayer" title="Deeploy.Targets.Generic.Layers.iNoNormLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iNoNormLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Deeploy.Targets.Generic.Layers.iRMSNormLayer.html#Deeploy.Targets.Generic.Layers.iRMSNormLayer" title="Deeploy.Targets.Generic.Layers.iRMSNormLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iRMSNormLayer</span></code></a>(maps)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.Targets.Generic.Deployer.GenericDeployer.html" class="btn btn-neutral float-left" title="Deeploy.Targets.Generic.Deployer.GenericDeployer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.Targets.Generic.Layers.AddLayer.html" class="btn btn-neutral float-right" title="Deeploy.Targets.Generic.Layers.AddLayer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

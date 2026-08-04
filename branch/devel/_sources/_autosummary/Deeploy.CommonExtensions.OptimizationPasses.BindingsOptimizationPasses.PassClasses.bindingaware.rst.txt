@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.PassClasses.bindingaware
+===============================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.PassClasses
+
+.. autofunction:: bindingaware

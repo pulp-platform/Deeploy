@@ -1,0 +1,38 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.MemoryScheduler.MemoryBlock
+===================================================
+
+.. currentmodule:: Deeploy.TilingExtension.MemoryScheduler
+
+.. autoclass:: MemoryBlock
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryBlock.__init__
+      ~MemoryBlock.collides
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryBlock.addrSpace
+      ~MemoryBlock.lifetime
+      ~MemoryBlock.name
+      ~MemoryBlock.level
+   
+   

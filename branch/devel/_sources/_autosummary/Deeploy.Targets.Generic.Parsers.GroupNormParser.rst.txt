@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.GroupNormParser
+===============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: GroupNormParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GroupNormParser.__init__
+      ~GroupNormParser.parse
+      ~GroupNormParser.parseInputs
+      ~GroupNormParser.parseNode
+      ~GroupNormParser.parseNodeCtxt
+      ~GroupNormParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GroupNormParser.operatorRepresentation
+   
+   

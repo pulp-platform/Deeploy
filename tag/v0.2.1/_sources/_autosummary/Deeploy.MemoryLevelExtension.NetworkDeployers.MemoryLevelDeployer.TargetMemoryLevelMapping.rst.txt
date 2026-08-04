@@ -1,0 +1,29 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.TargetMemoryLevelMapping
+==========================================================================================
+
+.. currentmodule:: Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer
+
+.. autoclass:: TargetMemoryLevelMapping
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TargetMemoryLevelMapping.__init__
+      ~TargetMemoryLevelMapping.lookup
+   
+   
+
+   
+   
+   

@@ -1,0 +1,35 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint
+===========================================================
+
+.. automodule:: Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      UnaryTileConstraint
+   
+   
+
+   
+   
+   
+
+
+

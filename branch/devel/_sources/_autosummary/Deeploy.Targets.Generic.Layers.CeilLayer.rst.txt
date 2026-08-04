@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.CeilLayer
+========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: CeilLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CeilLayer.__init__
+      ~CeilLayer.bind
+      ~CeilLayer.broadcast
+      ~CeilLayer.codeTransform
+      ~CeilLayer.computeOps
+      ~CeilLayer.computeShapes
+      ~CeilLayer.discardCurrentMapper
+      ~CeilLayer.generate
+      ~CeilLayer.parse
+      ~CeilLayer.resetDiscardedMappers
+      ~CeilLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CeilLayer.maps
+      ~CeilLayer.mapper
+      ~CeilLayer.discardedMappers
+      ~CeilLayer.node
+   
+   

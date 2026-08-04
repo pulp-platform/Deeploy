@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.ReshapeChecker
+===================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: ReshapeChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ReshapeChecker.__init__
+      ~ReshapeChecker.annotateDict
+      ~ReshapeChecker.checkOutputType
+      ~ReshapeChecker.signature
+      ~ReshapeChecker.typeCheck
+      ~ReshapeChecker.typeCheckNodeInputs
+      ~ReshapeChecker.typeInferGlobalCtxt
+      ~ReshapeChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ReshapeChecker.typeDict
+   
+   

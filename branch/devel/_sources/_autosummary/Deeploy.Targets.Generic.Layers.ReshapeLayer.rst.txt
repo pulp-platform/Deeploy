@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.ReshapeLayer
+===========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: ReshapeLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ReshapeLayer.__init__
+      ~ReshapeLayer.bind
+      ~ReshapeLayer.broadcast
+      ~ReshapeLayer.codeTransform
+      ~ReshapeLayer.computeOps
+      ~ReshapeLayer.computeShapes
+      ~ReshapeLayer.discardCurrentMapper
+      ~ReshapeLayer.generate
+      ~ReshapeLayer.parse
+      ~ReshapeLayer.resetDiscardedMappers
+      ~ReshapeLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ReshapeLayer.maps
+      ~ReshapeLayer.mapper
+      ~ReshapeLayer.discardedMappers
+      ~ReshapeLayer.node
+   
+   

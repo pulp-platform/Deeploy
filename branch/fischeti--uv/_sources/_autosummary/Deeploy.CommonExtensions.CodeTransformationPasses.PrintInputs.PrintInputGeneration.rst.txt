@@ -1,0 +1,38 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.PrintInputGeneration
+==================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs
+
+.. autoclass:: PrintInputGeneration
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PrintInputGeneration.__init__
+      ~PrintInputGeneration.apply
+      ~PrintInputGeneration.dereferenceVars
+      ~PrintInputGeneration.extractDynamicReferences
+      ~PrintInputGeneration.indexVars
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PrintInputGeneration.parseTreeDict
+   
+   

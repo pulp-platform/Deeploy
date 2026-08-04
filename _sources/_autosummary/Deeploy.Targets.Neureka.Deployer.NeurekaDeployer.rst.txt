@@ -1,0 +1,58 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.Deployer.NeurekaDeployer
+================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.Deployer
+
+.. autoclass:: NeurekaDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NeurekaDeployer.__init__
+      ~NeurekaDeployer.annotateNCores
+      ~NeurekaDeployer.backEnd
+      ~NeurekaDeployer.bind
+      ~NeurekaDeployer.codeTransform
+      ~NeurekaDeployer.exportDeeployState
+      ~NeurekaDeployer.frontEnd
+      ~NeurekaDeployer.generateBufferAllocationCode
+      ~NeurekaDeployer.generateBufferDeAllocationCode
+      ~NeurekaDeployer.generateBufferInitializationCode
+      ~NeurekaDeployer.generateEngineInitializationCode
+      ~NeurekaDeployer.generateFunction
+      ~NeurekaDeployer.generateGlobalDefinitionCode
+      ~NeurekaDeployer.generateIOBufferInitializationCode
+      ~NeurekaDeployer.generateIncludeString
+      ~NeurekaDeployer.generateInferenceCode
+      ~NeurekaDeployer.generateInferenceInitializationCode
+      ~NeurekaDeployer.importDeeployState
+      ~NeurekaDeployer.inputs
+      ~NeurekaDeployer.lower
+      ~NeurekaDeployer.midEnd
+      ~NeurekaDeployer.numberOfOps
+      ~NeurekaDeployer.outputs
+      ~NeurekaDeployer.parse
+      ~NeurekaDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NeurekaDeployer.worstCaseBufferSize
+   
+   

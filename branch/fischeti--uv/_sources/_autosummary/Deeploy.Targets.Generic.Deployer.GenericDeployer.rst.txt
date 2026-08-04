@@ -1,0 +1,57 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Deployer.GenericDeployer
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Deployer
+
+.. autoclass:: GenericDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GenericDeployer.__init__
+      ~GenericDeployer.backEnd
+      ~GenericDeployer.bind
+      ~GenericDeployer.codeTransform
+      ~GenericDeployer.exportDeeployState
+      ~GenericDeployer.frontEnd
+      ~GenericDeployer.generateBufferAllocationCode
+      ~GenericDeployer.generateBufferDeAllocationCode
+      ~GenericDeployer.generateBufferInitializationCode
+      ~GenericDeployer.generateEngineInitializationCode
+      ~GenericDeployer.generateFunction
+      ~GenericDeployer.generateGlobalDefinitionCode
+      ~GenericDeployer.generateIOBufferInitializationCode
+      ~GenericDeployer.generateIncludeString
+      ~GenericDeployer.generateInferenceCode
+      ~GenericDeployer.generateInferenceInitializationCode
+      ~GenericDeployer.importDeeployState
+      ~GenericDeployer.inputs
+      ~GenericDeployer.lower
+      ~GenericDeployer.midEnd
+      ~GenericDeployer.numberOfOps
+      ~GenericDeployer.outputs
+      ~GenericDeployer.parse
+      ~GenericDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GenericDeployer.worstCaseBufferSize
+   
+   

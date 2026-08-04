@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Platform
+================================
+
+.. automodule:: Deeploy.Targets.Generic.Platform
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      GenericConstantBuffer
+      GenericEngine
+      GenericPlatform
+      GenericStructBuffer
+      GenericTransientBuffer
+      GenericVariableBuffer
+   
+   
+
+   
+   
+   
+
+
+

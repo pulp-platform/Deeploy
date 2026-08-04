@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Parsers.SnitchDivParser
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Parsers
+
+.. autoclass:: SnitchDivParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchDivParser.__init__
+      ~SnitchDivParser.parse
+      ~SnitchDivParser.parseInputs
+      ~SnitchDivParser.parseNode
+      ~SnitchDivParser.parseNodeCtxt
+      ~SnitchDivParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SnitchDivParser.operatorRepresentation
+   
+   

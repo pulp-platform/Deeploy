@@ -1,0 +1,29 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.EngineExtension.OptimizationPasses.TopologyOptimizationPasses.EngineColoringPasses.EngineMapper
+=======================================================================================================
+
+.. currentmodule:: Deeploy.EngineExtension.OptimizationPasses.TopologyOptimizationPasses.EngineColoringPasses
+
+.. autoclass:: EngineMapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~EngineMapper.__init__
+      ~EngineMapper.mapNodeToEngine
+   
+   
+
+   
+   
+   

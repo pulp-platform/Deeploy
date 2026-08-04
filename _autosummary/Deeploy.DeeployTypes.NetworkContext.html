@@ -1,0 +1,611 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.DeeployTypes.NetworkContext &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.DeeployTypes.NetworkDeployer" href="Deeploy.DeeployTypes.NetworkDeployer.html" />
+    <link rel="prev" title="Deeploy.DeeployTypes.NetworkContainer" href="Deeploy.DeeployTypes.NetworkContainer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.CodeGenVerbosity.html">Deeploy.DeeployTypes.CodeGenVerbosity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.CodeSnippet.html">Deeploy.DeeployTypes.CodeSnippet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.CodeTransformation.html">Deeploy.DeeployTypes.CodeTransformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.CodeTransformationPass.html">Deeploy.DeeployTypes.CodeTransformationPass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.ConstantBuffer.html">Deeploy.DeeployTypes.ConstantBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.DeploymentEngine.html">Deeploy.DeeployTypes.DeploymentEngine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.DeploymentPlatform.html">Deeploy.DeeployTypes.DeploymentPlatform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.ExecutionBlock.html">Deeploy.DeeployTypes.ExecutionBlock</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.GlobalDefinition.html">Deeploy.DeeployTypes.GlobalDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContainer.html">Deeploy.DeeployTypes.NetworkContainer</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Deeploy.DeeployTypes.NetworkContext</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkDeployer.html">Deeploy.DeeployTypes.NetworkDeployer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkOptimizationPass.html">Deeploy.DeeployTypes.NetworkOptimizationPass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkOptimizer.html">Deeploy.DeeployTypes.NetworkOptimizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeBinding.html">Deeploy.DeeployTypes.NodeBinding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeMapper.html">Deeploy.DeeployTypes.NodeMapper</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeParser.html">Deeploy.DeeployTypes.NodeParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html">Deeploy.DeeployTypes.NodeTemplate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTypeChecker.html">Deeploy.DeeployTypes.NodeTypeChecker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.ONNXLayer.html">Deeploy.DeeployTypes.ONNXLayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.StructBuffer.html">Deeploy.DeeployTypes.StructBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.TopologyOptimizationPass.html">Deeploy.DeeployTypes.TopologyOptimizationPass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.TopologyOptimizer.html">Deeploy.DeeployTypes.TopologyOptimizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.TransientBuffer.html">Deeploy.DeeployTypes.TransientBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html">Deeploy.DeeployTypes.VariableBuffer</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+      <li class="breadcrumb-item active">Deeploy.DeeployTypes.NetworkContext</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.DeeployTypes.NetworkContext.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-deeploytypes-networkcontext">
+<h1>Deeploy.DeeployTypes.NetworkContext<a class="headerlink" href="#deeploy-deeploytypes-networkcontext" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.DeeployTypes.</span></span><span class="sig-name descname"><span class="pre">NetworkContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variableBuffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constantBuffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.ConstantBuffer.html#Deeploy.DeeployTypes.ConstantBuffer" title="Deeploy.DeeployTypes.ConstantBuffer"><span class="pre">ConstantBuffer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structBuffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.StructBuffer.html#Deeploy.DeeployTypes.StructBuffer" title="Deeploy.DeeployTypes.StructBuffer"><span class="pre">StructBuffer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transientBuffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.TransientBuffer.html#Deeploy.DeeployTypes.TransientBuffer" title="Deeploy.DeeployTypes.TransientBuffer"><span class="pre">TransientBuffer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">globalObjects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">localObjects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DeeployNetwork'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The global context of the compiler. This object holds all the typing inferred in the type-checking passes within the respective buffers. It holds all hoisted transient buffers, struct buffers, and global definitions. The context is the source of truth for all code generation in the backend.</p>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variableBuffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constantBuffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.ConstantBuffer.html#Deeploy.DeeployTypes.ConstantBuffer" title="Deeploy.DeeployTypes.ConstantBuffer"><span class="pre">ConstantBuffer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structBuffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.StructBuffer.html#Deeploy.DeeployTypes.StructBuffer" title="Deeploy.DeeployTypes.StructBuffer"><span class="pre">StructBuffer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transientBuffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.TransientBuffer.html#Deeploy.DeeployTypes.TransientBuffer" title="Deeploy.DeeployTypes.TransientBuffer"><span class="pre">TransientBuffer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">globalObjects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">localObjects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DeeployNetwork'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.__init__" title="Deeploy.DeeployTypes.NetworkContext.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(variableBuffer, constantBuffer, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.add" title="Deeploy.DeeployTypes.NetworkContext.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></a>(obj[, ctxt, _id])</p></td>
+<td><p>Adds a VariableBuffer object to the NetworkContext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.addUser" title="Deeploy.DeeployTypes.NetworkContext.addUser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">addUser</span></code></a>(name, node)</p></td>
+<td><p>Adds an operator's name to the _user list of a VariableBuffer in the context</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.annotateType" title="Deeploy.DeeployTypes.NetworkContext.annotateType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotateType</span></code></a>(name, _type)</p></td>
+<td><p>Annotates a Deeploy-type pointer on the _type field of a VariableBuffer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.copy" title="Deeploy.DeeployTypes.NetworkContext.copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a>()</p></td>
+<td><p>Return a shallow copy of this NetworkContext</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.dealiasBuffer" title="Deeploy.DeeployTypes.NetworkContext.dealiasBuffer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dealiasBuffer</span></code></a>(name)</p></td>
+<td><p>Function to find the underlying aliased VariableBuffer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.exportNetworkContext" title="Deeploy.DeeployTypes.NetworkContext.exportNetworkContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportNetworkContext</span></code></a>(folderPath, fileName)</p></td>
+<td><p>Exports the NetworkContext as a pickled dictionary</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.hoistConstant" title="Deeploy.DeeployTypes.NetworkContext.hoistConstant"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hoistConstant</span></code></a>(constant[, name, _type])</p></td>
+<td><p>Register a ConstantBuffer extracted directly from a graphsurgeon Constant</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.hoistConstantAndReference" title="Deeploy.DeeployTypes.NetworkContext.hoistConstantAndReference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hoistConstantAndReference</span></code></a>(constBuf, pointerType)</p></td>
+<td><p>Helper function to hoist a new ConstantBuffer and a _ReferenceBuffer to it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.hoistGlobalDefinition" title="Deeploy.DeeployTypes.NetworkContext.hoistGlobalDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hoistGlobalDefinition</span></code></a>(name, definition)</p></td>
+<td><p>Registers a new GlobalDefinition in the global context</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.hoistReference" title="Deeploy.DeeployTypes.NetworkContext.hoistReference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hoistReference</span></code></a>(name, reference[, shape, ...])</p></td>
+<td><p>Helper function to register a _ReferenceBuffer to a preexisting VariableBuffer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.hoistStruct" title="Deeploy.DeeployTypes.NetworkContext.hoistStruct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hoistStruct</span></code></a>(_struct, name, _type)</p></td>
+<td><p>Register a Struct with the local context</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.hoistTransientBuffer" title="Deeploy.DeeployTypes.NetworkContext.hoistTransientBuffer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hoistTransientBuffer</span></code></a>(name, size)</p></td>
+<td><p>Registers a new TransientBuffer in the local context</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.importNetworkContext" title="Deeploy.DeeployTypes.NetworkContext.importNetworkContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">importNetworkContext</span></code></a>(folderPath, fileName)</p></td>
+<td><p>Imports a pickled NetworkContext that was saved using exportNetworkContext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.is_buffer" title="Deeploy.DeeployTypes.NetworkContext.is_buffer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_buffer</span></code></a>(value)</p></td>
+<td><p>Checks whether a value is an existing buffer name</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.is_global" title="Deeploy.DeeployTypes.NetworkContext.is_global"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_global</span></code></a>(name)</p></td>
+<td><p>Checks whether a name is associated with a global buffer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.is_local" title="Deeploy.DeeployTypes.NetworkContext.is_local"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_local</span></code></a>(name)</p></td>
+<td><p>Checks whether a name is associated with a local buffer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.is_object" title="Deeploy.DeeployTypes.NetworkContext.is_object"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_object</span></code></a>(value)</p></td>
+<td><p>Checks whether a value is an existing object name</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.lookup" title="Deeploy.DeeployTypes.NetworkContext.lookup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lookup</span></code></a>(name[, _id])</p></td>
+<td><p>Returns the VariableBuffer or GlobalDefinition registered under a given name</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext.unravelReference" title="Deeploy.DeeployTypes.NetworkContext.unravelReference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unravelReference</span></code></a>(ref)</p></td>
+<td><p>Function to find the underlying referenced VariableBuffer</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.dealiasBuffer">
+<span class="sig-name descname"><span class="pre">dealiasBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.dealiasBuffer" title="Link to this definition"></a></dt>
+<dd><p>Function to find the underlying aliased VariableBuffer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of the VariableBuffer to dealias</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Name of the original VariableBuffer that was referenced</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – Raises an Exception if aliases are circular</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.unravelReference">
+<span class="sig-name descname"><span class="pre">unravelReference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.unravelReference" title="Link to this definition"></a></dt>
+<dd><p>Function to find the underlying referenced VariableBuffer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ref</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><em>VariableBuffer</em></a>) – Buffer to unravel</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Name of the original VariableBuffer that was referenced</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – Raises an Exception if references are circular</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.exportNetworkContext">
+<span class="sig-name descname"><span class="pre">exportNetworkContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folderPath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.exportNetworkContext" title="Link to this definition"></a></dt>
+<dd><p>Exports the NetworkContext as a pickled dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folderPath</strong> (<em>str</em>) – Path to the location where this pickled context should be
+saved</p></li>
+<li><p><strong>fileName</strong> (<em>str</em>) – Name of the pickled context file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OSError</strong> – Raises an OSError if the path is not valid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.importNetworkContext">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">importNetworkContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folderPath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.importNetworkContext" title="Link to this definition"></a></dt>
+<dd><p>Imports a pickled NetworkContext that was saved using exportNetworkContext</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folderPath</strong> (<em>str</em>) – Path to the location where the pickled context is stored</p></li>
+<li><p><strong>fileName</strong> (<em>str</em>) – Name of the pickled context file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OSError</strong> – Raises in OSError if the pickled context file does not
+    exist</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'local'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'global'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'local'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.add" title="Link to this definition"></a></dt>
+<dd><p>Adds a VariableBuffer object to the NetworkContext</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><em>VariableBuffer</em></a>) – The VariableBuffer object to be registered</p></li>
+<li><p><strong>ctxt</strong> (<em>str</em>) – Level of the NetworkContext to register the VariableBuffer in, either local or global</p></li>
+<li><p><strong>_id</strong> (<em>str</em>) – Override for the registration name of the
+VariableBuffer. Do not use unless you have a good reason!</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – Raises a ValueError if ctxt is not local or global</p></li>
+<li><p><strong>KeyError</strong> – Raises a KeyError if the VariableBuffer’s name is already
+    registered within the NetworkContext</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.lookup">
+<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.DeeployTypes.GlobalDefinition.html#Deeploy.DeeployTypes.GlobalDefinition" title="Deeploy.DeeployTypes.GlobalDefinition"><span class="pre">GlobalDefinition</span></a></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.lookup" title="Link to this definition"></a></dt>
+<dd><p>Returns the VariableBuffer or GlobalDefinition registered under a given name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the VariableBuffer to look up</p></li>
+<li><p><strong>_id</strong> (<em>str</em>) – Override for the registration name of the
+VariableBuffer. Do not use unless you have a good reason!</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Registered buffer object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[<a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer">VariableBuffer</a>, <a class="reference internal" href="Deeploy.DeeployTypes.GlobalDefinition.html#Deeploy.DeeployTypes.GlobalDefinition" title="Deeploy.DeeployTypes.GlobalDefinition">GlobalDefinition</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – Raises a KeyError if the name does not match with any
+    registered object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.is_global">
+<span class="sig-name descname"><span class="pre">is_global</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.is_global" title="Link to this definition"></a></dt>
+<dd><p>Checks whether a name is associated with a global buffer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of the VariableBuffer to check for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns true if the name matches with any global buffer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.is_local">
+<span class="sig-name descname"><span class="pre">is_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.is_local" title="Link to this definition"></a></dt>
+<dd><p>Checks whether a name is associated with a local buffer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of the VariableBuffer to check for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns ture if the name matches with any local buffer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.is_object">
+<span class="sig-name descname"><span class="pre">is_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.is_object" title="Link to this definition"></a></dt>
+<dd><p>Checks whether a value is an existing object name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>Any</em>) – Value to check</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns ture if the value is an existing buffer name</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.is_buffer">
+<span class="sig-name descname"><span class="pre">is_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.is_buffer" title="Link to this definition"></a></dt>
+<dd><p>Checks whether a value is an existing buffer name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>Any</em>) – Value to check</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns ture if the value is an existing buffer name</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.hoistTransientBuffer">
+<span class="sig-name descname"><span class="pre">hoistTransientBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.hoistTransientBuffer" title="Link to this definition"></a></dt>
+<dd><p>Registers a new TransientBuffer in the local context</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the TransientBuffer to register</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – BYTE size of the TransientBuffer to register</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>On success, return the name of the registered buffer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.hoistGlobalDefinition">
+<span class="sig-name descname"><span class="pre">hoistGlobalDefinition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">definition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.hoistGlobalDefinition" title="Link to this definition"></a></dt>
+<dd><p>Registers a new GlobalDefinition in the global context</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the GlobalDefinition to register</p></li>
+<li><p><strong>definition</strong> (<em>str</em>) – Program code of the GlobalDefinition</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.hoistStruct">
+<span class="sig-name descname"><span class="pre">hoistStruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_struct</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><span class="pre">BaseType</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><span class="pre">Struct</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><span class="pre">Struct</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.hoistStruct" title="Link to this definition"></a></dt>
+<dd><p>Register a Struct with the local context</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_struct</strong> (<em>Union</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><em>BaseType</em></a><em>]</em><em>, </em><a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><em>Struct</em></a><em>]</em>) – Struct object or Struct object’s definition</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name to register the struct under</p></li>
+<li><p><strong>_type</strong> (<em>Type</em><em>[</em><a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><em>Struct</em></a><em>]</em>) – Type definition of the Struct class to register</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>On success, return the name of the registered buffer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.hoistConstantAndReference">
+<span class="sig-name descname"><span class="pre">hoistConstantAndReference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constBuf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.ConstantBuffer.html#Deeploy.DeeployTypes.ConstantBuffer" title="Deeploy.DeeployTypes.ConstantBuffer"><span class="pre">ConstantBuffer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pointerType</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.AbstractDataTypes.Pointer.html#Deeploy.AbstractDataTypes.Pointer" title="Deeploy.AbstractDataTypes.Pointer"><span class="pre">Pointer</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.hoistConstantAndReference" title="Link to this definition"></a></dt>
+<dd><p>Helper function to hoist a new ConstantBuffer and a _ReferenceBuffer to it. Mostly used in tiling to create boilerplate for tiled variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constBuf</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.ConstantBuffer.html#Deeploy.DeeployTypes.ConstantBuffer" title="Deeploy.DeeployTypes.ConstantBuffer"><em>ConstantBuffer</em></a>) – ConstantBuffer to hoist</p></li>
+<li><p><strong>pointerType</strong> (<em>Type</em><em>[</em><a class="reference internal" href="Deeploy.AbstractDataTypes.Pointer.html#Deeploy.AbstractDataTypes.Pointer" title="Deeploy.AbstractDataTypes.Pointer"><em>Pointer</em></a><em>]</em>) – Pointer class to assign to the constant buffer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>name of the registered _ReferenceBuffer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.hoistReference">
+<span class="sig-name descname"><span class="pre">hoistReference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(1,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><span class="pre">VariableBuffer</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><span class="pre">BaseType</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_ReferenceBuffer</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.hoistReference" title="Link to this definition"></a></dt>
+<dd><p>Helper function to register a _ReferenceBuffer to a preexisting VariableBuffer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the _ReferenceBuffer to register</p></li>
+<li><p><strong>reference</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><em>VariableBuffer</em></a>) – Referenced VariableBuffer</p></li>
+<li><p><strong>shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>) – Shape of the _ReferenceBuffer</p></li>
+<li><p><strong>offset</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>str</em><em>, </em><a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><em>VariableBuffer</em></a><em>]</em>) – Offset from the reference</p></li>
+<li><p><strong>override_type</strong> (<em>Optional</em><em>[</em><em>Type</em><em>[</em><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><em>BaseType</em></a><em>]</em><em>]</em>) – Optional argument to override the reference type</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns the newly registered _ReferenceBuffer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_ReferenceBuffer</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.hoistConstant">
+<span class="sig-name descname"><span class="pre">hoistConstant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Constant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.AbstractDataTypes.Pointer.html#Deeploy.AbstractDataTypes.Pointer" title="Deeploy.AbstractDataTypes.Pointer"><span class="pre">Pointer</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.hoistConstant" title="Link to this definition"></a></dt>
+<dd><p>Register a ConstantBuffer extracted directly from a graphsurgeon Constant</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constant</strong> (<em>gs.Constant</em>) – graphsurgeon.Node containing a single constant output</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the ConstantBuffer to be registered</p></li>
+<li><p><strong>_type</strong> (<em>Optional</em><em>[</em><em>Type</em><em>[</em><a class="reference internal" href="Deeploy.AbstractDataTypes.Pointer.html#Deeploy.AbstractDataTypes.Pointer" title="Deeploy.AbstractDataTypes.Pointer"><em>Pointer</em></a><em>]</em><em>]</em>) – Optional type assignment of the registered ConstantBuffer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns the name of the newly registed ConstantBuffer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.addUser">
+<span class="sig-name descname"><span class="pre">addUser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.addUser" title="Link to this definition"></a></dt>
+<dd><p>Adds an operator’s name to the _user list of a VariableBuffer in the context</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the VariableBuffer that gets used by the node</p></li>
+<li><p><strong>node</strong> (<em>gs.Node</em>) – graphsurgeon Node of the operator</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.annotateType">
+<span class="sig-name descname"><span class="pre">annotateType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.AbstractDataTypes.Pointer.html#Deeploy.AbstractDataTypes.Pointer" title="Deeploy.AbstractDataTypes.Pointer"><span class="pre">Pointer</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.annotateType" title="Link to this definition"></a></dt>
+<dd><p>Annotates a Deeploy-type pointer on the _type field of a VariableBuffer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the VariableBuffer to annotate</p></li>
+<li><p><strong>_type</strong> (<em>Type</em><em>[</em><a class="reference internal" href="Deeploy.AbstractDataTypes.Pointer.html#Deeploy.AbstractDataTypes.Pointer" title="Deeploy.AbstractDataTypes.Pointer"><em>Pointer</em></a><em>]</em>) – Type of the Deeploy-type pointer to annotate the
+VariableBuffer with</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.DeeployTypes.NetworkContext.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></span><a class="headerlink" href="#Deeploy.DeeployTypes.NetworkContext.copy" title="Link to this definition"></a></dt>
+<dd><p>Return a shallow copy of this NetworkContext</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.DeeployTypes.NetworkContainer.html" class="btn btn-neutral float-left" title="Deeploy.DeeployTypes.NetworkContainer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.DeeployTypes.NetworkDeployer.html" class="btn btn-neutral float-right" title="Deeploy.DeeployTypes.NetworkDeployer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

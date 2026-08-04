@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.ONNXLayer
+==============================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: ONNXLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ONNXLayer.__init__
+      ~ONNXLayer.bind
+      ~ONNXLayer.broadcast
+      ~ONNXLayer.codeTransform
+      ~ONNXLayer.computeOps
+      ~ONNXLayer.computeShapes
+      ~ONNXLayer.discardCurrentMapper
+      ~ONNXLayer.generate
+      ~ONNXLayer.parse
+      ~ONNXLayer.resetDiscardedMappers
+      ~ONNXLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ONNXLayer.maps
+      ~ONNXLayer.mapper
+      ~ONNXLayer.discardedMappers
+      ~ONNXLayer.node
+   
+   

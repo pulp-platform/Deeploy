@@ -1,0 +1,29 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPMicrobenchmark.PULPMicrobenchmark
+=======================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPMicrobenchmark
+
+.. autoclass:: PULPMicrobenchmark
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPMicrobenchmark.__init__
+      ~PULPMicrobenchmark.apply
+   
+   
+
+   
+   
+   

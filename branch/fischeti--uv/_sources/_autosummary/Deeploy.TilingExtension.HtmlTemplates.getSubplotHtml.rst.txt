@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.HtmlTemplates.getSubplotHtml
+====================================================
+
+.. currentmodule:: Deeploy.TilingExtension.HtmlTemplates
+
+.. autofunction:: getSubplotHtml

@@ -1,0 +1,27 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Templates.FloatLayernormTemplate
+========================================================
+
+.. automodule:: Deeploy.Targets.Generic.Templates.FloatLayernormTemplate
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

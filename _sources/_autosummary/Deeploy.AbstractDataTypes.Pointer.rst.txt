@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.AbstractDataTypes.Pointer
+=================================
+
+.. currentmodule:: Deeploy.AbstractDataTypes
+
+.. autoclass:: Pointer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~Pointer.__init__
+      ~Pointer.checkPromotion
+      ~Pointer.checkValue
+      ~Pointer.fitsNumLevels
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Pointer.referenceName
+      ~Pointer.typeName
+      ~Pointer.value
+      ~Pointer.referencedType
+      ~Pointer.typeWidth
+   
+   

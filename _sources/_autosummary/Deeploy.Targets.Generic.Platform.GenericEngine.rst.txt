@@ -1,0 +1,37 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Platform.GenericEngine
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Platform
+
+.. autoclass:: GenericEngine
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GenericEngine.__init__
+      ~GenericEngine.canExecute
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GenericEngine.name
+      ~GenericEngine.Mapping
+      ~GenericEngine.includeList
+   
+   

@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.Templates.ConvTemplate.Neureka2DDWConvTemplate
+======================================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.Templates.ConvTemplate
+
+.. autoclass:: Neureka2DDWConvTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~Neureka2DDWConvTemplate.__init__
+      ~Neureka2DDWConvTemplate.alignToContext
+      ~Neureka2DDWConvTemplate.computeTransientBuffersSize
+      ~Neureka2DDWConvTemplate.generate
+      ~Neureka2DDWConvTemplate.getConf0
+      ~Neureka2DDWConvTemplate.getCounters
+      ~Neureka2DDWConvTemplate.getWeightStrides
+      ~Neureka2DDWConvTemplate.hoistTransientBuffers
+      ~Neureka2DDWConvTemplate.internalSize
+   
+   
+
+   
+   
+   

@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.DataTypes.cmsis\_nn\_per\_channel\_quant\_params
+========================================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.DataTypes
+
+.. autoclass:: cmsis_nn_per_channel_quant_params
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~cmsis_nn_per_channel_quant_params.__init__
+      ~cmsis_nn_per_channel_quant_params.checkPromotion
+      ~cmsis_nn_per_channel_quant_params.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~cmsis_nn_per_channel_quant_params.value
+      ~cmsis_nn_per_channel_quant_params.structTypeDict
+      ~cmsis_nn_per_channel_quant_params.typeName
+      ~cmsis_nn_per_channel_quant_params.typeWidth
+   
+   

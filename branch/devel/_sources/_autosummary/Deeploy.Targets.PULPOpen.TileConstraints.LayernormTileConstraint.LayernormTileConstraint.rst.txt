@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint.LayernormTileConstraint
+========================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.LayernormTileConstraint
+
+.. autoclass:: LayernormTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~LayernormTileConstraint.__init__
+      ~LayernormTileConstraint.addGeometricalConstraint
+      ~LayernormTileConstraint.addPolicyConstraint
+      ~LayernormTileConstraint.constructSymbolicNodeRep
+      ~LayernormTileConstraint.extractBaseAddr
+      ~LayernormTileConstraint.getBaseAddr
+      ~LayernormTileConstraint.sanitizeTilingSchedule
+      ~LayernormTileConstraint.serializeTilingSolution
+      ~LayernormTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

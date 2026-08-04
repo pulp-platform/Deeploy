@@ -1,0 +1,813 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neural Network Deeployment on the PULP Platform &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Debugging" href="debugging.html" />
+    <link rel="prev" title="Tutorials" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="overview.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Neural Network Deeployment on the PULP Platform</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation-socdaml-course">Installation (SoCDAML course)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#choose-a-writable-scratch-directory-and-move-every-cache-off-your-home">1. Choose a writable scratch directory, and move every cache off your home</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#clone-the-lab-branch-on-the-host">2. Clone the lab branch on the host</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#build-the-writable-singularity-sandbox">3. Build the writable Singularity sandbox</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pre-create-the-bind-mount-targets-inside-the-sandbox">4. Pre-create the bind-mount targets inside the sandbox</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spawn-a-shell-in-the-container-with-your-deeploy-clone-bind-mounted">5. Spawn a shell in the container, with your Deeploy clone bind-mounted</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#install-deeploy-in-editable-mode">6. Install Deeploy in editable mode</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#deeploy-101">Deeploy 101</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#micro-llama-on-siracusa">Micro Llama on Siracusa</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#transformers-101">Transformers 101</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-siracusa-platform">The Siracusa Platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tiling-basics">Tiling Basics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#profiling-the-execution">Profiling the Execution</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-the-npu-and-the-neural-memory-subsystem-nms">Using the NPU and the Neural Memory Subsystem (NMS)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-a-new-operator">Adding a New Operator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-operator">The operator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#what-we-provide">What we provide</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-1-generate-the-onnx-graph-golden-values">Step 1: Generate the ONNX graph + golden values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-2-write-the-parser">Step 2: Write the parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-3-write-the-c-kernel-plain-c">Step 3: Write the C kernel (plain C)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-4-template-binding-mapper">Step 4: Template, binding, mapper</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-5-tiling-constraint">Step 5: Tiling constraint</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-6-add-a-performance-constraint-then-go-simd">Step 6: Add a performance constraint, then go SIMD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stacked-speedup">Stacked speedup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="microbenchmark.html">Microbenchmark</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="overview.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Neural Network Deeployment on the PULP Platform</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/introduction.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+ <img src="../_static/tutorials/introduction/EthLogoPos.png" alt="Image" width="300">
+ <div style="text-align: right;">
+ <p>Institut für Integrierte Systeme <br>
+ Integrated Systems Laboratory</p>
+ </div>
+</div>
+<section class="tex2jax_ignore mathjax_ignore" id="neural-network-deeployment-on-the-pulp-platform">
+<h1>Neural Network Deeployment on the PULP Platform<a class="headerlink" href="#neural-network-deeployment-on-the-pulp-platform" title="Link to this heading"></a></h1>
+<p>Author: <em>Victor J.B Jung</em> <br>
+<em>Viviane Potocnik</em> (Part III) <br>
+Date: 27th May 2025 (Parts I–II) · 28th May 2026 (Part III)</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p><strong>⚠️ DISCLAIMER: The current container and commit are from main and devel, they will be tagged in the next release</strong></p>
+<p>Clone Deeploy and its submodules:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pulp</span><span class="o">-</span><span class="n">platform</span><span class="o">/</span><span class="n">Deeploy</span><span class="o">.</span><span class="n">git</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="n">Deeploy</span>
+<span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="o">--</span><span class="n">recursive</span>
+</pre></div>
+</div>
+<p>Pull the docker image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">pull</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">pulp</span><span class="o">-</span><span class="n">platform</span><span class="o">/</span><span class="n">deeploy</span><span class="p">:</span><span class="n">main</span>
+</pre></div>
+</div>
+<p>Run the container and bind Deeploy’s folder in the container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docker run -it --name deeploy_main -v $(pwd):/app/Deeploy ghcr.io/pulp-platform/deeploy:main
+</pre></div>
+</div>
+<p>Install Deeploy inside the container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">Deeploy</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>From the <code class="docutils literal notranslate"><span class="pre">DeeployTest</span></code> folder, you can use the <code class="docutils literal notranslate"><span class="pre">deeployRunner</span></code> to compile ONNXs and execute the output code using the appropriate simulators.</p>
+<p>To validate your installation, you can run a simple Add node on each platform:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">deeployRunner_generic</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">t</span> <span class="n">Tests</span><span class="o">/</span><span class="n">Kernels</span><span class="o">/</span><span class="n">Integer</span><span class="o">/</span><span class="n">Add</span><span class="o">/</span><span class="n">Regular</span>
+<span class="n">python</span> <span class="n">deeployRunner_cortexm</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">t</span> <span class="n">Tests</span><span class="o">/</span><span class="n">Kernels</span><span class="o">/</span><span class="n">Integer</span><span class="o">/</span><span class="n">Add</span><span class="o">/</span><span class="n">Regular</span>
+<span class="n">python</span> <span class="n">deeployRunner_mempool</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">t</span> <span class="n">Tests</span><span class="o">/</span><span class="n">Kernels</span><span class="o">/</span><span class="n">Integer</span><span class="o">/</span><span class="n">Add</span><span class="o">/</span><span class="n">Regular</span>
+<span class="n">python</span> <span class="n">deeployRunner_snitch</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">t</span> <span class="n">Tests</span><span class="o">/</span><span class="n">Kernels</span><span class="o">/</span><span class="n">Integer</span><span class="o">/</span><span class="n">Add</span><span class="o">/</span><span class="n">Regular</span>
+<span class="n">python</span> <span class="n">deeployRunner_siracusa</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">t</span> <span class="n">Tests</span><span class="o">/</span><span class="n">Kernels</span><span class="o">/</span><span class="n">Integer</span><span class="o">/</span><span class="n">Add</span><span class="o">/</span><span class="n">Regular</span> <span class="o">--</span><span class="n">cores</span><span class="o">=</span><span class="mi">8</span>
+</pre></div>
+</div>
+<p>Once all these basic tests are passed, we can jump into the basics of Deeploy.</p>
+</section>
+<section id="installation-socdaml-course">
+<h2>Installation (SoCDAML course)<a class="headerlink" href="#installation-socdaml-course" title="Link to this heading"></a></h2>
+<p>Students in ETH Zürich’s <em>Systems-on-Chip for Data Analytics and Machine Learning</em> course use Singularity instead of Docker, because the lab machines don’t expose the Docker daemon. <strong>Each student builds their own writable sandbox in their scratch directory</strong>.</p>
+<p>The Singularity equivalent of the Docker command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--name<span class="w"> </span>deeploy_main<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/app/Deeploy<span class="w"> </span>ghcr.io/pulp-platform/deeploy:main
+</pre></div>
+</div>
+<p>is the six-step sequence below. The key part of the translation: Docker’s <code class="docutils literal notranslate"><span class="pre">-v</span> <span class="pre">$(pwd):/app/Deeploy</span></code> (bind-mount the host clone) becomes Singularity’s <code class="docutils literal notranslate"><span class="pre">--bind</span> <span class="pre">&quot;$SCRATCH/Deeploy:/app/Deeploy&quot;</span></code>.</p>
+<section id="choose-a-writable-scratch-directory-and-move-every-cache-off-your-home">
+<h3>1. Choose a writable scratch directory, and move every cache off your home<a class="headerlink" href="#choose-a-writable-scratch-directory-and-move-every-cache-off-your-home" title="Link to this heading"></a></h3>
+<p>On most lab machines this is <code class="docutils literal notranslate"><span class="pre">/scratch/$USER</span></code>. If it doesn’t exist for you, fall back to a subdirectory of the course scratch:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">SCRATCH</span><span class="o">=</span>/scratch/<span class="nv">$USER</span>
+<span class="o">[</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">SCRATCH</span><span class="o">=</span>/scratch/deeploy/<span class="nv">$USER</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">&quot;</span>
+
+<span class="c1"># Keep the big caches on scratch. Apptainer reads APPTAINER_CACHEDIR and only</span>
+<span class="c1"># accepts the SINGULARITY_ spelling as a deprecated fallback, so set both.</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">APPTAINER_CACHEDIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/.singularity_cache&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SINGULARITY_CACHEDIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/.singularity_cache&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CCACHE_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/.ccache&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PIP_CACHE_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/.pip_cache&quot;</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CCACHE_DIR</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PIP_CACHE_DIR</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>⚠️ <strong>Do not skip the exports.</strong> <code class="docutils literal notranslate"><span class="pre">singularity</span> <span class="pre">build</span></code> stages the image layers through
+<code class="docutils literal notranslate"><span class="pre">SINGULARITY_CACHEDIR</span></code>, which defaults to <code class="docutils literal notranslate"><span class="pre">$HOME/.singularity/cache</span></code>. On a quota’d
+home the build aborts partway through with
+<code class="docutils literal notranslate"><span class="pre">FATAL:</span> <span class="pre">While</span> <span class="pre">performing</span> <span class="pre">build:</span> <span class="pre">conveyor</span> <span class="pre">failed</span> <span class="pre">to</span> <span class="pre">get:</span> <span class="pre">error</span> <span class="pre">writing</span> <span class="pre">layer:</span> <span class="pre">...</span> <span class="pre">disk</span> <span class="pre">quota</span> <span class="pre">exceeded</span></code>.
+The container’s <code class="docutils literal notranslate"><span class="pre">ccache</span></code> is likewise configured for <code class="docutils literal notranslate"><span class="pre">$HOME/.ccache</span></code> with a 5 GB
+ceiling, and it will quietly consume your entire quota across a few builds, because
+Singularity mounts your real <code class="docutils literal notranslate"><span class="pre">$HOME</span></code> inside the container even under <code class="docutils literal notranslate"><span class="pre">--cleanenv</span></code>.</p>
+<p>The exports above protect the <strong>host</strong> side only: the <code class="docutils literal notranslate"><span class="pre">build</span></code> in step 3 runs outside
+the container, so it picks them up. They do <em>not</em> reach the container shell, because
+<code class="docutils literal notranslate"><span class="pre">--cleanenv</span></code> deliberately drops the host environment. That is why step 5 binds the two
+cache directories into the sandbox and re-injects the variables with <code class="docutils literal notranslate"><span class="pre">--env</span></code>; skipping
+those flags puts <code class="docutils literal notranslate"><span class="pre">ccache</span></code> and <code class="docutils literal notranslate"><span class="pre">pip</span></code> straight back onto your home quota.</p>
+</div></blockquote>
+<p>Budget roughly <strong>35 GB of scratch</strong> in total: about 8 GB for the sandbox itself plus
+about 26 GB of image cache. The cache is only needed for the build and can be deleted
+afterwards with <code class="docutils literal notranslate"><span class="pre">rm</span> <span class="pre">-rf</span> <span class="pre">&quot;$SINGULARITY_CACHEDIR&quot;</span></code>.</p>
+</section>
+<section id="clone-the-lab-branch-on-the-host">
+<h3>2. Clone the lab branch on the host<a class="headerlink" href="#clone-the-lab-branch-on-the-host" title="Link to this heading"></a></h3>
+<p>This keeps your edits visible outside the container, exactly like the host clone you’d use with Docker:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span>fs26ex<span class="w"> </span>https://github.com/viv-eth/Deeploy.git
+<span class="nb">cd</span><span class="w"> </span>Deeploy<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+</pre></div>
+</div>
+</section>
+<section id="build-the-writable-singularity-sandbox">
+<h3>3. Build the writable Singularity sandbox<a class="headerlink" href="#build-the-writable-singularity-sandbox" title="Link to this heading"></a></h3>
+<p>Pull the public Deeploy Docker image and convert it into a writable sandbox under your scratch (takes ~5-10 min the first time):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>build<span class="w"> </span>--sandbox<span class="w"> </span>DeeployContainer/<span class="w"> </span>docker://ghcr.io/pulp-platform/deeploy:main
+</pre></div>
+</div>
+</section>
+<section id="pre-create-the-bind-mount-targets-inside-the-sandbox">
+<h3>4. Pre-create the bind-mount targets inside the sandbox<a class="headerlink" href="#pre-create-the-bind-mount-targets-inside-the-sandbox" title="Link to this heading"></a></h3>
+<p>Writable Singularity sandboxes don’t auto-create bind-mount targets (read-only <code class="docutils literal notranslate"><span class="pre">.sif</span></code> images do, via overlay). The Deeploy image has <code class="docutils literal notranslate"><span class="pre">/app/</span></code> but no <code class="docutils literal notranslate"><span class="pre">/app/Deeploy/</span></code> subdirectory, and it has no mount points for the caches either, so create all three once:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/DeeployContainer/app/Deeploy&quot;</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/DeeployContainer/ccache&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/DeeployContainer/pipcache&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="spawn-a-shell-in-the-container-with-your-deeploy-clone-bind-mounted">
+<h3>5. Spawn a shell in the container, with your Deeploy clone bind-mounted<a class="headerlink" href="#spawn-a-shell-in-the-container-with-your-deeploy-clone-bind-mounted" title="Link to this heading"></a></h3>
+<p>You <strong>must</strong> have completed steps 3 and 4 before this works.<code class="docutils literal notranslate"><span class="pre">singularity</span> <span class="pre">shell</span></code> opens an <em>existing</em> sandbox, it doesn’t create one. Re-run this command every time you log back in:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>shell<span class="w"> </span>--bind<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/Deeploy:/app/Deeploy&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">                  </span>--bind<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CCACHE_DIR</span><span class="s2">:/ccache&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">                  </span>--bind<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PIP_CACHE_DIR</span><span class="s2">:/pipcache&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">                  </span>--writable<span class="w"> </span>--cleanenv<span class="w"> </span><span class="se">\</span>
+<span class="w">                  </span>--env<span class="w"> </span><span class="nv">CCACHE_DIR</span><span class="o">=</span>/ccache<span class="w"> </span><span class="se">\</span>
+<span class="w">                  </span>--env<span class="w"> </span><span class="nv">PIP_CACHE_DIR</span><span class="o">=</span>/pipcache<span class="w"> </span><span class="se">\</span>
+<span class="w">                  </span><span class="s2">&quot;</span><span class="nv">$SCRATCH</span><span class="s2">/DeeployContainer/&quot;</span>
+</pre></div>
+</div>
+<p>The first <code class="docutils literal notranslate"><span class="pre">--bind</span></code> mounts your host clone at <code class="docutils literal notranslate"><span class="pre">/app/Deeploy</span></code> inside the container, i.e.the direct equivalent of Docker’s <code class="docutils literal notranslate"><span class="pre">-v</span></code> flag. The other two put the <code class="docutils literal notranslate"><span class="pre">ccache</span></code> and <code class="docutils literal notranslate"><span class="pre">pip</span></code> caches on scratch, and the matching <code class="docutils literal notranslate"><span class="pre">--env</span></code> flags point the tools at them: <code class="docutils literal notranslate"><span class="pre">--cleanenv</span></code> wipes the host environment on the way in, so the exports from step 1 have to be re-injected here rather than inherited. Both variables have to be set in the shell you launch this from — on a fresh login they won’t be, so re-run the export block from step 1 first.</p>
+<p>If you forget to pre-create the target you’ll see:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>FATAL: ... destination /app/Deeploy doesn&#39;t exist in container
+</pre></div>
+</div>
+<p>That means you need to run the <code class="docutils literal notranslate"><span class="pre">mkdir</span> <span class="pre">-p</span></code> from step 4 first.</p>
+<p>If the <em>source</em> side is missing instead:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>FATAL: ... mount source /ccache doesn&#39;t exist
+</pre></div>
+</div>
+<p>then <code class="docutils literal notranslate"><span class="pre">$CCACHE_DIR</span></code> or <code class="docutils literal notranslate"><span class="pre">$PIP_CACHE_DIR</span></code> is unset in your shell, so the bind collapsed to <code class="docutils literal notranslate"><span class="pre">:/ccache</span></code>. Re-run the export block from step 1.</p>
+<p><strong>When the shell opens, you will land in <code class="docutils literal notranslate"><span class="pre">/home/$USER</span></code></strong> (Apptainer auto-mounts your host home, and your host CWD <code class="docutils literal notranslate"><span class="pre">$SCRATCH</span></code> doesn’t exist as a path inside the container). To get to your Deeploy code, navigate to the bind-mount target:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/app/Deeploy
+ls<span class="w">   </span><span class="c1"># should show CHANGELOG.md, CMakeLists.txt, Deeploy/, DeeployTest/, ...</span>
+</pre></div>
+</div>
+</section>
+<section id="install-deeploy-in-editable-mode">
+<h3>6. Install Deeploy in editable mode<a class="headerlink" href="#install-deeploy-in-editable-mode" title="Link to this heading"></a></h3>
+<p>Inside the container:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/app/Deeploy
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Then navigate to <code class="docutils literal notranslate"><span class="pre">DeeployTest/</span></code> and validate the install with the same five <code class="docutils literal notranslate"><span class="pre">deeployRunner_*.py</span></code> commands listed in the general install above.</p>
+</section>
+</section>
+<section id="deeploy-101">
+<h2>Deeploy 101<a class="headerlink" href="#deeploy-101" title="Link to this heading"></a></h2>
+<p>Deeploy is a compiler that transforms static computational graph (represented with the <a class="reference external" href="https://onnx.ai/onnx/operators/">ONNX format</a>) into bare-metal and (hopefully) optimized <a class="reference external" href="https://www.c-language.org/">C</a>. More specifically, it generates an application that can be deployed on the desired platform.</p>
+<p>Hence, Deeploy’s inputs are:</p>
+<ul class="simple">
+<li><p>An ONNX file describing your neural network.</p></li>
+<li><p>Input tensors.</p></li>
+<li><p>Expected output tensors generated with your favorite framework (ONNXRuntime or Torch, for instance).</p></li>
+</ul>
+<p>Deeploy is shipped with a comprehensive testing framework conveniently named DeeployTest. This testing framework contains Test Runners for end-to-end testing of your network on a given platform. More specifically, a Test Runner compiles a given ONNX file, builds the project, feeds the inputs into the compiled neural network, and compares the output with the golden values to ensure correctness.</p>
+<p>If you followed this tutorial correctly, you already used Test Runners (e.g., <code class="docutils literal notranslate"><span class="pre">deeployRunner_siracusa.py</span></code>) to validate the Deeploy installation! We will dive into the details of the Test Runners CLI very soon, but first, let’s look at the tools and libraries used downstream in Deeploy.</p>
+<p>The figure below gives an overview of the deployment stack. As you can see, there are several steps to take before actually running the application. For the build system (<em>e.g.,</em> the tool to organize compilation and linking), we use <a class="reference external" href="https://cmake.org/">CMake</a>. The default C compiler shipped with Deeploy is <a class="reference external" href="https://llvm.org/">LLVM 15</a>, but it supports GCC, given that you provide a local installation. To generate the Application Binary, we link the Network Code with the necessary Kernel Libraries and a Standard C Library (here <a class="reference external" href="https://github.com/picolibc/picolibc">Picolibc</a>). Then, we feed this Application Binary to the appropriate simulator; from there, you can verify the correctness and benchmark the application.</p>
+<p align="center">
+ <img src="../_static/tutorials/introduction/DeeploySystem.png" alt="Description" width="60%">
+</p>
+<p>You can visualize the ONNX graphs using <a class="reference external" href="https://netron.app/">Netron</a>. Either use the web interface or install the python package with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">netron</span></code>.</p>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Visualize the ONNX graph of the <code class="docutils literal notranslate"><span class="pre">Tests/Kernels/Integer/Add/Regular</span></code>, <code class="docutils literal notranslate"><span class="pre">Tests/Models/MobileNetv2</span></code>, and <code class="docutils literal notranslate"><span class="pre">Tests/Models/Transformer</span></code></p>
+</div></blockquote>
+<p>The ONNX graphs are in <code class="docutils literal notranslate"><span class="pre">DeeployTest/Tests/&lt;TestName&gt;/network.onnx</span></code>. The networks are increasing in complexity, <code class="docutils literal notranslate"><span class="pre">Tests/Kernels/Integer/Add/Regular</span></code> is a single node network for unit testing, while <code class="docutils literal notranslate"><span class="pre">Tests/Models/MobileNetv2</span></code> is a simple sequential network mostly made of convolutions. Finally, the <code class="docutils literal notranslate"><span class="pre">Tests/Models/Transformer</span></code> network showcases a typical transformer block used in Encoder and Decoder networks. If you want to peek at a complex network, you can visualize <code class="docutils literal notranslate"><span class="pre">Tests/Models/microLlama/microLlama128</span></code>.</p>
+<p>Now that we understand Deeploy’s input, let’s check the output-generated code!</p>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Take a look at the code generated by Deeploy for the Generic platform.</p>
+</div></blockquote>
+<p>The generated code is located in the following directory: <code class="docutils literal notranslate"><span class="pre">DeeployTest/TEST_&lt;PlatformName&gt;/Tests</span></code>, and the <code class="docutils literal notranslate"><span class="pre">Network.c</span></code> file is the interesting one.</p>
+<p>The generated code is trivial for the <code class="docutils literal notranslate"><span class="pre">Tests/Kernels/Integer/Add/Regular</span></code> graph; we simply use the template for the <code class="docutils literal notranslate"><span class="pre">Add</span></code> node of the Generic platform. You can find the template declaration in <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/Generic/Templates/AddTemplate.py</span></code>.</p>
+<p>Now, if you want to look at something a bit more complex, run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">deeployRunner_generic.py</span>&#160; <span class="pre">-t</span> <span class="pre">./Tests/Models/miniMobileNetv2</span></code> (from <code class="docutils literal notranslate"><span class="pre">DeeployTest</span></code>) and look at the generated code. There are two interesting points you can notice:</p>
+<ul class="simple">
+<li><p>We hoist the constants at the top of the file.</p></li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">RunNetwork</span></code> function, we sequentially have node templates to execute the operands and malloc/free to manage the memory. You can open the ONNX graph of <code class="docutils literal notranslate"><span class="pre">Tests/Models/miniMobileNetv2</span></code> on the side to try to match the nodes of the graph with their generated code.</p></li>
+</ul>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Visualize the effect of passes on the ONNX graph for the Siracusa platform.</p>
+</div></blockquote>
+<p>Deeploy applies passes on the ONNX graph to transform its topology and optimize its execution. Let’s visualize the effect of the passes used in the Siracusa Platform. First, let’s execute our <code class="docutils literal notranslate"><span class="pre">miniMobileNetv2</span></code> on Siracusa with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">deeployRunner_siracusa.py</span>&#160; <span class="pre">-t</span> <span class="pre">./Tests/Models/miniMobileNetv2</span></code>. You can find the original ONNX graph at <code class="docutils literal notranslate"><span class="pre">Tests/Models/miniMobileNetv2/network.onnx</span></code>, and the transformed ONNX graph at <code class="docutils literal notranslate"><span class="pre">TEST_SIRACUSA/Tests/Models/miniMobileNetv2/deeployStates/backend_post_binding.onnx</span></code>. Open both ONNX graphs side by side to compare them.</p>
+<p>You can notice the effect of two passes on the graph:</p>
+<ul class="simple">
+<li><p>One pass fuses the <code class="docutils literal notranslate"><span class="pre">Conv</span></code> and <code class="docutils literal notranslate"><span class="pre">RequantShift</span></code> nodes. This is a common technique named <a class="reference external" href="https://medium.com/data-science/how-pytorch-2-0-accelerates-deep-learning-with-operator-fusion-and-cpu-gpu-code-generation-35132a85bd26">Operator Fusion</a> and used in many DNN compilers.</p></li>
+<li><p>Another pass is adding a <code class="docutils literal notranslate"><span class="pre">Transpose</span></code> node before the <code class="docutils literal notranslate"><span class="pre">RequantizedConv</span></code> in order to align the tensor layout from CHW to HWC (where C = Channels, H = Height, and W = Width). The HWC tensor layout is required to use optimized Convolution kernels (to learn more, check out <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/technical/pytorch-vision-models-with-channels-last-on-cpu.html">this blog post</a>).</p></li>
+</ul>
+<p>Now that you understand the basics of Deeploy let’s jump into the optimized deployment of a small language model on the Siracusa SoC.</p>
+</section>
+<section id="micro-llama-on-siracusa">
+<h2>Micro Llama on Siracusa<a class="headerlink" href="#micro-llama-on-siracusa" title="Link to this heading"></a></h2>
+<section id="transformers-101">
+<h3>Transformers 101<a class="headerlink" href="#transformers-101" title="Link to this heading"></a></h3>
+<p>In this section, we will study the optimization of the deployment of a small language model. To fully understand this section, you need some basic understanding of Transformer’s architecture and Language Model inference mode. If you need a refresher on Transformer’s architecture, check out the <em>Transformer Basics</em> section of <a class="reference external" href="https://lilianweng.github.io/posts/2023-01-27-the-transformer-family-v2/#transformer-basics">Lilian Weng’s blog post</a>.</p>
+<p>Now, Language Models have two inference modes:</p>
+<ul class="simple">
+<li><p>The <strong>Parallel Mode</strong> (AKA <em>Prefill Mode</em>) is used to process the tokens of the prompts in parallel and generate the KV cache of the prompt and the first token of the Language Model’s “reply”. This mode contains mostly GEMMs.</p></li>
+<li><p>The <strong>Autoregressive Mode</strong> generates the rest of the Language Model’s reply. It uses the KV cache from the previous step, generates a new KV cache entry, and predicts the next token. This mode contains mostly GEMVs.</p></li>
+</ul>
+<p>To summarize, to generate a Language Model reply of <span class="math notranslate nohighlight">\(N\)</span> tokens, there is:</p>
+<ul class="simple">
+<li><p>One <strong>Parallel Mode</strong> inference to process the prompt and generate the first token.</p></li>
+<li><p><span class="math notranslate nohighlight">\(N-1\)</span> <strong>Autoregressive Mode</strong> inferences to generate the rest of the tokens.</p></li>
+</ul>
+<p>The slide below visually represents the <strong>Parallel Mode</strong> and <strong>Autoregressive Mode</strong>.</p>
+<p align="center">
+ <img src="../_static/tutorials/introduction/Victor_Jung_EDGEAIForumDeeploy_S5.png" alt="Description" width="75%">
+</p>
+</section>
+<section id="the-siracusa-platform">
+<h3>The Siracusa Platform<a class="headerlink" href="#the-siracusa-platform" title="Link to this heading"></a></h3>
+<p>Let’s also quickly refresh our knowledge of the Siracusa platform to understand what kind of hardware we must deploy on. Below is the high-level block diagram of Siracusa, compute-wise we will mainly use:</p>
+<ul class="simple">
+<li><p>The cluster of RV32 cores, they are modified to be great at crunching numbers. They feature <a class="reference internal" href="#"><span class="xref myst">SIMD</span></a>, hardware loops (see the <a class="reference external" href="https://www.pulp-platform.org/docs/ri5cy_user_manual.pdf">RI5CY user manual</a>, p17), and the <a class="reference external" href="https://pulp-platform.org/docs/hipeac/acaces2021/04_PULP_Accelerators.pdf">XPULP</a> ISA extensions.</p></li>
+<li><p>The <a class="reference external" href="https://github.com/pulp-platform/neureka">NEUREKA</a> NPU, an accelerator targeting integer convolutions.</p></li>
+</ul>
+<p>In terms of memories, we have:</p>
+<ul class="simple">
+<li><p>L3: An off-chip RAM (not shown on the block diagram) of 16MB capacity. The L3 has its own DMA that can transfer data to L2.</p></li>
+<li><p>Neural Memory Subsystem (NMS): An SRAM/MRAM-based <em>Weight Memory</em> to store constants with a direct link to the NPU.</p></li>
+<li><p>L2: An on-chip SRAM-based L2 memory of 2MB.</p></li>
+<li><p>L1: A TCDM memory of size 256KB.</p></li>
+</ul>
+<p>The on-chip DMA indicated on the block diagram can transfer data between the Weight Memory, the L2, and the L1.</p>
+<p align="center">
+ <img src="../_static/tutorials/introduction/Siracusa.png" alt="Description" width="75%">
+</p>
+<p>Now that you understand the hardware and the kind of workload we want to execute. Let’s deploy using various optimizations to study their impact. The first parameter we can play with is the number of cores from the RV32 cluster to use.</p>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Measure and compare the runtime of the <code class="docutils literal notranslate"><span class="pre">microLlama128</span></code> model using 1 and 8 cores. Compute the speedup ratio; why is it not 8?</p>
+</div></blockquote>
+<p><em>Hint:</em> <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">deeployRunner_siracusa.py</span> <span class="pre">--help</span></code> will list and explain the available flags.</p>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>If you run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">deeployRunner_siracusa.py</span> <span class="pre">-t</span> <span class="pre">Tests/Models/microLlama/microLlama128</span> <span class="pre">--cores=1</span></code> and then <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">deeployRunner_siracusa.py</span> <span class="pre">-t</span> <span class="pre">Tests/Models/microLlama/microLlama128</span> <span class="pre">--cores=8</span></code>, you should measure a runtime of ~16,1M cycles for 1 core and 3.1M cycles for 8 cores.</p>
+<p>The speedup ratio is obtained via <span class="math notranslate nohighlight">\(\frac{\text{Runtime 1 cores}}{\text{Runtime 8 cores}} = 5.2\)</span>. Hence, using 8 cores instead of 1 leads to a 5.2 times speedup.</p>
+<p>So why is the speedup ratio below 8? Mostly because all data movement is not overlapped with computation. Additionally, some kernels are probably not optimally parallelized for this specific network.</p>
+</div></blockquote>
+</details>
+</section>
+<section id="tiling-basics">
+<h3>Tiling Basics<a class="headerlink" href="#tiling-basics" title="Link to this heading"></a></h3>
+<p>It’s due time to talk about data movement now! We use all 8 cluster cores, which is great, but where do these cores fetch the data from? By default, when using <code class="docutils literal notranslate"><span class="pre">deeployRunner_siracusa.py</span></code>, all data is in L2; there is no tiling, and cores read and write data directly to/from L2. As the L2 memory is “further away” from the cluster, load/store takes several cycles, which is non-optimal.</p>
+<p>What we really want is to use the L1 memory, which provides 1 cycle latency load/store! But as the capacity is relatively small (256KB), we need to <strong>tile our layers</strong>. Tiling operands for an accelerator featuring only scratchpad memories is not trivial (unlike in architectures with data caches). For each layer, the compiler has to decide on tile size, a tiling schedule, a buffering strategy (single buffer, double buffer, etc…), and a memory allocation strategy. Then, the compiler must generate the code to configure and launch each transfer and place barriers accordingly to maximize concurrency.</p>
+<p>The good news is that Deeploy can already do that! So, let’s generate and run some tiled code to see the impact of tiling on the runtime.</p>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Get familiar with the CLI arguments of <code class="docutils literal notranslate"><span class="pre">deeployRunner_tiled_siracusa.py</span></code>, then run <code class="docutils literal notranslate"><span class="pre">microLlama64_parallel</span></code> with different configurations. Find one “bad” and one “good” configuration, and explain why.</p>
+</div></blockquote>
+<p><em>Hint:</em> Use the <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag to list and explain the available flags.</p>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>Bad configuration: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">deeployRunner_tiled_siracusa.py</span> <span class="pre">-t</span> <span class="pre">Tests/Models/microLlama/microLlama64_parallel</span> <span class="pre">--cores=8</span> <span class="pre">--l1</span> <span class="pre">8000</span> <span class="pre">--defaultMemLevel=L2</span></code> -&gt; Runtime: 47.5 MCycles</p>
+<p>Good configuration <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">deeployRunner_tiled_siracusa.py</span> <span class="pre">-t</span> <span class="pre">Tests/Models/microLlama/microLlama64_parallel</span> <span class="pre">--cores=8</span> <span class="pre">--l1</span> <span class="pre">64000</span> <span class="pre">--defaultMemLevel=L2</span></code>: -&gt; Runtime: 35.3 MCycles</p>
+<p>Justification: As the size of the L1 memory gets smaller, tiles also get smaller and smaller. Smaller tiles usually mean that it’s harder to keep the core properly utilized.</p>
+</div></blockquote>
+</details>
+</section>
+<section id="profiling-the-execution">
+<h3>Profiling the Execution<a class="headerlink" href="#profiling-the-execution" title="Link to this heading"></a></h3>
+<p>To measure the effect of some optimizations in more detail, you can use the <code class="docutils literal notranslate"><span class="pre">--profileTiling</span></code> flag. This flag will enable a code transformation that will insert print statements displaying the runtime of several critical code sections. For instance, profiling an <em>Integer Layer Normalization</em> layer from L2 with two tiles will print the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">INTEGER_RMSNORM</span> <span class="n">L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">0</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Input</span> <span class="n">DMA</span> <span class="n">took</span> <span class="mi">489</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">INTEGER_RMSNORM</span> <span class="n">L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">0</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Kernel</span> <span class="n">took</span> <span class="mi">43305</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">INTEGER_RMSNORM</span> <span class="n">L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">0</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Output</span> <span class="n">DMA</span> <span class="n">took</span> <span class="mi">534</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">INTEGER_RMSNORM</span> <span class="n">L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">0</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">1</span><span class="p">]</span> <span class="n">Input</span> <span class="n">DMA</span> <span class="n">took</span> <span class="mi">82</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">INTEGER_RMSNORM</span> <span class="n">L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">0</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">1</span><span class="p">]</span> <span class="n">Kernel</span> <span class="n">took</span> <span class="mi">3254</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">INTEGER_RMSNORM</span> <span class="n">L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">0</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">1</span><span class="p">]</span> <span class="n">Output</span> <span class="n">DMA</span> <span class="n">took</span> <span class="mi">49</span> <span class="n">cycles</span>
+</pre></div>
+</div>
+<p>With this profiling trace, you can clearly measure the overhead of DMA transfers. When the profiling is turned ON, the total runtime of the application will encompass the prints.</p>
+<blockquote>
+<div><p>⚠️ <strong>Known bug (as of this writing).</strong> <code class="docutils literal notranslate"><span class="pre">--profileTiling</span></code> currently crashes GVSOC on
+the larger microLlama graphs. On
+<code class="docutils literal notranslate"><span class="pre">deeployRunner_tiled_siracusa.py</span> <span class="pre">-t</span> <span class="pre">Tests/Models/microLlama/microLlama64_parallel</span> <span class="pre">--cores=8</span> <span class="pre">--l1</span> <span class="pre">64000</span> <span class="pre">--defaultMemLevel=L2</span> <span class="pre">--profileTiling</span></code>
+the simulator aborts with
+<code class="docutils literal notranslate"><span class="pre">Invalid</span> <span class="pre">access</span> <span class="pre">(pc:</span> <span class="pre">0x1c00b944,</span> <span class="pre">offset:</span> <span class="pre">0x57575757,</span> <span class="pre">size:</span> <span class="pre">0x1,</span> <span class="pre">is_write:</span> <span class="pre">0)</span></code>,
+while the exact same command <em>without</em> <code class="docutils literal notranslate"><span class="pre">--profileTiling</span></code> passes cleanly
+(<code class="docutils literal notranslate"><span class="pre">Errors:</span> <span class="pre">0</span> <span class="pre">out</span> <span class="pre">of</span> <span class="pre">69632</span></code>). Profiling does work on small single-node graphs such as
+the Part III <code class="docutils literal notranslate"><span class="pre">Tests/Kernels/Integer/LeakyReLU/Regular</span></code> test. If you hit this, it is
+not your mistake. Collect the layer-level numbers on the smaller graphs, or
+compare end-to-end runtimes without the flag.</p>
+</div></blockquote>
+</section>
+<section id="using-the-npu-and-the-neural-memory-subsystem-nms">
+<h3>Using the NPU and the Neural Memory Subsystem (NMS)<a class="headerlink" href="#using-the-npu-and-the-neural-memory-subsystem-nms" title="Link to this heading"></a></h3>
+<p>To use the NPU, you can use the <code class="docutils literal notranslate"><span class="pre">deeployRunner_tiled_siracusa_w_neureka.py</span></code>. The Linear layers will automatically be executed by the NPU. To enable the NMS, use the <code class="docutils literal notranslate"><span class="pre">--neureka-wmem</span></code> flag. When the NMS is enabled, the constant tensors used by the accelerator will be placed in the Weight Memory.</p>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Execute Micro Llama in parallel and autoregressive mode using the NPU, derive the speedup at the model level and at the layer level compared to execution without NPU.</p>
+</div></blockquote>
+<p><em>Hint:</em> Save the profiling traces somewhere to reason about them later on.</p>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Why does the NPU bring more speedup in parallel mode than in autoregressive mode?</p>
+</div></blockquote>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>The runtime in parallel mode with NPU is obtained with:</p>
+<p><code class="docutils literal notranslate"> <span class="pre">python</span> <span class="pre">deeployRunner_tiled_siracusa_w_neureka.py</span> <span class="pre">-t</span> <span class="pre">Tests/Models/microLlama/microLlama64_parallel</span> <span class="pre">--cores=8</span> <span class="pre">--l1</span> <span class="pre">64000</span> <span class="pre">--defaultMemLevel=L2</span> </code></p>
+<p>And returns 28.6 MCycles of runtime. The runtime without NPU was measured above and is 35.3 MCycles. Hence, the speedup is ~1.23 times.</p>
+<p>We apply the same methodology on <code class="docutils literal notranslate"><span class="pre">microLlama64</span></code> and get a speedup of ~1.04 times.</p>
+<p>Now, why is the speedup lesser in autoregressive mode compared to parallel mode? This is because the parallel mode is composed mainly of GEMM, while the autoregressive mode uses GEMV. With GEMV, the accelerator is underutilized as the <a class="reference external" href="https://spcl.inf.ethz.ch/Teaching/2013-dphpc/lecture9-6up.pdf">operational intensity</a> of GEMV is very low, especially compared to GEMM.</p>
+<p>Additionally, in autoregressive mode (unlike in parallel mode), you have to load the KV cache, which requires lots of data movement not accelerated by the NPU.</p>
+</div></blockquote>
+</details>
+<br>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Benchmark the effect of the NMS on the model runtime and at the layer level. Do you notice any speedup? If yes, where does it come from?</p>
+</div></blockquote>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>Using the NMS brings the runtime from 857 to 780 KCycles for the autoregressive mode and from 28.6 to 28.3 MCycles for the parallel mode. By inspecting the trace, you can notice that the NMS drastically reduces the time spent on input DMA transfers for the layers offloaded to the NPU.</p>
+<p>This is the profiling trace for a layer without using the NMS:</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">RequantizedPwConv_L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">32771</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Input</span> <span class="n">DMA</span> <span class="n">took</span> <span class="mi">2037</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">RequantizedPwConv_L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">32771</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Kernel</span> <span class="n">took</span> <span class="mi">2649</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">RequantizedPwConv_L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">32771</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Output</span> <span class="n">DMA</span> <span class="n">took</span> <span class="mi">50</span> <span class="n">cycles</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>And this is with the NMS activated:</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">RequantizedPwConv_L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">32771</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Input</span> <span class="n">DMA</span> <span class="n">took</span> <span class="mi">125</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">RequantizedPwConv_L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">32771</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Kernel</span> <span class="n">took</span> <span class="mi">2595</span> <span class="n">cycles</span>
+<span class="p">[</span><span class="n">RequantizedPwConv_L2</span><span class="p">][</span><span class="n">SB</span><span class="p">][</span><span class="mi">32771</span> <span class="n">ops</span><span class="p">][</span><span class="n">Tile</span> <span class="mi">0</span><span class="p">]</span> <span class="n">Output</span> <span class="n">DMA</span> <span class="n">took</span> <span class="mi">56</span> <span class="n">cycles</span>
+</pre></div>
+</div>
+</details>
+<br>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Why does the autoregressive mode benefit more from the NMS than the parallel mode?</p>
+</div></blockquote>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>Using the NMS relaxes the memory boundness of the NPU. In the GEMM, we are not in a memory-bound regime, and the DMA transfer overhead is negligible with regard to the total runtime. In the autoregressive mode, we spend a lot of time on DMA transfers; hence, providing more bandwidth to the accelerator is very beneficial.</p>
+</div></blockquote>
+</details>
+<br>
+</section>
+</section>
+<section id="adding-a-new-operator">
+<h2>Adding a New Operator<a class="headerlink" href="#adding-a-new-operator" title="Link to this heading"></a></h2>
+<p>So far you’ve used Deeploy as a black box: you fed in ONNX graphs and looked at the C it spat out. In this last hour you’ll open the box and add your own operator from scratch, which will be an int8 LeakyReLU. You will be walking through every stage of the compiler that the previous sections merely showed you in passing. By the end you’ll have written a parser, a C kernel, a Mako template, a tiling constraint and (if you’re quick) an XPULP SIMD intrinsic version. We stay on the Siracusa platform throughout (the same target as the previous section), so every <code class="docutils literal notranslate"><span class="pre">deeployRunner_*</span></code> command below uses the Siracusa runner.</p>
+<blockquote>
+<div><p>💡 <strong>Recommended background:</strong> the internal Deeploy training guide (Parts 1–2) covers the main classes (Parser / Mapper / Binding / Template / TypeChecker / TileConstraint) you’re about to touch. Reference PRs to skim: <a class="reference external" href="https://github.com/pulp-platform/Deeploy/pull/25">#25</a> (basic op on Generic), <a class="reference external" href="https://github.com/pulp-platform/Deeploy/pull/26">#26</a> (adding tiling + PULP), <a class="reference external" href="https://github.com/pulp-platform/Deeploy/pull/29">#29</a> (multi-op for a real model).</p>
+</div></blockquote>
+<section id="the-operator">
+<h3>The operator<a class="headerlink" href="#the-operator" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">iLeakyReLU</span></code> is an elementwise unary that approximates the standard LeakyReLU using only integer arithmetic:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\text{out}[i] = \begin{cases} \text{in}[i] &amp; \text{if } \text{in}[i] \ge 0 \\ \lfloor (\text{mul} \cdot \text{in}[i]) / 2^{\text{shift}} \rfloor &amp; \text{otherwise} \end{cases}
+\end{split}\]</div>
+<p>With <code class="docutils literal notranslate"><span class="pre">mul=1,</span> <span class="pre">shift=3</span></code> you get a slope of <span class="math notranslate nohighlight">\(\alpha \approx 0.125\)</span>, which is close enough to the standard 0.01 that quantized networks tolerate well.</p>
+</section>
+<section id="what-we-provide">
+<h3>What we provide<a class="headerlink" href="#what-we-provide" title="Link to this heading"></a></h3>
+<p>A starting kit lives under <code class="docutils literal notranslate"><span class="pre">Tutorials/PartIII_skeletons/iLeakyReLU/</span></code>. Each file contains the surrounding boilerplate plus <code class="docutils literal notranslate"><span class="pre">TODO(student)</span></code> markers. You’ll fill the blanks <strong>in place</strong> (no need to copy them anywhere yet). In the steps below, each file then gets <em>installed</em> into a specific location in the live source tree (every skeleton’s header comment names that destination). If you get stuck, the full reference is in <code class="docutils literal notranslate"><span class="pre">Tutorials/PartIII_solution/iLeakyReLU/</span></code>. We rely on your independence, and only peek <strong>after</strong> you’ve tried. Otherwise you won’t have any learning effect.</p>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Open every file in <code class="docutils literal notranslate"><span class="pre">Tutorials/PartIII_skeletons/iLeakyReLU/</span></code> and read its header comment. Note where each one will eventually be installed (e.g. parser → <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/Generic/Parsers.py</span></code>, kernel → <code class="docutils literal notranslate"><span class="pre">TargetLibraries/PULPOpen/src/</span></code>). Don’t edit anything yet. Just get an idea of how operators are structured in Deeploy.</p>
+</div></blockquote>
+</section>
+<section id="step-1-generate-the-onnx-graph-golden-values">
+<h3>Step 1: Generate the ONNX graph + golden values<a class="headerlink" href="#step-1-generate-the-onnx-graph-golden-values" title="Link to this heading"></a></h3>
+<p>The script <code class="docutils literal notranslate"><span class="pre">generate.py</span></code> (already complete) builds a single-node ONNX with the <code class="docutils literal notranslate"><span class="pre">op_type</span></code> <code class="docutils literal notranslate"><span class="pre">iLeakyReLU</span></code> plus matching <code class="docutils literal notranslate"><span class="pre">inputs.npz</span></code> / <code class="docutils literal notranslate"><span class="pre">outputs.npz</span></code>. Run it once and check the produced files:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>Tutorials/PartIII_skeletons/iLeakyReLU
+python<span class="w"> </span>generate.py
+mkdir<span class="w"> </span>-p<span class="w"> </span>../../../DeeployTest/Tests/Kernels/Integer/LeakyReLU/Regular
+cp<span class="w"> </span>network.onnx<span class="w"> </span>inputs.npz<span class="w"> </span>outputs.npz<span class="w"> </span>../../../DeeployTest/Tests/Kernels/Integer/LeakyReLU/Regular/
+</pre></div>
+</div>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Open <code class="docutils literal notranslate"><span class="pre">network.onnx</span></code> in Netron and check that the node has op_type <code class="docutils literal notranslate"><span class="pre">iLeakyReLU</span></code> and <code class="docutils literal notranslate"><span class="pre">mul</span></code>/<code class="docutils literal notranslate"><span class="pre">shift</span></code> attributes.</p>
+</div></blockquote>
+</section>
+<section id="step-2-write-the-parser">
+<h3>Step 2: Write the parser<a class="headerlink" href="#step-2-write-the-parser" title="Link to this heading"></a></h3>
+<p>Open <code class="docutils literal notranslate"><span class="pre">iLeakyReLUParser.py</span></code> and fill in <code class="docutils literal notranslate"><span class="pre">parseNode</span></code> (validate attrs + inputs) and <code class="docutils literal notranslate"><span class="pre">parseNodeCtxt</span></code> (extract input/output tensor names and <code class="docutils literal notranslate"><span class="pre">size</span></code>). Paste the finished class into <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/Generic/Parsers.py</span></code>.</p>
+<p>A parser should also refuse attributes your kernels can’t implement, so the build fails instead of producing wrong results on the device. Reject <code class="docutils literal notranslate"><span class="pre">mul</span> <span class="pre">!=</span> <span class="pre">1</span></code> (the SIMD kernel has no per-lane multiply) and any <code class="docutils literal notranslate"><span class="pre">shift</span></code> outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">8)</span></code> (it shifts 8-bit <code class="docutils literal notranslate"><span class="pre">v4s</span></code> lanes).</p>
+<p>Test in <em>verbose</em> mode (Step 1 left you in <code class="docutils literal notranslate"><span class="pre">Tutorials/PartIII_skeletons/iLeakyReLU</span></code>, so walk back up to the repo root first):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>../../../DeeployTest
+python<span class="w"> </span>deeployRunner_siracusa.py<span class="w"> </span>-t<span class="w"> </span>Tests/Kernels/Integer/LeakyReLU/Regular<span class="w"> </span>--cores<span class="o">=</span><span class="m">8</span><span class="w"> </span>-vv
+</pre></div>
+</div>
+<p>This first run will fail later in the pipeline (no template/binding/kernel yet) but you should see your parser fire and accept the node. Use <code class="docutils literal notranslate"><span class="pre">-vvv</span></code> if you want even more diagnostics from the build system and simulator.</p>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Hint</span></summary>
+<blockquote>
+<div><p>Pattern to copy: <code class="docutils literal notranslate"><span class="pre">iHardswishParser</span></code> in <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/Generic/Parsers.py</span></code>. Its only attrs are <code class="docutils literal notranslate"><span class="pre">one_over_six</span> <span class="pre">/</span> <span class="pre">three</span> <span class="pre">/</span> <span class="pre">six</span></code>, the same shape as your <code class="docutils literal notranslate"><span class="pre">mul</span> <span class="pre">/</span> <span class="pre">shift</span></code>. The <code class="docutils literal notranslate"><span class="pre">iRMSNormParser</span></code> higher up in the same file is also useful.</p>
+</div></blockquote>
+</details>
+</section>
+<section id="step-3-write-the-c-kernel-plain-c">
+<h3>Step 3: Write the C kernel (plain C)<a class="headerlink" href="#step-3-write-the-c-kernel-plain-c" title="Link to this heading"></a></h3>
+<p>In <code class="docutils literal notranslate"><span class="pre">iLeakyReLU.c</span></code> the per-core chunking is given. Fill the inner loop:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int32_t</span><span class="w"> </span><span class="n">x</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int32_t</span><span class="p">)</span><span class="n">pIn</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="kt">int32_t</span><span class="w"> </span><span class="n">lo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mul</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">shift</span><span class="p">;</span>
+<span class="n">pOut</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int8_t</span><span class="p">)((</span><span class="n">x</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">lo</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Drop the finished <code class="docutils literal notranslate"><span class="pre">.c</span></code> into <code class="docutils literal notranslate"><span class="pre">TargetLibraries/PULPOpen/src/</span></code>. Drop the header (<code class="docutils literal notranslate"><span class="pre">iLeakyReLU.h</span></code>, already complete) into <code class="docutils literal notranslate"><span class="pre">TargetLibraries/PULPOpen/inc/kernel/</span></code>. Then add <strong>one line</strong> to <code class="docutils literal notranslate"><span class="pre">TargetLibraries/PULPOpen/inc/DeeployPULPMath.h</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;kernel/iLeakyReLU.h&quot;</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>⚠️ The PULPOpen CMakeLists auto-globs <code class="docutils literal notranslate"><span class="pre">src/**</span></code>, so you don’t need to touch it. You <strong>do</strong> need that aggregator include in <code class="docutils literal notranslate"><span class="pre">DeeployPULPMath.h</span></code> though.</p>
+</div></blockquote>
+</section>
+<section id="step-4-template-binding-mapper">
+<h3>Step 4: Template, binding, mapper<a class="headerlink" href="#step-4-template-binding-mapper" title="Link to this heading"></a></h3>
+<p>Three small pieces wire the parser to the kernel.</p>
+<p><strong>1. Template.</strong> Fill in the Mako body of <code class="docutils literal notranslate"><span class="pre">iLeakyReLUTemplate.py</span></code> so it emits a single call to your C kernel. Drop the finished file into <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/Templates/</span></code>. Pattern to copy: <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/Templates/iSoftmaxTemplate.py</span></code>.</p>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">referenceTemplate</span> <span class="o">=</span> <span class="n">_iLeakyReLUTemplate</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">// iLeakyReLU (Name: $</span><span class="si">{nodeName}</span><span class="s2">, Op: $</span><span class="si">{nodeOp}</span><span class="s2">)</span>
+<span class="s2">PULPiLeakyReLU_i8_i8($</span><span class="si">{data_in}</span><span class="s2">, $</span><span class="si">{data_out}</span><span class="s2">, $</span><span class="si">{size}</span><span class="s2">, $</span><span class="si">{mul}</span><span class="s2">, $</span><span class="si">{shift}</span><span class="s2">);</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Mako <code class="docutils literal notranslate"><span class="pre">${...}</span></code> substitutions come straight from <code class="docutils literal notranslate"><span class="pre">self.operatorRepresentation</span></code> (populated by your parser). <code class="docutils literal notranslate"><span class="pre">nodeName</span></code> / <code class="docutils literal notranslate"><span class="pre">nodeOp</span></code> are auto-filled by Deeploy.</p>
+</div></blockquote>
+</details>
+<p><strong>2. Binding.</strong> In <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/Bindings.py</span></code>, define a <code class="docutils literal notranslate"><span class="pre">PULPiLeakyReLUBindings</span></code> list. A binding is a 3-tuple of <em>(TypeChecker, Template, CodeTransformation)</em>. For our <code class="docutils literal notranslate"><span class="pre">int8</span> <span class="pre">→</span> <span class="pre">int8</span></code> op, reuse <code class="docutils literal notranslate"><span class="pre">GELUChecker</span></code> (same <code class="docutils literal notranslate"><span class="pre">int8</span> <span class="pre">→</span> <span class="pre">int8</span></code> signature, and it propagates signedness) and <code class="docutils literal notranslate"><span class="pre">ForkTransformer</span></code> (forks the kernel call across the 8 cluster cores). Also add the matching import for your template.</p>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>Near the other <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">Deeploy.Targets.PULPOpen.Templates</span> <span class="pre">import</span></code> line, add:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">Deeploy.Targets.PULPOpen.Templates</span> <span class="kn">import</span> <span class="n">iLeakyReLUTemplate</span>
+</pre></div>
+</div>
+<p>Then append the binding list:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PULPiLeakyReLUBindings</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">NodeBinding</span><span class="p">(</span>
+        <span class="n">GELUChecker</span><span class="p">([</span><span class="n">PointerClass</span><span class="p">(</span><span class="n">int8_t</span><span class="p">)],</span> <span class="p">[</span><span class="n">PointerClass</span><span class="p">(</span><span class="n">int8_t</span><span class="p">)]),</span>
+        <span class="n">iLeakyReLUTemplate</span><span class="o">.</span><span class="n">referenceTemplate</span><span class="p">,</span>
+        <span class="n">ForkTransformer</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Why <code class="docutils literal notranslate"><span class="pre">GELUChecker</span></code>?</strong> A checker doesn’t only match types, it also declares whether the output is signed. <code class="docutils literal notranslate"><span class="pre">ReluChecker</span></code> hard-codes <em>unsigned</em>, which is right for ReLU but wrong here: LeakyReLU keeps negative values, about half of our output. <code class="docutils literal notranslate"><span class="pre">GELUChecker</span></code> has the same <code class="docutils literal notranslate"><span class="pre">int8</span> <span class="pre">→</span> <span class="pre">int8</span></code> signature and propagates the input’s signedness instead. <strong>Why <code class="docutils literal notranslate"><span class="pre">ForkTransformer</span></code>?</strong> It wraps the emitted kernel call into <code class="docutils literal notranslate"><span class="pre">pi_cl_team_fork(NUM_CORES,</span> <span class="pre">...)</span></code>, which is exactly what our multi-core kernel expects.</p>
+</div></blockquote>
+</details>
+<p><strong>3. Mapper.</strong> In <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/Platform.py</span></code>, define <code class="docutils literal notranslate"><span class="pre">iLeakyReLUMapper</span></code> (a <code class="docutils literal notranslate"><span class="pre">NodeMapper</span></code> that pairs your parser with the binding list) and register the ONNX op name in <code class="docutils literal notranslate"><span class="pre">PULPMapping</span></code>. Reuse <code class="docutils literal notranslate"><span class="pre">iHardswishLayer</span></code> (a trivial <code class="docutils literal notranslate"><span class="pre">ONNXLayer</span></code> that does no extra shape/cost work, i.e. same shape as ours).</p>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>Imports near the existing Hardswish ones:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">Deeploy.Targets.Generic.Parsers</span> <span class="kn">import</span> <span class="n">iLeakyReLUParser</span>   <span class="c1"># add to the list</span>
+<span class="kn">from</span> <span class="nn">Deeploy.Targets.Generic.Layers</span>  <span class="kn">import</span> <span class="n">iHardswishLayer</span>    <span class="c1"># already imported</span>
+<span class="kn">from</span> <span class="nn">Deeploy.Targets.PULPOpen.Bindings</span> <span class="kn">import</span> <span class="n">PULPiLeakyReLUBindings</span>  <span class="c1"># add to the list</span>
+</pre></div>
+</div>
+<p>⚠️ All three imports are required. The parser import in particular is easy to
+miss because <code class="docutils literal notranslate"><span class="pre">Platform.py</span></code> pulls the Generic parsers in via a single wrapped
+multi-line <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">...</span> <span class="pre">import</span></code> block: append <code class="docutils literal notranslate"><span class="pre">iLeakyReLUParser</span></code> inside that block
+(or add a separate import line). Forgetting it fails at <em>import</em> time with
+<code class="docutils literal notranslate"><span class="pre">NameError:</span> <span class="pre">name</span> <span class="pre">'iLeakyReLUParser'</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">defined</span></code>, which breaks <strong>every</strong> PULP
+runner, not just your new op.
+Mapper definition (next to <code class="docutils literal notranslate"><span class="pre">iHardswishMapper</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">iLeakyReLUMapper</span> <span class="o">=</span> <span class="n">NodeMapper</span><span class="p">(</span><span class="n">iLeakyReLUParser</span><span class="p">(),</span> <span class="n">PULPiLeakyReLUBindings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">PULPMapping</span></code> entry (next to <code class="docutils literal notranslate"><span class="pre">'iHardswish'</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;iLeakyReLU&#39;</span><span class="p">:</span> <span class="n">iHardswishLayer</span><span class="p">([</span><span class="n">iLeakyReLUMapper</span><span class="p">]),</span>
+</pre></div>
+</div>
+</div></blockquote>
+</details>
+<p>Test untiled execution on Siracusa:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>deeployRunner_siracusa.py<span class="w"> </span>-t<span class="w"> </span>Tests/Kernels/Integer/LeakyReLU/Regular<span class="w"> </span>--cores<span class="o">=</span><span class="m">8</span>
+</pre></div>
+</div>
+<p>Do you observe any mismatches? How many cycles does the execution take?</p>
+</section>
+<section id="step-5-tiling-constraint">
+<h3>Step 5: Tiling constraint<a class="headerlink" href="#step-5-tiling-constraint" title="Link to this heading"></a></h3>
+<p>Open <code class="docutils literal notranslate"><span class="pre">iLeakyReLUTileConstraint.py</span></code>. It already subclasses <code class="docutils literal notranslate"><span class="pre">UnaryTileConstraint</span></code>, so the geometry (input dim == output dim per axis) and the schedule serializer come for free. Leave the body empty for now (the performance constraint comes in Step 6a).</p>
+<p>Drop the file into <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/TileConstraints/</span></code>. Then <strong>register the tiling-ready binding</strong> in <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/Tiler.py</span></code>: wrap your binding list with <code class="docutils literal notranslate"><span class="pre">TilingReadyNodeBindings(...)</span></code> so Deeploy knows which constraint to apply, and finally update the mapper in <code class="docutils literal notranslate"><span class="pre">Platform.py</span></code> to use the tiling-ready variant.</p>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>In <code class="docutils literal notranslate"><span class="pre">Tiler.py</span></code>, add the imports near the other tile-constraint imports:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">Deeploy.Targets.PULPOpen.TileConstraints.iLeakyReLUTileConstraint</span> \
+    <span class="kn">import</span> <span class="nn">iLeakyReLUTileConstraint</span>
+<span class="kn">from</span> <span class="nn">Deeploy.Targets.PULPOpen.Bindings</span> <span class="kn">import</span> <span class="n">PULPiLeakyReLUBindings</span>
+</pre></div>
+</div>
+<p>Then append the binding bundle:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PULPiLeakyReLUTilingReadyBindings</span> <span class="o">=</span> <span class="n">TilingReadyNodeBindings</span><span class="p">(</span>
+    <span class="n">nodeBindings</span>  <span class="o">=</span> <span class="n">PULPiLeakyReLUBindings</span><span class="p">,</span>
+    <span class="n">tileConstraint</span> <span class="o">=</span> <span class="n">iLeakyReLUTileConstraint</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">Platform.py</span></code>, swap the Step 4 binding import for the tiling-ready one and
+change the mapper:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">Deeploy.Targets.PULPOpen.Tiler</span> <span class="kn">import</span> <span class="n">PULPiLeakyReLUTilingReadyBindings</span>  <span class="c1"># add to the list</span>
+
+<span class="n">iLeakyReLUMapper</span> <span class="o">=</span> <span class="n">NodeMapper</span><span class="p">(</span><span class="n">iLeakyReLUParser</span><span class="p">(),</span> <span class="n">PULPiLeakyReLUTilingReadyBindings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Reference pattern: <code class="docutils literal notranslate"><span class="pre">PULPiHardswishTilingReadyBindings</span></code> in the same file.</p>
+</div></blockquote>
+</details>
+<p>Run the tiled flow:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>deeployRunner_tiled_siracusa.py<span class="w"> </span>-t<span class="w"> </span>Tests/Kernels/Integer/LeakyReLU/Regular<span class="w"> </span>--cores<span class="o">=</span><span class="m">8</span><span class="w"> </span>--l1<span class="o">=</span><span class="m">32768</span><span class="w"> </span>--defaultMemLevel<span class="o">=</span>L2
+</pre></div>
+</div>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Hint on the constraint itself</span></summary>
+<blockquote>
+<div><p>If you want a worked example of a unary quantized op, see <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/Generic/TileConstraints/iHardswishTileConstraint.py</span></code>.</p>
+</div></blockquote>
+</details>
+<p>How long does the execution take, i.e. how many cycles? What do you observe? Did you expect this result?</p>
+</section>
+<section id="step-6-add-a-performance-constraint-then-go-simd">
+<h3>Step 6: Add a performance constraint, then go SIMD<a class="headerlink" href="#step-6-add-a-performance-constraint-then-go-simd" title="Link to this heading"></a></h3>
+<p>In this final step you’ll add a tile-size constraint that aligns work with the SIMD width, then swap the plain-C kernel for a PULP-intrinsics version.</p>
+<p><strong>(a) Performance constraint.</strong> Go back to <code class="docutils literal notranslate"><span class="pre">iLeakyReLUTileConstraint.py</span></code> and add the multiple-of-16 constraint. The API you want is <code class="docutils literal notranslate"><span class="pre">addTileSizeDivisibleConstraint</span></code>, which forces the tile size along an axis to be an exact multiple of <code class="docutils literal notranslate"><span class="pre">modulo</span></code>. It looks up <code class="docutils literal notranslate"><span class="pre">parseDict[varName]</span></code> as the original axis size, so the parser must expose it; the easiest is to inject it from inside the constraint:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">inputShape</span> <span class="o">=</span> <span class="n">ctxt</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">parseDict</span><span class="p">[</span><span class="s1">&#39;data_in&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="n">lastDim</span>    <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputShape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="n">lastDimVar</span> <span class="o">=</span> <span class="n">tilerModel</span><span class="o">.</span><span class="n">getTensorDimVar</span><span class="p">(</span><span class="n">tensorName</span><span class="o">=</span><span class="n">parseDict</span><span class="p">[</span><span class="s1">&#39;data_in&#39;</span><span class="p">],</span> <span class="n">dimIdx</span><span class="o">=</span><span class="n">lastDim</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">inputShape</span><span class="p">[</span><span class="n">lastDim</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">16</span><span class="p">:</span>
+    <span class="n">dimKey</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;dim_</span><span class="si">{</span><span class="n">lastDim</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">parseDict</span><span class="p">[</span><span class="n">dimKey</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">inputShape</span><span class="p">[</span><span class="n">lastDim</span><span class="p">])</span>
+    <span class="n">tilerModel</span><span class="o">.</span><span class="n">addTileSizeDivisibleConstraint</span><span class="p">(</span><span class="n">parseDict</span><span class="p">,</span> <span class="n">dimKey</span><span class="p">,</span> <span class="n">lastDimVar</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>⚠️ <strong>Don’t confuse the two constraint helpers.</strong> <code class="docutils literal notranslate"><span class="pre">TilerModel</span></code> also offers
+<code class="docutils literal notranslate"><span class="pre">addMinTileSizeConstraint(parseDict,</span> <span class="pre">name,</span> <span class="pre">dimVar,</span> <span class="pre">modulo)</span></code>, which is a
+<em>minimum-remainder</em> constraint: it forces the leftover last tile to be at least
+<code class="docutils literal notranslate"><span class="pre">modulo</span></code> elements so you don’t get a degenerate tail tile. It does <strong>not</strong> make
+the tile size a multiple of <code class="docutils literal notranslate"><span class="pre">modulo</span></code>. Use <code class="docutils literal notranslate"><span class="pre">addTileSizeDivisibleConstraint</span></code> when
+you need divisibility (as here, for SIMD alignment) and
+<code class="docutils literal notranslate"><span class="pre">addMinTileSizeConstraint</span></code> when you only want to outlaw tiny tail tiles.
+Real examples: <code class="docutils literal notranslate"><span class="pre">addTileSizeDivisibleConstraint</span></code> in
+<code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/TileConstraints/GEMMTileConstraint.py</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">addMinTileSizeConstraint</span></code> in
+<code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/TileConstraints/ConvTileConstraint.py</span></code>.</p>
+</div></blockquote>
+<p>Re-run with <code class="docutils literal notranslate"><span class="pre">--profileTiling</span></code>. The tile shape on the innermost dim now snaps to a multiple of 16; the per-core chunk is therefore a multiple of 4, i.e. exactly what the SIMD kernel needs. (The reference SIMD kernel is defensive anyway: it rounds the per-core chunk down to a multiple of 4 and keeps a scalar tail loop, so it stays correct even if you get the constraint wrong. Correct output is therefore <em>not</em> evidence that your constraint works; check the tile shapes in the profiling trace.)</p>
+<p><strong>(b) PULP SIMD intrinsics.</strong> Replace the scalar kernel with <code class="docutils literal notranslate"><span class="pre">iLeakyReLU_simd.c</span></code>. The trick: LeakyReLU has a closed-form identity that fits the XPULP intrinsic set perfectly. Because arithmetic right shift makes a negative value <em>less</em> negative (or zero) and doesn’t change the sign of a non-negative value:</p>
+<div class="math notranslate nohighlight">
+\[\text{LeakyReLU}(x) = \max(x,\; x \gg \text{shift})\]</div>
+<p>So if you compute <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&gt;&gt;</span> <span class="pre">shift</span></code> on a packed <code class="docutils literal notranslate"><span class="pre">v4s</span></code> and feed both into <code class="docutils literal notranslate"><span class="pre">__builtin_pulp_max4</span></code>, you get LeakyReLU branch-free in just two packed operations per 4 lanes: load → packed shift → packed max → store:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">v4s</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vIn</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="n">v4s</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">shift</span><span class="p">;</span><span class="w">                       </span><span class="c1">// GCC vector ext: per-lane shift</span>
+<span class="n">vOut</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">__builtin_pulp_max4</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">);</span><span class="w">      </span><span class="c1">// single packed signed max</span>
+</pre></div>
+</div>
+<p>The SIMD kernel ignores <code class="docutils literal notranslate"><span class="pre">mul</span></code> (assumes <code class="docutils literal notranslate"><span class="pre">mul</span> <span class="pre">==</span> <span class="pre">1</span></code>); the generator picks <code class="docutils literal notranslate"><span class="pre">mul=1,</span> <span class="pre">shift=3</span></code> so the formula is identical.</p>
+<p>Re-run with <code class="docutils literal notranslate"><span class="pre">--profileTiling</span></code>. Compare per-tile kernel cycles to your scalar baseline.</p>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Quantify the speedup vs the scalar kernel. Why isn’t it exactly 4×?</p>
+</div></blockquote>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>In our reference run (<code class="docutils literal notranslate"><span class="pre">--l1=32768</span></code>, shape <code class="docutils literal notranslate"><span class="pre">(1,16,64,64)</span></code>) the end-to-end runtime drops from <strong>108 090 cycles (scalar)</strong> to <strong>43 005 cycles (SIMD)</strong>, a <strong>2.51×</strong> improvement. Why not exactly 4×? Not because the arithmetic failed to vectorise — it did. Disassemble the kernel and the loop body is one post-increment word load, <code class="docutils literal notranslate"><span class="pre">pv.sra.b</span></code> for <code class="docutils literal notranslate"><span class="pre">v4s</span> <span class="pre">s</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">&gt;&gt;</span> <span class="pre">shift</span></code>, and <code class="docutils literal notranslate"><span class="pre">pv.max.b</span></code> for the blend: three instructions per four elements, exactly the packing you asked for. The limit is Amdahl’s law. End-to-end time also includes DMA traffic between L2 and L1, per-tile bookkeeping, and the loop’s own index and branch overhead, none of which shrink when the arithmetic does. The 4× applies only to the fraction of the runtime the inner loop actually owns. To push closer you’d have to attack that other fraction — larger tiles to amortise the DMA, or double buffering to overlap it with compute — not the kernel body. The full intrinsics inventory lives in <code class="docutils literal notranslate"><span class="pre">TargetLibraries/third_party/pulp-nn-mixed/XpulpV2/32bit/include/pulp_nn_utils.h</span></code>.</p>
+</div></blockquote>
+</details>
+</section>
+<section id="stacked-speedup">
+<h3>Stacked speedup<a class="headerlink" href="#stacked-speedup" title="Link to this heading"></a></h3>
+<p>To wrap up, measure your own cycle counts at each step and compute the speedups vs the single-core untiled baseline and step-to-step. Grab the missing baseline numbers with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>deeployRunner_siracusa.py<span class="w">        </span>-t<span class="w"> </span>Tests/Kernels/Integer/LeakyReLU/Regular<span class="w"> </span>--cores<span class="o">=</span><span class="m">1</span><span class="w">                                                </span><span class="c1"># baseline</span>
+python<span class="w"> </span>deeployRunner_siracusa.py<span class="w">        </span>-t<span class="w"> </span>Tests/Kernels/Integer/LeakyReLU/Regular<span class="w"> </span>--cores<span class="o">=</span><span class="m">8</span><span class="w">                                                </span><span class="c1"># Step 4</span>
+python<span class="w"> </span>deeployRunner_tiled_siracusa.py<span class="w">  </span>-t<span class="w"> </span>Tests/Kernels/Integer/LeakyReLU/Regular<span class="w"> </span>--cores<span class="o">=</span><span class="m">8</span><span class="w"> </span>--l1<span class="o">=</span><span class="m">32768</span><span class="w"> </span>--defaultMemLevel<span class="o">=</span>L2<span class="w">                </span><span class="c1"># Step 5 (scalar)</span>
+python<span class="w"> </span>deeployRunner_tiled_siracusa.py<span class="w">  </span>-t<span class="w"> </span>Tests/Kernels/Integer/LeakyReLU/Regular<span class="w"> </span>--cores<span class="o">=</span><span class="m">8</span><span class="w"> </span>--l1<span class="o">=</span><span class="m">32768</span><span class="w"> </span>--defaultMemLevel<span class="o">=</span>L2<span class="w">                </span><span class="c1"># Step 6 (after deploying SIMD kernel)</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>✅ <strong>Task:</strong> Build a table comparing each step’s cycle count to the baseline and to the previous step. Which transformation contributes the most? Is SIMD or parallelism the bigger lever for this op?</p>
+</div></blockquote>
+<details>
+ <summary><span style="font-weight: bold; font-size: 1.3em;">Solution</span></summary>
+<blockquote>
+<div><p>Our reference run on shape <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">16,</span> <span class="pre">64,</span> <span class="pre">64)</span></code> = 65 536 elements with <code class="docutils literal notranslate"><span class="pre">--l1=32768</span></code>:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Step</p></th>
+<th class="head"><p>Configuration</p></th>
+<th class="head"><p>Cycles</p></th>
+<th class="head"><p>vs baseline</p></th>
+<th class="head"><p>vs previous step</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>baseline</p></td>
+<td><p>1 core, scalar, untiled</p></td>
+<td><p>2 492 970</p></td>
+<td><p>1.00×</p></td>
+<td><p>n/a</p></td>
+</tr>
+<tr class="row-odd"><td><p>Step 4</p></td>
+<td><p>8 cores, scalar, untiled</p></td>
+<td><p>313 541</p></td>
+<td><p><strong>7.95×</strong></p></td>
+<td><p>7.95×</p></td>
+</tr>
+<tr class="row-even"><td><p>Step 5</p></td>
+<td><p>8 cores, scalar, tiled</p></td>
+<td><p>108 090</p></td>
+<td><p><strong>23.06×</strong></p></td>
+<td><p>2.90×</p></td>
+</tr>
+<tr class="row-odd"><td><p>Step 6</p></td>
+<td><p>8 cores, SIMD,  tiled</p></td>
+<td><p>43 005</p></td>
+<td><p><strong>57.97×</strong></p></td>
+<td><p>2.51×</p></td>
+</tr>
+</tbody>
+</table>
+<p>Most of the win comes from parallelizing across cores (Step 4) and moving the working set into L1 (Step 5). SIMD is the last lever to pull and contributes ~2.5× on top. The takeaway: for memory-bound elementwise ops, <strong>getting data close to the compute (Step 5)</strong> and <strong>using all the cores (Step 4)</strong> dwarf the SIMD win. Always choose your optimization order accordingly when you tackle a new operator.</p>
+</div></blockquote>
+</details>
+<p>Congratulations! You just added a brand-new operator to Deeploy and traced it from ONNX all the way to optimized SIMD-accelerated C on the Siracusa cluster. The same workflow scales to any new ONNX operator you’d want to deploy.</p>
+<hr class="docutils" />
+<p>Et voilà, this is the end of the tutorial. Thank you for following it until the end. If you are interested in learning more about Deeploy or the SoCs we develop at the <a class="reference external" href="https://pulp-platform.org/">PULP Platform</a>, please reach out!</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="debugging.html" class="btn btn-neutral float-right" title="Debugging" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: devel
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.1/index.html">v0.2.1</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

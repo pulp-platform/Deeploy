@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint.RQSiHardswishTileConstraint
+===============================================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TileConstraints.RQSiHardswishTileConstraint
+
+.. autoclass:: RQSiHardswishTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQSiHardswishTileConstraint.__init__
+      ~RQSiHardswishTileConstraint.addGeometricalConstraint
+      ~RQSiHardswishTileConstraint.addPolicyConstraint
+      ~RQSiHardswishTileConstraint.constructSymbolicNodeRep
+      ~RQSiHardswishTileConstraint.extractBaseAddr
+      ~RQSiHardswishTileConstraint.getBaseAddr
+      ~RQSiHardswishTileConstraint.sanitizeTilingSchedule
+      ~RQSiHardswishTileConstraint.serializeTilingSolution
+      ~RQSiHardswishTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

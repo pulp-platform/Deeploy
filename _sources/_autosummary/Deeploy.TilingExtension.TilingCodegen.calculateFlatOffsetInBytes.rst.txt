@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.calculateFlatOffsetInBytes
+================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: calculateFlatOffsetInBytes

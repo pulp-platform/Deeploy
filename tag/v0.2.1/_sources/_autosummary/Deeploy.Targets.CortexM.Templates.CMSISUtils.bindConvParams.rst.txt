@@ -1,0 +1,6 @@
+Deeploy.Targets.CortexM.Templates.CMSISUtils.bindConvParams
+===========================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.Templates.CMSISUtils
+
+.. autofunction:: bindConvParams

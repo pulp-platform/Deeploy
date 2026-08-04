@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses
+=================================================
+
+.. automodule:: Deeploy.CommonExtensions.CodeTransformationPasses
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   Closure
+   CycleMeasurement
+   IntrospectiveCodeTransformation
+   MemoryAllocation
+   PrintInputs
+

@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.DequantLayer
+===========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: DequantLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~DequantLayer.__init__
+      ~DequantLayer.bind
+      ~DequantLayer.broadcast
+      ~DequantLayer.codeTransform
+      ~DequantLayer.computeOps
+      ~DequantLayer.computeShapes
+      ~DequantLayer.discardCurrentMapper
+      ~DequantLayer.generate
+      ~DequantLayer.parse
+      ~DequantLayer.resetDiscardedMappers
+      ~DequantLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DequantLayer.maps
+      ~DequantLayer.mapper
+      ~DequantLayer.discardedMappers
+      ~DequantLayer.node
+   
+   

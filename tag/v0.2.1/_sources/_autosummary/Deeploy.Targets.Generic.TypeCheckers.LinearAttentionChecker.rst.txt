@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.LinearAttentionChecker
+===========================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: LinearAttentionChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~LinearAttentionChecker.__init__
+      ~LinearAttentionChecker.annotateDict
+      ~LinearAttentionChecker.checkOutputType
+      ~LinearAttentionChecker.signature
+      ~LinearAttentionChecker.typeCheck
+      ~LinearAttentionChecker.typeCheckNodeInputs
+      ~LinearAttentionChecker.typeInferGlobalCtxt
+      ~LinearAttentionChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~LinearAttentionChecker.typeDict
+   
+   

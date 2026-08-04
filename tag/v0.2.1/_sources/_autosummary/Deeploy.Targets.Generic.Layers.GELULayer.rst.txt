@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.GELULayer
+========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: GELULayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GELULayer.__init__
+      ~GELULayer.bind
+      ~GELULayer.broadcast
+      ~GELULayer.codeTransform
+      ~GELULayer.computeOps
+      ~GELULayer.computeShapes
+      ~GELULayer.discardCurrentMapper
+      ~GELULayer.generate
+      ~GELULayer.parse
+      ~GELULayer.resetDiscardedMappers
+      ~GELULayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GELULayer.maps
+      ~GELULayer.mapper
+      ~GELULayer.discardedMappers
+      ~GELULayer.node
+   
+   

@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.bindingUtils.bypassNode
+==============================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.bindingUtils
+
+.. autofunction:: bypassNode

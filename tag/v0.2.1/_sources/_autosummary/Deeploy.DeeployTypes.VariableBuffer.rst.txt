@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.VariableBuffer
+===================================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: VariableBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~VariableBuffer.__init__
+      ~VariableBuffer.alloc
+      ~VariableBuffer.dealloc
+      ~VariableBuffer.fromNode
+      ~VariableBuffer.has_live_aliases
+      ~VariableBuffer.init
+      ~VariableBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~VariableBuffer.initTemplate
+      ~VariableBuffer.allocTemplate
+      ~VariableBuffer.deallocTemplate
+      ~VariableBuffer.name
+      ~VariableBuffer.shape
+   
+   

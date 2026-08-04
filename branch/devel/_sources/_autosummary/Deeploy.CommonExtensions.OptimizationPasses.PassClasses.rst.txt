@@ -1,0 +1,56 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.OptimizationPasses.PassClasses
+=======================================================
+
+.. automodule:: Deeploy.CommonExtensions.OptimizationPasses.PassClasses
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      contextagnostic
+      contextaware
+      deleteNode
+      replaceInsertNode
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      ContextAgnosticPassMixIn
+      ContextAgnosticReplaceMatchWithModulePassMixIn
+      ContextAgnosticReplaceSequentialPatternPassMixIn
+      ContextAgnosticSequentialPassMixIn
+      ContextAwarePassMixIn
+      ContextAwareReplaceMatchWithModulePassMixIn
+      ContextAwareReplaceSequentialPatternPassMixIn
+      ContextAwareSequentialPassMixIn
+      Pass
+      ReplaceMatchWithModulePass
+      ReplaceSequentialPatternPass
+      SequentialPass
+   
+   
+
+   
+   
+   
+
+
+

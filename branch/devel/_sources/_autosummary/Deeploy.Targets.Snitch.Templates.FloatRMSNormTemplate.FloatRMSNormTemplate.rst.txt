@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Templates.FloatRMSNormTemplate.FloatRMSNormTemplate
+==========================================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Templates.FloatRMSNormTemplate
+
+.. autoclass:: FloatRMSNormTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~FloatRMSNormTemplate.__init__
+      ~FloatRMSNormTemplate.alignToContext
+      ~FloatRMSNormTemplate.computeTransientBuffersSize
+      ~FloatRMSNormTemplate.generate
+      ~FloatRMSNormTemplate.hoistTransientBuffers
+      ~FloatRMSNormTemplate.internalSize
+   
+   
+
+   
+   
+   

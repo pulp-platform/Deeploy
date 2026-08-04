@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.Targets.Snitch.Templates" href="Deeploy.Targets.Snitch.Templates.html" />
+    <link rel="prev" title="Deeploy.Targets.Snitch.Platform.SnitchTransientBuffer" href="Deeploy.Targets.Snitch.Platform.SnitchTransientBuffer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.CortexM.html">Deeploy.Targets.CortexM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.MemPool.html">Deeploy.Targets.MemPool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Neureka.html">Deeploy.Targets.Neureka</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.PULPOpen.html">Deeploy.Targets.PULPOpen</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.Targets.Snitch.html">Deeploy.Targets.Snitch</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.Snitch.html">Deeploy.Targets.Snitch</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.Snitch.Platform.html">Deeploy.Targets.Snitch.Platform</a></li>
+      <li class="breadcrumb-item active">Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-targets-snitch-platform-snitchvariablebuffer">
+<h1>Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer<a class="headerlink" href="#deeploy-targets-snitch-platform-snitchvariablebuffer" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.Targets.Snitch.Platform.</span></span><span class="sig-name descname"><span class="pre">SnitchVariableBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="Deeploy.DeeployTypes.VariableBuffer.html#Deeploy.DeeployTypes.VariableBuffer" title="Deeploy.DeeployTypes.VariableBuffer"><code class="xref py py-class docutils literal notranslate"><span class="pre">VariableBuffer</span></code></a></p>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.__init__" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([name, shape, aliases])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.alloc" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.alloc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alloc</span></code></a>()</p></td>
+<td><p>Return a string representation of the C code required to allocated this memory buffer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.dealloc" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.dealloc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dealloc</span></code></a>()</p></td>
+<td><p>Return a string representation of the C code to deallocate/free this memory buffer at runtime</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fromNode</span></code>(node)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.has_live_aliases" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.has_live_aliases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_live_aliases</span></code></a>(ctxt)</p></td>
+<td><p>Checks whether this VariableBuffer has any live aliases, i.e. buffers that are still live and are aliased by this buffer.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.init" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code></a>()</p></td>
+<td><p>Return a string representation of the C code to declare this memory buffer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.sizeInBytes" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.sizeInBytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sizeInBytes</span></code></a>()</p></td>
+<td><p>Returns the size of this VariableBuffer in bytes</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.allocTemplate" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.allocTemplate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">allocTemplate</span></code></a></p></td>
+<td><p>Holds the buffer's allocation code</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.deallocTemplate" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.deallocTemplate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">deallocTemplate</span></code></a></p></td>
+<td><p>Holds the buffer's deallocation code</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.initTemplate" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.initTemplate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initTemplate</span></code></a></p></td>
+<td><p>Holds the buffer's initialization code</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.name" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>Canonical name that this buffer is registered as in the NetworkContext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.shape" title="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shape</span></code></a></p></td>
+<td><p>Represents the dimensions of the underlying tensor as a sequence of dimension sizes</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.initTemplate">
+<span class="sig-name descname"><span class="pre">initTemplate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><span class="pre">NodeTemplate</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Deeploy.DeeployTypes.NodeTemplate</span> <span class="pre">object&gt;</span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.initTemplate" title="Link to this definition"></a></dt>
+<dd><p>Holds the buffer’s initialization code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate">NodeTemplate</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.allocTemplate">
+<span class="sig-name descname"><span class="pre">allocTemplate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><span class="pre">NodeTemplate</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Deeploy.DeeployTypes.NodeTemplate</span> <span class="pre">object&gt;</span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.allocTemplate" title="Link to this definition"></a></dt>
+<dd><p>Holds the buffer’s allocation code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate">NodeTemplate</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.deallocTemplate">
+<span class="sig-name descname"><span class="pre">deallocTemplate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><span class="pre">NodeTemplate</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Deeploy.DeeployTypes.NodeTemplate</span> <span class="pre">object&gt;</span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.deallocTemplate" title="Link to this definition"></a></dt>
+<dd><p>Holds the buffer’s deallocation code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate">NodeTemplate</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.alloc">
+<span class="sig-name descname"><span class="pre">alloc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.alloc" title="Link to this definition"></a></dt>
+<dd><p>Return a string representation of the C code required to allocated this memory buffer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>C Code to allocate this buffer</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.dealloc">
+<span class="sig-name descname"><span class="pre">dealloc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.dealloc" title="Link to this definition"></a></dt>
+<dd><p>Return a string representation of the C code to deallocate/free this memory buffer at runtime</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>C Code to free this buffer</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.has_live_aliases">
+<span class="sig-name descname"><span class="pre">has_live_aliases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.has_live_aliases" title="Link to this definition"></a></dt>
+<dd><p>Checks whether this VariableBuffer has any live aliases, i.e. buffers that are still live and are aliased by this buffer.
+:param ctxt: Current NetworkContext
+:type ctxt: NetworkContext</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if this VariableBuffer has any live aliases, False otherwise</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.init" title="Link to this definition"></a></dt>
+<dd><p>Return a string representation of the C code to declare this memory buffer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>C Code to declare this buffer</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.sizeInBytes">
+<span class="sig-name descname"><span class="pre">sizeInBytes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.sizeInBytes" title="Link to this definition"></a></dt>
+<dd><p>Returns the size of this VariableBuffer in bytes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Size of this VariableBuffer in bytes</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.name" title="Link to this definition"></a></dt>
+<dd><p>Canonical name that this buffer is registered as in the NetworkContext</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#Deeploy.Targets.Snitch.Platform.SnitchVariableBuffer.shape" title="Link to this definition"></a></dt>
+<dd><p>Represents the dimensions of the underlying tensor as a sequence of dimension sizes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.Targets.Snitch.Platform.SnitchTransientBuffer.html" class="btn btn-neutral float-left" title="Deeploy.Targets.Snitch.Platform.SnitchTransientBuffer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.Targets.Snitch.Templates.html" class="btn btn-neutral float-right" title="Deeploy.Targets.Snitch.Templates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

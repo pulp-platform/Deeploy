@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.GroupNormLayer
+=============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: GroupNormLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GroupNormLayer.__init__
+      ~GroupNormLayer.bind
+      ~GroupNormLayer.broadcast
+      ~GroupNormLayer.codeTransform
+      ~GroupNormLayer.computeOps
+      ~GroupNormLayer.computeShapes
+      ~GroupNormLayer.discardCurrentMapper
+      ~GroupNormLayer.generate
+      ~GroupNormLayer.parse
+      ~GroupNormLayer.resetDiscardedMappers
+      ~GroupNormLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GroupNormLayer.maps
+      ~GroupNormLayer.mapper
+      ~GroupNormLayer.discardedMappers
+      ~GroupNormLayer.node
+   
+   

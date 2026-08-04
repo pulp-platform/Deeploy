@@ -1,0 +1,61 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper.NetworkDeployerWrapper
+=======================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.NetworkDeployers.NetworkDeployerWrapper
+
+.. autoclass:: NetworkDeployerWrapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NetworkDeployerWrapper.__init__
+      ~NetworkDeployerWrapper.backEnd
+      ~NetworkDeployerWrapper.bind
+      ~NetworkDeployerWrapper.codeTransform
+      ~NetworkDeployerWrapper.exportDeeployState
+      ~NetworkDeployerWrapper.frontEnd
+      ~NetworkDeployerWrapper.generateBufferAllocationCode
+      ~NetworkDeployerWrapper.generateBufferDeAllocationCode
+      ~NetworkDeployerWrapper.generateBufferInitializationCode
+      ~NetworkDeployerWrapper.generateEngineInitializationCode
+      ~NetworkDeployerWrapper.generateFunction
+      ~NetworkDeployerWrapper.generateGlobalDefinitionCode
+      ~NetworkDeployerWrapper.generateIOBufferInitializationCode
+      ~NetworkDeployerWrapper.generateIncludeString
+      ~NetworkDeployerWrapper.generateInferenceCode
+      ~NetworkDeployerWrapper.generateInferenceInitializationCode
+      ~NetworkDeployerWrapper.importDeeployState
+      ~NetworkDeployerWrapper.inputs
+      ~NetworkDeployerWrapper.lower
+      ~NetworkDeployerWrapper.midEnd
+      ~NetworkDeployerWrapper.numberOfOps
+      ~NetworkDeployerWrapper.outputs
+      ~NetworkDeployerWrapper.parse
+      ~NetworkDeployerWrapper.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NetworkDeployerWrapper.bound
+      ~NetworkDeployerWrapper.parsed
+      ~NetworkDeployerWrapper.prepared
+      ~NetworkDeployerWrapper.transformed
+      ~NetworkDeployerWrapper.worstCaseBufferSize
+   
+   

@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint.FloatGEMMTileConstraint
+===================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.GEMMTileConstraint
+
+.. autoclass:: FloatGEMMTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~FloatGEMMTileConstraint.__init__
+      ~FloatGEMMTileConstraint.addGeometricalConstraint
+      ~FloatGEMMTileConstraint.addPolicyConstraint
+      ~FloatGEMMTileConstraint.constructSymbolicNodeRep
+      ~FloatGEMMTileConstraint.extractBaseAddr
+      ~FloatGEMMTileConstraint.getBaseAddr
+      ~FloatGEMMTileConstraint.sanitizeTilingSchedule
+      ~FloatGEMMTileConstraint.serializeTilingSolution
+      ~FloatGEMMTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

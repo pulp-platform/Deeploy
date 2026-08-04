@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Parsers.PULPTallGEMMParser
+===================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.Parsers
+
+.. autoclass:: PULPTallGEMMParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPTallGEMMParser.__init__
+      ~PULPTallGEMMParser.parse
+      ~PULPTallGEMMParser.parseInputs
+      ~PULPTallGEMMParser.parseNode
+      ~PULPTallGEMMParser.parseNodeCtxt
+      ~PULPTallGEMMParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PULPTallGEMMParser.operatorRepresentation
+   
+   

@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.GenericFlow.GenericFlowState
+====================================================
+
+.. currentmodule:: Deeploy.TilingExtension.GenericFlow
+
+.. autoclass:: GenericFlowState
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GenericFlowState.__init__
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GenericFlowState.liveSet
+      ~GenericFlowState.killSet
+      ~GenericFlowState.genSet
+   
+   

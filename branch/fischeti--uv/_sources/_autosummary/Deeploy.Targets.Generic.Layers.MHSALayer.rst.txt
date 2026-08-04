@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.MHSALayer
+========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: MHSALayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MHSALayer.__init__
+      ~MHSALayer.bind
+      ~MHSALayer.broadcast
+      ~MHSALayer.codeTransform
+      ~MHSALayer.computeOps
+      ~MHSALayer.computeShapes
+      ~MHSALayer.discardCurrentMapper
+      ~MHSALayer.generate
+      ~MHSALayer.parse
+      ~MHSALayer.resetDiscardedMappers
+      ~MHSALayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MHSALayer.maps
+      ~MHSALayer.mapper
+      ~MHSALayer.discardedMappers
+      ~MHSALayer.node
+   
+   

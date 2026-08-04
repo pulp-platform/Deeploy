@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.GenericMaxPool2DParser
+======================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: GenericMaxPool2DParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GenericMaxPool2DParser.__init__
+      ~GenericMaxPool2DParser.parse
+      ~GenericMaxPool2DParser.parseInputs
+      ~GenericMaxPool2DParser.parseNode
+      ~GenericMaxPool2DParser.parseNodeCtxt
+      ~GenericMaxPool2DParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GenericMaxPool2DParser.operatorRepresentation
+   
+   

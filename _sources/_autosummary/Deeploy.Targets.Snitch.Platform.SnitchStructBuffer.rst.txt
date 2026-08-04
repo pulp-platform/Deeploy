@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Platform.SnitchStructBuffer
+==================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Platform
+
+.. autoclass:: SnitchStructBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchStructBuffer.__init__
+      ~SnitchStructBuffer.alloc
+      ~SnitchStructBuffer.dealloc
+      ~SnitchStructBuffer.fromNode
+      ~SnitchStructBuffer.has_live_aliases
+      ~SnitchStructBuffer.init
+      ~SnitchStructBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SnitchStructBuffer.allocTemplate
+      ~SnitchStructBuffer.deallocTemplate
+      ~SnitchStructBuffer.initTemplate
+      ~SnitchStructBuffer.name
+      ~SnitchStructBuffer.shape
+   
+   

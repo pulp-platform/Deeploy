@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.SoftmaxCrossEntropyLossChecker
+===================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: SoftmaxCrossEntropyLossChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyLossChecker.__init__
+      ~SoftmaxCrossEntropyLossChecker.annotateDict
+      ~SoftmaxCrossEntropyLossChecker.checkOutputType
+      ~SoftmaxCrossEntropyLossChecker.signature
+      ~SoftmaxCrossEntropyLossChecker.typeCheck
+      ~SoftmaxCrossEntropyLossChecker.typeCheckNodeInputs
+      ~SoftmaxCrossEntropyLossChecker.typeInferGlobalCtxt
+      ~SoftmaxCrossEntropyLossChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyLossChecker.typeDict
+   
+   

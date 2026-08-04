@@ -1,0 +1,57 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.MemPool.Deployer.MemPoolDeployer
+================================================
+
+.. currentmodule:: Deeploy.Targets.MemPool.Deployer
+
+.. autoclass:: MemPoolDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemPoolDeployer.__init__
+      ~MemPoolDeployer.backEnd
+      ~MemPoolDeployer.bind
+      ~MemPoolDeployer.codeTransform
+      ~MemPoolDeployer.exportDeeployState
+      ~MemPoolDeployer.frontEnd
+      ~MemPoolDeployer.generateBufferAllocationCode
+      ~MemPoolDeployer.generateBufferDeAllocationCode
+      ~MemPoolDeployer.generateBufferInitializationCode
+      ~MemPoolDeployer.generateEngineInitializationCode
+      ~MemPoolDeployer.generateFunction
+      ~MemPoolDeployer.generateGlobalDefinitionCode
+      ~MemPoolDeployer.generateIOBufferInitializationCode
+      ~MemPoolDeployer.generateIncludeString
+      ~MemPoolDeployer.generateInferenceCode
+      ~MemPoolDeployer.generateInferenceInitializationCode
+      ~MemPoolDeployer.importDeeployState
+      ~MemPoolDeployer.inputs
+      ~MemPoolDeployer.lower
+      ~MemPoolDeployer.midEnd
+      ~MemPoolDeployer.numberOfOps
+      ~MemPoolDeployer.outputs
+      ~MemPoolDeployer.parse
+      ~MemPoolDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemPoolDeployer.worstCaseBufferSize
+   
+   

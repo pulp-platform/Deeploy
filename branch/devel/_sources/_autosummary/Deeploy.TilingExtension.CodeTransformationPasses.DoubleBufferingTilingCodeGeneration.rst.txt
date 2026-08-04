@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.CodeTransformationPasses.DoubleBufferingTilingCodeGeneration
+====================================================================================
+
+.. automodule:: Deeploy.TilingExtension.CodeTransformationPasses.DoubleBufferingTilingCodeGeneration
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      DoubleBufferingTilingCodeGeneration
+      ProfilingDoubleBufferingTilingMixIn
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.RQSiHardswishParser
+===================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: RQSiHardswishParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQSiHardswishParser.__init__
+      ~RQSiHardswishParser.parse
+      ~RQSiHardswishParser.parseInputs
+      ~RQSiHardswishParser.parseNode
+      ~RQSiHardswishParser.parseNodeCtxt
+      ~RQSiHardswishParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQSiHardswishParser.operatorRepresentation
+   
+   

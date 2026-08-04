@@ -1,0 +1,6 @@
+Deeploy.Targets.Neureka.Templates.ConvTemplate.getInputAddrOffset
+=================================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.Templates.ConvTemplate
+
+.. autofunction:: getInputAddrOffset

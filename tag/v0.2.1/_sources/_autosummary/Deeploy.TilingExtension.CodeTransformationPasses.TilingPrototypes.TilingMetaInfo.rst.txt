@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes.TilingMetaInfo
+================================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes
+
+.. autoclass:: TilingMetaInfo
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TilingMetaInfo.__init__
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TilingMetaInfo.nodeName
+      ~TilingMetaInfo.nodeOps
+      ~TilingMetaInfo.numTiles
+      ~TilingMetaInfo.totalNumTiles
+      ~TilingMetaInfo.tileIdxPtr
+      ~TilingMetaInfo.tileIdxVar
+      ~TilingMetaInfo.kernelLevelTiling
+   
+   

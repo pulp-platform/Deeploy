@@ -1,0 +1,6 @@
+Deeploy.AbstractDataTypes.PointerClass
+======================================
+
+.. currentmodule:: Deeploy.AbstractDataTypes
+
+.. autofunction:: PointerClass

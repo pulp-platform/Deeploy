@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.MHSAChecker
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: MHSAChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MHSAChecker.__init__
+      ~MHSAChecker.annotateDict
+      ~MHSAChecker.checkOutputType
+      ~MHSAChecker.signature
+      ~MHSAChecker.typeCheck
+      ~MHSAChecker.typeCheckNodeInputs
+      ~MHSAChecker.typeInferGlobalCtxt
+      ~MHSAChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MHSAChecker.typeDict
+   
+   

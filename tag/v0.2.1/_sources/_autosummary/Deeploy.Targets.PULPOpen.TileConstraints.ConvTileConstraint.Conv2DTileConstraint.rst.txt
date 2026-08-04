@@ -1,0 +1,37 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint.Conv2DTileConstraint
+================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint
+
+.. autoclass:: Conv2DTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~Conv2DTileConstraint.__init__
+      ~Conv2DTileConstraint.addGeometricalConstraint
+      ~Conv2DTileConstraint.addPolicyConstraint
+      ~Conv2DTileConstraint.computeInputCube
+      ~Conv2DTileConstraint.constructSymbolicNodeRep
+      ~Conv2DTileConstraint.extractBaseAddr
+      ~Conv2DTileConstraint.getBaseAddr
+      ~Conv2DTileConstraint.sanitizeTilingSchedule
+      ~Conv2DTileConstraint.serializeTilingSolution
+      ~Conv2DTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

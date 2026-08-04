@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.SoftmaxGradParser
+=================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: SoftmaxGradParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SoftmaxGradParser.__init__
+      ~SoftmaxGradParser.parse
+      ~SoftmaxGradParser.parseInputs
+      ~SoftmaxGradParser.parseNode
+      ~SoftmaxGradParser.parseNodeCtxt
+      ~SoftmaxGradParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SoftmaxGradParser.operatorRepresentation
+   
+   

@@ -1,0 +1,6 @@
+Deeploy.AbstractDataTypes.StructClass
+=====================================
+
+.. currentmodule:: Deeploy.AbstractDataTypes
+
+.. autofunction:: StructClass

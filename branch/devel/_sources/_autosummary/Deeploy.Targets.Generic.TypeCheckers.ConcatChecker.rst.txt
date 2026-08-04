@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.ConcatChecker
+==================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: ConcatChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ConcatChecker.__init__
+      ~ConcatChecker.annotateDict
+      ~ConcatChecker.checkOutputType
+      ~ConcatChecker.signature
+      ~ConcatChecker.typeCheck
+      ~ConcatChecker.typeCheckNodeInputs
+      ~ConcatChecker.typeInferGlobalCtxt
+      ~ConcatChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ConcatChecker.typeDict
+   
+   

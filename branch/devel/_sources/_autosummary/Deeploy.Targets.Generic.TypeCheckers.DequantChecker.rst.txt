@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.DequantChecker
+===================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: DequantChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~DequantChecker.__init__
+      ~DequantChecker.annotateDict
+      ~DequantChecker.checkOutputType
+      ~DequantChecker.signature
+      ~DequantChecker.typeCheck
+      ~DequantChecker.typeCheckNodeInputs
+      ~DequantChecker.typeInferGlobalCtxt
+      ~DequantChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DequantChecker.typeDict
+   
+   

@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Layers
+===============================
+
+.. automodule:: Deeploy.Targets.PULPOpen.Layers
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      PULPRQSConvLayer
+      PULPRQSGEMMLayer
+   
+   
+
+   
+   
+   
+
+
+

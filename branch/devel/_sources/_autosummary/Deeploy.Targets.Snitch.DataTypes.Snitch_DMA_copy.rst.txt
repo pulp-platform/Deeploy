@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.DataTypes.Snitch\_DMA\_copy
+==================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.DataTypes
+
+.. autoclass:: Snitch_DMA_copy
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~Snitch_DMA_copy.__init__
+      ~Snitch_DMA_copy.checkPromotion
+      ~Snitch_DMA_copy.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Snitch_DMA_copy.value
+      ~Snitch_DMA_copy.structTypeDict
+      ~Snitch_DMA_copy.typeName
+      ~Snitch_DMA_copy.typeWidth
+   
+   

@@ -1,0 +1,58 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.MemoryLevelAwareDeployer
+==========================================================================================
+
+.. currentmodule:: Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer
+
+.. autoclass:: MemoryLevelAwareDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryLevelAwareDeployer.__init__
+      ~MemoryLevelAwareDeployer.backEnd
+      ~MemoryLevelAwareDeployer.bind
+      ~MemoryLevelAwareDeployer.codeTransform
+      ~MemoryLevelAwareDeployer.exportDeeployState
+      ~MemoryLevelAwareDeployer.frontEnd
+      ~MemoryLevelAwareDeployer.generateBufferAllocationCode
+      ~MemoryLevelAwareDeployer.generateBufferDeAllocationCode
+      ~MemoryLevelAwareDeployer.generateBufferInitializationCode
+      ~MemoryLevelAwareDeployer.generateEngineInitializationCode
+      ~MemoryLevelAwareDeployer.generateFunction
+      ~MemoryLevelAwareDeployer.generateGlobalDefinitionCode
+      ~MemoryLevelAwareDeployer.generateIOBufferInitializationCode
+      ~MemoryLevelAwareDeployer.generateIncludeString
+      ~MemoryLevelAwareDeployer.generateInferenceCode
+      ~MemoryLevelAwareDeployer.generateInferenceInitializationCode
+      ~MemoryLevelAwareDeployer.getTargetMemoryLevelMapping
+      ~MemoryLevelAwareDeployer.importDeeployState
+      ~MemoryLevelAwareDeployer.inputs
+      ~MemoryLevelAwareDeployer.lower
+      ~MemoryLevelAwareDeployer.midEnd
+      ~MemoryLevelAwareDeployer.numberOfOps
+      ~MemoryLevelAwareDeployer.outputs
+      ~MemoryLevelAwareDeployer.parse
+      ~MemoryLevelAwareDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryLevelAwareDeployer.worstCaseBufferSize
+   
+   

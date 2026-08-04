@@ -1,0 +1,57 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.NetworkDeployer
+====================================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: NetworkDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NetworkDeployer.__init__
+      ~NetworkDeployer.backEnd
+      ~NetworkDeployer.bind
+      ~NetworkDeployer.codeTransform
+      ~NetworkDeployer.exportDeeployState
+      ~NetworkDeployer.frontEnd
+      ~NetworkDeployer.generateBufferAllocationCode
+      ~NetworkDeployer.generateBufferDeAllocationCode
+      ~NetworkDeployer.generateBufferInitializationCode
+      ~NetworkDeployer.generateEngineInitializationCode
+      ~NetworkDeployer.generateFunction
+      ~NetworkDeployer.generateGlobalDefinitionCode
+      ~NetworkDeployer.generateIOBufferInitializationCode
+      ~NetworkDeployer.generateIncludeString
+      ~NetworkDeployer.generateInferenceCode
+      ~NetworkDeployer.generateInferenceInitializationCode
+      ~NetworkDeployer.importDeeployState
+      ~NetworkDeployer.inputs
+      ~NetworkDeployer.lower
+      ~NetworkDeployer.midEnd
+      ~NetworkDeployer.numberOfOps
+      ~NetworkDeployer.outputs
+      ~NetworkDeployer.parse
+      ~NetworkDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NetworkDeployer.worstCaseBufferSize
+   
+   

@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Templates.iSoftmaxPreAllocatedBuffTemplate.iSoftmaxPreAllocatedBuffTemplate
+===================================================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Templates.iSoftmaxPreAllocatedBuffTemplate
+
+.. autoclass:: iSoftmaxPreAllocatedBuffTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~iSoftmaxPreAllocatedBuffTemplate.__init__
+      ~iSoftmaxPreAllocatedBuffTemplate.alignToContext
+      ~iSoftmaxPreAllocatedBuffTemplate.computeTransientBuffersSize
+      ~iSoftmaxPreAllocatedBuffTemplate.generate
+      ~iSoftmaxPreAllocatedBuffTemplate.hoistTransientBuffers
+      ~iSoftmaxPreAllocatedBuffTemplate.internalSize
+   
+   
+
+   
+   
+   

@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Templates.TransposeTemplate.SnitchTransposeTemplate
+==========================================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Templates.TransposeTemplate
+
+.. autoclass:: SnitchTransposeTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchTransposeTemplate.__init__
+      ~SnitchTransposeTemplate.alignToContext
+      ~SnitchTransposeTemplate.computeTransientBuffersSize
+      ~SnitchTransposeTemplate.generate
+      ~SnitchTransposeTemplate.hoistTransientBuffers
+      ~SnitchTransposeTemplate.internalSize
+   
+   
+
+   
+   
+   

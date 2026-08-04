@@ -1,0 +1,61 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.EngineExtension.NetworkDeployers.EngineColoringDeployer.EngineColoringDeployerWrapper
+=============================================================================================
+
+.. currentmodule:: Deeploy.EngineExtension.NetworkDeployers.EngineColoringDeployer
+
+.. autoclass:: EngineColoringDeployerWrapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~EngineColoringDeployerWrapper.__init__
+      ~EngineColoringDeployerWrapper.backEnd
+      ~EngineColoringDeployerWrapper.bind
+      ~EngineColoringDeployerWrapper.codeTransform
+      ~EngineColoringDeployerWrapper.exportDeeployState
+      ~EngineColoringDeployerWrapper.frontEnd
+      ~EngineColoringDeployerWrapper.generateBufferAllocationCode
+      ~EngineColoringDeployerWrapper.generateBufferDeAllocationCode
+      ~EngineColoringDeployerWrapper.generateBufferInitializationCode
+      ~EngineColoringDeployerWrapper.generateEngineInitializationCode
+      ~EngineColoringDeployerWrapper.generateFunction
+      ~EngineColoringDeployerWrapper.generateGlobalDefinitionCode
+      ~EngineColoringDeployerWrapper.generateIOBufferInitializationCode
+      ~EngineColoringDeployerWrapper.generateIncludeString
+      ~EngineColoringDeployerWrapper.generateInferenceCode
+      ~EngineColoringDeployerWrapper.generateInferenceInitializationCode
+      ~EngineColoringDeployerWrapper.importDeeployState
+      ~EngineColoringDeployerWrapper.inputs
+      ~EngineColoringDeployerWrapper.lower
+      ~EngineColoringDeployerWrapper.midEnd
+      ~EngineColoringDeployerWrapper.numberOfOps
+      ~EngineColoringDeployerWrapper.outputs
+      ~EngineColoringDeployerWrapper.parse
+      ~EngineColoringDeployerWrapper.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~EngineColoringDeployerWrapper.bound
+      ~EngineColoringDeployerWrapper.parsed
+      ~EngineColoringDeployerWrapper.prepared
+      ~EngineColoringDeployerWrapper.transformed
+      ~EngineColoringDeployerWrapper.worstCaseBufferSize
+   
+   

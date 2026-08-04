@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.PassClasses.contextagnostic
+=======================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.PassClasses
+
+.. autofunction:: contextagnostic

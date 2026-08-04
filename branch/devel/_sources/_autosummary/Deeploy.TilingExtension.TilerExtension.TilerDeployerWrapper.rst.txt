@@ -1,0 +1,62 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.TilerExtension.TilerDeployerWrapper
+===========================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilerExtension
+
+.. autoclass:: TilerDeployerWrapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TilerDeployerWrapper.__init__
+      ~TilerDeployerWrapper.backEnd
+      ~TilerDeployerWrapper.bind
+      ~TilerDeployerWrapper.codeTransform
+      ~TilerDeployerWrapper.exportDeeployState
+      ~TilerDeployerWrapper.frontEnd
+      ~TilerDeployerWrapper.generateBufferAllocationCode
+      ~TilerDeployerWrapper.generateBufferDeAllocationCode
+      ~TilerDeployerWrapper.generateBufferInitializationCode
+      ~TilerDeployerWrapper.generateEngineInitializationCode
+      ~TilerDeployerWrapper.generateFunction
+      ~TilerDeployerWrapper.generateGlobalDefinitionCode
+      ~TilerDeployerWrapper.generateIOBufferInitializationCode
+      ~TilerDeployerWrapper.generateIncludeString
+      ~TilerDeployerWrapper.generateInferenceCode
+      ~TilerDeployerWrapper.generateInferenceInitializationCode
+      ~TilerDeployerWrapper.importDeeployState
+      ~TilerDeployerWrapper.inputs
+      ~TilerDeployerWrapper.lower
+      ~TilerDeployerWrapper.midEnd
+      ~TilerDeployerWrapper.numberOfOps
+      ~TilerDeployerWrapper.outputs
+      ~TilerDeployerWrapper.parse
+      ~TilerDeployerWrapper.prepare
+      ~TilerDeployerWrapper.tile
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TilerDeployerWrapper.bound
+      ~TilerDeployerWrapper.parsed
+      ~TilerDeployerWrapper.prepared
+      ~TilerDeployerWrapper.transformed
+      ~TilerDeployerWrapper.worstCaseBufferSize
+   
+   

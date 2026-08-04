@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TypeCheckers.PULPLinearChecker
+=======================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TypeCheckers
+
+.. autoclass:: PULPLinearChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPLinearChecker.__init__
+      ~PULPLinearChecker.annotateDict
+      ~PULPLinearChecker.checkOutputType
+      ~PULPLinearChecker.signature
+      ~PULPLinearChecker.typeCheck
+      ~PULPLinearChecker.typeCheckNodeInputs
+      ~PULPLinearChecker.typeInferGlobalCtxt
+      ~PULPLinearChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PULPLinearChecker.typeDict
+   
+   

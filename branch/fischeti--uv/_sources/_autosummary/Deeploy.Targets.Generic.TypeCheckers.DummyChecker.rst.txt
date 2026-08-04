@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.DummyChecker
+=================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: DummyChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~DummyChecker.__init__
+      ~DummyChecker.annotateDict
+      ~DummyChecker.checkOutputType
+      ~DummyChecker.signature
+      ~DummyChecker.typeCheck
+      ~DummyChecker.typeCheckNodeInputs
+      ~DummyChecker.typeInferGlobalCtxt
+      ~DummyChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DummyChecker.typeDict
+   
+   

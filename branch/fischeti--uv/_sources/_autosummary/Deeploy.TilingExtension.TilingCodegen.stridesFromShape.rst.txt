@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.stridesFromShape
+======================================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: stridesFromShape

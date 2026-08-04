@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.ITAMaxLayer
+==========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: ITAMaxLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ITAMaxLayer.__init__
+      ~ITAMaxLayer.bind
+      ~ITAMaxLayer.broadcast
+      ~ITAMaxLayer.codeTransform
+      ~ITAMaxLayer.computeOps
+      ~ITAMaxLayer.computeShapes
+      ~ITAMaxLayer.discardCurrentMapper
+      ~ITAMaxLayer.generate
+      ~ITAMaxLayer.parse
+      ~ITAMaxLayer.resetDiscardedMappers
+      ~ITAMaxLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ITAMaxLayer.maps
+      ~ITAMaxLayer.mapper
+      ~ITAMaxLayer.discardedMappers
+      ~ITAMaxLayer.node
+   
+   

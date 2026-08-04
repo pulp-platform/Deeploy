@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.GlobalMaxPoolParser
+===================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: GlobalMaxPoolParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GlobalMaxPoolParser.__init__
+      ~GlobalMaxPoolParser.parse
+      ~GlobalMaxPoolParser.parseInputs
+      ~GlobalMaxPoolParser.parseNode
+      ~GlobalMaxPoolParser.parseNodeCtxt
+      ~GlobalMaxPoolParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GlobalMaxPoolParser.operatorRepresentation
+   
+   

@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.SigmoidParser
+=============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: SigmoidParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SigmoidParser.__init__
+      ~SigmoidParser.parse
+      ~SigmoidParser.parseInputs
+      ~SigmoidParser.parseNode
+      ~SigmoidParser.parseNodeCtxt
+      ~SigmoidParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SigmoidParser.operatorRepresentation
+   
+   
