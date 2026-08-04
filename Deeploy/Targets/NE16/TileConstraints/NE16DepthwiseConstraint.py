@@ -91,6 +91,20 @@ class NE16DWConv2DTileConstraint(TileConstraint):
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 3)
         tilerModel.addConstraint(outputChannelVar % 32 == 0, strategy = PerformanceHint(2))
 
+        # NE16's 9 columns retire one 3x3 output patch per pass, so an output
+        # tile whose H or W is not a multiple of 3 wastes part of the patch on
+        # its border pass -- GAP9's AutoTiler passes the same spatial
+        # PreferedTileSize of 3. Deliberately a *weaker* hint than the channel
+        # alignment above: splitting the spatial dimensions costs a 2-row/2-col
+        # halo re-fetch per extra tile, while splitting output channels costs
+        # nothing, so when L1 is tight this must give way. Measured: forcing it
+        # at the same priority as the channel hint made the double-buffered
+        # DW_2D_RQ kernel go 11,926 -> 19,391 cycles.
+        outHVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 1)
+        outWVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 2)
+        tilerModel.addConstraint(outHVar % 3 == 0, strategy = PerformanceHint(0))
+        tilerModel.addConstraint(outWVar % 3 == 0, strategy = PerformanceHint(0))
+
         return tilerModel
 
     @classmethod
