@@ -5,18 +5,14 @@
 from Deeploy.DeeployTypes import NodeTemplate
 
 reference2DTemplate = NodeTemplate("""
-<%
-batchOffsetIn = ch_im_in * dim_im_in_x * dim_im_in_y
-batchOffsetOut = ch_im_out * dim_im_out_x * dim_im_out_y
-%>
-
 // 2D FP ConvTranspose CHW on PULPOpen/Siracusa (Name: ${nodeName}, Op: ${nodeOp})
-${data_in_type.typeName} ref_${data_out}_${data_in} = ${data_in};
-${data_out_type.typeName} ref_${data_out}_${data_out} = ${data_out};
+{
+${data_in_type.typeName} ref_data_in = ${data_in};
+${data_out_type.typeName} ref_data_out = ${data_out};
 
 for (uint32_t n=0; n<${batch}; ++n) {
     PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
-        ref_${data_out}_${data_in},
+        ref_data_in,
         ${ch_im_in}, ${dim_im_in_x}, ${dim_im_in_y},
         ${weight},
         ${ch_im_out}, ${group},
@@ -26,11 +22,12 @@ for (uint32_t n=0; n<${batch}; ++n) {
         ${padding_y_top}, ${padding_y_bottom},
         ${padding_x_left}, ${padding_x_right},
         ${bias}, ${has_bias},
-        ref_${data_out}_${data_out},
+        ref_data_out,
         ${dim_im_out_x}, ${dim_im_out_y}
     );
 
-    ref_${data_out}_${data_in} += ${batchOffsetIn};
-    ref_${data_out}_${data_out} += ${batchOffsetOut};
+    ref_data_in += ${ch_im_in} * ${dim_im_in_x} * ${dim_im_in_y};
+    ref_data_out += (${ch_im_out}) * ${dim_im_out_x} * ${dim_im_out_y};
+}
 }
 """)
