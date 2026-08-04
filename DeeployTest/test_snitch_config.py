@@ -9,6 +9,15 @@
 DEFAULT_NUM_CORES = 9
 
 KERNEL_TESTS = [
+    "Kernels/FP32/Add/Regular",
+    "Kernels/FP32/Add/Scalar",
+    "Kernels/FP32/Div/Regular",
+    "Kernels/FP32/Div/Scalar",
+    "Kernels/FP32/Hardswish",
+    "Kernels/FP32/MatMul",
+    "Kernels/FP32/Mul/Regular",
+    "Kernels/FP32/Mul/Scalar",
+    "Kernels/FP32/RMSNorm/single_fused_op",
     "Kernels/FP32/Softmax/Regular",
     "Kernels/Integer/Add/Large",
     "Kernels/Integer/Add/Regular",
@@ -21,4 +30,6 @@ KERNEL_TESTS = [
     "Kernels/Integer/GEMM/TransB_RQ",
 ]
 
-MODEL_TESTS = []
+MODEL_TESTS = [
+    "Models/microLlama/FP32/microLlama1",
+]

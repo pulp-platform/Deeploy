@@ -45,13 +45,12 @@ static ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
 % endif
 """)
 
-snitchGenericAllocate = NodeTemplate("""
+snitchGenericGuardedAllocate = NodeTemplate("""
 % if _memoryLevel == "L1":
-${name} = (${type.typeName}) snrt_l1alloc(sizeof(${type.referencedType.typeName}) * ${size});\n
-% elif _memoryLevel == "L2" or _memoryLevel is None:
-${name} = (${type.typeName}) snrt_l3alloc(sizeof(${type.referencedType.typeName}) * ${size});\n% else:
-//COMPILER BLOCK - MEMORYLEVEL ${_memoryLevel} NOT FOUND \n
-${name} = (${type.typeName}) snrt_l3alloc(sizeof(${type.referencedType.typeName}) * ${size});\n
-// ${name} with size ${size} allocated in L2!
+if (snrt_is_dm_core()) { ${name} = (${type.typeName}) snrt_l1alloc(sizeof(${type.referencedType.typeName}) * ${size}); }
+snrt_cluster_hw_barrier();\n
+% else:
+if (snrt_is_dm_core()) { ${name} = (${type.typeName}) snrt_l3alloc(sizeof(${type.referencedType.typeName}) * ${size}); }
+snrt_cluster_hw_barrier();\n
 % endif
 """)

@@ -12,11 +12,26 @@ from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import TilerModel
-from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
+    VariableReplacementScheme
 
 
 class BOPTileConstraint(TileConstraint):
-    """Tile constraint class for binary operators, i.e. operators that use two input tensors of equal dimensions
+    """Tile constraint class for binary operators, i.e. operators that have exactly 2 inputs and 1 output.
+
+    When the second input is a scalar (total size 1), it is kept full-size and only
+    the first input and the output are tiled together. This supports ONNX
+    broadcasting in operators that have a corresponding scalar kernel.
+
+    Warning:
+        Broadcasting support is partial -- only the case of a fully-scalar
+        second input (np.prod(input2.shape) == 1) is handled. Other ONNX
+        broadcasting patterns -- input1 scalar, partial broadcasting such
+        as (N, 1) + (1, M), single-dim broadcasting such as (N, M, K) +
+        (N, 1, K), or rank-mismatched shapes such as (N, M) + (M,) --
+        fall through to the non-scalar branch, where the dim-equality
+        constraints will fail to satisfy. Operators that need full ONNX
+        broadcasting must use a different tile constraint.
     """
 
     dataIn1Name = 'data_in_1'  #: str: Name of the first input tensor as defined by the operator's parser
@@ -34,14 +49,27 @@ class BOPTileConstraint(TileConstraint):
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         input1Shape = ctxt.lookup(inputBuffer1Name).shape
+        input2Shape = list(ctxt.lookup(inputBuffer2Name).shape)
+        input2_is_scalar = (np.prod(input2Shape) == 1)
 
-        for dim in range(len(input1Shape)):
-            inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
-            inputDim2Var = tilerModel.getTensorDimVar(tensorName = inputBuffer2Name, dimIdx = dim)
-            outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
+        if input2_is_scalar:
+            # Scalar broadcasting: tile input1 and output together; input2 stays full-size.
+            for dim in range(len(input1Shape)):
+                inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
+                outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
+                tilerModel.addConstraint(inputDim1Var == outputDimVar)
+            for dim in range(len(input2Shape)):
+                inputDim2Var = tilerModel.getTensorDimVar(tensorName = inputBuffer2Name, dimIdx = dim)
+                tilerModel.addConstraint(inputDim2Var == input2Shape[dim])
+        else:
+            # Element-wise: all three tensors tiled identically.
+            for dim in range(len(input1Shape)):
+                inputDim1Var = tilerModel.getTensorDimVar(tensorName = inputBuffer1Name, dimIdx = dim)
+                inputDim2Var = tilerModel.getTensorDimVar(tensorName = inputBuffer2Name, dimIdx = dim)
+                outputDimVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = dim)
 
-            tilerModel.addConstraint(inputDim1Var == inputDim2Var)
-            tilerModel.addConstraint(inputDim1Var == outputDimVar)
+                tilerModel.addConstraint(inputDim1Var == inputDim2Var)
+                tilerModel.addConstraint(inputDim1Var == outputDimVar)
 
         return tilerModel
 
@@ -64,11 +92,18 @@ class BOPTileConstraint(TileConstraint):
             newSize = np.prod(cube.dims)
             replacements["size"].append(newSize)
 
+        input2Shape = list(ctxt.lookup(operatorRepresentation[cls.dataIn2Name]).shape)
+        input2_is_scalar = (np.prod(input2Shape) == 1)
+
         inputLoadSchedule = []
         outputLoadSchedule = []
 
         for cube in outputCubes:
-            inputLoadSchedule.append({cls.dataIn1Name: cube, cls.dataIn2Name: cube})
+            if input2_is_scalar:
+                in2Cube = HyperRectangle(tuple([0] * len(input2Shape)), tuple(input2Shape))
+                inputLoadSchedule.append({cls.dataIn1Name: cube, cls.dataIn2Name: in2Cube})
+            else:
+                inputLoadSchedule.append({cls.dataIn1Name: cube, cls.dataIn2Name: cube})
 
         for out in outputCubes:
             outputLoadSchedule.append({cls.dataOutName: out})

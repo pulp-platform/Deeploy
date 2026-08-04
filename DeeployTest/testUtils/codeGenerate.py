@@ -10,6 +10,7 @@ import numpy as np
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
+from Deeploy.Targets.Snitch.Platform import SnitchPlatform
 
 _TEXT_ALIGN = 30
 
@@ -172,8 +173,8 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
     retStr += deployer.generateBufferInitializationCode()
     retStr += deployer.generateGlobalDefinitionCode()
 
-    # WIESEP: Mempool assigns section attributes to intermediate buffers to allow .
-    if isinstance(deployer.Platform, MemPoolPlatform):
+    # MemPool and Snitch declare intermediate buffers at file scope (before RunNetwork) so they are shared across cores.
+    if isinstance(deployer.Platform, (MemPoolPlatform, SnitchPlatform)):
         retStr += deployer.generateInferenceInitializationCode()
         retStr += """
         void RunNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){

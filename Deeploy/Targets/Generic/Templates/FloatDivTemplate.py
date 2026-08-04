@@ -6,5 +6,5 @@ from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
 // Division (Name: ${nodeName}, Op: ${nodeOp})
-SINGLE_CORE Div_fp${input1_type.referencedType.typeWidth}_fp${input2_type.referencedType.typeWidth}_fp${output_type.referencedType.typeWidth}(${input1}, ${input2}, ${output}, ${size});
+SINGLE_CORE Div_fp${A_type.referencedType.typeWidth}_fp${B_type.referencedType.typeWidth}_fp${C_type.referencedType.typeWidth}(${A}, ${B}, ${C}, ${size});
 """)
