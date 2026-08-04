@@ -36,13 +36,14 @@ L2_SINGLEBUFFER_MODELS = {
 
 L2_DOUBLEBUFFER_MODELS = {
     # L1 budget is below the full 128KB because the double-buffered tiles plus
-    # the runtime allocator overhead do not fit. The old ceiling was 90KB
-    # (">=100KB fails with 'Allocation failed for allocator 2'"); most of that
-    # overhead was the cluster slave stacks, which used to be pinned at 3800 B
-    # per core with no way to override them. With `-D SLAVESTACKSIZE=1280` the
-    # ceiling measured on gvsoc moves to 110KB (121KB and 128KB still fail),
-    # and VisualWakeWords goes 860,577 -> 830,146 cycles (8.70 -> 9.02
-    # MAC/cycle), still bit-exact. The exact ceiling in 110-121KB is unbisected.
+    # the runtime allocator overhead do not fit. Two things moved this ceiling:
+    # SLAVESTACKSIZE became overridable (freeing ~20KB of L1), and the weight
+    # tile's NE16-encoded tail is now pinned, so the solver reserves the full
+    # 18432 B the DMA actually writes instead of 16384 B. The latter removes
+    # slack that was only ever available by overrunning the requant parameters,
+    # so the previous 110000 no longer allocates. 100000 is measured to run.
+    #   100000 -> 567,140 cycles, bit-exact
+    #   110000 -> "Allocation failed for allocator 2"
     "Models/MLPerf/VisualWakeWords": [100000],
 }
 
