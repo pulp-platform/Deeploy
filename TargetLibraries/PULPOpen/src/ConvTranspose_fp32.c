@@ -7,7 +7,7 @@
 #include "DeeployPULPMath.h"
 #include "pmsis.h"
 
-__attribute__((noinline, optnone)) void PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
+__attribute__((noinline)) void PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
     const float32_t *__restrict__ pSrcA, uint32_t C_in, uint32_t H_in,
     uint32_t W_in, const float32_t *__restrict__ pSrcB, uint32_t C_out,
     uint32_t groups, uint32_t K_h, uint32_t K_w, uint32_t stride_h,
@@ -66,7 +66,9 @@ __attribute__((noinline, optnone)) void PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
               continue;
             }
 
-            for (uint32_t kw = 0; kw < K_w; ++kw) {
+            // Keep the induction variable materialized: the PULP LLVM backend
+            // miscompiles this accumulating loop when lowering it to a hardware loop.
+            for (volatile uint32_t kw = 0; kw < K_w; ++kw) {
               int32_t w_out = (int32_t)(w_in * stride_w + kw * dilation_w) -
                               (int32_t)pad_left;
 
