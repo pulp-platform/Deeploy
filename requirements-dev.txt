@@ -16,6 +16,7 @@ pyelftools
 pyserial
 
 # Linting
+pre-commit
 yapf==0.33.0
 isort==5.12.0
 autoflake==2.3.0
