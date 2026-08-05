@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+from itertools import zip_longest
 from typing import List, Tuple
 
 import numpy as np
@@ -337,13 +338,18 @@ class MulLayer(SingleOperationPerElementLayer):
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
 
-        if inputShapes[1] == () or inputShapes[1] == []:
-            inputShapes[1] = (1,)
+        lhsShape = tuple(inputShapes[0])
+        rhsShape = tuple(inputShapes[1])
+        broadcastShape = []
 
-        if len(inputShapes[0]) > len(inputShapes[1]):
-            inputShapes[1] = inputShapes[0]
-        else:
-            inputShapes[0] = inputShapes[1]
+        for lhsDim, rhsDim in zip_longest(reversed(lhsShape), reversed(rhsShape), fillvalue = 1):
+            if lhsDim != rhsDim and lhsDim != 1 and rhsDim != 1:
+                raise ValueError(f"Cannot broadcast Mul input shapes {lhsShape} and {rhsShape}")
+            broadcastShape.append(rhsDim if lhsDim == 1 else lhsDim)
+
+        broadcastShape = tuple(reversed(broadcastShape))
+        inputShapes[0] = broadcastShape
+        inputShapes[1] = broadcastShape
         return (inputShapes, outputShapes)
 
 
@@ -355,7 +361,7 @@ class ConvLayer(ONNXLayer):
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
         if len(inputShapes) == 3:
-            inputShapes[2] = inputShapes[1][0]
+            inputShapes[2] = (inputShapes[1][0],)
         return (inputShapes, outputShapes)
 
     def computeOps(self):
@@ -435,8 +441,34 @@ class ReduceSumLayer(ONNXLayer):
         return (inputShapes, outputShapes)
 
 
-class ReluLayer(SingleOperationPerElementLayer):
-    pass
+class ReduceLogSumExpLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
+        axis = operatorRepresentation['axes'][0]
+        inputShape = list(copy.deepcopy(inputShapes[0]))
+
+        if operatorRepresentation['keepdims']:
+            outputShape = inputShape
+            outputShape[axis] = 1
+        else:
+            outputShape = inputShape[:axis] + inputShape[axis + 1:]
+            if len(outputShape) == 0:
+                outputShape = [1]
+
+        return (inputShapes, [outputShape])
+
+
+class ReluLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
 
 
 class LayerNormLayer(ONNXLayer):

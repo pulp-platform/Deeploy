@@ -478,7 +478,12 @@ def _merge_matmul_add_fun(graph: gs.Graph, match: Match, name: str):
     matched_nodes = [m for k, m in match.nodes_map.items()]
     gemm = matched_nodes[0]
     add = matched_nodes[1]
-    _bias = add.inputs[0] if isinstance(add.inputs[0], gs.Constant) else add.inputs[1]
+
+    constant_inputs = [inp for inp in add.inputs if isinstance(inp, gs.Constant)]
+    if len(constant_inputs) != 1:
+        return graph
+
+    _bias = constant_inputs[0]
     _inputs = gemm.inputs + [_bias]
     _outputs = add.outputs
 

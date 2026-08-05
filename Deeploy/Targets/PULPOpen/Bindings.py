@@ -15,12 +15,14 @@ from Deeploy.DeeployTypes import CodeTransformation, NodeBinding, NodeTemplate
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.MemoryLevelExtension.CodeTransformationPasses.Closure import MemoryAwareClosureGeneration
-from Deeploy.Targets.Generic.Templates import AddTemplate, ConcatTemplate, DequantTemplate, FloatReduceSumTemplate, \
-    GatherTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
-from Deeploy.Targets.Generic.TypeCheckers import AddChecker, ConcatChecker, ConvChecker, DequantChecker, \
-    GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, MulChecker, \
-    QuantChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, RQAddChecker, RQHardswishChecker, SGDChecker, \
-    SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, TransposeChecker
+from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, \
+    DequantTemplate, FloatPadTemplate, FloatReduceLogSumExpTemplate, FloatReduceSumTemplate, GatherTemplate, \
+    PadTemplate, QuantTemplate, RQSiGELUTemplate, SliceTemplate, iHardswishTemplate
+from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
+    DequantChecker, GatherChecker, GELUChecker, GEMMChecker, HardswishChecker, LayerNormChecker, MatMulChecker, \
+    MulChecker, PadChecker, QuantChecker, ReduceLogSumExpChecker, ReduceMeanChecker, ReluChecker, ReshapeChecker, \
+    RQAddChecker, RQHardswishChecker, SGDChecker, SliceChecker, SoftmaxChecker, SoftmaxCrossEntropyLossChecker, \
+    TransposeChecker
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterSynch import PULPSynchCoresPass
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
 from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPL3Tiling import PULPL3Tiling
@@ -29,12 +31,13 @@ from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPProfileUntiled import
 from Deeploy.Targets.PULPOpen.DataTypes import PULPDMAFuture
 from Deeploy.Targets.PULPOpen.DMA.L3Dma import l3DmaHack
 from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
-from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
-    FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
-    FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, \
-    MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, \
-    RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, \
-    TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
+from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, ConvTransposeTemplate, DMASliceTemplate, \
+    FloatAddTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, \
+    FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
+    FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, \
+    RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
+    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
+    iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -176,6 +179,35 @@ PULPReshapeBindings = [
                 ReshapeTemplate.referenceTemplate, SkipTransformer) for type in IntegerDataTypes + FloatDataTypes
 ]
 
+PULPBatchNormBindings = [
+    NodeBinding(
+        BatchNormChecker(
+            [PointerClass(type),
+             PointerClass(type),
+             PointerClass(type),
+             PointerClass(type),
+             PointerClass(type)], [PointerClass(type)]), BatchNormalizationTemplate.referenceTemplate, ForkTransformer)
+    for type in FloatDataTypes
+]
+
+PULPPad1DBindings = [
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference1DTemplate,
+                ForkTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), FloatPadTemplate.reference1DTemplate,
+                ForkTransformer) for type in FloatDataTypes
+]
+
+PULPPad2DBindings = [
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference2DTemplate,
+                ForkTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(
+        PadChecker([PointerClass(float32_t), PointerClass(float32_t),
+                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatPadTemplate.reference2DTemplate,
+        ForkTransformer)
+]
+
 PULPRQAddBindings = [
     NodeBinding(RQAddChecker([PointerClass(_type), PointerClass(_type2)], [PointerClass(_type3)]),
                 RQAddTemplate.referenceTemplate, ForkTransformer)
@@ -247,6 +279,15 @@ PULPFloatDWConv2DBindings = [
             [PointerClass(float_type), PointerClass(float_type),
              PointerClass(float_type)], [PointerClass(float_type)]), FloatConvTemplate.referenceDW2DIm2ColTemplate,
         ForkTransformer) for float_type in FloatDataTypes
+]
+
+PULPFloatConvTranspose2DBindings = [
+    NodeBinding(ConvChecker(
+        [PointerClass(type), PointerClass(type), PointerClass(type)], [PointerClass(type)]),
+                ConvTransposeTemplate.reference2DTemplate, ForkTransformer) for type in FloatDataTypes
+] + [
+    NodeBinding(ConvChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
+                ConvTransposeTemplate.reference2DTemplate, ForkTransformer) for type in FloatDataTypes
 ]
 
 PULPRQSMatrixVecBindings = [
@@ -322,6 +363,11 @@ PULPReduceSumBindings = [
                 FloatReduceSumTemplate.referenceTemplate, ClusterTransformer)
 ]
 
+PULPReduceLogSumExpBindings = [
+    NodeBinding(ReduceLogSumExpChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatReduceLogSumExpTemplate.referenceTemplate, ForkTransformer)
+]
+
 PULPUniformRQSBindings = [
     NodeBinding(
         PULPRequantShiftChecker([PointerClass(type), PointerClass(int32_t),
@@ -382,6 +428,9 @@ PULPTransposeBindings = [
 PULPConcatBindings = [
     NodeBinding(ConcatChecker([PointerClass(type), PointerClass(type)], [PointerClass(type)]),
                 ConcatTemplate.referenceTemplate, ClusterTransformer) for type in IntegerDataTypes
+] + [
+    NodeBinding(ConcatChecker([PointerClass(float32_t), PointerClass(float32_t)], [PointerClass(float32_t)]),
+                ConcatTemplate.referenceTemplate, ClusterTransformer)
 ]
 
 PULPiRMSNormBindings = [

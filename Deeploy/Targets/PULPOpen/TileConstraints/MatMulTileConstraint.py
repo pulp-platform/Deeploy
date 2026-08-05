@@ -6,7 +6,7 @@ import math
 from typing import Dict, List, Tuple
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import int8_t
+from Deeploy.CommonExtensions.DataTypes import uint16_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
@@ -209,10 +209,10 @@ class MatMulTileConstraint(TileConstraint):
         replacements["N"] = [NSize] * len(outputCubes)
 
         replacementTypes = {
-            "M": PointerClass(int8_t),
-            "N": PointerClass(int8_t),
-            "O": PointerClass(int8_t),
-            "batch": PointerClass(int8_t)
+            "M": PointerClass(uint16_t),
+            "N": PointerClass(uint16_t),
+            "O": PointerClass(uint16_t),
+            "batch": PointerClass(uint16_t)
         }
 
         # Update load schedule lists

@@ -8,8 +8,8 @@ from typing import Tuple
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext
-from Deeploy.Targets.Generic.Parsers import Conv2DParser, GEMMParser, ReduceMeanParser, RQSConv1DParser, \
-    RQSConv2DParser, RQSParserInterface
+from Deeploy.Targets.Generic.Parsers import Conv2DParser, ConvTranspose2DParser, GEMMParser, ReduceMeanParser, \
+    RQSConv1DParser, RQSConv2DParser, RQSParserInterface
 
 
 class PULPConv2DParser(RQSConv2DParser):
@@ -178,6 +178,51 @@ class PULPFPDWConv2DParser(Conv2DParser):
             # Check if DW
             if self.operatorRepresentation['group'] == self.operatorRepresentation['ch_im_in']:
                 return newCtxt, True
+
+        return ctxt, False
+
+
+class PULPConvTranspose2DParser(ConvTranspose2DParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        wellFormed = super().parseNode(node)
+
+        if wellFormed:
+            # ConvTranspose kernels on PULP/Siracusa are emitted in CHW layout.
+            # This must be visible before broadcast() runs, otherwise output shapes
+            # are reinterpreted as NHWC and the last dimension gets clobbered.
+            self.operatorRepresentation['channels_first'] = True
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
+
+        return wellFormed
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        if node.attrs.get("channels_first", True) == False:
+            return ctxt, False
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, True)
+
+        if ret:
+            self.operatorRepresentation['data_in'] = newCtxt.lookup(node.inputs[0].name).name
+            self.operatorRepresentation['weight'] = newCtxt.lookup(node.inputs[1].name).name
+
+            if len(node.inputs) == 2:
+                self.operatorRepresentation["has_bias"] = "false"
+                self.operatorRepresentation["bias"] = "NULL"
+            else:
+                self.operatorRepresentation["has_bias"] = "true"
+                self.operatorRepresentation["bias"] = newCtxt.lookup(node.inputs[2].name).name
+
+            return newCtxt, True
 
         return ctxt, False
 

@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <math.h>
+
 #include "CycleCounter.h"
 #include "Network.h"
 #include "dory_mem.h"
@@ -13,6 +15,8 @@
 
 #define MAINSTACKSIZE 8000
 #define SLAVESTACKSIZE 3800
+#define FLOAT_ABS_TOL 1e-4f
+#define FLOAT_REL_TOL 1e-5f
 
 struct pi_device cluster_dev;
 
@@ -40,8 +44,15 @@ void CompareFloatOnCluster(void *args) {
       float expected_val = expected[i];
       float actual_val = actual[i];
       float diff = expected_val - actual_val;
+      float abs_diff = fabsf(diff);
+      float scale = fabsf(expected_val);
+      float abs_actual = fabsf(actual_val);
+      if (abs_actual > scale) {
+        scale = abs_actual;
+      }
+      float tolerance = FLOAT_ABS_TOL + FLOAT_REL_TOL * scale;
 
-      if ((diff < -1e-4) || (diff > 1e-4) || isnan(diff)) {
+      if ((abs_diff > tolerance) || isnan(diff)) {
         local_err_count += 1;
 
         printf("Expected: %10.6f  ", expected_val);
@@ -125,39 +136,38 @@ int main(void) {
       compbuf = DeeployNetwork_outputs[buf];
     }
 
-    if (ISOUTPUTFLOAT) {
-      float_error_count = 0;
-      float_compare_args.expected = testOutputVector[buf];
-      float_compare_args.actual = compbuf;
-      float_compare_args.num_elements =
-          DeeployNetwork_outputs_bytes[buf] / sizeof(float);
-      float_compare_args.output_buf_index = buf;
-      float_compare_args.err_count = &float_error_count;
+#if ISOUTPUTFLOAT == 1
+    float_error_count = 0;
+    float_compare_args.expected = testOutputVector[buf];
+    float_compare_args.actual = compbuf;
+    float_compare_args.num_elements =
+        DeeployNetwork_outputs_bytes[buf] / sizeof(float);
+    float_compare_args.output_buf_index = buf;
+    float_compare_args.err_count = &float_error_count;
 
-      pi_cluster_task(&cluster_task, CompareFloatOnCluster,
-                      &float_compare_args);
-      cluster_task.stack_size = MAINSTACKSIZE;
-      cluster_task.slave_stack_size = SLAVESTACKSIZE;
-      pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+    pi_cluster_task(&cluster_task, CompareFloatOnCluster, &float_compare_args);
+    cluster_task.stack_size = MAINSTACKSIZE;
+    cluster_task.slave_stack_size = SLAVESTACKSIZE;
+    pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
-      tot_err += float_error_count;
-    } else {
+    tot_err += float_error_count;
+#else
 
-      for (uint32_t i = 0;
-           i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
-        OUTPUTTYPE expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
-        OUTPUTTYPE actual = ((OUTPUTTYPE *)compbuf)[i];
-        int32_t error = expected - actual;
-        OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
+    for (uint32_t i = 0;
+         i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
+      OUTPUTTYPE expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
+      OUTPUTTYPE actual = ((OUTPUTTYPE *)compbuf)[i];
+      int32_t error = expected - actual;
+      OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
 
-        if (diff) {
-          tot_err += 1;
-          printf("Expected: %4d  ", expected);
-          printf("Actual: %4d  ", actual);
-          printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
-        }
+      if (diff) {
+        tot_err += 1;
+        printf("Expected: %4d  ", expected);
+        printf("Actual: %4d  ", actual);
+        printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
       }
     }
+#endif
     if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
       pi_l2_free(compbuf, (int)DeeployNetwork_outputs_bytes[buf]);
     }

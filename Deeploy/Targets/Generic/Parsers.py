@@ -389,24 +389,37 @@ class PadParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
+        if 'mode' not in node.attrs or len(node.outputs) != 1:
+            return False
 
-        ret = all([
-            'mode' in node.attrs, 'pads' in node.attrs, 'value' in node.attrs,
-            len(node.inputs) == 1,
-            len(node.outputs) == 1
-        ])
+        self.operatorRepresentation['mode'] = node.attrs['mode']
 
-        if ret:
-            self.operatorRepresentation['mode'] = node.attrs['mode']
+        # Legacy Pad encodes pads and the optional value as attributes.
+        if len(node.inputs) == 1:
+            if 'pads' not in node.attrs:
+                return False
+            self.operatorRepresentation['pads'] = [int(p) for p in node.attrs['pads']]
+            self.operatorRepresentation['value'] = node.attrs.get('value', 0)
+            return True
 
-            try:
-                self.operatorRepresentation['pads'] = [int(p) for p in node.attrs['pads']]
-            except Exception as e:
-                self.operatorRepresentation['pads'] = node.attrs['pads']
+        # Modern ONNX Pad carries pads and the optional value as constant inputs.
+        # Constant folding runs before parsing, so evaluating arbitrary producer
+        # subgraphs here would duplicate frontend functionality.
+        if len(node.inputs) == 2:
+            if not isinstance(node.inputs[1], gs.Constant):
+                return False
+            self.operatorRepresentation['pads'] = [int(p) for p in np.asarray(node.inputs[1].values).reshape(-1)]
+            self.operatorRepresentation['value'] = 0
+            return True
 
-            self.operatorRepresentation['value'] = node.attrs['value']
+        if len(node.inputs) == 3:
+            if not isinstance(node.inputs[1], gs.Constant) or not isinstance(node.inputs[2], gs.Constant):
+                return False
+            self.operatorRepresentation['pads'] = [int(p) for p in np.asarray(node.inputs[1].values).reshape(-1)]
+            self.operatorRepresentation['value'] = np.asarray(node.inputs[2].values).reshape(-1)[0].item()
+            return True
 
-        return ret
+        return False
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -419,6 +432,16 @@ class PadParser(NodeParser):
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['data_in_size'] = np.prod(data_in.shape)
         self.operatorRepresentation['data_out_size'] = np.prod(data_out.shape)
+
+        # Keep optional constant Pad inputs visible to the tiler.
+        # The template uses the decoded scalar/list values, but the tiled
+        # scheduler still tracks the original constant tensors as node inputs.
+        if len(node.inputs) >= 2:
+            pads_tensor = ctxt.lookup(node.inputs[1].name)
+            self.operatorRepresentation['pads_tensor'] = pads_tensor.name
+        if len(node.inputs) >= 3:
+            value_tensor = ctxt.lookup(node.inputs[2].name)
+            self.operatorRepresentation['value_tensor'] = value_tensor.name
 
         return ctxt, True
 
@@ -676,6 +699,121 @@ class ReduceSumParser(ReduceParser):
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
         return newCtxt, ret
+
+
+class ReduceLogSumExpParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def _normalizeAxes(axes, rank: int):
+        """Convert negative axes to their non-negative ONNX representation."""
+        normalizedAxes = []
+        for axis in np.asarray(axes, dtype = np.int64).reshape(-1):
+            normalizedAxis = int(axis)
+            if normalizedAxis < 0:
+                normalizedAxis += rank
+            if normalizedAxis < 0 or normalizedAxis >= rank or normalizedAxis in normalizedAxes:
+                return None
+            normalizedAxes.append(normalizedAxis)
+
+        return sorted(normalizedAxes)
+
+    @staticmethod
+    def _reductionShapeAndSizes(inputShape, axes, keepdims):
+        """Return the output shape and flattened regions around consecutive reduction axes."""
+        firstAxis = axes[0]
+        lastAxis = axes[-1]
+
+        # The kernel flattens the dimensions before, within, and after the reduced block into
+        # outerSize, axisLength, and innerSize respectively. Non-consecutive axes cannot be
+        # represented by this layout without first transposing the input.
+        if axes != list(range(firstAxis, lastAxis + 1)):
+            return None
+
+        outerSize = int(np.prod(inputShape[:firstAxis])) if firstAxis > 0 else 1
+        axisLength = int(np.prod(inputShape[firstAxis:lastAxis + 1]))
+        innerSize = int(np.prod(inputShape[lastAxis + 1:])) if lastAxis + 1 < len(inputShape) else 1
+
+        if keepdims:
+            outputShape = list(inputShape)
+            for axis in axes:
+                outputShape[axis] = 1
+        else:
+            outputShape = [dim for idx, dim in enumerate(inputShape) if idx not in axes]
+            if len(outputShape) == 0:
+                outputShape = [1]
+
+        return outputShape, outerSize, axisLength, innerSize
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if len(node.outputs) != 1:
+            return False
+
+        if len(node.inputs) == 1:
+            axes = node.attrs.get('axes', [])
+        elif len(node.inputs) == 2:
+            if not isinstance(node.inputs[1], gs.Constant):
+                return False
+            axes = node.inputs[1].values
+        else:
+            return False
+
+        if len(node.inputs[0].shape) == 0:
+            return False
+
+        rank = len(node.inputs[0].shape)
+        axes = np.asarray(axes, dtype = np.int64).reshape(-1)
+        if len(axes) == 0:
+            if int(node.attrs.get('noop_with_empty_axes', 0)):
+                return False
+            axes = np.arange(rank, dtype = np.int64)
+
+        normalizedAxes = self._normalizeAxes(axes, rank)
+        keepdims = int(node.attrs.get('keepdims', 1))
+        reduction = None if normalizedAxes is None else self._reductionShapeAndSizes(
+            node.inputs[0].shape, normalizedAxes, keepdims)
+        if reduction is None:
+            return False
+
+        self.operatorRepresentation['keepdims'] = keepdims
+        self.operatorRepresentation['axes'] = np.asarray(normalizedAxes, dtype = np.int64)
+        node.outputs[0].shape = reduction[0]
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        if len(node.inputs) == 2:
+            axes_buffer = ctxt.lookup(node.inputs[1].name)
+            axes_buffer._live = False
+            axes_buffer._deploy = False
+
+        axes = list(self.operatorRepresentation['axes'])
+        reduction = self._reductionShapeAndSizes(data_in.shape, axes, self.operatorRepresentation['keepdims'])
+        if reduction is None:
+            return ctxt, False
+        outputShape, outerSize, axisLength, innerSize = reduction
+
+        data_out.shape = outputShape
+        node.outputs[0].shape = outputShape
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['data_in_shape'] = data_in.shape
+        self.operatorRepresentation['data_out_shape'] = outputShape
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+        self.operatorRepresentation['axisLength'] = axisLength
+        self.operatorRepresentation['outerSize'] = outerSize
+        self.operatorRepresentation['innerSize'] = innerSize
+
+        return ctxt, True
 
 
 class SoftmaxParser(NodeParser):
@@ -2739,14 +2877,11 @@ class BatchNormParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # Verify the attributes (epsilon is mandatory, momentum and training_mode  are optional)
-        if 'epsilon' not in node.attrs:
-            return False
         # Common Inputs: 5 (X, scale, B, mean, var)
         if len(node.inputs) < 5:
             return False
 
-        # Save the attributes, default values are provided if not present
+        # Save attributes (ONNX defaults when attributes are omitted)
         self.operatorRepresentation['epsilon'] = node.attrs.get('epsilon', 1e-5)
         self.operatorRepresentation['momentum'] = node.attrs.get('momentum', 0.9)
         self.operatorRepresentation['training_mode'] = node.attrs.get('training_mode', 0)
@@ -2764,10 +2899,27 @@ class BatchNormParser(NodeParser):
         self.operatorRepresentation[outputs[0]] = ctxt.lookup(node.outputs[0].name).name
 
         input_shape = ctxt.lookup(node.inputs[0].name).shape
-        # Save input shape information
+        param_shape = ctxt.lookup(node.inputs[1].name).shape
+
+        if len(input_shape) >= 2 and len(param_shape) >= 1:
+            channel_count = param_shape[0]
+            channels_first_match = input_shape[1] == channel_count
+            channels_last_match = input_shape[-1] == channel_count
+
+            # Prefer explicit evidence from the BN parameter length when the
+            # default layout would otherwise be ambiguous for mixed-layout graphs.
+            if channels_first_match != channels_last_match:
+                channels_first = channels_first_match
+
+        # BatchNorm runs on flattened [N, C, L] for channels-first and [N, L, C]
+        # for channels-last, where L covers all spatial positions.
         self.operatorRepresentation['batch_size'] = input_shape[0]
-        self.operatorRepresentation['channel_size'] = input_shape[1]
-        self.operatorRepresentation['window_size'] = input_shape[2]
+        self.operatorRepresentation['channel_size'] = input_shape[1] if channels_first else input_shape[-1]
+        if channels_first:
+            self.operatorRepresentation['window_size'] = int(np.prod(input_shape[2:]))
+        else:
+            self.operatorRepresentation['window_size'] = int(np.prod(input_shape[1:-1]))
+        self.operatorRepresentation['channels_first'] = int(channels_first)
 
         return ctxt, True
 
@@ -2819,8 +2971,8 @@ class ConvTransposeParser(NodeParser):
 
         stride_x, stride_y = 1, 1
         if "strides" in node.attrs:
-            stride_y = node.attrs["strides"][0]
-            stride_x = node.attrs["strides"][1] if len(node.attrs["strides"]) > 1 else stride_y
+            stride_x = node.attrs["strides"][0]
+            stride_y = node.attrs["strides"][1] if len(node.attrs["strides"]) > 1 else stride_x
         self.operatorRepresentation["stride_y"] = stride_y
         self.operatorRepresentation["stride_x"] = stride_x
 
@@ -2897,6 +3049,80 @@ class ConvTranspose1DParser(ConvTransposeParser):
                 "batchOffsetIn"] = self.operatorRepresentation["ch_im_in"] * self.operatorRepresentation["dim_im_in_y"]
             self.operatorRepresentation["batchOffsetOut"] = self.operatorRepresentation[
                 "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
+            return newCtxt, True
+        return ctxt, False
+
+
+class ConvTranspose2DParser(ConvTransposeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        # 2D ConvTranspose expects 4D input/output and 4D weight
+        wellFormed = super().parseNode(node)
+        ret = False
+        if wellFormed:
+            ret = all([
+                # Make sure strides are 2D
+                len(node.attrs['strides']) == 2,
+                len(node.attrs['pads']) == 4,
+                len(node.attrs['dilations']) == 2,
+            ])
+        if ret:
+
+            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
+            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
+            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
+            self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
+            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][1])
+            self.operatorRepresentation['padding_x'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
+            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
+
+        return ret
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+
+        if ret:
+            data_in = newCtxt.lookup(node.inputs[0].name)
+            data_out = newCtxt.lookup(node.outputs[0].name)
+            in_shape = data_in.shape
+            out_shape = data_out.shape
+            weight = newCtxt.lookup(node.inputs[1].name)
+
+            if len(in_shape) != 4 or len(out_shape) != 4 or len(weight.shape) != 4:
+                return ctxt, False
+
+            self.operatorRepresentation['batch'] = in_shape[0]
+
+            if channels_first:
+                self.operatorRepresentation['ch_im_in'] = in_shape[1]
+                self.operatorRepresentation['dim_im_in_x'] = in_shape[2]
+                self.operatorRepresentation['dim_im_in_y'] = in_shape[3]
+                self.operatorRepresentation['ch_im_out'] = out_shape[1]
+                self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
+                self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
+            else:
+                self.operatorRepresentation['ch_im_in'] = in_shape[3]
+                self.operatorRepresentation['dim_im_in_x'] = in_shape[1]
+                self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
+                self.operatorRepresentation['ch_im_out'] = out_shape[3]
+                self.operatorRepresentation['dim_im_out_x'] = out_shape[1]
+                self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
+
+            self.operatorRepresentation["batchOffsetIn"] = (self.operatorRepresentation["ch_im_in"] *
+                                                            self.operatorRepresentation["dim_im_in_x"] *
+                                                            self.operatorRepresentation["dim_im_in_y"])
+            self.operatorRepresentation["batchOffsetOut"] = (self.operatorRepresentation["ch_im_out"] *
+                                                             self.operatorRepresentation["dim_im_out_x"] *
+                                                             self.operatorRepresentation["dim_im_out_y"])
             return newCtxt, True
         return ctxt, False
 
