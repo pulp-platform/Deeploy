@@ -17,12 +17,13 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     FloatDWConvTemplate, FloatExpTemplate, FloatFloorTemplate, FloatGELUTemplate, FloatGemmTemplate, \
     FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, FloatGroupNormTemplate, FloatHardSigmoidTemplate, \
     FloatHardSwishTemplate, FloatInstanceNormTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
-    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, \
-    FloatReluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, FloatSubTemplate, \
-    FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
-    MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
-    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, SubTemplate, \
-    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate, FloatReduceLogSumExpTemplate
+    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceLogSumExpTemplate, \
+    FloatReduceMeanTemplate, FloatReluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, \
+    FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, \
+    ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
+    ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
+    RQSiGELUTemplate, SliceTemplate, SubTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, \
+    iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, GatherChecker, GELUChecker, GEMMChecker, \
     LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, ReduceLogSumExpChecker, \
