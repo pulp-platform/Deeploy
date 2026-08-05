@@ -19,7 +19,7 @@ KERNEL_TESTS = [
     "Kernels/FP32/Conv/Regular_2D_Bias",
     "Kernels/FP32/Conv/Regular_2D_NoBias",
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias",
-    "Kernels/FP32/ConvTranspose2D",
+    "Kernels/FP32/Conv/Transpose_2D",
     "Kernels/FP32/GEMM/Regular",
     "Kernels/FP32/MatMul",
     "Kernels/FP32/MaxPool/Regular_2D",
