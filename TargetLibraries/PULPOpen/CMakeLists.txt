@@ -62,7 +62,8 @@ if (platform IN_LIST PULP_NNX_PLATFORMS)
     -Wno-sign-conversion
     -Wno-typedef-redefinition
     -Wno-unused-parameter
-    -Wno-incompatible-pointer-types-discards-qualifiers
+    -Wno-incompatible-pointer-types
+    -Wno-discards-qualifiers
     )
   target_link_libraries(deeploypulp INTERFACE pulp-nnx)
 endif()
