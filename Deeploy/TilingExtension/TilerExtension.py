@@ -296,7 +296,8 @@ class Tiler():
 
                     _buffer = ctxt.lookup(node.name)
                     # SCHEREMO: If alias buffers have zero cost, they don't contribute to the currentMax and their addrSpace is None
-                    if hasattr(_buffer, "_alias") and (ctxt.is_global(_buffer._alias) or _buffer._alias in blockNames):
+                    if _buffer.alias_of and (any(ctxt.is_global(a) for a in _buffer.alias_of)
+                                             or any(a in blockNames for a in _buffer.alias_of)):
                         continue
 
                     currentMax = max(currentMax, node._addrSpace[1])
@@ -333,10 +334,10 @@ class Tiler():
                     if _buffer._memoryLevel != memoryLevel:
                         continue
 
-                    if hasattr(_buffer, "_alias") and ctxt.is_global(_buffer._alias):
+                    if _buffer.alias_of and any(ctxt.is_global(a) for a in _buffer.alias_of):
                         continue
 
-                    if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:
+                    if _buffer.alias_of and any(a in blockNames for a in _buffer.alias_of):
 
                         alias = ctxt.dealiasBuffer(tensorName)
                         aliasNodes = [node for node in nodeList if node.name == alias]

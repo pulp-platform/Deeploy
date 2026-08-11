@@ -224,6 +224,34 @@ def testPointerTypeEquivalence():
     return True
 
 
+def testDealiasBufferUsesAliasOf():
+    """Regression for #201: dealiasBuffer walks directed alias_of, not legacy _alias."""
+    ctxt = NetworkContext(VariableBuffer, ConstantBuffer, StructBuffer, TransientBuffer)
+
+    bufferIn = VariableBuffer("reshape_in", shape = [4, 4])
+    bufferOut = VariableBuffer("reshape_out", shape = [16])
+    ctxt.add(bufferIn, "local")
+    ctxt.add(bufferOut, "local")
+
+    bufferIn.aliases.add(bufferOut.name)
+    bufferOut.aliases.add(bufferIn.name)
+    bufferOut.alias_of.add(bufferIn.name)
+
+    assert not hasattr(bufferOut, "_alias"), "legacy _alias must not be required for dealiasing"
+    assert ctxt.dealiasBuffer(bufferOut.name) == bufferIn.name
+    assert ctxt.dealiasBuffer(bufferIn.name) == bufferIn.name
+
+    bufferOut2 = VariableBuffer("reshape_out2", shape = [2, 8])
+    ctxt.add(bufferOut2, "local")
+    bufferOut.aliases.add(bufferOut2.name)
+    bufferOut2.aliases.add(bufferOut.name)
+    bufferOut2.alias_of.add(bufferOut.name)
+
+    assert ctxt.dealiasBuffer(bufferOut2.name) == bufferIn.name
+
+    return True
+
+
 if __name__ == "__main__":
     testImmediateSerialization()
     testImmediatePromotion()
@@ -239,3 +267,4 @@ if __name__ == "__main__":
     testPointerSerialization()
     testPointerPromotion()
     testPointerTypeEquivalence()
+    testDealiasBufferUsesAliasOf()

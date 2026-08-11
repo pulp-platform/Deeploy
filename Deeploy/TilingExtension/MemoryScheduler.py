@@ -301,11 +301,11 @@ class MemoryScheduler():
 
                 buffer = ctxt.lookup(tensorName)
                 # JUNGVI: Buffer targeted by alias have to say alive as long as their "aliasers"
-                if hasattr(buffer, "_alias"):
-                    alias = buffer._alias
-                    if alias in tensorLifetimeMap.keys():
-                        prevLifetime = tensorLifetimeMap[alias]
-                        tensorLifetimeMap[alias] = tuple((prevLifetime[0], stepIdx))
+                if buffer.alias_of:
+                    for alias in buffer.alias_of:
+                        if alias in tensorLifetimeMap.keys():
+                            prevLifetime = tensorLifetimeMap[alias]
+                            tensorLifetimeMap[alias] = tuple((prevLifetime[0], stepIdx))
 
                 if tensorName in tensorLifetimeMap.keys():
                     prevLifetime = tensorLifetimeMap[tensorName]
@@ -369,7 +369,7 @@ class MemoryScheduler():
                     cost = wordCost * c.multiBufferCoefficient
 
                     # SCHEREMO: In-place operator outputs are "costless" whenever their input is in the same pattern
-                    if hasattr(ctxt.lookup(node), "_alias") and ctxt.lookup(node)._alias in neighbors:
+                    if ctxt.lookup(node).alias_of and any(a in neighbors for a in ctxt.lookup(node).alias_of):
                         cost = 0
 
             costVector.append(cost)
@@ -655,9 +655,10 @@ class MemoryScheduler():
                         continue
 
                     # SCHEREMO: Don't fully unroll aliases here - this is pattern-sensitive!
-                    if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:
-                        _alias = ctxt.lookup(memoryBlock.name)._alias
-                        aliasedBlocks.append((memoryBlock, _alias))
+                    inPatternParents = [a for a in _buffer.alias_of if a in blockNames]
+                    if inPatternParents:
+                        # Prefer a deterministic immediate parent when multiple exist
+                        aliasedBlocks.append((memoryBlock, sorted(inPatternParents)[0]))
                         continue
 
                     upperIdx = blockIdx
