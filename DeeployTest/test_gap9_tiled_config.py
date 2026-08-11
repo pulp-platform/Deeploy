@@ -83,4 +83,14 @@ L3_SINGLEBUFFER_MODELS = {
 L3_DOUBLEBUFFER_MODELS = {
     "Models/miniMobileNet": [60000, 24000, 12000, 6000],
     "Models/miniMobileNetv2": [60000, 32000, 24000, 16000],
+    "Models/MLPerf/KeywordSpotting": [64000],
+    "Models/MLPerf/ImageClassification": [64000],
+    "Models/MLPerf/AnomalyDetection": [64000],
+    "Kernels/Integer/Attention": [60000, 20000, 10000],
+    "Models/Transformer": [60000, 30000],
+    # Regression for the async-L3 multi-2D-copy decomposition bug: a small-L1 NCHW->NHWC
+    # transpose tiles into a rank-3 transfer that the Anydim adapter splits into a loop
+    # of 2D copies sharing one request handle. Hangs under a naive async L3 DMA; passes
+    # once the decomposition waits each sub-copy.
+    "Kernels/FP32/Transpose3D": [2000],
 }
