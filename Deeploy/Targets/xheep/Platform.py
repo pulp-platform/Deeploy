@@ -218,13 +218,15 @@ XHeepOptimizer = TopologyOptimizer(
     name = "XHeepOptimizer")
 
 
-
-includeList = ["DeeployBasicMath.h"]
-
+## TODO: move to crt code
+includeList = ["DeeployBasicMath.h", "csr.h"]
+initCode = """
+  CSR_SET_BITS(CSR_REG_MSTATUS, (0x1 << 13));       // ENABLES FP INSTRUCTIONS
+"""
 
 class XHeepEngine(DeploymentEngine):
 
-    def __init__(self, name: str, Mapping = XheepMapping, initCode: str = "", includeList = includeList) -> None:
+    def __init__(self, name: str, Mapping = XheepMapping, initCode: str = initCode, includeList = includeList) -> None:
         super().__init__(name, Mapping, initCode, includeList)
 
 

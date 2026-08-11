@@ -11,6 +11,7 @@ file(GLOB_RECURSE SOURCES
 link_directories(${ProjectId}/../../${GENERATED_SOURCE})
 
 add_deeploy_executable(${ProjectId} EXCLUDE_FROM_ALL ${SOURCES} )
+add_xheep_verilator_simulation(${ProjectId})
 target_link_libraries(${ProjectId} PRIVATE network deeploylib)
 # RUN WANG: Link math Lib to Generic Target
 target_link_libraries(${ProjectId} PRIVATE m)

@@ -31,7 +31,7 @@ def get_worker_id() -> str:
 def create_test_config(
     test_name: str,
     platform: str,
-    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none'],
+    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'verilator', 'host', 'board', 'none'],
     deeploy_test_dir: str,
     toolchain: str,
     toolchain_dir: Optional[str],

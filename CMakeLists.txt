@@ -329,9 +329,14 @@ if(platform STREQUAL XDNA2)
 endif()
 
 if(platform STREQUAL Xheep)
-  set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/xheep/toolchain_gcc.cmake)
+  if(TOOLCHAIN STREQUAL LLVM)
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/xheep/toolchain_llvm.cmake)
+  else()
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/xheep/toolchain_gcc.cmake)
+  endif()
 
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/xheep/xheep.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/xheep/xheep_verilator.cmake)
 
   project(deeploy LANGUAGES C ASM)
 
