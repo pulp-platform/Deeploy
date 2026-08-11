@@ -259,6 +259,9 @@ class VariableBuffer():
         self.is_output: bool = False
 
         self.aliases: Set[str] = set(aliases) if aliases is not None else set()
+        # Directed "I am an alias of these storage ancestors" (tiling / dealiasBuffer).
+        # Distinct from symmetric self.aliases used by has_live_aliases.
+        self.alias_of: Set[str] = set()
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._instance, "name": self.name, "size": int(np.prod(self.shape))}
@@ -563,9 +566,14 @@ class NetworkContext():
         """
         seenAliases: Set[str] = set()
         alias = self.lookup(name)
-        while hasattr(alias, "_alias"):
+        assert isinstance(alias, VariableBuffer)
+        while alias.alias_of:
             seenAliases.add(alias.name)
-            alias = self.lookup(alias._alias)
+            # Reshape and other current aliasers have a single storage parent.
+            # Pick a deterministic parent if multiple are ever present.
+            parentName = sorted(alias.alias_of)[0]
+            alias = self.lookup(parentName)
+            assert isinstance(alias, VariableBuffer)
             assert alias.name not in seenAliases, "Circular aliasing detected!"
         return alias.name
 
