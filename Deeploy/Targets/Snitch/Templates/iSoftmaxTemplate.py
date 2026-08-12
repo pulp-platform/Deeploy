@@ -16,5 +16,5 @@ if output_signed:
 else:
     signatureString += '_u8'
 %>
-SnitchSoftmax${signatureString}(${data_in}, ${data_out}, ${lastDimBuffer}, ${size}, ${lastDimLength}, ${coeffB}, ${coeffC}, ${log2});
+SnitchSoftmax${signatureString}(${data_in}, ${data_out}, (uint32_t *) ${lastDimBuffer}, ${size}, ${lastDimLength}, ${coeffB}, ${coeffC}, ${log2});
 """)
