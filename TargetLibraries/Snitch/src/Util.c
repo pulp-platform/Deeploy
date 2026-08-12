@@ -18,6 +18,6 @@ int deeploy_log(const char *__restrict fmt, ...) {
   return ret;
 }
 
-void *deeploy_malloc(const size_t size) { return snrt_l1alloc(size); }
+void *deeploy_malloc(const size_t size) { return snrt_l1_alloc(size); }
 
 void deeploy_free(void *const __attribute__((unused)) ptr) {}

@@ -14,7 +14,7 @@ static uint32_t instr_end[NUM_CORES] __attribute__((section(".l1")));
 static uint32_t running[NUM_CORES] __attribute__((section(".l1")));
 
 void ResetTimer() {
-  snrt_reset_perf_counter(SNRT_PERF_CNT0);
+  snrt_reset_perf_counter(0);
   uint32_t const core_id = snrt_global_core_idx();
   uint32_t _timer_init = read_csr(mcycle);
   uint32_t _instr_init = read_csr(minstret);
@@ -27,7 +27,8 @@ void ResetTimer() {
 
 void StartTimer() {
   if (snrt_is_dm_core()) {
-    snrt_start_perf_counter(SNRT_PERF_CNT0, SNRT_PERF_CNT_CYCLES, 0);
+    snrt_cfg_perf_counter(0, PERF_METRIC__CYCLE, 0);
+    snrt_start_perf_counter(0);
   }
   uint32_t const core_id = snrt_global_core_idx();
   timer_init[core_id] = read_csr(mcycle);
@@ -37,7 +38,7 @@ void StartTimer() {
 
 void StopTimer() {
   if (snrt_is_dm_core()) {
-    snrt_stop_perf_counter(SNRT_PERF_CNT0);
+    snrt_stop_perf_counter(0);
   }
   uint32_t const core_id = snrt_global_core_idx();
   timer_end[core_id] = read_csr(mcycle);
