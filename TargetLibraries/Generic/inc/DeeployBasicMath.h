@@ -28,6 +28,13 @@
 #include <stdio.h>
 #include <string.h>
 
+// The Generic target library is compiled as C. Platforms that compile their
+// generated code as C++ (Snitch) must see these declarations with C linkage,
+// or the mangled call will not match the definition at link time.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "macros.h"
 #include "types.h"
 #include "utils.h"
@@ -64,5 +71,9 @@
 #include "kernel/Softmax.h"
 #include "kernel/Sqrt.h"
 #include "kernel/Swish.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //__DEEPLOY_BASIC_MATH_HEADER_
