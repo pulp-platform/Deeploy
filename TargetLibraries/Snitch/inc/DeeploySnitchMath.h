@@ -40,6 +40,7 @@ typedef float v2f32 __attribute__((vector_size(8)));
 #include "kernel/Softmax.h"
 #include "kernel/UniformRequantShift.h"
 #include "kernel/iNoNorm.h"
+#include "kernel/iSoftmax.h"
 
 #include "dmaStruct.h"
 
