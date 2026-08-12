@@ -6,6 +6,9 @@ include_directories(${GENERATED_SOURCE})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(DEEPLOY_ARCH STREQUAL SNITCH)
+  set_source_files_properties(${GENERATED_SOURCE}/Network.c PROPERTIES LANGUAGE CXX)
+endif()
 add_library(network OBJECT ${GENERATED_SOURCE}/Network.c)
 target_link_libraries(network PUBLIC deeploylib)
 

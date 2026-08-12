@@ -8,6 +8,7 @@ file(GLOB_RECURSE SOURCES
     main.c
 )
 
+set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 add_deeploy_executable(${ProjectId} EXCLUDE_FROM_ALL ${SOURCES})
 
 target_link_libraries(${ProjectId} PRIVATE network deeploylib)

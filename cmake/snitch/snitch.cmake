@@ -45,6 +45,7 @@ endmacro()
 
 add_compile_options(
     -ffast-math
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-c++11-narrowing>
 )
 
 add_link_options(

@@ -8,6 +8,7 @@ file(GLOB_RECURSE SOURCES
 
 include(cmake/snitch-runtime-precompiled.cmake)
 
+set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 add_deeploy_library(deeploysnitch STATIC ${SOURCES})
 target_include_directories(deeploysnitch
   PUBLIC

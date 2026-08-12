@@ -267,7 +267,7 @@ if(platform STREQUAL Snitch)
 
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/snitch/snitch_cluster/snitch_cluster.cmake)
 
-  project(deeploy LANGUAGES C ASM)
+  project(deeploy LANGUAGES C CXX ASM)
 
   message(STATUS "============================= ${platform} Configuration ============================")
   message(STATUS "[cMake  ]   Number of total cores  = " ${NUM_CORES})
