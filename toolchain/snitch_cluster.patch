@@ -1,0 +1,12 @@
+diff --git a/cfg/default.json b/cfg/default.json
+index 7ccc78a..e3c44a0 100644
+--- a/cfg/default.json
++++ b/cfg/default.json
+@@ -100,6 +100,7 @@
+         xssr: true,
+         xfrep: true,
+         xcopift: true,
++        Xdiv_sqrt: true,
+         xdma: false,
+         xf16: true,
+         xf16alt: true,
