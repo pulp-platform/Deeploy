@@ -95,6 +95,7 @@ int main(void) {
 
   StopTimer();
 
+  snrt_fpu_fence();
   snrt_cluster_hw_barrier();
 
 #ifndef CI
@@ -162,6 +163,7 @@ int main(void) {
 #endif
   }
 
+  snrt_fpu_fence();
   snrt_cluster_hw_barrier();
   return 0;
 }

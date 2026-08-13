@@ -8,6 +8,7 @@ from Deeploy.DeeployTypes import CodeGenVerbosity, CodeTransformationPass, Execu
     NodeTemplate, _NoVerbosity
 
 _synchTemplate = NodeTemplate("""
+        snrt_fpu_fence();
         snrt_cluster_hw_barrier();
 """)
 
