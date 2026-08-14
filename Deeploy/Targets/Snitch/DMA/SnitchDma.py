@@ -5,7 +5,7 @@
 from typing import Dict, Tuple
 
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
-from Deeploy.TilingExtension.AsyncDma import AsyncDma, DmaDirection, Future, PerTensorWaitingStrategy
+from Deeploy.TilingExtension.AsyncDma import AsyncDma, BarrierWaitingStrategy, DmaDirection, Future
 
 
 class SnitchBarrierFuture(Future):
@@ -33,13 +33,26 @@ class SnitchDma(AsyncDma):
         2:
             NodeTemplate("""
             if (snrt_is_dm_core()) {
-                ${future} = snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});
-                // WIESEP: Hack as otherwise the last commited DMA transaction ID can never be resolved.
-                snrt_dma_start_2d(${dest}, ${dest}, 1, 0, 0, 0);
+                snrt_dma_start_2d(${dest}, ${src}, ${size}, ${stride_dest}, ${stride_src}, ${repeat});
             }
             """),
     }
-    _waitingStrategy = PerTensorWaitingStrategy(SnitchFuture)
+    # Wait for all outstanding transfers rather than for an individual one.
+    #
+    # snrt_dma_wait compares against completed_id, which idma advances when the
+    # ND midend sees burst_rsp.last. That is upstream of the write datapath, so
+    # it can move before the transferred data is visible, and the barrier that
+    # follows then releases the compute cores onto a tile the DMA has not
+    # finished writing. snrt_dma_wait_all instead polls the busy flag, which
+    # covers every pipeline stage.
+    #
+    # Two further details make per-transfer waiting unusable here: dmcpyi
+    # returns the same ID for transfers issued back to back.
+    #
+    # This also drops the self-copy that used to follow every transfer: it
+    # existed to bump completed_id past the last transaction ID, which the
+    # strictly-greater comparison in the previously pinned runtime required.
+    _waitingStrategy = BarrierWaitingStrategy(SnitchBarrierFuture, "dma_barrier")
 
     def __init__(self, transferTemplates: Dict[int, NodeTemplate] = _transferTemplates) -> None:
         super().__init__(transferTemplates)
