@@ -17,6 +17,14 @@ gvsoc gap9.evk:
 
 DEFAULT_CORES = 8
 
+# Per-core cluster slave stack, in bytes. The SDK default of 3800 B reserves
+# ~32 KB of the 128 KB L1 TCDM before the tiling arena starts, while the tiler is
+# told it has the full --l1 budget. Every convolution in these tests runs on
+# NE16, so the cluster cores only orchestrate and need very little stack.
+# Requires the SLAVESTACKSIZE plumbing in DeeployTest/Platforms/GAP9
+# (CMakeLists + the #ifndef around the #define in deeploytest.c).
+DEFAULT_SLAVE_STACK = 512
+
 L2_SINGLEBUFFER_KERNELS = {
     "Kernels/Integer/Conv/PW_2D_RQ/Regular_RQ": [32000, 16000],
     "Kernels/Integer/Conv/PW_2D": [32000],
