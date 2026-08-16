@@ -56,6 +56,19 @@ class NE16DWConv2DTileConstraint(TileConstraint):
         # the output channel tiling.
         tilerModel.addConstraint(weightOutChannelVar == weightOutChannelVar.Max())
 
+        # The depthwise weights are bit-serialised by _weightEncode(depthwise=True)
+        # into a single packed block that interleaves up to
+        # NE16_SUBTILE_INPUT_CHANNEL=16 parallel output channels, and
+        # serializeTilingSolution consequently loads the whole block, from offset
+        # 0, for every tile. A channel tile therefore only lines up with the
+        # filters it is given when it starts at channel 0 -- split 16 channels
+        # into 14 + 2 and the second tile computes channels 14..15 using the
+        # filters of channels 0..1, which is wholly wrong output. The packed form
+        # cannot be sliced at an arbitrary channel offset, so keep the output
+        # channels untiled; a layer that does not fit L1 has to be split
+        # spatially instead.
+        tilerModel.addConstraint(outputChannelVar == outputChannelVar.Max())
+
         tilerModel.addConstraint(inputHeightVar >= 3)
         tilerModel.addConstraint(inputWidthVar >= 3)
 
@@ -190,6 +203,16 @@ class NE16DWConv2DTileConstraint(TileConstraint):
             InCube, padding_tuple = Conv2DTileConstraint.computeInputCube((weightH, weightW), pads, strides, weightC,
                                                                           cube,
                                                                           ctxt.lookup(varOut).shape)
+
+            # computeInputCube hard-codes the input channel range to
+            # (offset 0, size inputCSize) because dense convolution never tiles
+            # its input channels -- they are pinned to the full extent. Depthwise
+            # does tile them: each output channel is produced from exactly one
+            # input channel, so an output tile covering channels [COffset,
+            # COffset + CSize) must read precisely that slice. Left uncorrected,
+            # the second channel tile reads from offset 0 -- the wrong channels
+            # entirely -- and the first one over-reads past its own tile.
+            InCube = HyperRectangle(InCube.offset[:-1] + (COffset,), InCube.dims[:-1] + (CSize,))
             padding_left, padding_right, padding_top, padding_bottom = padding_tuple
 
             replacements['padding_y_top'].append(padding_top)
