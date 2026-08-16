@@ -17,6 +17,9 @@ from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme
 
+# NE16 packs depthwise weights 16 output channels to a block; see _weightEncode.
+_NE16_CIN_SUBTILE = 16
+
 
 class NE16DWConv2DTileConstraint(TileConstraint):
 
@@ -56,18 +59,19 @@ class NE16DWConv2DTileConstraint(TileConstraint):
         # the output channel tiling.
         tilerModel.addConstraint(weightOutChannelVar == weightOutChannelVar.Max())
 
-        # The depthwise weights are bit-serialised by _weightEncode(depthwise=True)
-        # into a single packed block that interleaves up to
-        # NE16_SUBTILE_INPUT_CHANNEL=16 parallel output channels, and
-        # serializeTilingSolution consequently loads the whole block, from offset
-        # 0, for every tile. A channel tile therefore only lines up with the
-        # filters it is given when it starts at channel 0 -- split 16 channels
-        # into 14 + 2 and the second tile computes channels 14..15 using the
-        # filters of channels 0..1, which is wholly wrong output. The packed form
-        # cannot be sliced at an arbitrary channel offset, so keep the output
-        # channels untiled; a layer that does not fit L1 has to be split
-        # spatially instead.
-        tilerModel.addConstraint(outputChannelVar == outputChannelVar.Max())
+        # _weightEncode(depthwise=True) lays the weights out as
+        # (cout=1, cinMajor=ceil(C/16), Bits*H*W*cinMinorBytes): one packed block
+        # per group of NE16_SUBTILE_INPUT_CHANNEL=16 output channels, with the 16
+        # channels' bits interleaved *inside* a block. A block is therefore the
+        # smallest slice that can be handed to the accelerator -- a tile starting
+        # part-way into one gets the wrong filters (a 14 + 2 split computed
+        # channels 14..15 with the filters of channels 0..1). Constrain channel
+        # tiles to whole blocks; serializeTilingSolution slices the weight cube
+        # along cinMajor to match.
+        if outputChannelVar.Max() % _NE16_CIN_SUBTILE == 0:
+            tilerModel.addConstraint(outputChannelVar % _NE16_CIN_SUBTILE == 0)
+        else:
+            tilerModel.addConstraint(outputChannelVar == outputChannelVar.Max())
 
         tilerModel.addConstraint(inputHeightVar >= 3)
         tilerModel.addConstraint(inputWidthVar >= 3)
@@ -275,10 +279,14 @@ class NE16DWConv2DTileConstraint(TileConstraint):
             inputBaseOffsets.update(inputWeightBaseOffsets)
             outputBaseOffsets.update(outputWeightBaseOffsets)
 
-            # DW weight is a single packed (1, 1, packed_bytes) block used
-            # across all output-channel tiles — same cube every iteration.
-            for _cube, load in zip(outputCubes, inputLoadSchedule):
-                load['weight'] = HyperRectangle((0, 0, 0), (weightShape[0], weightShape[1], weightShape[2]))
+            # Hand each output-channel tile exactly the packed blocks that hold
+            # its filters: block index = channel // NE16_SUBTILE_INPUT_CHANNEL.
+            for cube, load in zip(outputCubes, inputLoadSchedule):
+                COffset, CSize = cube.offset[-1], cube.dims[-1]
+                blockStart = COffset // _NE16_CIN_SUBTILE
+                blockStop = -(-(COffset + CSize) // _NE16_CIN_SUBTILE)
+                load['weight'] = HyperRectangle((0, blockStart, 0),
+                                                (weightShape[0], blockStop - blockStart, weightShape[2]))
 
         tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
         variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
