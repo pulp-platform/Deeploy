@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import math
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
-from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
+from Deeploy.DeeployTypes import CodeSnippet, NetworkContext, NodeTemplate, OperatorRepresentation, VariableBuffer
 from Deeploy.TilingExtension.AsyncDma import AsyncDma, DirectionWaitingStrategy, DmaDirection, Future
 
 
@@ -26,6 +26,14 @@ class MchanTransferFuture(Future):
 
 class GAP9MchanDma(AsyncDma):
 
+    # MCHAN encodes the transfer length in the low MCHAN_TRANSFER_LEN_SIZE (17 on
+    # GAP9) bits of cmd, so a single command can move at most 2**17 - 1 bytes.
+    # Anything larger is issued as several commands under the same transfer id --
+    # the generated code already pushes several descriptors per id and waits once,
+    # so this needs no new machinery. Chunk counts are decided at code-generation
+    # time, where the shape is known.
+    MAX_TRANSFER_SIZE = (1 << 17) - 1
+
     _transferTemplates = {
         1:
             NodeTemplate(
@@ -36,10 +44,56 @@ class GAP9MchanDma(AsyncDma):
                 "{ mchan_transfer_t __mchan_tmp = { .cmd = ${cmd}, .size = ${size}, .loc = ${loc}, .ext = ${ext}, .ext_size_1d = ${size_1d}, .ext_stride_1d = ${stride_2d} }; mchan_transfer_push_2d(__mchan_tmp); }"
             ),
     }
+
+    _chunkedTransferTemplates = {
+        1:
+            NodeTemplate("""
+{
+  int32_t __mchan_rem = ${size};
+  int32_t __mchan_off = 0;
+  while (__mchan_rem > 0) {
+    int32_t __mchan_n = __mchan_rem > ${chunk} ? ${chunk} : __mchan_rem;
+    mchan_transfer_t __mchan_tmp = { .cmd = ${flags_shifted} + __mchan_n, .size = __mchan_n,
+                                     .loc = (void *)((char *)(${loc}) + __mchan_off),
+                                     .ext = (void *)((char *)(${ext}) + __mchan_off) };
+    mchan_transfer_push_1d(__mchan_tmp);
+    __mchan_off += __mchan_n;
+    __mchan_rem -= __mchan_n;
+  }
+}
+"""),
+        2:
+            NodeTemplate("""
+{
+  int32_t __mchan_row = 0;
+  while (__mchan_row < ${rows}) {
+    int32_t __mchan_k = (${rows} - __mchan_row) > ${chunk_rows} ? ${chunk_rows} : (${rows} - __mchan_row);
+    mchan_transfer_t __mchan_tmp = { .cmd = ${flags_shifted} + __mchan_k * ${size_1d},
+                                     .size = __mchan_k * ${size_1d},
+                                     .loc = (void *)((char *)(${loc}) + __mchan_row * ${size_1d}),
+                                     .ext = (void *)((char *)(${ext}) + __mchan_row * ${stride_2d}),
+                                     .ext_size_1d = ${size_1d}, .ext_stride_1d = ${stride_2d} };
+    mchan_transfer_push_2d(__mchan_tmp);
+    __mchan_row += __mchan_k;
+  }
+}
+"""),
+    }
     _waitingStrategy = DirectionWaitingStrategy(MchanTransferFuture, "transfer")
 
     def __init__(self, transferTemplates: Dict[int, NodeTemplate] = _transferTemplates) -> None:
         super().__init__(transferTemplates)
+
+    def transfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
+                 shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
+                 direction: DmaDirection, future: Future) -> List[CodeSnippet]:
+        self.checkTransfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction)
+        opRepr = self.transferOpRepr(externalBuffer, localBuffer, shape, strideExt, strideLoc, direction, future)
+        if math.prod(shape) > self.MAX_TRANSFER_SIZE:
+            template = self._chunkedTransferTemplates[len(shape)]
+        else:
+            template = self._transferTemplates[len(shape)]
+        return [CodeSnippet(template, opRepr)]
 
     def checkTransfer(self, ctxt: NetworkContext, externalBuffer: VariableBuffer, localBuffer: VariableBuffer,
                       shape: Tuple[int, ...], strideExt: Tuple[int, ...], strideLoc: Tuple[int, ...],
@@ -75,17 +129,28 @@ class GAP9MchanDma(AsyncDma):
         mchanFlags += (1 << 3)  # event enable
 
         mchanTransferSize = math.prod(shape)
-        mchanTransferSizeBits = math.ceil(math.log2(mchanTransferSize)) if mchanTransferSize > 0 else 0
-        assert mchanTransferSizeBits <= 17, (
-            "The transfer size is not representable with 17 bits. "
-            f"Received transfer size {mchanTransferSize} that requires {mchanTransferSizeBits} bits")
 
         # cmd = (flags << 17) + size, matching PULPOpen MchanDma pattern
         operatorRepresentation["cmd"] = (mchanFlags << 17) + mchanTransferSize
         operatorRepresentation["size"] = mchanTransferSize
+        operatorRepresentation["flags_shifted"] = mchanFlags << 17
 
         if transferRank == 2:
             operatorRepresentation["size_1d"] = shape[1]
             operatorRepresentation["stride_2d"] = strideExt[0]
+
+        if mchanTransferSize > self.MAX_TRANSFER_SIZE:
+            # Note the bound is 2**17 - 1, not 2**17: a size of exactly 131072
+            # carries into the direction flag and silently reverses the transfer.
+            if transferRank == 1:
+                operatorRepresentation["chunk"] = self.MAX_TRANSFER_SIZE
+            else:
+                size1d = shape[1]
+                chunkRows = self.MAX_TRANSFER_SIZE // size1d
+                assert chunkRows >= 1, (
+                    f"A single 2D row of {size1d} B exceeds the {self.MAX_TRANSFER_SIZE} B MCHAN transfer limit; "
+                    "the tile must be split further along the innermost dimension")
+                operatorRepresentation["rows"] = shape[0]
+                operatorRepresentation["chunk_rows"] = chunkRows
 
         return operatorRepresentation
