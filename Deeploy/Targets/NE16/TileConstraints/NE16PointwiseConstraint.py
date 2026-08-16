@@ -116,26 +116,6 @@ class NE16PWConv2DTileConstraint(TileConstraint):
             tilerModel.addConstraint(outputChannelVar == outputChannelVar.Max(),
                                      strategy = PerformanceHint(priority = 1))
 
-        # NE16 retires TP_OUT=32 output channels per pass; a channel tile that is
-        # not a multiple of 32 leaves the remaining lanes idle for the whole tile.
-        # GAP9's AutoTiler feeds its solver the same preference -- see
-        # CNN_Generators_NE16.c: `OutTileCons = CannotTileChannels ? OutFeat : 32`,
-        # which applies to depthwise and pointwise alike. A hint, not a hard
-        # constraint: shapes with C < 32, or a tight L1 budget, must stay tileable.
-        tilerModel.addConstraint(outputChannelVar % 32 == 0, strategy = PerformanceHint(2))
-
-        # NE16's 9 columns retire one 3x3 output patch per pass, so an output
-        # tile whose H or W is not a multiple of 3 wastes part of the patch on
-        # its border pass -- GAP9's AutoTiler passes the same spatial
-        # PreferedTileSize of 3. Deliberately a *weaker* hint than the channel
-        # alignment above: splitting the spatial dimensions costs a 2-row/2-col
-        # halo re-fetch per extra tile, while splitting output channels costs
-        # nothing, so when L1 is tight this must give way. Measured: forcing it
-        # at the same priority as the channel hint made the double-buffered
-        # DW_2D_RQ kernel go 11,926 -> 19,391 cycles.
-        tilerModel.addConstraint(outputHeightVar % 3 == 0, strategy = PerformanceHint(0))
-        tilerModel.addConstraint(outputWidthVar % 3 == 0, strategy = PerformanceHint(0))
-
         return tilerModel
 
     @classmethod

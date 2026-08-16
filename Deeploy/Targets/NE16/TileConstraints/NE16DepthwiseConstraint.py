@@ -82,28 +82,35 @@ class NE16DWConv2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(inputHeightVar == inputHeightVar.Max(), strategy = PerformanceHint(1))
         tilerModel.addConstraint(inputWidthVar == inputWidthVar.Max(), strategy = PerformanceHint(1))
 
-        # NE16 retires TP_OUT=32 output channels per pass; a channel tile that is
-        # not a multiple of 32 leaves the remaining lanes idle for the whole tile.
-        # GAP9's AutoTiler feeds its solver the same preference -- see
-        # CNN_Generators_NE16.c: `OutTileCons = CannotTileChannels ? OutFeat : 32`,
-        # which applies to depthwise and pointwise alike. A hint, not a hard
-        # constraint: shapes with C < 32, or a tight L1 budget, must stay tileable.
+        outputHeightVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 1)
+        outputWidthVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 2)
         outputChannelVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 3)
-        tilerModel.addConstraint(outputChannelVar % 32 == 0, strategy = PerformanceHint(2))
 
-        # NE16's 9 columns retire one 3x3 output patch per pass, so an output
-        # tile whose H or W is not a multiple of 3 wastes part of the patch on
-        # its border pass -- GAP9's AutoTiler passes the same spatial
-        # PreferedTileSize of 3. Deliberately a *weaker* hint than the channel
-        # alignment above: splitting the spatial dimensions costs a 2-row/2-col
-        # halo re-fetch per extra tile, while splitting output channels costs
-        # nothing, so when L1 is tight this must give way. Measured: forcing it
-        # at the same priority as the channel hint made the double-buffered
-        # DW_2D_RQ kernel go 11,926 -> 19,391 cycles.
-        outHVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 1)
-        outWVar = tilerModel.getTensorDimVar(tensorName = parseDict['data_out'], dimIdx = 2)
-        tilerModel.addConstraint(outHVar % 3 == 0, strategy = PerformanceHint(0))
-        tilerModel.addConstraint(outWVar % 3 == 0, strategy = PerformanceHint(0))
+        # Align the output-channel tile with NE16's TP_OUT=32 subtiling. The
+        # spatial dimensions are deliberately *not* aligned here: measured on the
+        # double-buffered DW_2D_RQ kernel, adding a divisible-by-3 constraint on
+        # dim_im_out_x/y costs 11,926 -> 19,391 cycles with no measured gain
+        # anywhere else, because the halo re-fetch from the extra split outweighs
+        # the partially-filled border pass it avoids. Depthwise has no input-
+        # channel reuse to amortise that halo against.
+        #
+        # a body tile that is not a multiple of those leaves part of the array
+        # idle. addTileSizeDivisibleConstraint constrains the *body* tile only
+        # and lets the border tile be the remainder -- requiring every tile
+        # including the remainder to be a multiple over-constrains the solver
+        # into picking smaller tiles, which costs more (halo re-fetch) than the
+        # alignment saves. Guarded so a dimension smaller than the hardware
+        # granularity simply takes the whole dimension instead. Same shape as
+        # NE16PWConv2DTileConstraint and the N-EUREKA constraints it came from.
+        if parseDict["ch_im_out"] > 32:
+            tilerModel.addTileSizeDivisibleConstraint(parseDict,
+                                                      "ch_im_out",
+                                                      outputChannelVar,
+                                                      32,
+                                                      strategy = PerformanceHint(priority = 1))
+        else:
+            tilerModel.addConstraint(outputChannelVar == outputChannelVar.Max(),
+                                     strategy = PerformanceHint(priority = 1))
 
         return tilerModel
 
