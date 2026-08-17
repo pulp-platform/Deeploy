@@ -9,7 +9,6 @@ add_compile_definitions(
 )
 
 add_compile_options(
-    -std=gnu99
 
     -fdiagnostics-color=always
 
@@ -17,15 +16,12 @@ add_compile_options(
     -Wconversion
     -Wall
     -Wextra
-
-    -O2
     -g
     -ffunction-sections
     -fdata-sections
 )
 
 add_link_options(
-    -std=gnu99
 
     -fdiagnostics-color=always
 

@@ -100,7 +100,7 @@ MemoryAwareForkTransformer = CodeTransformation([
 ForkTransformer = CodeTransformation([
     TilingVariableReplacement("L1"),
     TilingCallClosure(writeback = False),
-    PULPSynchCoresPass(),
+    # PULPSynchCoresPass(),
     ForkClosure(writeback = False, generateStruct = True),
     TilingVariableReplacementUpdate("L1"),
     PULPClusterTiling("L2", "L1", iDMA()),

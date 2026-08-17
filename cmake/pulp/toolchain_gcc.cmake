@@ -14,7 +14,8 @@ set(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}-objdump)
 set(CMAKE_AR ${TOOLCHAIN_PREFIX}-ar)
 set(SIZE ${TOOLCHAIN_PREFIX}-size)
 
-set(ISA rv32imc_zfinx_xpulpv3)
+# set(ISA rv32imc_zfinx_xpulpv3)
+set(ISA rv32imcxgap9)
 set(PE 8)
 set(FC 1)
 
@@ -31,15 +32,14 @@ add_compile_options(
   -DNUM_CORES=${NUM_CORES}
   -MMD
   -MP
+  -mno-memcpy
 )
 
 add_link_options(
-  -MMD
-  -MP
   -march=${ISA}
   -nostartfiles
   -nostdlib
-  -Wl,--print-memory-usage
+  -Wl,--gc-sections
 )
 
 link_libraries(

@@ -165,8 +165,8 @@ int main(void) {
     }
   }
 
-  printf("Runtime: %u cycles\r\n", getCycles());
-  printf("Errors: %u out of %u \r\n", tot_err, tot_tested);
+  printf("RUNTIME %u \r\n", getCycles());
+  printf("ERRORS %u/%u \r\n", tot_err, tot_tested);
 
   return (int)tot_err;
 }

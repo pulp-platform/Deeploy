@@ -70,6 +70,8 @@ if(NOT platform STREQUAL GAP9)
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/common.cmake)
 endif()
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/simulation.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/fpga.cmake)
+
 
 add_library(deeploylib INTERFACE)
 

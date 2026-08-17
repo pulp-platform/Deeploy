@@ -16,4 +16,5 @@ target_link_libraries(${ProjectId} PRIVATE network deeploylib)
 # add_gvsoc_emulation(${ProjectId} "pulp-open") --> NO GVSOC EMULATION FOR PULP OPEN + 32-bits iDMA YET
 add_pulp_open_vsim_simulation(${ProjectId})
 add_pulp_open_qsim_simulation(${ProjectId})
+add_pulp_open_fpga_bin_generation(${ProjectId})
 link_compile_dump(${TESTNAME})

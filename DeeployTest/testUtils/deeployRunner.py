@@ -420,6 +420,15 @@ def main(default_platform: Optional[str] = None,
     # Extract platform-specific CMake args from parsed args if available
     if platform_specific_cmake_args is None:
         platform_specific_cmake_args = []
+
+    if platform in ('Siracusa', 'Siracusa_w_neureka', 'PULPOpen', 'PULPOpen_iDMA'):
+        if simulator in ('vsim', 'vsim.gui', 'qsim', 'qsim.gui'):
+            platform_specific_cmake_args.append(f"-DSDK_PLATFORM=RTL")
+        elif simulator == 'gvsoc':
+            platform_specific_cmake_args.append(f"-DSDK_PLATFORM=GVSOC")
+        elif simulator == 'fpga':
+            platform_specific_cmake_args.append(f"-DSDK_PLATFORM=FPGA")
+
     # Check for platform-specific arguments in args object and build CMake args
     if hasattr(args, 'cores'):
         platform_specific_cmake_args.append(f"-DNUM_CORES={args.cores}")
