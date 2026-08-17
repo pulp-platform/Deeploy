@@ -22,6 +22,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Add support for Operators for Generic target needed in MAGIA [#193]( https://github.com/pulp-platform/Deeploy/pull/193)
 - Fix GAP9 L3 Board Tests: readfs Flash Ordering and Duplicate Input Data [#196](https://github.com/pulp-platform/Deeploy/pull/196)
 - Add SoCDAML Part III: hands-on lab for adding a new int8 operator [#194](https://github.com/pulp-platform/Deeploy/pull/194)
+- Upgrade the Snitch Cluster [#TODO](https://github.com/pulp-platform/Deeploy/pull/TODO)
 
 ### Added
 - tests for Regular and DW Conv2D with 3x3 kernel
@@ -62,8 +63,23 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Aligned CLI commands across the project
 - Added @runwangdl as a code owner
 - Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
+- Bump the pinned `snitch_cluster` from `e02cc9e` (April 2024) to `5b2fccd` (September 2025). Deliberately not the latest upstream commit: `7c2bdd9` replaces the hardware-barrier CSR with a symbolic name that the pinned LLVM cannot assemble, and `de5251b` raises the Python floor to 3.12, while Deeploy targets 3.10.
+- Adapt the Snitch build system to the current `snitch_cluster` layout (`sw/snRuntime` to `sw/runtime`, `target/snitch_cluster` to `target/sim`, and the removal of `sw/math` and `sw/runtime/{common,rtl,banshee}`). The runtime is now built with the namespaced `sn-runtime` target and `SN_LLVM_BINROOT`.
+- Compile the Snitch target library, platform sources and generated `Network.c` as C++. `sw/runtime/src/sync.h` gives `snrt_inter_cluster_sw_barrier` a default argument, which is not valid C and is reached by every translation unit including `snrt.h`.
+- Update the Snitch runtime API calls: `snrt_l1alloc`/`snrt_l3alloc` become `snrt_l1_alloc`/`snrt_l3_alloc`, and performance counters are selected by index with configuration separated from starting.
+- Only register the banshee simulation target and `BANSHEE_CONFIG` when `BANSHEE_INSTALL_DIR` is set. Recent `snitch_cluster` runtimes no longer support banshee, and previously the Snitch platform could not be configured without it.
+- Enable `Xdiv_sqrt` in the cluster configuration Deeploy builds against, since its FP32 kernels emit `fdiv` and `fsqrt`.
 
 ### Fixed
+- Declare the Snitch kernels used from generated code. `SnitchAdd` and `snitch_nn_add_i8_i8_i8` had no declaration in any header, and `kernel/iSoftmax.h` declared `StnichSoftmax_i8_u8` for a kernel named `SnitchSoftmax_i8_u8` in a header that was never included. All three relied on implicit declarations, which C++ does not have.
+- Give the Generic target library headers C linkage, so that calls into it from the C++-compiled Snitch platform resolve against the C definitions.
+- Do not emit `sizeof(void)` for Snitch transient buffers, whose size is already expressed in bytes. It relies on a GNU C extension and is invalid in C++.
+- Use `memcpy` rather than the iDMA for the L3 input copies in the Snitch test harness. Both sides of that transfer are in L3, and the iDMA has a single AXI master port, so it requires one side to be TCDM.
+- Insert `snrt_fpu_fence()` before the cluster barriers emitted for Snitch. Floating-point results were not ordered with respect to the barrier, so the DM core could read a tile out of L1 before the values had landed.
+- Fix a pointer type mismatch in `snitch_nn_add_i8_i8_i8`, where scratch variables declared `int` had their addresses assigned to `int8_t` pointers.
+- Wait for all outstanding Snitch DMA transfers before the cluster barrier instead of waiting on an individual transaction ID. `completed_id` advances when the iDMA ND midend observes `burst_rsp.last`, which is upstream of the write datapath, so the compute cores could be released onto a tile the DMA had not finished writing.
+- Constrain the Snitch GEMM tile sizes in both parallelised dimensions. The kernels stream the output width in groups of 8 through the SSRs with no remainder path, so a tile of `O` below 8 makes `O / unroll` zero and, since the SSR bound is written as `bound - 1`, wraps it to `0xFFFFFFFF`: the streamer never goes idle and the next SSR configuration write never retires. The `M` constraint was only a `PerformanceHint` and so was dropped under memory pressure, which is not merely slower but wrong, since `M / compute_num` truncates and the rows in the remainder are never computed.
+- Preserve a scalar second operand for the Snitch `Add` and `Mul` layers. The Generic layers rewrite the shorter operand's shape to the longer one in `computeShapes`, which expresses broadcasting notionally but materialises no data, so the `is_scalar` flag the parser derives from the shape comes out false, the buffer is allocated for the full tensor, and the kernel reads elements that were never written.
 - Fix Neureka's output-channels subtile size (in ConvTemplate) and Dense/DW/PW tile constraints
 - in `NetworkContainer._createIOBindings`, set `_live = True` on network input and output buffers so that any buffer aliasing a network I/O tensor is no longer deallocated while the I/O tensor is still in use.
 - Fix latent bug in `VariableBuffer.has_live_aliases` where `visited` variable was storing buffer names as a set of characters instead of strings.
