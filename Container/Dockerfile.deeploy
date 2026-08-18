@@ -2,8 +2,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-########## Stage 1: Large image to build toolchains and emulator ##########
 ARG BASE_IMAGE=ghcr.io/pulp-platform/deeploy-toolchain
+ARG VERILATOR_VERSION=v5.034
+
+########## Stage 0: Verilator for RTL simulation ##########
+FROM verilator/verilator:${VERILATOR_VERSION} AS verilator
+
+########## Stage 1: Large image to build toolchains and emulator ##########
 FROM ${BASE_IMAGE} AS toolchain
 
 # Intermediate Stage
@@ -16,6 +21,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
+COPY --from=verilator /usr/local/bin/verilator /usr/local/bin/verilator_bin /usr/local/bin/
+COPY --from=verilator /usr/local/share/verilator /usr/local/share/verilator
 ENV PATH="/app/install/bender:${PATH}"
 ENV DEEPLOY_INSTALL_DIR=/app/install
 ENV LLVM_INSTALL_DIR=/app/install/llvm
@@ -62,6 +69,12 @@ RUN --mount=type=cache,target=/ccache \
     make snitch_runtime && \
     ccache -s
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends device-tree-compiler && \
+    rm -rf /var/lib/apt/lists/* && \
+    make snitch_verilator && \
+    rm -rf /app/install/snitch_cluster/target/sim/build/work-vlt
+
 # Remove toolchain to make the container lighter
 WORKDIR /app
 RUN rm -rf /app/build
@@ -107,6 +120,7 @@ RUN apt-get update && \
     python3.10-venv \
     python3.10-distutils \
     gcc \
+    g++ \
     zsh && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && \
