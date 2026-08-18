@@ -530,9 +530,7 @@ xtensor: ${XTENSOR_INSTALL_DIR} ${XSIMD_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/qemu:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/qemu/qemu.git --depth 1 -b stable-6.1 && \
-	cd ${TOOLCHAIN_DIR}/qemu && \
-	git submodule update --init --recursive
+	git clone https://github.com/qemu/qemu.git --depth 1 -b stable-6.1
 
 ${QEMU_INSTALL_DIR}: ${TOOLCHAIN_DIR}/qemu
 	cd ${TOOLCHAIN_DIR}/qemu/ && \
