@@ -465,6 +465,29 @@ ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 
 snitch_runtime: ${SNITCH_INSTALL_DIR}
 
+SNITCH_RISCV_ARCH ?= rv32imafd
+SNITCH_RTL_RISCV_FLAGS = -target riscv32-unknown-elf \
+                         -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/${SNITCH_RISCV_ARCH}/include \
+                         -L${LLVM_INSTALL_DIR}/picolibc/riscv/${SNITCH_RISCV_ARCH}/lib \
+                         -L${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/${SNITCH_RISCV_ARCH} \
+                         -Wno-unused-command-line-argument
+
+# Prefix command for verilator, empty when it is on PATH as in the container.
+# On IIS machines, use SNITCH_VERILATOR_SEPP=oseda.
+SNITCH_VERILATOR_SEPP ?=
+
+SNITCH_RTL_MAKE_ARGS = SN_LLVM_BINROOT=${LLVM_INSTALL_DIR}/bin \
+                       SN_RISCV_CC="${LLVM_INSTALL_DIR}/bin/clang ${SNITCH_RTL_RISCV_FLAGS}" \
+                       SN_RISCV_CXX="${LLVM_INSTALL_DIR}/bin/clang++ ${SNITCH_RTL_RISCV_FLAGS}" \
+                       SN_VERILATOR_SEPP="${SNITCH_VERILATOR_SEPP}"
+
+${SNITCH_INSTALL_DIR}/target/sim/build/bin/snitch_cluster.vlt: ${SNITCH_INSTALL_DIR}
+	cd ${SNITCH_INSTALL_DIR} && \
+	make ${SNITCH_RTL_MAKE_ARGS} rtl && \
+	make ${SNITCH_RTL_MAKE_ARGS} verilator
+
+snitch_verilator: ${SNITCH_INSTALL_DIR}/target/sim/build/bin/snitch_cluster.vlt
+
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone https://github.com/gvsoc/gvsoc.git && \

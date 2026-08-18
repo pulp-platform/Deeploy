@@ -43,6 +43,19 @@ macro(add_snitch_cluster_vsim_gui_simulation name)
     )
 endmacro()
 
+macro(add_snitch_cluster_verilator_simulation name)
+    add_custom_target(verilator_${name}
+	WORKING_DIRECTORY ${SNITCH_HOME}/target/sim/build
+	DEPENDS ${name}
+	COMMAND bin/snitch_cluster.vlt
+	${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${name} || true
+	COMMENT "Simulating deeploytest with verilator"
+	POST_BUILD
+	USES_TERMINAL
+	VERBATIM
+    )
+endmacro()
+
 add_compile_options(
     -ffast-math
     $<$<COMPILE_LANGUAGE:CXX>:-Wno-c++11-narrowing>

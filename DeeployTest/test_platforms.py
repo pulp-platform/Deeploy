@@ -105,9 +105,10 @@ PLATFORM_CONFIGS = {
         "model_tests": SOFTHIER_MODEL_TESTS,
         "default_num_clusters": SOFTHIER_DEFAULT_NUM_CLUSTERS,
     },
+    # GVSoC cannot run the upgraded cluster atm.
     "snitch": {
         "platform": "Snitch",
-        "simulator": "gvsoc",
+        "simulator": "verilator",
         "kernel_tests": SNITCH_KERNEL_TESTS,
         "model_tests": SNITCH_MODEL_TESTS,
         "default_num_cores": SNITCH_DEFAULT_NUM_CORES,
@@ -581,7 +582,7 @@ def test_snitch_tiled_kernels_l2_singlebuffer(test_params, deeploy_test_dir, too
     config = create_test_config(
         test_name = test_name,
         platform = "Snitch",
-        simulator = "gvsoc",
+        simulator = PLATFORM_CONFIGS["snitch"]["simulator"],
         deeploy_test_dir = deeploy_test_dir,
         toolchain = toolchain,
         toolchain_dir = toolchain_dir,
@@ -611,7 +612,7 @@ def test_snitch_tiled_models_l2_singlebuffer(test_params, deeploy_test_dir, tool
     config = create_test_config(
         test_name = test_name,
         platform = "Snitch",
-        simulator = "gvsoc",
+        simulator = PLATFORM_CONFIGS["snitch"]["simulator"],
         deeploy_test_dir = deeploy_test_dir,
         toolchain = toolchain,
         toolchain_dir = toolchain_dir,

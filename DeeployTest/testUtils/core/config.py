@@ -13,7 +13,7 @@ class DeeployTestConfig:
     test_name: str
     test_dir: str
     platform: str
-    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'none']
+    simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'verilator', 'host', 'none']
     tiling: bool
     gen_dir: str
     build_dir: str
