@@ -38,6 +38,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - GAP9 Container Support with ARM64 architecture support
 - `zsh` and `oh-my-zsh` plugin installation in containers
 - Shell Format pre-commit hook
+- Verilator simulation for Snitch. `make snitch_verilator` builds the cluster model and `add_snitch_cluster_verilator_simulation` registers the CMake target. The Deeploy container carries Verilator v5.034, the version `snitch_cluster` pins in its own container.
 - Add integer MaxPool1D for Generic platform and RQSConv1D support for PULPOpen, with corresponding kernel tests.
 - Added GAP9 Platform Support: Deployer, Bindings, Templates, Tiler, DMA (L3Dma/MchanDma), target library, CI workflows
 - Per-layer microbenchmarking on PULPOpen via `--profileMicrobenchmark`: new `PULPMicrobenchmark` code-transformation pass + `perf_utils.h` helpers report cycles, instructions, stalls and cache misses per layer in `RunNetwork`
@@ -69,6 +70,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Update the Snitch runtime API calls: `snrt_l1alloc`/`snrt_l3alloc` become `snrt_l1_alloc`/`snrt_l3_alloc`, and performance counters are selected by index with configuration separated from starting.
 - Only register the banshee simulation target and `BANSHEE_CONFIG` when `BANSHEE_INSTALL_DIR` is set. Recent `snitch_cluster` runtimes no longer support banshee, and previously the Snitch platform could not be configured without it.
 - Enable `Xdiv_sqrt` in the cluster configuration Deeploy builds against, since its FP32 kernels emit `fdiv` and `fsqrt`.
+- Run the Snitch tests on Verilator rather than GVSoC. GVSoC's model of the cluster peripherals predates the bumped hardware: the peripheral region moved from `0x10020000` to `0x10021000`, four `SCRATCH` registers were added ahead of the CLINT and shift every subsequent register by `0x20`, and the registers are now 64-bit where the model still generates 32-bit ones.
 
 ### Fixed
 - Declare the Snitch kernels used from generated code. `SnitchAdd` and `snitch_nn_add_i8_i8_i8` had no declaration in any header, and `kernel/iSoftmax.h` declared `StnichSoftmax_i8_u8` for a kernel named `SnitchSoftmax_i8_u8` in a header that was never included. All three relied on implicit declarations, which C++ does not have.
