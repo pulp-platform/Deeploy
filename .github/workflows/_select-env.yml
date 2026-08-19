@@ -34,7 +34,11 @@ jobs:
           elif [[ "${{ github.ref_name }}" == "main" ]]; then
             IMAGE="ghcr.io/pulp-platform/deeploy:main"
           else
-            IMAGE="ghcr.io/pulp-platform/deeploy:devel"
+            # REVERT BEFORE MERGE: this branch bumps snitch_cluster and adds
+            # Verilator, so it cannot build against the published devel image.
+            # Restore ghcr.io/pulp-platform/deeploy:devel once the image has
+            # been rebuilt from this branch.
+            IMAGE="ghcr.io/gamzeisl/deeploy:snitch-upgrade"
           fi
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
 
