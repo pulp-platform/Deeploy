@@ -4,7 +4,10 @@
 
 from typing import Dict, List, Tuple
 
-from Deeploy.AbstractDataTypes import float32_tPtr
+from Deeploy.AbstractDataTypes import PointerClass
+from Deeploy.CommonExtensions.DataTypes import float32_t
+
+float32_tPtr = PointerClass(float32_t)
 from Deeploy.DeeployTypes import NetworkContext, NodeTemplate, OperatorRepresentation
 
 

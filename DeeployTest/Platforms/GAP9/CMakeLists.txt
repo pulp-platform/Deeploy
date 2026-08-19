@@ -17,6 +17,9 @@ add_deeploy_executable(${ProjectId} EXCLUDE_FROM_ALL ${SOURCES})
 # add_executable(${ProjectId} ${SOURCES})
 target_include_directories(${ProjectId} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc)
 
+# Network.c needs CycleCounter.h when --profileTiling is enabled
+target_include_directories(network PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc)
+
 target_link_libraries(${ProjectId} PRIVATE network deeploylib)
 target_compile_options(${ProjectId} INTERFACE network)
 add_gvsoc_emulation(${ProjectId} "gap9.evk")
@@ -26,12 +29,17 @@ if(POWER_MEASUREMENT)
   target_compile_definitions(${ProjectId} PRIVATE POWER_MEASUREMENT)
 endif()
 
+if(SLAVESTACKSIZE)
+  target_compile_definitions(${ProjectId} PRIVATE SLAVESTACKSIZE=${SLAVESTACKSIZE})
+endif()
+
 # RW: Waive sign comparison warnings from pulp_nn_utils.h
 target_compile_options(network PRIVATE
     -Wno-sign-compare
     -Wno-pointer-sign
     -Wno-unknown-pragmas
     -Wno-error
+    -O3
   )
 
 target_link_options(${ProjectId} PRIVATE

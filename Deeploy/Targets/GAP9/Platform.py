@@ -5,24 +5,29 @@
 import numpy as np
 import onnx_graphsurgeon as gs
 
+from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
+    RemoveEmptyConvBiasPass, RemoveOnlySingletonReduceMeanPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NetworkContext, NodeMapper, \
-    NodeTemplate, StructBuffer, TransientBuffer, VariableBuffer
+    NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
+from Deeploy.Targets.GAP9.Parsers import NE16GEMMParser
 from Deeploy.Targets.GAP9.Templates import AllocateTemplate, FreeTemplate
 # Import GAP9-specific tiler bindings
-from Deeploy.Targets.GAP9.Tiler import GAP9AddTilingReadyBindings, GAP9ConcatTilingReadyBindings, \
-    GAP9Conv2DTilingReadyBindings, GAP9DWConv2DTilingReadyBindings, GAP9FlattenTilingReadyBindings, \
-    GAP9FPGELUTilingReadyBindings, GAP9FPGEMMTilingReadyBindings, GAP9GatherTilingReadyBindings, \
-    GAP9iHardswishTilingReadyBindings, GAP9iRMSNormTilingReadyBindings, GAP9iRQSGELUTilingReadyBindings, \
-    GAP9LayernormTilingReadyBindings, GAP9MatMulTilingReadyBindings, GAP9MaxPool2DTilingReadyBindings, \
-    GAP9MulTilingReadyBindings, GAP9ReduceSumTilingReadyBindings, GAP9ReluTilingReadyBindings, \
+from Deeploy.Targets.GAP9.Tiler import DeQuantTilingReadyBindings, GAP9AddTilingReadyBindings, \
+    GAP9ConcatTilingReadyBindings, GAP9Conv2DTilingReadyBindings, GAP9DWConv2DTilingReadyBindings, \
+    GAP9FlattenTilingReadyBindings, GAP9FPGELUTilingReadyBindings, GAP9FPGEMMTilingReadyBindings, \
+    GAP9GatherTilingReadyBindings, GAP9iHardswishTilingReadyBindings, GAP9iRMSNormTilingReadyBindings, \
+    GAP9iRQSGELUTilingReadyBindings, GAP9LayernormTilingReadyBindings, GAP9MatMulTilingReadyBindings, \
+    GAP9MaxPool2DTilingReadyBindings, GAP9MulTilingReadyBindings, GAP9NE16GEMMInt32TilingReadyBindings, \
+    GAP9NE16RQSGEMMTilingReadyBindings, GAP9ReduceSumTilingReadyBindings, GAP9ReluTilingReadyBindings, \
     GAP9RQAddTilingReadyBindings, GAP9RQSConv2DTilingReadyBindings, GAP9RQSDWConv2DTilingReadyBindings, \
     GAP9RQSGEMMTilingReadyBindings, GAP9RQSiHardswishTilingReadyBindings, GAP9RQSMatrixVecTilingReadyBindings, \
     GAP9RQSTallGEMMTilingReadyBindings, GAP9RQSTilingReadyBindings, GAP9SGDTilingReadyBindings, \
     GAP9SoftmaxCrossEntropyGradTilingReadyBindings, GAP9SoftmaxCrossEntropyTilingReadyBindings, \
     GAP9SoftmaxGradTilingReadyBindings, GAP9SoftmaxTilingReadyBindings, GAP9TransposeTilingReadyBindings, \
-    GAP9UniformRQSTilingReadyBindings
+    GAP9UniformRQSTilingReadyBindings, QuantTilingReadyBindings
+from Deeploy.Targets.GAP9.TopologyOptimizationPasses.Passes import NE16AdjustGEMMWeightLayoutPass
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
     BasicRQIntegerDivBinding
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, GatherLayer, GELULayer, GEMMLayer, \
@@ -37,12 +42,17 @@ from Deeploy.Targets.Generic.Parsers import AddParser, ConcatParser, DequantPars
     SoftmaxCrossEntropyLossGradParser, SoftmaxCrossEntropyLossParser, SoftmaxGradParser, SoftmaxParser, \
     TransposeParser, UniformRequantShiftParser, UnsqueezeParser, iHardswishParser, iRMSNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate as BasicAllocateTemplate
-from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
-    PULPDWConv1DBinding, PULPReduceMeanBindings, PULPRQSConv1DBindings, PULPSliceBindings
+from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, DequantQuantMergePass, \
+    IntegerDivRequantMergePass, MergeConstAddAndRequantPass, MergeTrueIntegerDivRequantShiftPass, QuantPatternPass, \
+    RQSSplitPass, SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
+from Deeploy.Targets.PULPOpen.Bindings import PULPDMASliceBindings, PULPDWConv1DBinding, PULPReduceMeanBindings, \
+    PULPRQSConv1DBindings, PULPSliceBindings
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
     PULPTallGEMMParser
+from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
+    PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
 # Create GAP9-specific NodeMappers
 GAP9_RQAddMapper = NodeMapper(RQAddParser(), GAP9RQAddTilingReadyBindings)
@@ -90,9 +100,40 @@ GAP9_SoftmaxCrossEntropyLossMapper = NodeMapper(SoftmaxCrossEntropyLossParser(),
 GAP9_SoftmaxCrossEntropyLossGradMapper = NodeMapper(SoftmaxCrossEntropyLossGradParser(),
                                                     GAP9SoftmaxCrossEntropyGradTilingReadyBindings)
 GAP9_SGDMapper = NodeMapper(SGDParser(), GAP9SGDTilingReadyBindings)
-GAP9_QuantMapper = NodeMapper(QuantParser(), BasicQuantBindings)
-GAP9_DequantMapper = NodeMapper(DequantParser(), BasicDequantBindings)
+GAP9_QuantMapper = NodeMapper(QuantParser(), QuantTilingReadyBindings)
+GAP9_DequantMapper = NodeMapper(DequantParser(), DeQuantTilingReadyBindings)
 GAP9_GEMMDequantMapper = NodeMapper(PULPGEMMParser(), BasicGEMMBindings)
+GAP9_NE16GEMMMapper = NodeMapper(NE16GEMMParser(), GAP9NE16RQSGEMMTilingReadyBindings)
+GAP9_NE16GEMMInt32Mapper = NodeMapper(GEMMParser(), GAP9NE16GEMMInt32TilingReadyBindings)
+
+GAP9Optimizer = TopologyOptimizer(
+    [
+        QuantPatternPass(),
+        DequantPatternPass(),
+        DequantQuantMergePass(),
+        # MatMulAddMergePass(),  # fuses to Gemm with transA=transB=0 — wrong layout
+        # for MatMul inputs that don't share Gemm semantics; FP32
+        # SkipConnection regressed from 0/16 to 16/16 errors under it.
+        # Leave MatMul and Add separate (matches devel base behavior).
+        SkipEmptyConcatPass(),
+        SkipUnityRequantPass(previous_op_regex = "Concat", num_inputs = 2),
+        SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),
+        SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),
+        RQSSplitPass(),
+        MergeTrueIntegerDivRequantShiftPass(),
+        IntegerDivRequantMergePass(),
+        iGELURequantMergePass(),
+        iHardswishRequantMergePass(),
+        PULPConvRequantMergePass(),
+        MergeConstAddAndRequantPass(),
+        PULPGEMMRequantMergePass(),
+        PULPMatMulRequantMergePass(),
+        PULPAddRequantMergePass(),
+        RemoveEmptyConvBiasPass(),
+        RemoveOnlySingletonReduceMeanPass(),
+        NE16AdjustGEMMWeightLayoutPass(),
+    ],
+    name = "GAP9Optimizer")
 
 # GAP9-specific mapping using ClDma
 GAP9Mapping = {
@@ -101,8 +142,14 @@ GAP9Mapping = {
     'RequantizedConv':
         PULPRQSConvLayer([GAP9_Conv2DMapper, GAP9_DWConv2DMapper, GAP9_Conv1DMapper, GAP9_DWConv1DMapper]),
     'RequantizedGemm':
-        PULPRQSGEMMLayer([GAP9_MatrixVecMapper, GAP9_TallGEMMMapper, GAP9_GEMMMapper]),
-    'Gemm':
+        PULPRQSGEMMLayer([GAP9_NE16GEMMMapper, GAP9_MatrixVecMapper, GAP9_TallGEMMMapper, GAP9_GEMMMapper]),
+    'Gemm':  # GAP9_NE16GEMMInt32Mapper would also belong here for int8/uint8 Gemm,
+        # but it shares the same GEMMParser class as the other mappers; the
+        # deployer keys candidate-bindings by parser class, so listing it
+        # alongside FloatGEMM / GEMMDequant masks them for FP32 / dequant
+        # paths and the whole graph fails to map. The int8/uint8 path is
+        # already covered by RequantizedGemm above; keep plain Gemm for FP
+        # and dequant flavours only.
         GEMMLayer([GAP9_FloatGEMMMapper, GAP9_GEMMDequantMapper]),
     'Gelu':
         GELULayer([GAP9_GELUMapper]),
@@ -244,7 +291,10 @@ class GAP9StructBuffer(StructBuffer):
     deallocTemplate = NodeTemplate("")
 
 
-_includeList = ["pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h"]
+_includeList = [
+    "pmsis.h", "DeeployGAP9Math.h", "pulp_nn_kernels.h", "DeeployMchan.h", "CNN_BasicKernels_fp32.h",
+    "CNN_BasicKernels_NE16.h", "CNN_Copy.h", "ne16_utils.h", "CycleCounter.h"
+]
 
 
 class GAP9ClusterEngine(DeploymentEngine):

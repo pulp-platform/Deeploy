@@ -75,6 +75,8 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
 
     platform, signProp = mapPlatform(args.platform)
 
+    if args.enable_3x3:
+        platform.engines[0].enable3x3 = True
     if args.enableStrides:
         platform.engines[0].enableStrides = True
 
@@ -96,7 +98,7 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
                            scheduler = _mockScheduler)
 
     # Make the deployer engine-color-aware
-    if args.platform == "Siracusa_w_neureka":
+    if args.platform in ("Siracusa_w_neureka", "GAP9_w_NE16"):
         deployer = EngineColoringDeployerWrapper(deployer)
 
     # Make platform memory-aware after mapDeployer because it requires the platform to be an instance of an unwrapped platform
@@ -158,6 +160,11 @@ if __name__ == '__main__':
                         action = "store_true",
                         default = False,
                         help = 'Adds weight memory and neureka engine color\n')
+    parser.add_argument('--enable-3x3',
+                        dest = "enable_3x3",
+                        action = "store_true",
+                        default = False,
+                        help = 'Adds EXPERIMENTAL support for 3x3 convolutions on N-EUREKA\n')
     parser.add_argument('--enableStrides',
                         dest = "enableStrides",
                         action = "store_true",

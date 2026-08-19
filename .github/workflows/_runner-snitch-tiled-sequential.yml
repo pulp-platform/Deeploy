@@ -33,10 +33,10 @@ jobs:
       - name: Build Deeploy
         shell: bash
         run: pip install -e .
-      - name: Run Test # VJUNG: Run tests with 4 parallel threads as GitHub action VM has 4 cores.
+      - name: Run Test # 2-way parallel: 4-way OOMs the GitHub runner on the FP32 GEMM/TransB build.
         run: |
           cd DeeployTest
           mkdir -p /app/.ccache
           export CCACHE_DIR=/app/.ccache
-          pytest test_platforms.py -v -n 4 -m "snitch_tiled and ${{ inputs.pytest-marker }}"
+          pytest test_platforms.py -v -n 2 -m "snitch_tiled and ${{ inputs.pytest-marker }}"
         shell: bash

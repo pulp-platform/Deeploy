@@ -10,14 +10,16 @@ instead of the low-level MCHAN API.
 
 import copy
 
-from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9ConcatBindings, GAP9FloatConv2DBindings, \
-    GAP9FloatDWConv2DBindings, GAP9FloatGELUBinding, GAP9FloatGEMMBindings, GAP9GatherBindings, \
-    GAP9iHardswishBindings, GAP9iRMSNormBindings, GAP9iRQSGELUBindings, GAP9LayernormBinding, GAP9MatMulBindings, \
-    GAP9MaxPool2DBindings, GAP9MulBindings, GAP9ReduceSumBindings, GAP9ReluBinding, GAP9ReshapeBindings, \
-    GAP9RQAddBindings, GAP9RQSBindings, GAP9RQSConv2DBindings, GAP9RQSDWConv2DBindings, GAP9RQSGEMMBindings, \
-    GAP9RQSiHardswishBindings, GAP9RQSMatrixVecBindings, GAP9RQSTallGEMMBindings, GAP9SGDBindings, \
-    GAP9SoftmaxBindings, GAP9SoftmaxCrossEntropyLossBindings, GAP9SoftmaxCrossEntropyLossGradBindings, \
-    GAP9SoftmaxGradBindings, GAP9TransposeBindings, GAP9UniformRQSBindings
+from Deeploy.Targets.GAP9.Bindings import GAP9AddBindings, GAP9ConcatBindings, GAP9DequantBindings, \
+    GAP9FloatConv2DBindings, GAP9FloatDWConv2DBindings, GAP9FloatGELUBinding, GAP9FloatGEMMBindings, \
+    GAP9GatherBindings, GAP9iHardswishBindings, GAP9iRMSNormBindings, GAP9iRQSGELUBindings, GAP9LayernormBinding, \
+    GAP9MatMulBindings, GAP9MaxPool2DBindings, GAP9MulBindings, GAP9NE16GEMMInt32Bindings, GAP9NE16RQSGEMMBindings, \
+    GAP9QuantBindings, GAP9ReduceSumBindings, GAP9ReluBinding, GAP9ReshapeBindings, GAP9RQAddBindings, \
+    GAP9RQSBindings, GAP9RQSConv2DBindings, GAP9RQSDWConv2DBindings, GAP9RQSGEMMBindings, GAP9RQSiHardswishBindings, \
+    GAP9RQSMatrixVecBindings, GAP9RQSTallGEMMBindings, GAP9SGDBindings, GAP9SoftmaxBindings, \
+    GAP9SoftmaxCrossEntropyLossBindings, GAP9SoftmaxCrossEntropyLossGradBindings, GAP9SoftmaxGradBindings, \
+    GAP9TransposeBindings, GAP9UniformRQSBindings
+from Deeploy.Targets.GAP9.TileConstraints.NE16GEMMTileConstraint import NE16GEMMTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.AddTileConstraint import AddTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.ConcatTileConstraint import ConcatTileConstraint
 from Deeploy.Targets.Generic.TileConstraints.iHardswishTileConstraint import iHardswishTileConstraint
@@ -59,6 +61,12 @@ GAP9DWConv2DTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9Flo
 
 GAP9RQSGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9RQSGEMMBindings,
                                                          tileConstraint = GEMMTileConstraint())
+
+GAP9NE16RQSGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9NE16RQSGEMMBindings,
+                                                             tileConstraint = NE16GEMMTileConstraint())
+
+GAP9NE16GEMMInt32TilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9NE16GEMMInt32Bindings,
+                                                               tileConstraint = NE16GEMMTileConstraint())
 
 GAP9FPGEMMTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9FloatGEMMBindings,
                                                         tileConstraint = FloatGEMMTileConstraint())
@@ -142,3 +150,9 @@ GAP9ReduceSumTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9Re
 
 GAP9SGDTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9SGDBindings,
                                                      tileConstraint = SGDTileConstraint())
+
+QuantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9QuantBindings,
+                                                   tileConstraint = UnaryTileConstraint())
+
+DeQuantTilingReadyBindings = TilingReadyNodeBindings(nodeBindings = GAP9DequantBindings,
+                                                     tileConstraint = UnaryTileConstraint())

@@ -14,7 +14,12 @@
 #include "testoutputs.h"
 
 // RW: Remove MAINSTACKSIZE because gap9-sdk does not use it
+// Allow -DSLAVESTACKSIZE=<n> from CMake to override this; an unconditional
+// #define here would shadow the command-line one and trip "redefined" under
+// -Werror.
+#ifndef SLAVESTACKSIZE
 #define SLAVESTACKSIZE 3800
+#endif
 
 #ifdef POWER_MEASUREMENT
 unsigned int GPIOs = 89;

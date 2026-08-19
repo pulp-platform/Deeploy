@@ -60,7 +60,18 @@ class TilingHoistingMixIn:
         else:
             cb._type = PointerClass(BasicDataTypes.minimalIntegerType(values))
         cb._instance = cb._type(cb.name, ctxt)
-        cb._memoryLevel = self.memory
+        # These are constant tile *control* tables (numTiles / DMA cmd / size /
+        # dims / offsets) read by the (cluster) controller to drive the tiling
+        # loop and program DMAs -- not bulk tile data. Putting them in the
+        # innermost tile memory (L1/TCDM) wastes scarce L1 and, on GAP9, places
+        # them in the contended L1 region next to the cluster master stack: a
+        # deep stack write can clobber a single table entry, turning a DMA `cmd`
+        # into a garbage code pointer so mchan_transfer_wait() hangs forever
+        # (observed on MobileNetV1 training). Keep them in the controller-
+        # addressable outer memory (L2) instead. Only redirect the L2->L1 pass;
+        # the L3->L2 pass keeps its tables in L2 (== self.memory), never L3.
+        # Platforms that don't tile into a level named "L1" are unaffected.
+        cb._memoryLevel = "L2" if self.memory == "L1" else self.memory
         return cb
 
     def _hoistReference(self,

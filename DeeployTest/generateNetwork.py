@@ -85,6 +85,13 @@ def generateNetwork(args):
 
     platform, signProp = mapPlatform(args.platform)
 
+    # Enable NE16 3x3 convolutions (DW and Dense) if requested
+    if hasattr(args, 'enable_3x3') and args.enable_3x3:
+        from Deeploy.Targets.NE16.Engine import NE16Engine
+        for engine in platform.engines:
+            if isinstance(engine, NE16Engine):
+                engine.enable3x3 = True
+
     clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
     for cluster in clusters:
         cluster.n_cores = args.cores
@@ -194,6 +201,11 @@ if __name__ == '__main__':
                         help = '(Optional) mapping of input names to offsets. '
                         'If not specified, offsets are set to 0. '
                         'Example: --input-offset-map input_0=0 input_1=128 ...')
+    parser.add_argument('--enable-3x3',
+                        action = 'store_true',
+                        dest = 'enable_3x3',
+                        default = False,
+                        help = 'Enable NE16 3x3 convolutions (DW and Dense)\n')
     parser.add_argument('--shouldFail', action = 'store_true')
     parser.add_argument(
         "--cores",

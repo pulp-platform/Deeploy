@@ -4,22 +4,69 @@
 
 file(GLOB_RECURSE SOURCES
   "src/**"
+  "$ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_fp32/CNN_Bias_Linear_Activation_fp32.c"
+  "$ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries/CNN_Copy.c"
 )
+
+# CNN_BasicKernels_NE16 from gap9-sdk redefines NE16_REG_* macros that
+# pulp-nnx's ne16 hal also defines. For GAP9_w_NE16 we use the pulp-nnx
+# NE16 stack; for plain GAP9 (Pu DENG's NE16-Linear path) we use the SDK's.
+if(NOT platform STREQUAL "GAP9_w_NE16")
+  list(APPEND SOURCES
+    "$ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_HWPE/CNN_BasicKernels_NE16.c"
+  )
+endif()
+
+
+# Exclude dory_mem and dory_dma from SOURCES (they need different optimization)
+list(FILTER SOURCES EXCLUDE REGEX ".*dory_(mem|dma).*")
 
 # RW: Include PULPOpen sources but exclude dory_mem related files
 file(GLOB_RECURSE PULPOPEN_SOURCES "../PULPOpen/src/**")
 list(FILTER PULPOPEN_SOURCES EXCLUDE REGEX ".*dory_mem.*")
 list(APPEND SOURCES ${PULPOPEN_SOURCES})
 
+# Separate dory library compiled without -O3
+add_library(dory_lib STATIC
+  ${CMAKE_CURRENT_LIST_DIR}/src/dory_mem.c
+  ${CMAKE_CURRENT_LIST_DIR}/src/dory_dma.c
+)
+target_include_directories(dory_lib PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/inc
+  ${CMAKE_CURRENT_LIST_DIR}/../PULPOpen/inc
+)
+target_compile_options(dory_lib PRIVATE
+  -Wno-implicit-function-declaration
+  -Wno-sign-conversion
+  -Wno-sign-compare
+  -Wno-type-limits
+  -Wno-attributes
+  -Wno-incompatible-pointer-types
+  -Og
+)
+target_compile_definitions(dory_lib PUBLIC NUM_CORES=${NUM_CORES})
+target_link_libraries(dory_lib PUBLIC pmsis)
+
 add_deeploy_library(deeploygap9 STATIC ${SOURCES})
 target_include_directories(deeploygap9
   PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/inc
   ${CMAKE_CURRENT_LIST_DIR}/../PULPOpen/inc
+  ${TILER_INC}
+  ${TILER_EMU_INC}
+  ${TILER_CNN_KERNEL_PATH_FP32}
+  ${TILER_CNN_KERNEL_PATH_FP16}
+  $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_SQ8
+  $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries
+  $ENV{GAP_SDK_HOME}/tools/autotiler_v3/CNN_Libraries_HWPE
+  ${TILER_DSP_KERNEL_V2_PATH}
+  ${TILER_DSP_KERNEL_V2_PATH}/FastMathFunctions
 )
+
 
 target_compile_options(deeploygap9 PUBLIC
     -DNUM_CORES=${NUM_CORES}
+    -DSTD_FLOAT
   )
 
 target_compile_options(deeploygap9 PRIVATE
@@ -27,9 +74,9 @@ target_compile_options(deeploygap9 PRIVATE
   -Wno-sign-compare
   -Wno-type-limits
   -Wno-attributes
+  -Wno-incompatible-pointer-types
+  -O3
 )
-
-target_link_libraries(deeploygap9 PUBLIC pmsis)
 
 #RW: Link PULP-NN
 #RW: Set PULP-NN version and bitwidth for pulp-nn-mixed
@@ -80,5 +127,22 @@ endif()
 
 target_link_libraries(deeploygap9 PUBLIC pulp-nn-mixed)
 
-target_link_libraries(deeploygap9 PUBLIC m)
+# NE16 accelerator (via pulp-nnx) for GAP9_w_NE16 platform
+if(platform STREQUAL "GAP9_w_NE16")
+  set(USE_NE16 ON CACHE BOOL "Use the NE16 accelerator." FORCE)
+  add_subdirectory(../third_party/pulp-nnx ${CMAKE_CURRENT_BINARY_DIR}/pulp-nnx)
+  target_link_libraries(pulp-nnx PUBLIC pmsis)
+  target_compile_options(pulp-nnx PRIVATE
+    -Wno-error
+    -Wno-implicit-int-conversion
+    -Wno-sign-conversion
+    -Wno-typedef-redefinition
+    -Wno-unused-parameter
+    -Wno-incompatible-pointer-types-discards-qualifiers
+  )
+  target_link_libraries(deeploygap9 PUBLIC pulp-nnx)
+endif()
 
+target_link_libraries(deeploygap9 PUBLIC pmsis)
+target_link_libraries(deeploygap9 PUBLIC m)
+target_link_libraries(deeploygap9 PUBLIC dory_lib)

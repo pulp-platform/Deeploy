@@ -249,6 +249,9 @@ def create_config_from_args(args: argparse.Namespace,
         if hasattr(args, 'neureka_wmem') and args.neureka_wmem:
             gen_args_list.append("--neureka-wmem")
 
+    if getattr(args, 'enable_3x3', False):
+        gen_args_list.append("--enable-3x3")
+
     if not tiling and getattr(args, 'profileUntiled', False):
         gen_args_list.append("--profileUntiled")
 
