@@ -47,7 +47,7 @@ LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
-SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
+SNITCH_COMMIT_HASH ?= 5b2fccd96c42812774c20ab2f9b811e164809789
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
 GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
@@ -448,20 +448,45 @@ ${TOOLCHAIN_DIR}/snitch_cluster:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone https://github.com/pulp-platform/snitch_cluster.git && \
 	cd ${TOOLCHAIN_DIR}/snitch_cluster && git checkout ${SNITCH_COMMIT_HASH} && \
-	git submodule update --init --recursive && \
-	git checkout ${SNITCH_COMMIT_HASH} && git apply ${TOOLCHAIN_DIR}/snitch_cluster.patch
+	git -c url."https://github.com/".insteadOf="git@github.com:" \
+	    submodule update --init --recursive && \
+	git apply --3way ${TOOLCHAIN_DIR}/snitch_cluster.patch
 
 ${SNITCH_INSTALL_DIR}: ${TOOLCHAIN_DIR}/snitch_cluster
 	mkdir -p ${SNITCH_INSTALL_DIR}
 	cp -r ${TOOLCHAIN_DIR}/snitch_cluster/ ${SNITCH_INSTALL_DIR}/../
 	cd ${SNITCH_INSTALL_DIR} && \
 	mkdir tmp && \
-	TMPDIR=tmp pip install -r python-requirements.txt && rm -rf tmp && \
-	bender vendor init && \
-	cd ${SNITCH_INSTALL_DIR}/target/snitch_cluster && \
-	make LLVM_BINROOT=${LLVM_INSTALL_DIR}/bin sw/runtime/banshee sw/runtime/rtl sw/math
+	TMPDIR=tmp pip install . && rm -rf tmp && \
+	make SN_LLVM_BINROOT=${LLVM_INSTALL_DIR}/bin \
+	     SN_RISCV_CC="${LLVM_INSTALL_DIR}/bin/clang -target riscv32-unknown-elf -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd/include" \
+	     SN_RISCV_CXX="${LLVM_INSTALL_DIR}/bin/clang++ -target riscv32-unknown-elf -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd/include" \
+	     sn-runtime
 
 snitch_runtime: ${SNITCH_INSTALL_DIR}
+
+SNITCH_RISCV_ARCH ?= rv32imafd
+SNITCH_RTL_RISCV_FLAGS = -target riscv32-unknown-elf \
+                         -isystem ${LLVM_INSTALL_DIR}/picolibc/riscv/${SNITCH_RISCV_ARCH}/include \
+                         -L${LLVM_INSTALL_DIR}/picolibc/riscv/${SNITCH_RISCV_ARCH}/lib \
+                         -L${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/${SNITCH_RISCV_ARCH} \
+                         -Wno-unused-command-line-argument
+
+# Prefix command for verilator, empty when it is on PATH as in the container.
+# On IIS machines, use SNITCH_VERILATOR_SEPP=oseda.
+SNITCH_VERILATOR_SEPP ?=
+
+SNITCH_RTL_MAKE_ARGS = SN_LLVM_BINROOT=${LLVM_INSTALL_DIR}/bin \
+                       SN_RISCV_CC="${LLVM_INSTALL_DIR}/bin/clang ${SNITCH_RTL_RISCV_FLAGS}" \
+                       SN_RISCV_CXX="${LLVM_INSTALL_DIR}/bin/clang++ ${SNITCH_RTL_RISCV_FLAGS}" \
+                       SN_VERILATOR_SEPP="${SNITCH_VERILATOR_SEPP}"
+
+${SNITCH_INSTALL_DIR}/target/sim/build/bin/snitch_cluster.vlt: ${SNITCH_INSTALL_DIR}
+	cd ${SNITCH_INSTALL_DIR} && \
+	make ${SNITCH_RTL_MAKE_ARGS} rtl && \
+	make ${SNITCH_RTL_MAKE_ARGS} verilator
+
+snitch_verilator: ${SNITCH_INSTALL_DIR}/target/sim/build/bin/snitch_cluster.vlt
 
 ${TOOLCHAIN_DIR}/gvsoc:
 	cd ${TOOLCHAIN_DIR} && \
@@ -530,9 +555,7 @@ xtensor: ${XTENSOR_INSTALL_DIR} ${XSIMD_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/qemu:
 	cd ${TOOLCHAIN_DIR} && \
-	git clone https://github.com/qemu/qemu.git --depth 1 -b stable-6.1 && \
-	cd ${TOOLCHAIN_DIR}/qemu && \
-	git submodule update --init --recursive
+	git clone https://github.com/qemu/qemu.git --depth 1 -b stable-6.1
 
 ${QEMU_INSTALL_DIR}: ${TOOLCHAIN_DIR}/qemu
 	cd ${TOOLCHAIN_DIR}/qemu/ && \

@@ -9,10 +9,10 @@ snitchL2InitTemplate = NodeTemplate("${type.typeName} ${name};\n")
 snitchL1InitTemplate = NodeTemplate("${type.typeName} ${name};\n")
 
 snitchL2AllocateTemplate = NodeTemplate(
-    "${name} = (${type.typeName}) snrt_l3alloc(sizeof(${type.referencedType.typeName}) * ${size});\n")
+    "${name} = (${type.typeName}) snrt_l3_alloc(sizeof(${type.referencedType.typeName}) * ${size});\n")
 
 snitchL1AllocateTemplate = NodeTemplate(
-    "${name} = (${type.typeName}) snrt_l1alloc(sizeof(${type.referencedType.typeName}) * ${size});\n")
+    "${name} = (${type.typeName}) snrt_l1_alloc(sizeof(${type.referencedType.typeName}) * ${size});\n")
 
 snitchL2GlobalInitTemplate = NodeTemplate("static ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n")
 
@@ -46,11 +46,20 @@ static ${type.referencedType.typeName} ${name}[${size}] = {${values}};\n
 """)
 
 snitchGenericGuardedAllocate = NodeTemplate("""
+<%
+# TransientBuffers are void pointers whose size is already expressed in bytes.
+# sizeof(void) is a GNU C extension that evaluates to 1; it is invalid in C++,
+# which the Snitch platform is compiled as.
+if type.referencedType.typeName == "void":
+    allocSize = f"{size}"
+else:
+    allocSize = f"sizeof({type.referencedType.typeName}) * {size}"
+%>
 % if _memoryLevel == "L1":
-if (snrt_is_dm_core()) { ${name} = (${type.typeName}) snrt_l1alloc(sizeof(${type.referencedType.typeName}) * ${size}); }
+if (snrt_is_dm_core()) { ${name} = (${type.typeName}) snrt_l1_alloc(${allocSize}); }
 snrt_cluster_hw_barrier();\n
 % else:
-if (snrt_is_dm_core()) { ${name} = (${type.typeName}) snrt_l3alloc(sizeof(${type.referencedType.typeName}) * ${size}); }
+if (snrt_is_dm_core()) { ${name} = (${type.typeName}) snrt_l3_alloc(${allocSize}); }
 snrt_cluster_hw_barrier();\n
 % endif
 """)

@@ -9,7 +9,7 @@ add_compile_definitions(
 )
 
 add_compile_options(
-    -std=gnu99
+    $<$<COMPILE_LANGUAGE:C>:-std=gnu99>
 
     -fdiagnostics-color=always
 
@@ -25,8 +25,6 @@ add_compile_options(
 )
 
 add_link_options(
-    -std=gnu99
-
     -fdiagnostics-color=always
 
     -Wunused-variable

@@ -406,7 +406,7 @@ def main(default_platform: Optional[str] = None,
             "MemPool": "banshee",
             "Siracusa": "gvsoc",
             "Siracusa_w_neureka": "gvsoc",
-            "Snitch": "gvsoc",
+            "Snitch": "verilator",
             "Chimera": "gvsoc",
             "SoftHier": "gvsoc",
         }

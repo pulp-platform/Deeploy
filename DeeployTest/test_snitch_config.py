@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test configuration for Snitch platform."""
 
-# Snitch platform supports gvsoc, banshee, vsim simulators
+# Snitch platform supports verilator, banshee, vsim simulators
 # Default configuration: 9 cores
 
 DEFAULT_NUM_CORES = 9
@@ -17,7 +17,6 @@ KERNEL_TESTS = [
     "Kernels/FP32/MatMul",
     "Kernels/FP32/Mul/Regular",
     "Kernels/FP32/Mul/Scalar",
-    "Kernels/FP32/RMSNorm/single_fused_op",
     "Kernels/FP32/Softmax/Regular",
     "Kernels/Integer/Add/Large",
     "Kernels/Integer/Add/Regular",

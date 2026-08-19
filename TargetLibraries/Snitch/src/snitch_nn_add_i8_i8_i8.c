@@ -40,8 +40,8 @@ snitch_nn_add_i8_i8_i8(int8_t *pIn1, int8_t *pIn2, int8_t *pOut,
   int8_t *target2 = pIn2 + start * ch_im_in2_r * dim_im_in_x;
   int8_t *pOutBuffer = pOut + start * ch_im_out_r * dim_im_in_x;
 
-  int a = 0;
-  int b = 0;
+  int8_t a = 0;
+  int8_t b = 0;
 
   int8_t *target1_ext = &a;
   int8_t *target2_ext = &b;

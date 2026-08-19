@@ -19,6 +19,6 @@ if __name__ == "__main__":
 
     sys.exit(
         main(default_platform = "Snitch",
-             default_simulator = "gvsoc",
+             default_simulator = "verilator",
              tiling_enabled = False,
              parser_setup_callback = setup_parser))

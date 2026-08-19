@@ -9,6 +9,7 @@
 #include "snrt.h"
 #include "testinputs.h"
 #include "testoutputs.h"
+#include <string.h>
 
 // #define NOPRINT
 // #define NOTEST
@@ -58,12 +59,13 @@ int main(void) {
     printf("Copy inputs...\r\n");
 #endif
 
-    // WIESEP: Copy inputs to allocated memory
+    // Copy inputs to allocated L3 memory. A plain memcpy is used here because
+    // the iDMA engine cannot perform L3->L3 (AXI->AXI) transfers — it has a
+    // single AXI master port and requires one side to be TCDM.
     for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
-      snrt_dma_start_1d(DeeployNetwork_inputs[buf], testInputVector[buf],
-                        DeeployNetwork_inputs_bytes[buf]);
+      memcpy(DeeployNetwork_inputs[buf], testInputVector[buf],
+             DeeployNetwork_inputs_bytes[buf]);
     }
-    snrt_dma_wait_all();
 
 #ifndef CI
     printf("Input copied\r\n");
@@ -93,6 +95,7 @@ int main(void) {
 
   StopTimer();
 
+  snrt_fpu_fence();
   snrt_cluster_hw_barrier();
 
 #ifndef CI
@@ -160,6 +163,7 @@ int main(void) {
 #endif
   }
 
+  snrt_fpu_fence();
   snrt_cluster_hw_barrier();
   return 0;
 }

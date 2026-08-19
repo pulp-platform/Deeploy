@@ -9,7 +9,7 @@ from Deeploy.CommonExtensions.DataTypes import uint32_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
-from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
+from Deeploy.TilingExtension.TilerModel import TilerModel
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme
 
@@ -89,13 +89,20 @@ class GemmTileConstraint(TileConstraint):
         # Full inner dimension
         tilerModel.addConstraint(AWidthDimVar == AWidthDimVar.Max())
 
-        # We parallelize over the output height dimension so try to keep it divisible by the number of cores (8)
-        if parseDict["M"] > 8:
-            tilerModel.addTileSizeDivisibleConstraint(parseDict,
-                                                      "M",
-                                                      YHeightDimVar,
-                                                      8,
-                                                      strategy = PerformanceHint(priority = 1))
+        # We parallelize over the output height dimension by handing each of the 8
+        # compute cores M / 8 rows, so a tile of M that is not a multiple of 8 is
+        # invalid.
+        if parseDict["M"] >= 8:
+            tilerModel.addTileSizeDivisibleConstraint(parseDict, "M", YHeightDimVar, 8)
+
+        # The kernels stream the output width in groups of `unroll` (8) through the
+        # SSRs and have no remainder path, so they require a tile of O that is a
+        # multiple of 8. A smaller tile makes `O / unroll` zero, and since the SSR
+        # bound is written as `bound - 1` it wraps to 0xFFFFFFFF: the streamer is
+        # told to produce ~4 billion elements while the consuming loop runs zero
+        # times, so it never goes idle and the next SSR config write never retires.
+        if parseDict["O"] >= 8:
+            tilerModel.addTileSizeDivisibleConstraint(parseDict, "O", YWidthDimVar, 8)
 
         return tilerModel
 

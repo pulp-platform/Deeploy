@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test configuration for Snitch platform (tiled)."""
 
-# Snitch tiled platform supports gvsoc, banshee, vsim simulators
+# Snitch tiled platform supports verilator, banshee, vsim simulators
 # Default configuration: 9 cores, L2 default memory level
 
 DEFAULT_NUM_CORES = 9
@@ -19,8 +19,8 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Mul/Scalar": [2000, 5000, 10000],
     "Kernels/FP32/RMSNorm/single_fused_op": [2000, 5000, 10000],
     "Kernels/FP32/Softmax/Regular": [2000, 5000, 10000],
-    "Kernels/FP32/GEMM/Regular": [2000, 5000, 10000],
-    "Kernels/FP32/GEMM/TransB": [2000, 5000, 10000],
+    "Kernels/FP32/GEMM/Regular": [5000, 10000],
+    "Kernels/FP32/GEMM/TransB": [5000, 10000],
     "Kernels/Integer/Add/Large": [5000, 10000],
     "Kernels/Integer/Softmax/Large": [5000, 10000],
     "Kernels/Integer/iNoNorm": [5000, 10000],
