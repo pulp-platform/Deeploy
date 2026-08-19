@@ -153,8 +153,15 @@ if weight_signed:
     signatureString += '_i8'
 else:
     signatureString += '_u8'
+# The 3x3/stride-1/pad-1 case has a shape-specialised implementation in
+# TargetLibraries/PULPOpen/src/PULPDWConv3x3.c; it has the same signature and
+# falls back to the generic PULP-NN kernel for every other shape.
+if signatureString == '_u8_u8_i8':
+    kernelName = 'DeeployPULP_DW_Conv2d_3x3_u8_u8_i8'
+else:
+    kernelName = 'pulp_nn_depthwise' + signatureString
 %>
-pulp_nn_depthwise${signatureString}(${data_in}, ${ctxtBuffer}, NULL, ${data_out}, ${weight}, NULL, ${mul}, ${add}, 1, ${log2D}, ${dim_im_in_y}, ${dim_im_in_x}, ${ch_im_in}, ${dim_im_out_y}, ${dim_im_out_x}, ${ch_im_out}, ${dim_kernel_y}, ${dim_kernel_x}, ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}, ${stride_y}, ${stride_x}, 1, 1);
+${kernelName}(${data_in}, ${ctxtBuffer}, NULL, ${data_out}, ${weight}, NULL, ${mul}, ${add}, 1, ${log2D}, ${dim_im_in_y}, ${dim_im_in_x}, ${ch_im_in}, ${dim_im_out_y}, ${dim_im_out_x}, ${ch_im_out}, ${dim_kernel_y}, ${dim_kernel_x}, ${padding_y_top}, ${padding_y_bottom}, ${padding_x_left}, ${padding_x_right}, ${stride_y}, ${stride_x}, 1, 1);
 """)
 
 PULPConv1D_8_Template = PULP1DConvTemplate("""

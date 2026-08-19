@@ -28,6 +28,7 @@
 #include "kernel/Layernorm.h"
 #include "kernel/Matmul.h"
 #include "kernel/MaxPool.h"
+#include "kernel/PULPDWConv3x3.h"
 #include "kernel/RQiHardswish.h"
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
