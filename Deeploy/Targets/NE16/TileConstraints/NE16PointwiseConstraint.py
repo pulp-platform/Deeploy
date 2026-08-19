@@ -14,6 +14,10 @@ from Deeploy.Targets.PULPOpen.TileConstraints.ConvTileConstraint import Conv2DTi
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
 from Deeploy.TilingExtension.TilerModel import PerformanceHint, TilerModel
+
+# NE16 emits a 3x3 output patch per pass
+# (NE16_SUBTILE_OUTPUT_HEIGHT / NE16_SUBTILE_OUTPUT_WIDTH in pulp-nnx's ne16_task_defs.h)
+_NE16_SUBTILE_OUTPUT_HW = 3
 from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperRectangle, TilingSchedule, \
     VariableReplacementScheme, calculateFlatOffsetInBytes
 
@@ -87,21 +91,23 @@ class NE16PWConv2DTileConstraint(TileConstraint):
         tilerModel.addConstraint((inputHeightVar % strides[0]) == 0)
         tilerModel.addConstraint((inputWidthVar % strides[1]) == 0)
 
-        # N-EUREKA tile constraints to align with N-EUREKA's hardware subtiling
-        if parseDict["dim_im_out_x"] > 6:
+        # Align the spatial tile with NE16's hardware subtiling. NE16 emits a 3x3 output patch per
+        # pass; the value used here was 6, inherited verbatim from N-EUREKA whose PE array is 6x6.
+        # On NE16 that misaligns every dimension that is a multiple of 3 but not of 6.
+        if parseDict["dim_im_out_x"] > _NE16_SUBTILE_OUTPUT_HW:
             tilerModel.addTileSizeDivisibleConstraint(parseDict,
                                                       "dim_im_out_x",
                                                       outputHeightVar,
-                                                      6,
+                                                      _NE16_SUBTILE_OUTPUT_HW,
                                                       strategy = PerformanceHint(priority = 3))
         else:
             tilerModel.addConstraint(outputHeightVar == outputHeightVar.Max(), strategy = PerformanceHint(priority = 3))
 
-        if parseDict["dim_im_out_y"] > 6:
+        if parseDict["dim_im_out_y"] > _NE16_SUBTILE_OUTPUT_HW:
             tilerModel.addTileSizeDivisibleConstraint(parseDict,
                                                       "dim_im_out_y",
                                                       outputWidthVar,
-                                                      6,
+                                                      _NE16_SUBTILE_OUTPUT_HW,
                                                       strategy = PerformanceHint(priority = 2))
         else:
             tilerModel.addConstraint(outputWidthVar == outputWidthVar.Max(), strategy = PerformanceHint(priority = 2))
