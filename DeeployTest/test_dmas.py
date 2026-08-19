@@ -353,7 +353,7 @@ def test_snitch_dma(test_shape, doublebuffer, deeploy_test_dir, toolchain, toolc
         test_name = test_name_clean,
         test_dir = gen_dir,
         platform = platform,
-        simulator = 'gvsoc',
+        simulator = 'verilator',
         tiling = True,
         gen_dir = gen_dir,
         build_dir = build_dir,

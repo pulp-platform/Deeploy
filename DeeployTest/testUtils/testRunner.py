@@ -320,15 +320,16 @@ class TestRunner():
 
     def __init__(self,
                  platform: str,
-                 simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none'],
+                 simulator: Literal['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'verilator', 'host', 'board',
+                                    'none'],
                  tiling: bool,
                  argument_parser: TestRunnerArgumentParser,
                  gen_args: str = "",
                  cmake_args: str = ""):
 
-        if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none']:
+        if simulator not in ['gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'verilator', 'host', 'board', 'none']:
             raise ValueError(
-                f"Invalid emulator {simulator} (valid options are 'gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'host', 'board', 'none')!"
+                f"Invalid emulator {simulator} (valid options are 'gvsoc', 'banshee', 'qemu', 'vsim', 'vsim.gui', 'verilator', 'host', 'board', 'none')!"
             )
 
         if tiling is not argument_parser.tiling_arguments:

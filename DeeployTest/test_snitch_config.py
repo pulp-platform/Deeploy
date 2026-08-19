@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test configuration for Snitch platform."""
 
-# Snitch platform supports gvsoc, banshee, vsim simulators
+# Snitch platform supports verilator, banshee, vsim simulators
 # Default configuration: 9 cores
 
 DEFAULT_NUM_CORES = 9
