@@ -1311,6 +1311,10 @@ class NodeTypeChecker():
             if not isinstance(reference, VariableBuffer):
                 return False
 
+            # Absent optional input: zero-sized placeholder, nothing to type check
+            if hasattr(reference, "values") and reference.values.size == 0:
+                continue
+
             if hasattr(reference, "values"):
                 retCheck &= _type.referencedType.checkPromotion(reference.values)
             else:
@@ -1328,6 +1332,11 @@ class NodeTypeChecker():
         for inputNode, _type in zip(node.inputs, self.input_types):
             if isinstance(ctxt.lookup(inputNode.name), ConstantBuffer):
                 reference = ctxt.lookup(inputNode.name)
+
+                # Absent optional input: zero-sized placeholder, nothing to infer
+                if reference.values.size == 0:
+                    continue
+
                 if not _type.referencedType.checkPromotion(reference.values):
                     raise Exception(f"Can't cast {reference} to {_type}!")
 
@@ -1914,7 +1923,8 @@ class ONNXLayer():
         newInputShapes, newOutputShapes = self.computeShapes(inputShapes, outputShapes,
                                                              self.mapper.parser.operatorRepresentation, channels_first)
 
-        for node, newShape in zip(self.node.inputs + self.node.outputs, newInputShapes + newOutputShapes):
+        for node, newShape in zip(self.node.inputs + self.node.outputs, newInputShapes + newOutputShapes,
+                                  strict = True):
             if ctxt.is_local(node.name):
                 ctxt.localObjects[node.name].shape = newShape
                 # Update shape of tensors in onnx graph
@@ -2103,7 +2113,7 @@ class ONNXLayer():
                     npType = self._broadcastToNpType(ctxt.localObjects[node.name]._type)
                     if npType is not None:
                         node.dtype = npType
-                elif ctxt.is_global(node.name):
+                elif ctxt.is_global(node.name) and hasattr(ctxt.globalObjects[node.name], '_type'):
                     npType = self._broadcastToNpType(ctxt.globalObjects[node.name]._type)
                     if isinstance(ctxt.globalObjects[node.name], ConstantBuffer):
                         if isinstance(node, gs.Constant):
@@ -2961,6 +2971,8 @@ class NetworkContainer():
         callStack = ''
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
+                if not hasattr(node, '_type'):
+                    continue
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -3006,6 +3018,8 @@ class NetworkContainer():
 
         for node in ctxt.globalObjects.values():
             if isinstance(node, VariableBuffer) and not isinstance(node, StructBuffer):
+                if not hasattr(node, '_type'):
+                    continue
                 assert issubclass(node._type, Pointer), f"Global VariableBuffer {node.name} is not a Pointer!"
                 if node._deploy:
                     name = node.name
@@ -3396,6 +3410,29 @@ class NetworkDeployer(NetworkContainer):
             # else: unique name, leave it unchanged
 
     # Don't override this
+    def _nameEmptyTensors(self):
+        """Assign a name to every unnamed tensor in the graph
+
+        Deeploy keys every tensor by its name, so this pass replaces each
+        unnamed input with a uniquely named, zero-sized Constant.
+        """
+        takenNames = set(self.graph.tensors().keys())
+
+        for node in self.graph.nodes:
+            for idx, tensor in enumerate(node.inputs):
+                if not tensor.is_empty():
+                    continue
+
+                baseName = f"{node.name or node.op}_empty_input_{idx}"
+                name, counter = baseName, 0
+                while name in takenNames:
+                    counter += 1
+                    name = f"{baseName}_{counter}"
+                takenNames.add(name)
+
+                node.inputs[idx] = gs.Constant(name, np.zeros(0, dtype = np.float32))
+
+    # Don't override this
     def _removeIdentityNodes(self):
         for node in filter(lambda x: x.op == "Identity", self.graph.nodes):
             self.graph.deleteNode(node)
@@ -3418,6 +3455,9 @@ class NetworkDeployer(NetworkContainer):
 
         log.debug(" - Remove Identity Nodes")
         self._removeIdentityNodes()
+
+        log.debug(" - Name Empty Tensors")
+        self._nameEmptyTensors()
 
         log.debug(" - Mangle Tensor Names")
         self._mangleTensorNames()
@@ -3542,6 +3582,8 @@ class NetworkDeployer(NetworkContainer):
                 # We do not count structs for now, since they are not properly modeled
                 if isinstance(_buffer, ConstantBuffer) or (isinstance(_buffer, VariableBuffer) and _buffer._deploy):
                     # SCHEREMO: We only
+                    if not hasattr(_buffer, '_type'):
+                        continue
                     if (hasattr(_buffer, "_memoryLevel") and _buffer._memoryLevel == level) or level == "None":
                         staticSize += int((np.prod(_buffer.shape) * _buffer._type.referencedType.typeWidth // 8))
                     else:

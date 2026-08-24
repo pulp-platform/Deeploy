@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
+from Deeploy.Targets.Generic.Templates.UnaryTemplate import _UnaryTemplate
 
-from Deeploy.DeeployTypes import NodeTemplate
-
-referenceTemplate = NodeTemplate("""
+referenceTemplate = _UnaryTemplate("""
 // Relu (Name: ${nodeName}, Op: ${nodeOp})
-SINGLE_CORE Relu_fp${data_in_type.referencedType.typeWidth}_fp${data_out_type.referencedType.typeWidth}(${data_in}, ${data_out}, ${size});
+SINGLE_CORE Relu_fp${type_width}_fp${type_width}(${data_in}, ${data_out}, ${size});
 """)

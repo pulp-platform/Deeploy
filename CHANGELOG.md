@@ -23,6 +23,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix GAP9 L3 Board Tests: readfs Flash Ordering and Duplicate Input Data [#196](https://github.com/pulp-platform/Deeploy/pull/196)
 - Add SoCDAML Part III: hands-on lab for adding a new int8 operator [#194](https://github.com/pulp-platform/Deeploy/pull/194)
 - Match GAP9 SDK MLPerf Tiny Performance with Specialised Depthwise and Pointwise Kernels [#206](https://github.com/pulp-platform/Deeploy/pull/206)
+- Add support for Operators for Generic target needed in MAGIA (again) [#195]( https://github.com/pulp-platform/Deeploy/pull/195)
 
 ### Added
 - tests for Regular and DW Conv2D with 3x3 kernel
@@ -46,6 +47,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Document that `--profileTiling` crashes GVSoC on the larger microLlama graphs (invalid access)
 - Specialised PULPOpen kernels for 3x3 depthwise (`PULPDWConv3x3.c`), 1x1 pointwise (`PULPPWConv1x1.c`) and a three-channel 3x3 stem (`PULPStemConv3x3.c`), with bindings and tile constraints for PULPOpen and GAP9
 - Lowering passes `PULPNCHWtoNHWCPwConvPass` and `PULPNCHWtoNHWCConvPass`, keeping a 1x1 convolution's output and a depthwise-feeding stem channels-first so the transposes at depthwise boundaries cancel
+- Add support for the Generic target for the following operators: [Elu](https://onnx.ai/onnx/operators/onnx__Elu.html), [LeakyRelu](https://onnx.ai/onnx/operators/onnx__LeakyRelu.html), [Selu](https://onnx.ai/onnx/operators/onnx__Selu.html), [Scatter](https://onnx.ai/onnx/operators/onnx__Scatter.html), [ScatterElements](https://onnx.ai/onnx/operators/onnx__ScatterElements.html), [Col2Im](https://onnx.ai/onnx/operators/onnx__Col2Im.html), [Resize](https://onnx.ai/onnx/operators/onnx__Resize.html), [Tanh](https://onnx.ai/onnx/operators/onnx__Tanh.html), [Split](https://onnx.ai/onnx/operators/onnx__Split.html)
 
 ### Changed
 - Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints
@@ -65,6 +67,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Aligned CLI commands across the project
 - Added @runwangdl as a code owner
 - Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
+- Allowing ONNX Operators with empty inputs.
 
 ### Fixed
 - Fix Neureka's output-channels subtile size (in ConvTemplate) and Dense/DW/PW tile constraints
@@ -84,6 +87,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
 - Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
 - Fix Deeploy 101 tutorial errors: `--profileTiling` usage and the moved intrinsics inventory path
+- Fix `ConvTranspose` layer: output buffer shape computation.
 
 ### Removed
 - removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.

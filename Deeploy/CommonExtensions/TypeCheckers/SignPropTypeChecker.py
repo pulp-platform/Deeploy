@@ -27,6 +27,11 @@ class SignPropTypeChecker(NodeTypeChecker):
         for inputNode, _type in zip(node.inputs, self.input_types):
             if isinstance(ctxt.lookup(inputNode.name), ConstantBuffer):
                 reference = ctxt.lookup(inputNode.name)
+
+                # Absent optional input: zero-sized placeholder, nothing to infer
+                if reference.values.size == 0:
+                    continue
+
                 if not _type.referencedType.checkPromotion(reference.values):
                     raise Exception(f"Can't cast {reference} to {_type}!")
 
