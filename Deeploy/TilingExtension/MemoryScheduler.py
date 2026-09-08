@@ -657,7 +657,11 @@ class MemoryScheduler():
                     # SCHEREMO: Don't fully unroll aliases here - this is pattern-sensitive!
                     inPatternParents = [a for a in _buffer.alias_of if a in blockNames]
                     if inPatternParents:
-                        # Prefer a deterministic immediate parent when multiple exist
+                        roots = {ctxt.dealiasBuffer(p) for p in inPatternParents}
+                        assert len(roots) == 1, (
+                            f"Buffer {memoryBlock.name} has in-pattern alias parents with conflicting "
+                            f"storage roots {sorted(roots)}")
+                        # Share addrSpace with a deterministic in-pattern parent.
                         aliasedBlocks.append((memoryBlock, sorted(inPatternParents)[0]))
                         continue
 

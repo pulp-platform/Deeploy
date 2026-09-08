@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- REFACTOR: tiler reads VariableBuffer.alias_of instead of legacy _alias [#203](https://github.com/pulp-platform/Deeploy/pull/203)
 - Fix Neureka [#188](https://github.com/pulp-platform/Deeploy/pull/188)
 - HOTFIX: XDNA2 Action Fix [#201](https://github.com/pulp-platform/Deeploy/pull/201)
 - XDNA2 Platform Support [#179](https://github.com/pulp-platform/Deeploy/pull/179)
@@ -62,7 +63,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Aligned CLI commands across the project
 - Added @runwangdl as a code owner
 - Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
-- Tiler (`TilerExtension`, `MemoryScheduler`) and `NetworkContext.dealiasBuffer` use directed `VariableBuffer.alias_of` instead of the legacy `_alias` attribute (#201)
+- Tiler (`TilerExtension`, `MemoryScheduler`) and `NetworkContext.dealiasBuffer` use directed `VariableBuffer.alias_of` instead of the legacy `_alias` attribute [#203](https://github.com/pulp-platform/Deeploy/pull/203)
 
 ### Fixed
 - Fix Neureka's output-channels subtile size (in ConvTemplate) and Dense/DW/PW tile constraints

@@ -225,7 +225,7 @@ def testPointerTypeEquivalence():
 
 
 def testDealiasBufferUsesAliasOf():
-    """Regression for #201: dealiasBuffer walks directed alias_of, not legacy _alias."""
+    """Regression for #201: dealiasBuffer walks directed alias_of"""
     ctxt = NetworkContext(VariableBuffer, ConstantBuffer, StructBuffer, TransientBuffer)
 
     bufferIn = VariableBuffer("reshape_in", shape = [4, 4])
@@ -248,6 +248,28 @@ def testDealiasBufferUsesAliasOf():
     bufferOut2.alias_of.add(bufferOut.name)
 
     assert ctxt.dealiasBuffer(bufferOut2.name) == bufferIn.name
+
+    # Multi-parent: both parents share one storage root. Lex order of parents
+    # must not change the resolved root (zzz sorts before mid).
+    mid = VariableBuffer("mid", shape = [16])
+    zzz = VariableBuffer("zzz", shape = [16])
+    multi = VariableBuffer("multi", shape = [16])
+    ctxt.add(mid, "local")
+    ctxt.add(zzz, "local")
+    ctxt.add(multi, "local")
+    mid.alias_of.add(bufferIn.name)
+    zzz.alias_of.add(bufferIn.name)
+    multi.alias_of.update({zzz.name, mid.name})
+    assert ctxt.dealiasBuffer(multi.name) == bufferIn.name
+
+    # Conflicting roots must be rejected.
+    otherRoot = VariableBuffer("other_root", shape = [16])
+    conflict = VariableBuffer("conflict", shape = [16])
+    ctxt.add(otherRoot, "local")
+    ctxt.add(conflict, "local")
+    conflict.alias_of.update({bufferIn.name, otherRoot.name})
+    with pytest.raises(AssertionError):
+        ctxt.dealiasBuffer(conflict.name)
 
     return True
 
