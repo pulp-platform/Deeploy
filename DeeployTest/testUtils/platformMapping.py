@@ -177,10 +177,8 @@ def mapDeployer(platform: DeploymentPlatform,
                                     deeployStateDir = deeployStateDir,
                                     inputOffsets = inputOffsets)
 
-    elif isinstance(platform, (GenericPlatform, XHeepPlatform)):
-        # WIESEP: CMSIS performs add-multiply-divide and we normally do multiply-add-divide
-        #         Because these deployer were fine-tuned with a add-multiply-divide aware deployer can emulate this
-        #         behavior with the EmulateCMSISRequantPass
+    elif isinstance(platform, (GenericPlatform)):
+        
 
         if loweringOptimizer is None:
             loweringOptimizer = GenericOptimizer
@@ -280,8 +278,6 @@ def mapDeployer(platform: DeploymentPlatform,
                                    name = name,
                                    default_channels_first = default_channels_first,
                                    deeployStateDir = deeployStateDir)
-
-    # TODO: add a branch for X-HEEP if needed
 
     else:
         # Lazy-import XDNA2 to avoid requiring mlir-aie on non-XDNA2 platforms

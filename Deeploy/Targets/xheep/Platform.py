@@ -37,7 +37,7 @@ from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool1DParser, Aver
     Pad2DParser, PowParser, QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, \
     ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SigmoidParser, SliceParser, SoftmaxParser, SqrtParser, \
     SubParser, SwishParser, TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
-from Deeploy.Targets.Generic.Platform import GenericConstantBuffer, GenericStructBuffer, GenericTransientBuffer, \
+from Deeploy.Targets.Generic.Platform import GenericConstantBuffer, GenericPlatform, GenericStructBuffer, GenericTransientBuffer, \
     GenericVariableBuffer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
@@ -100,9 +100,6 @@ AveragePool2DMapper = NodeMapper(AveragePool2DParser(), BasicAveragePool2DBindin
 GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), BasicGlobalAveragePoolBindings)
 GlobalMaxPoolMapper = NodeMapper(GlobalMaxPoolParser(), BasicGlobalMaxPoolBindings)
 
-# Dummy nodes are intended for development purposes only!
-# They should always generate compiler errors to not accidentally end up in production code
-DummyMapper = NodeMapper(DummyParser(), [DummyBinding])
 
 XheepMapping = {
     'Add': AddLayer([AddMapper]),
@@ -159,10 +156,6 @@ XheepMapping = {
     'AveragePool': AveragePoolLayer([AveragePool1DMapper, AveragePool2DMapper]),
     'GlobalAveragePool': GlobalAveragePoolLayer([GlobalAveragePoolMapper]),
     'GlobalMaxPool': GlobalMaxPoolLayer([GlobalMaxPoolMapper]),
-    # # For example, you can use the DummpyMapper, in case you want to test
-    # # deployment or optimizations with GlobalAveragePool nodes but did not yet
-    # # implement the corresponding kernel
-    # 'GlobalAveragePool': ConvLayer([DummyMapper]),
 }
 
 
@@ -218,7 +211,7 @@ class XHeepEngine(DeploymentEngine):
         super().__init__(name, Mapping, initCode, includeList)
 
 
-class XHeepPlatform(DeploymentPlatform):
+class XHeepPlatform(GenericPlatform):
 
     def __init__(self,
                  engines = [XHeepEngine("XHeep")],
