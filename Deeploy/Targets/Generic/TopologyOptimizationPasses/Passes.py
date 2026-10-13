@@ -1177,3 +1177,67 @@ class DequantPatternPass(ReplaceSequentialPatternPass):
 
         name = "_RECOGNIZE_DEQUANT_PASS"
         super().__init__(graph, _recognize_dequant_fun, name)
+
+
+def _replace_multi_axes_reducemax_layer_fun(graph: gs.Graph, match: Match, name: str):
+
+    matched_nodes = [m for k, m in match.nodes_map.items()]
+    reducemax_node = matched_nodes[0]
+
+    axes = reducemax_node.attrs["axes"]
+
+    if reducemax_node.attrs.get("keepdims", 1) != 0:
+        return graph
+
+    if len(axes) > 1:
+
+        axes = sorted(axes, reverse = True)
+        first_input_shape = copy.deepcopy(reducemax_node.inputs[0].shape)
+        output_shape = first_input_shape
+        prev_node = None
+        base_name = reducemax_node.name
+
+        for i, axis in enumerate(axes):
+            # generate a new reducemax node
+            del output_shape[axis]
+
+            if i == len(axes) - 1:
+                node_output = reducemax_node.outputs[0]
+            else:
+                node_output = gs.Variable(base_name + str(i) + '_out',
+                                          dtype = reducemax_node.outputs[0].dtype,
+                                          shape = copy.deepcopy(output_shape))
+
+            new_node = gs.Node(op = 'ReduceMax',
+                               name = base_name + str(i),
+                               attrs = {
+                                   "axes": [axis],
+                                   "keepdims": 0
+                               },
+                               inputs = reducemax_node.inputs if i == 0 else prev_node.outputs,
+                               outputs = [node_output])
+            graph.nodes.append(new_node)
+            prev_node = new_node
+
+        reducemax_node.inputs.clear()
+        reducemax_node.outputs.clear()
+        graph.cleanup().toposort()
+
+    return graph
+
+
+@contextagnostic
+class UnrollReduceMaxPass(ReplaceSequentialPatternPass):
+
+    def __init__(self):
+        graph = gs.Graph()
+        inputs = [gs.Variable(name = 'input_0')]
+        reducemax_output = graph.layer(inputs = inputs,
+                                       outputs = ['reducemax_out'],
+                                       op = 'ReduceMax',
+                                       name = 'reduce_max')
+        graph.outputs.append(reducemax_output)
+        graph.inputs = inputs
+
+        name = "_UNROLL_REDUCE_MAX_PASS"
+        super().__init__(graph, _replace_multi_axes_reducemax_layer_fun, name)

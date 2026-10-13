@@ -810,3 +810,193 @@ class GlobalMaxPoolLayer(ONNXLayer):
         opRep = self.mapper.parser.operatorRepresentation
         # (spatial_size - 1) comparisons per output channel
         return int(opRep['batch_size'] * opRep['num_channels'] * (opRep['spatial_size'] - 1))
+
+
+class TanhLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class ReduceMaxLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class NotLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class ComparisonLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class IsInfLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class IsNanLayer(ONNXLayer):
+
+    def __init__(self, maps):
+        super().__init__(maps)
+
+
+class AndLayer(ONNXLayer):
+
+    def __init__(self, maps):
+        super().__init__(maps)
+
+
+class ScatterNDLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
+
+        if inputShapes[1] == () or inputShapes[1] == []:  #indices
+            inputShapes[1] = (1,)
+
+        return (inputShapes, outputShapes)
+
+
+class CosLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SinLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class ExpandLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
+
+        if inputShapes[1] == () or inputShapes[1] == []:
+            inputShapes[1] = (1,)
+
+        return (inputShapes, outputShapes)
+
+
+class GatherElementsLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class TileLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class TopKLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class LogLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class ErfLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class WhereLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
+
+        if inputShapes[2] == () or inputShapes[2] == []:
+            inputShapes[2] = (1,)
+        if inputShapes[1] == () or inputShapes[1] == []:
+            inputShapes[1] = (1,)
+        if inputShapes[0] == () or inputShapes[0] == []:
+            inputShapes[0] = (1,)
+
+        return (inputShapes, outputShapes)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+
+class ModLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
+
+        if inputShapes[1] == () or inputShapes[1] == []:
+            inputShapes[1] = (1,)
+        if inputShapes[0] == () or inputShapes[0] == []:
+            inputShapes[0] = (1,)
+
+        return (inputShapes, outputShapes)
+
+    def computeOps(self):
+        return self.mapper.parser.operatorRepresentation['size']
+
+
+class ResizeLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
+
+        if inputShapes[0] == () or inputShapes[0] == []:
+            inputShapes[0] = (1,)
+
+        return (inputShapes, outputShapes)
+
+
+class GridSampleLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class CastLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class IdentityCastLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+
+class SplitLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)

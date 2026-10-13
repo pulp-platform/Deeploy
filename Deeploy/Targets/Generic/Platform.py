@@ -6,37 +6,48 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Lowe
     RemoveEmptyConvBiasPass, RemoveOnlySingletonReduceMeanPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, NodeTemplate, \
     StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
-from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicAveragePool1DBindings, BasicAveragePool2DBindings, \
-    BasicBatchNormBindings, BasicCeilBindings, BasicClipBindings, BasicConcatBindings, BasicConv1DBindings, \
-    BasicConv2DBindings, BasicConvTransposeBindings, BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, \
-    BasicDWConv1DBinding, BasicDWConv2DBindings, BasicExpBindings, BasicFloorBindings, BasicGatherBindings, \
-    BasicGELUBindings, BasicGEMMBindings, BasicGlobalAveragePoolBindings, BasicGlobalMaxPoolBindings, \
-    BasicGroupNormBindings, BasicHardSigmoidBindings, BasicHardSwishBindings, BasicInstanceNormBindings, \
-    BasicITAPartialSoftmaxBinding, BasicITASoftmaxBinding, BasicLayerNormBindings, BasicMatMulBindings, \
-    BasicMaxPool1DBindings, BasicMaxPool2DBindings, BasicMulBindings, BasicPad1DBindings, BasicPad2DBindings, \
-    BasicPowBindings, BasicQuantBindings, BasicReduceMeanBindings, BasicReduceSumBindings, BasicReluBinding, \
-    BasicReshapeBindings, BasicRQIntegerDivBinding, BasicRQSBindings, BasicRQSGELUBinding, BasicSigmoidBindings, \
-    BasicSliceBindings, BasicSoftmaxBindings, BasicSqrtBindings, BasicSubBindings, BasicSwishBindings, \
-    BasicTransposeBindings, DummyBinding
-from Deeploy.Targets.Generic.Layers import AddLayer, AveragePoolLayer, BatchNormalizationLayer, CeilLayer, ClipLayer, \
-    ConcatLayer, ConvLayer, ConvTransposeLayer, DebugPrintLayer, DequantLayer, DivLayer, ExpLayer, FloorLayer, \
-    GatherLayer, GELULayer, GEMMLayer, GlobalAveragePoolLayer, GlobalMaxPoolLayer, GroupNormLayer, InstanceNormLayer, \
-    ITAMaxLayer, LayerNormLayer, MatMulLayer, MaxPoolLayer, MulLayer, PadLayer, PowLayer, QuantLayer, ReduceMeanLayer, \
-    ReduceSumLayer, ReluLayer, RequantShiftLayer, ReshapeLayer, RQIntegerDivLayer, RQSiGELULayer, SigmoidLayer, \
-    SliceLayer, SoftmaxLayer, SqrtLayer, SubLayer, SwishLayer, TransposeLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, AveragePool1DParser, AveragePool2DParser, BatchNormParser, \
-    CeilParser, ClipParser, ConcatParser, ConvTranspose1DParser, DebugParser, DequantParser, DivParser, DummyParser, \
-    ExpParser, FlattenParser, FloorParser, GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, \
+from Deeploy.Targets.Generic.Bindings import BasicAddBindings, BasicAndBindings, BasicAveragePool1DBindings, \
+    BasicAveragePool2DBindings, BasicBatchNormBindings, BasicCastBindings, BasicCeilBindings, BasicClipBindings, \
+    BasicConcatBindings, BasicConv1DBindings, BasicConv2DBindings, BasicConvTransposeBindings, BasicCosBindings, \
+    BasicDebugPrintBindings, BasicDequantBindings, BasicDivBindings, BasicDWConv1DBinding, BasicDWConv2DBindings, \
+    BasicEqualBinding, BasicErfBindings, BasicExpandBindings, BasicExpBindings, BasicFloorBindings, \
+    BasicGatherBindings, BasicGatherElementsBindings, BasicGELUBindings, BasicGEMMBindings, \
+    BasicGlobalAveragePoolBindings, BasicGlobalMaxPoolBindings, BasicGreaterBindings, BasicGridSampleBindings, \
+    BasicGroupNormBindings, BasicHardSigmoidBindings, BasicHardSwishBindings, BasicIdentityCastBindings, \
+    BasicInstanceNormBindings, BasicIsInfBindings, BasicIsNanBindings, BasicITAPartialSoftmaxBinding, \
+    BasicITASoftmaxBinding, BasicLayerNormBindings, BasicLogBindings, BasicMatMulBindings, BasicMaxPool1DBindings, \
+    BasicMaxPool2DBindings, BasicModBindings, BasicMulBindings, BasicNotBindings, BasicPad1DBindings, \
+    BasicPad2DBindings, BasicPowBindings, BasicQuantBindings, BasicReduceMaxBindings, BasicReduceMeanBindings, \
+    BasicReduceSumBindings, BasicReluBinding, BasicReshapeBindings, BasicResizeBindings, BasicRQIntegerDivBinding, \
+    BasicRQSBindings, BasicRQSGELUBinding, BasicScatterNDBindings, BasicSigmoidBindings, BasicSinBindings, \
+    BasicSliceBindings, BasicSoftmaxBindings, BasicSplitBindings, BasicSqrtBindings, BasicSubBindings, \
+    BasicSwishBindings, BasicTanhBindings, BasicTileBindings, BasicTopKBindings, BasicTransposeBindings, \
+    BasicWhereBindings, DummyBinding
+from Deeploy.Targets.Generic.Layers import AddLayer, AndLayer, AveragePoolLayer, BatchNormalizationLayer, CastLayer, \
+    CeilLayer, ClipLayer, ComparisonLayer, ConcatLayer, ConvLayer, ConvTransposeLayer, CosLayer, DebugPrintLayer, \
+    DequantLayer, DivLayer, ErfLayer, ExpandLayer, ExpLayer, FloorLayer, GatherElementsLayer, GatherLayer, GELULayer, \
+    GEMMLayer, GlobalAveragePoolLayer, GlobalMaxPoolLayer, GridSampleLayer, GroupNormLayer, InstanceNormLayer, \
+    IsInfLayer, IsNanLayer, ITAMaxLayer, LayerNormLayer, LogLayer, MatMulLayer, MaxPoolLayer, ModLayer, \
+    MulLayer, NotLayer, PadLayer, PowLayer, QuantLayer, ReduceMaxLayer, ReduceMeanLayer, ReduceSumLayer, ReluLayer, \
+    RequantShiftLayer, ReshapeLayer, ResizeLayer, RQIntegerDivLayer, RQSiGELULayer, ScatterNDLayer, SigmoidLayer, \
+    SinLayer, SliceLayer, SoftmaxLayer, SplitLayer, SqrtLayer, SubLayer, SwishLayer, TanhLayer, TileLayer, \
+    TopKLayer, TransposeLayer, WhereLayer
+from Deeploy.Targets.Generic.Parsers import AddParser, AndParser, AveragePool1DParser, AveragePool2DParser, \
+    BatchNormParser, CastParser, CeilParser, ClipParser, ConcatParser, ConvTranspose1DParser, CosParser, DebugParser, \
+    DequantParser, DivParser, DummyParser, EqualParser, ErfParser, ExpandParser, ExpParser, FlattenParser, \
+    FloorParser, GatherElementsParser, GatherParser, GELUParser, GenericConv1DParser, GenericConv2DParser, \
     GenericDWConv1DParser, GenericDWConv2DParser, GenericGEMMParser, GenericMaxPool2DParser, GlobalAveragePoolParser, \
-    GlobalMaxPoolParser, GroupNormParser, HardSigmoidParser, HardSwishParser, InstanceNormParser, IntegerDivParser, \
-    ITAMaxParser, ITAPartialMaxParser, LayerNormParser, MatMulParser, MaxPool1DParser, MulParser, Pad1DParser, \
-    Pad2DParser, PowParser, QuantParser, ReduceMeanParser, ReduceSumParser, ReluParser, RequantShiftParser, \
-    ReshapeParser, RQIntegerDivParser, RQSiGELUParser, SigmoidParser, SliceParser, SoftmaxParser, SqrtParser, \
-    SubParser, SwishParser, TransposeParser, UnsqueezeParser, iLayerNormParser, iSoftmaxParser
+    GlobalMaxPoolParser, GreaterParser, GridSampleParser, GroupNormParser, HardSigmoidParser, HardSwishParser, \
+    IdentityCastParser, InstanceNormParser, IntegerDivParser, IsInfParser, IsNanParser, ITAMaxParser, \
+    ITAPartialMaxParser, LayerNormParser, LessParser, LogParser, MatMulParser, MaxPool1DParser, ModParser, MulParser, \
+    NotParser, Pad1DParser, Pad2DParser, PowParser, QuantParser, ReduceMaxParser, ReduceMeanParser, ReduceSumParser, \
+    ReluParser, RequantShiftParser, ReshapeParser, ResizeParser, RQIntegerDivParser, RQSiGELUParser, ScatterNDParser, \
+    SigmoidParser, SinParser, SliceParser, SoftmaxParser, SplitParser, SqrtParser, SubParser, SwishParser, TanhParser, \
+    TileParser, TopKParser, TransposeParser, UnsqueezeParser, WhereParser, iLayerNormParser, iSoftmaxParser
 from Deeploy.Targets.Generic.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPatternPass, ExtractPaddingFromConvPass, \
     ExtractPaddingFromPoolPass, MatMulAddMergePass, MergeConstAddAndRequantPass, QuantPatternPass, \
-    iGELURequantMergePass
+    UnrollReduceMaxPass, iGELURequantMergePass
 
 AddMapper = NodeMapper(AddParser(), BasicAddBindings)
 SubMapper = NodeMapper(SubParser(), BasicSubBindings)
@@ -94,6 +105,31 @@ AveragePool1DMapper = NodeMapper(AveragePool1DParser(), BasicAveragePool1DBindin
 AveragePool2DMapper = NodeMapper(AveragePool2DParser(), BasicAveragePool2DBindings)
 GlobalAveragePoolMapper = NodeMapper(GlobalAveragePoolParser(), BasicGlobalAveragePoolBindings)
 GlobalMaxPoolMapper = NodeMapper(GlobalMaxPoolParser(), BasicGlobalMaxPoolBindings)
+TanhMapper = NodeMapper(TanhParser(), BasicTanhBindings)
+ReduceMaxMapper = NodeMapper(ReduceMaxParser(), BasicReduceMaxBindings)
+ScatterNDMapper = NodeMapper(ScatterNDParser(), BasicScatterNDBindings)
+CosMapper = NodeMapper(CosParser(), BasicCosBindings)
+SinMapper = NodeMapper(SinParser(), BasicSinBindings)
+ExpandMapper = NodeMapper(ExpandParser(), BasicExpandBindings)
+GatherElementsMapper = NodeMapper(GatherElementsParser(), BasicGatherElementsBindings)
+TileMapper = NodeMapper(TileParser(), BasicTileBindings)
+TopKMapper = NodeMapper(TopKParser(), BasicTopKBindings)
+LogMapper = NodeMapper(LogParser(), BasicLogBindings)
+ErfMapper = NodeMapper(ErfParser(), BasicErfBindings)
+WhereMapper = NodeMapper(WhereParser(), BasicWhereBindings)
+ModMapper = NodeMapper(ModParser(), BasicModBindings)
+ResizeMapper = NodeMapper(ResizeParser(), BasicResizeBindings)
+GridSampleMapper = NodeMapper(GridSampleParser(), BasicGridSampleBindings)
+CastMapper = NodeMapper(CastParser(), BasicCastBindings)
+IdentityCastMapper = NodeMapper(IdentityCastParser(), BasicIdentityCastBindings)
+SplitMapper = NodeMapper(SplitParser(), BasicSplitBindings)
+GreaterMapper = NodeMapper(GreaterParser(), BasicGreaterBindings)
+LessMapper = NodeMapper(LessParser(), BasicGreaterBindings)
+EqualMapper = NodeMapper(EqualParser(), BasicEqualBinding)
+AndMapper = NodeMapper(AndParser(), BasicAndBindings)
+IsInfMapper = NodeMapper(IsInfParser(), BasicIsInfBindings)
+IsNanMapper = NodeMapper(IsNanParser(), BasicIsNanBindings)
+NotMapper = NodeMapper(NotParser(), BasicNotBindings)
 
 # Dummy nodes are intended for development purposes only!
 # They should always generate compiler errors to not accidentally end up in production code
@@ -123,6 +159,7 @@ GenericMapping = {
     'MatMulInteger': MatMulLayer([MatMulMapper]),
     'MaxPool': MaxPoolLayer([MaxPool1DMapper, MaxPool2DMapper]),
     'Mul': MulLayer([MulMapper]),
+    'Not': NotLayer([NotMapper]),
     'Pow': PowLayer([PowMapper]),
     'Sqrt': SqrtLayer([SqrtMapper]),
     'Pad': PadLayer([Pad1DMapper, Pad2DMapper]),
@@ -154,6 +191,31 @@ GenericMapping = {
     'AveragePool': AveragePoolLayer([AveragePool1DMapper, AveragePool2DMapper]),
     'GlobalAveragePool': GlobalAveragePoolLayer([GlobalAveragePoolMapper]),
     'GlobalMaxPool': GlobalMaxPoolLayer([GlobalMaxPoolMapper]),
+    'Tanh': TanhLayer([TanhMapper]),
+    'ReduceMax': ReduceMaxLayer([ReduceMaxMapper]),
+    'ScatterND': ScatterNDLayer([ScatterNDMapper]),
+    'Cos': CosLayer([CosMapper]),
+    'Sin': SinLayer([SinMapper]),
+    'Expand': ExpandLayer([ExpandMapper]),
+    'GatherElements': GatherElementsLayer([GatherElementsMapper]),
+    'Tile': TileLayer([TileMapper]),
+    'TopK': TopKLayer([TopKMapper]),
+    'Log': LogLayer([LogMapper]),
+    'Erf': ErfLayer([ErfMapper]),
+    'Where': WhereLayer([WhereMapper]),
+    'Mod': ModLayer([ModMapper]),
+    'Resize': ResizeLayer([ResizeMapper]),
+    'GridSample': GridSampleLayer([GridSampleMapper]),
+    'Cast': CastLayer([CastMapper]),
+    # 'Identity': IdentityCastLayer([IdentityCastMapper]),
+    #SOME CASTS TURN INTO IDENTITY??
+    'Split': SplitLayer([SplitMapper]),
+    'Greater': ComparisonLayer([GreaterMapper]),
+    'Less': ComparisonLayer([LessMapper]),
+    'Equal': ComparisonLayer([EqualMapper]),
+    'And': AndLayer([AndMapper]),
+    'IsInf': IsInfLayer([IsInfMapper]),
+    'IsNaN': IsNanLayer([IsNanMapper])
     # # For example, you can use the DummpyMapper, in case you want to test
     # # deployment or optimizations with GlobalAveragePool nodes but did not yet
     # # implement the corresponding kernel
@@ -200,6 +262,7 @@ GenericOptimizer = TopologyOptimizer(
         ExtractPaddingFromPoolPass(),
         RemoveEmptyConvBiasPass(),
         RemoveOnlySingletonReduceMeanPass(),
+        UnrollReduceMaxPass(),
         # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
     ],
     name = "GenericOptimizer")
