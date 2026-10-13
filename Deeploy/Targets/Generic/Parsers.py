@@ -4076,8 +4076,16 @@ class IsInfParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
+        
+        
+        self.operatorRepresentation['detect_negative'] = node.attrs.get('detect_negative', 1) == 1
+        self.operatorRepresentation['detect_positive'] = node.attrs.get('detect_positive', 1) == 1
+
+
         X = ctxt.lookup(node.inputs[0].name)
         Y = ctxt.lookup(node.outputs[0].name)
+
+
 
         self.operatorRepresentation["X"] = X.name
         self.operatorRepresentation["Y"] = Y.name

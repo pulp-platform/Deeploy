@@ -32,6 +32,19 @@ def _shapeBroadcast(ctxt, value, name):
 
 
 def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> str:
+    def _formatValue(x):
+        """ Formatter for special value of Nan and +/-inf to proper string in C"""
+        if np.isinf(x):
+            if x > 0:
+                return "INFINITY"
+            else:
+                return "-INFINITY"
+        elif np.isnan(x):
+            return "NAN"
+        else:
+            return f'{x}f'
+
+
     vectors = []
     retStr = ""
     for index, values in enumerate(test_inputs):
@@ -67,7 +80,7 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
         retStr += f"{typeName} {vectorName}[] ="
         retStr += "{"
         if typeName == 'float32_t':
-            list_str = (", ").join([f'{x}f' if not (np.isinf(x) or np.isnan(x)) else str(x) for x in values])
+            list_str = (", ").join([_formatValue(x) for x in values])
         else:
             list_str = (", ").join([str(x) for x in values])
 
