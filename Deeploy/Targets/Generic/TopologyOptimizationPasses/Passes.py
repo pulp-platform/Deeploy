@@ -1191,7 +1191,7 @@ def _replace_multi_axes_reducemax_layer_fun(graph: gs.Graph, match: Match, name:
 
     if len(axes) > 1:
 
-        axes = sorted(axes, reverse = True)  
+        axes = sorted(axes, reverse = True)
         first_input_shape = copy.deepcopy(reducemax_node.inputs[0].shape)
         output_shape = first_input_shape
         prev_node = None

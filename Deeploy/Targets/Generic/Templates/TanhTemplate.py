@@ -4,7 +4,6 @@
 #
 # Author: Mohammad Hossein Nikkhah
 
-
 from Deeploy.DeeployTypes import NodeTemplate
 
 referenceTemplate = NodeTemplate("""
