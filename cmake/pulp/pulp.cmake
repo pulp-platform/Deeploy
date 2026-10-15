@@ -96,7 +96,7 @@ macro(add_pulp_open_qsim_simulation name)
     COMMAND ${CMAKE_COMMAND} -E env USE_QONE=1
       VSIM_RUNNER_FLAGS=+ENTRY_POINT=${ENTRY_POINT}
       qsim -c -do "source ${VSIM_PATH}/tcl_files/config/run_and_exit.tcl"
-        -do "source ${VSIM_PATH}/tcl_files/run.tcl;"
+        -do "source ${VSIM_PATH}/tcl_files/run.tcl; run_and_exit;"
 
     COMMENT "Simulating ${name} with qsim"
     POST_BUILD
@@ -118,6 +118,8 @@ macro(add_pulp_open_vsim_simulation name)
   message(STATUS "TARGET_BUILD_DIR = ${TARGET_BUILD_DIR}")
 
   set(SIM_DIRS
+    ${TARGET_BUILD_DIR}/work
+    ${TARGET_BUILD_DIR}/modelsim.ini
     ${TARGET_BUILD_DIR}/stdout
     ${TARGET_BUILD_DIR}/fs
     ${TARGET_BUILD_DIR}/waves
@@ -141,7 +143,7 @@ macro(add_pulp_open_vsim_simulation name)
 
     COMMAND ${CMAKE_COMMAND} -E env
       VSIM_PATH=${VSIM_PATH}
-      VSIM_RUNNER_FLAGS=+ENTRY_POINT=${ENTRY_POINT}
+      VSIM_RUNNER_FLAGS="+ENTRY_POINT=${ENTRY_POINT}"
       $ENV{PULP_SDK_HOME}/bin/stim_utils.py --binary=${TARGETS} --vectors=${TARGET_BUILD_DIR}/vectors/stim.txt
 
     COMMAND $ENV{PULP_SDK_HOME}/bin/plp_mkflash
@@ -154,13 +156,14 @@ macro(add_pulp_open_vsim_simulation name)
       --output=${TARGET_BUILD_DIR}/vectors/hyper_stim.slm
 
     COMMAND ${CMAKE_COMMAND} -E env
-      VSIM_RUNNER_FLAGS=+ENTRY_POINT=${ENTRY_POINT}
+      "VSIM_PATH=${VSIM_PATH}"
+      "VSIM_RUNNER_FLAGS=+ENTRY_POINT=${ENTRY_POINT}"
       ${QUESTA} -64 -c
-        -gBAUDRATE=115200
-        -gLOAD_L2=JTAG
-        -permit_unmatched_virtual_intf
-        -do "source ${VSIM_PATH}/tcl_files/config/run_and_exit.tcl"
-        -do "source ${VSIM_PATH}/tcl_files/run.tcl;"
+      -permit_unmatched_virtual_intf
+      -gBAUDRATE=115200
+      -gLOAD_L2=JTAG
+      -do "source ${VSIM_PATH}/tcl_files/config/run_and_exit.tcl"
+      -do "source ${VSIM_PATH}/tcl_files/run.tcl; run_and_exit;"
 
     COMMENT "Simulating ${name} with vsim"
     POST_BUILD
