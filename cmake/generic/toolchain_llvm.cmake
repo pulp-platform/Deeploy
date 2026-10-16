@@ -15,6 +15,7 @@ set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objcopy)
 set(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objdump)
 
 add_compile_options(
+  -O2
 )
 
 add_link_options(
