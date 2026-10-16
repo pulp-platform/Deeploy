@@ -39,6 +39,8 @@ add_compile_options(
     -mcmodel=medany
     -mtune=mempool
 
+    -O2
+
     # -falign-loops=32
     # -falign-jumps=32
     # Turn of optimization that lead to known problems

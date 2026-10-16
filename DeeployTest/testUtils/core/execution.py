@@ -104,6 +104,14 @@ def configure_cmake(config: DeeployTestConfig) -> None:
     else:
         cmd.append("-Dgvsoc_simulation=OFF")
 
+    if config.platform in ('Siracusa', 'Siracusa_w_neureka', 'PULPOpen', 'PULPOpen_iDMA'):
+        if config.simulator in ('vsim', 'vsim.gui', 'qsim', 'qsim.gui'):
+            cmd.append("-DSDK_PLATFORM=RTL")
+        elif config.simulator == 'gvsoc':
+            cmd.append("-DSDK_PLATFORM=GVSOC")
+        elif config.simulator == 'fpga':
+            cmd.append("-DSDK_PLATFORM=FPGA")
+
     # Last argument is the source directory
     script_dir = Path(__file__).parent.parent.parent
     cmd.append(str(script_dir.parent))

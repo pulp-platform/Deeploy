@@ -34,6 +34,7 @@ add_compile_options(
     -menable-experimental-extensions
     -mabi=ilp32d
     -mcmodel=medany
+    -O2
     -fno-builtin-printf
     -fno-builtin-sqrtf
     -fno-common

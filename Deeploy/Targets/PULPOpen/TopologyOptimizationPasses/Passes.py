@@ -168,7 +168,7 @@ def _merge_conv_rq_fun(graph: gs.Graph, match: Match, name: str):
     conv = matched_nodes[0]
     rqs = matched_nodes[1]
 
-    totalShift = int(np.log2(rqs.attrs['div'].values))
+    totalShift = int(np.log2(rqs.attrs['div'].values.item()))
 
     # Artifically add half the shift division value to implement rounding
     rounding = 2**(totalShift - 1) if totalShift > 0 else 0
@@ -212,7 +212,7 @@ def _merge_gemm_rq_fun(graph: gs.Graph, match: Match, name: str):
     gemm = matched_nodes[0]
     rqs = matched_nodes[1]
 
-    totalShift = int(np.log2(rqs.attrs['div'].values))
+    totalShift = int(np.log2(rqs.attrs['div'].values.item()))
 
     rqs.inputs[-1].values = copy.deepcopy(rqs.inputs[-1].values) + 2**(totalShift - 1)
 

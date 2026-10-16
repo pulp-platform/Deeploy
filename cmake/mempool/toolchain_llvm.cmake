@@ -36,6 +36,8 @@ add_compile_options(
 
   -std=gnu99
 
+  -O2
+
   -fno-builtin-memcpy
   -fno-builtin-memset
 

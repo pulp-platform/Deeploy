@@ -757,11 +757,11 @@ class iSoftmaxParser(SoftmaxParser):
             ])
 
         if wellFormed:
-            self.operatorRepresentation['coeffA'] = int(node.attrs['coeffA'].values)
-            self.operatorRepresentation['coeffB'] = int(node.attrs['coeffB'].values)
-            self.operatorRepresentation['coeffC'] = int(node.attrs['coeffC'].values)
-            self.operatorRepresentation['log2'] = int(node.attrs['log2'].values)
-            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values)
+            self.operatorRepresentation['coeffA'] = int(node.attrs['coeffA'].values.item())
+            self.operatorRepresentation['coeffB'] = int(node.attrs['coeffB'].values.item())
+            self.operatorRepresentation['coeffC'] = int(node.attrs['coeffC'].values.item())
+            self.operatorRepresentation['log2'] = int(node.attrs['log2'].values.item())
+            self.operatorRepresentation['n_levels'] = int(node.attrs['n_levels'].values.item())
 
         return wellFormed
 
@@ -2531,31 +2531,31 @@ class RQAddParser(AddParser):
 
         if ret:
             if 'rqs1_n_levels' in node.attrs:
-                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels'].values)
+                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels'].values.item())
             else:
-                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels_out'].values)
+                self.operatorRepresentation['rqs1_n_levels'] = int(node.attrs['rqs1_n_levels_out'].values.item())
             self.operatorRepresentation['rqs1_mul'] = int(node.attrs['rqs1_mul'])
             self.operatorRepresentation['rqs1_add'] = int(node.attrs['rqs1_add'])
-            self.operatorRepresentation['rqs1_signed'] = int(node.attrs['rqs1_signed'].values)
-            self.operatorRepresentation['rqs1_log2D'] = int(math.log2(node.attrs['rqs1_div'].values))
+            self.operatorRepresentation['rqs1_signed'] = int(node.attrs['rqs1_signed'].values.item())
+            self.operatorRepresentation['rqs1_log2D'] = int(math.log2(node.attrs['rqs1_div'].values.item()))
 
             if 'rqs2_n_levels' in node.attrs:
-                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels'].values)
+                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels'].values.item())
             else:
-                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels_out'].values)
+                self.operatorRepresentation['rqs2_n_levels'] = int(node.attrs['rqs2_n_levels_out'].values.item())
             self.operatorRepresentation['rqs2_mul'] = int(node.attrs['rqs2_mul'])
             self.operatorRepresentation['rqs2_add'] = int(node.attrs['rqs2_add'])
-            self.operatorRepresentation['rqs2_signed'] = int(node.attrs['rqs2_signed'].values)
-            self.operatorRepresentation['rqs2_log2D'] = int(math.log2(node.attrs['rqs2_div'].values))
+            self.operatorRepresentation['rqs2_signed'] = int(node.attrs['rqs2_signed'].values.item())
+            self.operatorRepresentation['rqs2_log2D'] = int(math.log2(node.attrs['rqs2_div'].values.item()))
 
             if 'rqsOut_n_levels' in node.attrs:
-                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels'].values)
+                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels'].values.item())
             else:
-                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels_out'].values)
+                self.operatorRepresentation['rqsOut_n_levels'] = int(node.attrs['rqsOut_n_levels_out'].values.item())
             self.operatorRepresentation['rqsOut_mul'] = int(node.attrs['rqsOut_mul'])
             self.operatorRepresentation['rqsOut_add'] = int(node.attrs['rqsOut_add'])
-            self.operatorRepresentation['rqsOut_signed'] = int(node.attrs['rqsOut_signed'].values)
-            self.operatorRepresentation['rqsOut_log2D'] = int(math.log2(node.attrs['rqsOut_div'].values))
+            self.operatorRepresentation['rqsOut_signed'] = int(node.attrs['rqsOut_signed'].values.item())
+            self.operatorRepresentation['rqsOut_log2D'] = int(math.log2(node.attrs['rqsOut_div'].values.item()))
 
         return ret
 
