@@ -349,7 +349,7 @@ class MulLayer(SingleOperationPerElementLayer):
 
         broadcastShape = tuple(reversed(broadcastShape))
         inputShapes[0] = broadcastShape
-        inputShapes[1] = broadcastShape
+        inputShapes[1] = rhsShape if np.prod(rhsShape) == 1 else broadcastShape
         return (inputShapes, outputShapes)
 
 
@@ -448,27 +448,23 @@ class ReduceLogSumExpLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
-        axis = operatorRepresentation['axes'][0]
-        inputShape = list(copy.deepcopy(inputShapes[0]))
+        axes = [int(axis) for axis in operatorRepresentation['axes']]
+        inputShape = list(inputShapes[0])
 
         if operatorRepresentation['keepdims']:
-            outputShape = inputShape
-            outputShape[axis] = 1
+            outputShape = list(inputShape)
+            for axis in axes:
+                outputShape[axis] = 1
         else:
-            outputShape = inputShape[:axis] + inputShape[axis + 1:]
+            outputShape = [dim for idx, dim in enumerate(inputShape) if idx not in axes]
             if len(outputShape) == 0:
                 outputShape = [1]
 
         return (inputShapes, [outputShape])
 
 
-class ReluLayer(ONNXLayer):
-
-    def __init__(self, maps: List[NodeMapper]):
-        super().__init__(maps)
-
-    def computeOps(self):
-        return self.mapper.parser.operatorRepresentation['size']
+class ReluLayer(SingleOperationPerElementLayer):
+    pass
 
 
 class LayerNormLayer(ONNXLayer):

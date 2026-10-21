@@ -322,6 +322,7 @@ class MaxPool1DParser(MaxPoolParser):
 
 
 class MaxPool2DParser(MaxPoolParser):
+    """Use x/y for height/width, matching the spatial order in ONNX and the tiler."""
 
     def __init__(self):
         super().__init__()
@@ -339,10 +340,11 @@ class MaxPool2DParser(MaxPoolParser):
 
             self.operatorRepresentation['padding_x'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][1])
-            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][0])
-            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][1])
-            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][2])
-            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][3])
+            # Directional padding names follow top/left/bottom/right in ONNX pads.
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
             self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
             self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
             self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])

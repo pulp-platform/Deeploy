@@ -8,7 +8,7 @@ import numpy as np
 from ortools.constraint_solver.pywrapcp import IntVar
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import uint16_t
+from Deeploy.CommonExtensions.DataTypes import uint32_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
@@ -25,6 +25,32 @@ class SliceTileConstraint(TileConstraint):
             return np.asarray(ctxt.lookup(value).values).astype(np.int64).reshape(-1)
         return np.asarray(value).astype(np.int64).reshape(-1)
 
+    @classmethod
+    def normalizedParameters(cls, parseDict: Dict, ctxt: NetworkContext):
+        """Resolve constant names and normalize ONNX indices against the full input shape."""
+        shape = parseDict['data_in_shape']
+        axes, starts, ends, steps = [
+            cls._resolveImmediate(parseDict[key], ctxt) for key in ('axes', 'starts', 'ends', 'steps')
+        ]
+        if not (len(axes) == len(starts) == len(ends) == len(steps)):
+            raise ValueError("Slice parameter lengths must match")
+        normalizedStarts = [0] * len(shape)
+        normalizedSteps = [1] * len(shape)
+        seen = set()
+        for axis, start, end, step in zip(axes, starts, ends, steps):
+            axis = int(axis)
+            if axis < 0:
+                axis += len(shape)
+            if axis < 0 or axis >= len(shape) or axis in seen or step == 0:
+                raise ValueError("Invalid Slice axis or step")
+            seen.add(axis)
+            start, end, step = slice(int(start), int(end), int(step)).indices(shape[axis])
+            if not range(start, end, step):
+                raise ValueError("Tiled Slice does not support empty outputs")
+            normalizedStarts[axis] = start
+            normalizedSteps[axis] = step
+        return normalizedStarts, normalizedSteps
+
     @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
 
@@ -37,8 +63,7 @@ class SliceTileConstraint(TileConstraint):
         inputShape = parseDict['data_in_shape']
 
         #   Get other necessary information
-        sliceAxes = SliceTileConstraint._resolveImmediate(parseDict['axes'], ctxt)
-        sliceSteps = SliceTileConstraint._resolveImmediate(parseDict['steps'], ctxt)
+        _, sliceSteps = SliceTileConstraint.normalizedParameters(parseDict, ctxt)
 
         # ===== ADD I/O DIMENSIONS TO THE MODEL AS VARIABLES =====
         for bufferName in [inputBufferName, outputBufferName]:
@@ -51,16 +76,8 @@ class SliceTileConstraint(TileConstraint):
             inputDimensionVar = tilerModel.getTensorDimVar(tensorName = inputBufferName, dimIdx = idx)
             outputDimensionVar = tilerModel.getTensorDimVar(tensorName = outputBufferName, dimIdx = idx)
 
-            if idx in sliceAxes:
-                # For sliced axes, constrain to minimal input dimension
-                # based on the output dimension and the slicing step
-                axIndex = list(sliceAxes).index(idx)
-                axStep = sliceSteps[axIndex]
-
-                tilerModel.addConstraint(inputDimensionVar == ((outputDimensionVar - 1) * axStep + 1))
-            else:
-                # Otherwise, input and output dimensions need to be equal
-                tilerModel.addConstraint(outputDimensionVar == inputDimensionVar)
+            step = abs(sliceSteps[idx])
+            tilerModel.addConstraint(inputDimensionVar == ((outputDimensionVar - 1) * step + 1))
 
         return tilerModel
 
@@ -72,125 +89,43 @@ class SliceTileConstraint(TileConstraint):
         return symbolicParseDict
 
     @staticmethod
-    def computeInputCubeFromOutputCube(outputCube: AbsoluteHyperRectangle, parseDict: Dict) -> HyperRectangle:
-        # Computes the input cube given the output cube and the slicing parameters.
-        #
-        # Will provide a minimal input cube, that only requires the data needed for the output cube
-        # by ignoring the input data that is outside of the slicing scope,
-        # as given by the slicing starting and ending parameters.
-        #
-        # (It will start with the first element required for the output cube,
-        # and will end with the last element required for the output cube).
-        #
-        # *Function is ready for multiple axes slicing.
-
-        # Start from the output cube dimensions and offsets
-        in_cube_dims = list(outputCube.dims).copy()
-        in_cube_offset = list(outputCube.offset).copy()
-
-        # Iterate through the sliced axes
-        sliceAxes = np.asarray(parseDict['axes']).astype(np.int64).reshape(-1)
-        sliceStarts = np.asarray(parseDict['starts']).astype(np.int64).reshape(-1)
-        sliceSteps = np.asarray(parseDict['steps']).astype(np.int64).reshape(-1)
-
-        for idx, ax in enumerate(sliceAxes):
-            # Get current sliced ax parameters
-            start = sliceStarts[idx]
-            step = sliceSteps[idx]
-
-            # Compute input cube parameters for the current axis
-            in_cube_dims[ax] = (outputCube.dims[ax] - 1) * step + 1
-            in_cube_offset[ax] = start + outputCube.offset[ax] * step
-
-        return HyperRectangle(offset = tuple(in_cube_offset), dims = tuple(in_cube_dims))
+    def computeInputCubeFromOutputCube(outputCube: HyperRectangle, parseDict: Dict) -> HyperRectangle:
+        """Return the bounding input rectangle for normalized per-axis starts and steps."""
+        starts, steps = parseDict['slice_starts'], parseDict['slice_steps']
+        offsets, dims = [], []
+        for offset, size, start, step in zip(outputCube.offset, outputCube.dims, starts, steps):
+            first = start + offset * step
+            last = first + (size - 1) * step
+            offsets.append(min(first, last))
+            dims.append(abs(last - first) + 1)
+        return HyperRectangle(tuple(offsets), tuple(dims))
 
     @classmethod
     def serializeTilingSolution(
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        # Extract rectangle information (offsets and dimensions) from output cubes
-        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
-
-        # Prepare address names
-        addrNames = ['data_in', 'data_out']
-
-        # Extract memory base addresses for each of the required components,
-        # based on the computed memory configuration
+        starts, steps = cls.normalizedParameters(operatorRepresentation, ctxt)
+        # Keep the original representation intact: other passes still need its buffer names.
+        immediateParameters = {'slice_starts': starts, 'slice_steps': steps}
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
-                                                                  operatorRepresentation, addrNames)
-
-        # Prepare replacement lists for the elements inside the operator representation,
-        # for the cubes to be computed further down in this function
-
-        # ~~~~~ SEE ISSUE #134: https://github.com/pulp-platform/Deeploy/issues/134 ~~~~~
-        # Freeze tiling input and output tiling for now
+                                                                  operatorRepresentation, ['data_in', 'data_out'])
         replacements = {
-            # "data_in_shape": [],
-            # "data_out_shape": [],
-            # "starts": [[
-            #     0,
-            # ] * len(operatorRepresentation['axes'])] * len(outputCubes),
-            # "ends": [],
-            "data_in_size": [],
+            f'{name}_{axis}': [] for axis in range(len(starts))
+            for name in ('slice_in_dim', 'slice_out_dim', 'slice_start')
         }
-
-        replacementTypes = {
-            # "data_in_shape": [
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t)
-            # ],
-            # "data_out_shape": [
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t),
-            #     PointerClass(uint16_t)
-            # ],
-            # "starts": PointerClass(uint16_t),
-            # "ends": PointerClass(uint16_t),
-            "data_in_size": PointerClass(uint16_t),
-        }
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        # Prepare loading schedule lists
-        inputLoadSchedule = []
-        outputLoadSchedule = []
-
-        for out_cube in outputCubes:
-            immediateOperatorRepresentation = operatorRepresentation.copy()
-            immediateOperatorRepresentation['axes'] = cls._resolveImmediate(operatorRepresentation['axes'], ctxt)
-            immediateOperatorRepresentation['starts'] = cls._resolveImmediate(operatorRepresentation['starts'], ctxt)
-            immediateOperatorRepresentation['steps'] = cls._resolveImmediate(operatorRepresentation['steps'], ctxt)
-
-            # Compute input cube
-            in_cube = SliceTileConstraint.computeInputCubeFromOutputCube(out_cube,
-                                                                         parseDict = immediateOperatorRepresentation)
-
-            # Compute new ends for replacement
-            new_ends = list()
-            for ax in immediateOperatorRepresentation['axes']:
-                new_ends.append(in_cube.offset[ax] + in_cube.dims[ax])
-
-            # Append replacement elements
-
-            # ~~~~~ SEE ISSUE #134: https://github.com/pulp-platform/Deeploy/issues/134 ~~~~~
-            # Freeze tiling input and output tiling for now
-            # replacements["data_in_shape"].append(list(in_cube.dims).copy())
-            # replacements["data_out_shape"].append(list(out_cube.dims).copy())
-            # replacements["ends"].append(new_ends)
-            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            replacements["data_in_size"].append(int(np.prod(in_cube.dims)))
-
-            # Append new cubes
-            inputLoadSchedule.append({"data_in": in_cube})
-            outputLoadSchedule.append({"data_out": out_cube})
-
-        # Prepare containing objects with information computed in this function regarding tiling schedule
-        # and variable replacement inside operator representation
-        tilingSchedule = TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule)
-        variableReplacementSchedule = VariableReplacementScheme(replacements, replacementTypes)
-
-        return variableReplacementSchedule, tilingSchedule
+        replacementTypes = {key: PointerClass(uint32_t) for key in replacements}
+        inputLoadSchedule, outputLoadSchedule = [], []
+        for absoluteCube in absoluteOutputCubes:
+            outCube = absoluteCube.rectangle
+            inCube = cls.computeInputCubeFromOutputCube(outCube, immediateParameters)
+            for axis, step in enumerate(steps):
+                replacements[f'slice_in_dim_{axis}'].append(inCube.dims[axis])
+                replacements[f'slice_out_dim_{axis}'].append(outCube.dims[axis])
+                # The DMA already applies the global slice offset. Reverse slices
+                # start at the last element of the local bounding rectangle.
+                replacements[f'slice_start_{axis}'].append(0 if step > 0 else inCube.dims[axis] - 1)
+            inputLoadSchedule.append({'data_in': inCube})
+            outputLoadSchedule.append({'data_out': outCube})
+        return (VariableReplacementScheme(replacements, replacementTypes),
+                TilingSchedule(inputBaseOffsets, outputBaseOffsets, inputLoadSchedule, outputLoadSchedule))

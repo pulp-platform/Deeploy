@@ -69,7 +69,12 @@ __attribute__((noinline)) void PULP_ConvTranspose2d_fp32_fp32_fp32_CHW(
             // Keep the induction variable materialized: the PULP LLVM backend
             // miscompiles this accumulating loop when lowering it to a hardware
             // loop.
-            for (volatile uint32_t kw = 0; kw < K_w; ++kw) {
+            for (
+#ifdef __TOOLCHAIN_LLVM__
+                volatile
+#endif
+                uint32_t kw = 0;
+                kw < K_w; ++kw) {
               int32_t w_out = (int32_t)(w_in * stride_w + kw * dilation_w) -
                               (int32_t)pad_left;
 

@@ -77,7 +77,8 @@ class UntiledTileConstraint(TileConstraint):
             if not isinstance(value, str):
                 continue
 
-            if value not in tilingSolution.tensorMemoryConstraints:
+            if (value not in tilingSolution.inputTensorMemoryConstraints
+                    and value not in tilingSolution.outputTensorMemoryConstraints):
                 continue
 
             _buffer = ctxt.lookup(value)

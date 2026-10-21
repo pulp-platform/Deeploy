@@ -52,7 +52,10 @@ void CompareFloatOnCluster(void *args) {
       }
       float tolerance = FLOAT_ABS_TOL + FLOAT_REL_TOL * scale;
 
-      if ((abs_diff > tolerance) || isnan(diff)) {
+      // Non-finite values are errors: inf > inf is false and would hide a
+      // mismatch.
+      if (!isfinite(expected_val) || !isfinite(actual_val) ||
+          (abs_diff > tolerance)) {
         local_err_count += 1;
 
         printf("Expected: %10.6f  ", expected_val);
@@ -136,6 +139,8 @@ int main(void) {
       compbuf = DeeployNetwork_outputs[buf];
     }
 
+    // OUTPUTTYPE is selected at compile time. Exclude the integer branch for
+    // float outputs: its %d diagnostics would otherwise fail format checking.
 #if ISOUTPUTFLOAT == 1
     float_error_count = 0;
     float_compare_args.expected = testOutputVector[buf];
