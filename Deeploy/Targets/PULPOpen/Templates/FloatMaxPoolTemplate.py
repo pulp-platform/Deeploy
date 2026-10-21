@@ -4,6 +4,8 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
+# The parser and tiler use x/y for height/width. The FP32 kernel takes
+# height/width pairs for input dimensions, kernel dimensions and strides.
 referenceTemplate = NodeTemplate("""
 // 2D Float MaxPool Channel Parallel (Name: ${nodeName}, Op: ${nodeOp})
 

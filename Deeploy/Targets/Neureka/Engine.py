@@ -54,28 +54,36 @@ class NeurekaEngine(DeploymentEngine):
 
         self.enableStrides = enableStrides
 
-    def isDenseConv(self, node) -> bool:
+    @staticmethod
+    def _isSupportedConvNode(node: gs.Node) -> bool:
+        # Common N-EUREKA preconditions for all convolution flavors. Keep this
+        # structural: engine coloring runs before Deeploy has reliable type info.
         return node.op in ["Conv", "RequantizedConv"] and \
+            len(node.inputs) > 1 and \
             isinstance(node.inputs[1], gs.Constant) and \
-            node.attrs['kernel_shape'] == [3, 3] and \
-            node.attrs['dilations'] == [1, 1] and \
-            node.attrs['group'] == 1 and \
-            (node.attrs['strides'] == [1, 1] or self.enableStrides)
+            node.attrs.get('dilations') == [1, 1]
+
+    def _hasSupportedStrides(self, node: gs.Node) -> bool:
+        # Strided convolutions are opt-in because not every N-EUREKA setup enables
+        # them, while unit strides are always supported.
+        return node.attrs.get('strides') == [1, 1] or self.enableStrides
+
+    def isDenseConv(self, node) -> bool:
+        return self._isSupportedConvNode(node) and \
+            node.attrs.get('kernel_shape') == [3, 3] and \
+            node.attrs.get('group', 1) == 1 and \
+            self._hasSupportedStrides(node)
 
     def isPWConv(self, node) -> bool:
-        return node.op in ["Conv", "RequantizedConv"] and \
-            isinstance(node.inputs[1], gs.Constant) and \
-            node.attrs['kernel_shape'] == [1, 1] and \
-            node.attrs['dilations'] == [1, 1] and \
-            (node.attrs['strides'] == [1, 1] or self.enableStrides)
+        return self._isSupportedConvNode(node) and \
+            node.attrs.get('kernel_shape') == [1, 1] and \
+            self._hasSupportedStrides(node)
 
     def isDWConv(self, node) -> bool:
-        return node.op in ["Conv", "RequantizedConv"] and \
-            isinstance(node.inputs[1], gs.Constant) and \
-            node.attrs['kernel_shape'] == [3, 3] and \
-            node.attrs['dilations'] == [1, 1] and \
-            node.attrs['group'] != 1 and \
-            (node.attrs['strides'] == [1, 1] or self.enableStrides)
+        return self._isSupportedConvNode(node) and \
+            node.attrs.get('kernel_shape') == [3, 3] and \
+            node.attrs.get('group', 1) != 1 and \
+            self._hasSupportedStrides(node)
 
     def canExecute(self, node: gs.Node) -> bool:
         return self.isPWConv(node) or self.isDWConv(node) or self.isDenseConv(node)

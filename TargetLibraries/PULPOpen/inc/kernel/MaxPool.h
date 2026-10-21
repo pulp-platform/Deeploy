@@ -9,10 +9,12 @@
 
 #include "DeeployPULPMath.h"
 
+// Spatial pairs use height, width order for the input, kernel, and strides.
 void PULP_MaxPool2d_fp32_fp32_HWC(const float32_t *__restrict__ pSrcA,
-                                  uint32_t W, uint32_t H, uint32_t C,
-                                  uint32_t Q, uint32_t P, uint32_t SQ,
-                                  uint32_t SP, float32_t *__restrict__ pDstC,
+                                  uint32_t H, uint32_t W, uint32_t C,
+                                  uint32_t kernel_h, uint32_t kernel_w,
+                                  uint32_t stride_h, uint32_t stride_w,
+                                  float32_t *__restrict__ pDstC,
                                   uint32_t pad_top, uint32_t pad_bottom,
                                   uint32_t pad_left, uint32_t pad_right);
 

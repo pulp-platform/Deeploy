@@ -4,9 +4,11 @@
 
 from Deeploy.DeeployTypes import NodeTemplate
 
-pulpL2InitTemplate = NodeTemplate("${type.typeName} ${name};\n")
+# PULP closures assign local pointers after declaration. Initialize them here,
+# without bypassing other targets' or reference buffers' initialization templates.
+pulpL2InitTemplate = NodeTemplate("${type.typeName} ${name} __attribute__((unused)) = NULL;\n")
 
-pulpL1InitTemplate = NodeTemplate("${type.typeName} ${name};\n")
+pulpL1InitTemplate = NodeTemplate("${type.typeName} ${name} __attribute__((unused)) = NULL;\n")
 #pulpL2AllocateTemplate = NodeTemplate("${name} = (${type.typeName}) pi_l2_malloc(${type.referencedType.typeWidth//8} * ${size});\n")
 pulpL2AllocateTemplate = NodeTemplate(
     "${name} = (${type.typeName}) pi_l2_malloc(sizeof(${type.referencedType.typeName}) * ${size});\n")

@@ -19,6 +19,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Conv/Regular_2D_Bias": [6600],
     "Kernels/FP32/Conv/Regular_2D_NoBias": [1600],
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [6600],
+    "Kernels/FP32/Conv/Transpose_2D": [64000],
     "Kernels/FP32/GEMM/Regular": [8000],
     "Kernels/FP32/MatMul": [2000],
     "Kernels/FP32/MaxPool/Regular_2D": [2000],

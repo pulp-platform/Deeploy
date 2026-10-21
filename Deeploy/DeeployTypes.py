@@ -960,12 +960,16 @@ class NetworkContext():
                       constant: gs.Constant,
                       name: Optional[str] = None,
                       _type: Optional[Type[Pointer]] = None) -> str:
-        """Register a ConstantBuffer extracted directly from a graphsurgeon Constant
+        """Register a ConstantBuffer extracted directly from a graphsurgeon Constant.
+
+        A constant tensor may be consumed by multiple nodes: ``constant.outputs``
+        lists its consumers, not separate tensor values. ``NodeParser.parseInputs``
+        registers the tensor once and records each consumer with ``addUser``.
 
         Parameters
         ----------
         constant : gs.Constant
-            graphsurgeon.Node containing a single constant output
+            graphsurgeon constant tensor to register
         name : str
             Name of the ConstantBuffer to be registered
         _type : Optional[Type[Pointer]]
@@ -977,8 +981,6 @@ class NetworkContext():
             Returns the name of the newly registed ConstantBuffer
 
         """
-        assert len(constant.outputs) <= 1, f"Constant {constant.name} has more than one output"
-
         name = name if name is not None else constant.name
 
         # LMACAN: The shape needs to be copied into a tuple for pickling to work. Don't ask me why..
@@ -2028,22 +2030,18 @@ class ONNXLayer():
 
     def _broadcastToNpType(self, ty: Type[BaseType]):
 
-        def _broadcastInteger(ty: Type[IntegerImmediate]):
-            if ty.signed:
-                return np.dtype(getattr(np, "int" + str(ty.typeWidth)))
-            else:
-                return np.dtype(getattr(np, "uint" + str(ty.typeWidth)))
+        def _broadcastInteger(immediateType: Type[IntegerImmediate]):
+            prefix = "int" if immediateType.signed else "uint"
+            return np.dtype(getattr(np, prefix + str(immediateType.typeWidth)))
 
-        def _broadcastFloat(ty: Type[FloatImmediate]):
-            return np.dtype(getattr(np, "double"))
+        def _broadcastFloat(immediateType: Type[FloatImmediate]):
+            return np.dtype(getattr(np, "float" + str(immediateType.typeWidth)))
 
-        if issubclass(ty, Pointer) and hasattr(ty, "referencedType"):
-            if issubclass(ty.referencedType, IntegerImmediate):
-                return _broadcastInteger(ty.referencedType)
-        elif issubclass(ty, IntegerImmediate):
-            return _broadcastInteger(ty)
-        elif issubclass(ty, FloatImmediate):
-            return _broadcastFloat(ty)
+        immediateType = ty.referencedType if issubclass(ty, Pointer) and hasattr(ty, "referencedType") else ty
+        if issubclass(immediateType, IntegerImmediate):
+            return _broadcastInteger(immediateType)
+        if issubclass(immediateType, FloatImmediate):
+            return _broadcastFloat(immediateType)
 
         return None
 
@@ -2106,8 +2104,9 @@ class ONNXLayer():
                 elif ctxt.is_global(node.name):
                     npType = self._broadcastToNpType(ctxt.globalObjects[node.name]._type)
                     if isinstance(ctxt.globalObjects[node.name], ConstantBuffer):
-                        if isinstance(node, gs.Constant):
+                        if isinstance(node, gs.Constant) and npType is not None:
                             node.values = node.values.astype(npType)
+                            node.export_dtype = npType
                     else:
                         node.shape = ctxt.globalObjects[node.name].shape
                         if npType is not None:
@@ -2583,6 +2582,16 @@ class NetworkContainer():
         self.transformed = True
 
     def _selectEngine(self, node: gs.Node) -> DeploymentEngine:
+        if "engine" in node.attrs:
+            engineName = node.attrs["engine"]
+            for engine in self.Platform.engines:
+                if engine.name == engineName:
+                    if node.op not in engine.Mapping:
+                        raise RuntimeError(f"No mapping found for node {node.name} with op type {node.op} "
+                                           f"in explicitly selected engine {engineName}")
+                    return engine
+            raise RuntimeError(f"Node {node.name} has an unknown engine {engineName} assigned")
+
         for engine in self.Platform.engines:
             if node.op in engine.Mapping:
                 return engine
@@ -2863,6 +2872,7 @@ class NetworkContainer():
 
             name = node.name
             node.name = self.ctxt._mangle(node.name)
+
             callStack += node.init()
             node.name = name
 

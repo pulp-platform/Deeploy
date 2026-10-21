@@ -32,9 +32,11 @@
 #include "kernel/PULPPWConv1x1.h"
 #include "kernel/PULPStemConv3x3.h"
 #include "kernel/RQiHardswish.h"
+#include "kernel/Relu.h"
 #include "kernel/RequantShift.h"
 #include "kernel/Softmax.h"
 #include "kernel/UniformRequantShift.h"
+#include "kernel/gemm.h"
 #include "kernel/gemv.h"
 #include "kernel/iRMSnorm.h"
 

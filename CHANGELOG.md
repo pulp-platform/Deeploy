@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Add 2D Autoencoder and GMM Integration on Siracusa Target [#190](https://github.com/pulp-platform/Deeploy/pull/190)
 - Fix Neureka [#188](https://github.com/pulp-platform/Deeploy/pull/188)
 - HOTFIX: XDNA2 Action Fix [#201](https://github.com/pulp-platform/Deeploy/pull/201)
 - XDNA2 Platform Support [#179](https://github.com/pulp-platform/Deeploy/pull/179)
@@ -67,6 +68,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
 
 ### Fixed
+- Reject non-finite outputs in the PULPOpen/Siracusa floating-point test comparison.
+- Preserve target-specific buffer initialization templates; keep NULL pointer initialization in the PULP allocation templates.
+- Preserve dynamic biases in MatMul/Add fusion and avoid fusing shapes or shared outputs incompatible with Gemm.
+- Restore PULPOpen floating-point Slice tiling with per-tile dimensions and local indices, including strided and reversed slices.
+- Support padding, dilation and grouped weights in the Generic FP32 ConvTranspose2D kernel.
+- Align PULPOpen FP32 MaxPool kernel and stride arguments with the parser's height/width order, and correct directional padding for MaxPool2D.
 - Fix Neureka's output-channels subtile size (in ConvTemplate) and Dense/DW/PW tile constraints
 - in `NetworkContainer._createIOBindings`, set `_live = True` on network input and output buffers so that any buffer aliasing a network I/O tensor is no longer deallocated while the I/O tensor is still in use.
 - Fix latent bug in `VariableBuffer.has_live_aliases` where `visited` variable was storing buffer names as a set of characters instead of strings.

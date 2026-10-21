@@ -8,7 +8,7 @@ referenceTemplate = NodeTemplate("""
 // Float Mul (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
     for (uint32_t i=0;i<${size};i++){
-        ${C}[i] = ${A}[i] * ${B}[0];
+        ${C}[i] = ${A}[i] * ${B}[${0 if sizeB == 1 else 'i'}];
     }
 END_SINGLE_CORE
 """)
