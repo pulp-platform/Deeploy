@@ -2908,7 +2908,9 @@ class NetworkContainer():
                 if node._deploy:
                     name = node.name
                     node.name = self.ctxt._mangle(node.name)
-                    callStack += "extern " + node.init()
+                    initialization = node.init()
+                    declaration = initialization.split("=", 1)[0].rstrip() + ";\n"
+                    callStack += "extern " + declaration
                     # SCHEREMO: Borderline hacky, but on the okay side of things, I think
                     callStack += "static const uint32_t " + node.name + "_len" + " = " + str(np.prod(node.shape)) + ";"
                     node.name = name
