@@ -17,6 +17,8 @@ from Deeploy.Targets.CortexM.Platform import CMSISOptimizer, CMSISPlatform
 from Deeploy.Targets.GAP9.Deployer import GAP9Deployer
 from Deeploy.Targets.GAP9.Platform import GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
+from Deeploy.Targets.Carfield.Deployer import CarfieldDeployer #for Carfield
+from Deeploy.Targets.Carfield.Platform import CarfieldOptimizer, CarfieldPlatform #for Carfield
 from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericPlatform
 from Deeploy.Targets.MemPool.Deployer import MemPoolDeployer
 from Deeploy.Targets.MemPool.Platform import MemPoolOptimizer, MemPoolPlatform
@@ -30,7 +32,7 @@ from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
 
-_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
+_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier", "Carfield"]
 _NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "XDNA2"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
@@ -57,6 +59,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
 
     elif platformName == "Generic":
         Platform = GenericPlatform()
+
+    elif platformName == "Carfield":  #for Carfield
+        Platform = CarfieldPlatform()
 
     elif platformName == "Siracusa" or platformName == "PULPOpen":
         Platform = PULPPlatform()
@@ -185,6 +190,24 @@ def mapDeployer(platform: DeploymentPlatform,
             default_channels_first = True
 
         deployer = GenericDeployer(graph,
+                                   platform,
+                                   inputTypes,
+                                   loweringOptimizer,
+                                   scheduler,
+                                   name = name,
+                                   default_channels_first = default_channels_first,
+                                   deeployStateDir = deeployStateDir,
+                                   inputOffsets = inputOffsets)
+
+    elif isinstance(platform, CarfieldPlatform):  #for Carfield
+
+        if loweringOptimizer is None:
+            loweringOptimizer = CarfieldOptimizer
+
+        if default_channels_first is None:
+            default_channels_first = True
+
+        deployer = CarfieldDeployer(graph,
                                    platform,
                                    inputTypes,
                                    loweringOptimizer,

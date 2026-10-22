@@ -11,6 +11,7 @@ from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeploy
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
 from Deeploy.Targets.Snitch.Platform import SnitchPlatform
+from Deeploy.Targets.Carfield.Platform import CarfieldPlatform
 
 _TEXT_ALIGN = 30
 
@@ -58,8 +59,15 @@ def generateTestInputsHeader(deployer: NetworkDeployer, test_inputs: List) -> st
         if getattr(buffer, "_memoryLevel", None) == "L3":
             vectors.append("NULL")
             continue
+
         typeName = buffer._type.referencedType.typeName
         typeWidth = buffer._type.referencedType.typeWidth
+
+        if isinstance(deployer.Platform, CarfieldPlatform):
+            vectorName = f"testInputVector{index}"
+            vectors.append(vectorName)
+            retStr += f"#define {vectorName} (({typeName} *){buffer.address})\n"
+            continue
 
         vectorName = f"testInputVector{index}"
         vectors.append(vectorName)
@@ -96,6 +104,12 @@ def generateTestOutputsHeader(deployer: NetworkDeployer, test_outputs: List[np.n
 
         retStr += f"#define OUTPUTTYPE {typeName}\n"
         retStr += f"#define ISOUTPUTFLOAT {int(typeName == 'float32_t')}\n"
+
+        if isinstance(deployer.Platform, CarfieldPlatform):
+            buffer = deployer.ctxt.lookup(f'output_{index}')
+            retStr += f"#define testOutputVector{index} (({typeName} *){buffer.address})\n"
+            continue
+
         retStr += f"{typeName} testOutputVector{index}[] ="
         retStr += "{"
 
@@ -159,10 +173,15 @@ def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
 def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: CodeGenVerbosity) -> str:
     retStr = ""
 
-    retStr += """#include <stdio.h>
-    #include <stdlib.h>
-    #include <math.h>
-    """
+    if isinstance(deployer.Platform, CarfieldPlatform):
+        retStr += """#include <stdio.h>
+        #include <stdlib.h>
+        """
+    else:
+        retStr += """#include <stdio.h>
+        #include <stdlib.h>
+        #include <math.h>
+        """
     retStr += deployer.generateIncludeString()
     retStr += """
 
@@ -174,7 +193,7 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
     retStr += deployer.generateGlobalDefinitionCode()
 
     # MemPool and Snitch declare intermediate buffers at file scope (before RunNetwork) so they are shared across cores.
-    if isinstance(deployer.Platform, (MemPoolPlatform, SnitchPlatform)):
+    if isinstance(deployer.Platform, (MemPoolPlatform, SnitchPlatform, CarfieldPlatform)):
         retStr += deployer.generateInferenceInitializationCode()
         retStr += """
         void RunNetwork(__attribute__((unused)) uint32_t core_id, __attribute__((unused)) uint32_t numThreads){
@@ -267,6 +286,131 @@ def generateL3HexDump(deployer: NetworkDeployer, path: str, test_inputs: List, t
             dumpBuffer(buf, pathName)
 
 
+def _carfieldNumpyDtype(dataType) -> str:
+    # Numpy dtype string matching the C element type, little-endian explicit.
+    referenced = dataType.referencedType
+    width = referenced.typeWidth
+
+    if referenced.typeName == "float32_t":
+        return "<f4"
+
+    if width == 8:
+        return "i1" if referenced.typeMin < 0 else "u1"
+
+    order = "<"
+    kind = "i" if referenced.typeMin < 0 else "u"
+    return f"{order}{kind}{width // 8}"
+
+
+def generateCarfieldDDRBlobs(deployer: NetworkDeployer, path: str, test_inputs: List[np.ndarray],
+                             test_outputs: List[np.ndarray]) -> None:
+    """Write the raw DDR images that `gdb restore` pushes onto the board.
+
+    Three binary files (blobs), because they change at different times: the weights only when
+    the network changes, the input and golden every time the test vectors are
+    regenerated.
+
+        weights.bin   every ConstantBuffer, at the offsets CarfieldDeployer assigned
+        input.bin     the network inputs
+        golden.bin    the expected outputs, for the on-device comparison
+        layout.txt    the addresses and the restore commands, to read while in gdb
+
+    The addresses are never recomputed here: they are read back from
+    `buf.address`, which `CarfieldDeployer.bind()` stamped on every buffer."""
+    os.makedirs(path, exist_ok = True)
+
+    def dataFor(buf: VariableBuffer) -> np.ndarray:
+        """The bytes this buffer stands for, in its C element type."""
+        parts = buf.name.split("_")
+        if len(parts) == 2 and parts[0] == "input" and parts[1].isdigit():
+            array = _shapeBroadcast(deployer.ctxt, test_inputs[int(parts[1])], buf.name)
+        elif len(parts) == 2 and parts[0] == "output" and parts[1].isdigit():
+            array = _shapeBroadcast(deployer.ctxt, test_outputs[int(parts[1])], buf.name)
+        elif isinstance(buf, ConstantBuffer):
+            array = buf.values
+        else:
+            raise Exception(f"Unexpected buffer {buf}!")
+
+        # test_inputs/test_outputs arrive as float64 (generateNetwork widens them
+        # before type inference); the cast brings them back to the C element type.
+        return np.ascontiguousarray(array).reshape(-1).astype(_carfieldNumpyDtype(buf._type))
+
+    def writeBlob(fileName: str, buffers: List[VariableBuffer], origin: int) -> int:
+        """Write buffers into one file, each at its offset from "origin".
+
+        "origin" is the address the file will be restored at, so offset 0 in the
+        file is byte 0 of that region, using a single global base here instead
+        would prepend the distance from the weights and shift every tensor.
+
+        Positioning with seek() rather than appending in order is what makes the
+        blob independent of iteration order: a tensor lands where its address
+        says, full stop. The gaps left by the alignment padding are the holes
+        seek() leaves behind, which read back as zeros.
+        """
+        filePath = os.path.join(path, fileName)
+        with open(filePath, "wb") as f:
+            for buf in buffers:
+                f.seek(int(buf.address, 16) - origin)
+                f.write(dataFor(buf).tobytes())
+
+        size = os.path.getsize(filePath)
+
+        # Independent of the seek arithmetic above: the file must span exactly
+        # from the region start to the end of its last tensor. A wrong origin
+        # inflates the file, and this is what notices.
+        expected = max(int(buf.address, 16) - origin + dataFor(buf).nbytes for buf in buffers)
+        assert size == expected, \
+            f"{fileName} is {size} bytes but the layout spans {expected}; origin 0x{origin:08X} is wrong"
+
+        return size
+
+    constants = [
+        buf for buf in deployer.ctxt.globalObjects.values() if isinstance(buf, ConstantBuffer) and buf._deploy
+    ]
+
+    blobs = []
+    if constants:
+        blobs.append(("weights.bin", constants, deployer.weightsRegion[0]))
+    if deployer.inputs():
+        blobs.append(("input.bin", list(deployer.inputs()), deployer.inputBlobAddress))
+    if deployer.outputs():
+        blobs.append(("golden.bin", list(deployer.outputs()), deployer.goldenBlobAddress))
+
+    written = []
+    for fileName, buffers, startAddress in blobs:
+        size = writeBlob(fileName, buffers, startAddress)
+        written.append((fileName, startAddress, size, len(buffers)))
+
+    # Read the blobs back and compare tensor by tensor. This catches the failure
+    # mode that produces no error at all: a wrong offset or a wrong dtype leaves
+    # every pointer valid and every value wrong.
+    for fileName, buffers, startAddress in blobs:
+        raw = np.fromfile(os.path.join(path, fileName), dtype = np.uint8)
+        for buf in buffers:
+            expected = dataFor(buf)
+            offset = int(buf.address, 16) - startAddress
+            actual = raw[offset:offset + expected.nbytes].view(expected.dtype)
+            assert np.array_equal(actual, expected), \
+                f"blob {fileName} does not match buffer {buf.name} at {buf.address}"
+
+    with open(os.path.join(path, "layout.txt"), "w") as f:
+        f.write("Carfield DDR layout\n")
+        f.write("=" * 78 + "\n\n")
+        f.write("Restore commands (run these in gdb, once per session):\n\n")
+        for fileName, startAddress, size, _ in written:
+            f.write(f"  restore {fileName} binary 0x{startAddress:08X}\n")
+        f.write(f"\n  arena base (deeploy_malloc starts here): 0x{deployer.arenaBaseAddress:08X}\n")
+        f.write(f"\n{'Blob':<14} {'Address':>12} {'Bytes':>14} {'Tensors':>9}\n")
+        f.write("-" * 78 + "\n")
+        for fileName, startAddress, size, count in written:
+            f.write(f"{fileName:<14} 0x{startAddress:08X} {size:>14,d} {count:>9d}\n")
+        f.write(f"\n{'Tensor':<44} {'Address':>12} {'Bytes':>12}\n")
+        f.write("-" * 78 + "\n")
+        for _, buffers, _ in blobs:
+            for buf in buffers:
+                f.write(f"{buf.name:<44} {buf.address:>12} {dataFor(buf).nbytes:>12,d}\n")
+
+
 def generateTestNetwork(deployer: NetworkDeployer, test_inputs: List[np.ndarray], test_outputs: List[np.ndarray],
                         dumpdir: str, verbosityCfg: CodeGenVerbosity) -> None:
     assert deployer.prepared, "An unprepared deployer was given"
@@ -292,6 +436,12 @@ def generateTestNetwork(deployer: NetworkDeployer, test_inputs: List[np.ndarray]
         f.write(testNetworkImplementationStr)
 
     generateL3HexDump(deployer, os.path.join(f'{dumpdir}', 'hex'), test_inputs, test_outputs)
+
+    # Carfield keeps weights, input and golden out of the binary entirely: they
+    # are restored into DDR with gdb and reached through the fixed-address
+    # pointers CarfieldDeployer assigned.
+    if isinstance(deployer.Platform, CarfieldPlatform):
+        generateCarfieldDDRBlobs(deployer, os.path.join(f'{dumpdir}', 'ddr'), test_inputs, test_outputs)
 
     clang_format = "{BasedOnStyle: llvm, IndentWidth: 2, ColumnLimit: 160}"
     os.system(f'clang-format -i --style="{clang_format}" {dumpdir}/Network.c')
