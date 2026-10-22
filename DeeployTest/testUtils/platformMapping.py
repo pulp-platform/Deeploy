@@ -178,7 +178,6 @@ def mapDeployer(platform: DeploymentPlatform,
                                     inputOffsets = inputOffsets)
 
     elif isinstance(platform, (GenericPlatform)):
-        
 
         if loweringOptimizer is None:
             loweringOptimizer = GenericOptimizer
