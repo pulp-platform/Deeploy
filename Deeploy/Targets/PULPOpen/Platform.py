@@ -2,13 +2,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import copy
+from enum import Enum
+from typing import Type, Union
+
 import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
     RemoveEmptyConvBiasPass, RemoveOnlySingletonReduceMeanPass
 from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NetworkContext, NodeMapper, \
-    NodeTemplate, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
+    NodeTemplate, ONNXLayer, StructBuffer, TopologyOptimizer, TransientBuffer, VariableBuffer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
 from Deeploy.Targets.Generic.Bindings import BasicGEMMBindings, BasicPad1DBindings, BasicPad2DBindings, \
@@ -31,6 +35,9 @@ from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import DequantPat
     SkipEmptyConcatPass, SkipUnityRequantPass, iGELURequantMergePass, iHardswishRequantMergePass
 from Deeploy.Targets.PULPOpen.Bindings import BasicDequantBindings, BasicQuantBindings, PULPDMASliceBindings, \
     PULPDWConv1DBinding
+from Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling import PULPClusterTiling
+from Deeploy.Targets.PULPOpen.DMA.iDMA import iDMA
+from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Layers import PULPRQSConvLayer, PULPRQSGEMMLayer
 from Deeploy.Targets.PULPOpen.Parsers import PULPConv1DParser, PULPConv2DParser, PULPDWConv1DParser, \
     PULPDWConv2DParser, PULPFPConv2DParser, PULPFPDWConv2DParser, PULPGEMMParser, PULPMatrixVecParser, \
@@ -52,6 +59,7 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
+from Deeploy.TilingExtension.AsyncDma import AsyncDma
 
 RQAddMapper = NodeMapper(RQAddParser(), PULPRQAddTilingReadyBindings)
 AddMapper = NodeMapper(AddParser(), PULPAddTilingReadyBindings)
@@ -252,10 +260,44 @@ PULPOptimizer = TopologyOptimizer([
                                   name = "PULPOptimizer")
 
 # SCHEREMO: stdint is included before pulp_nn_kernels.h because it is supposed to be included in there, but isn't...
+# DMA-specific headers are appended by PULPClusterEngine.setDma
 _includeList = [
-    "pmsis.h", "stdint.h", "pulp_nn_kernels.h", "DeeployPULPMath.h", "mchan_siracusa.h", "dory_mem.h", "bsp/ram.h",
-    "perf_utils.h"
+    "pmsis.h", "stdint.h", "pulp_nn_kernels.h", "DeeployPULPMath.h", "dory_mem.h", "bsp/ram.h", "perf_utils.h"
 ]
+
+
+class PULPDma(str, Enum):
+    """Cluster DMA engine used for L2<->L1 tiling transfers"""
+
+    MCHAN = "mchan"
+    IDMA = "idma"
+
+    # Keep f-strings and CLI args identical across Python versions
+    def __str__(self) -> str:
+        return self.value
+
+    @property
+    def dmaClass(self) -> Type[AsyncDma]:
+        return {PULPDma.MCHAN: MchanDma, PULPDma.IDMA: iDMA}[self]
+
+
+# Return a copy of `mapping` whose L2<->L1 cluster tiling uses `dma`.
+# The DMA is baked into the module-level code transformers (Bindings.py) shared
+# by all bindings, so it is fixed at import time. Hence PULPMapping is built
+# with MchanDma, and an engine targeting another DMA deep-copies it and swaps
+# the DMA in every PULPClusterTiling pass. The copy keeps the shared PULPMapping
+# (also used by Siracusa and Neureka) untouched.
+def _remapClusterDma(mapping, dma: AsyncDma):
+    mapping = copy.deepcopy(mapping)
+    for layer in mapping.values():
+        if not isinstance(layer, ONNXLayer):
+            continue
+        for mapper in layer.maps:
+            for binding in mapper.bindings:
+                for _pass in binding.codeTransformer.passes:
+                    if isinstance(_pass, PULPClusterTiling):
+                        _pass.setDma(dma)
+    return mapping
 
 
 class PULPClusterEngine(DeploymentEngine):
@@ -265,9 +307,20 @@ class PULPClusterEngine(DeploymentEngine):
                  Mapping = PULPMapping,
                  initCode = "",
                  includeList = _includeList,
-                 n_cores: int = 8) -> None:
+                 n_cores: int = 8,
+                 dma: str = "mchan") -> None:
         super().__init__(name, Mapping, initCode, includeList)
         self.n_cores = n_cores
+        self._baseIncludeList = list(includeList)
+        self.dma = PULPDma.MCHAN  # PULPMapping is built with MchanDma
+        self.setDma(dma)
+
+    def setDma(self, dma: Union[PULPDma, str]) -> None:
+        dma = PULPDma(dma)
+        if dma != self.dma:
+            self.Mapping = _remapClusterDma(self.Mapping, dma.dmaClass())
+        self.dma = dma
+        self.includeList = self._baseIncludeList + dma.dmaClass.includeList
 
 
 class PULPPlatform(DeploymentPlatform):

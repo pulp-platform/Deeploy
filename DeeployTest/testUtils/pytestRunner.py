@@ -50,6 +50,7 @@ def create_test_config(
     randomized_mem_scheduler: bool = False,
     profile_untiled: bool = False,
     gen_args: Optional[List[str]] = None,
+    dma: Optional[str] = None,
 ) -> DeeployTestConfig:
 
     test_dir = f"Tests/{test_name}"
@@ -69,8 +70,14 @@ def create_test_config(
 
     gen_args_list = list(gen_args) if gen_args else []
 
-    if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka"]:
+    if cores is not None and platform in ["Siracusa", "Siracusa_w_neureka", "PULPOpen"]:
         gen_args_list.append(f"--cores={cores}")
+
+    # Always pass the DMA on PULPOpen so a cached PULP_DMA from a previous run cannot leak in
+    if platform == "PULPOpen":
+        dma = dma or "mchan"
+        gen_args_list.append(f"--dma={dma}")
+        cmake_args_list.append(f"PULP_DMA={dma.upper()}")
 
     if tiling:
         if l1 is not None:

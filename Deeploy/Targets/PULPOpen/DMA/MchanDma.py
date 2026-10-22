@@ -27,6 +27,8 @@ if (${name} <= MCHAN_CHANNEL_ID_MAX) {
 
 class MchanDma(AsyncDma):
 
+    includeList = ["mchan_siracusa.h"]
+
     _transferTemplates = {
         1: NodeTemplate("mchan_transfer_1d(${cmd}, ${loc}, ${ext});"),
         2: NodeTemplate("mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});"),

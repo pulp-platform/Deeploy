@@ -9,7 +9,8 @@ import numpy as np
 
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
-from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
+from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPClusterEngine, \
+    PULPPlatform
 from Deeploy.Targets.Snitch.Platform import SnitchPlatform
 
 _TEXT_ALIGN = 30
@@ -135,6 +136,9 @@ def generateTestNetworkHeader(deployer: NetworkDeployer) -> str:
     #include <stdlib.h>
     """
     retStr += deployer.generateIncludeString()
+    for engine in deployer.Platform.engines:
+        if isinstance(engine, PULPClusterEngine):
+            retStr += f"\n#define DEEPLOY_PULP_DMA_{engine.dma.upper()}\n"
     if isinstance(deployer.Platform, (PULPPlatform, MemoryPULPPlatform, MemoryPULPPlatformWrapper)):
         retStr += """
         void RunNetwork();

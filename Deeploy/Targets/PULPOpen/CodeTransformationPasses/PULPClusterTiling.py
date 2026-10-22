@@ -31,10 +31,16 @@ class ProfilingPULPClusterTilingGenerationDB(DoubleBufferingTilingCodeGeneration
 class PULPClusterTiling(CodeTransformationPass):
 
     def __init__(self, externalMemory: str, localMemory: str, dma: AsyncDma):
-        self.SB = PULPClusterTilingGenerationSB(externalMemory, localMemory, dma)
-        self.profilingSB = ProfilingPULPClusterTilingGenerationSB(externalMemory, localMemory, dma)
-        self.DB = PULPClusterTilingGenerationDB(externalMemory, localMemory, dma)
-        self.profilingDB = ProfilingPULPClusterTilingGenerationDB(externalMemory, localMemory, dma)
+        self.externalMemory = externalMemory
+        self.localMemory = localMemory
+        self.setDma(dma)
+
+    def setDma(self, dma: AsyncDma) -> None:
+        self.dma = dma
+        self.SB = PULPClusterTilingGenerationSB(self.externalMemory, self.localMemory, dma)
+        self.profilingSB = ProfilingPULPClusterTilingGenerationSB(self.externalMemory, self.localMemory, dma)
+        self.DB = PULPClusterTilingGenerationDB(self.externalMemory, self.localMemory, dma)
+        self.profilingDB = ProfilingPULPClusterTilingGenerationDB(self.externalMemory, self.localMemory, dma)
 
     def apply(self,
               ctxt: NetworkContext,

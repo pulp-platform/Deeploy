@@ -20,7 +20,7 @@ from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.Debu
 from Deeploy.DeeployTypes import _NoVerbosity
 from Deeploy.Logging import DEFAULT_LOGGER as log
 from Deeploy.Targets.CortexM.Platform import CMSISPlatform
-from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPPlatform
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPDma, PULPPlatform
 
 
 def generateNetwork(args):
@@ -85,9 +85,13 @@ def generateNetwork(args):
 
     platform, signProp = mapPlatform(args.platform)
 
+    if args.dma != PULPDma.MCHAN and args.platform != "PULPOpen":
+        raise ValueError(f"--dma={args.dma} is only supported on PULPOpen, not on {args.platform}")
+
     clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
     for cluster in clusters:
         cluster.n_cores = args.cores
+        cluster.setDma(args.dma)
 
     inputTypes = {}
     inputOffsets = {}
@@ -202,6 +206,11 @@ if __name__ == '__main__':
         help =
         "Number of cores on which the network is run. Currently, required for im2col buffer sizing on Siracusa. Default: 1.",
     )
+    parser.add_argument("--dma",
+                        type = PULPDma,
+                        choices = list(PULPDma),
+                        default = PULPDma.MCHAN,
+                        help = "Cluster DMA engine (PULPOpen only). Default: mchan.")
     parser.set_defaults(shouldFail = False)
 
     args = parser.parse_args()
