@@ -43,13 +43,13 @@ GAP9_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gap9-sdk
 
 CMAKE ?= cmake
 
-LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
+LLVM_COMMIT_HASH ?= 6547028f925c4f27f5ff2ae40c3e901bacf886e4
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
-PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
+PULP_SDK_COMMIT_HASH ?= 894a13eb62eaa8d00c9f7c39d1d8ff98d9c03211
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
-GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
+GVSOC_COMMIT_HASH ?= fa24884d164daef0e946cdb8653f28d8af4bb5ab
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
@@ -418,7 +418,9 @@ picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} $
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone https://github.com/pulp-platform/pulp-sdk.git && \
-	cd ${TOOLCHAIN_DIR}/pulp-sdk && git checkout ${PULP_SDK_COMMIT_HASH} && \
+	cd ${TOOLCHAIN_DIR}/pulp-sdk && \
+	git fetch origin ${PULP_SDK_COMMIT_HASH} && \
+	git checkout ${PULP_SDK_COMMIT_HASH} && \
 	git submodule update --init --recursive
 
 ${PULP_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/pulp-sdk
@@ -468,11 +470,18 @@ ${TOOLCHAIN_DIR}/gvsoc:
 	git clone https://github.com/gvsoc/gvsoc.git && \
 	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
 	git submodule update --init --recursive && \
-	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt
+	cd ${TOOLCHAIN_DIR}/gvsoc/pulp && git apply ${TOOLCHAIN_DIR}/gvsoc_pulp_open.patch && \
+	cd ${TOOLCHAIN_DIR}/gvsoc && \
+	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt && \
+	pip install -r gvrun/requirements.txt && pip install -r config_tree/requirements.txt
 
 ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	cd ${TOOLCHAIN_DIR}/gvsoc && \
-	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera" build INSTALLDIR=${GVSOC_INSTALL_DIR}
+	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include \
+	 XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include \
+	 XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include \
+	 make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera pulp-open" build \
+	 INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
 

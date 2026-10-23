@@ -34,6 +34,8 @@ RUN --mount=type=cache,target=/ccache \
     make gvsoc && \
     cp -r toolchain/gvsoc/core/requirements.txt /app/core-requirements.txt && \
     cp -r toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
+    cp -r toolchain/gvsoc/gvrun/requirements.txt /app/gvrun-requirements.txt && \
+    cp -r toolchain/gvsoc/config_tree/requirements.txt /app/config-tree-requirements.txt && \
     rm -rf toolchain/pulp-sdk toolchain/qemu toolchain/mempool toolchain/banshee toolchain/xtensor toolchain/xtl toolchain/xsimd toolchain/gvsoc && \
     ccache -s
 
@@ -133,8 +135,11 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 
 COPY --from=toolchain /app/core-requirements.txt ./core-requirements.txt
 COPY --from=toolchain /app/gapy-requirements.txt ./gapy-requirements.txt
+COPY --from=toolchain /app/gvrun-requirements.txt ./gvrun-requirements.txt
+COPY --from=toolchain /app/config-tree-requirements.txt ./config-tree-requirements.txt
 COPY requirements-dev.txt ./
-RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-requirements.txt
+RUN pip install -r requirements-dev.txt -r core-requirements.txt -r gapy-requirements.txt \
+    -r gvrun-requirements.txt -r config-tree-requirements.txt
 
 # Copy pre-built toolchains and emulators
 COPY --from=toolchain /app/install /app/install
