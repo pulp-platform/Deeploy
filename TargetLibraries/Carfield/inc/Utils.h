@@ -22,6 +22,13 @@ void deeploy_free(void *const ptr, const size_t size);
 // has 2KiB for stack, in total first 16Kib from 0x50000000
 #define CARFIELD_L1_END 0x50020000U
 
+// Start of the DDR arena. It must not be below the "arena base" in layout.txt:
+// the generated Network.c checks it with _Static_assert. Override with
+// -DDDR_ARENA_BASE=... at build time.
+#ifndef DDR_ARENA_BASE
+#define DDR_ARENA_BASE 0x82600000U
+#endif
+
 // Bytes still available in the DDR arena: the tail never handed out, so
 // (arena size - bytes_left) is the peak the bump pointer ever reached.
 extern uint32_t bytes_left;

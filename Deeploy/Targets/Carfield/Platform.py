@@ -8,25 +8,25 @@ from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPla
 from Deeploy.Targets.Carfield.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, MaxPoolLayer, PadLayer, ReluLayer, \
     SingleOperationPerElementLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, GenericConv2DParser, GenericMaxPool2DParser, Pad2DParser, \
-    ReluParser
+from Deeploy.Targets.Generic.Parsers import ReluParser
 from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericStructBuffer, GenericTransientBuffer
 
 from .Bindings import CarfieldAddBindings, CarfieldArgMaxChannelBindings, CarfieldCastInt32Bindings, \
     CarfieldConcat2Bindings, CarfieldConv2DBindings, CarfieldDivBindings, CarfieldMaxPool2DBindings, \
     CarfieldPad2DBindings, CarfieldReluBindings, CarfieldResizeNearest2DBindings, CarfieldSubBindings
 from .Layers import CarfieldChannelBroadcastLayer
-from .Parsers import CarfieldArgMaxChannelParser, CarfieldCastInt32Parser, CarfieldChannelBroadcastParser, \
-    CarfieldConcat2Parser, CarfieldResizeNearestParser
+from .Parsers import CarfieldAddParser, CarfieldArgMaxChannelParser, CarfieldCastInt32Parser, \
+    CarfieldChannelBroadcastParser, CarfieldConcat2Parser, CarfieldConv2DParser, CarfieldMaxPool2DParser, \
+    CarfieldPad2DParser, CarfieldResizeNearestParser
 from .TopologyOptimizationPasses import CarfieldResizeNearestPass
 
-AddMapper = NodeMapper(AddParser(), CarfieldAddBindings)
-PadMapper = NodeMapper(Pad2DParser(), CarfieldPad2DBindings)
-ConvMapper = NodeMapper(GenericConv2DParser(), CarfieldConv2DBindings)
+AddMapper = NodeMapper(CarfieldAddParser(), CarfieldAddBindings)
+PadMapper = NodeMapper(CarfieldPad2DParser(), CarfieldPad2DBindings)
+ConvMapper = NodeMapper(CarfieldConv2DParser(), CarfieldConv2DBindings)
 ReluMapper = NodeMapper(ReluParser(), CarfieldReluBindings)
 SubMapper = NodeMapper(CarfieldChannelBroadcastParser(), CarfieldSubBindings)
 DivMapper = NodeMapper(CarfieldChannelBroadcastParser(), CarfieldDivBindings)
-MaxPoolMapper = NodeMapper(GenericMaxPool2DParser(), CarfieldMaxPool2DBindings)
+MaxPoolMapper = NodeMapper(CarfieldMaxPool2DParser(), CarfieldMaxPool2DBindings)
 ResizeMapper = NodeMapper(CarfieldResizeNearestParser(), CarfieldResizeNearest2DBindings)
 ConcatMapper = NodeMapper(CarfieldConcat2Parser(), CarfieldConcat2Bindings)
 ArgMaxMapper = NodeMapper(CarfieldArgMaxChannelParser(), CarfieldArgMaxChannelBindings)

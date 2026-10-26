@@ -10,11 +10,6 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#define DDR_ARENA_BASE                                                         \
-  0x82600000 // IT MUST BE CHANGED EVERY TIME BASED ON WHAT IT IS ALLOCATED
-             // BEFORE THE DDR ARENA. THE DDR ARENA ADDRESS CAN BE READ FORM
-             // LAYOUT.TXT AFTER NETWORK GENERATION
-
 // Top of the DDR window
 #define DDR_WINDOW_END 0x100000000ULL
 

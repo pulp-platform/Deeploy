@@ -189,6 +189,10 @@ def generateTestNetworkImplementation(deployer: NetworkDeployer, verbosityCfg: C
 
     """
 
+    if isinstance(deployer.Platform, CarfieldPlatform):
+        # The arena must start past the data restored with gdb (see layout.txt).
+        retStr += f'_Static_assert(DDR_ARENA_BASE >= 0x{deployer.arenaBaseAddress:08X}U, "DDR_ARENA_BASE overlaps the data in layout.txt");\n'
+
     retStr += deployer.generateBufferInitializationCode()
     retStr += deployer.generateGlobalDefinitionCode()
 

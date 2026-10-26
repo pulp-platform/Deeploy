@@ -8,6 +8,7 @@ import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import NetworkContext, NodeParser
+from Deeploy.Targets.Generic.Parsers import AddParser, GenericConv2DParser, GenericMaxPool2DParser, Pad2DParser
 
 
 class CarfieldChannelBroadcastParser(NodeParser):
@@ -91,6 +92,8 @@ class CarfieldResizeNearestParser(NodeParser):
         if len(inShape) != 4 or len(outShape) != 4:
             return ctxt, False
         if outShape[0] != inShape[0] or outShape[1] != inShape[1]:
+            return ctxt, False
+        if inShape[0] != 1:
             return ctxt, False
         if outShape[2] != inShape[2] * self.operatorRepresentation['scale_h']:
             return ctxt, False
@@ -246,3 +249,46 @@ class CarfieldCastInt32Parser(NodeParser):
         self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
 
         return ctxt, True
+
+
+# The Generic parsers below accept cases the Carfield kernels do not implement;
+# each subclass only adds the restriction, so the rejected node gets no mapping.
+
+
+class CarfieldAddParser(AddParser):
+    """Element-wise Add only: the kernel indexes both inputs with the output index.
+
+    Checked in parseNode because Deeploy broadcasts the shapes before parseNodeCtxt.
+    """
+
+    def parseNode(self, node: gs.Node) -> bool:
+        shapes = [list(tensor.shape) for tensor in node.inputs + node.outputs]
+        return super().parseNode(node) and all(shape == shapes[0] for shape in shapes)
+
+
+class CarfieldConv2DParser(GenericConv2DParser):
+    """Unit stride only: the kernels and the template take no stride."""
+
+    def parseNode(self, node: gs.Node) -> bool:
+        return super().parseNode(node) and all(stride == 1 for stride in self.operatorRepresentation['strides'])
+
+
+class CarfieldMaxPool2DParser(GenericMaxPool2DParser):
+    """Batch 1 only: the template issues a single call for one batch."""
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        return newCtxt, ret and self.operatorRepresentation['batch'] == 1
+
+
+class CarfieldPad2DParser(Pad2DParser):
+    """Symmetric vertical padding only: the template advances by 2 * pad_y per channel."""
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if not super().parseNode(node):
+            return False
+        pads = self.operatorRepresentation['pads']
+        return pads[2] == pads[6]

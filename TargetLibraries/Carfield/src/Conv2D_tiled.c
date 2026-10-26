@@ -39,7 +39,7 @@ static uint8_t *tileL1 = NULL;
 
 // If the transfer fails, print the reason and signal the EOC to the host.
 static void tiledDie(const char *why, uint32_t value) {
-  printf("Carfield_Conv2D_tiled: %s (%unit)\n\r", why, (unsigned)value);
+  printf("Carfield_Conv2D_tiled: %s (%u)\n\r", why, (unsigned)value);
   hal_cluster_ctrl_return_set_remote(hal_cluster_id(), 0x7FFFFFFF);
   hal_cluster_ctrl_eoc_set_remote(hal_cluster_id(), 1);
   while (1)
