@@ -11,12 +11,12 @@
 #define END_SINGLE_CORE }
 #define SINGLE_CORE if (core_id == 0)
 
-#include <stddef.h>  // for size_t
-#include <stdint.h>  // for uint32_t
 #include "pulp.h"
+#include <stddef.h> // for size_t
+#include <stdint.h> // for uint32_t
 
 void *deeploy_malloc(const size_t size);
-void  deeploy_free(void *const ptr, const size_t size);
+void deeploy_free(void *const ptr, const size_t size);
 
 // useful PULP cluster heap from 0x50004000 to 0x50020000, since each of 8 cores
 // has 2KiB for stack, in total first 16Kib from 0x50000000

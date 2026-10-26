@@ -5,8 +5,8 @@
 from typing import List, Sequence, Type
 
 from Deeploy.AbstractDataTypes import Pointer
-from Deeploy.DeeployTypes import OperatorRepresentation, VariableBuffer
 from Deeploy.CommonExtensions.TypeCheckers.SignPropTypeChecker import SignPropTypeChecker
+from Deeploy.DeeployTypes import OperatorRepresentation, VariableBuffer
 
 
 class CarfieldArgMaxChecker(SignPropTypeChecker):

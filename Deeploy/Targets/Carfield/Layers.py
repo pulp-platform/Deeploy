@@ -10,7 +10,6 @@ from Deeploy.Targets.Generic.Layers import SingleOperationPerElementLayer
 
 class CarfieldChannelBroadcastLayer(SingleOperationPerElementLayer):
 
-    def computeShapes(self, inputShapes: Shape, outputShapes: Shape,
-                      operatorRepresentation: OperatorRepresentation,
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation: OperatorRepresentation,
                       channels_first: bool) -> Tuple[Shape, Shape]:
         return (inputShapes, [inputShapes[0]])

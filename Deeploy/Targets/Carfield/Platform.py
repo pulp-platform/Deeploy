@@ -1,21 +1,24 @@
 # SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
 #
 # SPDX-License-Identifier: Apache-2.0
-from Deeploy.DeeployTypes import ConstantBuffer, VariableBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, TopologyOptimizer
+from typing import Dict
+
+from Deeploy.DeeployTypes import ConstantBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, TopologyOptimizer, \
+    VariableBuffer
+from Deeploy.Targets.Carfield.Templates import AllocateTemplate, FreeTemplate
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, MaxPoolLayer, PadLayer, ReluLayer, \
     SingleOperationPerElementLayer
-from Deeploy.Targets.Generic.Parsers import AddParser, GenericConv2DParser, GenericMaxPool2DParser, Pad2DParser, ReluParser
-from Deeploy.Targets.Generic.Platform import (GenericOptimizer, GenericTransientBuffer, GenericStructBuffer)
-from .Bindings import CarfieldAddBindings, CarfieldConv2DBindings, CarfieldPad2DBindings, \
-    CarfieldReluBindings, CarfieldSubBindings, CarfieldDivBindings, CarfieldMaxPool2DBindings, \
-    CarfieldResizeNearest2DBindings, CarfieldConcat2Bindings, CarfieldArgMaxChannelBindings, \
-    CarfieldCastInt32Bindings
+from Deeploy.Targets.Generic.Parsers import AddParser, GenericConv2DParser, GenericMaxPool2DParser, Pad2DParser, \
+    ReluParser
+from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericStructBuffer, GenericTransientBuffer
+
+from .Bindings import CarfieldAddBindings, CarfieldArgMaxChannelBindings, CarfieldCastInt32Bindings, \
+    CarfieldConcat2Bindings, CarfieldConv2DBindings, CarfieldDivBindings, CarfieldMaxPool2DBindings, \
+    CarfieldPad2DBindings, CarfieldReluBindings, CarfieldResizeNearest2DBindings, CarfieldSubBindings
 from .Layers import CarfieldChannelBroadcastLayer
 from .Parsers import CarfieldArgMaxChannelParser, CarfieldCastInt32Parser, CarfieldChannelBroadcastParser, \
     CarfieldConcat2Parser, CarfieldResizeNearestParser
 from .TopologyOptimizationPasses import CarfieldResizeNearestPass
-from Deeploy.Targets.Carfield.Templates import AllocateTemplate, FreeTemplate
-from typing import Dict
 
 AddMapper = NodeMapper(AddParser(), CarfieldAddBindings)
 PadMapper = NodeMapper(Pad2DParser(), CarfieldPad2DBindings)
@@ -46,12 +49,17 @@ CarfieldMapping = {
 CarfieldOptimizer = TopologyOptimizer([CarfieldResizeNearestPass()] + list(GenericOptimizer.passes),
                                       name = "CarfieldOptimizer")
 
-includeList = ["Add.h", "Conv.h", "Conv2D_tiled.h", "Utils.h", "pulp.h", "string.h", "Relu.h", "Sub.h", "Div.h", "MaxPool.h", "Resize.h", "Concat.h", "ArgMax.h", "Cast.h"]
+includeList = [
+    "Add.h", "Conv.h", "Conv2D_tiled.h", "Utils.h", "pulp.h", "string.h", "Relu.h", "Sub.h", "Div.h", "MaxPool.h",
+    "Resize.h", "Concat.h", "ArgMax.h", "Cast.h"
+]
+
 
 class CarfieldEngine(DeploymentEngine):
-    def __init__(self, name="CarfieldEngine", Mapping=CarfieldMapping,
-                 initCode="", includeList=includeList):
+
+    def __init__(self, name = "CarfieldEngine", Mapping = CarfieldMapping, initCode = "", includeList = includeList):
         super().__init__(name, Mapping, initCode, includeList)
+
 
 class CarfieldConstantBuffer(ConstantBuffer):
     """Constant tensor living at a fixed DDR address.
@@ -70,10 +78,9 @@ class CarfieldConstantBuffer(ConstantBuffer):
     def _bufferRepresentation(self) -> Dict:
 
         if not hasattr(self, "address"):
-            raise RuntimeError(
-                f"ConstantBuffer '{self.name}' has no DDR address. Addresses are assigned by "
-                "CarfieldDeployer.bind(); this buffer was most likely generated through a "
-                "deployer that is not a CarfieldDeployer.")
+            raise RuntimeError(f"ConstantBuffer '{self.name}' has no DDR address. Addresses are assigned by "
+                               "CarfieldDeployer.bind(); this buffer was most likely generated through a "
+                               "deployer that is not a CarfieldDeployer.")
 
         return {
             "type": self._type,
@@ -82,18 +89,20 @@ class CarfieldConstantBuffer(ConstantBuffer):
             "address": self.address,
         }
 
+
 class CarfieldVariableBuffer(VariableBuffer):
 
     initTemplate = AllocateTemplate.CarfieldVariableInitTemplate
     allocTemplate = AllocateTemplate.CarfieldVariableAllocateTemplate
     deallocTemplate = FreeTemplate.CarfieldVariableFreeTemplate
 
+
 class CarfieldPlatform(DeploymentPlatform):
+
     def __init__(self,
-                 engines=[CarfieldEngine()],
-                 variableBuffer=CarfieldVariableBuffer,
-                 constantBuffer=CarfieldConstantBuffer,
-                 structBuffer=GenericStructBuffer,
-                 transientBuffer=GenericTransientBuffer):
-        super().__init__(engines, variableBuffer, constantBuffer,
-                         structBuffer, transientBuffer)
+                 engines = [CarfieldEngine()],
+                 variableBuffer = CarfieldVariableBuffer,
+                 constantBuffer = CarfieldConstantBuffer,
+                 structBuffer = GenericStructBuffer,
+                 transientBuffer = GenericTransientBuffer):
+        super().__init__(engines, variableBuffer, constantBuffer, structBuffer, transientBuffer)

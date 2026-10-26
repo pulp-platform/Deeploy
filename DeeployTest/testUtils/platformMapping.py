@@ -10,6 +10,8 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.DeeployTypes import DeploymentPlatform, NetworkDeployer, TopologyOptimizer
 from Deeploy.MemoryLevelExtension.MemoryLevels import MemoryHierarchy, MemoryLevel
 from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import MemoryPlatform, MemoryPlatformWrapper
+from Deeploy.Targets.Carfield.Deployer import CarfieldDeployer  # for Carfield
+from Deeploy.Targets.Carfield.Platform import CarfieldOptimizer, CarfieldPlatform  # for Carfield
 from Deeploy.Targets.Chimera.Deployer import ChimeraDeployer
 from Deeploy.Targets.Chimera.Platform import ChimeraOptimizer, ChimeraPlatform
 from Deeploy.Targets.CortexM.Deployer import CMSISDeployer
@@ -17,8 +19,6 @@ from Deeploy.Targets.CortexM.Platform import CMSISOptimizer, CMSISPlatform
 from Deeploy.Targets.GAP9.Deployer import GAP9Deployer
 from Deeploy.Targets.GAP9.Platform import GAP9Platform, MemoryGAP9Platform, MemoryGAP9PlatformWrapper
 from Deeploy.Targets.Generic.Deployer import GenericDeployer
-from Deeploy.Targets.Carfield.Deployer import CarfieldDeployer #for Carfield
-from Deeploy.Targets.Carfield.Platform import CarfieldOptimizer, CarfieldPlatform #for Carfield
 from Deeploy.Targets.Generic.Platform import GenericOptimizer, GenericPlatform
 from Deeploy.Targets.MemPool.Deployer import MemPoolDeployer
 from Deeploy.Targets.MemPool.Platform import MemPoolOptimizer, MemPoolPlatform
@@ -208,14 +208,14 @@ def mapDeployer(platform: DeploymentPlatform,
             default_channels_first = True
 
         deployer = CarfieldDeployer(graph,
-                                   platform,
-                                   inputTypes,
-                                   loweringOptimizer,
-                                   scheduler,
-                                   name = name,
-                                   default_channels_first = default_channels_first,
-                                   deeployStateDir = deeployStateDir,
-                                   inputOffsets = inputOffsets)
+                                    platform,
+                                    inputTypes,
+                                    loweringOptimizer,
+                                    scheduler,
+                                    name = name,
+                                    default_channels_first = default_channels_first,
+                                    deeployStateDir = deeployStateDir,
+                                    inputOffsets = inputOffsets)
 
     elif isinstance(platform, (NeurekaPlatform, MemoryNeurekaPlatform, MemoryNeurekaPlatformWrapper)):
 

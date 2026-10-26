@@ -8,10 +8,10 @@ from typing import List, Tuple
 import numpy as np
 
 from Deeploy.DeeployTypes import CodeGenVerbosity, ConstantBuffer, NetworkDeployer, VariableBuffer
+from Deeploy.Targets.Carfield.Platform import CarfieldPlatform
 from Deeploy.Targets.MemPool.Platform import MemPoolPlatform
 from Deeploy.Targets.PULPOpen.Platform import MemoryPULPPlatform, MemoryPULPPlatformWrapper, PULPPlatform
 from Deeploy.Targets.Snitch.Platform import SnitchPlatform
-from Deeploy.Targets.Carfield.Platform import CarfieldPlatform
 
 _TEXT_ALIGN = 30
 
@@ -364,9 +364,7 @@ def generateCarfieldDDRBlobs(deployer: NetworkDeployer, path: str, test_inputs: 
 
         return size
 
-    constants = [
-        buf for buf in deployer.ctxt.globalObjects.values() if isinstance(buf, ConstantBuffer) and buf._deploy
-    ]
+    constants = [buf for buf in deployer.ctxt.globalObjects.values() if isinstance(buf, ConstantBuffer) and buf._deploy]
 
     blobs = []
     if constants:

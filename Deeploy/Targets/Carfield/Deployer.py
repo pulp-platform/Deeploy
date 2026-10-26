@@ -69,10 +69,7 @@ class CarfieldDeployer(GenericDeployer):
 
     def _constantBuffers(self) -> List[ConstantBuffer]:
         """Constants to place in DDR, in the order they will be written to the binary file."""
-        return [
-            buf for buf in self.ctxt.globalObjects.values()
-            if isinstance(buf, ConstantBuffer) and buf._deploy
-        ]
+        return [buf for buf in self.ctxt.globalObjects.values() if isinstance(buf, ConstantBuffer) and buf._deploy]
 
     @staticmethod
     def _bufferSizeInBytes(buf: VariableBuffer) -> int:

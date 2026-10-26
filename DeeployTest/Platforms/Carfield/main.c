@@ -5,30 +5,30 @@
  */
 
 #include <stdint.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "Network.h"
+#include "Utils.h"
+#include "pulp.h"
 #include "testinputs.h"
 #include "testoutputs.h"
-#include "pulp.h"
-#include "Utils.h"
 
 int main() {
 
   uint32_t core_id = get_core_id();
   uint32_t numThreads = get_core_num();
 
-BEGIN_SINGLE_CORE;
-    // Initializing the network and allocating memory for inputs and outputs.
-    InitNetwork(0, 1);
+  BEGIN_SINGLE_CORE;
+  // Initializing the network and allocating memory for inputs and outputs.
+  InitNetwork(0, 1);
 
-    // Copying the test input vector to the network input buffers.
-    for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
-      memcpy(DeeployNetwork_inputs[buf], testInputVector[buf],
-            DeeployNetwork_inputs_bytes[buf]);
-    }
-END_SINGLE_CORE;
+  // Copying the test input vector to the network input buffers.
+  for (uint32_t buf = 0; buf < DeeployNetwork_num_inputs; buf++) {
+    memcpy(DeeployNetwork_inputs[buf], testInputVector[buf],
+           DeeployNetwork_inputs_bytes[buf]);
+  }
+  END_SINGLE_CORE;
   // Synchronizing all cores before running the network.
   synch_barrier();
 
@@ -40,8 +40,8 @@ END_SINGLE_CORE;
     return 0;
   }
 
-  // Printing how much of the DDR arena is still free; `bytes_left` is declared in
-  // Utils.h. The amount consumed is the arena size minus this.
+  // Printing how much of the DDR arena is still free; `bytes_left` is declared
+  // in Utils.h. The amount consumed is the arena size minus this.
   printf("DDR arena: %u bytes left\n\r", (unsigned)bytes_left);
 
   // With buffer reuse, bytes_left only says what is still live at the end.
@@ -73,7 +73,8 @@ END_SINGLE_CORE;
         if (tot_err <= max_reported) {
           printf("Expected: %10.6f  ", (float)expected);
           printf("Actual: %10.6f  ", (float)actual);
-          printf("Diff: %10.6f at Index %12u in Output %u\r\n", (float)diff, i, buf);
+          printf("Diff: %10.6f at Index %12u in Output %u\r\n", (float)diff, i,
+                 buf);
         } else if (tot_err == max_reported + 1) {
           printf("... further mismatches not printed\r\n");
         }
@@ -85,7 +86,8 @@ END_SINGLE_CORE;
         if (tot_err <= max_reported) {
           printf("Expected: %4d  ", (int32_t)expected);
           printf("Actual: %4d  ", (int32_t)actual);
-          printf("Diff: %4d at Index %12u in Output %u\r\n", (int32_t)diff, i, buf);
+          printf("Diff: %4d at Index %12u in Output %u\r\n", (int32_t)diff, i,
+                 buf);
         } else if (tot_err == max_reported + 1) {
           printf("... further mismatches not printed\r\n");
         }
@@ -95,7 +97,6 @@ END_SINGLE_CORE;
   }
 
   printf("Errors: %u out of %u \r\n", tot_err, tot);
-
 
   return tot_err;
 }

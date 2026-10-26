@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from Deeploy.DeeployTypes import  NodeTemplate
+from Deeploy.DeeployTypes import NodeTemplate
 
 # pad_y = pads[2] is for vertical padding (on rows)
 # pad_x = pads[3] is for horizontal padding (on columns)
