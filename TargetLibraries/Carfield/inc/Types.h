@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef __CARFIELD_TYPES_H_
 #define __CARFIELD_TYPES_H_
 

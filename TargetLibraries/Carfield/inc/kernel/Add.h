@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef CARFIELD_KERNEL_ADD_H  //used to prevent multiple inclusion of this header file
 #define CARFIELD_KERNEL_ADD_H
 

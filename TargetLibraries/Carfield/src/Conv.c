@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // Convolution on already padded input, focus on an output window, make the addition flowing onto a PxQ window on input along
 // with the weight window, changing channel and repeat the procedure. Then change the output window
 // and repeat the procedure. Then change the filter and repeat.

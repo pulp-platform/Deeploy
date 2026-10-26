@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "Sub.h"
 
 void Carfield_Sub(float32_t *data_in_1, float32_t *data_in_2, float32_t *data_out,

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "Cast.h"
 
 void Carfield_CastInt64ToInt32(int64_t *input, int32_t *output, int32_t size,

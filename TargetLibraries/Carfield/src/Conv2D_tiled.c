@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 // Tiled FP32 2D convolution for the Carfield PULP cluster: it stores tiles in L1 of cluster directly (not passing through L2).
 // The naive reference kernel is in Conv.c, which keeps all tensors in DDR.

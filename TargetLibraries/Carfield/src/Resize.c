@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "Resize.h"
 
 void Carfield_ResizeNearest2D(float32_t *input, float32_t *output,

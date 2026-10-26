@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "ArgMax.h"
 
 void Carfield_ArgMaxChannel(float32_t *input, int64_t *output,

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
 # SPDX-License-Identifier: Apache-2.0
 from Deeploy.DeeployTypes import ConstantBuffer, VariableBuffer, DeploymentEngine, DeploymentPlatform, NodeMapper, TopologyOptimizer
 from Deeploy.Targets.Generic.Layers import AddLayer, ConcatLayer, ConvLayer, MaxPoolLayer, PadLayer, ReluLayer, \
