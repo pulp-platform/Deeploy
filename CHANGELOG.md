@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Add Carfield Target [#215](https://github.com/pulp-platform/Deeploy/pull/215)
 - Fix Neureka [#188](https://github.com/pulp-platform/Deeploy/pull/188)
 - HOTFIX: XDNA2 Action Fix [#201](https://github.com/pulp-platform/Deeploy/pull/201)
 - XDNA2 Platform Support [#179](https://github.com/pulp-platform/Deeploy/pull/179)
@@ -25,6 +26,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Match GAP9 SDK MLPerf Tiny Performance with Specialised Depthwise and Pointwise Kernels [#206](https://github.com/pulp-platform/Deeploy/pull/206)
 
 ### Added
+- Carfield target for the PULP cluster, with FP32 kernels, DMA-tiled convolution and a static DDR layout
 - tests for Regular and DW Conv2D with 3x3 kernel
 - Neureka's engine-aware DW lowering pass `NeurekaNCHWtoNHWCDwConvPass`
 - XDNA2 (AIE2p) platform beta: first MLIR backend for Deeploy, targeting AMD/Xilinx NPU2 with a single BF16 Add kernel
@@ -48,6 +50,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Lowering passes `PULPNCHWtoNHWCPwConvPass` and `PULPNCHWtoNHWCConvPass`, keeping a 1x1 convolution's output and a depthwise-feeding stem channels-first so the transposes at depthwise boundaries cancel
 
 ### Changed
+- Carfield support in the test utilities (codeGenerate.py, platformMapping.py)
 - Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints
 - `aie.dialects` API: move `link_with` from `aie_d.core()` to `aie_d.external_func()` (mlir-aie v1.3.2)
 - Decouple XDNA requirements (`requirements-xdna.txt`) from base dev requirements
