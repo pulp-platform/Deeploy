@@ -23,6 +23,7 @@ PICOLIBC_RV32IMC_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc
 PICOLIBC_RV32IMA_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
 PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
 PICOLIBC_RV32IMF_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imf
+PICOLIBC_RV32IMC_ZFINX_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc_zfinx
 
 GCC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gcc
 GAP_RISCV_GCC_INSTALL_DIR ?= ${GCC_INSTALL_DIR}/gap9
@@ -117,7 +118,8 @@ ${TOOLCHAIN_DIR}/llvm-project:
 	git remote add origin https://github.com/pulp-platform/llvm-project.git && \
 	git fetch --depth=1 origin ${LLVM_COMMIT_HASH} && \
 	git checkout ${LLVM_COMMIT_HASH} && \
-	git submodule update --init --recursive
+	git submodule update --init --recursive && \
+	git apply ${TOOLCHAIN_DIR}/pulp-llvm-crash-fixes.patch
 
 ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && \
@@ -413,7 +415,18 @@ ${PICOLIBC_RV32IMF_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
 	--cross-file ../scripts/meson-build-script-rv32imf.txt && \
 	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
 
-picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR} ${PICOLIBC_RV32IMF_INSTALL_DIR}
+${PICOLIBC_RV32IMC_ZFINX_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32imc_zfinx && cd build-rv32imc_zfinx && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32imc_zfinx.txt ../scripts && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
+	-Dlibdir=lib \
+	-Dspecsdir=none \
+	-Dmultilib=false \
+	--prefix ${PICOLIBC_RV32IMC_ZFINX_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32imc_zfinx.txt && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
+
+picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR} ${PICOLIBC_RV32IMF_INSTALL_DIR} ${PICOLIBC_RV32IMC_ZFINX_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \

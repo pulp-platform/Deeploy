@@ -1,0 +1,119 @@
+diff --git a/llvm/lib/Target/RISCV/PULP/PULPHardwareLoops.cpp b/llvm/lib/Target/RISCV/PULP/PULPHardwareLoops.cpp
+index f42031540268..a6923c8b997a 100644
+--- a/llvm/lib/Target/RISCV/PULP/PULPHardwareLoops.cpp
++++ b/llvm/lib/Target/RISCV/PULP/PULPHardwareLoops.cpp
+@@ -774,25 +774,29 @@ PULPHardwareLoops::getLoopTripCount(MachineLoop *L,
+ 
+   if (InitialValue->isReg()) {
+     llvm::Register R = InitialValue->getReg();
+-    MachineBasicBlock *DefBB = MRI->getVRegDef(R)->getParent();
+-    if (!MDT->properlyDominates(DefBB, Header)) {
++    // Physical registers (e.g. X0 in a compare against zero) have no SSA
++    // definition, so getVRegDef would return null.
++    MachineInstr *DefMI = R.isVirtual() ? MRI->getVRegDef(R) : nullptr;
++    if (!DefMI || !MDT->properlyDominates(DefMI->getParent(), Header)) {
+       int64_t V;
+       if (!checkForImmediate(*InitialValue, V)) {
+         return nullptr;
+       }
+     }
+-    OldInsts.push_back(MRI->getVRegDef(R));
++    if (DefMI)
++      OldInsts.push_back(DefMI);
+   }
+   if (EndValue->isReg()) {
+     llvm::Register R = EndValue->getReg();
+-    MachineBasicBlock *DefBB = MRI->getVRegDef(R)->getParent();
+-    if (!MDT->properlyDominates(DefBB, Header)) {
++    MachineInstr *DefMI = R.isVirtual() ? MRI->getVRegDef(R) : nullptr;
++    if (!DefMI || !MDT->properlyDominates(DefMI->getParent(), Header)) {
+       int64_t V;
+       if (!checkForImmediate(*EndValue, V)) {
+         return nullptr;
+       }
+     }
+-    OldInsts.push_back(MRI->getVRegDef(R));
++    if (DefMI)
++      OldInsts.push_back(DefMI);
+   }
+ 
+   return computeCount(L, InitialValue, EndValue, IVReg, IVBump, Cmp);
+@@ -991,8 +995,9 @@ CountValue *PULPHardwareLoops::computeCount(MachineLoop *Loop,
+       // If the loop has been unrolled, we should use the original loop count
+       // instead of recalculating the value. This will avoid additional
+       // 'Add' instruction.
+-      const MachineInstr *EndValInstr = MRI->getVRegDef(End->getReg());
+-      if (EndValInstr->getOpcode() == RISCV::ADDI &&
++      const MachineInstr *EndValInstr =
++          End->getReg().isVirtual() ? MRI->getVRegDef(End->getReg()) : nullptr;
++      if (EndValInstr && EndValInstr->getOpcode() == RISCV::ADDI &&
+           EndValInstr->getOperand(1).getSubReg() == 0 &&
+           EndValInstr->getOperand(2).getImm() == StartV) {
+         DistR = EndValInstr->getOperand(1).getReg();
+@@ -1265,12 +1270,23 @@ bool PULPHardwareLoops::convertToHardwareLoop(MachineLoop *L, bool &RecL0used,
+   if (TripCount->isReg()) {
+     // There will be a use of the register inserted into the preheader,
+     // so make sure that the register is actually defined at that point.
+-    MachineInstr *TCDef = MRI->getVRegDef(TripCount->getReg());
+-    MachineBasicBlock *BBDef = TCDef->getParent();
+-    if (!MDT->dominates(BBDef, Preheader)) {
+-      LLVM_DEBUG(dbgs() << "Cannot convert to hwloop: induction register not "
+-                           "available in preheader\n");
+-      return Changed;
++    // Physical registers have no SSA definition; only the constant zero
++    // register X0 is known to be available everywhere.
++    llvm::Register TCReg = TripCount->getReg();
++    if (!TCReg.isVirtual()) {
++      if (TCReg != RISCV::X0) {
++        LLVM_DEBUG(dbgs() << "Cannot convert to hwloop: trip count in "
++                             "physical register\n");
++        return Changed;
++      }
++    } else {
++      MachineInstr *TCDef = MRI->getVRegDef(TCReg);
++      MachineBasicBlock *BBDef = TCDef->getParent();
++      if (!MDT->dominates(BBDef, Preheader)) {
++        LLVM_DEBUG(dbgs() << "Cannot convert to hwloop: induction register not "
++                             "available in preheader\n");
++        return Changed;
++      }
+     }
+   }
+ 
+diff --git a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+index debc2cffa47b..cc1bf0298060 100644
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -2796,7 +2796,13 @@ InstructionCost RISCVTargetLowering::getLMULCost(MVT VT) const {
+     else
+       Cost = (LMul * DLenFactor);
+   } else {
+-    Cost = divideCeil(VT.getSizeInBits(), Subtarget.getRealMinVLen() / DLenFactor);
++    unsigned DLen = Subtarget.getRealMinVLen() / DLenFactor;
++    // Without any V extension getRealMinVLen() is 0. Return a neutral cost
++    // instead of dividing by zero (fixed PULP SIMD vectors are legal without
++    // RVV).
++    if (DLen == 0)
++      return 1;
++    Cost = divideCeil(VT.getSizeInBits(), DLen);
+   }
+   return Cost;
+ }
+diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+index 416c3cb91b6c..f648f77b6a43 100644
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+@@ -1052,8 +1052,12 @@ InstructionCost RISCVTTIImpl::getMemoryOpCost(unsigned Opcode, Type *Src,
+   // Assume memory ops cost scale with the number of vector registers
+   // possible accessed by the instruction.  Note that BasicTTI already
+   // handles the LT.first term for us.
++  // LMUL scaling only makes sense with RVV. With the PULP extensions small
++  // fixed vectors (v2s/v4s/v2h) are legal without any V extension; in that
++  // case getRealMinVLen() is 0 and getLMULCost would divide by zero.
+   if (std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Src);
+-      LT.second.isVector() && CostKind != TTI::TCK_CodeSize)
++      LT.second.isVector() && CostKind != TTI::TCK_CodeSize &&
++      ST->hasVInstructions())
+     BaseCost *= TLI->getLMULCost(LT.second);
+   return Cost + BaseCost;
+ 
