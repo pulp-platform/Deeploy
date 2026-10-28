@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Templates.FloatHardSwishTemplate.FloatHardSwishTemplate
+==============================================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Templates.FloatHardSwishTemplate
+
+.. autoclass:: FloatHardSwishTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~FloatHardSwishTemplate.__init__
+      ~FloatHardSwishTemplate.alignToContext
+      ~FloatHardSwishTemplate.computeTransientBuffersSize
+      ~FloatHardSwishTemplate.generate
+      ~FloatHardSwishTemplate.hoistTransientBuffers
+      ~FloatHardSwishTemplate.internalSize
+   
+   
+
+   
+   
+   

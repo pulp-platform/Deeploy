@@ -1,0 +1,6 @@
+Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes.merge\_gemm\_rq\_fun
+==============================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes
+
+.. autofunction:: merge_gemm_rq_fun

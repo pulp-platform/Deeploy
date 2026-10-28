@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SoftmaxCrossEntropyLossLayer
+===========================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SoftmaxCrossEntropyLossLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyLossLayer.__init__
+      ~SoftmaxCrossEntropyLossLayer.bind
+      ~SoftmaxCrossEntropyLossLayer.broadcast
+      ~SoftmaxCrossEntropyLossLayer.codeTransform
+      ~SoftmaxCrossEntropyLossLayer.computeOps
+      ~SoftmaxCrossEntropyLossLayer.computeShapes
+      ~SoftmaxCrossEntropyLossLayer.discardCurrentMapper
+      ~SoftmaxCrossEntropyLossLayer.generate
+      ~SoftmaxCrossEntropyLossLayer.parse
+      ~SoftmaxCrossEntropyLossLayer.resetDiscardedMappers
+      ~SoftmaxCrossEntropyLossLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SoftmaxCrossEntropyLossLayer.maps
+      ~SoftmaxCrossEntropyLossLayer.mapper
+      ~SoftmaxCrossEntropyLossLayer.discardedMappers
+      ~SoftmaxCrossEntropyLossLayer.node
+   
+   

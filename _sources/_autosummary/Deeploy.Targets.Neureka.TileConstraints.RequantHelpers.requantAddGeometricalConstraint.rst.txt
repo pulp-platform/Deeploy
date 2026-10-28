@@ -1,0 +1,6 @@
+Deeploy.Targets.Neureka.TileConstraints.RequantHelpers.requantAddGeometricalConstraint
+======================================================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.TileConstraints.RequantHelpers
+
+.. autofunction:: requantAddGeometricalConstraint

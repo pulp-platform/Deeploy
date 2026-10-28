@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SGDLayer
+=======================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SGDLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SGDLayer.__init__
+      ~SGDLayer.bind
+      ~SGDLayer.broadcast
+      ~SGDLayer.codeTransform
+      ~SGDLayer.computeOps
+      ~SGDLayer.computeShapes
+      ~SGDLayer.discardCurrentMapper
+      ~SGDLayer.generate
+      ~SGDLayer.parse
+      ~SGDLayer.resetDiscardedMappers
+      ~SGDLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SGDLayer.maps
+      ~SGDLayer.mapper
+      ~SGDLayer.discardedMappers
+      ~SGDLayer.node
+   
+   

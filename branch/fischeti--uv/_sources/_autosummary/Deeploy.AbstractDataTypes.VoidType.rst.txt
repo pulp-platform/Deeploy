@@ -1,0 +1,38 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.AbstractDataTypes.VoidType
+==================================
+
+.. currentmodule:: Deeploy.AbstractDataTypes
+
+.. autoclass:: VoidType
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~VoidType.__init__
+      ~VoidType.checkPromotion
+      ~VoidType.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~VoidType.typeName
+      ~VoidType.typeWidth
+      ~VoidType.value
+   
+   

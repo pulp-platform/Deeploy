@@ -1,0 +1,46 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.FutureExtension.Future.Future
+=====================================
+
+.. currentmodule:: Deeploy.FutureExtension.Future
+
+.. autoclass:: Future
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~Future.__init__
+      ~Future.assignStateReference
+      ~Future.checkPromotion
+      ~Future.checkValue
+      ~Future.fitsNumLevels
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Future.stateReference
+      ~Future.referenceName
+      ~Future.value
+      ~Future.stateReferenceType
+      ~Future.resolveCheckTemplate
+      ~Future.dispatchCheckTemplate
+      ~Future.referencedType
+      ~Future.typeName
+      ~Future.typeWidth
+   
+   

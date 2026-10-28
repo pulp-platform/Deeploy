@@ -1,0 +1,58 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.GAP9.Deployer.GAP9Deployer
+==========================================
+
+.. currentmodule:: Deeploy.Targets.GAP9.Deployer
+
+.. autoclass:: GAP9Deployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GAP9Deployer.__init__
+      ~GAP9Deployer.annotateNCores
+      ~GAP9Deployer.backEnd
+      ~GAP9Deployer.bind
+      ~GAP9Deployer.codeTransform
+      ~GAP9Deployer.exportDeeployState
+      ~GAP9Deployer.frontEnd
+      ~GAP9Deployer.generateBufferAllocationCode
+      ~GAP9Deployer.generateBufferDeAllocationCode
+      ~GAP9Deployer.generateBufferInitializationCode
+      ~GAP9Deployer.generateEngineInitializationCode
+      ~GAP9Deployer.generateFunction
+      ~GAP9Deployer.generateGlobalDefinitionCode
+      ~GAP9Deployer.generateIOBufferInitializationCode
+      ~GAP9Deployer.generateIncludeString
+      ~GAP9Deployer.generateInferenceCode
+      ~GAP9Deployer.generateInferenceInitializationCode
+      ~GAP9Deployer.importDeeployState
+      ~GAP9Deployer.inputs
+      ~GAP9Deployer.lower
+      ~GAP9Deployer.midEnd
+      ~GAP9Deployer.numberOfOps
+      ~GAP9Deployer.outputs
+      ~GAP9Deployer.parse
+      ~GAP9Deployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GAP9Deployer.worstCaseBufferSize
+   
+   

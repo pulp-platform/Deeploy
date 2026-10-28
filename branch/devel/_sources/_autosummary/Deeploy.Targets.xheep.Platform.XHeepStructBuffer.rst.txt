@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.xheep.Platform.XHeepStructBuffer
+================================================
+
+.. currentmodule:: Deeploy.Targets.xheep.Platform
+
+.. autoclass:: XHeepStructBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~XHeepStructBuffer.__init__
+      ~XHeepStructBuffer.alloc
+      ~XHeepStructBuffer.dealloc
+      ~XHeepStructBuffer.fromNode
+      ~XHeepStructBuffer.has_live_aliases
+      ~XHeepStructBuffer.init
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~XHeepStructBuffer.allocTemplate
+      ~XHeepStructBuffer.deallocTemplate
+      ~XHeepStructBuffer.initTemplate
+      ~XHeepStructBuffer.sizeInBytes
+      ~XHeepStructBuffer.name
+      ~XHeepStructBuffer.shape
+   
+   

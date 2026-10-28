@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.DivLayer
+=======================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: DivLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~DivLayer.__init__
+      ~DivLayer.bind
+      ~DivLayer.broadcast
+      ~DivLayer.codeTransform
+      ~DivLayer.computeOps
+      ~DivLayer.computeShapes
+      ~DivLayer.discardCurrentMapper
+      ~DivLayer.generate
+      ~DivLayer.parse
+      ~DivLayer.resetDiscardedMappers
+      ~DivLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DivLayer.maps
+      ~DivLayer.mapper
+      ~DivLayer.discardedMappers
+      ~DivLayer.node
+   
+   

@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "deeploy-pulp"
+version = "0.2.1"
+description = "Deeploy - DNN Compiler for Heterogeneous SoCs"
+authors = [
+    { name="Victor Jung", email="jungvi@iis.ee.ethz.ch" },
+    { name="Philip Wiese", email="wiesep@iis.ee.ethz.ch" },
+    { name="Luka Macan", email="luka.macan@unibo.it" },
+    { name="Moritz Scherer", email="scheremo@iis.ee.ethz.ch" },
+]
+
+license = "Apache-2.0"
+readme = "README.md"
+
+requires-python = ">=3.10"
+dependencies = [
+    'protobuf==4.23.3',
+    'numpy<2.0.0',
+    'onnx',
+    'onnxruntime',
+    'onnx-graphsurgeon>=0.5.8',
+    'mako',
+    'toml',
+    'ortools',
+    'plotly',
+    'coloredlogs',
+]
+
+[project.urls]
+Homepage = "https://github.com/pulp-platform/Deeploy"
+Issues = "https://github.com/pulp-platform/Deeploy/issues"
+
+[dependency-groups]
+dev = [
+    # Quality of life
+    "netron",
+    "debugpy",
+    "IPython",
+    "argcomplete",
+    # Build system
+    "ninja",
+    # Avoid QEMU installation issues: https://gitlab.com/qemu-project/qemu/-/issues/1853
+    "meson==1.3.1",
+    "pyelftools",
+    "pyserial",
+    # Testing
+    "pytest",
+    "pytest-xdist",
+    # Linting
+    "yapf==0.33.0",
+    "isort==5.12.0",
+    "autoflake==2.3.0",
+    "yamllint==1.37.1",
+    "clang-format",
+    "reuse",
+    # Documentation
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst-parser[linkify]",
+    "sphinx_favicon",
+]
+
+[build-system]
+requires = [
+"setuptools>=42",
+"wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["Deeploy*"]
+exclude = ["DeeployTest*"]

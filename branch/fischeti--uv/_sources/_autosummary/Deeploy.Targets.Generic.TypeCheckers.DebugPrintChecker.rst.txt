@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.DebugPrintChecker
+======================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: DebugPrintChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~DebugPrintChecker.__init__
+      ~DebugPrintChecker.annotateDict
+      ~DebugPrintChecker.checkOutputType
+      ~DebugPrintChecker.signature
+      ~DebugPrintChecker.typeCheck
+      ~DebugPrintChecker.typeCheckNodeInputs
+      ~DebugPrintChecker.typeInferGlobalCtxt
+      ~DebugPrintChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DebugPrintChecker.typeDict
+   
+   

@@ -1,0 +1,30 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.OptimizationPasses.Matchers.NonBranchingMatcher
+========================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.Matchers
+
+.. autoclass:: NonBranchingMatcher
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NonBranchingMatcher.__init__
+      ~NonBranchingMatcher.is_op_match
+      ~NonBranchingMatcher.match
+   
+   
+
+   
+   
+   

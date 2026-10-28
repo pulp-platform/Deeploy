@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.QuantChecker
+=================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: QuantChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~QuantChecker.__init__
+      ~QuantChecker.annotateDict
+      ~QuantChecker.checkOutputType
+      ~QuantChecker.signature
+      ~QuantChecker.typeCheck
+      ~QuantChecker.typeCheckNodeInputs
+      ~QuantChecker.typeInferGlobalCtxt
+      ~QuantChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QuantChecker.typeDict
+   
+   

@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.ReduceMeanParser
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: ReduceMeanParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ReduceMeanParser.__init__
+      ~ReduceMeanParser.parse
+      ~ReduceMeanParser.parseInputs
+      ~ReduceMeanParser.parseNode
+      ~ReduceMeanParser.parseNodeCtxt
+      ~ReduceMeanParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ReduceMeanParser.operatorRepresentation
+   
+   

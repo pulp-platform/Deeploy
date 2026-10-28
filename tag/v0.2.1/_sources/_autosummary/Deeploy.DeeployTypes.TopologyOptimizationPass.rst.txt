@@ -1,0 +1,29 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.TopologyOptimizationPass
+=============================================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: TopologyOptimizationPass
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TopologyOptimizationPass.__init__
+      ~TopologyOptimizationPass.apply
+   
+   
+
+   
+   
+   

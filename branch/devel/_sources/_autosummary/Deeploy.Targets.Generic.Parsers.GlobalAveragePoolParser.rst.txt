@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.GlobalAveragePoolParser
+=======================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: GlobalAveragePoolParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GlobalAveragePoolParser.__init__
+      ~GlobalAveragePoolParser.parse
+      ~GlobalAveragePoolParser.parseInputs
+      ~GlobalAveragePoolParser.parseNode
+      ~GlobalAveragePoolParser.parseNodeCtxt
+      ~GlobalAveragePoolParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GlobalAveragePoolParser.operatorRepresentation
+   
+   

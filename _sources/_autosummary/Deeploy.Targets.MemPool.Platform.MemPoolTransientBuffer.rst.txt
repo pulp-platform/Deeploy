@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.MemPool.Platform.MemPoolTransientBuffer
+=======================================================
+
+.. currentmodule:: Deeploy.Targets.MemPool.Platform
+
+.. autoclass:: MemPoolTransientBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemPoolTransientBuffer.__init__
+      ~MemPoolTransientBuffer.alloc
+      ~MemPoolTransientBuffer.dealloc
+      ~MemPoolTransientBuffer.fromNode
+      ~MemPoolTransientBuffer.has_live_aliases
+      ~MemPoolTransientBuffer.init
+      ~MemPoolTransientBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemPoolTransientBuffer.allocTemplate
+      ~MemPoolTransientBuffer.deallocTemplate
+      ~MemPoolTransientBuffer.initTemplate
+      ~MemPoolTransientBuffer.name
+      ~MemPoolTransientBuffer.shape
+   
+   

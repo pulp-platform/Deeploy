@@ -1,0 +1,34 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.CodeTransformationPasses.SingleBufferingTilingCodeGeneration.ProfilingSingleBufferingTilingMixIn
+========================================================================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.CodeTransformationPasses.SingleBufferingTilingCodeGeneration
+
+.. autoclass:: ProfilingSingleBufferingTilingMixIn
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ProfilingSingleBufferingTilingMixIn.__init__
+      ~ProfilingSingleBufferingTilingMixIn.generateAllTilingCode
+      ~ProfilingSingleBufferingTilingMixIn.generateLoopCode
+      ~ProfilingSingleBufferingTilingMixIn.generateSetupAndTeardownCode
+      ~ProfilingSingleBufferingTilingMixIn.injectPrintCycleDiff
+      ~ProfilingSingleBufferingTilingMixIn.kernelProfilingWrap
+      ~ProfilingSingleBufferingTilingMixIn.measurementArrayDeclaration
+   
+   
+
+   
+   
+   

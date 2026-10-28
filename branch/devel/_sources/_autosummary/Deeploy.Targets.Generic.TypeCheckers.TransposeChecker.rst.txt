@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.TransposeChecker
+=====================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: TransposeChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TransposeChecker.__init__
+      ~TransposeChecker.annotateDict
+      ~TransposeChecker.checkOutputType
+      ~TransposeChecker.signature
+      ~TransposeChecker.typeCheck
+      ~TransposeChecker.typeCheckNodeInputs
+      ~TransposeChecker.typeInferGlobalCtxt
+      ~TransposeChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TransposeChecker.typeDict
+   
+   

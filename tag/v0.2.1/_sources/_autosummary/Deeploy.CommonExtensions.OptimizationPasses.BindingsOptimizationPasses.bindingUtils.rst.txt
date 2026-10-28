@@ -1,0 +1,35 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.bindingUtils
+===================================================================================
+
+.. automodule:: Deeploy.CommonExtensions.OptimizationPasses.BindingsOptimizationPasses.bindingUtils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      bypassNode
+      editAttribute
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

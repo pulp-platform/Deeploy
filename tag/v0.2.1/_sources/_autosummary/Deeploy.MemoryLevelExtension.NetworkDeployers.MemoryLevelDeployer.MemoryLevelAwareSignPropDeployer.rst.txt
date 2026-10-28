@@ -1,0 +1,58 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.MemoryLevelAwareSignPropDeployer
+==================================================================================================
+
+.. currentmodule:: Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer
+
+.. autoclass:: MemoryLevelAwareSignPropDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryLevelAwareSignPropDeployer.__init__
+      ~MemoryLevelAwareSignPropDeployer.backEnd
+      ~MemoryLevelAwareSignPropDeployer.bind
+      ~MemoryLevelAwareSignPropDeployer.codeTransform
+      ~MemoryLevelAwareSignPropDeployer.exportDeeployState
+      ~MemoryLevelAwareSignPropDeployer.frontEnd
+      ~MemoryLevelAwareSignPropDeployer.generateBufferAllocationCode
+      ~MemoryLevelAwareSignPropDeployer.generateBufferDeAllocationCode
+      ~MemoryLevelAwareSignPropDeployer.generateBufferInitializationCode
+      ~MemoryLevelAwareSignPropDeployer.generateEngineInitializationCode
+      ~MemoryLevelAwareSignPropDeployer.generateFunction
+      ~MemoryLevelAwareSignPropDeployer.generateGlobalDefinitionCode
+      ~MemoryLevelAwareSignPropDeployer.generateIOBufferInitializationCode
+      ~MemoryLevelAwareSignPropDeployer.generateIncludeString
+      ~MemoryLevelAwareSignPropDeployer.generateInferenceCode
+      ~MemoryLevelAwareSignPropDeployer.generateInferenceInitializationCode
+      ~MemoryLevelAwareSignPropDeployer.getTargetMemoryLevelMapping
+      ~MemoryLevelAwareSignPropDeployer.importDeeployState
+      ~MemoryLevelAwareSignPropDeployer.inputs
+      ~MemoryLevelAwareSignPropDeployer.lower
+      ~MemoryLevelAwareSignPropDeployer.midEnd
+      ~MemoryLevelAwareSignPropDeployer.numberOfOps
+      ~MemoryLevelAwareSignPropDeployer.outputs
+      ~MemoryLevelAwareSignPropDeployer.parse
+      ~MemoryLevelAwareSignPropDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryLevelAwareSignPropDeployer.worstCaseBufferSize
+   
+   

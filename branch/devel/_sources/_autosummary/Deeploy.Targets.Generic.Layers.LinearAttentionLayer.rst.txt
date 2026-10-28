@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.LinearAttentionLayer
+===================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: LinearAttentionLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~LinearAttentionLayer.__init__
+      ~LinearAttentionLayer.bind
+      ~LinearAttentionLayer.broadcast
+      ~LinearAttentionLayer.codeTransform
+      ~LinearAttentionLayer.computeOps
+      ~LinearAttentionLayer.computeShapes
+      ~LinearAttentionLayer.discardCurrentMapper
+      ~LinearAttentionLayer.generate
+      ~LinearAttentionLayer.parse
+      ~LinearAttentionLayer.resetDiscardedMappers
+      ~LinearAttentionLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~LinearAttentionLayer.maps
+      ~LinearAttentionLayer.mapper
+      ~LinearAttentionLayer.discardedMappers
+      ~LinearAttentionLayer.node
+   
+   

@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses.isPULPPointwise
+=================================================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses
+
+.. autofunction:: isPULPPointwise

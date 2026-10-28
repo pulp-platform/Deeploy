@@ -1,0 +1,45 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic
+=======================
+
+.. automodule:: Deeploy.Targets.Generic
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   Bindings
+   Deployer
+   Layers
+   Parsers
+   Platform
+   Templates
+   TileConstraints
+   Tiler
+   TopologyOptimizationPasses
+   TypeCheckers
+

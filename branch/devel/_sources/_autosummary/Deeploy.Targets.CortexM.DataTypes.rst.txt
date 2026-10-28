@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.DataTypes
+=================================
+
+.. automodule:: Deeploy.Targets.CortexM.DataTypes
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      cmsis_nn_activation
+      cmsis_nn_context
+      cmsis_nn_conv_params
+      cmsis_nn_dims
+      cmsis_nn_dw_conv_params
+      cmsis_nn_fc_params
+      cmsis_nn_per_channel_quant_params
+      cmsis_nn_per_tensor_quant_params
+      cmsis_nn_pool_params
+      cmsis_nn_tile
+   
+   
+
+   
+   
+   
+
+
+

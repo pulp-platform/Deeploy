@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.TypeCheckers.CMSISConvChecker
+=====================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.TypeCheckers
+
+.. autoclass:: CMSISConvChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CMSISConvChecker.__init__
+      ~CMSISConvChecker.annotateDict
+      ~CMSISConvChecker.checkOutputType
+      ~CMSISConvChecker.signature
+      ~CMSISConvChecker.typeCheck
+      ~CMSISConvChecker.typeCheckNodeInputs
+      ~CMSISConvChecker.typeInferGlobalCtxt
+      ~CMSISConvChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CMSISConvChecker.typeDict
+   
+   

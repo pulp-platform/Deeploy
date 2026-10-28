@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SliceLayer
+=========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SliceLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SliceLayer.__init__
+      ~SliceLayer.bind
+      ~SliceLayer.broadcast
+      ~SliceLayer.codeTransform
+      ~SliceLayer.computeOps
+      ~SliceLayer.computeShapes
+      ~SliceLayer.discardCurrentMapper
+      ~SliceLayer.generate
+      ~SliceLayer.parse
+      ~SliceLayer.resetDiscardedMappers
+      ~SliceLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SliceLayer.maps
+      ~SliceLayer.mapper
+      ~SliceLayer.discardedMappers
+      ~SliceLayer.node
+   
+   

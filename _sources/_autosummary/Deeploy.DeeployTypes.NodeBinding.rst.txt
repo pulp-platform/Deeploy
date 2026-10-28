@@ -1,0 +1,42 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.NodeBinding
+================================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: NodeBinding
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NodeBinding.__init__
+      ~NodeBinding.bind
+      ~NodeBinding.codeTransform
+      ~NodeBinding.earlyBinding
+      ~NodeBinding.generate
+      ~NodeBinding.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NodeBinding.executionBlock
+      ~NodeBinding.nodeName
+      ~NodeBinding.typeChecker
+      ~NodeBinding.template
+   
+   

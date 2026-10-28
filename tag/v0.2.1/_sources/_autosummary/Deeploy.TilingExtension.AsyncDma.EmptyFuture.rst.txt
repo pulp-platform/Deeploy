@@ -1,0 +1,32 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.AsyncDma.EmptyFuture
+============================================
+
+.. currentmodule:: Deeploy.TilingExtension.AsyncDma
+
+.. autoclass:: EmptyFuture
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~EmptyFuture.__init__
+      ~EmptyFuture.alloc
+      ~EmptyFuture.deinit
+      ~EmptyFuture.init
+      ~EmptyFuture.wait
+   
+   
+
+   
+   
+   

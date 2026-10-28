@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.Platform.MemoryNeurekaPlatformWrapper
+=============================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.Platform
+
+.. autoclass:: MemoryNeurekaPlatformWrapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryNeurekaPlatformWrapper.__init__
+      ~MemoryNeurekaPlatformWrapper.getTargetMemoryLevel
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryNeurekaPlatformWrapper.untiledOps
+      ~MemoryNeurekaPlatformWrapper.engines
+   
+   

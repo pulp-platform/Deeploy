@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.PowLayer
+=======================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: PowLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PowLayer.__init__
+      ~PowLayer.bind
+      ~PowLayer.broadcast
+      ~PowLayer.codeTransform
+      ~PowLayer.computeOps
+      ~PowLayer.computeShapes
+      ~PowLayer.discardCurrentMapper
+      ~PowLayer.generate
+      ~PowLayer.parse
+      ~PowLayer.resetDiscardedMappers
+      ~PowLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PowLayer.maps
+      ~PowLayer.mapper
+      ~PowLayer.discardedMappers
+      ~PowLayer.node
+   
+   

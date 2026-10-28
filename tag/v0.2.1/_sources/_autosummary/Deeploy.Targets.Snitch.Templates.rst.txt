@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Templates
+================================
+
+.. automodule:: Deeploy.Targets.Snitch.Templates
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   AddTemplate
+   AllocateTemplate
+   FloatGemmTemplate
+   FloatSoftmaxTemplate
+   FreeTemplate
+   GemmTemplate
+   RQAddTemplate
+   RqGemmTemplate
+   iSoftmaxTemplate
+

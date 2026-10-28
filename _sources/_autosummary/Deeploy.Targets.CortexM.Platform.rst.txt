@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Platform
+================================
+
+.. automodule:: Deeploy.Targets.CortexM.Platform
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      CMSISConstantBuffer
+      CMSISEngine
+      CMSISPlatform
+      CMSISStructBuffer
+      CMSISTransientBuffer
+      CMSISVariableBuffer
+   
+   
+
+   
+   
+   
+
+
+

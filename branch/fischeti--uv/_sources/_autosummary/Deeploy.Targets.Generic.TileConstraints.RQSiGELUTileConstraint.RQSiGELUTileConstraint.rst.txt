@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint.RQSiGELUTileConstraint
+=====================================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TileConstraints.RQSiGELUTileConstraint
+
+.. autoclass:: RQSiGELUTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQSiGELUTileConstraint.__init__
+      ~RQSiGELUTileConstraint.addGeometricalConstraint
+      ~RQSiGELUTileConstraint.addPolicyConstraint
+      ~RQSiGELUTileConstraint.constructSymbolicNodeRep
+      ~RQSiGELUTileConstraint.extractBaseAddr
+      ~RQSiGELUTileConstraint.getBaseAddr
+      ~RQSiGELUTileConstraint.sanitizeTilingSchedule
+      ~RQSiGELUTileConstraint.serializeTilingSolution
+      ~RQSiGELUTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

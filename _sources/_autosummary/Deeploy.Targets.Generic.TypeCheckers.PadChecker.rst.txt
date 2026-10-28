@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.PadChecker
+===============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: PadChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PadChecker.__init__
+      ~PadChecker.annotateDict
+      ~PadChecker.checkOutputType
+      ~PadChecker.signature
+      ~PadChecker.typeCheck
+      ~PadChecker.typeCheckNodeInputs
+      ~PadChecker.typeInferGlobalCtxt
+      ~PadChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PadChecker.typeDict
+   
+   

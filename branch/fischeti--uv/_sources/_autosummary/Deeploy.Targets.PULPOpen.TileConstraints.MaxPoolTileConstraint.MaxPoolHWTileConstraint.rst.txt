@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint.MaxPoolHWTileConstraint
+======================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.MaxPoolTileConstraint
+
+.. autoclass:: MaxPoolHWTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MaxPoolHWTileConstraint.__init__
+      ~MaxPoolHWTileConstraint.addGeometricalConstraint
+      ~MaxPoolHWTileConstraint.addPolicyConstraint
+      ~MaxPoolHWTileConstraint.constructSymbolicNodeRep
+      ~MaxPoolHWTileConstraint.extractBaseAddr
+      ~MaxPoolHWTileConstraint.getBaseAddr
+      ~MaxPoolHWTileConstraint.sanitizeTilingSchedule
+      ~MaxPoolHWTileConstraint.serializeTilingSolution
+      ~MaxPoolHWTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

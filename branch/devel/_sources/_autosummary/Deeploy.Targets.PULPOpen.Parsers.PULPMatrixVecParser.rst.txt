@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Parsers.PULPMatrixVecParser
+====================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.Parsers
+
+.. autoclass:: PULPMatrixVecParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPMatrixVecParser.__init__
+      ~PULPMatrixVecParser.parse
+      ~PULPMatrixVecParser.parseInputs
+      ~PULPMatrixVecParser.parseNode
+      ~PULPMatrixVecParser.parseNodeCtxt
+      ~PULPMatrixVecParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PULPMatrixVecParser.operatorRepresentation
+   
+   

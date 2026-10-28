@@ -1,0 +1,32 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Logging.AnsiColorCode
+=============================
+
+.. currentmodule:: Deeploy.Logging
+
+.. autoclass:: AnsiColorCode
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~AnsiColorCode.LigthBlue
+      ~AnsiColorCode.Green
+      ~AnsiColorCode.Yellow
+      ~AnsiColorCode.Red
+      ~AnsiColorCode.Magenta
+      ~AnsiColorCode.Reset
+   
+   

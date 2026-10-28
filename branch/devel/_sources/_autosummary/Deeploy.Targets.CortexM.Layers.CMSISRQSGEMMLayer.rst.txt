@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.Layers.CMSISRQSGEMMLayer
+================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.Layers
+
+.. autoclass:: CMSISRQSGEMMLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~CMSISRQSGEMMLayer.__init__
+      ~CMSISRQSGEMMLayer.bind
+      ~CMSISRQSGEMMLayer.broadcast
+      ~CMSISRQSGEMMLayer.codeTransform
+      ~CMSISRQSGEMMLayer.computeOps
+      ~CMSISRQSGEMMLayer.computeShapes
+      ~CMSISRQSGEMMLayer.discardCurrentMapper
+      ~CMSISRQSGEMMLayer.generate
+      ~CMSISRQSGEMMLayer.parse
+      ~CMSISRQSGEMMLayer.resetDiscardedMappers
+      ~CMSISRQSGEMMLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CMSISRQSGEMMLayer.maps
+      ~CMSISRQSGEMMLayer.mapper
+      ~CMSISRQSGEMMLayer.discardedMappers
+      ~CMSISRQSGEMMLayer.node
+   
+   

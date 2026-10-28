@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.DataTypes.minimalFloatType
+===================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.DataTypes
+
+.. autofunction:: minimalFloatType

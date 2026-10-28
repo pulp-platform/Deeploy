@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.GEMMChecker
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: GEMMChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GEMMChecker.__init__
+      ~GEMMChecker.annotateDict
+      ~GEMMChecker.checkOutputType
+      ~GEMMChecker.signature
+      ~GEMMChecker.typeCheck
+      ~GEMMChecker.typeCheckNodeInputs
+      ~GEMMChecker.typeInferGlobalCtxt
+      ~GEMMChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GEMMChecker.typeDict
+   
+   

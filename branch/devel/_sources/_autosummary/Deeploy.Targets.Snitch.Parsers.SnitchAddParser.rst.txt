@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Parsers.SnitchAddParser
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Parsers
+
+.. autoclass:: SnitchAddParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchAddParser.__init__
+      ~SnitchAddParser.parse
+      ~SnitchAddParser.parseInputs
+      ~SnitchAddParser.parseNode
+      ~SnitchAddParser.parseNodeCtxt
+      ~SnitchAddParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SnitchAddParser.operatorRepresentation
+   
+   

@@ -1,0 +1,6 @@
+Deeploy.FutureExtension.Future.FutureClass
+==========================================
+
+.. currentmodule:: Deeploy.FutureExtension.Future
+
+.. autofunction:: FutureClass

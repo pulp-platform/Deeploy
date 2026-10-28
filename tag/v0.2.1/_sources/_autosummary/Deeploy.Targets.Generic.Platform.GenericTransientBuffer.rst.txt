@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Platform.GenericTransientBuffer
+=======================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Platform
+
+.. autoclass:: GenericTransientBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GenericTransientBuffer.__init__
+      ~GenericTransientBuffer.alloc
+      ~GenericTransientBuffer.dealloc
+      ~GenericTransientBuffer.fromNode
+      ~GenericTransientBuffer.has_live_aliases
+      ~GenericTransientBuffer.init
+      ~GenericTransientBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GenericTransientBuffer.allocTemplate
+      ~GenericTransientBuffer.deallocTemplate
+      ~GenericTransientBuffer.initTemplate
+      ~GenericTransientBuffer.name
+      ~GenericTransientBuffer.shape
+   
+   

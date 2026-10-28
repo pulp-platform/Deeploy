@@ -1,0 +1,38 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation.ArgumentStructGeneration
+===========================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation
+
+.. autoclass:: ArgumentStructGeneration
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ArgumentStructGeneration.__init__
+      ~ArgumentStructGeneration.apply
+      ~ArgumentStructGeneration.dereferenceVars
+      ~ArgumentStructGeneration.extractDynamicReferences
+      ~ArgumentStructGeneration.indexVars
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ArgumentStructGeneration.parseTreeDict
+   
+   

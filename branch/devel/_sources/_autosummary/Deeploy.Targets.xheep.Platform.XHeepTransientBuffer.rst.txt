@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.xheep.Platform.XHeepTransientBuffer
+===================================================
+
+.. currentmodule:: Deeploy.Targets.xheep.Platform
+
+.. autoclass:: XHeepTransientBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~XHeepTransientBuffer.__init__
+      ~XHeepTransientBuffer.alloc
+      ~XHeepTransientBuffer.dealloc
+      ~XHeepTransientBuffer.fromNode
+      ~XHeepTransientBuffer.has_live_aliases
+      ~XHeepTransientBuffer.init
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~XHeepTransientBuffer.allocTemplate
+      ~XHeepTransientBuffer.deallocTemplate
+      ~XHeepTransientBuffer.initTemplate
+      ~XHeepTransientBuffer.sizeInBytes
+      ~XHeepTransientBuffer.name
+      ~XHeepTransientBuffer.shape
+   
+   

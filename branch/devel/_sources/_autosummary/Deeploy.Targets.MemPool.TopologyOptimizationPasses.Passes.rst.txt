@@ -1,0 +1,35 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes
+=========================================================
+
+.. automodule:: Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      merge_gemm_rq_fun
+      merge_matmul_rq_fun
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

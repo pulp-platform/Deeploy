@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses.isPULPStemConv
+================================================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses
+
+.. autofunction:: isPULPStemConv

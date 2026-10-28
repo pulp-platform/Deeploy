@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.GenericDWConv2DParser
+=====================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: GenericDWConv2DParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GenericDWConv2DParser.__init__
+      ~GenericDWConv2DParser.parse
+      ~GenericDWConv2DParser.parseInputs
+      ~GenericDWConv2DParser.parseNode
+      ~GenericDWConv2DParser.parseNodeCtxt
+      ~GenericDWConv2DParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GenericDWConv2DParser.operatorRepresentation
+   
+   

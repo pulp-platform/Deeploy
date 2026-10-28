@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.ReluLayer
+========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: ReluLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ReluLayer.__init__
+      ~ReluLayer.bind
+      ~ReluLayer.broadcast
+      ~ReluLayer.codeTransform
+      ~ReluLayer.computeOps
+      ~ReluLayer.computeShapes
+      ~ReluLayer.discardCurrentMapper
+      ~ReluLayer.generate
+      ~ReluLayer.parse
+      ~ReluLayer.resetDiscardedMappers
+      ~ReluLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ReluLayer.maps
+      ~ReluLayer.mapper
+      ~ReluLayer.discardedMappers
+      ~ReluLayer.node
+   
+   

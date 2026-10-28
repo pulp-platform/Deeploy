@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.RQMatMulChecker
+====================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: RQMatMulChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQMatMulChecker.__init__
+      ~RQMatMulChecker.annotateDict
+      ~RQMatMulChecker.checkOutputType
+      ~RQMatMulChecker.signature
+      ~RQMatMulChecker.typeCheck
+      ~RQMatMulChecker.typeCheckNodeInputs
+      ~RQMatMulChecker.typeInferGlobalCtxt
+      ~RQMatMulChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQMatMulChecker.typeDict
+   
+   

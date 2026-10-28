@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.RMSNormLayer
+===========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: RMSNormLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RMSNormLayer.__init__
+      ~RMSNormLayer.bind
+      ~RMSNormLayer.broadcast
+      ~RMSNormLayer.codeTransform
+      ~RMSNormLayer.computeOps
+      ~RMSNormLayer.computeShapes
+      ~RMSNormLayer.discardCurrentMapper
+      ~RMSNormLayer.generate
+      ~RMSNormLayer.parse
+      ~RMSNormLayer.resetDiscardedMappers
+      ~RMSNormLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RMSNormLayer.maps
+      ~RMSNormLayer.mapper
+      ~RMSNormLayer.discardedMappers
+      ~RMSNormLayer.node
+   
+   

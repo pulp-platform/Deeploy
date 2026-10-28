@@ -1,0 +1,45 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Neureka.Platform.NeurekaConstantBuffer
+======================================================
+
+.. currentmodule:: Deeploy.Targets.Neureka.Platform
+
+.. autoclass:: NeurekaConstantBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~NeurekaConstantBuffer.__init__
+      ~NeurekaConstantBuffer.alloc
+      ~NeurekaConstantBuffer.dealloc
+      ~NeurekaConstantBuffer.fromNode
+      ~NeurekaConstantBuffer.has_live_aliases
+      ~NeurekaConstantBuffer.init
+      ~NeurekaConstantBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NeurekaConstantBuffer.allocTemplate
+      ~NeurekaConstantBuffer.deallocTemplate
+      ~NeurekaConstantBuffer.initTemplate
+      ~NeurekaConstantBuffer.values
+      ~NeurekaConstantBuffer.name
+      ~NeurekaConstantBuffer.shape
+   
+   

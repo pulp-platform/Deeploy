@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.GEMMLayer
+========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: GEMMLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GEMMLayer.__init__
+      ~GEMMLayer.bind
+      ~GEMMLayer.broadcast
+      ~GEMMLayer.codeTransform
+      ~GEMMLayer.computeOps
+      ~GEMMLayer.computeShapes
+      ~GEMMLayer.discardCurrentMapper
+      ~GEMMLayer.generate
+      ~GEMMLayer.parse
+      ~GEMMLayer.resetDiscardedMappers
+      ~GEMMLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GEMMLayer.maps
+      ~GEMMLayer.mapper
+      ~GEMMLayer.discardedMappers
+      ~GEMMLayer.node
+   
+   

@@ -1,0 +1,80 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers
+==============================
+
+.. automodule:: Deeploy.Targets.Generic.Layers
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      AddLayer
+      BatchNormalizationLayer
+      CLCALayer
+      ConcatLayer
+      ConvLayer
+      ConvTransposeLayer
+      DebugPrintLayer
+      DequantLayer
+      DivLayer
+      GELUGradLayer
+      GELULayer
+      GEMMLayer
+      GatherLayer
+      ITAMaxLayer
+      LayerNormGradLayer
+      LayerNormLayer
+      LinearAttentionLayer
+      MHSALayer
+      MatMulLayer
+      MaxPoolLayer
+      MulLayer
+      PadLayer
+      PowLayer
+      QuantLayer
+      RQGEMMLayer
+      RQIntegerDivLayer
+      RQMatMulLayer
+      RQSConvLayer
+      RQSiGELULayer
+      RQSiHardswishLayer
+      ReduceMeanLayer
+      ReduceSumLayer
+      ReluLayer
+      RequantShiftLayer
+      ReshapeLayer
+      SGDLayer
+      SliceLayer
+      SoftmaxCrossEntropyLossGradLayer
+      SoftmaxCrossEntropyLossLayer
+      SoftmaxGradLayer
+      SoftmaxLayer
+      SqrtLayer
+      TransposeLayer
+      iHardswishLayer
+      iNoNormLayer
+      iRMSNormLayer
+   
+   
+
+   
+   
+   
+
+
+

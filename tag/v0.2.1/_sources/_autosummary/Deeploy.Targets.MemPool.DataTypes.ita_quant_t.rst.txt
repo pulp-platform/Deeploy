@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.MemPool.DataTypes.ita\_quant\_t
+===============================================
+
+.. currentmodule:: Deeploy.Targets.MemPool.DataTypes
+
+.. autoclass:: ita_quant_t
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ita_quant_t.__init__
+      ~ita_quant_t.checkPromotion
+      ~ita_quant_t.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ita_quant_t.value
+      ~ita_quant_t.structTypeDict
+      ~ita_quant_t.typeName
+      ~ita_quant_t.typeWidth
+   
+   

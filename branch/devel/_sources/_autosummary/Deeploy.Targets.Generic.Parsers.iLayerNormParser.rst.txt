@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.iLayerNormParser
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: iLayerNormParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~iLayerNormParser.__init__
+      ~iLayerNormParser.parse
+      ~iLayerNormParser.parseInputs
+      ~iLayerNormParser.parseNode
+      ~iLayerNormParser.parseNodeCtxt
+      ~iLayerNormParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~iLayerNormParser.operatorRepresentation
+   
+   

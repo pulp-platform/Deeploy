@@ -1,0 +1,6 @@
+Deeploy.TilingExtension.TilingCodegen.padStride
+===============================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilingCodegen
+
+.. autofunction:: padStride

@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quickstart &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=6fefd858"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorials/overview.html" />
+    <link rel="prev" title="Deeploy Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#library-installation">Library Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing-system-dependencies">Installing system dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bootstrapping-pip">Bootstrapping pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installing-deeploy">Installing Deeploy</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-framework-installation">Testing Framework Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Library Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apidocs.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quickstart</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/install.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="quickstart">
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h1>
+<p>Even though Deeploy is a pure Python library, it uses system dependencies, including a <a class="reference external" href="https://llvm.org/">LLVM</a> cross-compiler, to test its code generation. Deeploy’s testing framework further uses <a class="reference external" href="https://github.com/picolibc/picolibc">picolibc</a> for embedded <code class="docutils literal notranslate"><span class="pre">libc</span></code> implementations and <a class="reference external" href="https://cmake.org/">CMake</a> for its testing build flow.</p>
+<p>Deeploy’s embedded platform targets support software emulators, in the case of <a class="reference external" href="https://www.arm.com/products/silicon-ip-cpu/cortex-m/cortex-m4">ARM Cortex-M</a> we use <a class="reference external" href="https://www.qemu.org/">QEMU</a>, for <a class="reference external" href="https://github.com/pulp-platform/mempool">MemPool</a> and the <a class="reference external" href="https://github.com/pulp-platform/snitch_cluster">Snitch Cluster</a> we use <a class="reference external" href="https://github.com/pulp-platform/banshee">Banshee</a>. For the PULP-Open, N-EUREKA, and Siracusa targets, we use GVSoC within the <a class="reference external" href="https://github.com/pulp-platform/pulp-sdk">PULP-SDK</a>.</p>
+<p>To install these various dependencies, we prove instructions below, and a <code class="docutils literal notranslate"><span class="pre">Makefile</span></code> setup.</p>
+<section id="library-installation">
+<h2>Library Installation<a class="headerlink" href="#library-installation" title="Link to this heading"></a></h2>
+<p>From a newly setup Ubuntu 20.04 installation, you may run the following sequence to install the necessary dependencies.
+For ARM64 machines, as of August 2024, <code class="docutils literal notranslate"><span class="pre">gcc-multilib</span></code> is only supported on Ubuntu 20.04. For x86_64, <code class="docutils literal notranslate"><span class="pre">gcc-multilib</span></code> should be available on most distributions.</p>
+<section id="installing-system-dependencies">
+<h3>Installing system dependencies<a class="headerlink" href="#installing-system-dependencies" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">git</span> <span class="n">git</span><span class="o">-</span><span class="n">lfs</span> <span class="n">cmake</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span> <span class="n">ccache</span> <span class="n">ninja</span><span class="o">-</span><span class="n">build</span> <span class="n">pkg</span><span class="o">-</span><span class="n">config</span> <span class="n">libglib2</span><span class="mf">.0</span><span class="o">-</span><span class="n">dev</span> <span class="n">libpixman</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">dev</span> <span class="n">cargo</span> <span class="n">python3</span> <span class="n">python</span><span class="o">-</span><span class="ow">is</span><span class="o">-</span><span class="n">python3</span> <span class="n">curl</span> <span class="n">protobuf</span><span class="o">-</span><span class="n">compiler</span> <span class="n">libftdi</span><span class="o">-</span><span class="n">dev</span> <span class="n">libftdi1</span> <span class="n">doxygen</span> <span class="n">libsdl2</span><span class="o">-</span><span class="n">dev</span> <span class="n">scons</span> <span class="n">gtkwave</span> <span class="n">libsndfile1</span><span class="o">-</span><span class="n">dev</span> <span class="n">rsync</span> <span class="n">autoconf</span> <span class="n">automake</span> <span class="n">texinfo</span> <span class="n">libtool</span> <span class="n">libsdl2</span><span class="o">-</span><span class="n">ttf</span><span class="o">-</span><span class="n">dev</span>
+</pre></div>
+</div>
+<p>In case you work on an x86_64 machine, please also install <code class="docutils literal notranslate"><span class="pre">gcc-multilib</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">gcc</span><span class="o">-</span><span class="n">multilib</span>
+</pre></div>
+</div>
+<p>In case you work on an ARM64 machine, please install <code class="docutils literal notranslate"><span class="pre">gcc-multilib-arm-linux-gnueabi</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sudo apt install gcc-multilib-arm-linux-gnueabi
+export $C_INCLUDE_PATH:/usr/include:/usr/include/aarch64-linux-gnu:$C_INCLUDE_PATH
+</pre></div>
+</div>
+<p>Other ISA/OS combinations might work, but your mileage may vary.</p>
+</section>
+<section id="bootstrapping-pip">
+<h3>Bootstrapping pip<a class="headerlink" href="#bootstrapping-pip" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>curl &quot;https://bootstrap.pypa.io/get-pip.py&quot; -o &quot;get-pip.py&quot;
+python get-pip.py
+rm get-pip.py
+export PATH=~/.local/bin:$PATH
+</pre></div>
+</div>
+</section>
+<section id="installing-deeploy">
+<h3>Installing Deeploy<a class="headerlink" href="#installing-deeploy" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing-framework-installation">
+<h2>Testing Framework Installation<a class="headerlink" href="#testing-framework-installation" title="Link to this heading"></a></h2>
+<p>The Makefile expects the environemt variable <code class="docutils literal notranslate"><span class="pre">CMAKE</span></code> to be defined. In case you have no strong preferences, you may run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>export CMAKE=$(which cmake)
+</pre></div>
+</div>
+<p>to achieve this.</p>
+<p>Finally, you should be able to run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="nb">all</span>
+</pre></div>
+</div>
+<p>to build all Deeploy dependencies. Make sure to run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">echo</span><span class="o">-</span><span class="n">bash</span>
+</pre></div>
+</div>
+<p>to get instructions for setting up your environment.</p>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<p>To get started with Deeploy, you can run any of the regression tests in <code class="docutils literal notranslate"><span class="pre">deeploytest</span></code>.
+For example, you can run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">DeeployTest</span>
+<span class="n">python</span> <span class="n">testRunner_generic</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">t</span> <span class="o">./</span><span class="n">Tests</span><span class="o">/</span><span class="n">Kernels</span><span class="o">/</span><span class="n">Integer</span><span class="o">/</span><span class="n">Add</span><span class="o">/</span><span class="n">Regular</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Deeploy Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorials/overview.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

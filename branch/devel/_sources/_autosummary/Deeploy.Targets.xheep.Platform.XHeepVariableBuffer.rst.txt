@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.xheep.Platform.XHeepVariableBuffer
+==================================================
+
+.. currentmodule:: Deeploy.Targets.xheep.Platform
+
+.. autoclass:: XHeepVariableBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~XHeepVariableBuffer.__init__
+      ~XHeepVariableBuffer.alloc
+      ~XHeepVariableBuffer.dealloc
+      ~XHeepVariableBuffer.fromNode
+      ~XHeepVariableBuffer.has_live_aliases
+      ~XHeepVariableBuffer.init
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~XHeepVariableBuffer.allocTemplate
+      ~XHeepVariableBuffer.deallocTemplate
+      ~XHeepVariableBuffer.initTemplate
+      ~XHeepVariableBuffer.sizeInBytes
+      ~XHeepVariableBuffer.name
+      ~XHeepVariableBuffer.shape
+   
+   

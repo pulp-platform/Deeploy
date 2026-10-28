@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.IntegerDivParser
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: IntegerDivParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~IntegerDivParser.__init__
+      ~IntegerDivParser.parse
+      ~IntegerDivParser.parseInputs
+      ~IntegerDivParser.parseNode
+      ~IntegerDivParser.parseNodeCtxt
+      ~IntegerDivParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~IntegerDivParser.operatorRepresentation
+   
+   

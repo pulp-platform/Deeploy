@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.InstanceNormLayer
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: InstanceNormLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~InstanceNormLayer.__init__
+      ~InstanceNormLayer.bind
+      ~InstanceNormLayer.broadcast
+      ~InstanceNormLayer.codeTransform
+      ~InstanceNormLayer.computeOps
+      ~InstanceNormLayer.computeShapes
+      ~InstanceNormLayer.discardCurrentMapper
+      ~InstanceNormLayer.generate
+      ~InstanceNormLayer.parse
+      ~InstanceNormLayer.resetDiscardedMappers
+      ~InstanceNormLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~InstanceNormLayer.maps
+      ~InstanceNormLayer.mapper
+      ~InstanceNormLayer.discardedMappers
+      ~InstanceNormLayer.node
+   
+   

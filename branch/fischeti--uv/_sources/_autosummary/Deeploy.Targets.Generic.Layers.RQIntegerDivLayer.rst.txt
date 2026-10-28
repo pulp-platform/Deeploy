@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.RQIntegerDivLayer
+================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: RQIntegerDivLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQIntegerDivLayer.__init__
+      ~RQIntegerDivLayer.bind
+      ~RQIntegerDivLayer.broadcast
+      ~RQIntegerDivLayer.codeTransform
+      ~RQIntegerDivLayer.computeOps
+      ~RQIntegerDivLayer.computeShapes
+      ~RQIntegerDivLayer.discardCurrentMapper
+      ~RQIntegerDivLayer.generate
+      ~RQIntegerDivLayer.parse
+      ~RQIntegerDivLayer.resetDiscardedMappers
+      ~RQIntegerDivLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RQIntegerDivLayer.maps
+      ~RQIntegerDivLayer.mapper
+      ~RQIntegerDivLayer.discardedMappers
+      ~RQIntegerDivLayer.node
+   
+   

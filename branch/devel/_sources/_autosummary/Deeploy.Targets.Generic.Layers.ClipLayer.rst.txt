@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.ClipLayer
+========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: ClipLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ClipLayer.__init__
+      ~ClipLayer.bind
+      ~ClipLayer.broadcast
+      ~ClipLayer.codeTransform
+      ~ClipLayer.computeOps
+      ~ClipLayer.computeShapes
+      ~ClipLayer.discardCurrentMapper
+      ~ClipLayer.generate
+      ~ClipLayer.parse
+      ~ClipLayer.resetDiscardedMappers
+      ~ClipLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ClipLayer.maps
+      ~ClipLayer.mapper
+      ~ClipLayer.discardedMappers
+      ~ClipLayer.node
+   
+   

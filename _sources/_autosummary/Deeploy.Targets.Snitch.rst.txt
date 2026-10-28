@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch
+======================
+
+.. automodule:: Deeploy.Targets.Snitch
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   Bindings
+   CodeTransformationPasses
+   DataTypes
+   Deployer
+   Parsers
+   Platform
+   Templates
+   TileConstraints
+   Tiler
+

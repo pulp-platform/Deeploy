@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Templates.RQAddTemplate.RQAddTemplate
+=============================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Templates.RQAddTemplate
+
+.. autoclass:: RQAddTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~RQAddTemplate.__init__
+      ~RQAddTemplate.alignToContext
+      ~RQAddTemplate.computeTransientBuffersSize
+      ~RQAddTemplate.generate
+      ~RQAddTemplate.hoistTransientBuffers
+      ~RQAddTemplate.internalSize
+   
+   
+
+   
+   
+   

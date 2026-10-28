@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SingleOperationPerElementLayer
+=============================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SingleOperationPerElementLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SingleOperationPerElementLayer.__init__
+      ~SingleOperationPerElementLayer.bind
+      ~SingleOperationPerElementLayer.broadcast
+      ~SingleOperationPerElementLayer.codeTransform
+      ~SingleOperationPerElementLayer.computeOps
+      ~SingleOperationPerElementLayer.computeShapes
+      ~SingleOperationPerElementLayer.discardCurrentMapper
+      ~SingleOperationPerElementLayer.generate
+      ~SingleOperationPerElementLayer.parse
+      ~SingleOperationPerElementLayer.resetDiscardedMappers
+      ~SingleOperationPerElementLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SingleOperationPerElementLayer.maps
+      ~SingleOperationPerElementLayer.mapper
+      ~SingleOperationPerElementLayer.discardedMappers
+      ~SingleOperationPerElementLayer.node
+   
+   

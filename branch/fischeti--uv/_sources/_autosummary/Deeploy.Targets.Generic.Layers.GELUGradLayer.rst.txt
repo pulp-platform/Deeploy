@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.GELUGradLayer
+============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: GELUGradLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GELUGradLayer.__init__
+      ~GELUGradLayer.bind
+      ~GELUGradLayer.broadcast
+      ~GELUGradLayer.codeTransform
+      ~GELUGradLayer.computeOps
+      ~GELUGradLayer.computeShapes
+      ~GELUGradLayer.discardCurrentMapper
+      ~GELUGradLayer.generate
+      ~GELUGradLayer.parse
+      ~GELUGradLayer.resetDiscardedMappers
+      ~GELUGradLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GELUGradLayer.maps
+      ~GELUGradLayer.mapper
+      ~GELUGradLayer.discardedMappers
+      ~GELUGradLayer.node
+   
+   

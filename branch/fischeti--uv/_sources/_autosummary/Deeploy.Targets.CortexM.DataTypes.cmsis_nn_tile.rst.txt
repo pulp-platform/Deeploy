@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.CortexM.DataTypes.cmsis\_nn\_tile
+=================================================
+
+.. currentmodule:: Deeploy.Targets.CortexM.DataTypes
+
+.. autoclass:: cmsis_nn_tile
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~cmsis_nn_tile.__init__
+      ~cmsis_nn_tile.checkPromotion
+      ~cmsis_nn_tile.checkValue
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~cmsis_nn_tile.value
+      ~cmsis_nn_tile.structTypeDict
+      ~cmsis_nn_tile.typeName
+      ~cmsis_nn_tile.typeWidth
+   
+   

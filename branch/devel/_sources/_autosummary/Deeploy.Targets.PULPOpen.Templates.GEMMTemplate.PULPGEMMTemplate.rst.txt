@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Templates.GEMMTemplate.PULPGEMMTemplate
+================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.Templates.GEMMTemplate
+
+.. autoclass:: PULPGEMMTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPGEMMTemplate.__init__
+      ~PULPGEMMTemplate.alignToContext
+      ~PULPGEMMTemplate.computeTransientBuffersSize
+      ~PULPGEMMTemplate.generate
+      ~PULPGEMMTemplate.hoistTransientBuffers
+      ~PULPGEMMTemplate.internalSize
+   
+   
+
+   
+   
+   

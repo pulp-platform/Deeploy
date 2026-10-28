@@ -1,0 +1,37 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.xheep.Platform.XHeepEngine
+==========================================
+
+.. currentmodule:: Deeploy.Targets.xheep.Platform
+
+.. autoclass:: XHeepEngine
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~XHeepEngine.__init__
+      ~XHeepEngine.canExecute
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~XHeepEngine.name
+      ~XHeepEngine.Mapping
+      ~XHeepEngine.includeList
+   
+   

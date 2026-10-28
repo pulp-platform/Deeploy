@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SigmoidLayer
+===========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SigmoidLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SigmoidLayer.__init__
+      ~SigmoidLayer.bind
+      ~SigmoidLayer.broadcast
+      ~SigmoidLayer.codeTransform
+      ~SigmoidLayer.computeOps
+      ~SigmoidLayer.computeShapes
+      ~SigmoidLayer.discardCurrentMapper
+      ~SigmoidLayer.generate
+      ~SigmoidLayer.parse
+      ~SigmoidLayer.resetDiscardedMappers
+      ~SigmoidLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SigmoidLayer.maps
+      ~SigmoidLayer.mapper
+      ~SigmoidLayer.discardedMappers
+      ~SigmoidLayer.node
+   
+   

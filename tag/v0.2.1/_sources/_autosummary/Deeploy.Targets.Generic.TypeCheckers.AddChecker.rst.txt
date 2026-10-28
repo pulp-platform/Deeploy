@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.AddChecker
+===============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: AddChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~AddChecker.__init__
+      ~AddChecker.annotateDict
+      ~AddChecker.checkOutputType
+      ~AddChecker.signature
+      ~AddChecker.typeCheck
+      ~AddChecker.typeCheckNodeInputs
+      ~AddChecker.typeInferGlobalCtxt
+      ~AddChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~AddChecker.typeDict
+   
+   

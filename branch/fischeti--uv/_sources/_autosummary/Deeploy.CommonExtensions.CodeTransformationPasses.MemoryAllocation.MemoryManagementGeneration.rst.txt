@@ -1,0 +1,43 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation.MemoryManagementGeneration
+=============================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation
+
+.. autoclass:: MemoryManagementGeneration
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryManagementGeneration.__init__
+      ~MemoryManagementGeneration.apply
+      ~MemoryManagementGeneration.dereferenceVars
+      ~MemoryManagementGeneration.extractDynamicReferences
+      ~MemoryManagementGeneration.indexVars
+      ~MemoryManagementGeneration.is_final_input
+      ~MemoryManagementGeneration.is_memory_level
+      ~MemoryManagementGeneration.is_output
+      ~MemoryManagementGeneration.is_transient
+      ~MemoryManagementGeneration.topologicallySortBuffers
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryManagementGeneration.parseTreeDict
+   
+   

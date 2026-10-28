@@ -1,0 +1,29 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterSynch.SnitchSynchCoresPass
+=======================================================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.CodeTransformationPasses.SnitchClusterSynch
+
+.. autoclass:: SnitchSynchCoresPass
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchSynchCoresPass.__init__
+      ~SnitchSynchCoresPass.apply
+   
+   
+
+   
+   
+   

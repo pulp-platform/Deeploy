@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses.Closure.ClosureGeneration
+===========================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.CodeTransformationPasses.Closure
+
+.. autoclass:: ClosureGeneration
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ClosureGeneration.__init__
+      ~ClosureGeneration.apply
+      ~ClosureGeneration.dereferenceVars
+      ~ClosureGeneration.extractDynamicReferences
+      ~ClosureGeneration.indexVars
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ClosureGeneration.parseTreeDict
+      ~ClosureGeneration.closureStructArgType
+      ~ClosureGeneration.closureStructArgs
+   
+   

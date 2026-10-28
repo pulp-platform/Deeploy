@@ -1,0 +1,45 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.xheep.Platform.XHeepConstantBuffer
+==================================================
+
+.. currentmodule:: Deeploy.Targets.xheep.Platform
+
+.. autoclass:: XHeepConstantBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~XHeepConstantBuffer.__init__
+      ~XHeepConstantBuffer.alloc
+      ~XHeepConstantBuffer.dealloc
+      ~XHeepConstantBuffer.fromNode
+      ~XHeepConstantBuffer.has_live_aliases
+      ~XHeepConstantBuffer.init
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~XHeepConstantBuffer.allocTemplate
+      ~XHeepConstantBuffer.deallocTemplate
+      ~XHeepConstantBuffer.initTemplate
+      ~XHeepConstantBuffer.sizeInBytes
+      ~XHeepConstantBuffer.values
+      ~XHeepConstantBuffer.name
+      ~XHeepConstantBuffer.shape
+   
+   

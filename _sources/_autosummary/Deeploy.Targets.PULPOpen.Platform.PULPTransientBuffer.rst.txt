@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Platform.PULPTransientBuffer
+=====================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.Platform
+
+.. autoclass:: PULPTransientBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPTransientBuffer.__init__
+      ~PULPTransientBuffer.alloc
+      ~PULPTransientBuffer.dealloc
+      ~PULPTransientBuffer.fromNode
+      ~PULPTransientBuffer.has_live_aliases
+      ~PULPTransientBuffer.init
+      ~PULPTransientBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PULPTransientBuffer.allocTemplate
+      ~PULPTransientBuffer.deallocTemplate
+      ~PULPTransientBuffer.initTemplate
+      ~PULPTransientBuffer.name
+      ~PULPTransientBuffer.shape
+   
+   

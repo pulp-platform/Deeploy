@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration.TilingCodeGeneration
+==========================================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.CodeTransformationPasses.TilingCodeGeneration
+
+.. autoclass:: TilingCodeGeneration
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~TilingCodeGeneration.__init__
+      ~TilingCodeGeneration.apply
+      ~TilingCodeGeneration.dereferenceVars
+      ~TilingCodeGeneration.extractDynamicReferences
+      ~TilingCodeGeneration.generateAllTilingCode
+      ~TilingCodeGeneration.generateLoopCode
+      ~TilingCodeGeneration.generateSetupAndTeardownCode
+      ~TilingCodeGeneration.generateTilingLoop
+      ~TilingCodeGeneration.indexVars
+      ~TilingCodeGeneration.isFinalMemoryLevel
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TilingCodeGeneration.parseTreeDict
+      ~TilingCodeGeneration.prefix
+   
+   

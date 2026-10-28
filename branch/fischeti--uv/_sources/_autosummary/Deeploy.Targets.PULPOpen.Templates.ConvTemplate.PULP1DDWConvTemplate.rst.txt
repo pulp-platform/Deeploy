@@ -1,0 +1,33 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.Templates.ConvTemplate.PULP1DDWConvTemplate
+====================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.Templates.ConvTemplate
+
+.. autoclass:: PULP1DDWConvTemplate
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULP1DDWConvTemplate.__init__
+      ~PULP1DDWConvTemplate.alignToContext
+      ~PULP1DDWConvTemplate.computeTransientBuffersSize
+      ~PULP1DDWConvTemplate.generate
+      ~PULP1DDWConvTemplate.hoistTransientBuffers
+      ~PULP1DDWConvTemplate.internalSize
+   
+   
+
+   
+   
+   

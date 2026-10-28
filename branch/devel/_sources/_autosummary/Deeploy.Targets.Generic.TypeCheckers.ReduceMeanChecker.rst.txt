@@ -1,0 +1,41 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TypeCheckers.ReduceMeanChecker
+======================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TypeCheckers
+
+.. autoclass:: ReduceMeanChecker
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ReduceMeanChecker.__init__
+      ~ReduceMeanChecker.annotateDict
+      ~ReduceMeanChecker.checkOutputType
+      ~ReduceMeanChecker.signature
+      ~ReduceMeanChecker.typeCheck
+      ~ReduceMeanChecker.typeCheckNodeInputs
+      ~ReduceMeanChecker.typeInferGlobalCtxt
+      ~ReduceMeanChecker.typeInferOutput
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ReduceMeanChecker.typeDict
+   
+   

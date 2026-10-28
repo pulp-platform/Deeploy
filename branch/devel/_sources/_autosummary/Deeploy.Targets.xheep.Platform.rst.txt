@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.xheep.Platform
+==============================
+
+.. automodule:: Deeploy.Targets.xheep.Platform
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      XHeepConstantBuffer
+      XHeepEngine
+      XHeepPlatform
+      XHeepStructBuffer
+      XHeepTransientBuffer
+      XHeepVariableBuffer
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint.SoftmaxGradTileConstraint
+=========================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.TileConstraints.iSoftmaxTileConstraint
+
+.. autoclass:: SoftmaxGradTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SoftmaxGradTileConstraint.__init__
+      ~SoftmaxGradTileConstraint.addGeometricalConstraint
+      ~SoftmaxGradTileConstraint.addPolicyConstraint
+      ~SoftmaxGradTileConstraint.constructSymbolicNodeRep
+      ~SoftmaxGradTileConstraint.extractBaseAddr
+      ~SoftmaxGradTileConstraint.getBaseAddr
+      ~SoftmaxGradTileConstraint.sanitizeTilingSchedule
+      ~SoftmaxGradTileConstraint.serializeTilingSolution
+      ~SoftmaxGradTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   

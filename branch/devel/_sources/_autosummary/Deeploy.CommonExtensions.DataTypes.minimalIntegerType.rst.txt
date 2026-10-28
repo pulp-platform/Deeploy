@@ -1,0 +1,6 @@
+Deeploy.CommonExtensions.DataTypes.minimalIntegerType
+=====================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.DataTypes
+
+.. autofunction:: minimalIntegerType

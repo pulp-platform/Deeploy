@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.SwishLayer
+=========================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: SwishLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SwishLayer.__init__
+      ~SwishLayer.bind
+      ~SwishLayer.broadcast
+      ~SwishLayer.codeTransform
+      ~SwishLayer.computeOps
+      ~SwishLayer.computeShapes
+      ~SwishLayer.discardCurrentMapper
+      ~SwishLayer.generate
+      ~SwishLayer.parse
+      ~SwishLayer.resetDiscardedMappers
+      ~SwishLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SwishLayer.maps
+      ~SwishLayer.mapper
+      ~SwishLayer.discardedMappers
+      ~SwishLayer.node
+   
+   

@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.iHardswishLayer
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: iHardswishLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~iHardswishLayer.__init__
+      ~iHardswishLayer.bind
+      ~iHardswishLayer.broadcast
+      ~iHardswishLayer.codeTransform
+      ~iHardswishLayer.computeOps
+      ~iHardswishLayer.computeShapes
+      ~iHardswishLayer.discardCurrentMapper
+      ~iHardswishLayer.generate
+      ~iHardswishLayer.parse
+      ~iHardswishLayer.resetDiscardedMappers
+      ~iHardswishLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~iHardswishLayer.maps
+      ~iHardswishLayer.mapper
+      ~iHardswishLayer.discardedMappers
+      ~iHardswishLayer.node
+   
+   

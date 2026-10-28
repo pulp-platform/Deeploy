@@ -1,0 +1,57 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer.SignPropDeployer
+===========================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer
+
+.. autoclass:: SignPropDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SignPropDeployer.__init__
+      ~SignPropDeployer.backEnd
+      ~SignPropDeployer.bind
+      ~SignPropDeployer.codeTransform
+      ~SignPropDeployer.exportDeeployState
+      ~SignPropDeployer.frontEnd
+      ~SignPropDeployer.generateBufferAllocationCode
+      ~SignPropDeployer.generateBufferDeAllocationCode
+      ~SignPropDeployer.generateBufferInitializationCode
+      ~SignPropDeployer.generateEngineInitializationCode
+      ~SignPropDeployer.generateFunction
+      ~SignPropDeployer.generateGlobalDefinitionCode
+      ~SignPropDeployer.generateIOBufferInitializationCode
+      ~SignPropDeployer.generateIncludeString
+      ~SignPropDeployer.generateInferenceCode
+      ~SignPropDeployer.generateInferenceInitializationCode
+      ~SignPropDeployer.importDeeployState
+      ~SignPropDeployer.inputs
+      ~SignPropDeployer.lower
+      ~SignPropDeployer.midEnd
+      ~SignPropDeployer.numberOfOps
+      ~SignPropDeployer.outputs
+      ~SignPropDeployer.parse
+      ~SignPropDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SignPropDeployer.worstCaseBufferSize
+   
+   

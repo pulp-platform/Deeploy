@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.FutureExtension.CodeTransformationPasses" href="Deeploy.FutureExtension.CodeTransformationPasses.html" />
+    <link rel="prev" title="Deeploy.FutureExtension.Bindings.FutureBinding" href="Deeploy.FutureExtension.Bindings.FutureBinding.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.FutureExtension.Bindings.html">Deeploy.FutureExtension.Bindings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.FutureExtension.CodeTransformationPasses.html">Deeploy.FutureExtension.CodeTransformationPasses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.FutureExtension.Future.html">Deeploy.FutureExtension.Future</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.FutureExtension.Bindings.html">Deeploy.FutureExtension.Bindings</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.FutureExtension.Bindings.FutureBinding.html">Deeploy.FutureExtension.Bindings.FutureBinding</a></li>
+      <li class="breadcrumb-item active">Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-futureextension-bindings-futurebinding-futurebinding">
+<h1>Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding<a class="headerlink" href="#deeploy-futureextension-bindings-futurebinding-futurebinding" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.FutureExtension.Bindings.FutureBinding.</span></span><span class="sig-name descname"><span class="pre">FutureBinding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typeChecker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTypeChecker.html#Deeploy.DeeployTypes.NodeTypeChecker" title="Deeploy.DeeployTypes.NodeTypeChecker"><span class="pre">NodeTypeChecker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><span class="pre">NodeTemplate</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">codeTransformer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.CodeTransformation.html#Deeploy.DeeployTypes.CodeTransformation" title="Deeploy.DeeployTypes.CodeTransformation"><span class="pre">CodeTransformation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">stateReference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="Deeploy.DeeployTypes.NodeBinding.html#Deeploy.DeeployTypes.NodeBinding" title="Deeploy.DeeployTypes.NodeBinding"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeBinding</span></code></a></p>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typeChecker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTypeChecker.html#Deeploy.DeeployTypes.NodeTypeChecker" title="Deeploy.DeeployTypes.NodeTypeChecker"><span class="pre">NodeTypeChecker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate"><span class="pre">NodeTemplate</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">codeTransformer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.CodeTransformation.html#Deeploy.DeeployTypes.CodeTransformation" title="Deeploy.DeeployTypes.CodeTransformation"><span class="pre">CodeTransformation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">stateReference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.__init__" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(typeChecker, template, codeTransformer)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assignStateReferenceElement</span></code>(ctxt)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.bind" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.bind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind</span></code></a>(ctxt, node, operatorRepresentation)</p></td>
+<td><p>Initializes the executionBlock and hoist all necessary transient buffers of the underlying NodeTemplate</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.codeTransform" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.codeTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">codeTransform</span></code></a>(ctxt[, verbose])</p></td>
+<td><p>Applies the CodeTransformer's passes on the executionBlock</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.earlyBinding" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.earlyBinding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">earlyBinding</span></code></a>(ctxt, node, operatorRepresentation)</p></td>
+<td><p>Initializes the executionBlock with the NodeTemplate</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.generate" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(ctxt)</p></td>
+<td><p>Generates C Code from the encapsulated executionBlock</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.typeCheck" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.typeCheck"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typeCheck</span></code></a>(ctxt, node, operatorRepresentation)</p></td>
+<td><p>Runs the binding-level typechecker on a node</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.executionBlock" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.executionBlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">executionBlock</span></code></a></p></td>
+<td><p>Read-only wrapper around the encapsulated execution block</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.nodeName" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.nodeName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nodeName</span></code></a></p></td>
+<td><p>Read-only wrapper around the encapsulated node's name</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.typeChecker" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.typeChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typeChecker</span></code></a></p></td>
+<td><p>Read-only wrapper around the encapsulated type checker</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.template" title="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.template"><code class="xref py py-obj docutils literal notranslate"><span class="pre">template</span></code></a></p></td>
+<td><p>The kernel template you want to bind</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.codeTransform">
+<span class="sig-name descname"><span class="pre">codeTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.CodeGenVerbosity.html#Deeploy.DeeployTypes.CodeGenVerbosity" title="Deeploy.DeeployTypes.CodeGenVerbosity"><span class="pre">CodeGenVerbosity</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">CodeGenVerbosity(tilingProfiling=None,</span> <span class="pre">untiledProfiling=None)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.codeTransform" title="Link to this definition"></a></dt>
+<dd><p>Applies the CodeTransformer’s passes on the executionBlock</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>verbose</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.CodeGenVerbosity.html#Deeploy.DeeployTypes.CodeGenVerbosity" title="Deeploy.DeeployTypes.CodeGenVerbosity"><em>CodeGenVerbosity</em></a>) – Verbosity options to control code generation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.bind">
+<span class="sig-name descname"><span class="pre">bind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.bind" title="Link to this definition"></a></dt>
+<dd><p>Initializes the executionBlock and hoist all necessary transient buffers of the underlying NodeTemplate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>node</strong> (<em>gs.Node</em>) – The node that should be bound</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The NodeParser’s operatorRepresentation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated NetworkContext, a list of names of transient
+buffers that were hoisted and true if binding succeeded</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, List[str], bool]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.earlyBinding">
+<span class="sig-name descname"><span class="pre">earlyBinding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.earlyBinding" title="Link to this definition"></a></dt>
+<dd><p>Initializes the executionBlock with the NodeTemplate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>node</strong> (<em>gs.Node</em>) – The operator this NodeBinding is associated with</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The NodeParser’s operatorRepresentation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated NetworkContext</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.executionBlock">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">executionBlock</span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.executionBlock" title="Link to this definition"></a></dt>
+<dd><p>Read-only wrapper around the encapsulated execution block</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.generate" title="Link to this definition"></a></dt>
+<dd><p>Generates C Code from the encapsulated executionBlock</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of C Code snippets to be pasted into the final
+program</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.nodeName">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nodeName</span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.nodeName" title="Link to this definition"></a></dt>
+<dd><p>Read-only wrapper around the encapsulated node’s name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.typeCheck">
+<span class="sig-name descname"><span class="pre">typeCheck</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operatorRepresentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.typeCheck" title="Link to this definition"></a></dt>
+<dd><p>Runs the binding-level typechecker on a node</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Current NetworkContext</p></li>
+<li><p><strong>node</strong> (<em>gs.Node</em>) – The node to be typechecked</p></li>
+<li><p><strong>operatorRepresentation</strong> (<em>OperatorRepresentation</em>) – The NodeParser’s operatorRepresentation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated and NetworkContext and true if the typing rule
+matches the node</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a>, bool]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.typeChecker">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">typeChecker</span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.typeChecker" title="Link to this definition"></a></dt>
+<dd><p>Read-only wrapper around the encapsulated type checker</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.template">
+<span class="sig-name descname"><span class="pre">template</span></span><a class="headerlink" href="#Deeploy.FutureExtension.Bindings.FutureBinding.FutureBinding.template" title="Link to this definition"></a></dt>
+<dd><p>The kernel template you want to bind</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="Deeploy.DeeployTypes.NodeTemplate.html#Deeploy.DeeployTypes.NodeTemplate" title="Deeploy.DeeployTypes.NodeTemplate">NodeTemplate</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.FutureExtension.Bindings.FutureBinding.html" class="btn btn-neutral float-left" title="Deeploy.FutureExtension.Bindings.FutureBinding" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.FutureExtension.CodeTransformationPasses.html" class="btn btn-neutral float-right" title="Deeploy.FutureExtension.CodeTransformationPasses" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.DataTypes
+==================================
+
+.. automodule:: Deeploy.CommonExtensions.DataTypes
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      minimalFloatType
+      minimalIntegerType
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+   
+      bfloat16_t
+      float16_t
+      float32_t
+      float64_t
+      int16_t
+      int32_t
+      int64_t
+      int8_t
+      uint16_t
+      uint32_t
+      uint64_t
+      uint8_t
+   
+   
+
+   
+   
+   
+
+
+

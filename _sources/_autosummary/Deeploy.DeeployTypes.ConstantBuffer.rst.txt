@@ -1,0 +1,45 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.DeeployTypes.ConstantBuffer
+===================================
+
+.. currentmodule:: Deeploy.DeeployTypes
+
+.. autoclass:: ConstantBuffer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ConstantBuffer.__init__
+      ~ConstantBuffer.alloc
+      ~ConstantBuffer.dealloc
+      ~ConstantBuffer.fromNode
+      ~ConstantBuffer.has_live_aliases
+      ~ConstantBuffer.init
+      ~ConstantBuffer.sizeInBytes
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ConstantBuffer.values
+      ~ConstantBuffer.initTemplate
+      ~ConstantBuffer.allocTemplate
+      ~ConstantBuffer.deallocTemplate
+      ~ConstantBuffer.name
+      ~ConstantBuffer.shape
+   
+   

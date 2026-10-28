@@ -1,0 +1,40 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.CodeTransformationPasses.Closure.MemoryAwareClosureGeneration
+======================================================================================
+
+.. currentmodule:: Deeploy.CommonExtensions.CodeTransformationPasses.Closure
+
+.. autoclass:: MemoryAwareClosureGeneration
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryAwareClosureGeneration.__init__
+      ~MemoryAwareClosureGeneration.apply
+      ~MemoryAwareClosureGeneration.dereferenceVars
+      ~MemoryAwareClosureGeneration.extractDynamicReferences
+      ~MemoryAwareClosureGeneration.indexVars
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryAwareClosureGeneration.parseTreeDict
+      ~MemoryAwareClosureGeneration.closureStructArgType
+      ~MemoryAwareClosureGeneration.closureStructArgs
+   
+   

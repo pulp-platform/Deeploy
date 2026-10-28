@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_conv_params" href="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_conv_params.html" />
+    <link rel="prev" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_activation" href="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_activation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.Targets.CortexM.html">Deeploy.Targets.CortexM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Generic.html">Deeploy.Targets.Generic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.MemPool.html">Deeploy.Targets.MemPool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Neureka.html">Deeploy.Targets.Neureka</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.PULPOpen.html">Deeploy.Targets.PULPOpen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.Targets.Snitch.html">Deeploy.Targets.Snitch</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.CortexM.html">Deeploy.Targets.CortexM</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.Targets.CortexM.DataTypes.html">Deeploy.Targets.CortexM.DataTypes</a></li>
+      <li class="breadcrumb-item active">Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-targets-cortexm-datatypes-cmsis-nn-context">
+<h1>Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context<a class="headerlink" href="#deeploy-targets-cortexm-datatypes-cmsis-nn-context" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.Targets.CortexM.DataTypes.</span></span><span class="sig-name descname"><span class="pre">cmsis_nn_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structDict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><span class="pre">Struct</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><span class="pre">BaseType</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_NetworkContext</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><code class="xref py py-class docutils literal notranslate"><span class="pre">Struct</span></code></a></p>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structDict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><span class="pre">Struct</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><span class="pre">BaseType</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_NetworkContext</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize a new struct object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>structDict</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><em>Struct</em></a><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><em>BaseType</em></a><em>]</em><em>]</em>) – Either an initialized Deeploy-type struct, a string name
+refering to an intialized struct registered in the
+NetworkContext, or a full definition of the struct
+to-be-initialized</p></li>
+<li><p><strong>ctxt</strong> (<em>Optional</em><em>[</em><em>_NetworkContext</em><em>]</em>) – Current NetworkContext</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – Raises an Exception if structDict cannot be assigned to a
+    struct of layout structTypeDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.__init__" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(structDict[, ctxt])</p></td>
+<td><p>Initialize a new struct object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.checkPromotion" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.checkPromotion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkPromotion</span></code></a>(_other[, ctxt])</p></td>
+<td><p>Checks whether a given Python-typed or Deeploy-typed value can be represented with the Deeploy type</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.checkValue" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.checkValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkValue</span></code></a>(value[, ctxt])</p></td>
+<td><p>Checks whether a given Python-type value (usually FP64) can be represented with a Deeploy type</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.value" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code></a></p></td>
+<td><p>the value of the struct; corresponds to an element with type layout defined in cls.structTypeDict</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.structTypeDict" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.structTypeDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">structTypeDict</span></code></a></p></td>
+<td><p>The definition of the struct mapping its field names to their associated Deeploy-types</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.typeName" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.typeName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typeName</span></code></a></p></td>
+<td><p>The C typename of this type</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.typeWidth" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.typeWidth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typeWidth</span></code></a></p></td>
+<td><p>the number of BITS to be assigned to the type</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.typeName">
+<span class="sig-name descname"><span class="pre">typeName</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cmsis_nn_context'</span></span><a class="headerlink" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.typeName" title="Link to this definition"></a></dt>
+<dd><p>The C typename of this type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.structTypeDict">
+<span class="sig-name descname"><span class="pre">structTypeDict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><span class="pre">BaseType</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'buf':</span> <span class="pre">&lt;class</span> <span class="pre">'Deeploy.AbstractDataTypes.voidPtr'&gt;,</span> <span class="pre">'size':</span> <span class="pre">&lt;class</span> <span class="pre">'Deeploy.CommonExtensions.DataTypes.int32_t'&gt;}</span></span><a class="headerlink" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.structTypeDict" title="Link to this definition"></a></dt>
+<dd><p>The definition of the struct mapping its field names to their associated Deeploy-types</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Type[<a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType">BaseType</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.value" title="Link to this definition"></a></dt>
+<dd><p>the value of the struct; corresponds to an element with type layout defined in cls.structTypeDict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.structTypeDict" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.structTypeDict">structTypeDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.checkPromotion">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">checkPromotion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><span class="pre">BaseType</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.Struct.html#Deeploy.AbstractDataTypes.Struct" title="Deeploy.AbstractDataTypes.Struct"><span class="pre">Struct</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_NetworkContext</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.checkPromotion" title="Link to this definition"></a></dt>
+<dd><p>Checks whether a given Python-typed or Deeploy-typed value can be represented with the Deeploy type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>Union</em><em>[</em><em>_PythonType</em><em>, </em><em>_DeeployType</em><em>]</em>) – Python-typed or Deeploy-typed value to be checked for
+promotion to cls</p></li>
+<li><p><strong>ctxt</strong> (<em>Optional</em><em>[</em><em>_NetworkContext</em><em>]</em>) – Current NetworkContext</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns true if the value can be promoted to cls</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.checkValue">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">checkValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.AbstractDataTypes.BaseType.html#Deeploy.AbstractDataTypes.BaseType" title="Deeploy.AbstractDataTypes.BaseType"><span class="pre">BaseType</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_NetworkContext</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.checkValue" title="Link to this definition"></a></dt>
+<dd><p>Checks whether a given Python-type value (usually FP64) can be represented with a Deeploy type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>_PythonType</em>) – Python-typed value to check</p></li>
+<li><p><strong>ctxt</strong> (<em>Optional</em><em>[</em><em>_NetworkContext</em><em>]</em>) – Current NetworkContext</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns true if value can represented by cls</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.typeWidth">
+<span class="sig-name descname"><span class="pre">typeWidth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></span><a class="headerlink" href="#Deeploy.Targets.CortexM.DataTypes.cmsis_nn_context.typeWidth" title="Link to this definition"></a></dt>
+<dd><p>the number of BITS to be assigned to the type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_activation.html" class="btn btn-neutral float-left" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_activation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_conv_params.html" class="btn btn-neutral float-right" title="Deeploy.Targets.CortexM.DataTypes.cmsis_nn_conv_params" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

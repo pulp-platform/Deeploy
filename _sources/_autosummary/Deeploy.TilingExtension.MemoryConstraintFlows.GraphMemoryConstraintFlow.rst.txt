@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.MemoryConstraintFlows.GraphMemoryConstraintFlow
+=======================================================================
+
+.. currentmodule:: Deeploy.TilingExtension.MemoryConstraintFlows
+
+.. autoclass:: GraphMemoryConstraintFlow
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~GraphMemoryConstraintFlow.__init__
+      ~GraphMemoryConstraintFlow.computeGenSet
+      ~GraphMemoryConstraintFlow.computeKillSet
+      ~GraphMemoryConstraintFlow.flow
+      ~GraphMemoryConstraintFlow.flowStep
+      ~GraphMemoryConstraintFlow.preComputeStep
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~GraphMemoryConstraintFlow.patternFlowState
+   
+   

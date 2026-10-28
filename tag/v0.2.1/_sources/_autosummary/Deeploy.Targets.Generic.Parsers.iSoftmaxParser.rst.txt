@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Parsers.iSoftmaxParser
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Parsers
+
+.. autoclass:: iSoftmaxParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~iSoftmaxParser.__init__
+      ~iSoftmaxParser.parse
+      ~iSoftmaxParser.parseInputs
+      ~iSoftmaxParser.parseNode
+      ~iSoftmaxParser.parseNodeCtxt
+      ~iSoftmaxParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~iSoftmaxParser.operatorRepresentation
+   
+   

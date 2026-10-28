@@ -1,0 +1,610 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deeploy.TilingExtension.TilerExtension.Tiler &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deeploy.TilingExtension.TilerExtension.TilerDeployerWrapper" href="Deeploy.TilingExtension.TilerExtension.TilerDeployerWrapper.html" />
+    <link rel="prev" title="Deeploy.TilingExtension.TilerExtension.TilingReadyNodeBindings" href="Deeploy.TilingExtension.TilerExtension.TilingReadyNodeBindings.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/overview.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Deeploy.html">Deeploy</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.AbstractDataTypes.html">Deeploy.AbstractDataTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.CommonExtensions.html">Deeploy.CommonExtensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.DeeployTypes.html">Deeploy.DeeployTypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.EngineExtension.html">Deeploy.EngineExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.FutureExtension.html">Deeploy.FutureExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Logging.html">Deeploy.Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MLIRAIETypes.html">Deeploy.MLIRAIETypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.MemoryLevelExtension.html">Deeploy.MemoryLevelExtension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Deeploy.Targets.html">Deeploy.Targets</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.AsyncDma.html">Deeploy.TilingExtension.AsyncDma</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.CodeTransformationPasses.html">Deeploy.TilingExtension.CodeTransformationPasses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.GenericFlow.html">Deeploy.TilingExtension.GenericFlow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.HtmlTemplates.html">Deeploy.TilingExtension.HtmlTemplates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraintFlows.html">Deeploy.TilingExtension.MemoryConstraintFlows</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.html">Deeploy.TilingExtension.MemoryConstraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.html">Deeploy.TilingExtension.MemoryScheduler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.TileConstraint.html">Deeploy.TilingExtension.TileConstraint</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="Deeploy.TilingExtension.TilerExtension.html">Deeploy.TilingExtension.TilerExtension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.TilerModel.html">Deeploy.TilingExtension.TilerModel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Deeploy.TilingExtension.TilingCodegen.html">Deeploy.TilingExtension.TilingCodegen</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apidocs.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.html">Deeploy</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.TilingExtension.html">Deeploy.TilingExtension</a></li>
+          <li class="breadcrumb-item"><a href="Deeploy.TilingExtension.TilerExtension.html">Deeploy.TilingExtension.TilerExtension</a></li>
+      <li class="breadcrumb-item active">Deeploy.TilingExtension.TilerExtension.Tiler</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/Deeploy.TilingExtension.TilerExtension.Tiler.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deeploy-tilingextension-tilerextension-tiler">
+<h1>Deeploy.TilingExtension.TilerExtension.Tiler<a class="headerlink" href="#deeploy-tilingextension-tilerextension-tiler" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Deeploy.TilingExtension.TilerExtension.</span></span><span class="sig-name descname"><span class="pre">Tiler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memoryHierarchy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy.html#Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy" title="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy"><span class="pre">MemoryHierarchy</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">testName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workDir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tiler for a computation graphs with memory-aware optimization.</p>
+<p>The Tiler class provides functionality for tiling operations to fit within
+memory constraints of target hardware platforms. It performs memory allocation, constraint
+solving, and scheduling to optimize execution within hierarchical memory systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>memoryHierarchy</strong> (<a class="reference internal" href="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy.html#Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy" title="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy"><em>MemoryHierarchy</em></a>) – The memory hierarchy specification defining available memory levels and their capacities.</p>
+</dd>
+<dt class="field-even">Variables<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>arenaName</strong> (<em>str</em>) – Name prefix for memory arena buffers.</p></li>
+<li><p><strong>memorySchedulerClass</strong> (<em>Type</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler.html#Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler" title="Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler"><em>MemoryScheduler</em></a><em>]</em>) – Class type for memory scheduler instances.</p></li>
+<li><p><strong>memoryHierarchy</strong> (<a class="reference internal" href="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy.html#Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy" title="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy"><em>MemoryHierarchy</em></a>) – The memory hierarchy configuration.</p></li>
+<li><p><strong>tilerModel</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.TilerModel.TilerModel.html#Deeploy.TilingExtension.TilerModel.TilerModel" title="Deeploy.TilingExtension.TilerModel.TilerModel"><em>TilerModel</em></a><em>]</em>) – The constraint solver model for tiling optimization.</p></li>
+<li><p><strong>innerMemoryScheduler</strong> (<a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler.html#Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler" title="Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler"><em>MemoryScheduler</em></a>) – Scheduler for inner memory level allocation.</p></li>
+<li><p><strong>outerMemoryScheduler</strong> (<a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler.html#Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler" title="Deeploy.TilingExtension.MemoryScheduler.MemoryScheduler"><em>MemoryScheduler</em></a>) – Scheduler for outer memory level allocation.</p></li>
+<li><p><strong>symbolicMemoryConstraints</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints"><em>PatternMemoryConstraints</em></a><em>]</em><em>]</em>) – Symbolic memory constraints for the tiling problem.</p></li>
+<li><p><strong>visualizeMemoryAlloc</strong> (<em>bool</em>) – Flag to enable memory allocation visualization.</p></li>
+<li><p><strong>memoryAllocStrategy</strong> (<em>{&quot;TetrisRandom&quot;</em><em>, </em><em>&quot;TetrisCo-Opt&quot;</em><em>, </em><em>&quot;MiniMalloc&quot;}</em>) – Strategy for memory allocation.</p></li>
+<li><p><strong>searchStrategy</strong> (<em>{&quot;min&quot;</em><em>, </em><em>&quot;max&quot;</em><em>, </em><em>&quot;random-max&quot;}</em>) – Search strategy for constraint solving.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">L3</span> <span class="o">=</span> <span class="n">MemoryLevel</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;L3&quot;</span><span class="p">,</span> <span class="n">neighbourNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L2&quot;</span><span class="p">],</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">1024000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">L2</span> <span class="o">=</span> <span class="n">MemoryLevel</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;L2&quot;</span><span class="p">,</span> <span class="n">neighbourNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L3&quot;</span><span class="p">,</span> <span class="s2">&quot;L1&quot;</span><span class="p">],</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">512000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">L1</span> <span class="o">=</span> <span class="n">MemoryLevel</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="n">neighbourNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L2&quot;</span><span class="p">],</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">128000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">memoryHierarchy</span> <span class="o">=</span> <span class="n">MemoryHierarchy</span><span class="p">([</span><span class="n">L3</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="n">L1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">memoryHierarchy</span><span class="o">.</span><span class="n">setDefaultMemoryLevel</span><span class="p">(</span><span class="s2">&quot;L3&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tiler</span> <span class="o">=</span> <span class="n">Tiler</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tiler</span><span class="o">.</span><span class="n">memoryAllocStrategy</span> <span class="o">=</span> <span class="s2">&quot;MiniMalloc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solution</span> <span class="o">=</span> <span class="n">tiler</span><span class="o">.</span><span class="n">computeTilingSchedule</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Methods</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memoryHierarchy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy.html#Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy" title="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy"><span class="pre">MemoryHierarchy</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">testName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workDir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the Tiler with a memory hierarchy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memoryHierarchy</strong> (<a class="reference internal" href="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy.html#Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy" title="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy"><em>MemoryHierarchy</em></a>) – The memory hierarchy specification defining available memory levels.</p></li>
+<li><p><strong>testName</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Optional name for the test case, used for file naming. Defaults to None.</p></li>
+<li><p><strong>workDir</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Optional working directory for temporary files. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.__init__" title="Deeploy.TilingExtension.TilerExtension.Tiler.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(memoryHierarchy[, testName, workDir])</p></td>
+<td><p>Initialize the Tiler with a memory hierarchy.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.annotateMemoryLevel" title="Deeploy.TilingExtension.TilerExtension.Tiler.annotateMemoryLevel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotateMemoryLevel</span></code></a>(ctxt, tilingSolution, ...)</p></td>
+<td><p>Annotate memory constraints with actual address space allocations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.assertLayerWiseTiling" title="Deeploy.TilingExtension.TilerExtension.Tiler.assertLayerWiseTiling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assertLayerWiseTiling</span></code></a>(schedule)</p></td>
+<td><p>Assert that the schedule uses layer-wise tiling (one node per pattern).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.assertUniformMemoryLevelAllocation" title="Deeploy.TilingExtension.TilerExtension.Tiler.assertUniformMemoryLevelAllocation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assertUniformMemoryLevelAllocation</span></code></a>(ctxt, ...)</p></td>
+<td><p>Assert that all local buffers are allocated to the default memory level.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.computeMemoryMap" title="Deeploy.TilingExtension.TilerExtension.Tiler.computeMemoryMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">computeMemoryMap</span></code></a>(ctxt, tilingSolution)</p></td>
+<td><p>Compute memory allocation map from the tiling solution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.computeTilingSchedule" title="Deeploy.TilingExtension.TilerExtension.Tiler.computeTilingSchedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">computeTilingSchedule</span></code></a>(ctxt)</p></td>
+<td><p>Compute the optimal tiling schedule for the network.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.minimalloc" title="Deeploy.TilingExtension.TilerExtension.Tiler.minimalloc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimalloc</span></code></a>(memoryMap, ctxt, ...)</p></td>
+<td><p>Perform memory allocation using the MiniMalloc external tool.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.multiBufferStrategy" title="Deeploy.TilingExtension.TilerExtension.Tiler.multiBufferStrategy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multiBufferStrategy</span></code></a>(tilerModel, ctxt, ...)</p></td>
+<td><p>Determine multi-buffering coefficient for a tensor in the tiling strategy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.plotMemoryAlloc" title="Deeploy.TilingExtension.TilerExtension.Tiler.plotMemoryAlloc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotMemoryAlloc</span></code></a>(memoryMap, ctxt, ...)</p></td>
+<td><p>Generate interactive visualization of memory allocation patterns.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.propagateIOBufferStrategy" title="Deeploy.TilingExtension.TilerExtension.Tiler.propagateIOBufferStrategy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">propagateIOBufferStrategy</span></code></a>(...)</p></td>
+<td><p>Propagate I/O buffer strategy across the tiling pattern.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.setupModel" title="Deeploy.TilingExtension.TilerExtension.Tiler.setupModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setupModel</span></code></a>(ctxt, schedule, layerBinding, ...)</p></td>
+<td><p>Set up the constraint optimization model for tiling.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.testMemoryMapCorrectness" title="Deeploy.TilingExtension.TilerExtension.Tiler.testMemoryMapCorrectness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testMemoryMapCorrectness</span></code></a>(memoryMap, graph, ...)</p></td>
+<td><p>Test the correctness of a computed memory map.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.testTilingSolutionCorrectness" title="Deeploy.TilingExtension.TilerExtension.Tiler.testTilingSolutionCorrectness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testTilingSolutionCorrectness</span></code></a>(tilingSolution)</p></td>
+<td><p>Test the correctness of a computed tiling solution.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">arenaName</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Deeploy.TilingExtension.TilerExtension.Tiler.worstCaseBufferSize" title="Deeploy.TilingExtension.TilerExtension.Tiler.worstCaseBufferSize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">worstCaseBufferSize</span></code></a></p></td>
+<td><p>Get the worst-case buffer sizes for each memory level.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py property">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.worstCaseBufferSize">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">worstCaseBufferSize</span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.worstCaseBufferSize" title="Link to this definition"></a></dt>
+<dd><p>Get the worst-case buffer sizes for each memory level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary mapping memory level names to their worst-case buffer sizes in bytes.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.plotMemoryAlloc">
+<span class="sig-name descname"><span class="pre">plotMemoryAlloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memoryMap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock.html#Deeploy.TilingExtension.MemoryScheduler.MemoryBlock" title="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock"><span class="pre">MemoryBlock</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">deeployStateDir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memoryHierarchy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy.html#Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy" title="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy"><span class="pre">MemoryHierarchy</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.plotMemoryAlloc" title="Link to this definition"></a></dt>
+<dd><p>Generate interactive visualization of memory allocation patterns.</p>
+<p>Creates an HTML file with Plotly visualizations showing memory allocation
+over time for each memory level in the hierarchy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memoryMap</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>List</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock.html#Deeploy.TilingExtension.MemoryScheduler.MemoryBlock" title="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock"><em>MemoryBlock</em></a><em>]</em><em>]</em><em>]</em>) – Memory allocation map containing blocks for each memory level and time step.</p></li>
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing buffer information.</p></li>
+<li><p><strong>deeployStateDir</strong> (<em>str</em>) – Directory path where the visualization HTML file will be saved.</p></li>
+<li><p><strong>memoryHierarchy</strong> (<a class="reference internal" href="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy.html#Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy" title="Deeploy.MemoryLevelExtension.MemoryLevels.MemoryHierarchy"><em>MemoryHierarchy</em></a>) – Memory hierarchy configuration for the visualization.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Generates a file named ‘memory_alloc.html’ in the specified directory.
+Each memory level is visualized as a separate subplot showing buffer
+lifetimes and address space usage.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.minimalloc">
+<span class="sig-name descname"><span class="pre">minimalloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memoryMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodeMemoryConstraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memoryLevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.minimalloc" title="Link to this definition"></a></dt>
+<dd><p>Perform memory allocation using the MiniMalloc external tool.</p>
+<p>Interfaces with the external MiniMalloc memory allocator to compute
+optimal memory allocation for the given memory blocks and constraints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memoryMap</strong> (<em>List</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock.html#Deeploy.TilingExtension.MemoryScheduler.MemoryBlock" title="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock"><em>MemoryBlock</em></a><em>]</em>) – List of memory blocks to be allocated.</p></li>
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing buffer information.</p></li>
+<li><p><strong>nodeMemoryConstraint</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint.html#Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint" title="Deeploy.TilingExtension.MemoryConstraints.NodeMemoryConstraint"><em>NodeMemoryConstraint</em></a><em>]</em>) – Memory constraints for the current node, if available.</p></li>
+<li><p><strong>capacity</strong> (<em>int</em>) – Total memory capacity available for allocation.</p></li>
+<li><p><strong>memoryLevel</strong> (<em>str</em>) – Name of the memory level being allocated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated memory blocks with assigned address spaces.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock.html#Deeploy.TilingExtension.MemoryScheduler.MemoryBlock" title="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock">MemoryBlock</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If MINIMALLOC_INSTALL_DIR environment variable is not set.</p></li>
+<li><p><strong>subprocess.CalledProcessError</strong> – If the MiniMalloc tool fails to execute successfully.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Requires the MiniMalloc tool to be installed and the MINIMALLOC_INSTALL_DIR
+environment variable to be set to the installation directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.computeTilingSchedule">
+<span class="sig-name descname"><span class="pre">computeTilingSchedule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints"><span class="pre">PatternMemoryConstraints</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.computeTilingSchedule" title="Link to this definition"></a></dt>
+<dd><p>Compute the optimal tiling schedule for the network.</p>
+<p>Solves the constraint optimization problem to find the best tiling
+solution that satisfies memory and computational constraints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing the computational graph and constraints.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed tiling solution with memory constraints for each pattern.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TilingSolution</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If the tiler model or symbolic memory constraints are not initialized.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This method requires that setupModel() has been called previously to
+initialize the constraint model and symbolic memory constraints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.computeMemoryMap">
+<span class="sig-name descname"><span class="pre">computeMemoryMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tilingSolution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints"><span class="pre">PatternMemoryConstraints</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock.html#Deeploy.TilingExtension.MemoryScheduler.MemoryBlock" title="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock"><span class="pre">MemoryBlock</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.computeMemoryMap" title="Link to this definition"></a></dt>
+<dd><p>Compute memory allocation map from the tiling solution.</p>
+<p>Generates a concrete memory allocation map that assigns specific
+memory addresses to each buffer based on the tiling solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing buffer information.</p></li>
+<li><p><strong>tilingSolution</strong> (<em>TilingSolution</em>) – The computed tiling solution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary mapping memory level names to lists of memory blocks
+for each time step.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MemoryMap</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The memory allocation strategy (TetrisRandom, TetrisCo-Opt, or MiniMalloc)
+determines how the actual memory addresses are assigned.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.annotateMemoryLevel">
+<span class="sig-name descname"><span class="pre">annotateMemoryLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tilingSolution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints"><span class="pre">PatternMemoryConstraints</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memoryMap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.annotateMemoryLevel" title="Link to this definition"></a></dt>
+<dd><p>Annotate memory constraints with actual address space allocations.</p>
+<p>Updates the memory constraints in the tiling solution with the actual
+address spaces computed during memory allocation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing buffer information.</p></li>
+<li><p><strong>tilingSolution</strong> (<em>TilingSolution</em>) – The tiling solution to be annotated.</p></li>
+<li><p><strong>memoryMap</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>List</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock.html#Deeploy.TilingExtension.MemoryScheduler.MemoryBlock" title="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock"><em>MemoryBlock</em></a><em>]</em><em>]</em><em>]</em>) – Memory allocation map with assigned address spaces.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated network context (returned for consistency).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This method modifies the tiling solution in-place by adding address
+space information to memory constraints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.setupModel">
+<span class="sig-name descname"><span class="pre">setupModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">schedule</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Node</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Node</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layerBinding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">OrderedDict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="Deeploy.DeeployTypes.ONNXLayer.html#Deeploy.DeeployTypes.ONNXLayer" title="Deeploy.DeeployTypes.ONNXLayer"><span class="pre">ONNXLayer</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetMemoryLevelMapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.TargetMemoryLevelMapping.html#Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.TargetMemoryLevelMapping" title="Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.TargetMemoryLevelMapping"><span class="pre">TargetMemoryLevelMapping</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.setupModel" title="Link to this definition"></a></dt>
+<dd><p>Set up the constraint optimization model for tiling.</p>
+<p>Initializes the tiler model with geometric constraints, memory constraints,
+and optimization objectives based on the network schedule and layer bindings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing the computational graph.</p></li>
+<li><p><strong>schedule</strong> (<em>Schedule</em>) – Execution schedule defining the order of operations.</p></li>
+<li><p><strong>layerBinding</strong> (<em>OrderedDict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="Deeploy.DeeployTypes.ONNXLayer.html#Deeploy.DeeployTypes.ONNXLayer" title="Deeploy.DeeployTypes.ONNXLayer"><em>ONNXLayer</em></a><em>]</em>) – Mapping from node names to their layer implementations.</p></li>
+<li><p><strong>targetMemoryLevelMapping</strong> (<a class="reference internal" href="Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.TargetMemoryLevelMapping.html#Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.TargetMemoryLevelMapping" title="Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.TargetMemoryLevelMapping"><em>TargetMemoryLevelMapping</em></a>) – Mapping defining which memory levels to use for each tensor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network context (returned for consistency).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext">NetworkContext</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This method must be called before computeTilingSchedule() to initialize
+the constraint model and symbolic memory constraints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.multiBufferStrategy">
+<span class="sig-name descname"><span class="pre">multiBufferStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tilerModel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.TilingExtension.TilerModel.TilerModel.html#Deeploy.TilingExtension.TilerModel.TilerModel" title="Deeploy.TilingExtension.TilerModel.TilerModel"><span class="pre">TilerModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Node</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensorName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">IntVar</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.multiBufferStrategy" title="Link to this definition"></a></dt>
+<dd><p>Determine multi-buffering coefficient for a tensor in the tiling strategy.</p>
+<p>Computes the buffering factor (e.g., double buffering = 2) for a given tensor
+based on its type and usage pattern in the computation graph. This coefficient
+is used to determine how many copies of the tensor should be kept in memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tilerModel</strong> (<a class="reference internal" href="Deeploy.TilingExtension.TilerModel.TilerModel.html#Deeploy.TilingExtension.TilerModel.TilerModel" title="Deeploy.TilingExtension.TilerModel.TilerModel"><em>TilerModel</em></a><em>, </em><em>(</em><em>unused</em><em>)</em>) – The constraint solver model.</p></li>
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing buffer information.</p></li>
+<li><p><strong>pattern</strong> (<em>SubGraph</em><em>, </em><em>(</em><em>unused</em><em>)</em>) – The computation pattern being analyzed.</p></li>
+<li><p><strong>path</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>(</em><em>unused</em><em>)</em>) – Memory hierarchy path for the tensor.</p></li>
+<li><p><strong>hop</strong> (<em>str</em><em>, </em><em>(</em><em>unused</em><em>)</em>) – Current memory level in the path.</p></li>
+<li><p><strong>tensorName</strong> (<em>str</em>) – Name of the tensor to analyze.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Buffering coefficient (typically 1 for transient buffers, 2 for others).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[int, IntVar]</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The multi-buffering strategy helps overlap computation with data movement
+by maintaining multiple copies of buffers at different memory levels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.propagateIOBufferStrategy">
+<span class="sig-name descname"><span class="pre">propagateIOBufferStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tileConstraintPattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints"><span class="pre">PatternMemoryConstraints</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Node</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints"><span class="pre">PatternMemoryConstraints</span></a></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.propagateIOBufferStrategy" title="Link to this definition"></a></dt>
+<dd><p>Propagate I/O buffer strategy across the tiling pattern.</p>
+<p>Implements static n-tuple buffering strategy by propagating border tensor
+constraints across all steps in the tiling pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tileConstraintPattern</strong> (<a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints"><em>PatternMemoryConstraints</em></a>) – Memory constraints for the tiling pattern.</p></li>
+<li><p><strong>pattern</strong> (<em>SubGraph</em>) – The computation subgraph being tiled.</p></li>
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing buffer information.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated pattern memory constraints with propagated I/O buffer strategy.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints">PatternMemoryConstraints</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This method ensures that border tensors (inputs/outputs of the pattern)
+maintain consistent memory allocation across all computation steps.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.assertLayerWiseTiling">
+<span class="sig-name descname"><span class="pre">assertLayerWiseTiling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Node</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.assertLayerWiseTiling" title="Link to this definition"></a></dt>
+<dd><p>Assert that the schedule uses layer-wise tiling (one node per pattern).</p>
+<p>Verifies that each pattern in the schedule contains exactly one node,
+which is required for certain memory allocation strategies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>schedule</strong> (<em>List</em><em>[</em><em>List</em><em>[</em><em>gs.Node</em><em>]</em><em>]</em>) – The execution schedule to validate.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if all patterns contain exactly one node, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Layer-wise tiling is required when using the MiniMalloc memory
+allocation strategy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.assertUniformMemoryLevelAllocation">
+<span class="sig-name descname"><span class="pre">assertUniformMemoryLevelAllocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctxt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><span class="pre">NetworkContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaultMemoryLevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.assertUniformMemoryLevelAllocation" title="Link to this definition"></a></dt>
+<dd><p>Assert that all local buffers are allocated to the default memory level.</p>
+<p>Verifies that all local buffers in the network context are assigned
+to the specified default memory level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctxt</strong> (<a class="reference internal" href="Deeploy.DeeployTypes.NetworkContext.html#Deeploy.DeeployTypes.NetworkContext" title="Deeploy.DeeployTypes.NetworkContext"><em>NetworkContext</em></a>) – Network context containing buffer information.</p></li>
+<li><p><strong>defaultMemoryLevel</strong> (<em>str</em>) – Name of the default memory level to check against.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if all local buffers use the default memory level, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Uniform memory level allocation is required when using the MiniMalloc
+memory allocation strategy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.testTilingSolutionCorrectness">
+<span class="sig-name descname"><span class="pre">testTilingSolutionCorrectness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tilingSolution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints.html#Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints" title="Deeploy.TilingExtension.MemoryConstraints.PatternMemoryConstraints"><span class="pre">PatternMemoryConstraints</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.testTilingSolutionCorrectness" title="Link to this definition"></a></dt>
+<dd><p>Test the correctness of a computed tiling solution.</p>
+<p>Validates that buffer sizes in the tiling solution are properly
+aligned according to memory alignment requirements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tilingSolution</strong> (<em>TilingSolution</em>) – The tiling solution to validate.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If any buffer is not properly aligned or if multi-buffer
+    coefficients are not integers.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Checks that all allocated buffers meet the byte alignment requirements
+specified in MemoryScheduler.byteAlignment.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Deeploy.TilingExtension.TilerExtension.Tiler.testMemoryMapCorrectness">
+<span class="sig-name descname"><span class="pre">testMemoryMapCorrectness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memoryMap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock.html#Deeploy.TilingExtension.MemoryScheduler.MemoryBlock" title="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock"><span class="pre">MemoryBlock</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schedule</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Node</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Node</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#Deeploy.TilingExtension.TilerExtension.Tiler.testMemoryMapCorrectness" title="Link to this definition"></a></dt>
+<dd><p>Test the correctness of a computed memory map.</p>
+<p>Validates that the memory map correctly represents buffer lifetimes
+and ensures all required buffers are alive when needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memoryMap</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>List</em><em>[</em><a class="reference internal" href="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock.html#Deeploy.TilingExtension.MemoryScheduler.MemoryBlock" title="Deeploy.TilingExtension.MemoryScheduler.MemoryBlock"><em>MemoryBlock</em></a><em>]</em><em>]</em><em>]</em>) – The memory map to validate.</p></li>
+<li><p><strong>graph</strong> (<em>gs.Graph</em>) – The computation graph.</p></li>
+<li><p><strong>schedule</strong> (<em>Schedule</em>) – The execution schedule.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If output buffers are not alive until the end, input buffers
+    are not alive at the beginning, or required buffers are not
+    alive during computation steps.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Performs comprehensive validation of buffer lifetimes to ensure
+the memory map is consistent with the computation requirements.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Deeploy.TilingExtension.TilerExtension.TilingReadyNodeBindings.html" class="btn btn-neutral float-left" title="Deeploy.TilingExtension.TilerExtension.TilingReadyNodeBindings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Deeploy.TilingExtension.TilerExtension.TilerDeployerWrapper.html" class="btn btn-neutral float-right" title="Deeploy.TilingExtension.TilerExtension.TilerDeployerWrapper" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: devel
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.1/index.html">v0.2.1</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

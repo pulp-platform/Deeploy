@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Parsers.SnitchRQGEMMParser
+=================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Parsers
+
+.. autoclass:: SnitchRQGEMMParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchRQGEMMParser.__init__
+      ~SnitchRQGEMMParser.parse
+      ~SnitchRQGEMMParser.parseInputs
+      ~SnitchRQGEMMParser.parseNode
+      ~SnitchRQGEMMParser.parseNodeCtxt
+      ~SnitchRQGEMMParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SnitchRQGEMMParser.operatorRepresentation
+   
+   

@@ -1,0 +1,39 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Snitch.Parsers.SnitchRMSNormParser
+==================================================
+
+.. currentmodule:: Deeploy.Targets.Snitch.Parsers
+
+.. autoclass:: SnitchRMSNormParser
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~SnitchRMSNormParser.__init__
+      ~SnitchRMSNormParser.parse
+      ~SnitchRMSNormParser.parseInputs
+      ~SnitchRMSNormParser.parseNode
+      ~SnitchRMSNormParser.parseNodeCtxt
+      ~SnitchRMSNormParser.parseOutputs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SnitchRMSNormParser.operatorRepresentation
+   
+   

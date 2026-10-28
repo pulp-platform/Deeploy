@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../_static/DeeployIconGreen.svg" rel="icon" type="image/svg+xml">
+    <link href="../_static/DeeployIconGreen-32x32.png" sizes="32x32" rel="icon" type="image/png">
+    <link href="../_static/DeeployIconGreen-64x64.png" sizes="64x64" rel="icon" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debugging &mdash; Deeploy 2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6fefd858"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Library Structure" href="../structure.html" />
+    <link rel="prev" title="Neural Network Deeployment on the PULP Platform" href="introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/DeeployBannerGreen-640x-320.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="overview.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Neural Network Deeployment on the PULP Platform</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Debugging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#printing-tensor-values">Printing Tensor Values</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#topology-pass">Topology Pass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#code-transformation">Code Transformation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Library Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Deeploy Release Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Deeploy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="overview.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Debugging</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/debugging.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="debugging">
+<h1>Debugging<a class="headerlink" href="#debugging" title="Link to this heading"></a></h1>
+<section id="printing-tensor-values">
+<h2>Printing Tensor Values<a class="headerlink" href="#printing-tensor-values" title="Link to this heading"></a></h2>
+<p>Deeploy provides two primary approaches for printing the input and output tensors of computational kernels:</p>
+<ol class="arabic simple">
+<li><p><strong>Topology Pass</strong>: This approach modifies the graph’s topology by inserting print nodes. These nodes can be added before or after a specified operator, which can be selected using a regular expression.</p></li>
+<li><p><strong>Code Transformation</strong>: This approach inserts code-level print statements to output tensor values at various stages of execution. Deeploy also offers memory-aware versions that allow printing values at specific memory levels (e.g., per tile).</p></li>
+</ol>
+<section id="topology-pass">
+<h3>Topology Pass<a class="headerlink" href="#topology-pass" title="Link to this heading"></a></h3>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">DebugPrint</span></code> topology pass modifies the graph by inserting print nodes either before or after specified operators. The target operator(s) can be selected using a regular expression pattern.</p>
+<p>To enable this, extend the optimization passes by adding <code class="xref py py-class docutils literal notranslate"><span class="pre">DebugPrintPass</span></code>. For example, to modify the <code class="docutils literal notranslate"><span class="pre">GenericOptimizer</span></code> in <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/Generic/Platform.py</span></code>, you can add:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">GenericOptimizer</span> <span class="o">=</span> <span class="n">TopologyOptimizer</span><span class="p">([</span>
+    <span class="c1"># ... existing passes ...</span>
+    <span class="n">DebugPrintPass</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*[Mm]at[Mm]ul.*&#39;</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;after&#39;</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Ensure that your platform provides a valid implementation and mapping for the ``DebugPrint`` node.</strong></p>
+</section>
+<section id="code-transformation">
+<h3>Code Transformation<a class="headerlink" href="#code-transformation" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="../_autosummary/Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.PrintInputGeneration.html#Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.PrintInputGeneration" title="Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.PrintInputGeneration"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrintInputGeneration</span></code></a> and <a class="reference internal" href="../_autosummary/Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.PrintOutputGeneration.html#Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.PrintOutputGeneration" title="Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.PrintOutputGeneration"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrintOutputGeneration</span></code></a> code transformations offer a flexible way to insert print statements directly into the generated code. These transformations allow you to log tensor values at any point during execution, making them useful for in-depth debugging.
+For cases where memory layout is important—such as debugging tiled execution—Deeploy also provides memory-aware variants: <a class="reference internal" href="../_autosummary/Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.MemoryAwarePrintInputGeneration.html#Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.MemoryAwarePrintInputGeneration" title="Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.MemoryAwarePrintInputGeneration"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryAwarePrintInputGeneration</span></code></a> and <a class="reference internal" href="../_autosummary/Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.MemoryAwarePrintOutputGeneration.html#Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.MemoryAwarePrintOutputGeneration" title="Deeploy.CommonExtensions.CodeTransformationPasses.PrintInputs.MemoryAwarePrintOutputGeneration"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryAwarePrintOutputGeneration</span></code></a>.</p>
+<p>To use these transformations, add them to the code transformation pipeline in your target bindings. For example, you can extend the <code class="docutils literal notranslate"><span class="pre">BasicTransformer</span></code> in <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/Generic/Bindings.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">BasicTransformer</span> <span class="o">=</span> <span class="n">CodeTransformation</span><span class="p">([</span>
+    <span class="c1"># ... existing passes ...</span>
+    <span class="n">PrintInputGeneration</span><span class="p">(),</span>
+    <span class="n">PrintOutputGeneration</span><span class="p">()</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>For memory-aware platforms, use the memory-aware transformations instead. For example, extend <code class="docutils literal notranslate"><span class="pre">ForkTransformer</span></code> in <code class="docutils literal notranslate"><span class="pre">Deeploy/Targets/PULPOpen/Platform.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ForkTransformer</span> <span class="o">=</span> <span class="n">CodeTransformation</span><span class="p">([</span>
+    <span class="c1"># ... existing passes ...</span>
+    <span class="n">MemoryAwarePrintInputGeneration</span><span class="p">(</span><span class="s2">&quot;L1&quot;</span><span class="p">),</span>
+    <span class="n">MemoryAwarePrintOutputGeneration</span><span class="p">(</span><span class="s2">&quot;L1&quot;</span><span class="p">)</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>To apply these code transformations across all bindings, refer to the test implementation in <code class="docutils literal notranslate"><span class="pre">DeeployTest/testPrintInputOutputTransformation.py</span></code>.</p>
+<p>The output of the print statements will be directed to the standard output stream.
+.. code-block:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Add_0</span> <span class="n">DeeployNetwork_input_0</span><span class="p">:</span> <span class="n">int8_t</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="mh">0x2062b0</span>
+<span class="p">[[[[</span> <span class="o">-</span><span class="mi">63</span><span class="p">,</span> <span class="o">-</span><span class="mi">76</span><span class="p">,</span><span class="o">-</span><span class="mi">116</span><span class="p">,</span> <span class="o">-</span><span class="mi">22</span><span class="p">,</span> <span class="o">-</span><span class="mi">35</span><span class="p">,],</span>
+<span class="p">[</span><span class="o">-</span><span class="mi">105</span><span class="p">,</span> <span class="o">-</span><span class="mi">69</span><span class="p">,</span> <span class="o">-</span><span class="mi">51</span><span class="p">,</span> <span class="o">-</span><span class="mi">95</span><span class="p">,</span> <span class="o">-</span><span class="mi">69</span><span class="p">,],</span>
+<span class="p">[</span><span class="o">-</span><span class="mi">104</span><span class="p">,</span>  <span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">37</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="p">,</span> <span class="o">-</span><span class="mi">63</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">32</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span>  <span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="o">-</span><span class="mi">29</span><span class="p">,</span> <span class="o">-</span><span class="mi">15</span><span class="p">,],</span>
+<span class="p">[</span><span class="o">-</span><span class="mi">111</span><span class="p">,</span> <span class="o">-</span><span class="mi">18</span><span class="p">,</span><span class="o">-</span><span class="mi">120</span><span class="p">,</span><span class="o">-</span><span class="mi">106</span><span class="p">,</span> <span class="o">-</span><span class="mi">50</span><span class="p">,],</span>
+<span class="p">],</span>
+<span class="p">[[</span> <span class="o">-</span><span class="mi">62</span><span class="p">,</span> <span class="o">-</span><span class="mi">22</span><span class="p">,</span> <span class="o">-</span><span class="mi">60</span><span class="p">,</span><span class="o">-</span><span class="mi">109</span><span class="p">,</span> <span class="o">-</span><span class="mi">13</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">78</span><span class="p">,</span> <span class="o">-</span><span class="mi">52</span><span class="p">,</span> <span class="o">-</span><span class="mi">42</span><span class="p">,</span><span class="o">-</span><span class="mi">104</span><span class="p">,</span><span class="o">-</span><span class="mi">100</span><span class="p">,],</span>
+<span class="p">[</span><span class="o">-</span><span class="mi">115</span><span class="p">,</span><span class="o">-</span><span class="mi">105</span><span class="p">,</span><span class="o">-</span><span class="mi">119</span><span class="p">,</span><span class="o">-</span><span class="mi">104</span><span class="p">,</span> <span class="o">-</span><span class="mi">62</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">57</span><span class="p">,</span> <span class="o">-</span><span class="mi">81</span><span class="p">,</span><span class="o">-</span><span class="mi">104</span><span class="p">,</span> <span class="o">-</span><span class="mi">39</span><span class="p">,</span> <span class="o">-</span><span class="mi">13</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">51</span><span class="p">,</span> <span class="o">-</span><span class="mi">47</span><span class="p">,</span> <span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="o">-</span><span class="mi">14</span><span class="p">,</span><span class="o">-</span><span class="mi">123</span><span class="p">,],</span>
+<span class="p">],</span>
+<span class="p">[[</span><span class="o">-</span><span class="mi">111</span><span class="p">,</span> <span class="o">-</span><span class="mi">92</span><span class="p">,</span> <span class="o">-</span><span class="mi">91</span><span class="p">,</span> <span class="o">-</span><span class="mi">84</span><span class="p">,</span><span class="o">-</span><span class="mi">121</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">41</span><span class="p">,</span><span class="o">-</span><span class="mi">118</span><span class="p">,</span><span class="o">-</span><span class="mi">128</span><span class="p">,</span><span class="o">-</span><span class="mi">109</span><span class="p">,</span>  <span class="o">-</span><span class="mi">7</span><span class="p">,],</span>
+<span class="p">[</span><span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="o">-</span><span class="mi">66</span><span class="p">,</span>  <span class="o">-</span><span class="mi">9</span><span class="p">,</span> <span class="o">-</span><span class="mi">66</span><span class="p">,</span> <span class="o">-</span><span class="mi">55</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">96</span><span class="p">,</span> <span class="o">-</span><span class="mi">34</span><span class="p">,</span> <span class="o">-</span><span class="mi">47</span><span class="p">,</span><span class="o">-</span><span class="mi">105</span><span class="p">,</span> <span class="o">-</span><span class="mi">91</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">94</span><span class="p">,</span><span class="o">-</span><span class="mi">106</span><span class="p">,</span>  <span class="o">-</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">121</span><span class="p">,</span> <span class="o">-</span><span class="mi">55</span><span class="p">,],</span>
+<span class="p">],</span>
+<span class="p">[[</span> <span class="o">-</span><span class="mi">15</span><span class="p">,</span> <span class="o">-</span><span class="mi">65</span><span class="p">,</span><span class="o">-</span><span class="mi">126</span><span class="p">,</span> <span class="o">-</span><span class="mi">11</span><span class="p">,</span><span class="o">-</span><span class="mi">101</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">85</span><span class="p">,</span>  <span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">98</span><span class="p">,</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span> <span class="o">-</span><span class="mi">84</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">55</span><span class="p">,</span>  <span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="o">-</span><span class="mi">53</span><span class="p">,</span> <span class="o">-</span><span class="mi">99</span><span class="p">,</span> <span class="o">-</span><span class="mi">79</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">72</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">103</span><span class="p">,</span> <span class="o">-</span><span class="mi">55</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">95</span><span class="p">,</span> <span class="o">-</span><span class="mi">48</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">78</span><span class="p">,</span> <span class="o">-</span><span class="mi">95</span><span class="p">,],</span>
+<span class="p">],</span>
+<span class="p">[[</span> <span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="o">-</span><span class="mi">40</span><span class="p">,</span> <span class="o">-</span><span class="mi">43</span><span class="p">,</span><span class="o">-</span><span class="mi">104</span><span class="p">,</span> <span class="o">-</span><span class="mi">78</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">33</span><span class="p">,</span><span class="o">-</span><span class="mi">102</span><span class="p">,</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span><span class="o">-</span><span class="mi">110</span><span class="p">,</span> <span class="o">-</span><span class="mi">40</span><span class="p">,],</span>
+<span class="p">[</span><span class="o">-</span><span class="mi">128</span><span class="p">,</span> <span class="o">-</span><span class="mi">24</span><span class="p">,</span> <span class="o">-</span><span class="mi">68</span><span class="p">,</span> <span class="o">-</span><span class="mi">70</span><span class="p">,</span><span class="o">-</span><span class="mi">113</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">73</span><span class="p">,</span><span class="o">-</span><span class="mi">123</span><span class="p">,</span><span class="o">-</span><span class="mi">114</span><span class="p">,</span> <span class="o">-</span><span class="mi">51</span><span class="p">,</span>  <span class="o">-</span><span class="mi">3</span><span class="p">,],</span>
+<span class="p">[</span> <span class="o">-</span><span class="mi">69</span><span class="p">,</span> <span class="o">-</span><span class="mi">68</span><span class="p">,</span> <span class="o">-</span><span class="mi">66</span><span class="p">,</span> <span class="o">-</span><span class="mi">26</span><span class="p">,</span><span class="o">-</span><span class="mi">124</span><span class="p">,],</span>
+<span class="p">],</span>
+<span class="p">],</span>
+<span class="p">],</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="introduction.html" class="btn btn-neutral float-left" title="Neural Network Deeployment on the PULP Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../structure.html" class="btn btn-neutral float-right" title="Library Structure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Moritz Scherer, Philip Wiese, Luka Macan, Victor Jung.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!--
+SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    Version: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    
+    
+    <dl>
+      <dt>Versions</dt>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/index.html">main</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/branch/devel/index.html">devel</a></dd>
+      
+      <dd><a href="https://pulp-platform.github.io/Deeploy/tag/v0.2.0/index.html">v0.2.0</a></dd>
+      
+    </dl>
+    
+    <br>
+    </dl>
+  </div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

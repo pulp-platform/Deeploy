@@ -1,0 +1,62 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer.MemoryDeployerWrapper
+=======================================================================================
+
+.. currentmodule:: Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer
+
+.. autoclass:: MemoryDeployerWrapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~MemoryDeployerWrapper.__init__
+      ~MemoryDeployerWrapper.backEnd
+      ~MemoryDeployerWrapper.bind
+      ~MemoryDeployerWrapper.codeTransform
+      ~MemoryDeployerWrapper.exportDeeployState
+      ~MemoryDeployerWrapper.frontEnd
+      ~MemoryDeployerWrapper.generateBufferAllocationCode
+      ~MemoryDeployerWrapper.generateBufferDeAllocationCode
+      ~MemoryDeployerWrapper.generateBufferInitializationCode
+      ~MemoryDeployerWrapper.generateEngineInitializationCode
+      ~MemoryDeployerWrapper.generateFunction
+      ~MemoryDeployerWrapper.generateGlobalDefinitionCode
+      ~MemoryDeployerWrapper.generateIOBufferInitializationCode
+      ~MemoryDeployerWrapper.generateIncludeString
+      ~MemoryDeployerWrapper.generateInferenceCode
+      ~MemoryDeployerWrapper.generateInferenceInitializationCode
+      ~MemoryDeployerWrapper.getTargetMemoryLevelMapping
+      ~MemoryDeployerWrapper.importDeeployState
+      ~MemoryDeployerWrapper.inputs
+      ~MemoryDeployerWrapper.lower
+      ~MemoryDeployerWrapper.midEnd
+      ~MemoryDeployerWrapper.numberOfOps
+      ~MemoryDeployerWrapper.outputs
+      ~MemoryDeployerWrapper.parse
+      ~MemoryDeployerWrapper.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MemoryDeployerWrapper.bound
+      ~MemoryDeployerWrapper.parsed
+      ~MemoryDeployerWrapper.prepared
+      ~MemoryDeployerWrapper.transformed
+      ~MemoryDeployerWrapper.worstCaseBufferSize
+   
+   

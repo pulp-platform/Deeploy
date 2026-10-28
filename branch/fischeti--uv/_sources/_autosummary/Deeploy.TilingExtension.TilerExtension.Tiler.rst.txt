@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.TilingExtension.TilerExtension.Tiler
+============================================
+
+.. currentmodule:: Deeploy.TilingExtension.TilerExtension
+
+.. autoclass:: Tiler
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~Tiler.__init__
+      ~Tiler.annotateMemoryLevel
+      ~Tiler.assertLayerWiseTiling
+      ~Tiler.assertUniformMemoryLevelAllocation
+      ~Tiler.computeMemoryMap
+      ~Tiler.computeTilingSchedule
+      ~Tiler.minimalloc
+      ~Tiler.multiBufferStrategy
+      ~Tiler.plotMemoryAlloc
+      ~Tiler.propagateIOBufferStrategy
+      ~Tiler.setupModel
+      ~Tiler.testMemoryMapCorrectness
+      ~Tiler.testTilingSolutionCorrectness
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Tiler.arenaName
+      ~Tiler.worstCaseBufferSize
+   
+   

@@ -1,0 +1,47 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.Layers.ReduceMeanLayer
+==============================================
+
+.. currentmodule:: Deeploy.Targets.Generic.Layers
+
+.. autoclass:: ReduceMeanLayer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~ReduceMeanLayer.__init__
+      ~ReduceMeanLayer.bind
+      ~ReduceMeanLayer.broadcast
+      ~ReduceMeanLayer.codeTransform
+      ~ReduceMeanLayer.computeOps
+      ~ReduceMeanLayer.computeShapes
+      ~ReduceMeanLayer.discardCurrentMapper
+      ~ReduceMeanLayer.generate
+      ~ReduceMeanLayer.parse
+      ~ReduceMeanLayer.resetDiscardedMappers
+      ~ReduceMeanLayer.typeCheck
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ReduceMeanLayer.maps
+      ~ReduceMeanLayer.mapper
+      ~ReduceMeanLayer.discardedMappers
+      ~ReduceMeanLayer.node
+   
+   

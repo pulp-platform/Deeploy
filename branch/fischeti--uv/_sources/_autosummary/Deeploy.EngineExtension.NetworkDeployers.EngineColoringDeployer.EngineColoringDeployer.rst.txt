@@ -1,0 +1,57 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.EngineExtension.NetworkDeployers.EngineColoringDeployer.EngineColoringDeployer
+======================================================================================
+
+.. currentmodule:: Deeploy.EngineExtension.NetworkDeployers.EngineColoringDeployer
+
+.. autoclass:: EngineColoringDeployer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~EngineColoringDeployer.__init__
+      ~EngineColoringDeployer.backEnd
+      ~EngineColoringDeployer.bind
+      ~EngineColoringDeployer.codeTransform
+      ~EngineColoringDeployer.exportDeeployState
+      ~EngineColoringDeployer.frontEnd
+      ~EngineColoringDeployer.generateBufferAllocationCode
+      ~EngineColoringDeployer.generateBufferDeAllocationCode
+      ~EngineColoringDeployer.generateBufferInitializationCode
+      ~EngineColoringDeployer.generateEngineInitializationCode
+      ~EngineColoringDeployer.generateFunction
+      ~EngineColoringDeployer.generateGlobalDefinitionCode
+      ~EngineColoringDeployer.generateIOBufferInitializationCode
+      ~EngineColoringDeployer.generateIncludeString
+      ~EngineColoringDeployer.generateInferenceCode
+      ~EngineColoringDeployer.generateInferenceInitializationCode
+      ~EngineColoringDeployer.importDeeployState
+      ~EngineColoringDeployer.inputs
+      ~EngineColoringDeployer.lower
+      ~EngineColoringDeployer.midEnd
+      ~EngineColoringDeployer.numberOfOps
+      ~EngineColoringDeployer.outputs
+      ~EngineColoringDeployer.parse
+      ~EngineColoringDeployer.prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~EngineColoringDeployer.worstCaseBufferSize
+   
+   

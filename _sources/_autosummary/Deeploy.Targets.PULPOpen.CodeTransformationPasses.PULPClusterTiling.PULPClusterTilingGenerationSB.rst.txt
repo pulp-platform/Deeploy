@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling.PULPClusterTilingGenerationSB
+=================================================================================================
+
+.. currentmodule:: Deeploy.Targets.PULPOpen.CodeTransformationPasses.PULPClusterTiling
+
+.. autoclass:: PULPClusterTilingGenerationSB
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~PULPClusterTilingGenerationSB.__init__
+      ~PULPClusterTilingGenerationSB.apply
+      ~PULPClusterTilingGenerationSB.dereferenceVars
+      ~PULPClusterTilingGenerationSB.extractDynamicReferences
+      ~PULPClusterTilingGenerationSB.generateAllTilingCode
+      ~PULPClusterTilingGenerationSB.generateLoopCode
+      ~PULPClusterTilingGenerationSB.generateSetupAndTeardownCode
+      ~PULPClusterTilingGenerationSB.generateTilingLoop
+      ~PULPClusterTilingGenerationSB.indexVars
+      ~PULPClusterTilingGenerationSB.isFinalMemoryLevel
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PULPClusterTilingGenerationSB.parseTreeDict
+      ~PULPClusterTilingGenerationSB.prefix
+   
+   

@@ -1,0 +1,44 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.CommonExtensions.DataTypes.int8\_t
+==========================================
+
+.. currentmodule:: Deeploy.CommonExtensions.DataTypes
+
+.. autoclass:: int8_t
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~int8_t.__init__
+      ~int8_t.checkPromotion
+      ~int8_t.checkValue
+      ~int8_t.fitsNumLevels
+      ~int8_t.partialOrderUpcast
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~int8_t.value
+      ~int8_t.nLevels
+      ~int8_t.signed
+      ~int8_t.typeMax
+      ~int8_t.typeMin
+      ~int8_t.typeName
+      ~int8_t.typeWidth
+   
+   

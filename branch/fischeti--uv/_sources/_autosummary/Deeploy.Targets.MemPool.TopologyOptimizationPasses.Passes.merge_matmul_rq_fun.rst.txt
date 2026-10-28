@@ -1,0 +1,6 @@
+Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes.merge\_matmul\_rq\_fun
+================================================================================
+
+.. currentmodule:: Deeploy.Targets.MemPool.TopologyOptimizationPasses.Passes
+
+.. autofunction:: merge_matmul_rq_fun

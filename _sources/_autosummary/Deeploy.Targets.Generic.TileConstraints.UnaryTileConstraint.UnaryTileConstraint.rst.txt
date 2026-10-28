@@ -1,0 +1,36 @@
+.. SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
+..
+.. SPDX-License-Identifier: Apache-2.0
+
+Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint.UnaryTileConstraint
+===============================================================================
+
+.. currentmodule:: Deeploy.Targets.Generic.TileConstraints.UnaryTileConstraint
+
+.. autoclass:: UnaryTileConstraint
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   
+   .. rubric:: Methods
+   .. automethod:: __init__
+
+   .. autosummary::
+   
+      ~UnaryTileConstraint.__init__
+      ~UnaryTileConstraint.addGeometricalConstraint
+      ~UnaryTileConstraint.addPolicyConstraint
+      ~UnaryTileConstraint.constructSymbolicNodeRep
+      ~UnaryTileConstraint.extractBaseAddr
+      ~UnaryTileConstraint.getBaseAddr
+      ~UnaryTileConstraint.sanitizeTilingSchedule
+      ~UnaryTileConstraint.serializeTilingSolution
+      ~UnaryTileConstraint.wrapTilingSolution
+   
+   
+
+   
+   
+   
