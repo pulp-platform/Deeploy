@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: _runner-xheep
+
+"on":
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      docker-image:
+        required: true
+        type: string
+      pytest-marker:
+        required: true
+        type: string
+
+jobs:
+  test-runner-xheep:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ inputs.docker-image }}
+    steps:
+      - name: Mark workspace as safe
+        run: git config --global --add safe.directory '*'
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout X-HEEP
+        uses: actions/checkout@v4
+        with:
+          repository: mohasnik/x-heep
+          ref: Deeploy-support
+          path: x-heep
+          submodules: recursive
+      - name: Link X-HEEP
+        shell: bash
+        run: |
+          rm -rf /app/x-heep
+          ln -s "$GITHUB_WORKSPACE/x-heep" /app/x-heep
+      - name: Build X-HEEP
+        shell: bash
+        run: |
+          cd /app/x-heep
+          make venv
+          make mcu-gen X_HEEP_CFG=configs/deeploy.py
+          make verilator-build
+      - name: Build Deeploy
+        shell: bash
+        run: |
+          pip install -e . || true
+      - name: Cache ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: /app/.ccache
+          key: ccache-xheep
+      - name: Run Test
+        run: |
+          cd DeeployTest
+          mkdir -p /app/.ccache
+          export CCACHE_DIR=/app/.ccache
+          pytest test_platforms.py -v -n 4 -m "xheep and ${{ inputs.pytest-marker }}"
+        shell: bash

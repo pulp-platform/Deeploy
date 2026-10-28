@@ -1,0 +1,118 @@
+# SPDX-FileCopyrightText: 2026 ETH Zurich and University of Bologna
+#
+# SPDX-License-Identifier: Apache-2.0
+
+ARG BASE_IMAGE=ghcr.io/pulp-platform/deeploy:main
+FROM ${BASE_IMAGE}
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV TZ=Etc/UTC
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV XHEEP_HOME=/app/x-heep
+
+ENV VERILATOR_VERSION=5.040
+ENV VERILATOR_INSTALL_DIR=/app/install/verilator/5.040
+ENV VERIBLE_VERSION=v0.0-4023-gc1271a00
+ENV VERIBLE_INSTALL_DIR=/app/install/verible/${VERIBLE_VERSION}
+ENV RISCV_XHEEP=/app/install/riscv
+ENV TOOLCHAIN_INSTALL_DIR=/app/install/riscv
+ENV XHEEP_COMPILER_PREFIX=riscv32-unknown-
+ENV COMPILER=gcc
+ENV COMPILER_PREFIX=riscv32-unknown-
+ENV PATH="${RISCV_XHEEP}/bin:${VERILATOR_INSTALL_DIR}/bin:${VERIBLE_INSTALL_DIR}/bin:${PATH}"
+ENV ARCH=rv32imc_zicsr
+
+
+WORKDIR /app/build
+
+
+RUN apt-get update && \
+    apt-get install -y \
+        autoconf \
+        automake \
+        autotools-dev \
+        bc \
+        bison \
+        build-essential \
+        ccache \
+        cmake \
+        curl \
+        file \
+        flex \
+        g++ \
+        gawk \
+        gperf \
+        git \
+        help2man \
+        libelf-dev \
+        libexpat-dev \
+        libglib2.0-dev \
+        libgmp-dev \
+        libgoogle-perftools-dev \
+        libmpc-dev \
+        libmpfr-dev \
+        libslirp-dev \
+        libtool \
+        make \
+        mold \
+        ninja-build \
+        numactl \
+        patchutils \
+        python3 \
+        python3-dev \
+        python3-pip \
+        python3-tomli \
+        python3.10-dev \
+        perl \
+        texinfo \
+        zlib1g-dev && \
+    git clone https://github.com/verilator/verilator.git verilator && \
+    cd verilator && \
+    git checkout v${VERILATOR_VERSION} && \
+    autoconf && \
+    ./configure --prefix=${VERILATOR_INSTALL_DIR} && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /app/build/verilator && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN wget -q \
+        https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz \
+        -O /tmp/verible.tar.gz && \
+    tar -xzf /tmp/verible.tar.gz -C /tmp && \
+    mkdir -p "${VERIBLE_INSTALL_DIR}" && \
+    mv /tmp/verible-${VERIBLE_VERSION}/* "${VERIBLE_INSTALL_DIR}/" && \
+    test -x "${VERIBLE_INSTALL_DIR}/bin/verible-verilog-format" && \
+    rm -rf /tmp/verible.tar.gz /tmp/verible-${VERIBLE_VERSION}
+
+RUN rm -rf "${RISCV_XHEEP}" && \
+    git clone https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain && \
+    cd /tmp/riscv-gnu-toolchain && \
+    git checkout 2023.01.03 && \
+    ./configure \
+        --prefix="${RISCV_XHEEP}" \
+        --with-abi=ilp32 \
+        --with-arch=rv32imc \
+        --with-cmodel=medlow && \
+    make -j1 && \
+    test -x "${RISCV_XHEEP}/bin/riscv32-unknown-elf-gcc" && \
+    test -x "${RISCV_XHEEP}/bin/riscv32-unknown-elf-g++" && \
+    rm -rf /tmp/riscv-gnu-toolchain
+
+# Install the LLVM version required by X-HEEP. Keep the GNU RISC-V tools above
+# for binutils and the target C library.
+RUN git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project && \
+    cd /tmp/llvm-project && \
+    git checkout llvmorg-19.1.4 && \
+    cmake -S llvm -B build -G Ninja \
+        -DLLVM_ENABLE_PROJECTS="clang;lld" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX="${RISCV_XHEEP}" \
+        -DLLVM_TARGETS_TO_BUILD="RISCV" && \
+    cmake --build build --target install && \
+    test -x "${RISCV_XHEEP}/bin/clang" && \
+    rm -rf /tmp/llvm-project
+
+WORKDIR /app/Deeploy
