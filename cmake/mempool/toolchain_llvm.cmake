@@ -19,10 +19,10 @@ if(xpulpimg)
   message(FATAL_ERROR "Xpulpimg extension is not supported for this compiler!")
 else()
     add_compile_options(
-        -march=rv32ima
+        -march=rv32ima_xmempool
     )
     add_link_options(
-        -march=rv32ima
+        -march=rv32ima_xmempool
     )
 endif()
 

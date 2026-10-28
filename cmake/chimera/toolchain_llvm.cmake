@@ -40,6 +40,9 @@ add_compile_options(
     -fno-common
     -fopenmp
     -ftls-model=local-exec
+    # chimera-sdk generic_runtime/src/stdio.c passes a char-returning putc to
+    # FDEV_SETUP_STREAM; an error since clang 16, keep it a warning until fixed
+    -Wno-error=incompatible-function-pointer-types
     -DNUM_CORES=${NUM_CORES}
     -isystem ${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/${ISA}/include
 )

@@ -27,4 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 
+// Memory island allocator, defined in chimera-sdk generic_runtime/src/alloc.c
+// (the SDK provides no header for it).
+void *memory_island_malloc(size_t size);
+void memory_island_free(void *ptr);
+
 #endif //__DEEPLOY_CHIMERA_MATH_HEADER_
