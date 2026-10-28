@@ -75,7 +75,7 @@ def create_test_config(
 
     # Always pass the DMA on PULPOpen so a cached PULP_DMA from a previous run cannot leak in
     if platform == "PULPOpen":
-        dma = dma or "mchan"
+        dma = dma or "idma"
         gen_args_list.append(f"--dma={dma}")
         cmake_args_list.append(f"PULP_DMA={dma.upper()}")
 
