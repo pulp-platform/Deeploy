@@ -17,7 +17,7 @@ name: CI • XHEEP
       docker_image_deeploy:
         description: "XHEEP Deeploy Docker Image to use"
         required: false
-        default: "ghcr.io/mohasnik/deeploy-xheep:x-heep-support"
+        default: "ghcr.io/pulp-platform/deeploy-xheep:devel"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,7 +27,7 @@ jobs:
   select-env:
     uses: ./.github/workflows/_select-env.yml
     with:
-      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/mohasnik/deeploy-xheep:x-heep-support' }}
+      docker_image_deeploy: ${{ github.event.inputs.docker_image_deeploy || 'ghcr.io/pulp-platform/deeploy-xheep:devel' }}
 
   xheep-kernels:
     needs: select-env
