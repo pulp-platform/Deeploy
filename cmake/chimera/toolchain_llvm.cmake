@@ -9,6 +9,7 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(LLVM_TAG llvm)
 
 set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}/clang)
+include(${CMAKE_CURRENT_LIST_DIR}/../clang_resource_dir.cmake)
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}/clang++)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}/clang)
 set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objcopy)
@@ -50,7 +51,7 @@ add_link_options(
     -nostartfiles
     -nostdlib
     -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/${ISA}/lib
-    -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/${ISA}
+    -L${CLANG_RESOURCE_DIR}/lib/baremetal/${ISA}
 )
 
 link_libraries(

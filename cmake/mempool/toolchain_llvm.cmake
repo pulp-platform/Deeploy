@@ -8,6 +8,7 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}/llvm-objcopy)
 set(CMAKE_OBJDUMP  ${TOOLCHAIN_PREFIX}/llvm-objdump)
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}/clang)
+include(${CMAKE_CURRENT_LIST_DIR}/../clang_resource_dir.cmake)
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}/clang++)
 set(CMAKE_AR ${TOOLCHAIN_PREFIX}/llvm-ar)
 set(SIZE ${TOOLCHAIN_PREFIX}/llvm-size)
@@ -76,7 +77,7 @@ add_link_options(
 
   -static
   -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32ima/lib
-  -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32ima/
+  -L${CLANG_RESOURCE_DIR}/lib/baremetal/rv32ima/
 )
 
 link_libraries(
