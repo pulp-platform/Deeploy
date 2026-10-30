@@ -6,12 +6,14 @@
 
 #include "DeeploySnitchMath.h"
 
-static uint32_t timer_init[NUM_CORES] __attribute__((section(".l1")));
-static uint32_t timer_end[NUM_CORES] __attribute__((section(".l1")));
-static uint32_t instr_init[NUM_CORES] __attribute__((section(".l1")));
-static uint32_t instr_end[NUM_CORES] __attribute__((section(".l1")));
+// No section attribute: the Snitch linker script has no .l1 output section, so
+// the linker would place these as an orphan section, possibly on the L3 heap.
+static uint32_t timer_init[NUM_CORES];
+static uint32_t timer_end[NUM_CORES];
+static uint32_t instr_init[NUM_CORES];
+static uint32_t instr_end[NUM_CORES];
 
-static uint32_t running[NUM_CORES] __attribute__((section(".l1")));
+static uint32_t running[NUM_CORES];
 
 void ResetTimer() {
   snrt_reset_perf_counter(SNRT_PERF_CNT0);

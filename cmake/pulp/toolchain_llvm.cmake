@@ -53,6 +53,7 @@ add_link_options(
   -target riscv32-unknown-elf
   -MP
   -nostartfiles
+  -nodefaultlibs
   -march=${ISA}
   -mabi=${ABI}
   -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/${LIBC_ISA}/lib
@@ -62,8 +63,12 @@ add_link_options(
   -fno-builtin-memset
 )
 
+# clang >= 19 links compiler-rt by an absolute per-target path that ignores -L,
+# so link it explicitly to select the ISA-specific build.
 link_libraries(
   -lm
+  -lc
+  -lclang_rt.builtins-riscv32
 )
 
 add_compile_definitions(__LINK_LD)

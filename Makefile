@@ -13,7 +13,7 @@ TOOLCHAIN_DIR         := ${ROOT_DIR}/toolchain
 LLVM_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/llvm
 # clang resource directory, where compiler-rt is installed. Must match
 # `clang -print-resource-dir` of the LLVM version above (clang >= 16: major only).
-LLVM_CLANG_RT_DIR ?= ${LLVM_INSTALL_DIR}/lib/clang/18
+LLVM_CLANG_RT_DIR ?= ${LLVM_INSTALL_DIR}/lib/clang/20
 LLVM_CLANG_RT_ARM             ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/libclang_rt.builtins-armv7m.a
 LLVM_CLANG_RT_RISCV_RV32IMAFD ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/rv32imafd/libclang_rt.builtins-riscv32.a
 LLVM_CLANG_RT_RISCV_RV32IMC   ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/rv32imc/libclang_rt.builtins-riscv32.a
@@ -47,7 +47,8 @@ GAP9_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gap9-sdk
 
 CMAKE ?= cmake
 
-LLVM_COMMIT_HASH ?= 6547028f925c4f27f5ff2ae40c3e901bacf886e4
+LLVM_REPO ?= https://github.com/albsposito/llvm-project.git
+LLVM_COMMIT_HASH ?= 2dcfd2de54d93d239bde88dd0a57fce15396810e
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
 PULP_SDK_COMMIT_HASH ?= 894a13eb62eaa8d00c9f7c39d1d8ff98d9c03211
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
@@ -118,11 +119,10 @@ ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
 	git init llvm-project && \
 	cd ${TOOLCHAIN_DIR}/llvm-project && \
-	git remote add origin https://github.com/pulp-platform/llvm-project.git && \
+	git remote add origin ${LLVM_REPO} && \
 	git fetch --depth=1 origin ${LLVM_COMMIT_HASH} && \
 	git checkout ${LLVM_COMMIT_HASH} && \
-	git submodule update --init --recursive && \
-	git apply ${TOOLCHAIN_DIR}/pulp-llvm-crash-fixes.patch
+	git submodule update --init --recursive
 
 ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 	cd ${TOOLCHAIN_DIR}/llvm-project && \

@@ -16,9 +16,9 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Conv/DW_2D_Bias": [7200],
     "Kernels/FP32/Conv/DW_2D_NoBias": [7200],
     "Kernels/FP32/Conv/DW_2D_ZeroValuedBias": [7200],
-    # "Kernels/FP32/Conv/Regular_2D_Bias": [6600],  # LLVM HW-loop bug
-    # "Kernels/FP32/Conv/Regular_2D_NoBias": [1600],  # LLVM HW-loop bug
-    # "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [6600],  # LLVM HW-loop bug
+    "Kernels/FP32/Conv/Regular_2D_Bias": [6600],
+    "Kernels/FP32/Conv/Regular_2D_NoBias": [1600],
+    "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [6600],
     "Kernels/FP32/GEMM/Regular": [8000],
     "Kernels/FP32/MatMul": [2000],
     "Kernels/FP32/MaxPool/Regular_2D": [2000],
@@ -63,9 +63,9 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/FP32/Conv/DW_2D_Bias": [10000],
     "Kernels/FP32/Conv/DW_2D_NoBias": [9800],
     "Kernels/FP32/Conv/DW_2D_ZeroValuedBias": [9800],
-    # "Kernels/FP32/Conv/Regular_2D_Bias": [8800],  # LLVM HW-loop bug
-    # "Kernels/FP32/Conv/Regular_2D_NoBias": [2000],  # LLVM HW-loop bug
-    # "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [8800],  # LLVM HW-loop bug
+    "Kernels/FP32/Conv/Regular_2D_Bias": [8800],
+    "Kernels/FP32/Conv/Regular_2D_NoBias": [2000],
+    "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [8800],
     "Kernels/FP32/GEMM/Regular": [8000],
     "Kernels/FP32/MatMul": [5000],
     "Kernels/FP32/MaxPool/Regular_2D": [5000],
@@ -113,7 +113,7 @@ L2_SINGLEBUFFER_MODELS = {
     "Models/MLPerf/ImageClassification": [64000],
     "Models/MLPerf/AnomalyDetection": [64000],
     "Models/MLPerf/VisualWakeWords": [64000],
-    # "Models/CCT/FP32/CCT_1_16_16_8": [64000], # LLVM HW-loop bug
+    "Models/CCT/FP32/CCT_1_16_16_8": [64000],
     "Models/TinyViT/Demo": [4000],
 }
 
@@ -129,7 +129,7 @@ L2_DOUBLEBUFFER_MODELS = {
     "Models/MLPerf/ImageClassification": [128000],
     "Models/MLPerf/AnomalyDetection": [128000],
     "Models/MLPerf/VisualWakeWords": [128000],
-    # "Models/CCT/FP32/CCT_1_16_16_8": [128000], # LLVM HW-loop bug
+    "Models/CCT/FP32/CCT_1_16_16_8": [128000],
     "Models/TinyViT/Demo": [8000],
 }
 

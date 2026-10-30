@@ -32,8 +32,13 @@ add_compile_options(
   -mabi=ilp32
   -mcmodel=medany
   -mcpu=mempool-rv32
-  -mllvm
-  -misched-topdown
+  # LLVM 19 replaced -misched-topdown with -misched-prera-direction=topdown
+  "SHELL:-mllvm $<IF:$<VERSION_LESS:$<C_COMPILER_VERSION>,19>,-misched-topdown,-misched-prera-direction=topdown>"
+  # Banshee corrupts the trailing bytes of an ELF load segment whose size is not
+  # a multiple of 4. GlobalMerge (on for RISC-V in recent LLVM) reorders the
+  # static .l2 constants, which can leave an odd-sized int8 tensor at the end of
+  # the last segment (e.g. Kernels/Integer/Conv/DW_2D_RQ). Keep source order.
+  "SHELL:-mllvm -enable-global-merge=false"
 
   -std=gnu99
 
@@ -76,12 +81,19 @@ add_link_options(
   -Wextra
 
   -static
+  # startup code comes from the MemPool runtime; clang >= 20 would add crt0.o
+  -nostartfiles
+  -nodefaultlibs
   -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32ima/lib
   -L${CLANG_RESOURCE_DIR}/lib/baremetal/rv32ima/
 )
 
+# clang >= 19 links compiler-rt by an absolute per-target path that ignores -L,
+# so link it explicitly to select the ISA-specific build.
 link_libraries(
   -lm
+  -lc
+  -lclang_rt.builtins-riscv32
 )
 
 add_compile_definitions(__LINK_LD)

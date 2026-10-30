@@ -16,9 +16,9 @@ KERNEL_TESTS = [
     "Kernels/FP32/Conv/DW_2D_Bias",
     "Kernels/FP32/Conv/DW_2D_NoBias",
     "Kernels/FP32/Conv/DW_2D_ZeroValuedBias",
-    # "Kernels/FP32/Conv/Regular_2D_Bias",  # LLVM HW-loop bug
-    # "Kernels/FP32/Conv/Regular_2D_NoBias",  # LLVM HW-loop bug
-    # "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias",  # LLVM HW-loop bug
+    "Kernels/FP32/Conv/Regular_2D_Bias",
+    "Kernels/FP32/Conv/Regular_2D_NoBias",
+    "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias",
     "Kernels/FP32/GEMM/Regular",
     "Kernels/FP32/MatMul",
     "Kernels/FP32/MaxPool/Regular_2D",
@@ -68,7 +68,7 @@ KERNEL_TESTS = [
 
 MODEL_TESTS = [
     "Kernels/Integer/Attention",
-    # "Models/CCT/FP32/CCT_1_16_16_8",  # LLVM HW-loop bug
+    "Models/CCT/FP32/CCT_1_16_16_8",
     # "Models/CCT/FP32/CCT_2_32_32_128_Opset20",
     "Models/miniMobileNet",
     "Models/miniMobileNetv2",
