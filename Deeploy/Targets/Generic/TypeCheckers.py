@@ -643,3 +643,12 @@ class RMSNormChecker(SignPropTypeChecker):
             return [True]
         else:
             return [False]
+
+
+class FloatConcatChecker(SignPropTypeChecker):
+
+    def _inferNumLevels(self, inputs, operatorRepresentation):
+        return None
+
+    def _inferSignedness(self, inputs, operatorRepresentation):
+        return None

@@ -16,6 +16,19 @@ macro(add_deeploy_executable name)
         TARGET ${name}
         POST_BUILD
         COMMAND ${CMAKE_OBJDUMP} -dhS $<TARGET_FILE:${name}> > $<TARGET_FILE:${name}>.s)
+    if(DEEPLOY_ARCH STREQUAL XHEEP)
+        if(XHEEP_LINKER STREQUAL flash_load OR XHEEP_LINKER STREQUAL flash_exec)
+            add_custom_command(
+                TARGET ${name}
+                POST_BUILD
+                COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 $<TARGET_FILE:${name}> $<TARGET_FILE_DIR:${name}>/${name}.hex)
+        else()
+            add_custom_command(
+                TARGET ${name}
+                POST_BUILD
+                COMMAND ${CMAKE_OBJCOPY} -O verilog $<TARGET_FILE:${name}> $<TARGET_FILE_DIR:${name}>/${name}.hex)
+        endif()
+    endif()
 endmacro()
 
 macro(link_compile_dump name)

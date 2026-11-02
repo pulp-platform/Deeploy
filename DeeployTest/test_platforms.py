@@ -44,6 +44,7 @@ from test_softhier_config import DEFAULT_NUM_CLUSTERS as SOFTHIER_DEFAULT_NUM_CL
 from test_softhier_config import KERNEL_TESTS as SOFTHIER_KERNEL_TESTS
 from test_softhier_config import MODEL_TESTS as SOFTHIER_MODEL_TESTS
 from test_xdna2_config import KERNEL_TESTS as XDNA2_KERNEL_TESTS
+from test_xheep_config import KERNEL_TESTS as XHEEP_KERNEL_TESTS
 from testUtils.pytestRunner import create_test_config, run_and_assert_test
 
 
@@ -123,6 +124,11 @@ PLATFORM_CONFIGS = {
         "platform": "XDNA2",
         "simulator": "host",
         "kernel_tests": XDNA2_KERNEL_TESTS,
+    },
+    "xheep": {
+        "platform": "Xheep",
+        "simulator": "verilator",
+        "kernel_tests": XHEEP_KERNEL_TESTS,
     },
 }
 
@@ -1061,4 +1067,21 @@ def test_xdna2_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cm
         cmake_args = cmake_args,
         tiling = False,
     )
+    run_and_assert_test(test_name, config, skipgen, skipsim)
+
+
+@pytest.mark.xheep
+@pytest.mark.kernels
+@pytest.mark.parametrize("test_name", XHEEP_KERNEL_TESTS, ids = XHEEP_KERNEL_TESTS)
+def test_xheep_kernels(test_name, deeploy_test_dir, toolchain, toolchain_dir, cmake_args, skipgen, skipsim) -> None:
+    platform_config = PLATFORM_CONFIGS["xheep"]
+
+    config = create_test_config(test_name = test_name,
+                                platform = platform_config["platform"],
+                                simulator = platform_config["simulator"],
+                                deeploy_test_dir = deeploy_test_dir,
+                                toolchain = toolchain,
+                                toolchain_dir = "/app/install/riscv",
+                                cmake_args = cmake_args,
+                                tiling = False)
     run_and_assert_test(test_name, config, skipgen, skipsim)

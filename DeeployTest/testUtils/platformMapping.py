@@ -29,8 +29,9 @@ from Deeploy.Targets.Snitch.Deployer import SnitchDeployer
 from Deeploy.Targets.Snitch.Platform import SnitchOptimizer, SnitchPlatform
 from Deeploy.Targets.SoftHier.Deployer import SoftHierDeployer
 from Deeploy.Targets.SoftHier.Platform import SoftHierOptimizer, SoftHierPlatform
+from Deeploy.Targets.xheep.Platform import XHeepPlatform
 
-_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier"]
+_SIGNPROP_PLATFORMS = ["Apollo3", "Apollo4", "QEMU-ARM", "Generic", "MemPool", "SoftHier", "Xheep"]
 _NONSIGNPROP_PLATFORMS = ["Siracusa", "Siracusa_w_neureka", "PULPOpen", "Snitch", "Chimera", "GAP9", "XDNA2"]
 _PLATFORMS = _SIGNPROP_PLATFORMS + _NONSIGNPROP_PLATFORMS
 
@@ -79,6 +80,9 @@ def mapPlatform(platformName: str) -> Tuple[DeploymentPlatform, bool]:
     elif platformName == "XDNA2":
         from Deeploy.Targets.XDNA2.Platform import XDNA2Platform
         Platform = XDNA2Platform()
+
+    elif platformName == "Xheep":
+        Platform = XHeepPlatform()
 
     else:
         raise RuntimeError(f"Deployment platform {platformName} is not implemented")
@@ -173,10 +177,7 @@ def mapDeployer(platform: DeploymentPlatform,
                                     deeployStateDir = deeployStateDir,
                                     inputOffsets = inputOffsets)
 
-    elif isinstance(platform, GenericPlatform):
-        # WIESEP: CMSIS performs add-multiply-divide and we normally do multiply-add-divide
-        #         Because these deployer were fine-tuned with a add-multiply-divide aware deployer can emulate this
-        #         behavior with the EmulateCMSISRequantPass
+    elif isinstance(platform, (GenericPlatform)):
 
         if loweringOptimizer is None:
             loweringOptimizer = GenericOptimizer

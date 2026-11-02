@@ -205,6 +205,7 @@ GenericOptimizer = TopologyOptimizer(
         ExtractPaddingFromPoolPass(),
         RemoveEmptyConvBiasPass(),
         RemoveOnlySingletonReduceMeanPass(),
+
         # DebugPrintPass(r'.*[Mm]at[Mm]ul.*', position = 'after'),
     ],
     name = "GenericOptimizer")
