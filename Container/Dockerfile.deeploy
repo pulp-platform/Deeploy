@@ -28,6 +28,7 @@ COPY Makefile ./
 
 # Compile emulators
 # WIESEP: We need to already clean up some space, otherwise the GitHub runners run out of disk space
+# GVSoC pins markdown-it-py>=4, but no myst-parser for Python 3.10 (docs) supports it; 3.x works for GVSoC
 RUN --mount=type=cache,target=/ccache \
     ccache -z && \
     make pulp-sdk chimera-sdk qemu mempool banshee xtensor && \
@@ -36,6 +37,7 @@ RUN --mount=type=cache,target=/ccache \
     cp -r toolchain/gvsoc/gapy/requirements.txt /app/gapy-requirements.txt && \
     cp -r toolchain/gvsoc/gvrun/requirements.txt /app/gvrun-requirements.txt && \
     cp -r toolchain/gvsoc/config_tree/requirements.txt /app/config-tree-requirements.txt && \
+    sed -i 's/^markdown-it-py.*/markdown-it-py>=3.0/' /app/config-tree-requirements.txt && \
     rm -rf toolchain/pulp-sdk toolchain/qemu toolchain/mempool toolchain/banshee toolchain/xtensor toolchain/xtl toolchain/xsimd toolchain/gvsoc && \
     ccache -s
 
