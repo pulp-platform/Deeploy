@@ -235,6 +235,8 @@ class VariableBuffer():
 
     """
 
+    declarationTemplate = NodeTemplate("${type.typeName} ${name};\n")
+
     initTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's initialization code
     allocTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's allocation code
     deallocTemplate: NodeTemplate  #: NodeTemplate: Holds the buffer's deallocation code
@@ -262,6 +264,15 @@ class VariableBuffer():
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._instance, "name": self.name, "size": int(np.prod(self.shape))}
+
+    def declare(self) -> str:
+        """Return an extern declaration without an initializer for a variable or transient buffer.
+
+        Targets may override declarationTemplate to retain declaration attributes.
+        Constant and struct buffers are not exported by the network I/O header.
+        """
+        declaration = self.declarationTemplate.generate(self._bufferRepresentation())
+        return "extern " + declaration if declaration.strip() else ""
 
     def init(self) -> str:
         """Return a string representation of the C code to declare this memory buffer
@@ -488,6 +499,7 @@ class _ReferenceBuffer(VariableBuffer):
     """)
     deallocTemplate = NodeTemplate("")
     initTemplate = NodeTemplate("")
+    declarationTemplate = NodeTemplate("")
 
     def __init__(self,
                  name: str,
@@ -2908,9 +2920,7 @@ class NetworkContainer():
                 if node._deploy:
                     name = node.name
                     node.name = self.ctxt._mangle(node.name)
-                    initialization = node.init()
-                    declaration = initialization.split("=", 1)[0].rstrip() + ";\n"
-                    callStack += "extern " + declaration
+                    callStack += node.declare()
                     # SCHEREMO: Borderline hacky, but on the okay side of things, I think
                     callStack += "static const uint32_t " + node.name + "_len" + " = " + str(np.prod(node.shape)) + ";"
                     node.name = name

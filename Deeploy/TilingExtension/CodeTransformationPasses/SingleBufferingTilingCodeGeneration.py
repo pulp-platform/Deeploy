@@ -37,6 +37,14 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
             assert isinstance(externalBuffer, VariableBuffer)
             tensorMemoryConstraint = tensorMemoryConstraintDict[externalBuffer.name]
             externalBufferShape = tensorMemoryConstraint.memoryConstraints[self.externalMemory].shape
+            # Normalize scalar tensors for DMA transfers.
+            if len(externalBufferShape) == 0:
+                if not all(len(rect.offset) == 0 and len(rect.dims) == 0 for rect in rectangles):
+                    raise ValueError(f"Inconsistent scalar DMA transfer for {tensorName}: "
+                                     f"{rectangles}")
+
+                externalBufferShape = (1,)
+                rectangles = [HyperRectangle((0,), (1,)) for _ in rectangles]
             assert externalBufferShape is not None
 
             rectangles, externalBufferShape = self._legalizeTransfers(rectangles, tuple(externalBufferShape),
