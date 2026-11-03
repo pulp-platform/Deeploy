@@ -179,8 +179,11 @@ class TilingCodeGeneration(CodeTransformationPass, IntrospectiveCodeTransformati
     # with the `isFinalMemory` thing.
     def _legalizeTransfers(self, transfers: List[HyperRectangle], outerShape: Tuple[int, ...], typeWidth: int,
                            isFinalMemoryLevel: bool) -> Tuple[List[HyperRectangle], Tuple[int, ...]]:
+        # A scalar is one element, so DMA geometry must have at least one dimension.
+        if not outerShape and any(rect.offset or rect.dims for rect in transfers):
+            raise ValueError(f"Inconsistent scalar DMA transfer: {transfers}")
         transfersCommonRank = max(len(rect.dims) for rect in transfers)
-        commonRank = max(transfersCommonRank, len(outerShape))
+        commonRank = max(1, transfersCommonRank, len(outerShape))
         outerShape = padShape(outerShape, commonRank)
 
         minOuterShape = None

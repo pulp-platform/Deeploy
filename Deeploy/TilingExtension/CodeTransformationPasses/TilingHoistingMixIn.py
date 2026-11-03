@@ -154,9 +154,10 @@ class TilingHoistingMixIn:
 
         assert memoryConstraint.multiBufferCoefficient == 2, "Multi buffer coefficient has to be equal to 2 since this is for double buffering"
         assert memoryConstraint.shape is not None
-        assert len(memoryConstraint.shape) > 0
-        assert isinstance(memoryConstraint.shape[0], int)
-        tileLength = math.prod(memoryConstraint.shape)
+        # A scalar occupies one element in each of the two DMA buffers.
+        tileShape = memoryConstraint.shape if memoryConstraint.shape else (1,)
+        assert isinstance(tileShape[0], int)
+        tileLength = math.prod(tileShape)
         tileSize = int(math.ceil(tileLength * buffer._type.referencedType.typeWidth / 8))
 
         assert bufferSize >= tileSize, f"Provided buffer size is not enough to fit the tile. Buffer size: {bufferSize}, tile size: {tileSize}"
@@ -166,7 +167,7 @@ class TilingHoistingMixIn:
                 ctxt,
                 f"{tensorName}_buffer_{i}",
                 buffer,
-                memoryConstraint.shape,
+                tileShape,
                 offset = i * bufferSize,
                 override_type = VoidType,
             ) for i in range(memoryConstraint.multiBufferCoefficient)

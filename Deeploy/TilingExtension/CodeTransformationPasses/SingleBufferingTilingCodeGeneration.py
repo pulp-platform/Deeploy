@@ -13,7 +13,8 @@ from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import ProfilingPrototypeMixIn, \
     PrototypeTilingMixIn, TilingMetaInfo
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint, TensorMemoryConstraint
-from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule, VariableReplacementScheme
+from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule, VariableReplacementScheme, \
+    calculateFlatOffset, stridesFromShape
 
 
 class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
@@ -37,14 +38,6 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
             assert isinstance(externalBuffer, VariableBuffer)
             tensorMemoryConstraint = tensorMemoryConstraintDict[externalBuffer.name]
             externalBufferShape = tensorMemoryConstraint.memoryConstraints[self.externalMemory].shape
-            # Normalize scalar tensors for DMA transfers.
-            if len(externalBufferShape) == 0:
-                if not all(len(rect.offset) == 0 and len(rect.dims) == 0 for rect in rectangles):
-                    raise ValueError(f"Inconsistent scalar DMA transfer for {tensorName}: "
-                                     f"{rectangles}")
-
-                externalBufferShape = (1,)
-                rectangles = [HyperRectangle((0,), (1,)) for _ in rectangles]
             assert externalBufferShape is not None
 
             rectangles, externalBufferShape = self._legalizeTransfers(rectangles, tuple(externalBufferShape),
@@ -55,6 +48,8 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
                                                      externalBuffer.name + "_ref",
                                                      externalBuffer,
                                                      shape = externalBufferShape,
+                                                     offset = calculateFlatOffset(
+                                                         rectangles[0].offset, stridesFromShape(externalBufferShape)),
                                                      override_type = VoidType)
 
             future = self.dma.getFuture(tensorName, direction)
