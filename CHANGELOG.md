@@ -24,6 +24,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Add SoCDAML Part III: hands-on lab for adding a new int8 operator [#194](https://github.com/pulp-platform/Deeploy/pull/194)
 - Match GAP9 SDK MLPerf Tiny Performance with Specialised Depthwise and Pointwise Kernels [#206](https://github.com/pulp-platform/Deeploy/pull/206)
 - Add support for the X-HEEP platform [#200](https://github.com/pulp-platform/Deeploy/pull/200)
+- PULP-Open iDMA Support and Tests, and LLVM Update to Clang 20 [#216](https://github.com/pulp-platform/Deeploy/pull/216)
 
 ### Added
 - tests for Regular and DW Conv2D with 3x3 kernel
@@ -48,6 +49,10 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Specialised PULPOpen kernels for 3x3 depthwise (`PULPDWConv3x3.c`), 1x1 pointwise (`PULPPWConv1x1.c`) and a three-channel 3x3 stem (`PULPStemConv3x3.c`), with bindings and tile constraints for PULPOpen and GAP9
 - Lowering passes `PULPNCHWtoNHWCPwConvPass` and `PULPNCHWtoNHWCConvPass`, keeping a 1x1 convolution's output and a depthwise-feeding stem channels-first so the transposes at depthwise boundaries cancel
 - X-HEEP platform support, including compilation for FPGA targets and simulation with Verilator.
+- iDMA support for PULP-Open (`--dma {mchan,idma}`, default `idma`), with a CMake `PULP_DMA` check
+- PULP-Open test suite (`pulpopen` and `pulpopen_tiled` markers), including FP32 tests now that the toolchain supports `zfinx`
+- `cmake/clang_resource_dir.cmake` to locate compiler-rt without a hardcoded clang version
+- picolibc build for `rv32imc_zfinx`
 
 ### Changed
 - Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints
@@ -67,6 +72,12 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Aligned CLI commands across the project
 - Added @runwangdl as a code owner
 - Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
+- Move the PULP LLVM toolchain to clang 20.1.8 (`albsposito/llvm-project`, `port/20`), dropping the local crash-fix patch
+- Update GVSoC (with the `pulp-open` target) and the PULP SDK
+- LLVM toolchains link with `-nostartfiles -nodefaultlibs` and explicit `-lc -lclang_rt.builtins-riscv32`, as clang 20 adds `crt0.o` and links compiler-rt by absolute path
+- MemPool toolchain picks `-misched-topdown` or `-misched-prera-direction=topdown` depending on the LLVM version, and disables GlobalMerge to avoid Banshee corrupting unaligned ELF segment tails
+- PULP-Open compiles for `rv32imc_zfinx_xpulpv2` (hardware FP32 instead of soft-float)
+- Build LLVM with `-DLLVM_DISABLE_ASSEMBLY_FILES=ON` so ccache does not break the BLAKE3 assembly sources
 
 ### Fixed
 - Fix Neureka's output-channels subtile size (in ConvTemplate) and Dense/DW/PW tile constraints
@@ -86,6 +97,9 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
 - Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
 - Fix Deeploy 101 tutorial errors: `--profileTiling` usage and the moved intrinsics inventory path
+- Snitch `CycleCounter` no longer places its state in a `.l1` section, which lld put on top of the L3 heap
+- `ReshapeTemplate` alias assignment now runs on all cores instead of only under `SINGLE_CORE`, fixing undefined behaviour on the other cores
+- Relax GVSoC's `markdown-it-py>=4` pin to `>=3.0` in the container so it can be installed alongside `myst-parser` on Python 3.10
 
 ### Removed
 - removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.
