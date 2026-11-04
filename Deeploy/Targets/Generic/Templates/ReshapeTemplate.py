@@ -33,12 +33,8 @@ class _ReshapeTemplate(NodeTemplate):
         # Link aliases to each buffer
         bufferIn.aliases.add(bufferOut.name)
         bufferOut.aliases.add(bufferIn.name)
-
-        # Tiling still reads the legacy single-valued `_alias` attribute
-        # (TilerExtension / MemoryScheduler). Set it here so platforms that
-        # rely on Reshape pointer-passthrough during tiling don't each need
-        # to carry the same workaround in a subclass.
-        bufferOut._alias = bufferIn.name
+        # Directed storage parent for tiling / dealiasBuffer
+        bufferOut.alias_of.add(bufferIn.name)
 
         return ctxt, operatorRepresentation, []
 

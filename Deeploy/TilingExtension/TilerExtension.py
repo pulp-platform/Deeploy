@@ -296,7 +296,8 @@ class Tiler():
 
                     _buffer = ctxt.lookup(node.name)
                     # SCHEREMO: If alias buffers have zero cost, they don't contribute to the currentMax and their addrSpace is None
-                    if hasattr(_buffer, "_alias") and (ctxt.is_global(_buffer._alias) or _buffer._alias in blockNames):
+                    if _buffer.alias_of and (any(ctxt.is_global(a) for a in _buffer.alias_of)
+                                             or any(a in blockNames for a in _buffer.alias_of)):
                         continue
 
                     currentMax = max(currentMax, node._addrSpace[1])
@@ -333,15 +334,18 @@ class Tiler():
                     if _buffer._memoryLevel != memoryLevel:
                         continue
 
-                    if hasattr(_buffer, "_alias") and ctxt.is_global(_buffer._alias):
+                    if _buffer.alias_of and ctxt.is_global(ctxt.dealiasBuffer(tensorName)):
                         continue
 
-                    if hasattr(_buffer, "_alias") and _buffer._alias in blockNames:
+                    inPatternParents = [a for a in _buffer.alias_of if a in blockNames]
+                    if inPatternParents:
+                        roots = {ctxt.dealiasBuffer(p) for p in inPatternParents}
+                        assert len(roots) == 1, (f"Buffer {tensorName} has in-pattern alias parents with conflicting "
+                                                 f"storage roots {sorted(roots)}")
+                        parentName = sorted(inPatternParents)[0]
+                        aliasNodes = [node for node in nodeList if node.name == parentName]
 
-                        alias = ctxt.dealiasBuffer(tensorName)
-                        aliasNodes = [node for node in nodeList if node.name == alias]
-
-                        assert len(aliasNodes) == 1, f"alias {alias} references more than one node!"
+                        assert len(aliasNodes) == 1, f"alias {parentName} references more than one node!"
 
                         aliasNode = aliasNodes[0]
 

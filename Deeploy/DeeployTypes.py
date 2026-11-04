@@ -259,6 +259,9 @@ class VariableBuffer():
         self.is_output: bool = False
 
         self.aliases: Set[str] = set(aliases) if aliases is not None else set()
+        # Directed "I am an alias of these storage ancestors" (tiling / dealiasBuffer).
+        # Distinct from symmetric self.aliases used by has_live_aliases.
+        self.alias_of: Set[str] = set()
 
     def _bufferRepresentation(self) -> Dict:
         return {"type": self._instance, "name": self.name, "size": int(np.prod(self.shape))}
@@ -561,13 +564,23 @@ class NetworkContext():
             Raises an Exception if aliases are circular, i.e. there
             is no underlying VariableBuffer
         """
-        seenAliases: Set[str] = set()
-        alias = self.lookup(name)
-        while hasattr(alias, "_alias"):
-            seenAliases.add(alias.name)
-            alias = self.lookup(alias._alias)
-            assert alias.name not in seenAliases, "Circular aliasing detected!"
-        return alias.name
+
+        def _roots(bufName: str, seen: Set[str]) -> Set[str]:
+            buf = self.lookup(bufName)
+            assert isinstance(buf, VariableBuffer)
+            if not buf.alias_of:
+                return {buf.name}
+            assert buf.name not in seen, "Circular aliasing detected!"
+            nextSeen = seen | {buf.name}
+            roots: Set[str] = set()
+            for parentName in buf.alias_of:
+                roots |= _roots(parentName, nextSeen)
+            return roots
+
+        roots = _roots(name, set())
+        assert len(roots) == 1, (f"Buffer {name} aliases conflicting storage roots {sorted(roots)}; "
+                                 "all alias_of paths must resolve to one root")
+        return next(iter(roots))
 
     def unravelReference(self, ref: VariableBuffer) -> VariableBuffer:
         """Function to find the underlying referenced VariableBuffer

@@ -195,9 +195,7 @@ def validateDynamicMemoryLayoutSolution(ctxt: NetworkContext, tilingSchedule: Ti
                     _buffer = ctxt.lookup(block.name)
                     for other in otherBlocks:
                         _otherBuffer = ctxt.lookup(other.name)
-                        if (hasattr(_buffer, "_alias")
-                                and _buffer._alias == other.name) or (hasattr(_otherBuffer, "_alias")
-                                                                      and _otherBuffer._alias == block.name):
+                        if (other.name in _buffer.alias_of) or (block.name in _otherBuffer.alias_of):
                             collisions.append(False)
                             continue
 
