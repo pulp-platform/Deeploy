@@ -1324,8 +1324,6 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        _ = channels_first
-
         inputs = ['data_in', 'mul', 'add']
         outputs = ['data_out']
 
@@ -1340,10 +1338,24 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
 
         assert len(shape) >= 2, f"Unsupported shape length ({len(shape)}). Supported shape lengths greater then 2"
 
-        # Assumes shape [ Batch, Channels, ...]
+        # Non-uniform requantization parameters identify the channel axis. This
+        # is needed for graphs that mix NCHW convolution tensors with
+        # channels-last transformer tensors.
+        parameterSize = max(np.prod(ctxt.lookup(node.inputs[idx].name).shape) for idx in (1, 2))
+        if parameterSize > 1:
+            channelsFirstMatch = parameterSize == shape[1]
+            channelsLastMatch = parameterSize == shape[-1]
+            if channelsFirstMatch != channelsLastMatch:
+                channels_first = channelsFirstMatch
+        self.operatorRepresentation['channels_first'] = channels_first
+
         self.operatorRepresentation['batch'] = shape[0]
-        self.operatorRepresentation['channels'] = shape[1]
-        self.operatorRepresentation['channel_width'] = np.prod(shape[2:]) if len(shape) > 2 else 1
+        if channels_first:
+            self.operatorRepresentation['channels'] = shape[1]
+            self.operatorRepresentation['channel_width'] = np.prod(shape[2:]) if len(shape) > 2 else 1
+        else:
+            self.operatorRepresentation['channels'] = shape[-1]
+            self.operatorRepresentation['channel_width'] = np.prod(shape[1:-1]) if len(shape) > 2 else 1
         self.operatorRepresentation['size'] = np.prod(shape)
 
         return ctxt, True

@@ -165,9 +165,25 @@ class RequantShiftLayer(ONNXLayer):
     def computeShapes(self, inputShapes: List[Shape], outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
 
-        channel_dim = inputShapes[0][1]
-        inputShapes[2] = [inputShapes[0][0], channel_dim] + list(inputShapes[2][1:])
-        inputShapes[1] = [inputShapes[0][0], channel_dim] + list(inputShapes[1][1:])
+        parameterSize = max(np.prod(inputShapes[idx]) for idx in (1, 2))
+        if parameterSize > 1:
+            channelsFirstMatch = parameterSize == inputShapes[0][1]
+            channelsLastMatch = parameterSize == inputShapes[0][-1]
+            if channelsFirstMatch != channelsLastMatch:
+                channels_first = channelsFirstMatch
+        operatorRepresentation['channels_first'] = channels_first
+
+        if channels_first:
+            channel_dim = inputShapes[0][1]
+            inputShapes[2] = [inputShapes[0][0], channel_dim] + list(inputShapes[2][1:])
+            inputShapes[1] = [inputShapes[0][0], channel_dim] + list(inputShapes[1][1:])
+        else:
+            channel_dim = inputShapes[0][-1]
+            for idx in (1, 2):
+                if np.prod(inputShapes[idx]) == 1:
+                    inputShapes[idx] = [inputShapes[0][0], channel_dim]
+                else:
+                    inputShapes[idx] = [inputShapes[0][0]] + list(inputShapes[idx])
 
         return (inputShapes, outputShapes)
 
