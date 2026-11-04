@@ -35,7 +35,11 @@ class iDMA(AsyncDma):
         2:
             NodeTemplate("deeploy_idma_transfer_2d(${direction}, (unsigned int)${ext}, "
                          "(unsigned int)${loc}, ${length}, ${strideExt}, ${strideLoc}, "
-                         "${num_reps});")
+                         "${num_reps});"),
+        3:
+            NodeTemplate("deeploy_idma_transfer_3d(${direction}, (unsigned int)${ext}, "
+                         "(unsigned int)${loc}, ${length}, ${strideExt}, ${strideLoc}, "
+                         "${num_reps}, ${strideExt_3d}, ${strideLoc_3d}, ${num_reps_3d});")
     }
     _waitingStrategy = DirectionWaitingStrategy(iDMAChannelFuture, "channel_id")
 
@@ -59,13 +63,12 @@ class iDMA(AsyncDma):
     ) -> None:
 
         super().checkTransfer(ctxt, externalBuffer, localBuffer, shape, strideExt, strideLoc, direction)
-        assert len(shape) in (1, 2), "Only 1D and 2D transfers are supported for now"
-        # 1D is split at runtime; in 2D the row length is 16-bit:
-        if len(shape) == 2:
-            length = shape[1]
+        # 1D is split at runtime; in 2D/3D the row length is 16-bit (strides and reps are 32-bit)
+        if len(shape) >= 2:
+            length = shape[-1]
             assert length <= _MAX_LEN, (f"iDMA row length {length} exceeds the HAL's 16-bit limit ({_MAX_LEN})")
-            assert strideExt[0] >= length, "External stride must be at least equal to the length"
-            assert strideLoc[0] >= length, "Local stride must be at least equal to the length"
+            assert strideExt[-2] >= length, "External stride must be at least equal to the length"
+            assert strideLoc[-2] >= length, "Local stride must be at least equal to the length"
 
     def transferOpRepr(
         self,
@@ -82,9 +85,15 @@ class iDMA(AsyncDma):
 
         opRepr["direction"] = _DIR_EXT_TO_LOC if direction == "ExternalToLocal" else _DIR_LOC_TO_EXT
         opRepr["length"] = shape[-1]
-        if len(shape) == 2:
-            opRepr["strideExt"] = strideExt[0]
-            opRepr["strideLoc"] = strideLoc[0]
-            opRepr["num_reps"] = shape[0]
+        # 2nd dimension (rows): stride between rows and number of rows
+        if len(shape) >= 2:
+            opRepr["strideExt"] = strideExt[-2]
+            opRepr["strideLoc"] = strideLoc[-2]
+            opRepr["num_reps"] = shape[-2]
+        # 3rd dimension (planes): stride between planes and number of planes
+        if len(shape) == 3:
+            opRepr["strideExt_3d"] = strideExt[-3]
+            opRepr["strideLoc_3d"] = strideLoc[-3]
+            opRepr["num_reps_3d"] = shape[-3]
 
         return opRepr

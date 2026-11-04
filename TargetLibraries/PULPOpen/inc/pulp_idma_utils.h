@@ -59,6 +59,28 @@ static inline void deeploy_idma_transfer_2d(unsigned int direction,
   }
 }
 
+// Rows of `size` bytes, `num_reps` rows per plane, `num_reps_3d` planes.
+// stride_*_3d are plane-to-plane strides, but the iDMA (idma_nd_midend) adds
+// the 3D stride to the address of the last row of a plane, not to its start:
+// convert them. Unsigned wrap-around handles negative results.
+static inline void
+deeploy_idma_transfer_3d(unsigned int direction, unsigned int ext,
+                         unsigned int loc, unsigned short size,
+                         unsigned int stride_ext, unsigned int stride_loc,
+                         unsigned int num_reps, unsigned int stride_ext_3d,
+                         unsigned int stride_loc_3d, unsigned int num_reps_3d) {
+  unsigned int last_row = num_reps - 1;
+  stride_ext_3d -= last_row * stride_ext;
+  stride_loc_3d -= last_row * stride_loc;
+  if (direction == 1) {
+    pulp_cl_idma_L2ToL1_3d(ext, loc, size, stride_ext, stride_loc, num_reps,
+                           stride_ext_3d, stride_loc_3d, num_reps_3d);
+  } else {
+    pulp_cl_idma_L1ToL2_3d(loc, ext, size, stride_loc, stride_ext, num_reps,
+                           stride_loc_3d, stride_ext_3d, num_reps_3d);
+  }
+}
+
 static inline void deeploy_idma_wait_channel_id_input(void) {
   plp_cl_dma_barrier_toL1();
 }
