@@ -100,6 +100,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Snitch `CycleCounter` no longer places its state in a `.l1` section, which lld put on top of the L3 heap
 - `ReshapeTemplate` alias assignment now runs on all cores instead of only under `SINGLE_CORE`, fixing undefined behaviour on the other cores
 - Relax GVSoC's `markdown-it-py>=4` pin to `>=3.0` in the container so it can be installed alongside `myst-parser` on Python 3.10
+- `MchanDma` splits transfers longer than the 17-bit mchan length into several commands instead of asserting
 
 ### Removed
 - removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.

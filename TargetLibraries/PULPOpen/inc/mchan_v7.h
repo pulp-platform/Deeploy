@@ -94,6 +94,44 @@ static void mchan_transfer_2d_loc_strided_ext_strided(
   *cmd_ptr = (uint32_t)loc_stride_2d;
 }
 
+// One mchan command moves at most 2^17 - 1 bytes (17-bit length field). Longer
+// transfers are split into several commands: they all count on the channel
+// allocated last, whose byte counter covers them all, so a single
+// mchan_channel_wait() still waits for the whole transfer. noinline: one copy
+// serves all transfer sites (inlining them costs about 16 KB of L2 code).
+#define MCHAN_CMD_MAX_LEN ((1u << 17) - 1)
+#define MCHAN_CMD_CHUNK_1D (MCHAN_CMD_MAX_LEN & ~3u)
+
+static __attribute__((noinline)) void
+mchan_transfer_1d_split(uint32_t flags, uint32_t size, void *loc, void *ext) {
+  while (size > MCHAN_CMD_MAX_LEN) {
+    mchan_transfer_1d((flags << 17) | MCHAN_CMD_CHUNK_1D, loc, ext);
+    loc = (char *)loc + MCHAN_CMD_CHUNK_1D;
+    ext = (char *)ext + MCHAN_CMD_CHUNK_1D;
+    size -= MCHAN_CMD_CHUNK_1D;
+  }
+  mchan_transfer_1d((flags << 17) | size, loc, ext);
+}
+
+// Whole rows per command: local memory is contiguous, external rows are strided
+static __attribute__((noinline)) void
+mchan_transfer_2d_ext_strided_split(uint32_t flags, uint32_t size, void *loc,
+                                    void *ext, uint32_t ext_size_1d,
+                                    uint32_t ext_stride_2d) {
+  uint32_t rows = size / ext_size_1d;
+  uint32_t rows_per_cmd = MCHAN_CMD_MAX_LEN / ext_size_1d;
+  while (rows > rows_per_cmd) {
+    uint32_t chunk = rows_per_cmd * ext_size_1d;
+    mchan_transfer_2d_ext_strided((flags << 17) | chunk, loc, ext, ext_size_1d,
+                                  ext_stride_2d);
+    loc = (char *)loc + chunk;
+    ext = (char *)ext + rows_per_cmd * ext_stride_2d;
+    rows -= rows_per_cmd;
+  }
+  mchan_transfer_2d_ext_strided((flags << 17) | (rows * ext_size_1d), loc, ext,
+                                ext_size_1d, ext_stride_2d);
+}
+
 static uint32_t mchan_channel_alloc() { return *cmd_ptr; }
 
 static void mchan_channel_free(uint32_t channel_id) {

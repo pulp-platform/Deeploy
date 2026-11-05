@@ -29,9 +29,16 @@ class MchanDma(AsyncDma):
 
     includeList = ["mchan_siracusa.h"]
 
+    # The *_split helpers (mchan_v7.h) issue one command per 2^17 - 1 bytes on
+    # the same channel, so transfers longer than the 17-bit mchan length work
+    # too. The size can differ per tile, so the split is decided at runtime: a
+    # transfer that fits is still a single command.
     _transferTemplates = {
-        1: NodeTemplate("mchan_transfer_1d(${cmd}, ${loc}, ${ext});"),
-        2: NodeTemplate("mchan_transfer_2d_ext_strided(${cmd}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});"),
+        1:
+            NodeTemplate("mchan_transfer_1d_split(${flags}, ${size}, ${loc}, ${ext});"),
+        2:
+            NodeTemplate(
+                "mchan_transfer_2d_ext_strided_split(${flags}, ${size}, ${loc}, ${ext}, ${size_1d}, ${stride_2d});"),
     }
     _waitingStrategy = DirectionWaitingStrategy(MchanChannelFuture, "channel")
 
@@ -67,12 +74,13 @@ class MchanDma(AsyncDma):
         mchanFlags += (1 << 3)  # event enable
 
         mchanTransferSize = math.prod(shape)
-        mchanTransferSizeBits = math.ceil(math.log2(mchanTransferSize))
-        assert mchanTransferSizeBits <= 17, (
-            "The transfer size is not representable with 17 bits. "
-            f"Received transfer size {mchanTransferSize} that requires {mchanTransferSizeBits}")
+        mchanMaxLen = (1 << 17) - 1
+        if transferRank == 2:
+            assert shape[1] <= mchanMaxLen, (
+                f"A 2D mchan row of {shape[1]} bytes does not fit in one command (max {mchanMaxLen})")
 
-        operatorRepresentation["cmd"] = (mchanFlags << 17) + mchanTransferSize
+        operatorRepresentation["flags"] = mchanFlags
+        operatorRepresentation["size"] = mchanTransferSize
 
         if transferRank == 2:
             operatorRepresentation["size_1d"] = shape[1]
