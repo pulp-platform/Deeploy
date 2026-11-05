@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 
 from Deeploy.AbstractDataTypes import PointerClass
-from Deeploy.CommonExtensions.DataTypes import uint16_t
+from Deeploy.CommonExtensions.DataTypes import uint16_t, uint32_t
 from Deeploy.DeeployTypes import NetworkContext, OperatorRepresentation
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
 from Deeploy.TilingExtension.TileConstraint import TileConstraint
@@ -104,7 +104,12 @@ class Pad2DTileConstraint(TileConstraint):
 
     @staticmethod
     def _computeInputCube(outputCube: HyperRectangle, parseDict: Dict,
-                          outputShape: Tuple[int, ...]) -> Tuple[HyperRectangle, int]:
+                          outputShape: Tuple[int, ...]) -> Tuple[HyperRectangle, int, int]:
+        """Return the input cube of ``outputCube`` and its tile-local top and bottom padding.
+
+        The local padding is clamped so that ``localPadTop + localPadBottom <= outputHSize``; the kernel copies
+        ``outputHSize - localPadTop - localPadBottom`` input rows.
+        """
         channels_first = bool(parseDict.get('channels_first', 1))
 
         if channels_first:
@@ -126,8 +131,8 @@ class Pad2DTileConstraint(TileConstraint):
         dataEnd = padTop + inputHeightTotal
         tileEnd = outputHOffset + outputHSize
 
-        localPadTop = max(dataStart - outputHOffset, 0)
-        localPadBottom = max(tileEnd - dataEnd, 0)
+        localPadTop = min(max(dataStart - outputHOffset, 0), outputHSize)
+        localPadBottom = min(max(tileEnd - dataEnd, 0), outputHSize - localPadTop)
 
         inputStart = max(outputHOffset, dataStart) - dataStart
         inputEnd = min(tileEnd, dataEnd) - dataStart
@@ -140,8 +145,7 @@ class Pad2DTileConstraint(TileConstraint):
             inCube = HyperRectangle((batchOffset, inputStart, 0, 0),
                                     (batchSize, inputHeight, inputWidth, inputChannels))
 
-        _ = localPadBottom  # Bottom padding is encoded by the output height itself.
-        return inCube, localPadTop
+        return inCube, localPadTop, localPadBottom
 
     @classmethod
     def serializeTilingSolution(
@@ -162,7 +166,8 @@ class Pad2DTileConstraint(TileConstraint):
             "dim_im_out_x": [],
             "dim_im_out_y": [],
             "dim_im_out_ch": [],
-            "pad_y": [],
+            "pad_y_top": [],
+            "pad_y_bottom": [],
             "data_out_size": [],
         }
 
@@ -174,8 +179,10 @@ class Pad2DTileConstraint(TileConstraint):
             "dim_im_out_x": PointerClass(uint16_t),
             "dim_im_out_y": PointerClass(uint16_t),
             "dim_im_out_ch": PointerClass(uint16_t),
-            "pad_y": PointerClass(uint16_t),
-            "data_out_size": PointerClass(uint16_t),
+            "pad_y_top": PointerClass(uint16_t),
+            "pad_y_bottom": PointerClass(uint16_t),
+            # Elements per output tile; can exceed 65535 (e.g. int8 tiles in a large L1).
+            "data_out_size": PointerClass(uint32_t),
         }
 
         outputShape = tuple(ctxt.lookup(operatorRepresentation['data_out']).shape)
@@ -185,10 +192,11 @@ class Pad2DTileConstraint(TileConstraint):
         outputLoadSchedule = []
 
         for outCube in outputCubes:
-            inCube, localPadTop = cls._computeInputCube(outCube, operatorRepresentation, outputShape)
+            inCube, localPadTop, localPadBottom = cls._computeInputCube(outCube, operatorRepresentation, outputShape)
 
             replacements["batch"].append(outCube.dims[0])
-            replacements["pad_y"].append(localPadTop)
+            replacements["pad_y_top"].append(localPadTop)
+            replacements["pad_y_bottom"].append(localPadBottom)
             replacements["data_out_size"].append(int(np.prod(outCube.dims)))
 
             if channels_first:

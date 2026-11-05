@@ -34,9 +34,9 @@ from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, ConvTransposeTemplate, DMASliceTemplate, \
     FloatAddTemplate, FloatConvTemplate, FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, \
     FloatMatMulTemplate, FloatMaxPoolTemplate, FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, \
-    FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, \
-    RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SliceTemplate, \
-    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
+    FloatSoftmaxTemplate, GEMMTemplate, MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, Pad2DTemplate, \
+    ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
+    SliceTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
     iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
@@ -199,12 +199,12 @@ PULPPad1DBindings = [
 ]
 
 PULPPad2DBindings = [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference2DTemplate,
+    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), Pad2DTemplate.referenceInt2DTemplate,
                 ForkTransformer) for type in IntegerDataTypes
 ] + [
     NodeBinding(
         PadChecker([PointerClass(float32_t), PointerClass(int64_t),
-                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatPadTemplate.reference2DTemplate,
+                    PointerClass(float32_t)], [PointerClass(float32_t)]), Pad2DTemplate.referenceFloat2DTemplate,
         ForkTransformer)
 ]
 
