@@ -24,7 +24,6 @@ SoftHierlMapping = {'Add': AddLayer([Add_Mapper])}
 class SoftHierVariableBuffer(VariableBuffer):
 
     initTemplate = AllocateTemplate.SoftHierInitTemplate
-    declarationTemplate = AllocateTemplate.SoftHierInitTemplate
     allocTemplate = AllocateTemplate.SoftHierAllocateTemplate
     deallocTemplate = FreeTemplate.SoftHierLocalTemplate
 
@@ -46,7 +45,6 @@ class SoftHierVariableBuffer(VariableBuffer):
 class SoftHierTransientBuffer(TransientBuffer):
 
     initTemplate = AllocateTemplate.SoftHierInitTemplate
-    declarationTemplate = AllocateTemplate.SoftHierInitTemplate
     allocTemplate = AllocateTemplate.SoftHierAllocateTemplate
     deallocTemplate = FreeTemplate.SoftHierLocalTemplate
 

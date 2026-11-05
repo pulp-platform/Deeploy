@@ -127,7 +127,6 @@ MemPoolMapping = {
 class MemPoolVariableBuffer(VariableBuffer):
 
     initTemplate = AllocateTemplate.MemPoolInitTemplate
-    declarationTemplate = AllocateTemplate.MemPoolInitTemplate
     allocTemplate = AllocateTemplate.MemPoolAllocateTemplate
     deallocTemplate = FreeTemplate.MemPoolLocalTemplate
 
@@ -135,7 +134,6 @@ class MemPoolVariableBuffer(VariableBuffer):
 class MemPoolTransientBuffer(TransientBuffer):
 
     initTemplate = AllocateTemplate.MemPoolInitTemplate
-    declarationTemplate = AllocateTemplate.MemPoolInitTemplate
     allocTemplate = AllocateTemplate.MemPoolAllocateTemplate
     deallocTemplate = FreeTemplate.MemPoolLocalTemplate
 
