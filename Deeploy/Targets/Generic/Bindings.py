@@ -8,7 +8,7 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
 from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
-    int8_t, int32_t, uint8_t
+    int8_t, int32_t, int64_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
@@ -217,7 +217,7 @@ BasicPad2DBindings = [
                 BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
     NodeBinding(
-        PadChecker([PointerClass(float32_t), PointerClass(float32_t),
+        PadChecker([PointerClass(float32_t), PointerClass(int64_t),
                     PointerClass(float32_t)], [PointerClass(float32_t)]), FloatPadTemplate.reference2DTemplate,
         BasicTransformer)
 ]

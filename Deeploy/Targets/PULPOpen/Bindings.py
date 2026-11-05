@@ -203,7 +203,7 @@ PULPPad2DBindings = [
                 ForkTransformer) for type in IntegerDataTypes
 ] + [
     NodeBinding(
-        PadChecker([PointerClass(float32_t), PointerClass(float32_t),
+        PadChecker([PointerClass(float32_t), PointerClass(int64_t),
                     PointerClass(float32_t)], [PointerClass(float32_t)]), FloatPadTemplate.reference2DTemplate,
         ForkTransformer)
 ]

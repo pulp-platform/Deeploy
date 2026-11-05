@@ -426,7 +426,14 @@ class ConstantBuffer(VariableBuffer):
     def _valueString(self) -> str:
         values = list(self.values.reshape(-1))
         if self._type.typeName == 'float32_t*':
-            strValues = [f'{value}f' for value in values]
+            strValues = []
+            for value in values:
+                # Always emit a valid C float literal, even for integer-valued data (e.g. "0" -> "0.0f").
+                # 9 significant digits round-trip any float32 exactly.
+                literal = f"{float(value):.9g}"
+                if "e" not in literal and "." not in literal:
+                    literal += ".0"
+                strValues.append(literal + "f")
         elif self._type.typeName == 'int8_t*':
             strValues = [f'{int(value)}' for value in values]
         else:
@@ -993,6 +1000,8 @@ class NetworkContext():
             Returns the name of the newly registed ConstantBuffer
 
         """
+        assert len(constant.outputs) <= 1, f"Constant {constant.name} has more than one output"
+        
         name = name if name is not None else constant.name
 
         # LMACAN: The shape needs to be copied into a tuple for pickling to work. Don't ask me why..
