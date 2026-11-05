@@ -204,22 +204,28 @@ BasicMulBindings = [
                 FloatMulTemplate.referenceTemplate, BasicTransformer)
 ]
 
+# Input types: data, pads (int64, opset 11+), constant_value (data type, opset 11+). The type checker zips the node
+# inputs with these types, so the same bindings match the legacy single-input Pad and the 2- and 3-input forms.
+# PadParser decodes pads / constant_value and excludes their tensors from deployment; declaring their types is still
+# required because binding reads the type of every global node input.
 BasicPad1DBindings = [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference1DTemplate,
-                BasicTransformer) for type in SignedIntegerDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                PadTemplate.reference1DTemplate, BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), FloatPadTemplate.reference1DTemplate,
-                BasicTransformer) for type in FloatDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                FloatPadTemplate.reference1DTemplate, BasicTransformer) for type in FloatDataTypes
 ]
 
 BasicPad2DBindings = [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference2DTemplate,
-                BasicTransformer) for type in SignedIntegerDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                PadTemplate.reference2DTemplate, BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
-    NodeBinding(
-        PadChecker([PointerClass(float32_t), PointerClass(int64_t),
-                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatPadTemplate.reference2DTemplate,
-        BasicTransformer)
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                FloatPadTemplate.reference2DTemplate, BasicTransformer) for type in FloatDataTypes
 ]
 
 BasicReduceMeanBindings = [

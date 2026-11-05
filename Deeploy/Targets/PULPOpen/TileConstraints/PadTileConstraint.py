@@ -23,13 +23,7 @@ class Pad2DTileConstraint(TileConstraint):
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
 
-        buffersOfInterest = [inputBufferName, outputBufferName]
-        if 'pads_tensor' in parseDict:
-            buffersOfInterest.append(parseDict['pads_tensor'])
-        if 'value_tensor' in parseDict:
-            buffersOfInterest.append(parseDict['value_tensor'])
-
-        for bufferName in buffersOfInterest:
+        for bufferName in [inputBufferName, outputBufferName]:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
         channels_first = bool(parseDict.get('channels_first', 1))

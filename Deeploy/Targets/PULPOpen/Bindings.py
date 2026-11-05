@@ -190,22 +190,28 @@ PULPBatchNormBindings = [
     for type in FloatDataTypes
 ]
 
+# Input types: data, pads (int64, opset 11+), constant_value (data type, opset 11+). The type checker zips the node
+# inputs with these types, so the same bindings match the legacy single-input Pad and the 2- and 3-input forms.
+# PadParser decodes pads / constant_value and excludes their tensors from deployment and tiling; declaring their
+# types is still required because binding reads the type of every global node input.
 PULPPad1DBindings = [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference1DTemplate,
-                ForkTransformer) for type in IntegerDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                PadTemplate.reference1DTemplate, ForkTransformer) for type in IntegerDataTypes
 ] + [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), FloatPadTemplate.reference1DTemplate,
-                ForkTransformer) for type in FloatDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                FloatPadTemplate.reference1DTemplate, ForkTransformer) for type in FloatDataTypes
 ]
 
 PULPPad2DBindings = [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), Pad2DTemplate.referenceInt2DTemplate,
-                ForkTransformer) for type in IntegerDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                Pad2DTemplate.referenceInt2DTemplate, ForkTransformer) for type in IntegerDataTypes
 ] + [
-    NodeBinding(
-        PadChecker([PointerClass(float32_t), PointerClass(int64_t),
-                    PointerClass(float32_t)], [PointerClass(float32_t)]), Pad2DTemplate.referenceFloat2DTemplate,
-        ForkTransformer)
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                Pad2DTemplate.referenceFloat2DTemplate, ForkTransformer) for type in FloatDataTypes
 ]
 
 PULPRQAddBindings = [

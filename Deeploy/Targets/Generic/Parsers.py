@@ -435,15 +435,14 @@ class PadParser(NodeParser):
         self.operatorRepresentation['data_in_size'] = np.prod(data_in.shape)
         self.operatorRepresentation['data_out_size'] = np.prod(data_out.shape)
 
-        # Keep optional constant Pad inputs visible to the tiler.
-        # The template uses the decoded scalar/list values, but the tiled
-        # scheduler still tracks the original constant tensors as node inputs.
-        if len(node.inputs) >= 2:
-            pads_tensor = ctxt.lookup(node.inputs[1].name)
-            self.operatorRepresentation['pads_tensor'] = pads_tensor.name
-        if len(node.inputs) >= 3:
-            value_tensor = ctxt.lookup(node.inputs[2].name)
-            self.operatorRepresentation['value_tensor'] = value_tensor.name
+        # The opset-11+ constant inputs (pads, constant_value) were decoded into 'pads' / 'value' by parseNode and
+        # the templates only use those. Exclude the tensors from allocation, tiling and code generation, as for the
+        # ReduceMean / ReduceSum axes, and do not reference them in the operatorRepresentation. The Pad bindings
+        # still declare their types, because binding reads the type of every global node input.
+        for constInput in node.inputs[1:]:
+            constBuffer = ctxt.lookup(constInput.name)
+            constBuffer._live = False
+            constBuffer._deploy = False
 
         return ctxt, True
 
