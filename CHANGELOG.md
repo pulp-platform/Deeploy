@@ -101,6 +101,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - `ReshapeTemplate` alias assignment now runs on all cores instead of only under `SINGLE_CORE`, fixing undefined behaviour on the other cores
 - Relax GVSoC's `markdown-it-py>=4` pin to `>=3.0` in the container so it can be installed alongside `myst-parser` on Python 3.10
 - `MchanDma` splits transfers longer than the 17-bit mchan length into several commands instead of asserting
+- Pin Python 3.11 in the documentation workflow, as the unpinned `setup-python` picked the runner's Python 3.14, which `numpy<2.0.0` does not support
 
 ### Removed
 - removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.
