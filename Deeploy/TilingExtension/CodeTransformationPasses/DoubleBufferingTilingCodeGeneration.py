@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import math
-from typing import List, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 from Deeploy.AbstractDataTypes import VoidType
 from Deeploy.DeeployTypes import CodeSnippet, ExecutionBlock, NetworkContext, NodeTemplate, OperatorRepresentation, \
@@ -14,8 +14,8 @@ from Deeploy.TilingExtension.CodeTransformationPasses.TilingHoistingMixIn import
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingPrototypes import ProfilingPrototypeMixIn, \
     PrototypeTilingMixIn, TilingMetaInfo
 from Deeploy.TilingExtension.MemoryConstraints import NodeMemoryConstraint
-from Deeploy.TilingExtension.TilingCodegen import TilingSchedule, VariableReplacementScheme, calculateFlatOffset, \
-    stridesFromShape
+from Deeploy.TilingExtension.TilingCodegen import HyperRectangle, TilingSchedule, VariableReplacementScheme, \
+    calculateFlatOffset, stridesFromShape
 
 
 class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
@@ -115,12 +115,27 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
         # -----------------------------------
 
         buffer_choices: List[List[CodeSnippet]] = [[], []]
+        transferredInputs: Dict[str, Tuple[List[HyperRectangle], List[_ReferenceBuffer]]] = {}
         for tensorName, rectangles in dictOfArrays(tilingSchedule.inputLoadSchedule).items():
             localBuffer = ctxt.lookup(operatorRepresentation[tensorName])
             assert localBuffer._memoryLevel == self.localMemory
             assert isinstance(localBuffer, _ReferenceBuffer)
             externalBuffer = ctxt.lookup(localBuffer._referenceName)
             assert isinstance(externalBuffer, VariableBuffer)
+
+            # Several operands can reference the same external tensor (e.g. Mul(x, x)). They share the same
+            # local buffers, so the tiles must be transferred, and the external reference advanced, only once.
+            # The duplicate operand only has to follow the buffer switching of the first one.
+            if externalBuffer.name in transferredInputs:
+                firstRectangles, firstL1BuffersReferences = transferredInputs[externalBuffer.name]
+                assert firstRectangles == rectangles, \
+                    f"Operands referencing '{externalBuffer.name}' have different tiling schedules"
+                _buffer_choice = self._generateBufferChoice(localBuffer, firstL1BuffersReferences)
+                for i in range(len(buffer_choices)):
+                    buffer_choices[i].extend(_buffer_choice[i])
+                continue
+            originalRectangles = rectangles
+
             tensorMemoryConstraint = nodeMemoryConstraint.inputTensorMemoryConstraints[externalBuffer.name]
             externalBufferShape = tensorMemoryConstraint.memoryConstraints[self.externalMemory].shape
             assert externalBufferShape is not None
@@ -139,6 +154,7 @@ class DoubleBufferingTilingCodeGeneration(TilingCodeGeneration):
 
             tensorMemoryConstraint = nodeMemoryConstraint.inputTensorMemoryConstraints[externalBuffer.name]
             l1BuffersReferences = self._hoistMultibufferReferences(ctxt, localBuffer, tensorMemoryConstraint)
+            transferredInputs[externalBuffer.name] = (originalRectangles, l1BuffersReferences)
 
             nextLocalBufferReference = self._hoistReference(ctxt, f"{tensorName}_next", l1BuffersReferences[1])
 

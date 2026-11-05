@@ -29,6 +29,7 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
             tileIdxVar: str, direction: DmaDirection) -> Tuple[NetworkContext, List[CodeSnippet], Set[Future]]:
         callStack: List[CodeSnippet] = []
         futures: Set[Future] = set()
+        transferredRectangles: Dict[str, List[HyperRectangle]] = {}
 
         for tensorName, rectangles in dictOfArrays(transferSchedule).items():
             localBuffer = ctxt.lookup(operatorRepresentation[tensorName])
@@ -36,6 +37,15 @@ class SingleBufferingTilingCodeGeneration(TilingCodeGeneration):
             assert isinstance(localBuffer, _ReferenceBuffer)
             externalBuffer = ctxt.lookup(localBuffer._referenceName)
             assert isinstance(externalBuffer, VariableBuffer)
+
+            # Several operands can reference the same external tensor (e.g. Mul(x, x)). They share a single
+            # local buffer, so the tile must be transferred, and the external reference advanced, only once.
+            if externalBuffer.name in transferredRectangles:
+                assert transferredRectangles[externalBuffer.name] == rectangles, \
+                    f"Operands referencing '{externalBuffer.name}' have different tiling schedules"
+                continue
+            transferredRectangles[externalBuffer.name] = rectangles
+
             tensorMemoryConstraint = tensorMemoryConstraintDict[externalBuffer.name]
             externalBufferShape = tensorMemoryConstraint.memoryConstraints[self.externalMemory].shape
             assert externalBufferShape is not None

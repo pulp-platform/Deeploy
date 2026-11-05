@@ -10,7 +10,7 @@ from Deeploy.AbstractDataTypes import Pointer
 from Deeploy.CommonExtensions.NetworkDeployers.SignPropDeployer import SignPropDeployer
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.DebugPasses import DebugPrintMergePass
 from Deeploy.CommonExtensions.OptimizationPasses.TopologyOptimizationPasses.LoweringOptimizationPasses import \
-    NCHWtoNHWCPass, TransposeMatmulInputsPass
+    NCHWtoNHWCPass, RemoveGlobalOutputReshapePass, TransposeMatmulInputsPass
 from Deeploy.DeeployTypes import DeploymentPlatform, TopologyOptimizer
 from Deeploy.Targets.Generic.TopologyOptimizationPasses.Passes import TransposeConstOptPass, TransposeMergePass
 
@@ -44,5 +44,6 @@ class GenericDeployer(SignPropDeployer):
             NCHWtoNHWCPass(self.default_channels_first),
             TransposeMergePass(),
             TransposeConstOptPass(),
+            RemoveGlobalOutputReshapePass(),
             DebugPrintMergePass()
         ]

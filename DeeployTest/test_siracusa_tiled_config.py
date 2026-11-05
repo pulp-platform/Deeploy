@@ -139,6 +139,7 @@ L2_DOUBLEBUFFER_MODELS = {
     "Models/MLPerf/VisualWakeWords": [128000],
     "Models/CCT/FP32/CCT_1_16_16_8": [128000],
     "Models/TinyViT/Demo": [8000],
+    "Models/GMM": [384, 192],
 }
 
 L3_SINGLEBUFFER_MODELS = {
