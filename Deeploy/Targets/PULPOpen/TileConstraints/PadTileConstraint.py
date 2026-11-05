@@ -59,9 +59,13 @@ class Pad2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(outputWidthVar == inputWidthVar + 2 * parseDict['pad_x'])
         tilerModel.addConstraint(outputChannelVar == inputChannelVar)
 
-        # Height tiles may include top/bottom padding only at the boundary tiles.
+        # The input buffer must hold the input rows of every output tile. A tile of height T can lie entirely in
+        # the data region and then needs T rows, so only the full-tensor bound H_in (the upper bound of the variable)
+        # allows fewer: inputHeight == min(T, H_in). This disjunction says inputHeight >= T or inputHeight == H_in;
+        # the second constraint caps it at T.
+        inputHeightTotal = ctxt.lookup(inputBufferName).shape[heightDim]
+        tilerModel.addConstraint((inputHeightVar >= outputHeightVar) + (inputHeightVar == inputHeightTotal) >= 1)
         tilerModel.addConstraint(outputHeightVar >= inputHeightVar)
-        tilerModel.addConstraint(outputHeightVar <= inputHeightVar + 2 * parseDict['pad_y'])
 
         return tilerModel
 
@@ -96,7 +100,10 @@ class Pad2DTileConstraint(TileConstraint):
         tilerModel.addConstraint(
             tilerModel.getTensorDimVar(outputBufferName, channelDim) == outputBuffer.shape[channelDim])
 
-        # Avoid pure-padding tiles and avoid tail tiles with a single padding row.
+        # A tile taller than pad_y always contains input data unless it is the remainder (tail) tile of its parent:
+        # the first tile covers the pad_y top rows plus at least one data row, and a full-size tile that started in
+        # the bottom padding would end beyond the output. A tail tile made only of bottom padding is handled in
+        # _computeInputCube.
         outputHeightVar = tilerModel.getTensorDimVar(outputBufferName, heightDim)
         tilerModel.addConstraint(outputHeightVar >= (parseDict['pad_y'] + 1))
 
@@ -104,28 +111,35 @@ class Pad2DTileConstraint(TileConstraint):
 
     @staticmethod
     def _computeInputCube(outputCube: HyperRectangle, parseDict: Dict,
-                          outputShape: Tuple[int, ...]) -> Tuple[HyperRectangle, int, int]:
+                          inputShape: Tuple[int, ...]) -> Tuple[HyperRectangle, int, int]:
         """Return the input cube of ``outputCube`` and its tile-local top and bottom padding.
+
+        ``outputCube.offset`` must be in full-output coordinates, and the returned cube is in full-input
+        coordinates. The input sizes come from ``inputShape`` (the full input tensor), not from ``parseDict``:
+        ``TilingVariableReplacementUpdate`` serializes again after ``dim_im_in_*`` have been replaced by per-tile
+        reference names.
 
         The local padding is clamped so that ``localPadTop + localPadBottom <= outputHSize``; the kernel copies
         ``outputHSize - localPadTop - localPadBottom`` input rows.
+
+        A tile that contains no input row (only the remainder tile of a parent can, and only in the bottom padding)
+        gets ``localPadTop + localPadBottom == outputHSize``, so the kernel copies nothing and only fills the pad
+        value. The DMA still needs a non-empty transfer, so its input cube is one row clamped into
+        ``[0, dim_im_in_x)`` (the last input row for bottom padding). That row is never read by the kernel and fits
+        the input buffer, whose height variable has a lower bound of 1.
         """
         channels_first = bool(parseDict.get('channels_first', 1))
 
         if channels_first:
             batchOffset, _, outputHOffset, _ = outputCube.offset
             batchSize, _, outputHSize, _ = outputCube.dims
-            inputChannels = parseDict['dim_im_in_ch']
-            inputWidth = parseDict['dim_im_in_y']
+            _, inputChannels, inputHeightTotal, inputWidth = inputShape
         else:
             batchOffset, outputHOffset, _, _ = outputCube.offset
             batchSize, outputHSize, _, _ = outputCube.dims
-            inputChannels = parseDict['dim_im_in_ch']
-            inputWidth = parseDict['dim_im_in_y']
+            _, inputHeightTotal, inputWidth, inputChannels = inputShape
 
         padTop = parseDict['pad_y']
-        inputHeightTotal = parseDict['dim_im_in_x']
-        outputHeightTotal = outputShape[2] if channels_first else outputShape[1]
 
         dataStart = padTop
         dataEnd = padTop + inputHeightTotal
@@ -136,7 +150,12 @@ class Pad2DTileConstraint(TileConstraint):
 
         inputStart = max(outputHOffset, dataStart) - dataStart
         inputEnd = min(tileEnd, dataEnd) - dataStart
-        inputHeight = max(inputEnd - inputStart, 1)
+        if inputEnd > inputStart:
+            inputHeight = inputEnd - inputStart
+        else:
+            # Padding-only tile: load one in-bounds dummy row instead of the row past the end of the input.
+            inputStart = min(inputStart, inputHeightTotal - 1)
+            inputHeight = 1
 
         if channels_first:
             inCube = HyperRectangle((batchOffset, 0, inputStart, 0),
@@ -147,12 +166,56 @@ class Pad2DTileConstraint(TileConstraint):
 
         return inCube, localPadTop, localPadBottom
 
+    @staticmethod
+    def _inputLevelIndex(tilingSolution: NodeMemoryConstraint, targetMemLevel: str,
+                         operatorRepresentation: OperatorRepresentation) -> int:
+        """Position of ``targetMemLevel`` in the memory path of ``data_in`` (-1 if absent).
+
+        Index 1 means ``data_in`` tiles are cut from the full tensor (first tiling level), index >= 2 means they
+        are cut from an input tile of the enclosing tiling level, and 0/-1 mean the input is not transferred into
+        ``targetMemLevel`` and is read in place. Same convention as ``SliceTileConstraint.inputLevelIndex``.
+        """
+        inputPath = list(
+            tilingSolution.tensorMemoryConstraints[operatorRepresentation['data_in']].memoryConstraints.keys())
+        return inputPath.index(targetMemLevel) if targetMemLevel in inputPath else -1
+
     @classmethod
     def serializeTilingSolution(
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
-        outputCubes = [cube.rectangle for cube in absoluteOutputCubes]
+        """Serialize the output tiles of one parent tile.
+
+        ``wrapTilingSolution`` calls this once per parent output tile with that parent's children.
+        ``cube.rectangle.offset`` is relative to the parent output tile, ``cube.absoluteOffset`` to the full output
+        tensor. The padding only depends on where a tile lies in the full output, so the tile-local padding and the
+        input rows are always computed from the absolute offset (:meth:`_computeInputCube`). The input cube is then
+        expressed relative to the parent ``data_in`` buffer:
+
+        * First tiling level (the parent buffer is the full input tensor): the global cube is used as is.
+        * Nested tiling (e.g. L3 -> L2 -> L1): the parent buffer holds the global input cube of the parent output
+          tile, produced by this method one level up. The child cube is shifted by that cube's offset; it lies
+          inside it because the input rows of a sub-range of the parent are a sub-range of the parent's rows (a
+          padding-only child of a padding-only parent maps onto the same clamped dummy row).
+        * ``data_in`` is not transferred to ``targetMemLevel`` (e.g. ``TilingVariableReplacement("L2")`` when L2 is
+          the home level, where ``wrapTilingSolution`` serializes the L1 tiles): the global cube is kept, as at the
+          first level.
+        """
+        inputLevelIdx = cls._inputLevelIndex(tilingSolution, targetMemLevel, operatorRepresentation)
+        fullInputShape = tuple(ctxt.lookup(operatorRepresentation['data_in']).shape)
+
+        parentInputOffset = None
+        if inputLevelIdx >= 2:
+            firstCube = absoluteOutputCubes[0]
+            parentOffset = tuple(a - r for a, r in zip(firstCube.absoluteOffset, firstCube.rectangle.offset))
+            # The children partition the parent (computeTileHyperRectangles), so this is its extent.
+            parentDims = tuple(
+                max(cube.rectangle.offset[axis] + cube.rectangle.dims[axis]
+                    for cube in absoluteOutputCubes)
+                for axis in range(len(parentOffset)))
+            parentInCube, _, _ = cls._computeInputCube(HyperRectangle(parentOffset, parentDims), operatorRepresentation,
+                                                       fullInputShape)
+            parentInputOffset, parentInputDims = parentInCube.offset, parentInCube.dims
 
         addrNames = ['data_in', 'data_out']
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
@@ -185,14 +248,22 @@ class Pad2DTileConstraint(TileConstraint):
             "data_out_size": PointerClass(uint32_t),
         }
 
-        outputShape = tuple(ctxt.lookup(operatorRepresentation['data_out']).shape)
         channels_first = bool(operatorRepresentation.get('channels_first', 1))
 
         inputLoadSchedule = []
         outputLoadSchedule = []
 
-        for outCube in outputCubes:
-            inCube, localPadTop, localPadBottom = cls._computeInputCube(outCube, operatorRepresentation, outputShape)
+        for absoluteCube in absoluteOutputCubes:
+            outCube = absoluteCube.rectangle
+            globalOutCube = HyperRectangle(tuple(absoluteCube.absoluteOffset), tuple(outCube.dims))
+            inCube, localPadTop, localPadBottom = cls._computeInputCube(globalOutCube, operatorRepresentation,
+                                                                        fullInputShape)
+
+            if parentInputOffset is not None:
+                localOffset = tuple(o - p for o, p in zip(inCube.offset, parentInputOffset))
+                assert all(0 <= o and o + d <= p for o, d, p in zip(localOffset, inCube.dims, parentInputDims)), \
+                    f"Pad2D input tile {inCube} exceeds its parent input tile {parentInCube}"
+                inCube = HyperRectangle(localOffset, inCube.dims)
 
             replacements["batch"].append(outCube.dims[0])
             replacements["pad_y_top"].append(localPadTop)

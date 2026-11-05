@@ -58,6 +58,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Tensor-by-tensor broadcasting in FP32 `Mul` on PULPOpen (non-scalar second operand)
 - Kernel tests `Kernels/FP32/BatchNorm/{ChannelsFirst,ChannelsLast,NonDefaultEpsilon}` and `Kernels/FP32/Conv/Transpose_2D`, and unit tests `test_mul_layer.py` and `test_reduce_log_sum_exp_parser.py`
 - Siracusa L3-tiled kernel tests `Kernels/FP32/Slice/{StartStep2,NegativeStep}` (input larger than L2, non-zero starts on tiled axes, strided and reversed slices)
+- Siracusa tiled Pad2D kernel tests `Kernels/FP32/Pad2D/PaddingTail` and `Kernels/Integer/Pad/PaddingTail_2D` (L1 budgets that leave a tail tile made only of bottom padding) and the L3-tiled `Kernels/FP32/Pad2D/L3`
 
 ### Changed
 - Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints
@@ -93,6 +94,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Preserve dynamic biases in MatMul/Add fusion and avoid fusing shapes or shared outputs incompatible with Gemm.
 - Restore PULPOpen floating-point Slice tiling with per-tile dimensions and local indices, including strided and reversed slices.
 - PULPOpen Slice tiling no longer applies the slice start twice with nested (L3 -> L2 -> L1) tiling: deeper levels compute the input tile relative to the parent input tile. The PULP Slice kernel now runs on all cluster cores, uses 32-bit indices and copies contiguous rows with `memcpy`.
+- PULPOpen Pad2D tiling: a tail tile made only of bottom padding no longer loads the row past the end of the input; the tile-local padding is computed from absolute offsets, so nested (L3 -> L2 -> L1) tiling places the padding correctly; the input tile height is constrained to `min(output tile height, input height)` so every tile's input rows fit the L1 buffer; and the input sizes are taken from the tensor shape, so serializing again after the per-tile variable replacement no longer fails.
 - Align PULPOpen FP32 MaxPool kernel and stride arguments with the parser's height/width order, and correct directional padding for MaxPool2D.
 - Tiling codegen: when several operands reference the same external tensor (e.g. `Mul(x, x)`), transfer each tile and advance the external reference only once (single and double buffering)
 - Generic: run `RemoveGlobalOutputReshapePass` so a `Reshape` producing a graph output no longer leaves the global output buffer unwritten

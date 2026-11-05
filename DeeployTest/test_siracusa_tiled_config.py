@@ -24,6 +24,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/MatMul": [2000],
     "Kernels/FP32/MaxPool/Regular_2D": [2000],
     "Kernels/FP32/Mul/Regular": [2000],
+    "Kernels/FP32/Pad2D/PaddingTail": [5900, 2000],
     "Kernels/FP32/LayerNorm": [2000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean": [8000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add": [8000],
@@ -56,6 +57,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/Integer/Conv/StriddedPadded_2D_RQ": [600],
     "Kernels/Integer/GEMM/Batch_RQ": [20000],
     "Kernels/Integer/Hardswish/Regular_RQ": [750],
+    "Kernels/Integer/Pad/PaddingTail_2D": [1470, 500],
 }
 
 L2_DOUBLEBUFFER_KERNELS = {
@@ -71,6 +73,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/FP32/MatMul": [5000],
     "Kernels/FP32/MaxPool/Regular_2D": [5000],
     "Kernels/FP32/Mul/Regular": [2000],
+    "Kernels/FP32/Pad2D/PaddingTail": [11800, 4000],
     "Kernels/FP32/LayerNorm": [2000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean": [8000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add": [8000],
@@ -100,6 +103,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/Integer/Conv/Regular_2D_RQ": [8000, 6000, 5000],
     "Kernels/Integer/Conv/DW_2D_RQ": [5121],
     "Kernels/Integer/Hardswish/Regular_RQ": [800],
+    "Kernels/Integer/Pad/PaddingTail_2D": [2950, 1000],
 }
 
 L2_SINGLEBUFFER_MODELS = {
@@ -149,6 +153,7 @@ L3_SINGLEBUFFER_MODELS = {
     "Kernels/Integer/Attention": [60000, 10000, 5000, 2500],
     "Kernels/FP32/Slice/StartStep2": [32000],
     "Kernels/FP32/Slice/NegativeStep": [32000],
+    "Kernels/FP32/Pad2D/L3": [32000],
     "Models/Transformer": [60000, 30000, 15000],
     "Models/microLlama/INT8/microLlama1": [60000, 10000, 5000],
     "Models/CCT/FP32/CCT_2_32_32_128": [128000],
@@ -165,6 +170,7 @@ L3_DOUBLEBUFFER_MODELS = {
     "Kernels/Integer/Attention": [60000, 20000, 10000, 5000],
     "Kernels/FP32/Slice/StartStep2": [64000],
     "Kernels/FP32/Slice/NegativeStep": [64000],
+    "Kernels/FP32/Pad2D/L3": [64000],
     "Models/Transformer": [60000, 30000, 15000],
     "Models/microLlama/INT8/microLlama1": [60000, 20000, 10000],
     "Models/microLlama/INT8/microLlama8": [60000, 20000, 10000],
