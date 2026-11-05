@@ -108,4 +108,13 @@ MODEL_TESTS = [
     "Models/TinyViT/Demo",
     "Models/WaveFormer",
     "Models/CNN_Linear2",
+    "Models/GMM",
+    "Models/Autoencoder2D/GMM",
+    "Models/Autoencoder2D/STD",
+    "Models/Autoencoder2D/MicroBlocks/EncoderCMR",
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMR",
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLRes",
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLTra",
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLin",
+    "Models/Autoencoder2D/MicroBlocks/Encoder_mini",
 ]

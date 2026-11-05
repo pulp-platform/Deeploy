@@ -116,6 +116,13 @@ L2_SINGLEBUFFER_MODELS = {
     "Models/MLPerf/VisualWakeWords": [64000],
     "Models/CCT/FP32/CCT_1_16_16_8": [64000],
     "Models/TinyViT/Demo": [4000],
+    "Models/GMM": [256, 128],
+    "Models/Autoencoder2D/MicroBlocks/EncoderCMR": [1200, 1000],
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMR": [8000, 4000],
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLRes": [3000, 2500],
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLTra": [30000, 22000],
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLin": [3000, 2500],
+    "Models/Autoencoder2D/MicroBlocks/Encoder_mini": [20000, 10000],
 }
 
 L2_DOUBLEBUFFER_MODELS = {
@@ -144,6 +151,8 @@ L3_SINGLEBUFFER_MODELS = {
     "Models/CCT/FP32/CCT_2_32_32_128": [128000],
     "Models/CCT_Train/CCT2_FT2": [128000],
     "Models/TinyViT/Demo": [4000],
+    "Models/Autoencoder2D/GMM": [64000],
+    "Models/Autoencoder2D/STD": [64000],
 }
 
 L3_DOUBLEBUFFER_MODELS = {

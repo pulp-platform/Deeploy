@@ -2881,7 +2881,6 @@ class NetworkContainer():
 
             name = node.name
             node.name = self.ctxt._mangle(node.name)
-
             callStack += node.init()
             node.name = name
 

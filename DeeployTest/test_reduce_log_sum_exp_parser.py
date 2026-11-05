@@ -8,6 +8,9 @@ import pytest
 
 from Deeploy.Targets.Generic.Parsers import ReduceLogSumExpParser
 
+# Mark all tests in this module as deeploy_internal
+pytestmark = pytest.mark.deeploy_internal
+
 
 def _node(shape, axes_input = None, **attrs):
     inputs = [gs.Variable("data", dtype = np.float32, shape = shape)]

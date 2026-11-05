@@ -6,6 +6,9 @@ import pytest
 
 from Deeploy.Targets.Generic.Layers import MulLayer
 
+# Mark all tests in this module as deeploy_internal
+pytestmark = pytest.mark.deeploy_internal
+
 
 @pytest.mark.parametrize(
     "lhs_shape,rhs_shape,expected_shape,expected_rhs_shape",
