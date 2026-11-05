@@ -46,7 +46,7 @@ class SliceTileConstraint(TileConstraint):
             seen.add(axis)
             start, end, step = slice(int(start), int(end), int(step)).indices(shape[axis])
             if not range(start, end, step):
-                raise ValueError("Tiled Slice does not support empty outputs")
+                raise ValueError("PULP Slice does not support empty outputs")
             normalizedStarts[axis] = start
             normalizedSteps[axis] = step
         return normalizedStarts, normalizedSteps
@@ -90,7 +90,12 @@ class SliceTileConstraint(TileConstraint):
 
     @staticmethod
     def computeInputCubeFromOutputCube(outputCube: HyperRectangle, parseDict: Dict) -> HyperRectangle:
-        """Return the bounding input rectangle for normalized per-axis starts and steps."""
+        """Return the input bounding box of ``outputCube`` in **full-tensor** coordinates.
+
+        ``outputCube.offset`` must be expressed in full output coordinates. For every axis the selected
+        input elements are ``first, first + step, ..., last`` with ``first = start + offset * step`` and
+        ``last = first + (size - 1) * step``; the box spans ``min(first, last)`` and ``|last - first| + 1``.
+        """
         starts, steps = parseDict['slice_starts'], parseDict['slice_steps']
         offsets, dims = [], []
         for offset, size, start, step in zip(outputCube.offset, outputCube.dims, starts, steps):
@@ -100,16 +105,87 @@ class SliceTileConstraint(TileConstraint):
             dims.append(abs(last - first) + 1)
         return HyperRectangle(tuple(offsets), tuple(dims))
 
+    @staticmethod
+    def computeLocalInputCubeFromOutputCube(outputCube: HyperRectangle, parentOutputDims: Tuple[int, ...],
+                                            parseDict: Dict) -> HyperRectangle:
+        """Return the input bounding box of ``outputCube`` relative to its parent **input tile**.
+
+        ``outputCube.offset`` is relative to a parent output tile of extent ``parentOutputDims``, and the
+        parent input buffer holds exactly the bounding box of that parent output tile (it was produced by
+        :meth:`computeInputCubeFromOutputCube` or by this method one level up). The slice start is therefore
+        already contained in the parent buffer and must not be applied again:
+
+        * ``step > 0``: the parent box starts at the parent's first selected element, so the local offset is
+          ``off * step``.
+        * ``step < 0``: the parent box starts at the parent's *last* selected element, so the local offset is
+          measured from the end of the parent output tile: ``(P - off - size) * |step|``.
+
+        The extent is ``(size - 1) * |step| + 1`` in both cases.
+        """
+        steps = parseDict['slice_steps']
+        offsets, dims = [], []
+        for offset, size, parentSize, step in zip(outputCube.offset, outputCube.dims, parentOutputDims, steps):
+            assert 0 <= offset and offset + size <= parentSize, "Output tile exceeds its parent tile"
+            if step > 0:
+                offsets.append(offset * step)
+            else:
+                offsets.append((parentSize - offset - size) * -step)
+            dims.append((size - 1) * abs(step) + 1)
+        return HyperRectangle(tuple(offsets), tuple(dims))
+
+    @staticmethod
+    def inputLevelIndex(tilingSolution: NodeMemoryConstraint, targetMemLevel: str,
+                        operatorRepresentation: OperatorRepresentation) -> int:
+        """Position of ``targetMemLevel`` in the memory path of ``data_in`` (-1 if absent).
+
+        A tensor's ``memoryConstraints`` are ordered from its home level, which holds the full tensor, towards
+        the compute level, and ``data_in`` tiles at ``targetMemLevel`` are cut from the level just before it.
+        Index 1 therefore means the parent buffer is the full tensor (first tiling level), index >= 2 means the
+        parent is an input tile of the enclosing tiling level, and 0/-1 mean the input is not transferred into
+        ``targetMemLevel`` at all and is read in place.
+        """
+        inputPath = list(
+            tilingSolution.tensorMemoryConstraints[operatorRepresentation['data_in']].memoryConstraints.keys())
+        return inputPath.index(targetMemLevel) if targetMemLevel in inputPath else -1
+
     @classmethod
     def serializeTilingSolution(
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],
             targetMemLevel: str, ctxt: NetworkContext,
             operatorRepresentation: OperatorRepresentation) -> Tuple[VariableReplacementScheme, TilingSchedule]:
+        """Serialize the output tiles of one parent tile.
+
+        ``wrapTilingSolution`` calls this once per parent output tile, with that parent's children in
+        ``absoluteOutputCubes``. ``cube.rectangle.offset`` is relative to the parent output tile and
+        ``cube.absoluteOffset`` is relative to the full output tensor. Two cases:
+
+        * The parent ``data_in`` buffer is the full input tensor (first tiling level): the input cube is the
+          global bounding box computed from the absolute output offset, which includes the slice start.
+        * The parent ``data_in`` buffer is itself a tile (nested tiling, e.g. L3 -> L2 -> L1): it is the
+          bounding box of the parent output tile, so the input cube is computed relative to it and the start
+          is not added again. The parent output extent per axis is ``max(offset + dims)`` over the children,
+          since they partition the parent (``computeTileHyperRectangles``), including partial edge tiles.
+
+        In both cases ``slice_start_k`` is local to the transferred input tile: ``0`` for ``step > 0`` (the
+        box starts at the first selected element) and ``dims - 1`` for ``step < 0`` (it ends there). If the
+        input is not transferred at all (resident at the target level), the kernel indexes the full tensor, so
+        the full input shape and the global first index are used instead.
+        """
         starts, steps = cls.normalizedParameters(operatorRepresentation, ctxt)
         # Keep the original representation intact: other passes still need its buffer names.
         immediateParameters = {'slice_starts': starts, 'slice_steps': steps}
         inputBaseOffsets, outputBaseOffsets = cls.extractBaseAddr(tilingSolution, targetMemLevel,
                                                                   operatorRepresentation, ['data_in', 'data_out'])
+
+        inputLevelIdx = cls.inputLevelIndex(tilingSolution, targetMemLevel, operatorRepresentation)
+        inputResident = inputLevelIdx <= 0
+        globalInput = inputLevelIdx <= 1
+        fullInputShape = tuple(operatorRepresentation['data_in_shape'])
+        parentOutputDims = tuple(
+            max(cube.rectangle.offset[axis] + cube.rectangle.dims[axis]
+                for cube in absoluteOutputCubes)
+            for axis in range(len(starts)))
+
         replacements = {
             f'{name}_{axis}': [] for axis in range(len(starts))
             for name in ('slice_in_dim', 'slice_out_dim', 'slice_start')
@@ -118,13 +194,22 @@ class SliceTileConstraint(TileConstraint):
         inputLoadSchedule, outputLoadSchedule = [], []
         for absoluteCube in absoluteOutputCubes:
             outCube = absoluteCube.rectangle
-            inCube = cls.computeInputCubeFromOutputCube(outCube, immediateParameters)
+            if globalInput:
+                globalOutCube = HyperRectangle(tuple(absoluteCube.absoluteOffset), tuple(outCube.dims))
+                inCube = cls.computeInputCubeFromOutputCube(globalOutCube, immediateParameters)
+            else:
+                inCube = cls.computeLocalInputCubeFromOutputCube(outCube, parentOutputDims, immediateParameters)
             for axis, step in enumerate(steps):
-                replacements[f'slice_in_dim_{axis}'].append(inCube.dims[axis])
                 replacements[f'slice_out_dim_{axis}'].append(outCube.dims[axis])
-                # The DMA already applies the global slice offset. Reverse slices
-                # start at the last element of the local bounding rectangle.
-                replacements[f'slice_start_{axis}'].append(0 if step > 0 else inCube.dims[axis] - 1)
+                if inputResident:
+                    # No transfer: the kernel reads the full tensor, so use global coordinates.
+                    replacements[f'slice_in_dim_{axis}'].append(fullInputShape[axis])
+                    replacements[f'slice_start_{axis}'].append(starts[axis] + absoluteCube.absoluteOffset[axis] * step)
+                else:
+                    # The DMA already applied the tile offset. Reverse slices start at the last element of
+                    # the local bounding box.
+                    replacements[f'slice_in_dim_{axis}'].append(inCube.dims[axis])
+                    replacements[f'slice_start_{axis}'].append(0 if step > 0 else inCube.dims[axis] - 1)
             inputLoadSchedule.append({'data_in': inCube})
             outputLoadSchedule.append({'data_out': outCube})
         return (VariableReplacementScheme(replacements, replacementTypes),
