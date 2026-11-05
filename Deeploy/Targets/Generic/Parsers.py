@@ -9,6 +9,7 @@ import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
+from Deeploy.Logging import DEFAULT_LOGGER as log
 
 
 class UnaryElementWiseParser(NodeParser):
@@ -390,12 +391,41 @@ class PadParser(NodeParser):
     def __init__(self):
         super().__init__()
 
+    @staticmethod
+    def _isOmittedInput(tensor) -> bool:
+        # onnx-graphsurgeon represents an omitted optional input (empty name in ONNX) as a nameless Variable.
+        return isinstance(tensor, gs.Variable) and tensor.name == ""
+
     def parseNode(self, node: gs.Node) -> bool:
-        if 'mode' not in node.attrs or len(node.outputs) != 1:
+        if len(node.outputs) != 1:
             return False
 
-        self.operatorRepresentation['mode'] = node.attrs['mode']
+        # ONNX: 'mode' is optional and defaults to "constant". onnx-graphsurgeon decodes string attributes to str,
+        # other front ends may hand over bytes.
+        mode = node.attrs.get('mode', 'constant')
+        if isinstance(mode, bytes):
+            mode = mode.decode('utf-8')
+        mode = str(mode)
+        self.operatorRepresentation['mode'] = mode
 
+        # The Pad kernels fill the output with a constant and copy the input into it; reflect / edge / wrap are not
+        # implemented.
+        if mode != 'constant':
+            log.warning(f"Pad node '{node.name}': mode '{mode}' is not supported, only 'constant' padding is")
+            return False
+
+        if not self._parsePadsAndValue(node):
+            return False
+
+        # Negative pads crop the input; the kernels can only add padding.
+        if any(p < 0 for p in self.operatorRepresentation['pads']):
+            log.warning(f"Pad node '{node.name}': negative pads {self.operatorRepresentation['pads']} (cropping) "
+                        "are not supported")
+            return False
+
+        return True
+
+    def _parsePadsAndValue(self, node: gs.Node) -> bool:
         # Legacy Pad encodes pads and the optional value as attributes.
         if len(node.inputs) == 1:
             if 'pads' not in node.attrs:
@@ -407,21 +437,31 @@ class PadParser(NodeParser):
         # Modern ONNX Pad carries pads and the optional value as constant inputs.
         # Constant folding runs before parsing, so evaluating arbitrary producer
         # subgraphs here would duplicate frontend functionality.
+        if len(node.inputs) > 3:
+            log.warning(f"Pad node '{node.name}': the optional 'axes' input is not supported")
+            return False
+
+        if not isinstance(node.inputs[1], gs.Constant):
+            return False
+
+        self.operatorRepresentation['pads'] = [int(p) for p in np.asarray(node.inputs[1].values).reshape(-1)]
+
+        # constant_value is optional; when it is absent, ONNX pads with 0.
         if len(node.inputs) == 2:
-            if not isinstance(node.inputs[1], gs.Constant):
-                return False
-            self.operatorRepresentation['pads'] = [int(p) for p in np.asarray(node.inputs[1].values).reshape(-1)]
             self.operatorRepresentation['value'] = 0
             return True
 
-        if len(node.inputs) == 3:
-            if not isinstance(node.inputs[1], gs.Constant) or not isinstance(node.inputs[2], gs.Constant):
-                return False
-            self.operatorRepresentation['pads'] = [int(p) for p in np.asarray(node.inputs[1].values).reshape(-1)]
-            self.operatorRepresentation['value'] = np.asarray(node.inputs[2].values).reshape(-1)[0].item()
-            return True
+        # An omitted constant_value (empty input name) also means 0, but the framework resolves every node input by
+        # name (NodeParser.parseInputs, type checking), which fails for the nameless tensor. Reject it explicitly.
+        if self._isOmittedInput(node.inputs[2]):
+            log.warning(f"Pad node '{node.name}': an omitted (empty-name) constant_value input is not supported; "
+                        "drop the empty input to pad with 0")
+            return False
 
-        return False
+        if not isinstance(node.inputs[2], gs.Constant):
+            return False
+        self.operatorRepresentation['value'] = np.asarray(node.inputs[2].values).reshape(-1)[0].item()
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -457,9 +497,17 @@ class Pad2DParser(PadParser):
         ret = super().parseNode(node)
         wellFormed = False
         if ret:
+            # pads is in ONNX order [N, C, H, W begin, N, C, H, W end]. NCHWtoNHWCPadPass transposes the data but not
+            # pads, so this order holds for both layouts.
             pads = self.operatorRepresentation['pads']
             if len(pads) == 8 and pads[0] == 0 and pads[4] == 0 \
             and pads[1] == 0 and pads[5] == 0:
+                # The kernels only receive the begin pads. Asymmetric W padding is handled through the output width,
+                # but the Generic NCHW kernel and the untiled PULPOpen kernel assume end == begin for H.
+                if pads[2] != pads[6]:
+                    log.warning(f"Pad node '{node.name}': asymmetric H padding (begin {pads[2]}, end {pads[6]}) is "
+                                "not supported by the Pad2D kernels")
+                    return False
                 wellFormed = True
                 self.operatorRepresentation['pad_x'] = int(pads[3])
                 self.operatorRepresentation['pad_y'] = int(pads[2])
@@ -506,6 +554,8 @@ class Pad1DParser(PadParser):
         ret = super().parseNode(node)
         wellFormed = False
         if ret:
+            # pads is in ONNX order [N, C, L begin, N, C, L end] for both layouts (see Pad2DParser). The kernels read
+            # the begin pad and the output length, so asymmetric L padding is supported.
             pads = self.operatorRepresentation['pads']
             if len(pads) == 6 and pads[0] == 0 and pads[3] == 0 \
             and pads[1] == 0 and pads[4] == 0:
