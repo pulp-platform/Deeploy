@@ -1479,16 +1479,38 @@ class MulParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['A', 'B']
-        outputs = ['C']
+        # The Mul kernels compute C[i] = A[i] * B[i] or, when sizeB == 1, C[i] = A[i] * B[0], for i < size. They must
+        # never index an operand beyond the elements it stores, so only these patterns are accepted:
+        #   - both inputs have as many elements as the output (element-wise);
+        #   - one input has a single element. Mul is commutative, so a single-element A is swapped into B.
+        # MulLayer.computeShapes keeps the real shape of any other non-constant operand, which is rejected here.
+        A = ctxt.lookup(node.inputs[0].name)
+        B = ctxt.lookup(node.inputs[1].name)
+        C = ctxt.lookup(node.outputs[0].name)
 
-        for idx, inputNode in enumerate(node.inputs):
-            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-        for idx, outputNode in enumerate(node.outputs):
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+        size = int(np.prod(C.shape))
+        sizeA = int(np.prod(A.shape))
+        sizeB = int(np.prod(B.shape))
 
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['sizeB'] = np.prod(ctxt.lookup(node.inputs[1].name).shape)
+        if size == 0:
+            log.warning(f"Mul node '{node.name}': zero-size output {tuple(C.shape)} is not supported")
+            return ctxt, False
+
+        if sizeA == 1 and sizeB == size and size > 1:
+            A, B = B, A
+            sizeA, sizeB = sizeB, sizeA
+
+        if sizeA != size or sizeB not in (size, 1):
+            log.warning(f"Mul node '{node.name}': cannot broadcast input shapes {tuple(A.shape)} and {tuple(B.shape)} "
+                        f"to output shape {tuple(C.shape)}. Only equal-size inputs or a single-element input are "
+                        f"supported, other non-constant broadcasts are not")
+            return ctxt, False
+
+        self.operatorRepresentation['A'] = A.name
+        self.operatorRepresentation['B'] = B.name
+        self.operatorRepresentation['C'] = C.name
+        self.operatorRepresentation['size'] = size
+        self.operatorRepresentation['sizeB'] = sizeB
 
         return ctxt, True
 

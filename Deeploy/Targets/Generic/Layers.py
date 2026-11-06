@@ -8,7 +8,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, OperatorRepresentation, Shape
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeMapper, ONNXLayer, OperatorRepresentation, Shape
 from Deeploy.Targets.Generic.Parsers import ReduceLogSumExpParser, resolveChannelsFirst
 
 
@@ -350,12 +350,26 @@ class RQGEMMLayer(GEMMLayer):
 
 
 class MulLayer(SingleOperationPerElementLayer):
+    """Mul with the subset of ONNX broadcasting that the Mul kernels implement.
 
-    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
-                      channels_first) -> Tuple[Shape, Shape]:
+    The kernels index each operand either element-wise (``X[i]`` for ``i < size``) or as a single scalar (``X[0]``),
+    so ``computeShapes`` never gives an operand a shape with more elements than it actually stores:
 
-        lhsShape = tuple(inputShapes[0])
-        rhsShape = tuple(inputShapes[1])
+    - an operand with as many elements as the output is relabeled to the output shape (same data, same layout);
+    - a single-element operand is relabeled to ``(1,)``;
+    - any other constant operand is relabeled to the output shape, which makes ``ONNXLayer.broadcast`` materialize
+      its values with ``np.broadcast_to`` (this costs one element per output element);
+    - any other non-constant operand keeps its real shape. Relabeling it would not give it more data, so
+      ``MulParser`` rejects the node instead.
+    """
+
+    # Per input: whether it is a ConstantBuffer. Set by broadcast(), since computeShapes only receives shapes.
+    _constantInputs: Tuple[bool, ...] = ()
+
+    @staticmethod
+    def broadcastShape(lhsShape: Shape, rhsShape: Shape) -> Tuple[int, ...]:
+        lhsShape = tuple(lhsShape)
+        rhsShape = tuple(rhsShape)
         broadcastShape = []
 
         for lhsDim, rhsDim in zip_longest(reversed(lhsShape), reversed(rhsShape), fillvalue = 1):
@@ -363,10 +377,30 @@ class MulLayer(SingleOperationPerElementLayer):
                 raise ValueError(f"Cannot broadcast Mul input shapes {lhsShape} and {rhsShape}")
             broadcastShape.append(rhsDim if lhsDim == 1 else lhsDim)
 
-        broadcastShape = tuple(reversed(broadcastShape))
-        inputShapes[0] = broadcastShape
-        inputShapes[1] = rhsShape if np.prod(rhsShape) == 1 else broadcastShape
+        return tuple(reversed(broadcastShape))
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
+
+        outShape = self.broadcastShape(inputShapes[0], inputShapes[1])
+        outSize = int(np.prod(outShape))
+
+        for idx in range(2):
+            size = int(np.prod(inputShapes[idx]))
+            isConstant = idx < len(self._constantInputs) and self._constantInputs[idx]
+            if size == outSize or (isConstant and size != 1):
+                inputShapes[idx] = outShape
+            elif size == 1:
+                inputShapes[idx] = (1,)
+            else:
+                inputShapes[idx] = tuple(inputShapes[idx])
+
         return (inputShapes, outputShapes)
+
+    def broadcast(self, ctxt: NetworkContext, default_channels_first: bool = True) -> NetworkContext:
+        self._constantInputs = tuple(
+            isinstance(ctxt.lookup(tensor.name), ConstantBuffer) for tensor in self.node.inputs)
+        return super().broadcast(ctxt, default_channels_first)
 
 
 class ConvLayer(ONNXLayer):
