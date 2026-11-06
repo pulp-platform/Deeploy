@@ -17,6 +17,10 @@
 #define SLAVESTACKSIZE 3800
 #define FLOAT_ABS_TOL 1e-4f
 #define FLOAT_REL_TOL 1e-5f
+// Outputs that live in L3 are read back and compared in chunks of at most this
+// many bytes: the expected output already occupies L2, so a second L2 buffer
+// for the whole output may not fit.
+#define L3_COMPARE_CHUNK_BYTES 65536
 
 struct pi_device cluster_dev;
 
@@ -24,6 +28,7 @@ typedef struct {
   void *expected;
   void *actual;
   uint32_t num_elements;
+  uint32_t index_offset;
   uint32_t output_buf_index;
   uint32_t *err_count;
 } FloatCompareArgs;
@@ -35,6 +40,7 @@ void CompareFloatOnCluster(void *args) {
     float *expected = (float *)compare_args->expected;
     float *actual = (float *)compare_args->actual;
     uint32_t num_elements = compare_args->num_elements;
+    uint32_t index_offset = compare_args->index_offset;
     uint32_t output_buf_index = compare_args->output_buf_index;
     uint32_t *err_count = compare_args->err_count;
 
@@ -60,13 +66,56 @@ void CompareFloatOnCluster(void *args) {
 
         printf("Expected: %10.6f  ", expected_val);
         printf("Actual: %10.6f  ", actual_val);
-        printf("Diff: %10.6f at Index %12u in Output %u\r\n", diff, i,
-               output_buf_index);
+        printf("Diff: %10.6f at Index %12u in Output %u\r\n", diff,
+               index_offset + i, output_buf_index);
       }
     }
 
     *err_count = local_err_count;
   }
+}
+
+// Compares num_elements outputs starting at element index_offset of output
+// buffer buf. Returns the number of mismatches.
+static uint32_t CompareOutputChunk(void *expected, void *actual,
+                                   uint32_t num_elements, uint32_t index_offset,
+                                   uint32_t buf) {
+#if ISOUTPUTFLOAT == 1
+  uint32_t float_error_count = 0;
+  FloatCompareArgs float_compare_args;
+  struct pi_cluster_task cluster_task;
+
+  float_compare_args.expected = expected;
+  float_compare_args.actual = actual;
+  float_compare_args.num_elements = num_elements;
+  float_compare_args.index_offset = index_offset;
+  float_compare_args.output_buf_index = buf;
+  float_compare_args.err_count = &float_error_count;
+
+  pi_cluster_task(&cluster_task, CompareFloatOnCluster, &float_compare_args);
+  cluster_task.stack_size = MAINSTACKSIZE;
+  cluster_task.slave_stack_size = SLAVESTACKSIZE;
+  pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+
+  return float_error_count;
+#else
+  uint32_t err = 0;
+  for (uint32_t i = 0; i < num_elements; i++) {
+    OUTPUTTYPE expected_val = ((OUTPUTTYPE *)expected)[i];
+    OUTPUTTYPE actual_val = ((OUTPUTTYPE *)actual)[i];
+    int32_t error = expected_val - actual_val;
+    OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
+
+    if (diff) {
+      err += 1;
+      printf("Expected: %4d  ", expected_val);
+      printf("Actual: %4d  ", actual_val);
+      printf("Diff: %4d at Index %12u in Output %u\r\n", diff,
+             index_offset + i, buf);
+    }
+  }
+  return err;
+#endif
 }
 
 int main(void) {
@@ -124,58 +173,40 @@ int main(void) {
   uint32_t tot_err, tot_tested;
   tot_err = 0;
   tot_tested = 0;
-  void *compbuf;
-  FloatCompareArgs float_compare_args;
-  uint32_t float_error_count = 0;
 
   for (uint32_t buf = 0; buf < DeeployNetwork_num_outputs; buf++) {
-    tot_tested += DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE);
+    uint32_t bytes = DeeployNetwork_outputs_bytes[buf];
+    uint32_t num_elements = bytes / sizeof(OUTPUTTYPE);
+    tot_tested += num_elements;
 
-    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
-      compbuf = pi_l2_malloc((int)DeeployNetwork_outputs_bytes[buf]);
-      ram_read(compbuf, DeeployNetwork_outputs[buf],
-               DeeployNetwork_outputs_bytes[buf]);
-    } else {
-      compbuf = DeeployNetwork_outputs[buf];
+    if ((uint32_t)DeeployNetwork_outputs[buf] >= 0x1000000) {
+      tot_err += CompareOutputChunk(testOutputVector[buf],
+                                    DeeployNetwork_outputs[buf], num_elements,
+                                    0, buf);
+      continue;
     }
 
-    // OUTPUTTYPE is selected at compile time. Exclude the integer branch for
-    // float outputs: its %d diagnostics would otherwise fail format checking.
-#if ISOUTPUTFLOAT == 1
-    float_error_count = 0;
-    float_compare_args.expected = testOutputVector[buf];
-    float_compare_args.actual = compbuf;
-    float_compare_args.num_elements =
-        DeeployNetwork_outputs_bytes[buf] / sizeof(float);
-    float_compare_args.output_buf_index = buf;
-    float_compare_args.err_count = &float_error_count;
-
-    pi_cluster_task(&cluster_task, CompareFloatOnCluster, &float_compare_args);
-    cluster_task.stack_size = MAINSTACKSIZE;
-    cluster_task.slave_stack_size = SLAVESTACKSIZE;
-    pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
-
-    tot_err += float_error_count;
-#else
-
-    for (uint32_t i = 0;
-         i < DeeployNetwork_outputs_bytes[buf] / sizeof(OUTPUTTYPE); i++) {
-      OUTPUTTYPE expected = ((OUTPUTTYPE *)testOutputVector[buf])[i];
-      OUTPUTTYPE actual = ((OUTPUTTYPE *)compbuf)[i];
-      int32_t error = expected - actual;
-      OUTPUTTYPE diff = (OUTPUTTYPE)(error < 0 ? -error : error);
-
-      if (diff) {
-        tot_err += 1;
-        printf("Expected: %4d  ", expected);
-        printf("Actual: %4d  ", actual);
-        printf("Diff: %4d at Index %12u in Output %u\r\n", diff, i, buf);
-      }
+    // Output in L3: stream it through an L2 buffer.
+    uint32_t chunk_bytes = bytes < L3_COMPARE_CHUNK_BYTES
+                               ? bytes
+                               : (L3_COMPARE_CHUNK_BYTES / sizeof(OUTPUTTYPE)) *
+                                     sizeof(OUTPUTTYPE);
+    void *compbuf = pi_l2_malloc((int)chunk_bytes);
+    if (compbuf == NULL) {
+      printf("Failed to allocate %u bytes of L2 to read back output %u\r\n",
+             chunk_bytes, buf);
+      return -1;
     }
-#endif
-    if ((uint32_t)DeeployNetwork_outputs[buf] < 0x1000000) {
-      pi_l2_free(compbuf, (int)DeeployNetwork_outputs_bytes[buf]);
+
+    for (uint32_t offset = 0; offset < bytes; offset += chunk_bytes) {
+      uint32_t n = bytes - offset < chunk_bytes ? bytes - offset : chunk_bytes;
+      ram_read(compbuf, (char *)DeeployNetwork_outputs[buf] + offset, n);
+      tot_err += CompareOutputChunk((char *)testOutputVector[buf] + offset,
+                                    compbuf, n / sizeof(OUTPUTTYPE),
+                                    offset / sizeof(OUTPUTTYPE), buf);
     }
+
+    pi_l2_free(compbuf, (int)chunk_bytes);
   }
 
   printf("Runtime: %u cycles\r\n", getCycles());

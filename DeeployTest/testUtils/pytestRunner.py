@@ -62,6 +62,11 @@ def create_test_config(
         build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / "build_master")
     else:
         build_dir = str(Path(deeploy_test_dir) / f"TEST_{platform.upper()}" / f"build_{worker_id}")
+        # Parametrizations of the same test (e.g. different L1 sizes) share the same gen_dir. Under
+        # pytest-xdist they can run concurrently on different workers, and one worker regenerating
+        # Network.c while another compiles/objdumps it corrupts the build. Isolate gen_dir per worker.
+        gen_root = Path(deeploy_test_dir) / f"TEST_{platform.upper()}"
+        gen_dir = str(gen_root / f"gen_{worker_id}" / Path(gen_dir).relative_to(gen_root))
 
     cmake_args_list = list(cmake_args) if cmake_args else []
     if cores is not None:
