@@ -9,6 +9,7 @@ from typing import List, Tuple
 import numpy as np
 
 from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, OperatorRepresentation, Shape
+from Deeploy.Targets.Generic.Parsers import ReduceLogSumExpParser, resolveChannelsFirst
 
 
 class SingleOperationPerElementLayer(ONNXLayer):
@@ -165,12 +166,11 @@ class RequantShiftLayer(ONNXLayer):
     def computeShapes(self, inputShapes: List[Shape], outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
 
-        parameterSize = max(np.prod(inputShapes[idx]) for idx in (1, 2))
-        if parameterSize > 1:
-            channelsFirstMatch = parameterSize == inputShapes[0][1]
-            channelsLastMatch = parameterSize == inputShapes[0][-1]
-            if channelsFirstMatch != channelsLastMatch:
-                channels_first = channelsFirstMatch
+        # Resolve the layout once, from the parameter shapes before broadcasting. RequantShiftParser.parseNodeCtxt and
+        # the templates read it back from operatorRepresentation.
+        parameterSize = int(max(np.prod(inputShapes[idx]) for idx in (1, 2)))
+        channels_first = resolveChannelsFirst(self.node, inputShapes[0], parameterSize if parameterSize > 1 else None,
+                                              channels_first)
         operatorRepresentation['channels_first'] = channels_first
 
         if channels_first:
@@ -464,19 +464,15 @@ class ReduceLogSumExpLayer(ONNXLayer):
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
+        # parseNode already normalized the axes (non-negative, sorted) and rejected non-consecutive ones.
         axes = [int(axis) for axis in operatorRepresentation['axes']]
-        inputShape = list(inputShapes[0])
+        reduction = ReduceLogSumExpParser._reductionShapeAndSizes(list(inputShapes[0]), axes,
+                                                                  operatorRepresentation['keepdims'])
+        if reduction is None:
+            raise RuntimeError(f"ReduceLogSumExp: unsupported non-consecutive axes {axes} for input shape "
+                               f"{list(inputShapes[0])}")
 
-        if operatorRepresentation['keepdims']:
-            outputShape = list(inputShape)
-            for axis in axes:
-                outputShape[axis] = 1
-        else:
-            outputShape = [dim for idx, dim in enumerate(inputShape) if idx not in axes]
-            if len(outputShape) == 0:
-                outputShape = [1]
-
-        return (inputShapes, [outputShape])
+        return (inputShapes, [reduction[0]])
 
 
 class ReluLayer(SingleOperationPerElementLayer):

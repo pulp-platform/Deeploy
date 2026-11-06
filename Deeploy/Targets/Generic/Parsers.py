@@ -3,13 +3,53 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import math
-from typing import Tuple
+from typing import Optional, Sequence, Tuple
 
 import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
 from Deeploy.Logging import DEFAULT_LOGGER as log
+
+
+def resolveChannelsFirst(node: Optional[gs.Node], dataShape: Sequence[int], channelCount: Optional[int],
+                         defaultChannelsFirst: bool) -> bool:
+    """Decide whether per-channel parameters of `node` index axis 1 (channels-first) or the last axis of its data input.
+
+    Meant for operators that the layout lowering passes do not rewrite (BatchNormalization, RequantShift): their
+    layout is a property of the node, not of the platform default.
+
+    1. No per-channel parameters (`channelCount` is None) or axis 1 is the last axis: both layouts compute the same
+       result. Keep the node's `channels_first` attribute, else `defaultChannelsFirst`.
+    2. `channelCount` matches exactly one of `dataShape[1]` and `dataShape[-1]`: use that layout. An explicit
+       `channels_first` attribute that contradicts it is an error, since under the attribute's layout the parameter
+       length does not match the channel dimension.
+    3. Otherwise (both or neither match): use the node's `channels_first` attribute, else channels-first, which is
+       the ONNX BatchNormalization convention and the layout upstream RequantShift assumed.
+    """
+    attrs = node.attrs if node is not None else {}
+    explicit = bool(np.asarray(attrs['channels_first']).item()) if 'channels_first' in attrs else None
+    nodeName = node.name if node is not None else "<unknown>"
+
+    if channelCount is None or len(dataShape) < 3:
+        return explicit if explicit is not None else bool(defaultChannelsFirst)
+
+    channelsFirstMatch = dataShape[1] == channelCount
+    channelsLastMatch = dataShape[-1] == channelCount
+
+    if channelsFirstMatch != channelsLastMatch:
+        if explicit is not None and explicit != channelsFirstMatch:
+            raise ValueError(f"Node {nodeName}: channels_first = {int(explicit)} contradicts its {channelCount} "
+                             f"per-channel parameters, which only match axis {1 if channelsFirstMatch else -1} "
+                             f"of input shape {list(dataShape)}")
+        return channelsFirstMatch
+
+    resolved = explicit if explicit is not None else True
+    if not channelsFirstMatch:
+        log.warning(f"Node {nodeName}: {channelCount} per-channel parameters match neither axis 1 nor the last axis "
+                    f"of input shape {list(dataShape)}; assuming channels_first = {int(resolved)}")
+
+    return resolved
 
 
 class UnaryElementWiseParser(NodeParser):
@@ -1387,16 +1427,10 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
 
         assert len(shape) >= 2, f"Unsupported shape length ({len(shape)}). Supported shape lengths greater then 2"
 
-        # Non-uniform requantization parameters identify the channel axis. This
-        # is needed for graphs that mix NCHW convolution tensors with
-        # channels-last transformer tensors.
-        parameterSize = max(np.prod(ctxt.lookup(node.inputs[idx].name).shape) for idx in (1, 2))
-        if parameterSize > 1:
-            channelsFirstMatch = parameterSize == shape[1]
-            channelsLastMatch = parameterSize == shape[-1]
-            if channelsFirstMatch != channelsLastMatch:
-                channels_first = channelsFirstMatch
-        self.operatorRepresentation['channels_first'] = channels_first
+        # The layout was resolved by RequantShiftLayer.computeShapes, which runs before this method and has the
+        # parameter shapes before broadcasting (mul / add are broadcast to it here, so their sizes no longer
+        # identify the channel axis).
+        channels_first = self.operatorRepresentation['channels_first']
 
         self.operatorRepresentation['batch'] = shape[0]
         if channels_first:
@@ -2964,15 +2998,10 @@ class BatchNormParser(NodeParser):
         input_shape = ctxt.lookup(node.inputs[0].name).shape
         param_shape = ctxt.lookup(node.inputs[1].name).shape
 
-        if len(input_shape) >= 2 and len(param_shape) >= 1:
-            channel_count = param_shape[0]
-            channels_first_match = input_shape[1] == channel_count
-            channels_last_match = input_shape[-1] == channel_count
-
-            # Prefer explicit evidence from the BN parameter length when the
-            # default layout would otherwise be ambiguous for mixed-layout graphs.
-            if channels_first_match != channels_last_match:
-                channels_first = channels_first_match
+        # The parameter length identifies the channel axis for mixed-layout graphs; ambiguous shapes use the
+        # node's layout (ONNX: channels-first), not the platform default.
+        channel_count = int(np.prod(param_shape)) if len(input_shape) >= 2 else None
+        channels_first = resolveChannelsFirst(node, input_shape, channel_count, channels_first)
 
         # BatchNorm runs on flattened [N, C, L] for channels-first and [N, L, C]
         # for channels-last, where L covers all spatial positions.
