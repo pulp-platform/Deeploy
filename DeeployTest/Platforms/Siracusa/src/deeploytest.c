@@ -110,8 +110,8 @@ static uint32_t CompareOutputChunk(void *expected, void *actual,
       err += 1;
       printf("Expected: %4d  ", expected_val);
       printf("Actual: %4d  ", actual_val);
-      printf("Diff: %4d at Index %12u in Output %u\r\n", diff,
-             index_offset + i, buf);
+      printf("Diff: %4d at Index %12u in Output %u\r\n", diff, index_offset + i,
+             buf);
     }
   }
   return err;
@@ -180,9 +180,9 @@ int main(void) {
     tot_tested += num_elements;
 
     if ((uint32_t)DeeployNetwork_outputs[buf] >= 0x1000000) {
-      tot_err += CompareOutputChunk(testOutputVector[buf],
-                                    DeeployNetwork_outputs[buf], num_elements,
-                                    0, buf);
+      tot_err +=
+          CompareOutputChunk(testOutputVector[buf], DeeployNetwork_outputs[buf],
+                             num_elements, 0, buf);
       continue;
     }
 
