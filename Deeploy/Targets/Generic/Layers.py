@@ -749,11 +749,12 @@ class ConvTransposeLayer(ONNXLayer):
 
         opsPerPx = int(kernel_shape * ch_in * ch_out / groups) * 2
 
-        # ConvTranspose upscales spatial dims, quindi num pixel viene da output
-        if 'dim_im_out_y' in opRep:
+        # ConvTranspose upscales spatial dims, so the pixel count comes from the output.
+        # 1D parsers only set dim_im_out_y (width), 2D parsers set dim_im_out_x (height) and dim_im_out_y (width).
+        if len(opRep['kernel_shape']) == 2:
             numPx = opRep['dim_im_out_x'] * opRep['dim_im_out_y']
         else:
-            numPx = opRep['dim_im_out_x']
+            numPx = opRep['dim_im_out_y']
 
         return numPx * opsPerPx
 

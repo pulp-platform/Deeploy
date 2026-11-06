@@ -3039,32 +3039,77 @@ class BatchNormParser(NodeParser):
 
 
 class ConvTransposeParser(NodeParser):
+    """Common ONNX ConvTranspose parsing.
+
+    The number of spatial axes is taken from the weight tensor (rank - 2), which is a graph constant, and every optional
+    attribute is normalized to that rank using the ONNX defaults. Subclasses must only read the normalized values from
+    ``operatorRepresentation``.
+    """
 
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # Extract ONNX attributes with defaults
-        strides = node.attrs.get('strides', [1])
+        if len(node.inputs) not in (2, 3) or len(node.outputs) != 1:
+            return False
 
-        pads = node.attrs.get('pads', [0, 0])
-        kernel_shape = node.attrs.get('kernel_shape', None)
-        dilations = node.attrs.get('dilations', [1])
-        group = node.attrs.get('group', 1)
+        weightShape = node.inputs[1].shape
+        if weightShape is None or len(weightShape) < 3:
+            return False
+        nSpatial = len(weightShape) - 2
 
-        # Check for required attributes
-        wellFormed = (kernel_shape is not None and len(node.outputs) == 1)
-        if wellFormed:
-            self.operatorRepresentation['strides'] = strides
-            self.operatorRepresentation['pads'] = pads
-            self.operatorRepresentation['kernel_shape'] = kernel_shape
-            self.operatorRepresentation['dilations'] = dilations
-            self.operatorRepresentation['group'] = group
-            self.operatorRepresentation['nodeName'] = node.name
-            self.operatorRepresentation['nodeOp'] = node.op
-        return wellFormed
+        strides = [int(s) for s in node.attrs.get('strides', [1] * nSpatial)]
+        pads = [int(p) for p in node.attrs.get('pads', [0] * 2 * nSpatial)]
+        dilations = [int(d) for d in node.attrs.get('dilations', [1] * nSpatial)]
+        kernel_shape = [int(k) for k in node.attrs.get('kernel_shape', weightShape[2:])]
+        output_padding = [int(p) for p in node.attrs.get('output_padding', [0] * nSpatial)]
+        group = int(node.attrs.get('group', 1))
+        auto_pad = node.attrs.get('auto_pad', 'NOTSET')
+        if isinstance(auto_pad, bytes):
+            auto_pad = auto_pad.decode()
 
-    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True):
+        if auto_pad == 'VALID':
+            # VALID means no padding; explicit non-zero pads contradict it
+            if any(p != 0 for p in pads):
+                return False
+            pads = [0] * 2 * nSpatial
+        elif auto_pad != 'NOTSET':
+            # TODO: implement SAME_UPPER / SAME_LOWER
+            return False
+
+        # output_shape makes ONNX recompute the pads, which the kernels do not do
+        if 'output_shape' in node.attrs:
+            return False
+
+        if not all([
+                len(strides) == nSpatial,
+                len(pads) == 2 * nSpatial,
+                len(dilations) == nSpatial,
+                len(output_padding) == nSpatial,
+                kernel_shape == [int(k) for k in weightShape[2:]],
+                group >= 1,
+                all(s >= 1 for s in strides),
+                all(d >= 1 for d in dilations),
+                all(p >= 0 for p in pads),
+                # ONNX requires output_padding < max(stride, dilation)
+                all(0 <= op < max(s, d) for op, s, d in zip(output_padding, strides, dilations)),
+        ]):
+            return False
+
+        self.operatorRepresentation['strides'] = strides
+        self.operatorRepresentation['pads'] = pads
+        self.operatorRepresentation['kernel_shape'] = kernel_shape
+        self.operatorRepresentation['dilations'] = dilations
+        self.operatorRepresentation['output_padding'] = output_padding
+        self.operatorRepresentation['group'] = group
+        self.operatorRepresentation['nodeName'] = node.name
+        self.operatorRepresentation['nodeOp'] = node.op
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
         # Register buffer names for codegen
         self.operatorRepresentation['data_in'] = node.inputs[0].name
         self.operatorRepresentation['weight'] = node.inputs[1].name
@@ -3074,45 +3119,42 @@ class ConvTransposeParser(NodeParser):
             self.operatorRepresentation['has_bias'] = "true"
         else:
             self.operatorRepresentation['has_bias'] = "false"
-        # Get output shape from context
-        data_out = ctxt.lookup(node.outputs[0].name)
-        out_shape = data_out.shape
-        if len(out_shape) == 3:
-            self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
-        elif len(out_shape) == 4:
-            self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
-            self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
 
-        stride_x, stride_y = 1, 1
-        if "strides" in node.attrs:
-            stride_x = node.attrs["strides"][0]
-            stride_y = node.attrs["strides"][1] if len(node.attrs["strides"]) > 1 else stride_x
-        self.operatorRepresentation["stride_y"] = stride_y
-        self.operatorRepresentation["stride_x"] = stride_x
+        in_shape = ctxt.lookup(node.inputs[0].name).shape
+        weight_shape = ctxt.lookup(node.inputs[1].name).shape
+        out_shape = ctxt.lookup(node.outputs[0].name).shape
 
-        if "kernel_shape" in node.attrs:
-            kernel_shape = node.attrs["kernel_shape"]
-            kernel_shape_x = kernel_shape[0]
-            # For 2D, kernel_shape may have two elements
-            kernel_shape_y = kernel_shape[1] if len(kernel_shape) > 1 else kernel_shape_x
+        nSpatial = len(self.operatorRepresentation['kernel_shape'])
+        if len(in_shape) != nSpatial + 2 or len(out_shape) != nSpatial + 2 or len(weight_shape) != nSpatial + 2:
+            return ctxt, False
+
+        if channels_first:
+            ch_in, ch_out = in_shape[1], out_shape[1]
+            spatial_in, spatial_out = in_shape[2:], out_shape[2:]
         else:
-            kernel_shape_x = 1
-            kernel_shape_y = 1
+            ch_in, ch_out = in_shape[-1], out_shape[-1]
+            spatial_in, spatial_out = in_shape[1:-1], out_shape[1:-1]
 
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        in_shape = data_in.shape
-        out_shape = data_out.shape
+        group = self.operatorRepresentation['group']
+        if ch_in % group != 0 or weight_shape[0] != ch_in or ch_out != weight_shape[1] * group:
+            return ctxt, False
 
-        self.operatorRepresentation['ch_im_in'] = in_shape[1]
-        self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
-        self.operatorRepresentation['ch_im_out'] = out_shape[1]
-        self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
+        # The kernels write the full output buffer and drop contributions outside of it, so end pads and
+        # output_padding are applied through the output shape. Make sure it is the one ONNX defines.
+        strides = self.operatorRepresentation['strides']
+        dilations = self.operatorRepresentation['dilations']
+        pads = self.operatorRepresentation['pads']
+        output_padding = self.operatorRepresentation['output_padding']
+        kernel_shape = self.operatorRepresentation['kernel_shape']
+        for i in range(nSpatial):
+            expected = (strides[i] * (spatial_in[i] - 1) + output_padding[i] + (kernel_shape[i] - 1) * dilations[i] +
+                        1 - pads[i] - pads[i + nSpatial])
+            if spatial_out[i] != expected:
+                return ctxt, False
 
-        self.operatorRepresentation[
-            'batchOffsetIn'] = self.operatorRepresentation['ch_im_in'] * self.operatorRepresentation['dim_im_in_y']
-        self.operatorRepresentation[
-            'batchOffsetOut'] = self.operatorRepresentation['ch_im_out'] * self.operatorRepresentation['dim_im_out_y']
+        self.operatorRepresentation['batch'] = in_shape[0]
+        self.operatorRepresentation['ch_im_in'] = ch_in
+        self.operatorRepresentation['ch_im_out'] = ch_out
         return ctxt, True
 
 
@@ -3122,25 +3164,27 @@ class ConvTranspose1DParser(ConvTransposeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # 1D ConvTranspose expects 3D input/output and 3D weight
-        wellFormed = super().parseNode(node)
-        ret = False
-        if wellFormed:
-            ret = all([
-                # Make sure strides are 2D
-                len(node.attrs['strides']) == 1,
-                len(node.attrs['pads']) == 2,
-                len(node.attrs['dilations']) == 1,
-            ])
-        if ret:
+        if not super().parseNode(node):
+            return False
 
-            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
-            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][0])
-            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][0])
-            self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][0])
-            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][0])
+        # 1D ConvTranspose expects a 3D weight [C_in, C_out / group, K]
+        if len(self.operatorRepresentation['kernel_shape']) != 1:
+            return False
 
-        return ret
+        # ConvTranspose1d_fp32 has no begin padding, dilation or group arguments. End padding and output_padding are
+        # applied through the output width.
+        if not all([
+                self.operatorRepresentation['pads'][0] == 0,
+                self.operatorRepresentation['dilations'][0] == 1,
+                self.operatorRepresentation['group'] == 1,
+        ]):
+            return False
+
+        self.operatorRepresentation['dim_kernel_y'] = self.operatorRepresentation['kernel_shape'][0]
+        self.operatorRepresentation['dilation_y'] = self.operatorRepresentation['dilations'][0]
+        self.operatorRepresentation['padding_y'] = self.operatorRepresentation['pads'][0]
+        self.operatorRepresentation['stride_y'] = self.operatorRepresentation['strides'][0]
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -3148,54 +3192,50 @@ class ConvTranspose1DParser(ConvTransposeParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return ctxt, False
 
-        if ret:
-            data_in = newCtxt.lookup(node.inputs[0].name)
-            data_out = newCtxt.lookup(node.outputs[0].name)
-            in_shape = data_in.shape
-            out_shape = data_out.shape
-            self.operatorRepresentation['batch'] = in_shape[0]
-            self.operatorRepresentation['ch_im_in'] = in_shape[1]
+        in_shape = newCtxt.lookup(node.inputs[0].name).shape
+        out_shape = newCtxt.lookup(node.outputs[0].name).shape
+        if channels_first:
             self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
-            self.operatorRepresentation['ch_im_out'] = out_shape[1]
             self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
-            self.operatorRepresentation[
-                "batchOffsetIn"] = self.operatorRepresentation["ch_im_in"] * self.operatorRepresentation["dim_im_in_y"]
-            self.operatorRepresentation["batchOffsetOut"] = self.operatorRepresentation[
-                "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
-            return newCtxt, True
-        return ctxt, False
+        else:
+            self.operatorRepresentation['dim_im_in_y'] = in_shape[1]
+            self.operatorRepresentation['dim_im_out_y'] = out_shape[1]
+
+        self.operatorRepresentation[
+            "batchOffsetIn"] = self.operatorRepresentation["ch_im_in"] * self.operatorRepresentation["dim_im_in_y"]
+        self.operatorRepresentation[
+            "batchOffsetOut"] = self.operatorRepresentation["ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
+        return newCtxt, True
 
 
 class ConvTranspose2DParser(ConvTransposeParser):
+    """2D ConvTranspose. The ``x`` fields refer to the height axis and the ``y`` fields to the width axis:
+    ``padding_x`` = pads[0] (H begin), ``padding_y`` = pads[1] (W begin). End pads and output_padding are applied
+    through ``dim_im_out_x`` / ``dim_im_out_y``, so asymmetric pads are supported."""
 
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # 2D ConvTranspose expects 4D input/output and 4D weight
-        wellFormed = super().parseNode(node)
-        ret = False
-        if wellFormed:
-            ret = all([
-                # Make sure strides are 2D
-                len(node.attrs['strides']) == 2,
-                len(node.attrs['pads']) == 4,
-                len(node.attrs['dilations']) == 2,
-            ])
-        if ret:
+        if not super().parseNode(node):
+            return False
 
-            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
-            self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
-            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][1])
-            self.operatorRepresentation['dilation_x'] = int(self.operatorRepresentation['dilations'][0])
-            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][1])
-            self.operatorRepresentation['padding_x'] = int(self.operatorRepresentation['pads'][0])
-            self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][1])
-            self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
-            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
+        # 2D ConvTranspose expects a 4D weight [C_in, C_out / group, K_h, K_w]
+        if len(self.operatorRepresentation['kernel_shape']) != 2:
+            return False
 
-        return ret
+        self.operatorRepresentation['dim_kernel_x'] = self.operatorRepresentation['kernel_shape'][0]
+        self.operatorRepresentation['dim_kernel_y'] = self.operatorRepresentation['kernel_shape'][1]
+        self.operatorRepresentation['dilation_x'] = self.operatorRepresentation['dilations'][0]
+        self.operatorRepresentation['dilation_y'] = self.operatorRepresentation['dilations'][1]
+        self.operatorRepresentation['padding_x'] = self.operatorRepresentation['pads'][0]
+        self.operatorRepresentation['padding_y'] = self.operatorRepresentation['pads'][1]
+        self.operatorRepresentation['stride_x'] = self.operatorRepresentation['strides'][0]
+        self.operatorRepresentation['stride_y'] = self.operatorRepresentation['strides'][1]
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -3203,42 +3243,29 @@ class ConvTranspose2DParser(ConvTransposeParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return ctxt, False
 
-        if ret:
-            data_in = newCtxt.lookup(node.inputs[0].name)
-            data_out = newCtxt.lookup(node.outputs[0].name)
-            in_shape = data_in.shape
-            out_shape = data_out.shape
-            weight = newCtxt.lookup(node.inputs[1].name)
+        in_shape = newCtxt.lookup(node.inputs[0].name).shape
+        out_shape = newCtxt.lookup(node.outputs[0].name).shape
+        if channels_first:
+            self.operatorRepresentation['dim_im_in_x'] = in_shape[2]
+            self.operatorRepresentation['dim_im_in_y'] = in_shape[3]
+            self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
+            self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
+        else:
+            self.operatorRepresentation['dim_im_in_x'] = in_shape[1]
+            self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
+            self.operatorRepresentation['dim_im_out_x'] = out_shape[1]
+            self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
 
-            if len(in_shape) != 4 or len(out_shape) != 4 or len(weight.shape) != 4:
-                return ctxt, False
-
-            self.operatorRepresentation['batch'] = in_shape[0]
-
-            if channels_first:
-                self.operatorRepresentation['ch_im_in'] = in_shape[1]
-                self.operatorRepresentation['dim_im_in_x'] = in_shape[2]
-                self.operatorRepresentation['dim_im_in_y'] = in_shape[3]
-                self.operatorRepresentation['ch_im_out'] = out_shape[1]
-                self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
-                self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
-            else:
-                self.operatorRepresentation['ch_im_in'] = in_shape[3]
-                self.operatorRepresentation['dim_im_in_x'] = in_shape[1]
-                self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
-                self.operatorRepresentation['ch_im_out'] = out_shape[3]
-                self.operatorRepresentation['dim_im_out_x'] = out_shape[1]
-                self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
-
-            self.operatorRepresentation["batchOffsetIn"] = (self.operatorRepresentation["ch_im_in"] *
-                                                            self.operatorRepresentation["dim_im_in_x"] *
-                                                            self.operatorRepresentation["dim_im_in_y"])
-            self.operatorRepresentation["batchOffsetOut"] = (self.operatorRepresentation["ch_im_out"] *
-                                                             self.operatorRepresentation["dim_im_out_x"] *
-                                                             self.operatorRepresentation["dim_im_out_y"])
-            return newCtxt, True
-        return ctxt, False
+        self.operatorRepresentation["batchOffsetIn"] = (self.operatorRepresentation["ch_im_in"] *
+                                                        self.operatorRepresentation["dim_im_in_x"] *
+                                                        self.operatorRepresentation["dim_im_in_y"])
+        self.operatorRepresentation["batchOffsetOut"] = (self.operatorRepresentation["ch_im_out"] *
+                                                         self.operatorRepresentation["dim_im_out_x"] *
+                                                         self.operatorRepresentation["dim_im_out_y"])
+        return newCtxt, True
 
 
 class SqrtParser(UnaryElementWiseParser):
