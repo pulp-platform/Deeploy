@@ -23,6 +23,9 @@ class _TiledPad2DTemplate(NodeTemplate):
     Only ``channels_first``, the data type and (integer kernel) ``value`` are evaluated in Python; none of them is
     a tiling replacement.
 
+    Only the W begin pad (``pad_x``) is passed; the W end pad is implied by ``dim_im_out_y - dim_im_in_y - pad_x``
+    and is filled by the initial fill, so asymmetric W padding needs no extra handling.
+
     Untiled, ``alignToContext`` sets ``pad_y_top = pad_y_bottom = pad_y``. With ``alignValue`` (integer kernels)
     it also aligns ``value`` to the input signedness like the Generic integer Pad template.
 

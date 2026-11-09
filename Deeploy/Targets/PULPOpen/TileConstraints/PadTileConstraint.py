@@ -50,7 +50,9 @@ class Pad2DTileConstraint(TileConstraint):
         outputChannelVar = tilerModel.getTensorDimVar(outputBufferName, channelDim)
 
         tilerModel.addConstraint(outputBatchVar == inputBatchVar)
-        tilerModel.addConstraint(outputWidthVar == inputWidthVar + 2 * parseDict['pad_x'])
+        # pads is in ONNX order [N, C, H, W begin, N, C, H, W end] for both layouts. W padding may be asymmetric.
+        pads = parseDict['pads']
+        tilerModel.addConstraint(outputWidthVar == inputWidthVar + int(pads[3]) + int(pads[7]))
         tilerModel.addConstraint(outputChannelVar == inputChannelVar)
 
         # The input buffer must hold the input rows of every output tile. A tile of height T can lie entirely in

@@ -30,6 +30,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Mul/Regular": [2000],
     "Kernels/FP32/Mul/ScalarA": [1000],
     "Kernels/FP32/Pad2D/PaddingTail": [5900, 2000],
+    "Kernels/FP32/Pad2D/AsymmetricW": [5900, 2000],
     "Kernels/FP32/LayerNorm": [2000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean": [8000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add": [8000],
@@ -64,6 +65,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/Integer/GEMM/Batch_RQ": [20000],
     "Kernels/Integer/Hardswish/Regular_RQ": [750],
     "Kernels/Integer/Pad/PaddingTail_2D": [1470, 500],
+    "Kernels/Integer/Pad/AsymmetricW_2D": [1470, 500],
 }
 
 L2_DOUBLEBUFFER_KERNELS = {
@@ -83,6 +85,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/FP32/Mul/Regular": [2000],
     "Kernels/FP32/Mul/ScalarA": [2000],
     "Kernels/FP32/Pad2D/PaddingTail": [11800, 4000],
+    "Kernels/FP32/Pad2D/AsymmetricW": [11800, 4000],
     "Kernels/FP32/LayerNorm": [2000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean": [8000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add": [8000],
@@ -114,6 +117,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/Integer/Conv/DW_2D_RQ": [5121],
     "Kernels/Integer/Hardswish/Regular_RQ": [800],
     "Kernels/Integer/Pad/PaddingTail_2D": [2950, 1000],
+    "Kernels/Integer/Pad/AsymmetricW_2D": [2950, 1000],
 }
 
 L2_SINGLEBUFFER_MODELS = {
