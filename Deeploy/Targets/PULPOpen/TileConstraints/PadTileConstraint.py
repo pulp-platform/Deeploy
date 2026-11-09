@@ -19,6 +19,11 @@ from Deeploy.TilingExtension.TilingCodegen import AbsoluteHyperRectangle, HyperR
 class Pad2DTileConstraint(TileConstraint):
 
     @staticmethod
+    def _layoutDims(channels_first: bool) -> Tuple[int, int, int, int]:
+        """Return the ``(batch, channel, height, width)`` axis indices of a 4D NCHW or NHWC tensor."""
+        return (0, 1, 2, 3) if channels_first else (0, 3, 1, 2)
+
+    @staticmethod
     def addGeometricalConstraint(tilerModel: TilerModel, parseDict: Dict, ctxt: NetworkContext) -> TilerModel:
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
@@ -26,18 +31,8 @@ class Pad2DTileConstraint(TileConstraint):
         for bufferName in [inputBufferName, outputBufferName]:
             tilerModel.addTensorDimToModel(ctxt, bufferName)
 
-        channels_first = bool(parseDict.get('channels_first', 1))
-
-        if channels_first:
-            batchDim = 0
-            channelDim = 1
-            heightDim = 2
-            widthDim = 3
-        else:
-            batchDim = 0
-            heightDim = 1
-            widthDim = 2
-            channelDim = 3
+        batchDim, channelDim, heightDim, widthDim = Pad2DTileConstraint._layoutDims(
+            bool(parseDict.get('channels_first', 1)))
 
         inputBatchVar = tilerModel.getTensorDimVar(inputBufferName, batchDim)
         inputHeightVar = tilerModel.getTensorDimVar(inputBufferName, heightDim)
@@ -70,18 +65,8 @@ class Pad2DTileConstraint(TileConstraint):
         inputBufferName = parseDict['data_in']
         outputBufferName = parseDict['data_out']
 
-        channels_first = bool(parseDict.get('channels_first', 1))
-
-        if channels_first:
-            batchDim = 0
-            channelDim = 1
-            heightDim = 2
-            widthDim = 3
-        else:
-            batchDim = 0
-            heightDim = 1
-            widthDim = 2
-            channelDim = 3
+        batchDim, channelDim, heightDim, widthDim = Pad2DTileConstraint._layoutDims(
+            bool(parseDict.get('channels_first', 1)))
 
         inputBuffer = ctxt.lookup(inputBufferName)
         outputBuffer = ctxt.lookup(outputBufferName)
@@ -124,16 +109,11 @@ class Pad2DTileConstraint(TileConstraint):
         ``[0, dim_im_in_x)`` (the last input row for bottom padding). That row is never read by the kernel and fits
         the input buffer, whose height variable has a lower bound of 1.
         """
-        channels_first = bool(parseDict.get('channels_first', 1))
+        batchDim, _, heightDim, _ = Pad2DTileConstraint._layoutDims(bool(parseDict.get('channels_first', 1)))
 
-        if channels_first:
-            batchOffset, _, outputHOffset, _ = outputCube.offset
-            batchSize, _, outputHSize, _ = outputCube.dims
-            _, inputChannels, inputHeightTotal, inputWidth = inputShape
-        else:
-            batchOffset, outputHOffset, _, _ = outputCube.offset
-            batchSize, outputHSize, _, _ = outputCube.dims
-            _, inputHeightTotal, inputWidth, inputChannels = inputShape
+        batchOffset, outputHOffset = outputCube.offset[batchDim], outputCube.offset[heightDim]
+        batchSize, outputHSize = outputCube.dims[batchDim], outputCube.dims[heightDim]
+        inputHeightTotal = inputShape[heightDim]
 
         padTop = parseDict['pad_y']
 
@@ -153,27 +133,14 @@ class Pad2DTileConstraint(TileConstraint):
             inputStart = min(inputStart, inputHeightTotal - 1)
             inputHeight = 1
 
-        if channels_first:
-            inCube = HyperRectangle((batchOffset, 0, inputStart, 0),
-                                    (batchSize, inputChannels, inputHeight, inputWidth))
-        else:
-            inCube = HyperRectangle((batchOffset, inputStart, 0, 0),
-                                    (batchSize, inputHeight, inputWidth, inputChannels))
+        # Batch and height follow the output tile; channels and width are always whole.
+        inOffset = [0] * len(inputShape)
+        inOffset[batchDim], inOffset[heightDim] = batchOffset, inputStart
+        inDims = list(inputShape)
+        inDims[batchDim], inDims[heightDim] = batchSize, inputHeight
+        inCube = HyperRectangle(tuple(inOffset), tuple(inDims))
 
         return inCube, localPadTop, localPadBottom
-
-    @staticmethod
-    def _inputLevelIndex(tilingSolution: NodeMemoryConstraint, targetMemLevel: str,
-                         operatorRepresentation: OperatorRepresentation) -> int:
-        """Position of ``targetMemLevel`` in the memory path of ``data_in`` (-1 if absent).
-
-        Index 1 means ``data_in`` tiles are cut from the full tensor (first tiling level), index >= 2 means they
-        are cut from an input tile of the enclosing tiling level, and 0/-1 mean the input is not transferred into
-        ``targetMemLevel`` and is read in place. Same convention as ``SliceTileConstraint.inputLevelIndex``.
-        """
-        inputPath = list(
-            tilingSolution.tensorMemoryConstraints[operatorRepresentation['data_in']].memoryConstraints.keys())
-        return inputPath.index(targetMemLevel) if targetMemLevel in inputPath else -1
 
     @classmethod
     def serializeTilingSolution(
@@ -197,7 +164,7 @@ class Pad2DTileConstraint(TileConstraint):
           the home level, where ``wrapTilingSolution`` serializes the L1 tiles): the global cube is kept, as at the
           first level.
         """
-        inputLevelIdx = cls._inputLevelIndex(tilingSolution, targetMemLevel, operatorRepresentation)
+        inputLevelIdx = cls.inputLevelIndex(tilingSolution, targetMemLevel, operatorRepresentation)
         fullInputShape = tuple(ctxt.lookup(operatorRepresentation['data_in']).shape)
 
         parentInputOffset = None
@@ -244,7 +211,7 @@ class Pad2DTileConstraint(TileConstraint):
             "data_out_size": PointerClass(uint32_t),
         }
 
-        channels_first = bool(operatorRepresentation.get('channels_first', 1))
+        _, channelDim, heightDim, widthDim = cls._layoutDims(bool(operatorRepresentation.get('channels_first', 1)))
 
         inputLoadSchedule = []
         outputLoadSchedule = []
@@ -266,20 +233,13 @@ class Pad2DTileConstraint(TileConstraint):
             replacements["pad_y_bottom"].append(localPadBottom)
             replacements["data_out_size"].append(int(np.prod(outCube.dims)))
 
-            if channels_first:
-                replacements["dim_im_in_ch"].append(inCube.dims[1])
-                replacements["dim_im_in_x"].append(inCube.dims[2])
-                replacements["dim_im_in_y"].append(inCube.dims[3])
-                replacements["dim_im_out_ch"].append(outCube.dims[1])
-                replacements["dim_im_out_x"].append(outCube.dims[2])
-                replacements["dim_im_out_y"].append(outCube.dims[3])
-            else:
-                replacements["dim_im_in_x"].append(inCube.dims[1])
-                replacements["dim_im_in_y"].append(inCube.dims[2])
-                replacements["dim_im_in_ch"].append(inCube.dims[3])
-                replacements["dim_im_out_x"].append(outCube.dims[1])
-                replacements["dim_im_out_y"].append(outCube.dims[2])
-                replacements["dim_im_out_ch"].append(outCube.dims[3])
+            # dim_im_*_x is the height axis and dim_im_*_y the width axis in both layouts.
+            replacements["dim_im_in_ch"].append(inCube.dims[channelDim])
+            replacements["dim_im_in_x"].append(inCube.dims[heightDim])
+            replacements["dim_im_in_y"].append(inCube.dims[widthDim])
+            replacements["dim_im_out_ch"].append(outCube.dims[channelDim])
+            replacements["dim_im_out_x"].append(outCube.dims[heightDim])
+            replacements["dim_im_out_y"].append(outCube.dims[widthDim])
 
             inputLoadSchedule.append({"data_in": inCube})
             outputLoadSchedule.append({"data_out": outCube})

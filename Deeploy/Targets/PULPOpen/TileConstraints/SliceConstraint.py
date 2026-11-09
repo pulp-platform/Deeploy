@@ -133,21 +133,6 @@ class SliceTileConstraint(TileConstraint):
             dims.append((size - 1) * abs(step) + 1)
         return HyperRectangle(tuple(offsets), tuple(dims))
 
-    @staticmethod
-    def inputLevelIndex(tilingSolution: NodeMemoryConstraint, targetMemLevel: str,
-                        operatorRepresentation: OperatorRepresentation) -> int:
-        """Position of ``targetMemLevel`` in the memory path of ``data_in`` (-1 if absent).
-
-        A tensor's ``memoryConstraints`` are ordered from its home level, which holds the full tensor, towards
-        the compute level, and ``data_in`` tiles at ``targetMemLevel`` are cut from the level just before it.
-        Index 1 therefore means the parent buffer is the full tensor (first tiling level), index >= 2 means the
-        parent is an input tile of the enclosing tiling level, and 0/-1 mean the input is not transferred into
-        ``targetMemLevel`` at all and is read in place.
-        """
-        inputPath = list(
-            tilingSolution.tensorMemoryConstraints[operatorRepresentation['data_in']].memoryConstraints.keys())
-        return inputPath.index(targetMemLevel) if targetMemLevel in inputPath else -1
-
     @classmethod
     def serializeTilingSolution(
             cls, tilingSolution: NodeMemoryConstraint, absoluteOutputCubes: List[AbsoluteHyperRectangle],

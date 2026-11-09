@@ -268,15 +268,10 @@ class PULPConvTranspose2DParser(ConvTranspose2DParser):
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, True)
 
         if ret:
-            self.operatorRepresentation['data_in'] = newCtxt.lookup(node.inputs[0].name).name
-            self.operatorRepresentation['weight'] = newCtxt.lookup(node.inputs[1].name).name
-
+            # The base parser registers data_in, weight, has_bias and bias (if present). The PULP template always
+            # passes ${bias}, so it needs a NULL pointer when there is no bias.
             if len(node.inputs) == 2:
-                self.operatorRepresentation["has_bias"] = "false"
                 self.operatorRepresentation["bias"] = "NULL"
-            else:
-                self.operatorRepresentation["has_bias"] = "true"
-                self.operatorRepresentation["bias"] = newCtxt.lookup(node.inputs[2].name).name
 
             return newCtxt, True
 
