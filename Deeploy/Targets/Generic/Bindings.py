@@ -8,7 +8,7 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
 from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
-    int8_t, int32_t, uint8_t
+    int8_t, int32_t, int64_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
 from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTemplate, ConcatTemplate, ConvTemplate, \
@@ -17,17 +17,18 @@ from Deeploy.Targets.Generic.Templates import AddTemplate, BatchNormalizationTem
     FloatDWConvTemplate, FloatExpTemplate, FloatFloorTemplate, FloatGELUTemplate, FloatGemmTemplate, \
     FloatGlobalAveragePoolTemplate, FloatGlobalMaxPoolTemplate, FloatGroupNormTemplate, FloatHardSigmoidTemplate, \
     FloatHardSwishTemplate, FloatInstanceNormTemplate, FloatLayernormTemplate, FloatMatMulTemplate, \
-    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceMeanTemplate, \
-    FloatReluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, FloatSubTemplate, \
-    FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, ITAPartialMaxTemplate, \
-    MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, ReduceMeanTemplate, ReduceSumTemplate, \
-    RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, RQSiGELUTemplate, SliceTemplate, SubTemplate, \
-    TransposeTemplate, iGELUTemplate, iLayernormTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    FloatMaxPoolTemplate, FloatMulTemplate, FloatPadTemplate, FloatPowTemplate, FloatReduceLogSumExpTemplate, \
+    FloatReduceMeanTemplate, FloatReluTemplate, FloatSigmoidTemplate, FloatSoftmaxTemplate, FloatSqrtTemplate, \
+    FloatSubTemplate, FloatSwishTemplate, GatherTemplate, GemmTemplate, IntegerDivTemplate, ITAMaxTemplate, \
+    ITAPartialMaxTemplate, MatMulTemplate, MaxPoolTemplate, MulTemplate, PadTemplate, QuantTemplate, \
+    ReduceMeanTemplate, ReduceSumTemplate, RequantShiftTemplate, ReshapeTemplate, RQIntegerDivTemplate, \
+    RQSiGELUTemplate, SliceTemplate, SubTemplate, TransposeTemplate, iGELUTemplate, iLayernormTemplate, \
+    iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.Generic.TypeCheckers import AddChecker, BatchNormChecker, ConcatChecker, ConvChecker, \
     DebugPrintChecker, DequantChecker, DivChecker, DummyChecker, FloatConcatChecker, GatherChecker, GELUChecker, \
     GEMMChecker, LayerNormChecker, MatMulChecker, MaxPoolChecker, MulChecker, PadChecker, QuantChecker, \
-    ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, RQIntegerDivChecker, \
-    SliceChecker, SoftmaxChecker, TransposeChecker
+    ReduceLogSumExpChecker, ReduceMeanChecker, ReduceSumChecker, ReluChecker, RequantShiftChecker, ReshapeChecker, \
+    RQIntegerDivChecker, SliceChecker, SoftmaxChecker, TransposeChecker
 
 BasicTransformer = CodeTransformation([ArgumentStructGeneration(), MemoryManagementGeneration(), FutureGeneration()])
 
@@ -203,22 +204,28 @@ BasicMulBindings = [
                 FloatMulTemplate.referenceTemplate, BasicTransformer)
 ]
 
+# Input types: data, pads (int64, opset 11+), constant_value (data type, opset 11+). The type checker zips the node
+# inputs with these types, so the same bindings match the legacy single-input Pad and the 2- and 3-input forms.
+# PadParser decodes pads / constant_value and excludes their tensors from deployment; declaring their types is still
+# required because binding reads the type of every global node input.
 BasicPad1DBindings = [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference1DTemplate,
-                BasicTransformer) for type in SignedIntegerDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                PadTemplate.reference1DTemplate, BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), FloatPadTemplate.reference1DTemplate,
-                BasicTransformer) for type in FloatDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                FloatPadTemplate.reference1DTemplate, BasicTransformer) for type in FloatDataTypes
 ]
 
 BasicPad2DBindings = [
-    NodeBinding(PadChecker([PointerClass(type)], [PointerClass(type)]), PadTemplate.reference2DTemplate,
-                BasicTransformer) for type in SignedIntegerDataTypes
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                PadTemplate.reference2DTemplate, BasicTransformer) for type in SignedIntegerDataTypes
 ] + [
-    NodeBinding(
-        PadChecker([PointerClass(float32_t), PointerClass(float32_t),
-                    PointerClass(float32_t)], [PointerClass(float32_t)]), FloatPadTemplate.reference2DTemplate,
-        BasicTransformer)
+    NodeBinding(PadChecker(
+        [PointerClass(type), PointerClass(int64_t), PointerClass(type)], [PointerClass(type)]),
+                FloatPadTemplate.reference2DTemplate, BasicTransformer) for type in FloatDataTypes
 ]
 
 BasicReduceMeanBindings = [
@@ -239,6 +246,11 @@ BasicReduceMeanBindings = [
 BasicReduceSumBindings = [
     NodeBinding(ReduceSumChecker([PointerClass(type)], [PointerClass(int32_t)]), ReduceSumTemplate.referenceTemplate,
                 BasicTransformer) for type in SignedIntegerDataTypes
+]
+
+BasicReduceLogSumExpBindings = [
+    NodeBinding(ReduceLogSumExpChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
+                FloatReduceLogSumExpTemplate.referenceTemplate, BasicTransformer)
 ]
 
 BasicReluBinding = NodeBinding(ReluChecker([PointerClass(float32_t)], [PointerClass(float32_t)]),
@@ -329,19 +341,35 @@ BasicBatchNormBindings = [
     for type in FloatDataTypes
 ]
 
-BasicConvTransposeBindings = [
+BasicConvTranspose1DBindings = [
     NodeBinding(
         ConvChecker(
             [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
             [PointerClass(type)]),
-        ConvTransposeTemplate.referenceTemplate,
+        ConvTransposeTemplate.reference1DTemplate,
         BasicTransformer) for type in FloatDataTypes
 ] + [
     NodeBinding(
         ConvChecker(
             [PointerClass(type), PointerClass(type)],  # input, weight
             [PointerClass(type)]),
-        ConvTransposeTemplate.referenceTemplate,
+        ConvTransposeTemplate.reference1DTemplate,
+        BasicTransformer) for type in FloatDataTypes
+]
+
+BasicConvTranspose2DBindings = [
+    NodeBinding(
+        ConvChecker(
+            [PointerClass(type), PointerClass(type), PointerClass(type)],  # input, weight, bias
+            [PointerClass(type)]),
+        ConvTransposeTemplate.reference2DTemplate,
+        BasicTransformer) for type in FloatDataTypes
+] + [
+    NodeBinding(
+        ConvChecker(
+            [PointerClass(type), PointerClass(type)],  # input, weight
+            [PointerClass(type)]),
+        ConvTransposeTemplate.reference2DTemplate,
         BasicTransformer) for type in FloatDataTypes
 ]
 

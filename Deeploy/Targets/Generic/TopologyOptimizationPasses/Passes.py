@@ -478,7 +478,37 @@ def _merge_matmul_add_fun(graph: gs.Graph, match: Match, name: str):
     matched_nodes = [m for k, m in match.nodes_map.items()]
     gemm = matched_nodes[0]
     add = matched_nodes[1]
-    _bias = add.inputs[0] if isinstance(add.inputs[0], gs.Constant) else add.inputs[1]
+
+    if len(gemm.inputs) != 2 or len(gemm.outputs) != 1 or len(add.inputs) != 2:
+        return graph
+
+    product = gemm.outputs[0]
+    # Add is commutative; identify its other input by connectivity, not constness.
+    bias_inputs = [tensor for tensor in add.inputs if tensor is not product]
+    if len(bias_inputs) != 1 or not any(tensor is product for tensor in add.inputs):
+        return graph
+    _bias = bias_inputs[0]
+    if any(tensor is product for tensor in graph.outputs) or len(product.outputs) != 1:
+        return graph
+
+    # Gemm only supports matrices and a bias broadcasting into the matrix result.
+    # Batched/vector MatMul and Add broadcasts that expand the result must remain separate.
+    a_shape, b_shape, bias_shape = gemm.inputs[0].shape, gemm.inputs[1].shape, _bias.shape
+    if a_shape is None or b_shape is None or bias_shape is None:
+        return graph
+    if len(a_shape) != 2 or len(b_shape) != 2:
+        return graph
+    if not all(isinstance(dim, (int, np.integer)) for dim in (*a_shape, *b_shape, *bias_shape)):
+        return graph
+    output_shape = (a_shape[0], b_shape[1])
+    if a_shape[1] != b_shape[0] or len(bias_shape) > 2:
+        return graph
+    try:
+        if np.broadcast_shapes(output_shape, tuple(bias_shape)) != output_shape:
+            return graph
+    except ValueError:
+        return graph
+
     _inputs = gemm.inputs + [_bias]
     _outputs = add.outputs
 

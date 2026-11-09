@@ -5,6 +5,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 
 
 ### List of Pull Requests
+- Add 2D Autoencoder and GMM Integration on Siracusa Target [#190](https://github.com/pulp-platform/Deeploy/pull/190)
 - Fix Neureka [#188](https://github.com/pulp-platform/Deeploy/pull/188)
 - HOTFIX: XDNA2 Action Fix [#201](https://github.com/pulp-platform/Deeploy/pull/201)
 - XDNA2 Platform Support [#179](https://github.com/pulp-platform/Deeploy/pull/179)
@@ -48,6 +49,16 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Specialised PULPOpen kernels for 3x3 depthwise (`PULPDWConv3x3.c`), 1x1 pointwise (`PULPPWConv1x1.c`) and a three-channel 3x3 stem (`PULPStemConv3x3.c`), with bindings and tile constraints for PULPOpen and GAP9
 - Lowering passes `PULPNCHWtoNHWCPwConvPass` and `PULPNCHWtoNHWCConvPass`, keeping a 1x1 convolution's output and a depthwise-feeding stem channels-first so the transposes at depthwise boundaries cancel
 - X-HEEP platform support, including compilation for FPGA targets and simulation with Verilator.
+- 2D Autoencoder and GMM models (`Models/Autoencoder2D/{STD,GMM}`, `Models/GMM`) plus Autoencoder2D micro-block tests (`Models/Autoencoder2D/MicroBlocks/*`) for Generic and Siracusa (untiled, L2 tiled and L3 tiled)
+- FP32 ConvTranspose2D (with padding, dilation and groups) for Generic (`ConvTranspose2DParser`, `ConvTranspose2d_fp32`) and for PULPOpen/Siracusa with a parallel kernel (`ConvTranspose_fp32.c`) and `ConvTranspose2DTileConstraint`
+- FP32 `ReduceLogSumExp` operator for Generic and PULPOpen (parser, layer, type checker, template and kernel), supporting attribute- and input-provided axes, negative axes and `keepdims`
+- Tiled `Pad` on PULPOpen via a new `Pad2DTileConstraint` (Pad1D uses `UntiledTileConstraint`), including support for the opset-11+ `Pad` form with constant `pads`/`value` inputs
+- FP32 `BatchNormalization` on PULPOpen, and channels-last layout plus non-default `epsilon` support in the Generic FP32 BatchNorm kernel
+- Per-node engine selection: a node with an `engine` attribute is mapped to that engine in `NetworkContainer._selectEngine`
+- Tensor-by-tensor broadcasting in FP32 `Mul` on PULPOpen (non-scalar second operand)
+- Kernel tests `Kernels/FP32/BatchNorm/{ChannelsFirst,ChannelsLast,NonDefaultEpsilon}` and `Kernels/FP32/Conv/Transpose_2D`, and unit tests `test_mul_layer.py` and `test_reduce_log_sum_exp_parser.py`
+- Siracusa L3-tiled kernel tests `Kernels/FP32/Slice/{StartStep2,NegativeStep}` (input larger than L2, non-zero starts on tiled axes, strided and reversed slices)
+- Siracusa tiled Pad2D kernel tests `Kernels/FP32/Pad2D/PaddingTail` and `Kernels/Integer/Pad/PaddingTail_2D` (L1 budgets that leave a tail tile made only of bottom padding) and the L3-tiled `Kernels/FP32/Pad2D/L3`
 
 ### Changed
 - Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints
@@ -67,8 +78,29 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Aligned CLI commands across the project
 - Added @runwangdl as a code owner
 - Skip emitting duplicate `testInputVector` data for inputs placed in L3 (loaded at runtime from the readfs hex instead), reducing test binary size
+- Split the Generic/X-HEEP `ConvTranspose` mapping into `ConvTranspose1DMapper` and `ConvTranspose2DMapper` (`BasicConvTransposeBindings` renamed to `BasicConvTranspose1DBindings`)
+- `UntiledTileConstraint` now emits a full-tensor load schedule, so untiled operators can still be moved across memory levels (e.g. L3 -> L2 -> L1)
+- BatchNorm and RequantShift parsing infer channels-first vs. channels-last from the parameter length, for graphs that mix layouts
+- `MulLayer` computes proper NumPy-style broadcast shapes
+- Refactor N-EUREKA convolution checks in `NeurekaEngine` to share common preconditions and tolerate missing optional attributes
+- `ONNXLayer._broadcastToNpType` keeps the float width (e.g. `float32`) instead of casting constants to `double`
+- Float constants are emitted as valid C float literals with full float32 precision
+- The test runner passes `--cores` to the generator for tiled runs
+- Siracusa/PULPOpen float output comparison uses a combined absolute + relative tolerance
+- Add `pre-commit` to `requirements-dev.txt` and run the reuse hook serially
 
 ### Fixed
+- Reject non-finite outputs in the PULPOpen/Siracusa floating-point test comparison.
+- Preserve dynamic biases in MatMul/Add fusion and avoid fusing shapes or shared outputs incompatible with Gemm.
+- Restore PULPOpen floating-point Slice tiling with per-tile dimensions and local indices, including strided and reversed slices.
+- PULPOpen Slice tiling no longer applies the slice start twice with nested (L3 -> L2 -> L1) tiling: deeper levels compute the input tile relative to the parent input tile. The PULP Slice kernel now runs on all cluster cores, uses 32-bit indices and copies contiguous rows with `memcpy`.
+- PULPOpen Pad2D tiling: a tail tile made only of bottom padding no longer loads the row past the end of the input; the tile-local padding is computed from absolute offsets, so nested (L3 -> L2 -> L1) tiling places the padding correctly; the input tile height is constrained to `min(output tile height, input height)` so every tile's input rows fit the L1 buffer; and the input sizes are taken from the tensor shape, so serializing again after the per-tile variable replacement no longer fails.
+- PULPOpen Pad2D tiling supports asymmetric W padding: the output width is constrained to `input width + W begin + W end` instead of `input width + 2 * W begin`, which made the tiler model infeasible.
+- Align PULPOpen FP32 MaxPool kernel and stride arguments with the parser's height/width order, and correct directional padding for MaxPool2D.
+- Tiling codegen: when several operands reference the same external tensor (e.g. `Mul(x, x)`), transfer each tile and advance the external reference only once (single and double buffering)
+- Generic: run `RemoveGlobalOutputReshapePass` so a `Reshape` producing a graph output no longer leaves the global output buffer unwritten
+- Use `uint16_t` instead of `int8_t` for the MatMul tile replacement variables (`M`, `N`, `O`, `batch`) so tile sizes above 127 do not overflow
+- Cast the external address to `uint32_t` in the PULPOpen L3 DMA 2D transfer template
 - Fix Neureka's output-channels subtile size (in ConvTemplate) and Dense/DW/PW tile constraints
 - in `NetworkContainer._createIOBindings`, set `_live = True` on network input and output buffers so that any buffer aliasing a network I/O tensor is no longer deallocated while the I/O tensor is still in use.
 - Fix latent bug in `VariableBuffer.has_live_aliases` where `visited` variable was storing buffer names as a set of characters instead of strings.

@@ -19,10 +19,18 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Conv/Regular_2D_Bias": [6600],
     "Kernels/FP32/Conv/Regular_2D_NoBias": [1600],
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [6600],
+    "Kernels/FP32/Conv/Transpose_2D": [64000],
+    "Kernels/FP32/ConvTranspose/Group_2D": [10000],
+    "Kernels/FP32/ConvTranspose/Regular_2D_AsymPadsDilation": [10000],
+    "Kernels/FP32/ConvTranspose/Regular_2D_NoAttrs": [8000],
+    "Kernels/FP32/ConvTranspose/Regular_2D_Stride2": [32000, 16000],
     "Kernels/FP32/GEMM/Regular": [8000],
     "Kernels/FP32/MatMul": [2000],
     "Kernels/FP32/MaxPool/Regular_2D": [2000],
     "Kernels/FP32/Mul/Regular": [2000],
+    "Kernels/FP32/Mul/ScalarA": [1000],
+    "Kernels/FP32/Pad2D/PaddingTail": [5900, 2000],
+    "Kernels/FP32/Pad2D/AsymmetricW": [5900, 2000],
     "Kernels/FP32/LayerNorm": [2000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean": [8000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add": [8000],
@@ -49,12 +57,15 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/Integer/Concat": [32000, 16000, 8000],
     "Kernels/Integer/MatMul/Batch": [20000],
     "Kernels/Integer/MatMul/Regular": [64000, 32000, 16000],
+    "Kernels/Integer/Mul/ScalarConst": [1000],
     "Kernels/Integer/RMSNorm": [2048, 1024, 512],
     "Kernels/Integer/Conv/Regular_2D_RQ": [8000, 6000, 4000],
     "Kernels/Integer/Conv/DW_2D_RQ": [2561],
     "Kernels/Integer/Conv/StriddedPadded_2D_RQ": [600],
     "Kernels/Integer/GEMM/Batch_RQ": [20000],
     "Kernels/Integer/Hardswish/Regular_RQ": [750],
+    "Kernels/Integer/Pad/PaddingTail_2D": [1470, 500],
+    "Kernels/Integer/Pad/AsymmetricW_2D": [1470, 500],
 }
 
 L2_DOUBLEBUFFER_KERNELS = {
@@ -66,10 +77,15 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/FP32/Conv/Regular_2D_Bias": [8800],
     "Kernels/FP32/Conv/Regular_2D_NoBias": [2000],
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [8800],
+    "Kernels/FP32/ConvTranspose/Regular_2D_NoAttrs": [12000],
+    "Kernels/FP32/ConvTranspose/Regular_2D_Stride2": [32000],
     "Kernels/FP32/GEMM/Regular": [8000],
     "Kernels/FP32/MatMul": [5000],
     "Kernels/FP32/MaxPool/Regular_2D": [5000],
     "Kernels/FP32/Mul/Regular": [2000],
+    "Kernels/FP32/Mul/ScalarA": [2000],
+    "Kernels/FP32/Pad2D/PaddingTail": [11800, 4000],
+    "Kernels/FP32/Pad2D/AsymmetricW": [11800, 4000],
     "Kernels/FP32/LayerNorm": [2000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean": [8000],
     "Kernels/FP32/ReduceMean/KeepDims/Add_ReduceMean_Add": [8000],
@@ -95,10 +111,13 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/Integer/Softmax/Regular": [1600, 1000, 600],
     "Kernels/Integer/Concat": [64000, 32000, 16000],
     "Kernels/Integer/MatMul/Regular": [64000, 32000, 16000],
+    "Kernels/Integer/Mul/ScalarConst": [2000],
     "Kernels/Integer/RMSNorm": [4096, 2048, 1024],
     "Kernels/Integer/Conv/Regular_2D_RQ": [8000, 6000, 5000],
     "Kernels/Integer/Conv/DW_2D_RQ": [5121],
     "Kernels/Integer/Hardswish/Regular_RQ": [800],
+    "Kernels/Integer/Pad/PaddingTail_2D": [2950, 1000],
+    "Kernels/Integer/Pad/AsymmetricW_2D": [2950, 1000],
 }
 
 L2_SINGLEBUFFER_MODELS = {
@@ -115,6 +134,13 @@ L2_SINGLEBUFFER_MODELS = {
     "Models/MLPerf/VisualWakeWords": [64000],
     "Models/CCT/FP32/CCT_1_16_16_8": [64000],
     "Models/TinyViT/Demo": [4000],
+    "Models/GMM": [256, 128],
+    "Models/Autoencoder2D/MicroBlocks/EncoderCMR": [1200, 1000],
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMR": [8000, 4000],
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLRes": [3000, 2500],
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLTra": [30000, 22000],
+    "Models/Autoencoder2D/MicroBlocks/EncoderPCMRLin": [3000, 2500],
+    "Models/Autoencoder2D/MicroBlocks/Encoder_mini": [20000, 10000],
 }
 
 L2_DOUBLEBUFFER_MODELS = {
@@ -131,6 +157,7 @@ L2_DOUBLEBUFFER_MODELS = {
     "Models/MLPerf/VisualWakeWords": [128000],
     "Models/CCT/FP32/CCT_1_16_16_8": [128000],
     "Models/TinyViT/Demo": [8000],
+    "Models/GMM": [384, 192],
 }
 
 L3_SINGLEBUFFER_MODELS = {
@@ -138,11 +165,16 @@ L3_SINGLEBUFFER_MODELS = {
     "Models/miniMobileNet": [60000, 12000, 6000],
     "Models/miniMobileNetv2": [60000, 16000, 12000, 8000],
     "Kernels/Integer/Attention": [60000, 10000, 5000, 2500],
+    "Kernels/FP32/Slice/StartStep2": [32000],
+    "Kernels/FP32/Slice/NegativeStep": [32000],
+    "Kernels/FP32/Pad2D/L3": [32000],
     "Models/Transformer": [60000, 30000, 15000],
     "Models/microLlama/INT8/microLlama1": [60000, 10000, 5000],
     "Models/CCT/FP32/CCT_2_32_32_128": [128000],
     "Models/CCT_Train/CCT2_FT2": [128000],
     "Models/TinyViT/Demo": [4000],
+    "Models/Autoencoder2D/GMM": [64000],
+    "Models/Autoencoder2D/STD": [64000],
 }
 
 L3_DOUBLEBUFFER_MODELS = {
@@ -150,6 +182,9 @@ L3_DOUBLEBUFFER_MODELS = {
     "Models/miniMobileNet": [60000, 24000, 12000, 6000],
     "Models/miniMobileNetv2": [60000, 32000, 24000, 16000],
     "Kernels/Integer/Attention": [60000, 20000, 10000, 5000],
+    "Kernels/FP32/Slice/StartStep2": [64000],
+    "Kernels/FP32/Slice/NegativeStep": [64000],
+    "Kernels/FP32/Pad2D/L3": [64000],
     "Models/Transformer": [60000, 30000, 15000],
     "Models/microLlama/INT8/microLlama1": [60000, 20000, 10000],
     "Models/microLlama/INT8/microLlama8": [60000, 20000, 10000],

@@ -3,11 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+from itertools import zip_longest
 from typing import List, Tuple
 
 import numpy as np
 
-from Deeploy.DeeployTypes import NodeMapper, ONNXLayer, OperatorRepresentation, Shape
+from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeMapper, ONNXLayer, OperatorRepresentation, Shape
+from Deeploy.Targets.Generic.Parsers import ReduceLogSumExpParser, resolveChannelsFirst
 
 
 class SingleOperationPerElementLayer(ONNXLayer):
@@ -164,9 +166,24 @@ class RequantShiftLayer(ONNXLayer):
     def computeShapes(self, inputShapes: List[Shape], outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
 
-        channel_dim = inputShapes[0][1]
-        inputShapes[2] = [inputShapes[0][0], channel_dim] + list(inputShapes[2][1:])
-        inputShapes[1] = [inputShapes[0][0], channel_dim] + list(inputShapes[1][1:])
+        # Resolve the layout once, from the parameter shapes before broadcasting. RequantShiftParser.parseNodeCtxt and
+        # the templates read it back from operatorRepresentation.
+        parameterSize = int(max(np.prod(inputShapes[idx]) for idx in (1, 2)))
+        channels_first = resolveChannelsFirst(self.node, inputShapes[0], parameterSize if parameterSize > 1 else None,
+                                              channels_first)
+        operatorRepresentation['channels_first'] = channels_first
+
+        if channels_first:
+            channel_dim = inputShapes[0][1]
+            inputShapes[2] = [inputShapes[0][0], channel_dim] + list(inputShapes[2][1:])
+            inputShapes[1] = [inputShapes[0][0], channel_dim] + list(inputShapes[1][1:])
+        else:
+            channel_dim = inputShapes[0][-1]
+            for idx in (1, 2):
+                if np.prod(inputShapes[idx]) == 1:
+                    inputShapes[idx] = [inputShapes[0][0], channel_dim]
+                else:
+                    inputShapes[idx] = [inputShapes[0][0]] + list(inputShapes[idx])
 
         return (inputShapes, outputShapes)
 
@@ -333,18 +350,57 @@ class RQGEMMLayer(GEMMLayer):
 
 
 class MulLayer(SingleOperationPerElementLayer):
+    """Mul with the subset of ONNX broadcasting that the Mul kernels implement.
+
+    The kernels index each operand either element-wise (``X[i]`` for ``i < size``) or as a single scalar (``X[0]``),
+    so ``computeShapes`` never gives an operand a shape with more elements than it actually stores:
+
+    - an operand with as many elements as the output is relabeled to the output shape (same data, same layout);
+    - a single-element operand is relabeled to ``(1,)``;
+    - any other constant operand is relabeled to the output shape, which makes ``ONNXLayer.broadcast`` materialize
+      its values with ``np.broadcast_to`` (this costs one element per output element);
+    - any other non-constant operand keeps its real shape. Relabeling it would not give it more data, so
+      ``MulParser`` rejects the node instead.
+    """
+
+    # Per input: whether it is a ConstantBuffer. Set by broadcast(), since computeShapes only receives shapes.
+    _constantInputs: Tuple[bool, ...] = ()
+
+    @staticmethod
+    def broadcastShape(lhsShape: Shape, rhsShape: Shape) -> Tuple[int, ...]:
+        lhsShape = tuple(lhsShape)
+        rhsShape = tuple(rhsShape)
+        broadcastShape = []
+
+        for lhsDim, rhsDim in zip_longest(reversed(lhsShape), reversed(rhsShape), fillvalue = 1):
+            if lhsDim != rhsDim and lhsDim != 1 and rhsDim != 1:
+                raise ValueError(f"Cannot broadcast Mul input shapes {lhsShape} and {rhsShape}")
+            broadcastShape.append(rhsDim if lhsDim == 1 else lhsDim)
+
+        return tuple(reversed(broadcastShape))
 
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
 
-        if inputShapes[1] == () or inputShapes[1] == []:
-            inputShapes[1] = (1,)
+        outShape = self.broadcastShape(inputShapes[0], inputShapes[1])
+        outSize = int(np.prod(outShape))
 
-        if len(inputShapes[0]) > len(inputShapes[1]):
-            inputShapes[1] = inputShapes[0]
-        else:
-            inputShapes[0] = inputShapes[1]
+        for idx in range(2):
+            size = int(np.prod(inputShapes[idx]))
+            isConstant = idx < len(self._constantInputs) and self._constantInputs[idx]
+            if size == outSize or (isConstant and size != 1):
+                inputShapes[idx] = outShape
+            elif size == 1:
+                inputShapes[idx] = (1,)
+            else:
+                inputShapes[idx] = tuple(inputShapes[idx])
+
         return (inputShapes, outputShapes)
+
+    def broadcast(self, ctxt: NetworkContext, default_channels_first: bool = True) -> NetworkContext:
+        self._constantInputs = tuple(
+            isinstance(ctxt.lookup(tensor.name), ConstantBuffer) for tensor in self.node.inputs)
+        return super().broadcast(ctxt, default_channels_first)
 
 
 class ConvLayer(ONNXLayer):
@@ -355,7 +411,7 @@ class ConvLayer(ONNXLayer):
     def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
                       channels_first) -> Tuple[Shape, Shape]:
         if len(inputShapes) == 3:
-            inputShapes[2] = inputShapes[1][0]
+            inputShapes[2] = (inputShapes[1][0],)
         return (inputShapes, outputShapes)
 
     def computeOps(self):
@@ -433,6 +489,24 @@ class ReduceSumLayer(ONNXLayer):
         else:
             outputShapes[0] = outputShapes[0][:axis] + outputShapes[0][axis + 1:]
         return (inputShapes, outputShapes)
+
+
+class ReduceLogSumExpLayer(ONNXLayer):
+
+    def __init__(self, maps: List[NodeMapper]):
+        super().__init__(maps)
+
+    def computeShapes(self, inputShapes: Shape, outputShapes: Shape, operatorRepresentation,
+                      channels_first) -> Tuple[Shape, Shape]:
+        # parseNode already normalized the axes (non-negative, sorted) and rejected non-consecutive ones.
+        axes = [int(axis) for axis in operatorRepresentation['axes']]
+        reduction = ReduceLogSumExpParser._reductionShapeAndSizes(list(inputShapes[0]), axes,
+                                                                  operatorRepresentation['keepdims'])
+        if reduction is None:
+            raise RuntimeError(f"ReduceLogSumExp: unsupported non-consecutive axes {axes} for input shape "
+                               f"{list(inputShapes[0])}")
+
+        return (inputShapes, [reduction[0]])
 
 
 class ReluLayer(SingleOperationPerElementLayer):
@@ -675,11 +749,12 @@ class ConvTransposeLayer(ONNXLayer):
 
         opsPerPx = int(kernel_shape * ch_in * ch_out / groups) * 2
 
-        # ConvTranspose upscales spatial dims, quindi num pixel viene da output
-        if 'dim_im_out_y' in opRep:
+        # ConvTranspose upscales spatial dims, so the pixel count comes from the output.
+        # 1D parsers only set dim_im_out_y (width), 2D parsers set dim_im_out_x (height) and dim_im_out_y (width).
+        if len(opRep['kernel_shape']) == 2:
             numPx = opRep['dim_im_out_x'] * opRep['dim_im_out_y']
         else:
-            numPx = opRep['dim_im_out_x']
+            numPx = opRep['dim_im_out_y']
 
         return numPx * opsPerPx
 

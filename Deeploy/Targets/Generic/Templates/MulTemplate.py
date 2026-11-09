@@ -35,7 +35,7 @@ referenceTemplate = _MulTemplate("""
 // Mul (Name: ${nodeName}, Op: ${nodeOp})
 BEGIN_SINGLE_CORE
     for (uint32_t i=0;i<${size};i++){
-        ${C}[i] = ((${A}[i] + ${A_offset}) * (${B}[i] + ${B_offset}) + ${C_offset});
+        ${C}[i] = ((${A}[i] + ${A_offset}) * (${B}[${0 if sizeB == 1 else 'i'}] + ${B_offset}) + ${C_offset});
     }
 END_SINGLE_CORE
 """)

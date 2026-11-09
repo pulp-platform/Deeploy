@@ -3,12 +3,53 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import math
-from typing import Tuple
+from typing import Optional, Sequence, Tuple
 
 import numpy as np
 import onnx_graphsurgeon as gs
 
 from Deeploy.DeeployTypes import ConstantBuffer, NetworkContext, NodeParser, VariableBuffer
+from Deeploy.Logging import DEFAULT_LOGGER as log
+
+
+def resolveChannelsFirst(node: Optional[gs.Node], dataShape: Sequence[int], channelCount: Optional[int],
+                         defaultChannelsFirst: bool) -> bool:
+    """Decide whether per-channel parameters of `node` index axis 1 (channels-first) or the last axis of its data input.
+
+    Meant for operators that the layout lowering passes do not rewrite (BatchNormalization, RequantShift): their
+    layout is a property of the node, not of the platform default.
+
+    1. No per-channel parameters (`channelCount` is None) or axis 1 is the last axis: both layouts compute the same
+       result. Keep the node's `channels_first` attribute, else `defaultChannelsFirst`.
+    2. `channelCount` matches exactly one of `dataShape[1]` and `dataShape[-1]`: use that layout. An explicit
+       `channels_first` attribute that contradicts it is an error, since under the attribute's layout the parameter
+       length does not match the channel dimension.
+    3. Otherwise (both or neither match): use the node's `channels_first` attribute, else channels-first, which is
+       the ONNX BatchNormalization convention and the layout upstream RequantShift assumed.
+    """
+    attrs = node.attrs if node is not None else {}
+    explicit = bool(np.asarray(attrs['channels_first']).item()) if 'channels_first' in attrs else None
+    nodeName = node.name if node is not None else "<unknown>"
+
+    if channelCount is None or len(dataShape) < 3:
+        return explicit if explicit is not None else bool(defaultChannelsFirst)
+
+    channelsFirstMatch = dataShape[1] == channelCount
+    channelsLastMatch = dataShape[-1] == channelCount
+
+    if channelsFirstMatch != channelsLastMatch:
+        if explicit is not None and explicit != channelsFirstMatch:
+            raise ValueError(f"Node {nodeName}: channels_first = {int(explicit)} contradicts its {channelCount} "
+                             f"per-channel parameters, which only match axis {1 if channelsFirstMatch else -1} "
+                             f"of input shape {list(dataShape)}")
+        return channelsFirstMatch
+
+    resolved = explicit if explicit is not None else True
+    if not channelsFirstMatch:
+        log.warning(f"Node {nodeName}: {channelCount} per-channel parameters match neither axis 1 nor the last axis "
+                    f"of input shape {list(dataShape)}; assuming channels_first = {int(resolved)}")
+
+    return resolved
 
 
 class UnaryElementWiseParser(NodeParser):
@@ -322,6 +363,7 @@ class MaxPool1DParser(MaxPoolParser):
 
 
 class MaxPool2DParser(MaxPoolParser):
+    """Use x/y for height/width, matching the spatial order in ONNX and the tiler."""
 
     def __init__(self):
         super().__init__()
@@ -339,10 +381,11 @@ class MaxPool2DParser(MaxPoolParser):
 
             self.operatorRepresentation['padding_x'] = int(self.operatorRepresentation['pads'][0])
             self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][1])
-            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][0])
-            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][1])
-            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][2])
-            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][3])
+            # Directional padding names follow top/left/bottom/right in ONNX pads.
+            self.operatorRepresentation['padding_y_top'] = int(self.operatorRepresentation['pads'][0])
+            self.operatorRepresentation['padding_x_left'] = int(self.operatorRepresentation['pads'][1])
+            self.operatorRepresentation['padding_y_bottom'] = int(self.operatorRepresentation['pads'][2])
+            self.operatorRepresentation['padding_x_right'] = int(self.operatorRepresentation['pads'][3])
             self.operatorRepresentation['stride_x'] = int(self.operatorRepresentation['strides'][0])
             self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][1])
             self.operatorRepresentation['dim_kernel_x'] = int(self.operatorRepresentation['kernel_shape'][0])
@@ -388,25 +431,77 @@ class PadParser(NodeParser):
     def __init__(self):
         super().__init__()
 
+    @staticmethod
+    def _isOmittedInput(tensor) -> bool:
+        # onnx-graphsurgeon represents an omitted optional input (empty name in ONNX) as a nameless Variable.
+        return isinstance(tensor, gs.Variable) and tensor.name == ""
+
     def parseNode(self, node: gs.Node) -> bool:
+        if len(node.outputs) != 1:
+            return False
 
-        ret = all([
-            'mode' in node.attrs, 'pads' in node.attrs, 'value' in node.attrs,
-            len(node.inputs) == 1,
-            len(node.outputs) == 1
-        ])
+        # ONNX: 'mode' is optional and defaults to "constant". onnx-graphsurgeon decodes string attributes to str,
+        # other front ends may hand over bytes.
+        mode = node.attrs.get('mode', 'constant')
+        if isinstance(mode, bytes):
+            mode = mode.decode('utf-8')
+        mode = str(mode)
+        self.operatorRepresentation['mode'] = mode
 
-        if ret:
-            self.operatorRepresentation['mode'] = node.attrs['mode']
+        # The Pad kernels fill the output with a constant and copy the input into it; reflect / edge / wrap are not
+        # implemented.
+        if mode != 'constant':
+            log.warning(f"Pad node '{node.name}': mode '{mode}' is not supported, only 'constant' padding is")
+            return False
 
-            try:
-                self.operatorRepresentation['pads'] = [int(p) for p in node.attrs['pads']]
-            except Exception as e:
-                self.operatorRepresentation['pads'] = node.attrs['pads']
+        if not self._parsePadsAndValue(node):
+            return False
 
-            self.operatorRepresentation['value'] = node.attrs['value']
+        # Negative pads crop the input; the kernels can only add padding.
+        if any(p < 0 for p in self.operatorRepresentation['pads']):
+            log.warning(f"Pad node '{node.name}': negative pads {self.operatorRepresentation['pads']} (cropping) "
+                        "are not supported")
+            return False
 
-        return ret
+        return True
+
+    def _parsePadsAndValue(self, node: gs.Node) -> bool:
+        # Legacy Pad encodes pads and the optional value as attributes.
+        if len(node.inputs) == 1:
+            if 'pads' not in node.attrs:
+                return False
+            self.operatorRepresentation['pads'] = [int(p) for p in node.attrs['pads']]
+            self.operatorRepresentation['value'] = node.attrs.get('value', 0)
+            return True
+
+        # Modern ONNX Pad carries pads and the optional value as constant inputs.
+        # Constant folding runs before parsing, so evaluating arbitrary producer
+        # subgraphs here would duplicate frontend functionality.
+        if len(node.inputs) > 3:
+            log.warning(f"Pad node '{node.name}': the optional 'axes' input is not supported")
+            return False
+
+        if not isinstance(node.inputs[1], gs.Constant):
+            return False
+
+        self.operatorRepresentation['pads'] = [int(p) for p in np.asarray(node.inputs[1].values).reshape(-1)]
+
+        # constant_value is optional; when it is absent, ONNX pads with 0.
+        if len(node.inputs) == 2:
+            self.operatorRepresentation['value'] = 0
+            return True
+
+        # An omitted constant_value (empty input name) also means 0, but the framework resolves every node input by
+        # name (NodeParser.parseInputs, type checking), which fails for the nameless tensor. Reject it explicitly.
+        if self._isOmittedInput(node.inputs[2]):
+            log.warning(f"Pad node '{node.name}': an omitted (empty-name) constant_value input is not supported; "
+                        "drop the empty input to pad with 0")
+            return False
+
+        if not isinstance(node.inputs[2], gs.Constant):
+            return False
+        self.operatorRepresentation['value'] = np.asarray(node.inputs[2].values).reshape(-1)[0].item()
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -419,6 +514,15 @@ class PadParser(NodeParser):
         self.operatorRepresentation['data_out'] = data_out.name
         self.operatorRepresentation['data_in_size'] = np.prod(data_in.shape)
         self.operatorRepresentation['data_out_size'] = np.prod(data_out.shape)
+
+        # The opset-11+ constant inputs (pads, constant_value) were decoded into 'pads' / 'value' by parseNode and
+        # the templates only use those. Exclude the tensors from allocation, tiling and code generation, as for the
+        # ReduceMean / ReduceSum axes, and do not reference them in the operatorRepresentation. The Pad bindings
+        # still declare their types, because binding reads the type of every global node input.
+        for constInput in node.inputs[1:]:
+            constBuffer = ctxt.lookup(constInput.name)
+            constBuffer._live = False
+            constBuffer._deploy = False
 
         return ctxt, True
 
@@ -433,9 +537,17 @@ class Pad2DParser(PadParser):
         ret = super().parseNode(node)
         wellFormed = False
         if ret:
+            # pads is in ONNX order [N, C, H, W begin, N, C, H, W end]. NCHWtoNHWCPadPass transposes the data but not
+            # pads, so this order holds for both layouts.
             pads = self.operatorRepresentation['pads']
             if len(pads) == 8 and pads[0] == 0 and pads[4] == 0 \
             and pads[1] == 0 and pads[5] == 0:
+                # The kernels only receive the begin pads. Asymmetric W padding is handled through the output width,
+                # but the Generic NCHW kernel and the untiled PULPOpen kernel assume end == begin for H.
+                if pads[2] != pads[6]:
+                    log.warning(f"Pad node '{node.name}': asymmetric H padding (begin {pads[2]}, end {pads[6]}) is "
+                                "not supported by the Pad2D kernels")
+                    return False
                 wellFormed = True
                 self.operatorRepresentation['pad_x'] = int(pads[3])
                 self.operatorRepresentation['pad_y'] = int(pads[2])
@@ -482,6 +594,8 @@ class Pad1DParser(PadParser):
         ret = super().parseNode(node)
         wellFormed = False
         if ret:
+            # pads is in ONNX order [N, C, L begin, N, C, L end] for both layouts (see Pad2DParser). The kernels read
+            # the begin pad and the output length, so asymmetric L padding is supported.
             pads = self.operatorRepresentation['pads']
             if len(pads) == 6 and pads[0] == 0 and pads[3] == 0 \
             and pads[1] == 0 and pads[4] == 0:
@@ -676,6 +790,121 @@ class ReduceSumParser(ReduceParser):
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
         return newCtxt, ret
+
+
+class ReduceLogSumExpParser(NodeParser):
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def _normalizeAxes(axes, rank: int):
+        """Convert negative axes to their non-negative ONNX representation."""
+        normalizedAxes = []
+        for axis in np.asarray(axes, dtype = np.int64).reshape(-1):
+            normalizedAxis = int(axis)
+            if normalizedAxis < 0:
+                normalizedAxis += rank
+            if normalizedAxis < 0 or normalizedAxis >= rank or normalizedAxis in normalizedAxes:
+                return None
+            normalizedAxes.append(normalizedAxis)
+
+        return sorted(normalizedAxes)
+
+    @staticmethod
+    def _reductionShapeAndSizes(inputShape, axes, keepdims):
+        """Return the output shape and flattened regions around consecutive reduction axes."""
+        firstAxis = axes[0]
+        lastAxis = axes[-1]
+
+        # The kernel flattens the dimensions before, within, and after the reduced block into
+        # outerSize, axisLength, and innerSize respectively. Non-consecutive axes cannot be
+        # represented by this layout without first transposing the input.
+        if axes != list(range(firstAxis, lastAxis + 1)):
+            return None
+
+        outerSize = int(np.prod(inputShape[:firstAxis])) if firstAxis > 0 else 1
+        axisLength = int(np.prod(inputShape[firstAxis:lastAxis + 1]))
+        innerSize = int(np.prod(inputShape[lastAxis + 1:])) if lastAxis + 1 < len(inputShape) else 1
+
+        if keepdims:
+            outputShape = list(inputShape)
+            for axis in axes:
+                outputShape[axis] = 1
+        else:
+            outputShape = [dim for idx, dim in enumerate(inputShape) if idx not in axes]
+            if len(outputShape) == 0:
+                outputShape = [1]
+
+        return outputShape, outerSize, axisLength, innerSize
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if len(node.outputs) != 1:
+            return False
+
+        if len(node.inputs) == 1:
+            axes = node.attrs.get('axes', [])
+        elif len(node.inputs) == 2:
+            if not isinstance(node.inputs[1], gs.Constant):
+                return False
+            axes = node.inputs[1].values
+        else:
+            return False
+
+        if len(node.inputs[0].shape) == 0:
+            return False
+
+        rank = len(node.inputs[0].shape)
+        axes = np.asarray(axes, dtype = np.int64).reshape(-1)
+        if len(axes) == 0:
+            if int(node.attrs.get('noop_with_empty_axes', 0)):
+                return False
+            axes = np.arange(rank, dtype = np.int64)
+
+        normalizedAxes = self._normalizeAxes(axes, rank)
+        keepdims = int(node.attrs.get('keepdims', 1))
+        reduction = None if normalizedAxes is None else self._reductionShapeAndSizes(
+            node.inputs[0].shape, normalizedAxes, keepdims)
+        if reduction is None:
+            return False
+
+        self.operatorRepresentation['keepdims'] = keepdims
+        self.operatorRepresentation['axes'] = np.asarray(normalizedAxes, dtype = np.int64)
+        node.outputs[0].shape = reduction[0]
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        data_in = ctxt.lookup(node.inputs[0].name)
+        data_out = ctxt.lookup(node.outputs[0].name)
+
+        if len(node.inputs) == 2:
+            axes_buffer = ctxt.lookup(node.inputs[1].name)
+            axes_buffer._live = False
+            axes_buffer._deploy = False
+
+        axes = list(self.operatorRepresentation['axes'])
+        reduction = self._reductionShapeAndSizes(data_in.shape, axes, self.operatorRepresentation['keepdims'])
+        if reduction is None:
+            return ctxt, False
+        outputShape, outerSize, axisLength, innerSize = reduction
+
+        data_out.shape = outputShape
+        node.outputs[0].shape = outputShape
+
+        self.operatorRepresentation['data_in'] = data_in.name
+        self.operatorRepresentation['data_out'] = data_out.name
+        self.operatorRepresentation['data_in_shape'] = data_in.shape
+        self.operatorRepresentation['data_out_shape'] = outputShape
+        self.operatorRepresentation['size'] = int(np.prod(data_in.shape))
+        self.operatorRepresentation['axisLength'] = axisLength
+        self.operatorRepresentation['outerSize'] = outerSize
+        self.operatorRepresentation['innerSize'] = innerSize
+
+        return ctxt, True
 
 
 class SoftmaxParser(NodeParser):
@@ -1184,8 +1413,6 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
                       ctxt: NetworkContext,
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
-        _ = channels_first
-
         inputs = ['data_in', 'mul', 'add']
         outputs = ['data_out']
 
@@ -1200,10 +1427,18 @@ class RequantShiftParser(NodeParser, RQSParserInterface):
 
         assert len(shape) >= 2, f"Unsupported shape length ({len(shape)}). Supported shape lengths greater then 2"
 
-        # Assumes shape [ Batch, Channels, ...]
+        # The layout was resolved by RequantShiftLayer.computeShapes, which runs before this method and has the
+        # parameter shapes before broadcasting (mul / add are broadcast to it here, so their sizes no longer
+        # identify the channel axis).
+        channels_first = self.operatorRepresentation['channels_first']
+
         self.operatorRepresentation['batch'] = shape[0]
-        self.operatorRepresentation['channels'] = shape[1]
-        self.operatorRepresentation['channel_width'] = np.prod(shape[2:]) if len(shape) > 2 else 1
+        if channels_first:
+            self.operatorRepresentation['channels'] = shape[1]
+            self.operatorRepresentation['channel_width'] = np.prod(shape[2:]) if len(shape) > 2 else 1
+        else:
+            self.operatorRepresentation['channels'] = shape[-1]
+            self.operatorRepresentation['channel_width'] = np.prod(shape[1:-1]) if len(shape) > 2 else 1
         self.operatorRepresentation['size'] = np.prod(shape)
 
         return ctxt, True
@@ -1244,16 +1479,38 @@ class MulParser(NodeParser):
                       node: gs.Node,
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
-        inputs = ['A', 'B']
-        outputs = ['C']
+        # The Mul kernels compute C[i] = A[i] * B[i] or, when sizeB == 1, C[i] = A[i] * B[0], for i < size. They must
+        # never index an operand beyond the elements it stores, so only these patterns are accepted:
+        #   - both inputs have as many elements as the output (element-wise);
+        #   - one input has a single element. Mul is commutative, so a single-element A is swapped into B.
+        # MulLayer.computeShapes keeps the real shape of any other non-constant operand, which is rejected here.
+        A = ctxt.lookup(node.inputs[0].name)
+        B = ctxt.lookup(node.inputs[1].name)
+        C = ctxt.lookup(node.outputs[0].name)
 
-        for idx, inputNode in enumerate(node.inputs):
-            self.operatorRepresentation[inputs[idx]] = ctxt.lookup(inputNode.name).name
-        for idx, outputNode in enumerate(node.outputs):
-            self.operatorRepresentation[outputs[idx]] = ctxt.lookup(outputNode.name).name
+        size = int(np.prod(C.shape))
+        sizeA = int(np.prod(A.shape))
+        sizeB = int(np.prod(B.shape))
 
-        self.operatorRepresentation['size'] = np.prod(ctxt.lookup(node.inputs[0].name).shape)
-        self.operatorRepresentation['sizeB'] = np.prod(ctxt.lookup(node.inputs[1].name).shape)
+        if size == 0:
+            log.warning(f"Mul node '{node.name}': zero-size output {tuple(C.shape)} is not supported")
+            return ctxt, False
+
+        if sizeA == 1 and sizeB == size and size > 1:
+            A, B = B, A
+            sizeA, sizeB = sizeB, sizeA
+
+        if sizeA != size or sizeB not in (size, 1):
+            log.warning(f"Mul node '{node.name}': cannot broadcast input shapes {tuple(A.shape)} and {tuple(B.shape)} "
+                        f"to output shape {tuple(C.shape)}. Only equal-size inputs or a single-element input are "
+                        f"supported, other non-constant broadcasts are not")
+            return ctxt, False
+
+        self.operatorRepresentation['A'] = A.name
+        self.operatorRepresentation['B'] = B.name
+        self.operatorRepresentation['C'] = C.name
+        self.operatorRepresentation['size'] = size
+        self.operatorRepresentation['sizeB'] = sizeB
 
         return ctxt, True
 
@@ -2739,14 +2996,11 @@ class BatchNormParser(NodeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # Verify the attributes (epsilon is mandatory, momentum and training_mode  are optional)
-        if 'epsilon' not in node.attrs:
-            return False
         # Common Inputs: 5 (X, scale, B, mean, var)
         if len(node.inputs) < 5:
             return False
 
-        # Save the attributes, default values are provided if not present
+        # Save attributes (ONNX defaults when attributes are omitted)
         self.operatorRepresentation['epsilon'] = node.attrs.get('epsilon', 1e-5)
         self.operatorRepresentation['momentum'] = node.attrs.get('momentum', 0.9)
         self.operatorRepresentation['training_mode'] = node.attrs.get('training_mode', 0)
@@ -2764,41 +3018,98 @@ class BatchNormParser(NodeParser):
         self.operatorRepresentation[outputs[0]] = ctxt.lookup(node.outputs[0].name).name
 
         input_shape = ctxt.lookup(node.inputs[0].name).shape
-        # Save input shape information
+        param_shape = ctxt.lookup(node.inputs[1].name).shape
+
+        # The parameter length identifies the channel axis for mixed-layout graphs; ambiguous shapes use the
+        # node's layout (ONNX: channels-first), not the platform default.
+        channel_count = int(np.prod(param_shape)) if len(input_shape) >= 2 else None
+        channels_first = resolveChannelsFirst(node, input_shape, channel_count, channels_first)
+
+        # BatchNorm runs on flattened [N, C, L] for channels-first and [N, L, C]
+        # for channels-last, where L covers all spatial positions.
         self.operatorRepresentation['batch_size'] = input_shape[0]
-        self.operatorRepresentation['channel_size'] = input_shape[1]
-        self.operatorRepresentation['window_size'] = input_shape[2]
+        self.operatorRepresentation['channel_size'] = input_shape[1] if channels_first else input_shape[-1]
+        if channels_first:
+            self.operatorRepresentation['window_size'] = int(np.prod(input_shape[2:]))
+        else:
+            self.operatorRepresentation['window_size'] = int(np.prod(input_shape[1:-1]))
+        self.operatorRepresentation['channels_first'] = int(channels_first)
 
         return ctxt, True
 
 
 class ConvTransposeParser(NodeParser):
+    """Common ONNX ConvTranspose parsing.
+
+    The number of spatial axes is taken from the weight tensor (rank - 2), which is a graph constant, and every optional
+    attribute is normalized to that rank using the ONNX defaults. Subclasses must only read the normalized values from
+    ``operatorRepresentation``.
+    """
 
     def __init__(self):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # Extract ONNX attributes with defaults
-        strides = node.attrs.get('strides', [1])
+        if len(node.inputs) not in (2, 3) or len(node.outputs) != 1:
+            return False
 
-        pads = node.attrs.get('pads', [0, 0])
-        kernel_shape = node.attrs.get('kernel_shape', None)
-        dilations = node.attrs.get('dilations', [1])
-        group = node.attrs.get('group', 1)
+        weightShape = node.inputs[1].shape
+        if weightShape is None or len(weightShape) < 3:
+            return False
+        nSpatial = len(weightShape) - 2
 
-        # Check for required attributes
-        wellFormed = (kernel_shape is not None and len(node.outputs) == 1)
-        if wellFormed:
-            self.operatorRepresentation['strides'] = strides
-            self.operatorRepresentation['pads'] = pads
-            self.operatorRepresentation['kernel_shape'] = kernel_shape
-            self.operatorRepresentation['dilations'] = dilations
-            self.operatorRepresentation['group'] = group
-            self.operatorRepresentation['nodeName'] = node.name
-            self.operatorRepresentation['nodeOp'] = node.op
-        return wellFormed
+        strides = [int(s) for s in node.attrs.get('strides', [1] * nSpatial)]
+        pads = [int(p) for p in node.attrs.get('pads', [0] * 2 * nSpatial)]
+        dilations = [int(d) for d in node.attrs.get('dilations', [1] * nSpatial)]
+        kernel_shape = [int(k) for k in node.attrs.get('kernel_shape', weightShape[2:])]
+        output_padding = [int(p) for p in node.attrs.get('output_padding', [0] * nSpatial)]
+        group = int(node.attrs.get('group', 1))
+        auto_pad = node.attrs.get('auto_pad', 'NOTSET')
+        if isinstance(auto_pad, bytes):
+            auto_pad = auto_pad.decode()
 
-    def parseNodeCtxt(self, ctxt: NetworkContext, node: gs.Node, channels_first: bool = True):
+        if auto_pad == 'VALID':
+            # VALID means no padding; explicit non-zero pads contradict it
+            if any(p != 0 for p in pads):
+                return False
+            pads = [0] * 2 * nSpatial
+        elif auto_pad != 'NOTSET':
+            # TODO: implement SAME_UPPER / SAME_LOWER
+            return False
+
+        # output_shape makes ONNX recompute the pads, which the kernels do not do
+        if 'output_shape' in node.attrs:
+            return False
+
+        if not all([
+                len(strides) == nSpatial,
+                len(pads) == 2 * nSpatial,
+                len(dilations) == nSpatial,
+                len(output_padding) == nSpatial,
+                kernel_shape == [int(k) for k in weightShape[2:]],
+                group >= 1,
+                all(s >= 1 for s in strides),
+                all(d >= 1 for d in dilations),
+                all(p >= 0 for p in pads),
+                # ONNX requires output_padding < max(stride, dilation)
+                all(0 <= op < max(s, d) for op, s, d in zip(output_padding, strides, dilations)),
+        ]):
+            return False
+
+        self.operatorRepresentation['strides'] = strides
+        self.operatorRepresentation['pads'] = pads
+        self.operatorRepresentation['kernel_shape'] = kernel_shape
+        self.operatorRepresentation['dilations'] = dilations
+        self.operatorRepresentation['output_padding'] = output_padding
+        self.operatorRepresentation['group'] = group
+        self.operatorRepresentation['nodeName'] = node.name
+        self.operatorRepresentation['nodeOp'] = node.op
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
         # Register buffer names for codegen
         self.operatorRepresentation['data_in'] = node.inputs[0].name
         self.operatorRepresentation['weight'] = node.inputs[1].name
@@ -2808,45 +3119,42 @@ class ConvTransposeParser(NodeParser):
             self.operatorRepresentation['has_bias'] = "true"
         else:
             self.operatorRepresentation['has_bias'] = "false"
-        # Get output shape from context
-        data_out = ctxt.lookup(node.outputs[0].name)
-        out_shape = data_out.shape
-        if len(out_shape) == 3:
-            self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
-        elif len(out_shape) == 4:
-            self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
-            self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
 
-        stride_x, stride_y = 1, 1
-        if "strides" in node.attrs:
-            stride_y = node.attrs["strides"][0]
-            stride_x = node.attrs["strides"][1] if len(node.attrs["strides"]) > 1 else stride_y
-        self.operatorRepresentation["stride_y"] = stride_y
-        self.operatorRepresentation["stride_x"] = stride_x
+        in_shape = ctxt.lookup(node.inputs[0].name).shape
+        weight_shape = ctxt.lookup(node.inputs[1].name).shape
+        out_shape = ctxt.lookup(node.outputs[0].name).shape
 
-        if "kernel_shape" in node.attrs:
-            kernel_shape = node.attrs["kernel_shape"]
-            kernel_shape_x = kernel_shape[0]
-            # For 2D, kernel_shape may have two elements
-            kernel_shape_y = kernel_shape[1] if len(kernel_shape) > 1 else kernel_shape_x
+        nSpatial = len(self.operatorRepresentation['kernel_shape'])
+        if len(in_shape) != nSpatial + 2 or len(out_shape) != nSpatial + 2 or len(weight_shape) != nSpatial + 2:
+            return ctxt, False
+
+        if channels_first:
+            ch_in, ch_out = in_shape[1], out_shape[1]
+            spatial_in, spatial_out = in_shape[2:], out_shape[2:]
         else:
-            kernel_shape_x = 1
-            kernel_shape_y = 1
+            ch_in, ch_out = in_shape[-1], out_shape[-1]
+            spatial_in, spatial_out = in_shape[1:-1], out_shape[1:-1]
 
-        data_in = ctxt.lookup(node.inputs[0].name)
-        data_out = ctxt.lookup(node.outputs[0].name)
-        in_shape = data_in.shape
-        out_shape = data_out.shape
+        group = self.operatorRepresentation['group']
+        if ch_in % group != 0 or weight_shape[0] != ch_in or ch_out != weight_shape[1] * group:
+            return ctxt, False
 
-        self.operatorRepresentation['ch_im_in'] = in_shape[1]
-        self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
-        self.operatorRepresentation['ch_im_out'] = out_shape[1]
-        self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
+        # The kernels write the full output buffer and drop contributions outside of it, so end pads and
+        # output_padding are applied through the output shape. Make sure it is the one ONNX defines.
+        strides = self.operatorRepresentation['strides']
+        dilations = self.operatorRepresentation['dilations']
+        pads = self.operatorRepresentation['pads']
+        output_padding = self.operatorRepresentation['output_padding']
+        kernel_shape = self.operatorRepresentation['kernel_shape']
+        for i in range(nSpatial):
+            expected = (strides[i] * (spatial_in[i] - 1) + output_padding[i] + (kernel_shape[i] - 1) * dilations[i] +
+                        1 - pads[i] - pads[i + nSpatial])
+            if spatial_out[i] != expected:
+                return ctxt, False
 
-        self.operatorRepresentation[
-            'batchOffsetIn'] = self.operatorRepresentation['ch_im_in'] * self.operatorRepresentation['dim_im_in_y']
-        self.operatorRepresentation[
-            'batchOffsetOut'] = self.operatorRepresentation['ch_im_out'] * self.operatorRepresentation['dim_im_out_y']
+        self.operatorRepresentation['batch'] = in_shape[0]
+        self.operatorRepresentation['ch_im_in'] = ch_in
+        self.operatorRepresentation['ch_im_out'] = ch_out
         return ctxt, True
 
 
@@ -2856,25 +3164,27 @@ class ConvTranspose1DParser(ConvTransposeParser):
         super().__init__()
 
     def parseNode(self, node: gs.Node) -> bool:
-        # 1D ConvTranspose expects 3D input/output and 3D weight
-        wellFormed = super().parseNode(node)
-        ret = False
-        if wellFormed:
-            ret = all([
-                # Make sure strides are 2D
-                len(node.attrs['strides']) == 1,
-                len(node.attrs['pads']) == 2,
-                len(node.attrs['dilations']) == 1,
-            ])
-        if ret:
+        if not super().parseNode(node):
+            return False
 
-            self.operatorRepresentation['kernel_shape'] = node.attrs['kernel_shape']
-            self.operatorRepresentation['dim_kernel_y'] = int(self.operatorRepresentation['kernel_shape'][0])
-            self.operatorRepresentation['dilation_y'] = int(self.operatorRepresentation['dilations'][0])
-            self.operatorRepresentation['padding_y'] = int(self.operatorRepresentation['pads'][0])
-            self.operatorRepresentation['stride_y'] = int(self.operatorRepresentation['strides'][0])
+        # 1D ConvTranspose expects a 3D weight [C_in, C_out / group, K]
+        if len(self.operatorRepresentation['kernel_shape']) != 1:
+            return False
 
-        return ret
+        # ConvTranspose1d_fp32 has no begin padding, dilation or group arguments. End padding and output_padding are
+        # applied through the output width.
+        if not all([
+                self.operatorRepresentation['pads'][0] == 0,
+                self.operatorRepresentation['dilations'][0] == 1,
+                self.operatorRepresentation['group'] == 1,
+        ]):
+            return False
+
+        self.operatorRepresentation['dim_kernel_y'] = self.operatorRepresentation['kernel_shape'][0]
+        self.operatorRepresentation['dilation_y'] = self.operatorRepresentation['dilations'][0]
+        self.operatorRepresentation['padding_y'] = self.operatorRepresentation['pads'][0]
+        self.operatorRepresentation['stride_y'] = self.operatorRepresentation['strides'][0]
+        return True
 
     def parseNodeCtxt(self,
                       ctxt: NetworkContext,
@@ -2882,23 +3192,80 @@ class ConvTranspose1DParser(ConvTransposeParser):
                       channels_first: bool = True) -> Tuple[NetworkContext, bool]:
 
         newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return ctxt, False
 
-        if ret:
-            data_in = newCtxt.lookup(node.inputs[0].name)
-            data_out = newCtxt.lookup(node.outputs[0].name)
-            in_shape = data_in.shape
-            out_shape = data_out.shape
-            self.operatorRepresentation['batch'] = in_shape[0]
-            self.operatorRepresentation['ch_im_in'] = in_shape[1]
+        in_shape = newCtxt.lookup(node.inputs[0].name).shape
+        out_shape = newCtxt.lookup(node.outputs[0].name).shape
+        if channels_first:
             self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
-            self.operatorRepresentation['ch_im_out'] = out_shape[1]
             self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
-            self.operatorRepresentation[
-                "batchOffsetIn"] = self.operatorRepresentation["ch_im_in"] * self.operatorRepresentation["dim_im_in_y"]
-            self.operatorRepresentation["batchOffsetOut"] = self.operatorRepresentation[
-                "ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
-            return newCtxt, True
-        return ctxt, False
+        else:
+            self.operatorRepresentation['dim_im_in_y'] = in_shape[1]
+            self.operatorRepresentation['dim_im_out_y'] = out_shape[1]
+
+        self.operatorRepresentation[
+            "batchOffsetIn"] = self.operatorRepresentation["ch_im_in"] * self.operatorRepresentation["dim_im_in_y"]
+        self.operatorRepresentation[
+            "batchOffsetOut"] = self.operatorRepresentation["ch_im_out"] * self.operatorRepresentation["dim_im_out_y"]
+        return newCtxt, True
+
+
+class ConvTranspose2DParser(ConvTransposeParser):
+    """2D ConvTranspose. The ``x`` fields refer to the height axis and the ``y`` fields to the width axis:
+    ``padding_x`` = pads[0] (H begin), ``padding_y`` = pads[1] (W begin). End pads and output_padding are applied
+    through ``dim_im_out_x`` / ``dim_im_out_y``, so asymmetric pads are supported."""
+
+    def __init__(self):
+        super().__init__()
+
+    def parseNode(self, node: gs.Node) -> bool:
+        if not super().parseNode(node):
+            return False
+
+        # 2D ConvTranspose expects a 4D weight [C_in, C_out / group, K_h, K_w]
+        if len(self.operatorRepresentation['kernel_shape']) != 2:
+            return False
+
+        self.operatorRepresentation['dim_kernel_x'] = self.operatorRepresentation['kernel_shape'][0]
+        self.operatorRepresentation['dim_kernel_y'] = self.operatorRepresentation['kernel_shape'][1]
+        self.operatorRepresentation['dilation_x'] = self.operatorRepresentation['dilations'][0]
+        self.operatorRepresentation['dilation_y'] = self.operatorRepresentation['dilations'][1]
+        self.operatorRepresentation['padding_x'] = self.operatorRepresentation['pads'][0]
+        self.operatorRepresentation['padding_y'] = self.operatorRepresentation['pads'][1]
+        self.operatorRepresentation['stride_x'] = self.operatorRepresentation['strides'][0]
+        self.operatorRepresentation['stride_y'] = self.operatorRepresentation['strides'][1]
+        return True
+
+    def parseNodeCtxt(self,
+                      ctxt: NetworkContext,
+                      node: gs.Node,
+                      channels_first: bool = True) -> Tuple[NetworkContext, bool]:
+
+        newCtxt, ret = super().parseNodeCtxt(ctxt, node, channels_first)
+        if not ret:
+            return ctxt, False
+
+        in_shape = newCtxt.lookup(node.inputs[0].name).shape
+        out_shape = newCtxt.lookup(node.outputs[0].name).shape
+        if channels_first:
+            self.operatorRepresentation['dim_im_in_x'] = in_shape[2]
+            self.operatorRepresentation['dim_im_in_y'] = in_shape[3]
+            self.operatorRepresentation['dim_im_out_x'] = out_shape[2]
+            self.operatorRepresentation['dim_im_out_y'] = out_shape[3]
+        else:
+            self.operatorRepresentation['dim_im_in_x'] = in_shape[1]
+            self.operatorRepresentation['dim_im_in_y'] = in_shape[2]
+            self.operatorRepresentation['dim_im_out_x'] = out_shape[1]
+            self.operatorRepresentation['dim_im_out_y'] = out_shape[2]
+
+        self.operatorRepresentation["batchOffsetIn"] = (self.operatorRepresentation["ch_im_in"] *
+                                                        self.operatorRepresentation["dim_im_in_x"] *
+                                                        self.operatorRepresentation["dim_im_in_y"])
+        self.operatorRepresentation["batchOffsetOut"] = (self.operatorRepresentation["ch_im_out"] *
+                                                         self.operatorRepresentation["dim_im_out_x"] *
+                                                         self.operatorRepresentation["dim_im_out_y"])
+        return newCtxt, True
 
 
 class SqrtParser(UnaryElementWiseParser):

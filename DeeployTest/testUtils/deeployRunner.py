@@ -226,6 +226,13 @@ def create_config_from_args(args: argparse.Namespace,
         gen_args_list.extend(args.input_offset_map)
 
     if tiling:
+        # The generator needs the core count to configure engine metadata and
+        # core-dependent scratch buffers. CMake receives the same value separately
+        # through NUM_CORES to configure the compiled runtime.
+        if hasattr(args, 'cores'):
+            gen_args_list.append(f"--cores={args.cores}")
+        elif hasattr(args, 'num_cores'):
+            gen_args_list.append(f"--cores={args.num_cores}")
         if hasattr(args, 'defaultMemLevel') and args.defaultMemLevel:
             gen_args_list.append(f"--defaultMemLevel={args.defaultMemLevel}")
         if hasattr(args, 'doublebuffer') and args.doublebuffer:

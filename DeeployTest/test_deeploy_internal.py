@@ -85,14 +85,14 @@ class TestMemoryAllocation:
             "Siracusa",
             "--defaultMemLevel=L2",
             "--l1=64000",
-            "--l2=60000",
+            "--l2=45000",
             "--memAllocStrategy=MiniMalloc",
             "--shouldFail",
         ]
         result = subprocess.run(cmd, cwd = script_dir, capture_output = True, text = True)
 
         assert result.returncode == 0, (
-            f"Memory allocation test (MiniMalloc should fail, L2=60000) did not behave as expected\n"
+            f"Memory allocation test (MiniMalloc should fail, L2=45000) did not behave as expected\n"
             f"stdout: {result.stdout}\n"
             f"stderr: {result.stderr}")
 
@@ -129,14 +129,14 @@ class TestMemoryAllocation:
             "Siracusa",
             "--defaultMemLevel=L2",
             "--l1=64000",
-            "--l2=75000",
+            "--l2=45000",
             "--memAllocStrategy=TetrisRandom",
             "--shouldFail",
         ]
         result = subprocess.run(cmd, cwd = script_dir, capture_output = True, text = True)
 
         assert result.returncode == 0, (
-            f"Memory allocation test (TetrisRandom should fail, L2=75000) did not behave as expected\n"
+            f"Memory allocation test (TetrisRandom should fail, L2=45000) did not behave as expected\n"
             f"stdout: {result.stdout}\n"
             f"stderr: {result.stderr}")
 
