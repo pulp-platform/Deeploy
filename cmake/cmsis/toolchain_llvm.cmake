@@ -40,6 +40,8 @@ add_link_options(
   -target armv7m-none-eabi
   -MP
   -mcpu=${ISA}
+  # startup code comes from -lcrt0-semihost; clang >= 20 would add crt0.o
+  -nostartfiles
   -L${TOOLCHAIN_INSTALL_DIR}/picolibc/arm/lib
   -Tpicolibc.ld
   -v

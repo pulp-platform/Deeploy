@@ -10,19 +10,23 @@ INSTALL_PREFIX        ?= install
 DEEPLOY_INSTALL_DIR           ?= ${ROOT_DIR}/${INSTALL_PREFIX}
 TOOLCHAIN_DIR         := ${ROOT_DIR}/toolchain
 
-LLVM_INSTALL_DIR      ?= ${DEEPLOY_INSTALL_DIR}/llvm
-LLVM_CLANG_RT_ARM      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/libclang_rt.builtins-armv7m.a
-LLVM_CLANG_RT_RISCV_RV32IMAFD      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imafd/libclang_rt.builtins-riscv32.a
-LLVM_CLANG_RT_RISCV_RV32IMC      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imc/libclang_rt.builtins-riscv32.a
-LLVM_CLANG_RT_RISCV_RV32IMA		 ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32ima/libclang_rt.builtins-riscv32.a
-LLVM_CLANG_RT_RISCV_RV32IM      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32im/libclang_rt.builtins-riscv32.a
-LLVM_CLANG_RT_RISCV_RV32IMF      ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imf/libclang_rt.builtins-riscv32.a
-PICOLIBC_ARM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/arm
-PICOLIBC_RV32IM_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32im
-PICOLIBC_RV32IMC_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc
-PICOLIBC_RV32IMA_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
-PICOLIBC_RV32IMAFD_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
-PICOLIBC_RV32IMF_INSTALL_DIR      ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imf
+LLVM_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/llvm
+# clang resource directory, where compiler-rt is installed. Must match
+# `clang -print-resource-dir` of the LLVM version above (clang >= 16: major only).
+LLVM_CLANG_RT_DIR ?= ${LLVM_INSTALL_DIR}/lib/clang/20
+LLVM_CLANG_RT_ARM             ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/libclang_rt.builtins-armv7m.a
+LLVM_CLANG_RT_RISCV_RV32IMAFD ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/rv32imafd/libclang_rt.builtins-riscv32.a
+LLVM_CLANG_RT_RISCV_RV32IMC   ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/rv32imc/libclang_rt.builtins-riscv32.a
+LLVM_CLANG_RT_RISCV_RV32IMA   ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/rv32ima/libclang_rt.builtins-riscv32.a
+LLVM_CLANG_RT_RISCV_RV32IM    ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/rv32im/libclang_rt.builtins-riscv32.a
+LLVM_CLANG_RT_RISCV_RV32IMF   ?= ${LLVM_CLANG_RT_DIR}/lib/baremetal/rv32imf/libclang_rt.builtins-riscv32.a
+PICOLIBC_ARM_INSTALL_DIR           ?= ${LLVM_INSTALL_DIR}/picolibc/arm
+PICOLIBC_RV32IM_INSTALL_DIR        ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32im
+PICOLIBC_RV32IMC_INSTALL_DIR       ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc
+PICOLIBC_RV32IMA_INSTALL_DIR       ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32ima
+PICOLIBC_RV32IMAFD_INSTALL_DIR     ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imafd
+PICOLIBC_RV32IMF_INSTALL_DIR       ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imf
+PICOLIBC_RV32IMC_ZFINX_INSTALL_DIR ?= ${LLVM_INSTALL_DIR}/picolibc/riscv/rv32imc_zfinx
 
 GCC_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gcc
 GAP_RISCV_GCC_INSTALL_DIR ?= ${GCC_INSTALL_DIR}/gap9
@@ -43,13 +47,14 @@ GAP9_SDK_INSTALL_DIR ?= ${DEEPLOY_INSTALL_DIR}/gap9-sdk
 
 CMAKE ?= cmake
 
-LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
+LLVM_REPO ?= https://github.com/albsposito/llvm-project.git
+LLVM_COMMIT_HASH ?= 2dcfd2de54d93d239bde88dd0a57fce15396810e
 PICOLIBC_COMMIT_HASH ?= 31ff1b3601b379e4cab63837f253f59729ce1fef
-PULP_SDK_COMMIT_HASH ?= 7f4f22516157a1b7c55bcbbc72ca81326180b3b4
+PULP_SDK_COMMIT_HASH ?= 894a13eb62eaa8d00c9f7c39d1d8ff98d9c03211
 MEMPOOL_COMMIT_HASH ?= affd45d94e05e375a6966af6a762deeb182a7bd6
 SNITCH_COMMIT_HASH ?= e02cc9e3f24b92d4607455d5345caba3eb6273b2
 SOFTHIER_COMMIT_HASH ?= 0       # bowwang: to be updated
-GVSOC_COMMIT_HASH ?= edfcd8398840ceb1e151711befa06678b05f06a0
+GVSOC_COMMIT_HASH ?= fa24884d164daef0e946cdb8653f28d8af4bb5ab
 MINIMALLOC_COMMMIT_HASH ?= e9eaf54094025e1c246f9ec231b905f8ef42a29d
 CHIMERA_SDK_COMMIT_HASH ?= b2392f6efcff75c03f4c65eaf3e12104442b22ea
 XTL_VERSION ?= 0.7.5
@@ -114,7 +119,7 @@ ${TOOLCHAIN_DIR}/llvm-project:
 	cd ${TOOLCHAIN_DIR} && \
 	git init llvm-project && \
 	cd ${TOOLCHAIN_DIR}/llvm-project && \
-	git remote add origin https://github.com/pulp-platform/llvm-project.git && \
+	git remote add origin ${LLVM_REPO} && \
 	git fetch --depth=1 origin ${LLVM_COMMIT_HASH} && \
 	git checkout ${LLVM_COMMIT_HASH} && \
 	git submodule update --init --recursive
@@ -131,6 +136,7 @@ ${LLVM_INSTALL_DIR}: ${TOOLCHAIN_DIR}/llvm-project
 	-DLLVM_ENABLE_TERMINFO="0" \
 	-DLLVM_OPTIMIZED_TABLEGEN=ON \
 	-DLLVM_PARALLEL_LINK_JOBS=2 \
+	-DLLVM_DISABLE_ASSEMBLY_FILES=ON \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER_LAUNCHER=ccache \
 	-DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
@@ -148,7 +154,7 @@ ${LLVM_CLANG_RT_RISCV_RV32IM}: ${TOOLCHAIN_DIR}/llvm-project
 	-DCMAKE_C_COMPILER_WORKS=1 \
 	-DCMAKE_CXX_COMPILER_WORKS=1 \
 	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
-	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_CLANG_RT_DIR} \
 	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
 	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
 	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
@@ -180,7 +186,7 @@ ${LLVM_CLANG_RT_RISCV_RV32IMA}: ${TOOLCHAIN_DIR}/llvm-project
 	-DCMAKE_C_COMPILER_WORKS=1 \
 	-DCMAKE_CXX_COMPILER_WORKS=1 \
 	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
-	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_CLANG_RT_DIR} \
 	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
 	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
 	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
@@ -212,7 +218,7 @@ ${LLVM_CLANG_RT_RISCV_RV32IMC}: ${TOOLCHAIN_DIR}/llvm-project
 	-DCMAKE_C_COMPILER_WORKS=1 \
 	-DCMAKE_CXX_COMPILER_WORKS=1 \
 	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
-	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_CLANG_RT_DIR} \
 	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
 	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
 	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
@@ -244,7 +250,7 @@ ${LLVM_CLANG_RT_RISCV_RV32IMAFD}: ${TOOLCHAIN_DIR}/llvm-project
 	-DCMAKE_C_COMPILER_WORKS=1 \
 	-DCMAKE_CXX_COMPILER_WORKS=1 \
 	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
-	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_CLANG_RT_DIR} \
 	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
 	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
 	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
@@ -277,7 +283,7 @@ ${LLVM_CLANG_RT_RISCV_RV32IMF}: ${TOOLCHAIN_DIR}/llvm-project
 	-DCMAKE_C_COMPILER_WORKS=1 \
 	-DCMAKE_CXX_COMPILER_WORKS=1 \
 	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
-	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_CLANG_RT_DIR} \
 	-DCMAKE_ASM_COMPILER_TARGET="riscv32-unknown-elf" \
 	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
 	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
@@ -312,7 +318,7 @@ ${LLVM_CLANG_RT_ARM}: ${TOOLCHAIN_DIR}/llvm-project
 	-DCMAKE_C_COMPILER_WORKS=1 \
 	-DCMAKE_CXX_COMPILER_WORKS=1 \
 	-DCMAKE_AR=${LLVM_INSTALL_DIR}/bin/llvm-ar \
-	-DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL_DIR}/lib/clang/15.0.0 \
+	-DCMAKE_INSTALL_PREFIX=${LLVM_CLANG_RT_DIR} \
 	-DCMAKE_ASM_COMPILER_TARGET="armv7m-none-eabi" \
 	-DCMAKE_C_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
 	-DCMAKE_ASM_COMPILER=${LLVM_INSTALL_DIR}/bin/clang \
@@ -413,12 +419,25 @@ ${PICOLIBC_RV32IMF_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
 	--cross-file ../scripts/meson-build-script-rv32imf.txt && \
 	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
 
-picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR} ${PICOLIBC_RV32IMF_INSTALL_DIR}
+${PICOLIBC_RV32IMC_ZFINX_INSTALL_DIR}: ${TOOLCHAIN_DIR}/picolibc
+	cd ${TOOLCHAIN_DIR}/picolibc && mkdir -p build-rv32imc_zfinx && cd build-rv32imc_zfinx && \
+	cp ${TOOLCHAIN_DIR}/meson-build-script-rv32imc_zfinx.txt ../scripts && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson setup --reconfigure -Dincludedir=include \
+	-Dlibdir=lib \
+	-Dspecsdir=none \
+	-Dmultilib=false \
+	--prefix ${PICOLIBC_RV32IMC_ZFINX_INSTALL_DIR} \
+	--cross-file ../scripts/meson-build-script-rv32imc_zfinx.txt && \
+	PATH=${LLVM_INSTALL_DIR}/bin:${PATH} meson install
+
+picolibc-riscv: ${PICOLIBC_RV32IM_INSTALL_DIR} ${PICOLIBC_RV32IMA_INSTALL_DIR} ${PICOLIBC_RV32IMC_INSTALL_DIR} ${PICOLIBC_RV32IMAFD_INSTALL_DIR} ${PICOLIBC_RV32IMF_INSTALL_DIR} ${PICOLIBC_RV32IMC_ZFINX_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/pulp-sdk:
 	cd ${TOOLCHAIN_DIR} && \
 	git clone https://github.com/pulp-platform/pulp-sdk.git && \
-	cd ${TOOLCHAIN_DIR}/pulp-sdk && git checkout ${PULP_SDK_COMMIT_HASH} && \
+	cd ${TOOLCHAIN_DIR}/pulp-sdk && \
+	git fetch origin ${PULP_SDK_COMMIT_HASH} && \
+	git checkout ${PULP_SDK_COMMIT_HASH} && \
 	git submodule update --init --recursive
 
 ${PULP_SDK_INSTALL_DIR}: ${TOOLCHAIN_DIR}/pulp-sdk
@@ -468,11 +487,18 @@ ${TOOLCHAIN_DIR}/gvsoc:
 	git clone https://github.com/gvsoc/gvsoc.git && \
 	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
 	git submodule update --init --recursive && \
-	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt
+	cd ${TOOLCHAIN_DIR}/gvsoc/pulp && git apply ${TOOLCHAIN_DIR}/gvsoc_pulp_open.patch && \
+	cd ${TOOLCHAIN_DIR}/gvsoc && \
+	pip install -r core/requirements.txt && pip install -r gapy/requirements.txt && \
+	pip install -r gvrun/requirements.txt && pip install -r config_tree/requirements.txt
 
 ${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvsoc
 	cd ${TOOLCHAIN_DIR}/gvsoc && \
-	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera" build INSTALLDIR=${GVSOC_INSTALL_DIR}
+	 XTENSOR_INSTALL_DIR=${XTENSOR_INSTALL_DIR}/include \
+	 XTL_INSTALL_DIR=${XTL_INSTALL_DIR}/include \
+	 XSIMD_INSTALL_DIR=${XSIMD_INSTALL_DIR}/include \
+	 make all TARGETS="pulp.snitch.snitch_cluster_single siracusa chimera pulp-open" build \
+	 INSTALLDIR=${GVSOC_INSTALL_DIR}
 
 gvsoc: ${GVSOC_INSTALL_DIR}
 

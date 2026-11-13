@@ -9,12 +9,25 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(LLVM_TAG llvm)
 
 set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}/clang)
+include(${CMAKE_CURRENT_LIST_DIR}/../clang_resource_dir.cmake)
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}/clang++)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}/clang)
 set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objcopy)
 set(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objdump)
 
-set(ISA rv32imf_xpulpv2)
+# PULP-Open (GVSoC pulp-open) has no separate FP register file: floats live in the
+# integer registers (zfinx). compiler-rt has no zfinx build, rv32imc shares its ilp32 ABI.
+if(platform STREQUAL PULPOpen)
+  set(ISA rv32imc_zfinx_xpulpv2)
+  set(ABI ilp32)
+  set(LIBC_ISA rv32imc_zfinx)
+  set(RT_ISA rv32imc)
+else()
+  set(ISA rv32imf_xpulpv2)
+  set(ABI ilp32f)
+  set(LIBC_ISA rv32imf)
+  set(RT_ISA rv32imf)
+endif()
 set(PE 8)
 set(FC 1)
 
@@ -23,7 +36,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 add_compile_options(
   -target riscv32-unknown-elf
   -march=${ISA}
-  -mabi=ilp32f
+  -mabi=${ABI}
   -ffunction-sections
   -fdata-sections
   -fomit-frame-pointer
@@ -31,7 +44,7 @@ add_compile_options(
   -O3
   -DNUM_CORES=${NUM_CORES}
   -MP
-  --sysroot=${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imf
+  --sysroot=${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/${LIBC_ISA}
   -fno-builtin-memcpy
   -fno-builtin-memset
 )
@@ -40,17 +53,22 @@ add_link_options(
   -target riscv32-unknown-elf
   -MP
   -nostartfiles
+  -nodefaultlibs
   -march=${ISA}
-  -mabi=ilp32f
-  -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/rv32imf/lib
-  -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imf/
+  -mabi=${ABI}
+  -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/${LIBC_ISA}/lib
+  -L${CLANG_RESOURCE_DIR}/lib/baremetal/${RT_ISA}/
   -z norelro
   -fno-builtin-memcpy
   -fno-builtin-memset
 )
 
+# clang >= 19 links compiler-rt by an absolute per-target path that ignores -L,
+# so link it explicitly to select the ISA-specific build.
 link_libraries(
   -lm
+  -lc
+  -lclang_rt.builtins-riscv32
 )
 
 add_compile_definitions(__LINK_LD)

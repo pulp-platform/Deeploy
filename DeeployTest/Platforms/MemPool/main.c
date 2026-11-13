@@ -31,7 +31,7 @@ dump(input1, 7);
 #define NUM_THREADS 1
 #endif
 
-static int8_t inference_done __attribute__((section(".l1"))) = 0;
+static volatile int8_t inference_done __attribute__((section(".l1"))) = 0;
 
 int main() {
   uint32_t const core_id = mempool_get_core_id();

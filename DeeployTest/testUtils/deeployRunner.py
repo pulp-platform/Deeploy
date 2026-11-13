@@ -61,6 +61,7 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           default = None,
                           help = 'Target platform (e.g., Generic, QEMU-ARM, Siracusa, Snitch)\n')
         self.add_argument('-s',
+                          '--simulator',
                           metavar = '<simulator>',
                           dest = 'simulator',
                           type = str,
@@ -255,6 +256,12 @@ def create_config_from_args(args: argparse.Namespace,
     if getattr(args, 'profileMicrobenchmark', False):
         gen_args_list.append("--profileMicrobenchmark")
 
+    if getattr(args, 'dma', None):
+        gen_args_list.append(f"--dma={args.dma}")
+
+    if getattr(args, 'cores', None):
+        gen_args_list.append(f"--cores={args.cores}")
+
     config = DeeployTestConfig(
         test_name = test_name,
         test_dir = test_dir_abs,
@@ -363,13 +370,14 @@ def main(default_platform: Optional[str] = None,
         "generic": "Generic",
         "qemu-arm": "QEMU-ARM",
         "mempool": "MemPool",
+        "pulpopen": "PULPOpen",
         "siracusa": "Siracusa",
         "siracusa_w_neureka": "Siracusa_w_neureka",
         "snitch": "Snitch",
         "chimera": "Chimera",
         "softhier": "SoftHier",
         "xdna2": "XDNA2",
-        "xheep": "Xheep"
+        "xheep": "Xheep",
     }
 
     if args.platform:
@@ -410,6 +418,7 @@ def main(default_platform: Optional[str] = None,
             "Snitch": "gvsoc",
             "Chimera": "gvsoc",
             "SoftHier": "gvsoc",
+            "PULPOpen": "gvsoc",
         }
         simulator = simulator_map.get(platform, "host")
         log.info(f"No simulator specified, using default for {platform}: {simulator}")
@@ -422,6 +431,9 @@ def main(default_platform: Optional[str] = None,
         platform_specific_cmake_args.append(f"-DNUM_CORES={args.cores}")
     elif hasattr(args, 'num_cores'):
         platform_specific_cmake_args.append(f"-DNUM_CORES={args.num_cores}")
+
+    if hasattr(args, 'dma'):
+        platform_specific_cmake_args.append(f"-DPULP_DMA={args.dma.upper()}")
 
     if hasattr(args, 'num_clusters'):
         platform_specific_cmake_args.append(f"-DNUM_CLUSTERS={args.num_clusters}")

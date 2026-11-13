@@ -28,7 +28,7 @@ from Deeploy.MemoryLevelExtension.NetworkDeployers.MemoryLevelDeployer import Me
 from Deeploy.MemoryLevelExtension.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateDefaultMemoryLevel, \
     AnnotateIOMemoryLevel
 from Deeploy.Targets.Neureka.OptimizationPasses.MemoryLevelAnnotationPasses import AnnotateNeurekaWeightMemoryLevel
-from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine
+from Deeploy.Targets.PULPOpen.Platform import PULPClusterEngine, PULPDma
 from Deeploy.TilingExtension.TilerExtension import TilerDeployerWrapper
 
 
@@ -78,9 +78,13 @@ def setupDeployer(graph: gs.Graph, memoryHierarchy: MemoryHierarchy, defaultTarg
     if args.enableStrides:
         platform.engines[0].enableStrides = True
 
+    if args.dma != PULPDma.MCHAN and args.platform != "PULPOpen":
+        raise ValueError(f"--dma={args.dma} is only supported on PULPOpen, not on {args.platform}")
+
     clusters = [engine for engine in platform.engines if isinstance(engine, PULPClusterEngine)]
     for cluster in clusters:
         cluster.n_cores = args.cores
+        cluster.setDma(args.dma)
 
     for index, num in enumerate(test_inputs):
         original_dtype = test_input_original_dtypes[index] if index < len(test_input_original_dtypes) else None
@@ -211,6 +215,11 @@ if __name__ == '__main__':
         help =
         "Number of cores on which the network is run. Currently, required for im2col buffer sizing on Siracusa. Default: 1."
     )
+    parser.add_argument("--dma",
+                        type = PULPDma,
+                        choices = list(PULPDma),
+                        default = PULPDma.MCHAN,
+                        help = "Cluster DMA engine (PULPOpen only). Default: mchan.")
 
     parser.set_defaults(shouldFail = False)
     args = parser.parse_args()

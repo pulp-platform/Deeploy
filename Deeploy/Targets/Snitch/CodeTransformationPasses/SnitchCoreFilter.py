@@ -20,5 +20,11 @@ class SnitchCoreFilterPass(CodeTransformationPass):
               name: str,
               verbose: CodeGenVerbosity = _NoVerbosity) -> Tuple[NetworkContext, ExecutionBlock]:
         executionBlock.addLeft(NodeTemplate(f"if (snrt_is_{self.coreType}_core()) {{\n"), {})
-        executionBlock.addRight(NodeTemplate("}\n"), {})
+        if self.coreType == "compute":
+            # The FPU is decoupled from the integer core: wait until all issued
+            # FP instructions (e.g. a trailing fdiv + store) have completed, so
+            # the following barrier / DMA transfer sees the final results.
+            executionBlock.addRight(NodeTemplate("snrt_fpu_fence();\n}\n"), {})
+        else:
+            executionBlock.addRight(NodeTemplate("}\n"), {})
         return ctxt, executionBlock

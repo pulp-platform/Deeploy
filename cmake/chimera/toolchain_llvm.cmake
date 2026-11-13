@@ -9,6 +9,7 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(LLVM_TAG llvm)
 
 set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}/clang)
+include(${CMAKE_CURRENT_LIST_DIR}/../clang_resource_dir.cmake)
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}/clang++)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}/clang)
 set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}/${LLVM_TAG}-objcopy)
@@ -39,6 +40,9 @@ add_compile_options(
     -fno-common
     -fopenmp
     -ftls-model=local-exec
+    # chimera-sdk generic_runtime/src/stdio.c passes a char-returning putc to
+    # FDEV_SETUP_STREAM; an error since clang 16, keep it a warning until fixed
+    -Wno-error=incompatible-function-pointer-types
     -DNUM_CORES=${NUM_CORES}
     -isystem ${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/${ISA}/include
 )
@@ -50,7 +54,7 @@ add_link_options(
     -nostartfiles
     -nostdlib
     -L${TOOLCHAIN_INSTALL_DIR}/picolibc/riscv/${ISA}/lib
-    -L${TOOLCHAIN_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/${ISA}
+    -L${CLANG_RESOURCE_DIR}/lib/baremetal/${ISA}
 )
 
 link_libraries(

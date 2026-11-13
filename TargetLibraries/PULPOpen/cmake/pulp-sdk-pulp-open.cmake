@@ -7,6 +7,7 @@ include(cmake/pulp-sdk-base.cmake)
 set(PULP_SDK_HOME $ENV{PULP_SDK_HOME})
 
 set(PULP_OPEN_COMPILE_FLAGS
+  -include ${PULP_SDK_HOME}/rtos/pulpos/pulp/include/pos/chips/pulp/config.h
   -DCONFIG_PULP
   -DCONFIG_BOARD_VERSION_PULP
   -DCONFIG_PROFILE_PULP

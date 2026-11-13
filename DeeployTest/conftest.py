@@ -66,6 +66,8 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "siracusa_tiled: mark test as a Siracusa platform test (tiled)")
     config.addinivalue_line("markers",
                             "siracusa_neureka_tiled: mark test as a Siracusa + Neureka platform test (tiled)")
+    config.addinivalue_line("markers", "pulpopen: mark test as a PULP-Open platform test (untiled)")
+    config.addinivalue_line("markers", "pulpopen_tiled: mark test as a PULP-Open platform test (tiled)")
     config.addinivalue_line("markers", "gap9: mark test as a GAP9 platform test")
     config.addinivalue_line("markers", "gap9_tiled: mark test as a GAP9 platform test (tiled)")
     config.addinivalue_line("markers", "xdna2: mark test as an XDNA2 (AIE2p) platform test")

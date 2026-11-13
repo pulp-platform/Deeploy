@@ -43,7 +43,9 @@ class _ReshapeTemplate(NodeTemplate):
         return ctxt, operatorRepresentation, []
 
 
+# Executed by every core: ${data_out} can be a local of the per-core RunNetwork,
+# so a SINGLE_CORE assignment would leave it uninitialized on the other cores.
 referenceTemplate = _ReshapeTemplate("""
 // Reshape (Name: ${nodeName}, Op: ${nodeOp})
-SINGLE_CORE ${data_out} = ${data_in};
+${data_out} = ${data_in};
 """)

@@ -10,6 +10,7 @@
 #include "pmsis.h"
 #include "testinputs.h"
 #include "testoutputs.h"
+#include <math.h>
 
 #define MAINSTACKSIZE 8000
 #define SLAVESTACKSIZE 3800
