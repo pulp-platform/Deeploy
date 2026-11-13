@@ -61,6 +61,7 @@ class DeeployRunnerArgumentParser(argparse.ArgumentParser):
                           default = None,
                           help = 'Target platform (e.g., Generic, QEMU-ARM, Siracusa, Snitch)\n')
         self.add_argument('-s',
+                          '--simulator',
                           metavar = '<simulator>',
                           dest = 'simulator',
                           type = str,
@@ -257,6 +258,9 @@ def create_config_from_args(args: argparse.Namespace,
 
     if getattr(args, 'dma', None):
         gen_args_list.append(f"--dma={args.dma}")
+
+    if getattr(args, 'cores', None):
+        gen_args_list.append(f"--cores={args.cores}")
 
     config = DeeployTestConfig(
         test_name = test_name,

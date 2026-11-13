@@ -13,6 +13,7 @@ if __name__ == "__main__":
     def setup_parser(parser):
         parser.add_argument('--cores', type = int, default = 8, help = 'Number of cores (default: 8)\n')
         parser.add_argument('--dma',
+                            type = str,
                             choices = ['mchan', 'idma'],
                             default = 'idma',
                             help = 'Cluster DMA engine (default: idma)\n')
