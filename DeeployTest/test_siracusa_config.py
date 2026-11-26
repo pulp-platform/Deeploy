@@ -60,6 +60,8 @@ KERNEL_TESTS = [
     "Kernels/Mixed/Dequant",
     "Kernels/Mixed/DequantInt32",
     "Kernels/Mixed/Quant",
+    "Kernels/Mixed/QuantUnsigned",
+    "Kernels/Mixed/QuantDequantUnsigned",
     "Models/Transformer_DeepQuant",
     "Kernels/Integer/Conv/Regular_2D_RQ",
     "Kernels/Integer/Conv/DW_2D_RQ",
