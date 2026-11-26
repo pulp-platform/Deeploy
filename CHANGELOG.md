@@ -24,6 +24,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Add SoCDAML Part III: hands-on lab for adding a new int8 operator [#194](https://github.com/pulp-platform/Deeploy/pull/194)
 - Match GAP9 SDK MLPerf Tiny Performance with Specialised Depthwise and Pointwise Kernels [#206](https://github.com/pulp-platform/Deeploy/pull/206)
 - Add support for the X-HEEP platform [#200](https://github.com/pulp-platform/Deeploy/pull/200)
+- Use Float32 Constants in the Quant and Dequant Templates [#217](https://github.com/pulp-platform/Deeploy/pull/217)
 
 ### Added
 - tests for Regular and DW Conv2D with 3x3 kernel
@@ -86,6 +87,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
 - Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
 - Fix Deeploy 101 tutorial errors: `--profileTiling` usage and the moved intrinsics inventory path
+- Compute the Quant and Dequant templates in float32: the Dequant template multiplied by double literals, which runs in soft-float on PULP cores
 
 ### Removed
 - removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.
