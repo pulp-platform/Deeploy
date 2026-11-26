@@ -475,14 +475,11 @@ PULPGatherBindings = [
 ]
 
 BasicQuantBindings = [
-    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(int8_t)]), QuantTemplate.referenceTemplate,
-                ForkTransformer),
+    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(type)]), QuantTemplate.referenceTemplate,
+                ForkTransformer) for type in (uint8_t, int8_t)
 ]
 
 BasicDequantBindings = [
-    NodeBinding(DequantChecker([PointerClass(int8_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
-                ForkTransformer),
-] + [
-    NodeBinding(DequantChecker([PointerClass(int32_t)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
-                ForkTransformer),
+    NodeBinding(DequantChecker([PointerClass(type)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                ForkTransformer) for type in (int8_t, uint8_t, int32_t)
 ]
