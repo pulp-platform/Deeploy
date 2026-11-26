@@ -24,6 +24,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Add SoCDAML Part III: hands-on lab for adding a new int8 operator [#194](https://github.com/pulp-platform/Deeploy/pull/194)
 - Match GAP9 SDK MLPerf Tiny Performance with Specialised Depthwise and Pointwise Kernels [#206](https://github.com/pulp-platform/Deeploy/pull/206)
 - Add support for the X-HEEP platform [#200](https://github.com/pulp-platform/Deeploy/pull/200)
+- Lower DeepQuant Requantisation to RequantShift on PULPOpen [#219](https://github.com/pulp-platform/Deeploy/pull/219)
 
 ### Added
 - tests for Regular and DW Conv2D with 3x3 kernel
@@ -48,6 +49,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Specialised PULPOpen kernels for 3x3 depthwise (`PULPDWConv3x3.c`), 1x1 pointwise (`PULPPWConv1x1.c`) and a three-channel 3x3 stem (`PULPStemConv3x3.c`), with bindings and tile constraints for PULPOpen and GAP9
 - Lowering passes `PULPNCHWtoNHWCPwConvPass` and `PULPNCHWtoNHWCConvPass`, keeping a 1x1 convolution's output and a depthwise-feeding stem channels-first so the transposes at depthwise boundaries cancel
 - X-HEEP platform support, including compilation for FPGA targets and simulation with Verilator.
+- `DequantQuantToRequantShiftPass` and `DequantBiasQuantToRequantShiftPass` for PULPOpen, which lower DeepQuant's fp32 requantisation (Dequant, optional bias Add, Quant) to an integer `RequantShift`
 
 ### Changed
 - Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints

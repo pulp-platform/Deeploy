@@ -50,8 +50,8 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
-from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.DequantQuantFusion import \
-    DequantBiasQuantToRequantShiftPass, DequantQuantToRequantShiftPass
+from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.DequantQuantFusion import DequantBiasQuantToRequantShiftPass, \
+    DequantQuantToRequantShiftPass
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
