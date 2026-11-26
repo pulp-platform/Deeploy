@@ -17,8 +17,8 @@ BEGIN_SINGLE_CORE
 
     for (uint32_t i=0; i<${size}; i++) {
         int32_t quantized = (int32_t)${data_in}[i];
-        float32_t shifted_val = quantized - ${zero_point};
-        float32_t dequantized = shifted_val * ${scale};
+        float32_t shifted_val = (float32_t)quantized - (float32_t)${zero_point};
+        float32_t dequantized = shifted_val * (float32_t)${scale};
 
         ${data_out}[i] = (${data_out_type.referencedType.typeName})dequantized;
     }
