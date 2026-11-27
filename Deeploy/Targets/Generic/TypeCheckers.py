@@ -553,6 +553,14 @@ class QuantChecker(SignPropTypeChecker):
         # Return signedness from the operation attributes
         return [bool(operatorRepresentation['signed'])]
 
+    def checkOutputType(self, inputs: List[VariableBuffer], operatorRepresentation: OperatorRepresentation) -> bool:
+        outputType = self.output_types[0].referencedType
+        if outputType.typeMin <= operatorRepresentation['min_val'] and \
+                operatorRepresentation['max_val'] <= outputType.typeMax:
+            return True
+        return not operatorRepresentation['signed'] and outputType.typeMin < 0 and \
+            outputType.typeWidth == operatorRepresentation['bit_width']
+
 
 class DequantChecker(SignPropTypeChecker):
 

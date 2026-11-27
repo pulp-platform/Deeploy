@@ -50,6 +50,8 @@ from Deeploy.Targets.PULPOpen.Tiler import PULPAddTilingReadyBindings, PULPConca
     PULPSGDTilingReadyBindings, PULPSliceTilingReadyBindings, PULPSoftmaxCrossEntropyGradTilingReadyBindings, \
     PULPSoftmaxCrossEntropyTilingReadyBindings, PULPSoftmaxGradTilingReadyBindings, PULPSoftmaxTilingReadyBindings, \
     PULPTransposeTilingReadyBindings, PULPUniformRQSTilingReadyBindings
+from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.DequantQuantFusion import DequantBiasQuantToRequantShiftPass, \
+    DequantQuantToRequantShiftPass
 from Deeploy.Targets.PULPOpen.TopologyOptimizationPasses.Passes import PULPAddRequantMergePass, \
     PULPConvRequantMergePass, PULPGEMMRequantMergePass, PULPMatMulRequantMergePass
 
@@ -232,6 +234,8 @@ class PULPStructBuffer(StructBuffer):
 PULPOptimizer = TopologyOptimizer([
     QuantPatternPass(),
     DequantPatternPass(),
+    DequantQuantToRequantShiftPass(),
+    DequantBiasQuantToRequantShiftPass(),
     SkipEmptyConcatPass(),
     SkipUnityRequantPass(previous_op_regex = "Concat", num_inputs = 2),
     SkipUnityRequantPass(previous_op_regex = "Reshape|Transpose", num_inputs = 1),
