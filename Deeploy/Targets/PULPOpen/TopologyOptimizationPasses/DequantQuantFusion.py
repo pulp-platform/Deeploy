@@ -58,11 +58,9 @@ def _absMax(tensor: gs.Tensor) -> float:
     return 2.0**24
 
 
-def _channels(tensor: gs.Tensor) -> int:
+def _layerChannels(tensor: gs.Tensor):
     layer = _skipBiasAdd(_producer(tensor))
-    if _isLayer(layer):
-        return _weightRows(layer).shape[0]
-    return int(tensor.shape[1]) if tensor.shape is not None and len(tensor.shape) > 1 else 1
+    return _weightRows(layer).shape[0] if _isLayer(layer) else None
 
 
 def _fixedPoint(M: float, zIn: int, zOut: int, xMax: float, offset: np.ndarray):
@@ -91,11 +89,11 @@ def _replaceWithRequantShift(graph: gs.Graph, dq: gs.Node, q: gs.Node, name: str
     M = _scalar(dq.attrs['scale']) * _scalar(q.attrs['scale'])
     bits, signed = int(_scalar(q.attrs['bit_width'])), int(_scalar(q.attrs['signed']))
 
-    C = _channels(x)
-    offset = np.zeros(C)
+    C = _layerChannels(x)
+    offset = np.zeros(C or 1)
     if bias is not None:
         values = np.asarray(bias.values, dtype = np.float64).reshape(-1)
-        if values.size not in (1, C):
+        if values.size not in (1, C or 1):
             return graph
         offset = offset + values * _scalar(q.attrs['scale'])
 
@@ -107,6 +105,10 @@ def _replaceWithRequantShift(graph: gs.Graph, dq: gs.Node, q: gs.Node, name: str
     if bias is None and mul == 2**log2D and not np.any(addVec) and _isSameGrid(x, bits, signed):
         graph.deleteNode(q)
         graph.deleteNode(dq)
+        return graph
+
+    # Without a layer to merge into, only Deeploy's uniform requant tiles, and it outputs signed 8 bits
+    if C is None and not (signed and bits <= 8):
         return graph
 
     conv = _producer(x)
@@ -122,7 +124,7 @@ def _replaceWithRequantShift(graph: gs.Graph, dq: gs.Node, q: gs.Node, name: str
     }
     _inputs = [
         x,
-        gs.Constant(name + '_mul', np.full(C, mul, dtype = np.int32)),
+        gs.Constant(name + '_mul', np.full(C or 1, mul, dtype = np.int32)),
         gs.Constant(name + '_add', addVec.astype(np.int32)),
     ]
     graph.replaceInsertNode(_inputs, q.outputs, gs.Node(op = 'RequantShift', name = name, attrs = attrs))
