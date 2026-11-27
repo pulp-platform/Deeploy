@@ -58,6 +58,7 @@ KERNEL_TESTS = [
     "Models/TinyViT/5M/Layers/FP32/ReduceMean",
     "Others/Backtracking",
     "Kernels/Mixed/Dequant",
+    "Kernels/Mixed/DequantInt32",
     "Kernels/Mixed/Quant",
     "Models/Transformer_DeepQuant",
     "Kernels/Integer/Conv/Regular_2D_RQ",
