@@ -295,8 +295,10 @@ GAP9ReduceSumBindings = [
 GAP9UniformRQSBindings = [
     NodeBinding(
         PULPRequantShiftChecker([PointerClass(type), PointerClass(int32_t),
-                                 PointerClass(int32_t)], [PointerClass(int8_t)]),
-        UniformRequantShiftTemplate.referenceTemplate, GAP9Transformer) for type in IntegerDataTypes
+                                 PointerClass(int32_t)], [PointerClass(outType)]),
+        UniformRequantShiftTemplate.referenceTemplate, GAP9Transformer)
+    for type in IntegerDataTypes
+    for outType in [int8_t, uint8_t]
 ]
 
 GAP9RQSBindings = [
