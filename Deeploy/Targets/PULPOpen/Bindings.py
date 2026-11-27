@@ -32,9 +32,10 @@ from Deeploy.Targets.PULPOpen.DMA.MchanDma import MchanDma
 from Deeploy.Targets.PULPOpen.Templates import ConvTemplate, DMASliceTemplate, FloatAddTemplate, FloatConvTemplate, \
     FloatGELUTemplate, FloatGemmTemplate, FloatLayernormTemplate, FloatMatMulTemplate, FloatMaxPoolTemplate, \
     FloatMulTemplate, FloatReduceMeanTemplate, FloatReluTemplate, FloatSoftmaxTemplate, GEMMTemplate, \
-    MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, ReduceMeanTemplate, RequantShiftTemplate, ReshapeTemplate, \
-    RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, \
-    TransposeTemplate, UniformRequantShiftTemplate, iRMSNormTemplate, iSoftmaxTemplate
+    MatrixVectorTemplate, MaxPoolTemplate, MulTemplate, QuantDequantTemplate, ReduceMeanTemplate, \
+    RequantShiftTemplate, ReshapeTemplate, RQAddTemplate, RQSiHardswishTemplate, SGDTemplate, \
+    SoftmaxCrossEntropyLossTemplate, TallGEMMTemplate, TransposeTemplate, UniformRequantShiftTemplate, \
+    iRMSNormTemplate, iSoftmaxTemplate
 from Deeploy.Targets.PULPOpen.TypeCheckers import PULPConvChecker, PULPLinearChecker, PULPMaxPoolChecker, \
     PULPRequantShiftChecker
 from Deeploy.TilingExtension.CodeTransformationPasses.TilingVariableReplacement import TilingVariableReplacement, \
@@ -481,5 +482,15 @@ BasicQuantBindings = [
 
 BasicDequantBindings = [
     NodeBinding(DequantChecker([PointerClass(type)], [PointerClass(float32_t)]), DequantTemplate.referenceTemplate,
+                ForkTransformer) for type in (int8_t, uint8_t, int32_t)
+]
+
+PULPQuantBindings = [
+    NodeBinding(QuantChecker([PointerClass(float32_t)], [PointerClass(type)]), QuantDequantTemplate.quantTemplate,
+                ForkTransformer) for type in (uint8_t, int8_t)
+]
+
+PULPDequantBindings = [
+    NodeBinding(DequantChecker([PointerClass(type)], [PointerClass(float32_t)]), QuantDequantTemplate.dequantTemplate,
                 ForkTransformer) for type in (int8_t, uint8_t, int32_t)
 ]
