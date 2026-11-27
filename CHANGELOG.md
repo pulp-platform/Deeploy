@@ -49,6 +49,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Specialised PULPOpen kernels for 3x3 depthwise (`PULPDWConv3x3.c`), 1x1 pointwise (`PULPPWConv1x1.c`) and a three-channel 3x3 stem (`PULPStemConv3x3.c`), with bindings and tile constraints for PULPOpen and GAP9
 - Lowering passes `PULPNCHWtoNHWCPwConvPass` and `PULPNCHWtoNHWCConvPass`, keeping a 1x1 convolution's output and a depthwise-feeding stem channels-first so the transposes at depthwise boundaries cancel
 - X-HEEP platform support, including compilation for FPGA targets and simulation with Verilator.
+- Kernel test `Kernels/Mixed/DequantInt32` for Generic and Siracusa: a Dequant with int32 inputs and a nonzero zero point
 
 ### Changed
 - Refactor the topology optimization pass `NeurekaReshapePointwiseConvolutionPass` and Neureka's Tile constraints
@@ -87,7 +88,7 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix invalid escape sequence python error in DeeployTypes.py: appearing when using pytest to launch regressions
 - Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
 - Fix Deeploy 101 tutorial errors: `--profileTiling` usage and the moved intrinsics inventory path
-- Compute the Quant and Dequant templates in float32: the Dequant template multiplied by double literals, which runs in soft-float on PULP cores
+- Compute the Quant and Dequant templates in float32: the Dequant template multiplied by double literals, which runs in soft-float on PULP cores. A whole-number Dequant zero point is subtracted exactly in integers.
 
 ### Removed
 - removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.
