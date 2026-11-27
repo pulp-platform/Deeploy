@@ -83,6 +83,7 @@ KERNEL_TESTS = [
     "Models/TinyViT/5M/Layers/FP32/ReduceMean",
     # Mixed Precision / Quantization
     "Kernels/Mixed/Dequant",
+    "Kernels/Mixed/DequantInt32",
     "Kernels/Mixed/Quant",
     "Models/Transformer_DeepQuant",
     "Kernels/Integer/Conv/DW_2D_RQ",
