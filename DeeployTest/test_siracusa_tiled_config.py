@@ -55,6 +55,9 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/Integer/Conv/StriddedPadded_2D_RQ": [600],
     "Kernels/Integer/GEMM/Batch_RQ": [20000],
     "Kernels/Integer/Hardswish/Regular_RQ": [750],
+    "Kernels/Mixed/Quant": [4000],
+    "Kernels/Mixed/Dequant": [4000],
+    "Kernels/Mixed/QuantDequantUnsigned": [4000],
 }
 
 L2_DOUBLEBUFFER_KERNELS = {
@@ -99,6 +102,9 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/Integer/Conv/Regular_2D_RQ": [8000, 6000, 5000],
     "Kernels/Integer/Conv/DW_2D_RQ": [5121],
     "Kernels/Integer/Hardswish/Regular_RQ": [800],
+    "Kernels/Mixed/Quant": [8000],
+    "Kernels/Mixed/Dequant": [8000],
+    "Kernels/Mixed/QuantDequantUnsigned": [8000],
 }
 
 L2_SINGLEBUFFER_MODELS = {
@@ -115,6 +121,7 @@ L2_SINGLEBUFFER_MODELS = {
     "Models/MLPerf/VisualWakeWords": [64000],
     "Models/CCT/FP32/CCT_1_16_16_8": [64000],
     "Models/TinyViT/Demo": [4000],
+    "Models/Transformer_DeepQuant": [8000, 2000],
 }
 
 L2_DOUBLEBUFFER_MODELS = {
@@ -131,6 +138,7 @@ L2_DOUBLEBUFFER_MODELS = {
     "Models/MLPerf/VisualWakeWords": [128000],
     "Models/CCT/FP32/CCT_1_16_16_8": [128000],
     "Models/TinyViT/Demo": [8000],
+    "Models/Transformer_DeepQuant": [16000, 4000],
 }
 
 L3_SINGLEBUFFER_MODELS = {
