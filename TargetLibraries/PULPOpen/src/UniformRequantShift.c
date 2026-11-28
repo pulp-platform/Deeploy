@@ -21,7 +21,7 @@
       return;                                                                  \
     }                                                                          \
                                                                                \
-    int32_t rnd = (1 << (log2D - 1)) * rounding;                               \
+    int32_t rnd = (int32_t)((1u << log2D) >> 1) * rounding;                    \
     /* Compiler magic, don't remove the volatile keyword below */              \
     int32_t volatile half = (stop - start) >> 1;                               \
     int32_t intermediate;                                                      \
