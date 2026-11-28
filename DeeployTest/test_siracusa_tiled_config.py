@@ -55,6 +55,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/Integer/Conv/StriddedPadded_2D_RQ": [600],
     "Kernels/Integer/GEMM/Batch_RQ": [20000],
     "Kernels/Integer/Hardswish/Regular_RQ": [750],
+    "Kernels/Integer/RequantShift/UniformUnsigned": [200, 100],
 }
 
 L2_DOUBLEBUFFER_KERNELS = {
@@ -99,6 +100,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/Integer/Conv/Regular_2D_RQ": [8000, 6000, 5000],
     "Kernels/Integer/Conv/DW_2D_RQ": [5121],
     "Kernels/Integer/Hardswish/Regular_RQ": [800],
+    "Kernels/Integer/RequantShift/UniformUnsigned": [200],
 }
 
 L2_SINGLEBUFFER_MODELS = {

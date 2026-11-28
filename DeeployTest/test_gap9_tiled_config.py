@@ -33,6 +33,7 @@ L2_SINGLEBUFFER_KERNELS = {
     "Kernels/FP32/Transpose": [2000],
     "Kernels/FP32/Mul/Regular": [2000],
     "Kernels/Integer/GEMM/Batch_RQ": [20000],
+    "Kernels/Integer/RequantShift/UniformUnsigned": [200, 100],
     "Kernels/Integer/MatMul/Batch": [20000],
 }
 
@@ -44,6 +45,7 @@ L2_DOUBLEBUFFER_KERNELS = {
     "Kernels/Integer/Softmax/Regular": [1600, 1000, 600],
     "Kernels/Integer/Concat": [64000, 32000, 16000],
     "Kernels/Integer/Hardswish/Regular": [750],
+    "Kernels/Integer/RequantShift/UniformUnsigned": [200],
     "Kernels/FP32/GEMM/Regular": [8000],
     "Kernels/FP32/Conv/Regular_2D_NoBias": [8800],
     "Kernels/FP32/Conv/Regular_2D_ZeroValuedBias": [8800],

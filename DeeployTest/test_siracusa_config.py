@@ -64,6 +64,7 @@ KERNEL_TESTS = [
     "Kernels/Integer/Conv/DW_2D_RQ",
     "Kernels/Integer/Hardswish/Regular_RQ",
     "Kernels/Integer/TrueIntegerDiv",
+    "Kernels/Integer/RequantShift/UniformUnsigned",
 ]
 
 MODEL_TESTS = [
