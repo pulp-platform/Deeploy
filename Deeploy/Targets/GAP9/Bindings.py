@@ -14,7 +14,7 @@ from Deeploy.AbstractDataTypes import PointerClass
 from Deeploy.CommonExtensions.CodeTransformationPasses.MemoryAllocation import ArgumentStructGeneration, \
     MemoryManagementGeneration, MemoryPassthroughGeneration
 from Deeploy.CommonExtensions.DataTypes import FloatDataTypes, IntegerDataTypes, SignedIntegerDataTypes, float32_t, \
-    int8_t, int32_t, int64_t, uint8_t
+    int8_t, int16_t, int32_t, int64_t, uint8_t
 from Deeploy.DeeployTypes import CodeTransformation, NodeBinding
 from Deeploy.FutureExtension.Bindings.AutoFutureBinding import AutoFutureBinding
 from Deeploy.FutureExtension.CodeTransformationPasses.FutureCodeTransformation import FutureGeneration
@@ -297,7 +297,7 @@ GAP9UniformRQSBindings = [
         PULPRequantShiftChecker([PointerClass(type), PointerClass(int32_t),
                                  PointerClass(int32_t)], [PointerClass(outType)]),
         UniformRequantShiftTemplate.referenceTemplate, GAP9Transformer)
-    for type in IntegerDataTypes
+    for type in [int8_t, uint8_t, int16_t, int32_t]
     for outType in [int8_t, uint8_t]
 ]
 
