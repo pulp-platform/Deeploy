@@ -89,6 +89,8 @@ This file contains the changelog for the Deeploy project. The changelog is divid
 - Fix GAP9 board tests with `--defaultMemLevel L3` reading garbage inputs: place all gapy `--flash-property` options before the positional subcommand and use `image flash run` so the readfs partition (input hex files) is flashed to the device
 - Fix Deeploy 101 tutorial errors: `--profileTiling` usage and the moved intrinsics inventory path
 - Fix out-of-bounds reads and writes in the PULPOpen uniform RequantShift kernels when the size is not a multiple of 16
+- Fix the PULPOpen and GAP9 uniform RequantShift bindings accepting uint16, uint32 and 64-bit inputs, which have no kernel
+- Fix the undefined rounding term of the PULPOpen uniform RequantShift kernels when `div` is 1
 
 ### Removed
 - removed experimental `enable3x3` flag, from Neureka Engine. Now, 3x3 mode is enabled by default.
